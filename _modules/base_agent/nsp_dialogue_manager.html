@@ -1,0 +1,468 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent.nsp_dialogue_manager &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>base_agent.nsp_dialogue_manager</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_agent.nsp_dialogue_manager</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">spacy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+
+<span class="kn">import</span> <span class="nn">sentry_sdk</span>
+
+<span class="kn">import</span> <span class="nn">preprocess</span>
+
+<span class="kn">from</span> <span class="nn">base_agent.memory_nodes</span> <span class="kn">import</span> <span class="n">ProgramNode</span>
+<span class="kn">from</span> <span class="nn">base_agent.dialogue_manager</span> <span class="kn">import</span> <span class="n">DialogueManager</span>
+<span class="kn">from</span> <span class="nn">base_agent.dialogue_objects</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BotCapabilities</span><span class="p">,</span>
+    <span class="n">BotGreet</span><span class="p">,</span>
+    <span class="n">DialogueObject</span><span class="p">,</span>
+    <span class="n">Say</span><span class="p">,</span>
+    <span class="n">coref_resolve</span><span class="p">,</span>
+    <span class="n">process_spans</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mcevent</span> <span class="kn">import</span> <span class="n">sio</span>
+<span class="kn">from</span> <span class="nn">post_process_logical_form</span> <span class="kn">import</span> <span class="n">post_process_logical_form</span>
+<span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">base_util</span> <span class="kn">import</span> <span class="n">hash_user</span>
+
+<span class="n">sp</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;en_core_web_sm&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="NSPDialogueManager"><a class="viewcode-back" href="../../controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager">[docs]</a><span class="k">class</span> <span class="nc">NSPDialogueManager</span><span class="p">(</span><span class="n">DialogueManager</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dialogue manager driven by neural network</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        dialogue_objects (dict): Dictionary specifying the DialogueObject</span>
+<span class="sd">            class for each dialogue type. Keys are dialogue types. Values are</span>
+<span class="sd">            corresponding class names.</span>
+<span class="sd">            Example:</span>
+<span class="sd">                {</span>
+<span class="sd">                    &quot;interpreter&quot;: MCInterpreter,</span>
+<span class="sd">                    &quot;get_memory&quot;: GetMemoryHandler,</span>
+<span class="sd">                    &quot;put_memory&quot;: ...,</span>
+<span class="sd">                }</span>
+<span class="sd">        botCapabilityQuery (List[str]): Set of commands that trigger</span>
+<span class="sd">            scripted responses.</span>
+<span class="sd">        safety_words (List[str]): Set of blacklisted words or phrases. Commands</span>
+<span class="sd">            containing these are automatically filtered out.</span>
+<span class="sd">        botGreetings (dict): Different types of greetings that trigger</span>
+<span class="sd">            scripted responses.</span>
+<span class="sd">            Example:</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;hello&quot;: [&quot;hi bot&quot;, &quot;hello&quot;]</span>
+<span class="sd">            }</span>
+<span class="sd">        model (TTADBertModel): Semantic Parsing model that takes text as</span>
+<span class="sd">            input and outputs a logical form.</span>
+<span class="sd">            To use a new model here, ensure that the subfolder directory structure</span>
+<span class="sd">            mirrors the current model/dataset directories.</span>
+<span class="sd">        ground_truth_actions (dict): A key-value with ground truth logical forms.</span>
+<span class="sd">            These will be queried first (via exact string match), before running the model.</span>
+<span class="sd">        dialogue_object_parameters (dict): Set the parameters for dialogue objects.</span>
+<span class="sd">            Sets the agent, memory and dialogue stack.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">dialogue_object_classes</span><span class="p">,</span> <span class="n">opts</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">NSPDialogueManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span> <span class="o">=</span> <span class="n">dialogue_object_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">botCapabilityQuery</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;what can you do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;what else can you do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;what do you know&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tell me what you can do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;what things can you do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;what are your capabilities&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;show me what you can do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;what are you capable of&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;help me&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;help&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;do something&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">safety_words_path</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">ground_truth_data_dir</span> <span class="o">+</span> <span class="s2">&quot;safety.txt&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">safety_words_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">safety_words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_safety_words</span><span class="p">(</span><span class="n">safety_words_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">safety_words</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Load bot greetings</span>
+        <span class="n">greetings_path</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">ground_truth_data_dir</span> <span class="o">+</span> <span class="s2">&quot;greetings.json&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">greetings_path</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">greetings_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">botGreetings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">botGreetings</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;hello&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;hi&quot;</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="s2">&quot;hey&quot;</span><span class="p">],</span> <span class="s2">&quot;goodbye&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;bye&quot;</span><span class="p">]}</span>
+
+        <span class="n">models_dir</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">nsp_models_dir</span>
+        <span class="c1"># Instantiate the main model</span>
+        <span class="n">ttad_model_dir</span> <span class="o">=</span> <span class="n">models_dir</span> <span class="o">+</span> <span class="s2">&quot;ttad_bert_updated/&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;using model_dir=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ttad_model_dir</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">nsp_data_dir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">ttad_model_dir</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">ttad.ttad_transformer_model.query_model</span> <span class="kn">import</span> <span class="n">TTADBertModel</span> <span class="k">as</span> <span class="n">Model</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">model_dir</span><span class="o">=</span><span class="n">ttad_model_dir</span><span class="p">,</span> <span class="n">data_dir</span><span class="o">=</span><span class="n">opts</span><span class="o">.</span><span class="n">nsp_data_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug_mode</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth_actions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">opts</span><span class="o">.</span><span class="n">no_ground_truth</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">ground_truth_data_dir</span><span class="p">):</span>
+                <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">ground_truth_data_dir</span> <span class="o">+</span> <span class="s2">&quot;datasets/*.txt&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                            <span class="n">text</span><span class="p">,</span> <span class="n">logical_form</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
+                            <span class="n">clean_text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth_actions</span><span class="p">[</span><span class="n">clean_text</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">logical_form</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;agent&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span>
+            <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span>
+            <span class="s2">&quot;dialogue_stack&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="nd">@sio</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;queryParser&quot;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">query_parser</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;inside query parser.....&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_logical_form</span><span class="p">(</span><span class="n">s</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;chat&quot;</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;action_dict&quot;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span>
+            <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;renderActionDict&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NSPDialogueManager.maybe_get_dialogue_obj"><a class="viewcode-back" href="../../controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager.maybe_get_dialogue_obj">[docs]</a>    <span class="k">def</span> <span class="nf">maybe_get_dialogue_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chat</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DialogueObject</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Process a chat and maybe modify the dialogue stack.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            chat (Tuple[str, str]): Incoming chat from a player.</span>
+<span class="sd">                Format is (speaker, chat), eg. (&quot;player1&quot;, &quot;build a red house&quot;)</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DialogueObject or empty if no action is needed.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">awaiting_response</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># chat is a single line command</span>
+        <span class="n">speaker</span><span class="p">,</span> <span class="n">chatstr</span> <span class="o">=</span> <span class="n">chat</span>
+        <span class="n">preprocessed_chatstrs</span> <span class="o">=</span> <span class="n">preprocess</span><span class="o">.</span><span class="n">preprocess_chat</span><span class="p">(</span><span class="n">chatstr</span><span class="p">)</span>
+
+        <span class="c1"># Push appropriate DialogueObjects to stack if incomign chat</span>
+        <span class="c1"># is one of the scripted ones</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">chat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botCapabilityQuery</span> <span class="k">for</span> <span class="n">chat</span> <span class="ow">in</span> <span class="n">preprocessed_chatstrs</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="n">BotCapabilities</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">greeting_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botGreetings</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">chat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botGreetings</span><span class="p">[</span><span class="n">greeting_type</span><span class="p">]</span> <span class="k">for</span> <span class="n">chat</span> <span class="ow">in</span> <span class="n">preprocessed_chatstrs</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="n">BotGreet</span><span class="p">(</span><span class="n">greeting_type</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
+
+        <span class="c1"># NOTE: preprocessing in model code is different, this shouldn&#39;t break anything</span>
+        <span class="n">logical_form</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_logical_form</span><span class="p">(</span><span class="n">s</span><span class="o">=</span><span class="n">preprocessed_chatstrs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_logical_form</span><span class="p">(</span><span class="n">speaker</span><span class="p">,</span> <span class="n">logical_form</span><span class="p">,</span> <span class="n">preprocessed_chatstrs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="NSPDialogueManager.handle_logical_form"><a class="viewcode-back" href="../../controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager.handle_logical_form">[docs]</a>    <span class="k">def</span> <span class="nf">handle_logical_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">chatstr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DialogueObject</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the appropriate DialogueObject to handle an action dict d</span>
+<span class="sd">        d should have spans filled (via process_spans).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">coref_resolve</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">chatstr</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;logical form post-coref &quot;</span><span class="si">{}</span><span class="s1">&quot; -&gt; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hash_user</span><span class="p">(</span><span class="n">speaker</span><span class="p">),</span> <span class="n">d</span><span class="p">))</span>
+        <span class="n">ProgramNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NOOP&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Say</span><span class="p">(</span><span class="s2">&quot;I don&#39;t know how to answer that.&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HUMAN_GIVE_COMMAND&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span><span class="p">[</span><span class="s2">&quot;interpreter&quot;</span><span class="p">](</span>
+                <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;PUT_MEMORY&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span><span class="p">[</span><span class="s2">&quot;put_memory&quot;</span><span class="p">](</span>
+                <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GET_MEMORY&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;this model out: </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">d</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span><span class="p">[</span><span class="s2">&quot;get_memory&quot;</span><span class="p">](</span>
+                <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Bad dialogue_type=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="NSPDialogueManager.get_logical_form"><a class="viewcode-back" href="../../controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager.get_logical_form">[docs]</a>    <span class="k">def</span> <span class="nf">get_logical_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">chat_as_list</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get logical form output for a given chat command.</span>
+<span class="sd">        First check the ground truth file for the chat string. If not</span>
+<span class="sd">        in ground truth, query semantic parsing model to get the output.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            s (str): Input chat provided by the user.</span>
+<span class="sd">            model (TTADBertModel): Semantic parsing model, pre-trained and loaded</span>
+<span class="sd">                by agent.</span>
+<span class="sd">        Return:</span>
+<span class="sd">            Dict: Logical form representation of the task. See paper for more</span>
+<span class="sd">                in depth explanation of logical forms:</span>
+<span class="sd">                https://arxiv.org/abs/1907.08584</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; get_logical_form(&quot;destroy this&quot;, model)</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;dialogue_type&quot;: &quot;HUMAN_GIVE_COMMAND&quot;,</span>
+<span class="sd">                &quot;action_sequence&quot;: [{</span>
+<span class="sd">                    &quot;action_type&quot;: &quot;DESTROY&quot;,</span>
+<span class="sd">                    &quot;reference_object&quot;: {</span>
+<span class="sd">                        &quot;filters&quot;: {&quot;contains_coreference&quot;: &quot;yes&quot;},</span>
+<span class="sd">                        &quot;text_span&quot;: [0, [1, 1]]</span>
+<span class="sd">                    }</span>
+<span class="sd">                }]</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth_actions</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth_actions</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Found gt action for &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Querying the semantic parsing model&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">chat_as_list</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parse</span><span class="p">([</span><span class="n">s</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">chat</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>  <span class="c1"># self.ttad_model.parse(chat=s)</span>
+
+        <span class="c1"># perform lemmatization on the chat</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;chat before lemmatization &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+        <span class="n">lemmatized_chat</span> <span class="o">=</span> <span class="n">sp</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="n">chat</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">lemma_</span><span class="p">)</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">lemmatized_chat</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;chat after lemmatization &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chat</span><span class="p">))</span>
+
+        <span class="c1"># Get the words from indices in spans</span>
+        <span class="n">process_spans</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot; +&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot; +&quot;</span><span class="p">,</span> <span class="n">chat</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ttad pre-coref &quot;</span><span class="si">{}</span><span class="s1">&quot; -&gt; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chat</span><span class="p">,</span> <span class="n">d</span><span class="p">))</span>
+
+        <span class="c1"># log to sentry</span>
+        <span class="n">sentry_sdk</span><span class="o">.</span><span class="n">capture_message</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ttad_pre_coref&quot;</span><span class="p">,</span> <span class="s2">&quot;in_original&quot;</span><span class="p">:</span> <span class="n">s</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">})</span>
+        <span class="p">)</span>
+        <span class="n">sentry_sdk</span><span class="o">.</span><span class="n">capture_message</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;ttad_pre_coref&quot;</span><span class="p">,</span> <span class="s2">&quot;in_lemmatized&quot;</span><span class="p">:</span> <span class="n">chat</span><span class="p">,</span> <span class="s2">&quot;out&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">})</span>
+        <span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;logical form before grammar update &quot;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">post_process_logical_form</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;logical form after grammar fix &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">d</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

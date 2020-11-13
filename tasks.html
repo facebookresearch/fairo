@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tasks &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Perception" href="perception.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Tasks</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tasks.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tasks">
+<span id="tasks-label"></span><h1>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h1>
+<p>Task objects abstract away the difficulties of actually carrying out the tasks, and allow a uniform interface to the controller and memory across different platforms.</p>
+<p>Task objects define a .step() method; on each iteration through the main agent loop, the Task is stepped, and the Task Stack steps its highest priority Task.
+The Task objects themselves are <em>not</em> generic across agents; and can be heuristic or learned.  In the current droidlet agent controller, they are registered <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/interpreter.py#L76">here</a>, <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_interpreter.py#L78">here</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_interpreter.py#L64">here</a></p>
+<p>The base Task object is</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.task.Task">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.task.</code><code class="sig-name descname">Task</code><a class="reference internal" href="_modules/base_agent/task.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.task.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a Task, the exact implementation of which
+will depend on the framework and environment. A task can be placed on a
+task stack, and represents a unit (which in itself can contain a sequence of s
+smaller subtasks).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>~Task.memid</strong> – Memory id of the task in agent’s memory</p></li>
+<li><p><strong>~Task.interrupted</strong> – A flag indicating whetherr the task has been interrupted</p></li>
+<li><p><strong>~Task.finished</strong> – A flag indicating whether the task finished</p></li>
+<li><p><strong>~Task.name</strong> – Name of the task</p></li>
+<li><p><strong>~Task.undone</strong> – A flag indicating whether the task was undone / reverted</p></li>
+<li><p><strong>~Task.last_stepped_time</strong> – Timestamp of last step through the task</p></li>
+<li><p><strong>~Task.throttling_tick</strong> – The threshold beyond which the task will be throttled</p></li>
+<li><p><strong>~Task.stop_condition</strong> – The condition on which the task will be stopped (by default,
+this is NeverCondition)</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Task</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="base_agent.task.Task.add_child_task">
+<code class="sig-name descname">add_child_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">pass_stop_condition</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/task.html#Task.add_child_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.task.Task.add_child_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a child task to the task_stack and pass along the id
+of the parent task (current task)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.task.Task.check_finished">
+<code class="sig-name descname">check_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/task.html#Task.check_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.task.Task.check_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the task has mark itself finished</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.task.Task.interrupt">
+<code class="sig-name descname">interrupt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/task.html#Task.interrupt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.task.Task.interrupt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interrupt the task and set the flag</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.task.Task.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/task.html#Task.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.task.Task.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual execution of a single step of the task is defined here.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<p>The Task Stack is maintained by the Memory system, and provides methods for examining and manipulating Task Objects</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="perception.html" class="btn btn-neutral float-left" title="Perception" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

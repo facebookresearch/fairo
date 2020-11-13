@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent.task &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>base_agent.task</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_agent.task</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">condition</span> <span class="kn">import</span> <span class="n">NeverCondition</span>
+
+<span class="n">DEFAULT_THROTTLING_TICK</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">THROTTLING_TICK_UPPER_LIMIT</span> <span class="o">=</span> <span class="mi">64</span>
+<span class="n">THROTTLING_TICK_LOWER_LIMIT</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="c1"># put a counter and a max_count so can&#39;t get stuck?</span>
+<div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../tasks.html#base_agent.task.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a Task, the exact implementation of which </span>
+<span class="sd">    will depend on the framework and environment. A task can be placed on a </span>
+<span class="sd">    task stack, and represents a unit (which in itself can contain a sequence of s</span>
+<span class="sd">    smaller subtasks).</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        memid: Memory id of the task in agent&#39;s memory</span>
+<span class="sd">        interrupted: A flag indicating whetherr the task has been interrupted</span>
+<span class="sd">        finished: A flag indicating whether the task finished </span>
+<span class="sd">        name: Name of the task</span>
+<span class="sd">        undone: A flag indicating whether the task was undone / reverted</span>
+<span class="sd">        last_stepped_time: Timestamp of last step through the task</span>
+<span class="sd">        throttling_tick: The threshold beyond which the task will be throttled</span>
+<span class="sd">        stop_condition: The condition on which the task will be stopped (by default,</span>
+<span class="sd">                        this is NeverCondition)</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; Task()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memid</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interrupted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">undone</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_stepped_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">=</span> <span class="n">DEFAULT_THROTTLING_TICK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_condition</span> <span class="o">=</span> <span class="n">NeverCondition</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Task.step"><a class="viewcode-back" href="../../tasks.html#base_agent.task.Task.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The actual execution of a single step of the task is defined here.&quot;&quot;&quot;</span>
+        <span class="c1"># todo? make it so something stopped by condition can be resumed?</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_condition</span><span class="o">.</span><span class="n">check</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="Task.add_child_task"><a class="viewcode-back" href="../../tasks.html#base_agent.task.Task.add_child_task">[docs]</a>    <span class="k">def</span> <span class="nf">add_child_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">pass_stop_condition</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a child task to the task_stack and pass along the id </span>
+<span class="sd">        of the parent task (current task)&quot;&quot;&quot;</span>
+        <span class="c1"># FIXME, this is ugly and dangerous; some conditions might keep state etc?</span>
+        <span class="k">if</span> <span class="n">pass_stop_condition</span><span class="p">:</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">stop_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_condition</span>
+        <span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_push</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">parent_memid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Task.interrupt"><a class="viewcode-back" href="../../tasks.html#base_agent.task.Task.interrupt">[docs]</a>    <span class="k">def</span> <span class="nf">interrupt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Interrupt the task and set the flag&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interrupted</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Task.check_finished"><a class="viewcode-back" href="../../tasks.html#base_agent.task.Task.check_finished">[docs]</a>    <span class="k">def</span> <span class="nf">check_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if the task has mark itself finished&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span></div>
+
+    <span class="k">def</span> <span class="nf">hurry_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Speed up the task execution&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">/=</span> <span class="mi">4</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">&lt;</span> <span class="n">THROTTLING_TICK_LOWER_LIMIT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">=</span> <span class="n">THROTTLING_TICK_LOWER_LIMIT</span>
+
+    <span class="k">def</span> <span class="nf">slow_down</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Slow down task execution&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">*=</span> <span class="mi">4</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">&gt;</span> <span class="n">THROTTLING_TICK_UPPER_LIMIT</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">throttling_tick</span> <span class="o">=</span> <span class="n">THROTTLING_TICK_UPPER_LIMIT</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

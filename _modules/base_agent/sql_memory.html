@@ -1,0 +1,1260 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent.sql_memory &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>base_agent.sql_memory</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_agent.sql_memory</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">###TODO put dances back</span>
+<span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">zip_longest</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">base_agent.base_util</span> <span class="kn">import</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">Time</span>
+<span class="kn">from</span> <span class="nn">base_agent.task</span> <span class="kn">import</span> <span class="n">Task</span>
+<span class="kn">from</span> <span class="nn">base_agent.memory_filters</span> <span class="kn">import</span> <span class="n">BasicMemorySearcher</span>
+
+<span class="kn">from</span> <span class="nn">base_agent.memory_nodes</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># noqa</span>
+    <span class="n">TaskNode</span><span class="p">,</span>
+    <span class="n">PlayerNode</span><span class="p">,</span>
+    <span class="n">MemoryNode</span><span class="p">,</span>
+    <span class="n">ChatNode</span><span class="p">,</span>
+    <span class="n">TimeNode</span><span class="p">,</span>
+    <span class="n">LocationNode</span><span class="p">,</span>
+    <span class="n">ReferenceObjectNode</span><span class="p">,</span>
+    <span class="n">NamedAbstractionNode</span><span class="p">,</span>
+    <span class="n">NODELIST</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="n">SCHEMAS</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;memory_schema.sql&quot;</span><span class="p">)]</span>
+
+<span class="c1"># TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness</span>
+
+
+<div class="viewcode-block" id="AgentMemory"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory">[docs]</a><span class="k">class</span> <span class="nc">AgentMemory</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This class represents agent&#39;s memory and can be extended to add more </span>
+<span class="sd">    capabilities based on the agent&#39;s framework.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        db_file: The database file</span>
+<span class="sd">        schema_path: Path to the file containing the database schema</span>
+<span class="sd">        db_log_path: Path to where the database logs will be written</span>
+<span class="sd">        nodelist: List of memory nodes</span>
+<span class="sd">        agent_time: Current time set by the agent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">db_file</span><span class="o">=</span><span class="s2">&quot;:memory:&quot;</span><span class="p">,</span>
+        <span class="n">schema_paths</span><span class="o">=</span><span class="n">SCHEMAS</span><span class="p">,</span>
+        <span class="n">db_log_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">nodelist</span><span class="o">=</span><span class="n">NODELIST</span><span class="p">,</span>
+        <span class="n">agent_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">db_log_path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">db_log_path</span> <span class="o">+</span> <span class="s2">&quot;.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">db_file</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">db_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">db_file</span><span class="p">,</span> <span class="n">check_same_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_db</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_safe_pickle_saved_attrs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_time_interface</span><span class="p">(</span><span class="n">agent_time</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">schema_path</span> <span class="ow">in</span> <span class="n">schema_paths</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">schema_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_db_script</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_tables</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM sqlite_master WHERE type=&#39;table&#39;;&quot;</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodelist</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+
+        <span class="c1"># create a &quot;self&quot; memory to reference in Triples</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span> <span class="o">=</span> <span class="s2">&quot;0&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Memories VALUES (?,?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;Self&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;_agent&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span> <span class="s2">&quot;_self&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">basic_searcher</span> <span class="o">=</span> <span class="n">BasicMemorySearcher</span><span class="p">(</span><span class="n">self_memid</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Close the database file&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_db_log_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">init_time_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialiaze the current time in memory</span>
+<span class="sd">        Args:</span>
+<span class="sd">            agent_time: value of time from agent process</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">agent_time</span> <span class="ow">or</span> <span class="n">Time</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AgentMemory.get_time"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get current time</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: current time from memory</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AgentMemory.get_world_time"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_world_time">[docs]</a>    <span class="k">def</span> <span class="nf">get_world_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the current time in game world</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: current time in the environment world</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">get_world_time</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">add_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a tick to time to increment it</span>
+<span class="sd">        Args:</span>
+<span class="sd">            ticks: number of ticks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">add_tick</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
+
+    <span class="c1"># TODO list of all &quot;updatable&quot; mems, do a mem.update() ?</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="c1">########################</span>
+    <span class="c1">### Workspace memory ###</span>
+    <span class="c1">########################</span>
+
+    <span class="k">def</span> <span class="nf">set_memory_updated_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;Set the updated_time of the memory object with given memid</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of affected rows</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; set_memory_updated_time(memid)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;UPDATE Memories SET updated_time=? WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_memory_attended_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;Set the attended_time of the memory object with given memid</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of affected rows</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; set_memory_attended_time(memid)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;UPDATE Memories SET attended_time=? WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_recent_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mems</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;Update memories in mems as recently attended</span>
+<span class="sd">        Args:</span>
+<span class="sd">            mems: List of memories </span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; mems = [&#39;10517cc584844659907ccfa6161e9d32&#39;, </span>
+<span class="sd">                        &#39;3493128492859dfksdfhs34839458934&#39;]</span>
+<span class="sd">            &gt;&gt;&gt; update_recent_entities(mems)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;update_recent_entities </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mems</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">mem</span> <span class="ow">in</span> <span class="n">mems</span><span class="p">:</span>
+            <span class="n">mem</span><span class="o">.</span><span class="n">update_recently_attended</span><span class="p">()</span>
+
+    <span class="c1"># for now, no archives in recent entities</span>
+<div class="viewcode-block" id="AgentMemory.get_recent_entities"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_recent_entities">[docs]</a>    <span class="k">def</span> <span class="nf">get_recent_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memtype</span><span class="p">,</span> <span class="n">time_window</span><span class="o">=</span><span class="mi">12000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;MemoryNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get all entities of given memtype that were recently (within the </span>
+<span class="sd">        time window) attended </span>
+<span class="sd">        Args:</span>
+<span class="sd">            memtype: The node type of memory</span>
+<span class="sd">            time_window: The time window for maintaining recency window from current time</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[MemoryNode]: list of MemoryNode objects</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; memtype = &#39;Player&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_recent_entities(memtype)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;SELECT uuid</span>
+<span class="sd">            FROM Memories</span>
+<span class="sd">            WHERE node_type=? AND attended_time &gt;= ? and is_snapshot=0</span>
+<span class="sd">            ORDER BY attended_time DESC&quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="n">memtype</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">time_window</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_mem_by_id</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="n">memtype</span><span class="p">)</span> <span class="k">for</span> <span class="n">memid</span><span class="p">,</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span></div>
+
+    <span class="c1">###############</span>
+    <span class="c1">### General ###</span>
+    <span class="c1">###############</span>
+
+    <span class="k">def</span> <span class="nf">get_node_from_memid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given the memid, return the node type</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: The node type of memory node</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_node_from_memid(memid)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">(</span><span class="n">r</span><span class="p">,)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT node_type FROM Memories WHERE uuid=?&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">r</span>
+
+<div class="viewcode-block" id="AgentMemory.get_mem_by_id"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_mem_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_mem_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;MemoryNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given the memid and an optional node_type, </span>
+<span class="sd">        return the memory node</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">            node_type: the type of memory node</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            MemoryNode: a memory node object</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; node_type = &#39;Chat&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_mem_by_id(memid, node_type)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">node_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">node_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_from_memid</span><span class="p">(</span><span class="n">memid</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">node_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">MemoryNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_type</span><span class="p">,</span> <span class="n">MemoryNode</span><span class="p">)(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span></div>
+
+    <span class="c1"># does not search archived mems for now</span>
+    <span class="k">def</span> <span class="nf">get_all_tagged_mems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;MemoryNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of memory nodes that have the given tag</span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag: A string representing the tag or description assigned to a memory</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[MemoryNode]: List of MemoryNode objects</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; tag = &#39;bright&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_all_tagged_mems(tag)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_memids_by_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_mem_by_id</span><span class="p">(</span><span class="n">memid</span><span class="p">)</span> <span class="k">for</span> <span class="n">memid</span> <span class="ow">in</span> <span class="n">memids</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">check_memid_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given the table and memid, check if an entry exists</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memind: Memory id</span>
+<span class="sd">            table: Name of table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: whther an object with the memory id exists</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; table = &#39;ReferenceObjects&#39;</span>
+<span class="sd">            &gt;&gt;&gt; check_memid_exists(memid, table)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM </span><span class="si">{}</span><span class="s2"> WHERE uuid=?&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table</span><span class="p">),</span> <span class="n">memid</span><span class="p">))</span>
+
+    <span class="c1"># TODO forget should be a method of the memory object</span>
+<div class="viewcode-block" id="AgentMemory.forget"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.forget">[docs]</a>    <span class="k">def</span> <span class="nf">forget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Forget a given memid from memory</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory id </span>
+<span class="sd">            hard: flag indicating whether it is a hard delete</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; forget(memid, hard=False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hard</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="s2">&quot;_forgotten&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;DELETE FROM Memories WHERE uuid=?&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+            <span class="c1"># TODO this less brutally.  might want to remember some</span>
+            <span class="c1"># triples where the subject or object has been removed</span>
+            <span class="c1"># eventually we might have second-order relations etc, this could set</span>
+            <span class="c1"># off a chain reaction</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_memid_triple</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.basic_search"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.basic_search">[docs]</a>    <span class="k">def</span> <span class="nf">basic_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Perform a basic search using the filter_dict</span>
+<span class="sd">        Args:</span>
+<span class="sd">            filter_dict: A dictionary indicating values that the memory should be filtered on</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[MemoryNode]: A list of MemoryNode objects.</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; filters_dict = {&quot;base_table&quot; : &quot;ReferenceObject&quot;, </span>
+<span class="sd">                                &quot;triples&quot; : [{&quot;pred_text&quot; : &quot;has_name&quot;, </span>
+<span class="sd">                                              &quot;obj_text&quot; : &quot;house&quot;}]}</span>
+<span class="sd">            &gt;&gt;&gt; basic_search(filters_dict)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">basic_searcher</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_data</span><span class="o">=</span><span class="n">filter_dict</span><span class="p">)</span></div>
+
+    <span class="c1">#################</span>
+    <span class="c1">###  Triples  ###</span>
+    <span class="c1">#################</span>
+
+    <span class="c1"># TODO should add a MemoryNode and a .create()</span>
+<div class="viewcode-block" id="AgentMemory.add_triple"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.add_triple">[docs]</a>    <span class="k">def</span> <span class="nf">add_triple</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">subj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>  <span class="c1"># this is a memid if given</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>  <span class="c1"># this is a memid if given</span>
+        <span class="n">subj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">pred_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;has_tag&quot;</span><span class="p">,</span>
+        <span class="n">obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds (subj, pred, obj) triple to the triplestore.</span>
+<span class="sd">            *_text is the name field of a NamedAbstraction; if</span>
+<span class="sd">            such a NamedAbstraction does not exist, this builds it as a side effect.</span>
+<span class="sd">            subj and obj can be memids or text, but pred_text is required </span>
+<span class="sd">        Args:</span>
+<span class="sd">            subj: memid of subject</span>
+<span class="sd">            obj: memid of object</span>
+<span class="sd">            subj_text: text representation for subject</span>
+<span class="sd">            pred_text: predicate text</span>
+<span class="sd">            obj_text: text representation for object</span>
+<span class="sd">            confidence: The confidence score for the triple</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: number of rows affected</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; obj_text = &#39;blue&#39;</span>
+<span class="sd">            &gt;&gt;&gt; pred_text = &quot;has_colour&quot;</span>
+<span class="sd">            &gt;&gt;&gt; add_triple(subj=subj, pred_text=pred_text, obj_text=obj_text)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">subj</span> <span class="ow">or</span> <span class="n">subj_text</span>
+        <span class="k">assert</span> <span class="n">obj</span> <span class="ow">or</span> <span class="n">obj_text</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">subj</span> <span class="ow">and</span> <span class="n">subj_text</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">obj</span> <span class="ow">and</span> <span class="n">obj_text</span><span class="p">)</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">NamedAbstractionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">NamedAbstractionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">subj</span><span class="p">:</span>
+            <span class="n">subj</span> <span class="o">=</span> <span class="n">NamedAbstractionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">subj_text</span><span class="p">:</span>
+            <span class="n">subj_text</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># noqa T484</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj_text</span><span class="p">:</span>
+            <span class="n">obj_text</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># noqa T484</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">subj</span><span class="p">,</span>
+            <span class="n">subj_text</span><span class="p">,</span>
+            <span class="n">pred</span><span class="p">,</span>
+            <span class="n">pred_text</span><span class="p">,</span>
+            <span class="n">obj</span><span class="p">,</span>
+            <span class="n">obj_text</span><span class="p">,</span>
+            <span class="n">confidence</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.tag"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.tag">[docs]</a>    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Tag the subject with tag text.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            subj_memid: memid of subject</span>
+<span class="sd">            tag_text: string representation of the tag </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: number of rows affected</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tag_text = &quot;shiny&quot;</span>
+<span class="sd">            &gt;&gt;&gt; tag(subj_memid, tag_text)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">subj_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_tag&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">tag_text</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.untag"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.untag">[docs]</a>    <span class="k">def</span> <span class="nf">untag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete tag for subject</span>
+<span class="sd">        Args:</span>
+<span class="sd">            subj_memid: memid of subject</span>
+<span class="sd">            tag_text: string representation of the tag </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: number of rows affected</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; tag_text = &quot;shiny&quot;</span>
+<span class="sd">            &gt;&gt;&gt; untag(subj_memid, tag_text)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s1">&#39;DELETE FROM Triples WHERE subj=? AND pred_text=&quot;has_tag&quot; AND obj_text=?&#39;</span><span class="p">,</span>
+            <span class="n">subj_memid</span><span class="p">,</span>
+            <span class="n">tag_text</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+    <span class="c1"># does not search archived mems for now</span>
+    <span class="c1"># assumes tag is tag text</span>
+<div class="viewcode-block" id="AgentMemory.get_memids_by_tag"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_memids_by_tag">[docs]</a>    <span class="k">def</span> <span class="nf">get_memids_by_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Find all memids with a given tag</span>
+<span class="sd">        Args:</span>
+<span class="sd">            tag: string representation of the tag </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[string]: list of memory ids (which are strings)</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; tag = &quot;round&quot;</span>
+<span class="sd">            &gt;&gt;&gt; get_memids_by_tag(tag)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span>
+            <span class="s1">&#39;SELECT DISTINCT(Memories.uuid) FROM Memories INNER JOIN Triples as T ON T.subj=Memories.uuid WHERE T.pred_text=&quot;has_tag&quot; AND T.obj_text=? AND Memories.is_snapshot=0&#39;</span><span class="p">,</span>
+            <span class="n">tag</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="nf">get_tags_by_memid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">return_text</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Find all tag for a given memid</span>
+<span class="sd">        Args:</span>
+<span class="sd">            subj_memid: the subject&#39;s memid (uuid from Memories table)</span>
+<span class="sd">            return_text: if true, return the object text, otherwise return object memid</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[string]: list of tags.</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_tags_by_memid(subj_memid=subj_memid, return_text=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">return_text</span><span class="p">:</span>
+            <span class="n">return_clause</span> <span class="o">=</span> <span class="s2">&quot;obj_text&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">return_clause</span> <span class="o">=</span> <span class="s2">&quot;obj&quot;</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;SELECT DISTINCT(&quot;</span>
+            <span class="o">+</span> <span class="n">return_clause</span>
+            <span class="o">+</span> <span class="s1">&#39;) FROM Triples WHERE pred_text=&quot;has_tag&quot; AND subj=?&#39;</span>
+        <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+
+    <span class="c1"># does not search archived mems for now</span>
+    <span class="c1"># TODO clean up input?</span>
+<div class="viewcode-block" id="AgentMemory.get_triples"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_triples">[docs]</a>    <span class="k">def</span> <span class="nf">get_triples</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">subj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">subj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pred_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;if_exists&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot; gets triples from the triplestore.</span>
+<span class="sd">        subj is always returned as a memid even when searched as text.</span>
+<span class="sd">        need at least one non-None part of the triple, and</span>
+<span class="sd">        text should not not be input for a part of a triple where a memid is set.</span>
+<span class="sd">        Args:</span>
+<span class="sd">            subj: memid of subject</span>
+<span class="sd">            obj: memid of object</span>
+<span class="sd">            subj_text: text of the subject (if applicable, as opposed to subject memid)</span>
+<span class="sd">            pred_text: text of the predicate</span>
+<span class="sd">            obj_text: text of the subject (if applicable, as opposed to subject memid)</span>
+<span class="sd">            return_obj_text: if return_obj_text == &quot;if_exists&quot;, will return the obj_text</span>
+<span class="sd">                             if it exists, and the memid otherwise. If return_obj_text </span>
+<span class="sd">                             == &quot;always&quot;, returns the obj_text even if it is None. If </span>
+<span class="sd">                             return_obj_text == &quot;never&quot;, returns the obj memid.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[tuple]: A list of tuples of the form : (subject, predicate, object)</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; subj = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; obj_text = &#39;blue&#39;</span>
+<span class="sd">            &gt;&gt;&gt; pred_text = &quot;has_colour&quot;</span>
+<span class="sd">            &gt;&gt;&gt; get_triples(subj=subj, pred_text=pred_text, obj_text=obj_text)        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">any</span><span class="p">([</span><span class="n">subj</span> <span class="ow">or</span> <span class="n">subj_text</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">or</span> <span class="n">obj_text</span><span class="p">])</span>
+        <span class="c1"># search by memid or by text, but not both</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">subj</span> <span class="ow">and</span> <span class="n">subj_text</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">obj</span> <span class="ow">and</span> <span class="n">obj_text</span><span class="p">)</span>
+        <span class="n">pairs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;subj&quot;</span><span class="p">,</span> <span class="n">subj</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;subj_text&quot;</span><span class="p">,</span> <span class="n">subj_text</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;pred_text&quot;</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;obj&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;obj_text&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;=?&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">where</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">where_clause</span> <span class="o">=</span> <span class="n">where</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">where_clause</span> <span class="o">=</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
+        <span class="n">return_clause</span> <span class="o">=</span> <span class="s2">&quot;subj, pred_text, obj, obj_text &quot;</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;SELECT &quot;</span>
+            <span class="o">+</span> <span class="n">return_clause</span>
+            <span class="o">+</span> <span class="s2">&quot;FROM Triples INNER JOIN Memories as M ON Triples.subj=M.uuid WHERE M.is_snapshot=0 AND &quot;</span>
+            <span class="o">+</span> <span class="n">where_clause</span>
+        <span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="c1"># subj is always returned as memid, even if pred and obj are returned as text</span>
+        <span class="c1"># pred is always returned as text</span>
+        <span class="k">if</span> <span class="n">return_obj_text</span> <span class="o">==</span> <span class="s2">&quot;if_exists&quot;</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="k">if</span> <span class="n">ot</span> <span class="k">else</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">return_obj_text</span> <span class="o">==</span> <span class="s2">&quot;always&quot;</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="p">[(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">pt</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">ot</span><span class="p">)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">l</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.remove_memid_triple"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.remove_memid_triple">[docs]</a>    <span class="k">def</span> <span class="nf">remove_memid_triple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;subj&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete the triple corresponding to the given memid</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memid of subject or object</span>
+<span class="sd">            role: String that determines whether the memid is for subject or</span>
+<span class="sd">                  object</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of affected rows</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; remove_memid_triple(memid=memid, role=&quot;obj&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;subj&quot;</span> <span class="ow">or</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;DELETE FROM Triples WHERE subj=?&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;obj&quot;</span> <span class="ow">or</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;DELETE FROM Triples WHERE obj=?&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span></div>
+
+    <span class="c1">###############</span>
+    <span class="c1">###  Chats  ###</span>
+    <span class="c1">###############</span>
+
+    <span class="k">def</span> <span class="nf">add_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chat</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a new chatNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            speaker_memid: memory ID of speaker</span>
+<span class="sd">            chat: text representing chat</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ChatNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker_memid</span><span class="p">,</span> <span class="n">chat</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_chat_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ChatNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return ChatNode, given memid</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_recent_chats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ChatNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of at most n chats</span>
+<span class="sd">        Args:</span>
+<span class="sd">            n: number of recent chats</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">get_most_recent_incoming_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">after</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;ChatNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get the most recent chat that came in since &#39;after&#39;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            after: Marks the beginning of time window (from now)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT uuid</span>
+<span class="sd">            FROM Chats</span>
+<span class="sd">            WHERE speaker != ? AND time &gt;= ?</span>
+<span class="sd">            ORDER BY time DESC</span>
+<span class="sd">            LIMIT 1</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">self_memid</span><span class="p">,</span>
+            <span class="n">after</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1">#################</span>
+    <span class="c1">###  Players  ###</span>
+    <span class="c1">#################</span>
+
+    <span class="c1"># TODO consolidate anything using eid</span>
+    <span class="k">def</span> <span class="nf">get_player_by_eid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Given eid, retrieve PlayerNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            eid: Entity ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM ReferenceObjects WHERE eid=?&quot;</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PlayerNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># TODO get all if there are more than one?</span>
+    <span class="k">def</span> <span class="nf">get_player_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Given player name, retrieve PlayerNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            name: Player name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s1">&#39;SELECT uuid FROM ReferenceObjects WHERE ref_type=&quot;player&quot; AND name=?&#39;</span><span class="p">,</span> <span class="n">name</span>
+        <span class="p">)</span>
+        <span class="c1">#        r = self._db_read_one(&quot;SELECT uuid FROM Players WHERE name=?&quot;, name)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">PlayerNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">get_players_tagged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">tags</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Given a list of tags, retrieve all players with the tags</span>
+<span class="sd">        Args:</span>
+<span class="sd">            tags: list of tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tags</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;_player&quot;</span><span class="p">,)</span>
+        <span class="n">memids</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_memids_by_tag</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_player_by_id</span><span class="p">(</span><span class="n">memid</span><span class="p">)</span> <span class="k">for</span> <span class="n">memid</span> <span class="ow">in</span> <span class="n">memids</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">get_player_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PlayerNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given memid, retrieve PlayerNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: memory ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">PlayerNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="c1">###################</span>
+    <span class="c1">###  Locations  ###</span>
+    <span class="c1">###################</span>
+
+    <span class="k">def</span> <span class="nf">add_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a new LocationNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            xyz: XYZ coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">LocationNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_location_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocationNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given memory ID, retrieve LocationNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">LocationNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="c1">###############</span>
+    <span class="c1">###  Times  ###</span>
+    <span class="c1">###############</span>
+
+    <span class="k">def</span> <span class="nf">add_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a new TimeNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            t: time value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">TimeNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_time_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TimeNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given memid, retrieve TimeNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">TimeNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="c1">#    ###############</span>
+    <span class="c1">#    ###  Sets   ###</span>
+    <span class="c1">#    ###############</span>
+    <span class="c1">#</span>
+    <span class="c1">#    def add_set(self, memid_list):</span>
+    <span class="c1">#        set_memid = SetNode.create(self)</span>
+    <span class="c1">#        self.add_objs_to_set(set_memid, memid_list)</span>
+    <span class="c1">#        return SetNode(self, set_memid)</span>
+    <span class="c1">#</span>
+    <span class="c1">#    def add_objs_to_set(self, set_memid, memid_list):</span>
+    <span class="c1">#        for mid in memid_list:</span>
+    <span class="c1">#            self.add_triple(mid, &quot;set_member_&quot;, set_memid)</span>
+
+    <span class="c1">###############</span>
+    <span class="c1">###  Tasks  ###</span>
+    <span class="c1">###############</span>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_push"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_push">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_push</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">,</span> <span class="n">parent_memid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">chat_effect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TaskNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a task object in memory, add triples and add to task stack</span>
+<span class="sd">        Args:</span>
+<span class="sd">            task: The task to be pushed</span>
+<span class="sd">            parent_memid: Memory ID of the task&#39;s parent</span>
+<span class="sd">            chat_effect: If the task was a result of a chat, add the triple.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; task = Move(agent, {&quot;target&quot;: pos_to_np([0, 0 , 0]), &quot;approx&quot; : 3})</span>
+<span class="sd">            &gt;&gt;&gt; parent_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; task_stack_push(task, parent_memid)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">memid</span> <span class="o">=</span> <span class="n">TaskNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+        <span class="c1"># Relations</span>
+        <span class="k">if</span> <span class="n">parent_memid</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">parent_memid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chat_effect</span><span class="p">:</span>
+            <span class="n">chat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">()</span>
+            <span class="k">assert</span> <span class="n">chat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;chat_effect=True with no incoming chats&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">chat</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">memid</span><span class="p">)</span>
+
+        <span class="c1"># Return newly created object</span>
+        <span class="k">return</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_update_task"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_update_task">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_update_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update task in memory</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">            task: The task object</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of rows affected</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; task = Move(agent, {&quot;target&quot;: pos_to_np([0, 12, 0]), &quot;approx&quot; : 3})</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; task_stack_update_task(task, parent_memid)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;UPDATE Tasks SET pickled=? WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">safe_pickle</span><span class="p">(</span><span class="n">task</span><span class="p">),</span> <span class="n">memid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_peek"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_peek">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_peek</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the top of task stack</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            TaskNode: TaskNode object or None</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; task_stack_peek()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT uuid</span>
+<span class="sd">            FROM Tasks</span>
+<span class="sd">            WHERE finished_at &lt; 0 AND paused = 0</span>
+<span class="sd">            ORDER BY created_at DESC</span>
+<span class="sd">            LIMIT 1</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_pop"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_pop">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_pop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the &#39;TaskNode&#39; of the stack head and mark finished</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            TaskNode: An object of type TaskNode</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; task_stack_pop()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_peek</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">mem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Called task_stack_pop with empty stack&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;UPDATE Tasks SET finished_at=? WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span> <span class="n">mem</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mem</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_pause"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_pause">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_pause</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Pause the stack and return True iff anything was stopped</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of rows affected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;UPDATE Tasks SET paused=1 WHERE finished_at &lt; 0&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_clear"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_clear">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Clear the task stack</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of rows affected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;DELETE FROM Tasks WHERE finished_at &lt; 0&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_resume"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_resume">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_resume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Resume stopped tasks. Return True if there was something to resume.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of rows affected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;UPDATE Tasks SET paused=0&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_find_lowest_instance"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_find_lowest_instance">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_find_lowest_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">cls_names</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Find and return the lowest item in the stack of the given class(es)</span>
+<span class="sd">        Args:</span>
+<span class="sd">            cls_names: Class names of tasks</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; cls_names = &#39;Move&#39;</span>
+<span class="sd">            &gt;&gt;&gt; task_stack_find_lowest_instance(cls_names)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">cls_names</span><span class="p">]</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">cls_names</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span> <span class="k">else</span> <span class="n">cls_names</span>
+        <span class="p">(</span><span class="n">memid</span><span class="p">,)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT uuid FROM Tasks WHERE </span><span class="si">{}</span><span class="s2"> ORDER BY created_at LIMIT 1&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="s2">&quot; OR &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;action_name=?&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">names</span><span class="p">])</span>
+            <span class="p">),</span>
+            <span class="o">*</span><span class="n">names</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">memid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="AgentMemory.task_stack_get_all"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_get_all">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get all tasks from the stack</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[TaskNode]: List of TaskNode objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT uuid</span>
+<span class="sd">            FROM Tasks</span>
+<span class="sd">            WHERE paused=0 AND finished_at&lt;0</span>
+<span class="sd">            ORDER BY created_at</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span> <span class="k">for</span> <span class="n">memid</span><span class="p">,</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AgentMemory.get_last_finished_root_task"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_last_finished_root_task">[docs]</a>    <span class="k">def</span> <span class="nf">get_last_finished_root_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">recency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get last task that was successfully finished </span>
+<span class="sd">        Args:</span>
+<span class="sd">            action_name: Name of action associated with task</span>
+<span class="sd">            recency: How recent should the task be</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; action_name = &quot;BUILD&quot;</span>
+<span class="sd">            &gt;&gt;&gt; get_last_finished_root_task (action_name=action_name)   </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        SELECT uuid</span>
+<span class="s2">        FROM Tasks</span>
+<span class="s2">        WHERE finished_at &gt;= ? </span><span class="si">{}</span><span class="s2"></span>
+<span class="s2">        ORDER BY created_at DESC</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="s2">&quot; AND action_name=?&quot;</span> <span class="k">if</span> <span class="n">action_name</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">recency</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">recency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">round_time</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span>
+        <span class="n">args</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span> <span class="o">-</span> <span class="n">recency</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">action_name</span><span class="p">:</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action_name</span><span class="p">)</span>
+        <span class="n">memids</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">memid</span> <span class="ow">in</span> <span class="n">memids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+                <span class="s2">&quot;SELECT uuid FROM Triples WHERE pred_text=&#39;_has_parent_task&#39; AND subj=?&quot;</span><span class="p">,</span> <span class="n">memid</span>
+            <span class="p">):</span>
+                <span class="c1"># not a root task</span>
+                <span class="k">continue</span>
+
+            <span class="k">return</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span></div>
+
+    <span class="c1">#        raise ValueError(&quot;Called get_last_finished_root_task with no finished root tasks&quot;)</span>
+
+<div class="viewcode-block" id="AgentMemory.get_task_by_id"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_task_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_task_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TaskNode&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Given the memid, retrieve the TaskNode</span>
+<span class="sd">        Args:</span>
+<span class="sd">            memid: Memory ID</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; get_task_by_id(memid = memid)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span></div>
+
+    <span class="c1">#################</span>
+    <span class="c1">###   Time    ###</span>
+    <span class="c1">#################</span>
+
+    <span class="k">def</span> <span class="nf">hurry_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Speed up a task&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_peek</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="c1"># send chat?</span>
+        <span class="n">task_mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_peek</span><span class="p">()</span>
+        <span class="n">task_mem</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">hurry_up</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_update_task</span><span class="p">(</span><span class="n">task_mem</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">task_mem</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">slow_down</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Slow down the execution of a task&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_peek</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="c1"># send chat?</span>
+        <span class="n">task_mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_peek</span><span class="p">()</span>
+        <span class="n">task_mem</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="n">slow_down</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_stack_update_task</span><span class="p">(</span><span class="n">task_mem</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">task_mem</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+
+    <span class="c1">#########################</span>
+    <span class="c1">###  Database Access  ###</span>
+    <span class="c1">#########################</span>
+
+<div class="viewcode-block" id="AgentMemory._db_read"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory._db_read">[docs]</a>    <span class="k">def</span> <span class="nf">_db_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return all entries returned from running the query against</span>
+<span class="sd">        the database</span>
+<span class="sd">        Args:</span>
+<span class="sd">            query: The query to be run against the database</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            list[tuple]: a list of tuples satisfying the query</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; query = &quot;SELECT uuid FROM Memories WHERE node_type=?&quot;,</span>
+<span class="sd">            &gt;&gt;&gt; args = &#39;Chat&#39;</span>
+<span class="sd">            &gt;&gt;&gt; _db_read(query, args)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">query</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">r</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Bad read: </span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+            <span class="k">raise</span></div>
+
+    <span class="k">def</span> <span class="nf">_db_read_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return one entry returned from running the query against</span>
+<span class="sd">        the database</span>
+<span class="sd">        Args:</span>
+<span class="sd">            query: The query to be run against the database</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: a single record or None</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; query = &quot;SELECT uuid FROM Memories WHERE node_type=?&quot;,</span>
+<span class="sd">            &gt;&gt;&gt; args = &#39;Chat&#39;</span>
+<span class="sd">            &gt;&gt;&gt; _db_read_one(query, args)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">query</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">r</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Bad read: </span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+            <span class="k">raise</span>
+
+<div class="viewcode-block" id="AgentMemory._db_write"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory._db_write">[docs]</a>    <span class="k">def</span> <span class="nf">_db_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the number of rows affected</span>
+<span class="sd">        Args:</span>
+<span class="sd">            query: The query to be run against the database</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of rows affected</span>
+<span class="sd">        Examples ::</span>
+<span class="sd">            &gt;&gt;&gt; query = &quot;UPDATE Memories SET uuid=?&quot;</span>
+<span class="sd">            &gt;&gt;&gt; args = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">            &gt;&gt;&gt; _db_write(query, args)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">query</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">sql_queries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_write_to_db_log</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">rowcount</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Bad write: </span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+            <span class="k">raise</span></div>
+
+    <span class="k">def</span> <span class="nf">_db_script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Execute a script against the database</span>
+<span class="sd">        Args:</span>
+<span class="sd">            script: the script to be run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_write_to_db_log</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">no_format</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">####################</span>
+    <span class="c1">###  DB LOGGING  ###</span>
+    <span class="c1">####################</span>
+
+    <span class="k">def</span> <span class="nf">get_db_log_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return log index for database&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_idx</span>
+
+    <span class="k">def</span> <span class="nf">_write_to_db_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">no_format</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write to database log file</span>
+<span class="sd">        Args:</span>
+<span class="sd">            s: query </span>
+<span class="sd">            args: Arguments</span>
+<span class="sd">            no_format: no formatting needed </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_db_log_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># sub args in for ?</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
+        <span class="n">final</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">zip_longest</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">fillvalue</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="n">final</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span> <span class="ow">and</span> <span class="n">arg</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="c1"># put quotes around string args</span>
+                <span class="n">final</span> <span class="o">+=</span> <span class="s1">&#39;&quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">final</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+        <span class="c1"># remove newlines, add semicolon</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">no_format</span><span class="p">:</span>
+            <span class="n">final</span> <span class="o">=</span> <span class="n">final</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">b</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot; &quot;</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">&quot;;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="c1"># write to file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">final</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_log_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1">######################</span>
+    <span class="c1">###  MISC HELPERS  ###</span>
+    <span class="c1">######################</span>
+
+    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql_file</span><span class="p">,</span> <span class="n">dict_memory_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dump the database </span>
+<span class="sd">        Args:</span>
+<span class="sd">            sql_file: File to write database dump to</span>
+<span class="sd">            dict_memory_file: File to dump task database to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sql_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">iterdump</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="n">dict_memory_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">io</span>
+            <span class="kn">import</span> <span class="nn">pickle</span>
+
+            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">dict_memory_file</span><span class="p">)</span> <span class="o">==</span> <span class="n">io</span><span class="o">.</span><span class="n">BufferedWriter</span>
+            <span class="n">dict_memory</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;task_db&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_db</span><span class="p">}</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dict_memory</span><span class="p">,</span> <span class="n">dict_memory_file</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">safe_pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="c1"># little bit scary...</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;pickled_attrs_id&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;memid&quot;</span><span class="p">):</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">pickled_attrs_id</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">memid</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">obj</span><span class="o">.</span><span class="n">pickled_attrs_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="s2">&quot;agent_memory&quot;</span><span class="p">,</span> <span class="s2">&quot;new_tasks_fn&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;movement&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safe_pickle_saved_attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">pickled_attrs_id</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_safe_pickle_saved_attrs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">pickled_attrs_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+                <span class="nb">delattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__had_attr_&quot;</span> <span class="o">+</span> <span class="n">attr</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_safe_pickle_saved_attrs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">pickled_attrs_id</span><span class="p">][</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">safe_unpickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">bs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;pickled_attrs_id&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="s2">&quot;agent_memory&quot;</span><span class="p">,</span> <span class="s2">&quot;new_tasks_fn&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;movement&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__had_attr_&quot;</span> <span class="o">+</span> <span class="n">attr</span><span class="p">):</span>
+                    <span class="nb">delattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">&quot;__had_attr_&quot;</span> <span class="o">+</span> <span class="n">attr</span><span class="p">)</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_safe_pickle_saved_attrs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">pickled_attrs_id</span><span class="p">][</span><span class="n">attr</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">obj</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

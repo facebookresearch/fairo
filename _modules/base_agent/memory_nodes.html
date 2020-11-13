@@ -1,0 +1,949 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent.memory_nodes &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>base_agent.memory_nodes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_agent.memory_nodes</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">base_util</span> <span class="kn">import</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">POINT_AT_TARGET</span><span class="p">,</span> <span class="n">to_player_struct</span>
+<span class="kn">from</span> <span class="nn">task</span> <span class="kn">import</span> <span class="n">Task</span>
+
+
+<div class="viewcode-block" id="MemoryNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.MemoryNode">[docs]</a><span class="k">class</span> <span class="nc">MemoryNode</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This is the main class representing a node in the memory</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; MemoryNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">]</span>
+    <span class="n">PROPERTIES_BLACKLIST</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;agent_memory&quot;</span><span class="p">,</span> <span class="s2">&quot;forgetme&quot;</span><span class="p">]</span>
+    <span class="n">NODE_TYPE</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the Memories table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span>
+        <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Memories VALUES (?,?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">snapshot</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span> <span class="o">=</span> <span class="n">agent_memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span>
+
+    <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_tags_by_memid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="n">blacklist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PROPERTIES_BLACKLIST</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_more_properties_blacklist</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blacklist</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">update_recently_attended</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">set_memory_attended_time</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_more_properties_blacklist</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Override in subclasses to add additional keys to the properties blacklist&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Override in subclasses if necessary to properly snapshot.&quot;&quot;&quot;</span>
+
+        <span class="n">read_cmd</span> <span class="o">=</span> <span class="s2">&quot;SELECT &quot;</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">TABLE_COLUMNS</span><span class="p">:</span>
+            <span class="n">read_cmd</span> <span class="o">+=</span> <span class="n">r</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+        <span class="n">read_cmd</span> <span class="o">=</span> <span class="n">read_cmd</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+        <span class="n">read_cmd</span> <span class="o">+=</span> <span class="s2">&quot; FROM &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TABLE</span> <span class="o">+</span> <span class="s2">&quot; WHERE uuid=?&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="n">read_cmd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="p">(</span><span class="s2">&quot;tried to snapshot nonexistent memory&quot;</span><span class="p">)</span>
+
+        <span class="n">archive_memid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">new_data</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">new_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">archive_memid</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;ARCHIVE_TABLE&quot;</span><span class="p">):</span>
+            <span class="n">archive_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ARCHIVE_TABLE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">archive_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TABLE</span>
+        <span class="n">write_cmd</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO &quot;</span> <span class="o">+</span> <span class="n">archive_table</span> <span class="o">+</span> <span class="s2">&quot;(&quot;</span>
+        <span class="n">qs</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">TABLE_COLUMNS</span><span class="p">:</span>
+            <span class="n">write_cmd</span> <span class="o">+=</span> <span class="n">r</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span>
+            <span class="n">qs</span> <span class="o">+=</span> <span class="s2">&quot;?, &quot;</span>
+        <span class="n">write_cmd</span> <span class="o">=</span> <span class="n">write_cmd</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
+        <span class="n">write_cmd</span> <span class="o">+=</span> <span class="s2">&quot;) VALUES (&quot;</span> <span class="o">+</span> <span class="n">qs</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+        <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="n">write_cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">new_data</span><span class="p">)</span>
+        <span class="n">link_archive_to_mem</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">archive_memid</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">link_archive_to_mem</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">archive_memid</span><span class="p">):</span>
+    <span class="n">agent_memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">archive_memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_archive_of&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">memid</span><span class="p">)</span>
+    <span class="n">agent_memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_archive&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">archive_memid</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ProgramNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.ProgramNode">[docs]</a><span class="k">class</span> <span class="nc">ProgramNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents the logical forms (outputs from</span>
+<span class="sd">    the semantic parser)</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        logical_form: The semantic parser output for text</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ProgramNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;logical_form&quot;</span><span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;Programs&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Program&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT logical_form FROM Programs WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logical_form</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">logical_form</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the Programs table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; logical_form = {&quot;dialogue_type&quot; : &quot;HUMAN_GIVE_COMMAND&quot;,</span>
+<span class="sd">                                &quot;action_sequence&quot; : [</span>
+<span class="sd">                                    {</span>
+<span class="sd">                                        &quot;action_type&quot;: &quot;BUILD&quot;,</span>
+<span class="sd">                                        &quot;schematic&quot;: {&quot;has_name&quot;: &quot;sphere&quot;},</span>
+<span class="sd">                                    }]}</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, logical_form)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Programs(uuid, logical_form) VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="nb">format</span><span class="p">(</span><span class="n">logical_form</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span></div>
+
+
+<span class="c1"># TODO FIXME instantiate as a side effect of making triples</span>
+<div class="viewcode-block" id="NamedAbstractionNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.NamedAbstractionNode">[docs]</a><span class="k">class</span> <span class="nc">NamedAbstractionNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents an abstract concept with a name,</span>
+<span class="sd">    to be used in triples</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        name: Name of the abstraction, for example : &quot;has_tag&quot;</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; NamedAbstractionNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;NamedAbstractions&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;NamedAbstraction&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT name FROM NamedAbstractions WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the NamedAbstractions table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; name = &quot;has_tag&quot;</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, name)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="n">memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM NamedAbstractions WHERE name=?&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">memid</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">memid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO NamedAbstractions(uuid, name) VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span></div>
+
+
+<span class="c1"># the table entry just has the memid and a modification time,</span>
+<span class="c1"># actual set elements are handled as triples</span>
+<span class="k">class</span> <span class="nc">SetNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; for representing sets of objects, so that it is easier to build complex relations</span>
+<span class="sd">    using RDF/triplestore format.  is currently fetal- not used in main codebase yet &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;SetMems&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Set&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+
+    <span class="c1"># FIXME put the member triples</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO SetMems(uuid) VALUES (?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="k">def</span> <span class="nf">get_members</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;set_member_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SetNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ReferenceObjectNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.ReferenceObjectNode">[docs]</a><span class="k">class</span> <span class="nc">ReferenceObjectNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This is a class representing generic memory node for anything that has a spatial location and can be</span>
+<span class="sd">    used a spatial reference (e.g. to the left of the x).</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, ReferenceObjectNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ReferenceObjectNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;ReferenceObjects&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;ReferenceObject&quot;</span>
+    <span class="n">ARCHIVE_TABLE</span> <span class="o">=</span> <span class="s2">&quot;ArchivedReferenceObjects&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XYZ</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;must be implemented in subclass&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_point_at_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">POINT_AT_TARGET</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;must be implemented in subclass&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;must be implemented in subclass&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PlayerNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.PlayerNode">[docs]</a><span class="k">class</span> <span class="nc">PlayerNode</span><span class="p">(</span><span class="n">ReferenceObjectNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This class represents humans and other agents that can affect</span>
+<span class="sd">    the world</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        eid: Entity ID</span>
+<span class="sd">        name: Name of player</span>
+<span class="sd">        pos: x, y, z coordinates</span>
+<span class="sd">        pitch: the vertical angle of the agent&#39;s view vector</span>
+<span class="sd">        yaw: the horizontal rotation angle of the agent&#39;s view vector</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, PlayerNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; PlayerNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;eid&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;yaw&quot;</span><span class="p">,</span> <span class="s2">&quot;ref_type&quot;</span><span class="p">]</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Player&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">eid</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pitch</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT eid, name, x, y, z, pitch, yaw FROM ReferenceObjects WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">eid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="n">pitch</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="n">yaw</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">player_struct</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; from collections import namedtuple</span>
+<span class="sd">            &gt;&gt;&gt; Player = namedtuple(&quot;Player&quot;, &quot;entityId, name, pos, look, mainHand&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; player_struct = Player(</span>
+<span class="sd">                12345678, &quot;dashboard&quot;, Pos(0.0, 0.0, 0.0), Look(0.0, 0.0), Item(0, 0)</span>
+<span class="sd">            )</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, player_struct)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span>
+            <span class="n">player_struct</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span>
+            <span class="s2">&quot;player&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_player&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_physical_object&quot;</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_animate&quot;</span><span class="p">)</span>
+        <span class="c1"># this is a hack until memory_filters does &quot;not&quot;</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_not_location&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_name&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">player_struct</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE &quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s2">&quot;uuid=?&quot;</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="k">def</span> <span class="nf">get_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XYZ</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT x, y, z FROM ReferenceObjects WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+
+    <span class="k">def</span> <span class="nf">get_yaw_pitch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT yaw, pitch FROM ReferenceObjects WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="n">yaw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span> <span class="o">=</span> <span class="n">pitch</span>
+        <span class="k">return</span> <span class="n">yaw</span><span class="p">,</span> <span class="n">pitch</span>
+
+    <span class="c1"># TODO: use a smarter way to get point_at_target</span>
+    <span class="k">def</span> <span class="nf">get_point_at_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">POINT_AT_TARGET</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+        <span class="c1"># use the block above the player as point_at_target</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">POINT_AT_TARGET</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span>
+
+    <span class="k">def</span> <span class="nf">get_struct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">to_player_struct</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SelfNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.SelfNode">[docs]</a><span class="k">class</span> <span class="nc">SelfNode</span><span class="p">(</span><span class="n">PlayerNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class is a special PLayerNode for representing the</span>
+<span class="sd">    agent&#39;s self</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, PlayerNode, SelfNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; SelfNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;eid&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;pitch&quot;</span><span class="p">,</span> <span class="s2">&quot;yaw&quot;</span><span class="p">,</span> <span class="s2">&quot;ref_type&quot;</span><span class="p">]</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Self&quot;</span></div>
+
+
+<span class="c1"># locations should always be archives?</span>
+<div class="viewcode-block" id="LocationNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.LocationNode">[docs]</a><span class="k">class</span> <span class="nc">LocationNode</span><span class="p">(</span><span class="n">ReferenceObjectNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a ReferenceObjectNode representing a raw location</span>
+<span class="sd">    (a point in space)</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        location: x, y, z coordinates of the node</span>
+<span class="sd">        pos: x, y, z coordinates of the node</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, LocationNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; LocationNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;ref_type&quot;</span><span class="p">]</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Location&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT x, y, z FROM ReferenceObjects WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; xyz = [0.0, 1.0, 3.0]</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, xyz)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">xyz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">xyz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="s2">&quot;location&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="k">def</span> <span class="nf">get_bounds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span>
+
+    <span class="k">def</span> <span class="nf">get_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">XYZ</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+
+    <span class="k">def</span> <span class="nf">get_point_at_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">POINT_AT_TARGET</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">POINT_AT_TARGET</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span></div>
+
+
+<span class="c1"># locations should always be archives?</span>
+<div class="viewcode-block" id="AttentionNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.AttentionNode">[docs]</a><span class="k">class</span> <span class="nc">AttentionNode</span><span class="p">(</span><span class="n">LocationNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is a ReferenceObjectNode representing spatial attention</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        attended: name of the node that is attending</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, AttentionNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; AttentionNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="s2">&quot;type_name&quot;</span><span class="p">,</span> <span class="s2">&quot;ref_type&quot;</span><span class="p">]</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Attention&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="c1"># we use the type_name field to store whose attention it is</span>
+        <span class="n">attender</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT type_name FROM ReferenceObjects WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attender</span> <span class="o">=</span> <span class="n">attender</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">attender</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; xyz = [0.0, 2.0, 50.0]</span>
+<span class="sd">            &gt;&gt;&gt; attender = 12345678 # entity ID of player</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, xyz, attender)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, x, y, z, type_name, ref_type) VALUES (?, ?, ?, ?, ?, ?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">xyz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">xyz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+            <span class="n">attender</span><span class="p">,</span>
+            <span class="s2">&quot;attention&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span></div>
+
+
+<div class="viewcode-block" id="TimeNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.TimeNode">[docs]</a><span class="k">class</span> <span class="nc">TimeNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a temporal &#39;location&#39;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        time: the value of time</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, TimeNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; TimeNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;Times&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT time FROM Times WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">t</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the Times table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; time = 1234</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, time)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO Times(uuid, time) VALUES (?, ?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span></div>
+
+
+<div class="viewcode-block" id="ChatNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.ChatNode">[docs]</a><span class="k">class</span> <span class="nc">ChatNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This node represents a chat/utterance from another agent/human</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        speaker_id: The memid of the speaker who sent the chat</span>
+<span class="sd">        chat_text: The chat string</span>
+<span class="sd">        time: The time at which the chat was delivered</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; ChatNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;speaker&quot;</span><span class="p">,</span> <span class="s2">&quot;chat&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;Chats&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Time&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">speaker</span><span class="p">,</span> <span class="n">chat_text</span><span class="p">,</span> <span class="n">time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT speaker, chat, time FROM Chats WHERE uuid=?&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speaker_id</span> <span class="o">=</span> <span class="n">speaker</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chat_text</span> <span class="o">=</span> <span class="n">chat_text</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">time</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chat</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the Chats table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; speaker = &quot;189fsfagf9382jfjash&quot; #&#39;name&#39; of the Player giving the command</span>
+<span class="sd">            &gt;&gt;&gt; chat = &quot;come here&quot;</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, speaker, chat)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Chats(uuid, speaker, chat, time) VALUES (?, ?, ?, ?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">speaker</span><span class="p">,</span>
+            <span class="n">chat</span><span class="p">,</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span></div>
+
+
+<div class="viewcode-block" id="TaskNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.TaskNode">[docs]</a><span class="k">class</span> <span class="nc">TaskNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This node represents a task object that was placed on</span>
+<span class="sd">    the agent&#39;s task_stack</span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory: An AgentMemory object</span>
+<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        task: Name of the task</span>
+<span class="sd">        created_at: Time at which it was created</span>
+<span class="sd">        finished_at: Time at which it was finished</span>
+<span class="sd">        action_name: The name of action that corresponds to this task</span>
+<span class="sd">    Examples::</span>
+<span class="sd">        &gt;&gt;&gt; node_list = [TaskNode]</span>
+<span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
+<span class="sd">        &gt;&gt;&gt; agent_memory = AgentMemory(db_file=&quot;:memory:&quot;,</span>
+<span class="sd">                                       schema_paths=schema_path,</span>
+<span class="sd">                                       db_log_path=None,</span>
+<span class="sd">                                       nodelist=node_list)</span>
+<span class="sd">        &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="sd">        &gt;&gt;&gt; TaskNode(agent_memory=agent_memory, memid=memid)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span> <span class="s2">&quot;action_name&quot;</span><span class="p">,</span> <span class="s2">&quot;pickled&quot;</span><span class="p">,</span> <span class="s2">&quot;paused&quot;</span><span class="p">,</span> <span class="s2">&quot;created_at&quot;</span><span class="p">,</span> <span class="s2">&quot;finished_at&quot;</span><span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;Tasks&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Task&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="n">pickled</span><span class="p">,</span> <span class="n">created_at</span><span class="p">,</span> <span class="n">finished_at</span><span class="p">,</span> <span class="n">action_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT pickled, created_at, finished_at, action_name FROM Tasks WHERE uuid=?&quot;</span><span class="p">,</span> <span class="n">memid</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">safe_unpickle</span><span class="p">(</span><span class="n">pickled</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">created_at</span> <span class="o">=</span> <span class="n">created_at</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished_at</span> <span class="o">=</span> <span class="n">finished_at</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span> <span class="o">=</span> <span class="n">action_name</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Creates a new entry into the Tasks table</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            string: memid of the entry</span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
+<span class="sd">            &gt;&gt;&gt; task = Task()</span>
+<span class="sd">            &gt;&gt;&gt; create(memory, task)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span>  <span class="c1"># FIXME: this shouldn&#39;t be necessary, merge Task and TaskNode?</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Tasks (uuid, action_name, pickled, created_at) VALUES (?,?,?,?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">task</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">safe_pickle</span><span class="p">(</span><span class="n">task</span><span class="p">),</span>
+            <span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">(),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span>
+
+    <span class="k">def</span> <span class="nf">get_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ChatNode</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the memory of the chat that caused this task&#39;s creation, or None&quot;&quot;&quot;</span>
+        <span class="n">triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;chat_effect_&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">triples</span><span class="p">:</span>
+            <span class="n">chat_id</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">triples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">chat_id</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">get_parent_task</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return the &#39;TaskNode&#39; of the parent task, or None&quot;&quot;&quot;</span>
+        <span class="n">triples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">subj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">triples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">triples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">parent_memid</span> <span class="o">=</span> <span class="n">triples</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">parent_memid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Task </span><span class="si">{}</span><span class="s2"> has multiple parents: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">triples</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">get_root_task</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="n">mem</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parent_task</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mem</span> <span class="o">=</span> <span class="n">parent</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">get_parent_task</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">mem</span>
+
+    <span class="k">def</span> <span class="nf">get_child_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return tasks that were spawned beause of this task&quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">get_triples</span><span class="p">(</span><span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;_has_parent_task&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">)</span>
+        <span class="n">memids</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">TaskNode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">memids</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">all_descendent_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_root</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of &#39;TaskNode&#39; objects whose _has_parent_task root is this task</span>
+
+<span class="sd">        If include_root is True, include this node in the list.</span>
+
+<span class="sd">        Tasks are returned in the order they were finished.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">descendents</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">q</span><span class="p">:</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">children</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">get_child_tasks</span><span class="p">()</span>
+            <span class="n">descendents</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">children</span><span class="p">)</span>
+            <span class="n">q</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">children</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">include_root</span><span class="p">:</span>
+            <span class="n">descendents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">descendents</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">finished_at</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;TaskNode: </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">task</span><span class="p">)</span></div>
+
+
+<span class="c1"># list of nodes to register in memory</span>
+<span class="n">NODELIST</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">TaskNode</span><span class="p">,</span>
+    <span class="n">ChatNode</span><span class="p">,</span>
+    <span class="n">LocationNode</span><span class="p">,</span>
+    <span class="n">AttentionNode</span><span class="p">,</span>
+    <span class="n">SetNode</span><span class="p">,</span>
+    <span class="n">TimeNode</span><span class="p">,</span>
+    <span class="n">PlayerNode</span><span class="p">,</span>
+    <span class="n">SelfNode</span><span class="p">,</span>
+    <span class="n">ProgramNode</span><span class="p">,</span>
+    <span class="n">NamedAbstractionNode</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Controller" href="controller.html" />
+    <link rel="prev" title="Droidlet’s API documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">base_agent</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#controller">Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#memory">Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tasks">Tasks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#perception">Perception</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="controller.html#interpreter">Interpreter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="controller.html#dialogue-stack">Dialogue Stack</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="controller.html#dialogue-objects">Dialogue Objects</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>base_agent</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/base_agent.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="base-agent">
+<h1>base_agent<a class="headerlink" href="#base-agent" title="Permalink to this headline">¶</a></h1>
+<p>The abstract droidlet agent consists of four major components: a <a class="reference external" href="/../../blob/master/docs/source/memory">memory</a> system, a <a class="reference external" href="/../../blob/master/docs/source/controller">controller</a>, a set of <a class="reference external" href="/../../blob/master/docs/source/perception">perceptual modules</a>, and a set of low level <a class="reference external" href="/../../blob/master/docs/source/tasks">tasks</a>.  In a nutshell,</p>
+<ul class="simple">
+<li><p>the memory system acts as a nexus of information for all the other systems,</p></li>
+<li><p>the controller places tasks on a stack, based on the state of the memory system,</p></li>
+<li><p>the perceptual modules process information from the outside world and store it in the memory system,</p></li>
+<li><p>and the low-level tasks effect changes in the outside world.</p></li>
+</ul>
+<p>The components in this library can be used separately from the “complete” agent; or can be replaced or combined as a user sees fit.
+The high level control loop of the agent is cartooned in <a class="reference external" href="/../../blob/master/base_agent/core.py">here</a> and shown below:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="n">forever</span><span class="p">:</span>
+     <span class="n">run</span> <span class="n">perception</span> <span class="ow">and</span> <span class="n">update</span> <span class="n">memory</span>
+     <span class="n">maybe</span> <span class="n">place</span> <span class="n">tasks</span> <span class="n">on</span> <span class="n">the</span> <span class="n">stack</span><span class="p">,</span> <span class="n">based</span> <span class="n">on</span> <span class="n">memory</span>
+     <span class="n">step</span> <span class="n">topmost</span> <span class="n">task</span> <span class="n">on</span> <span class="n">Task</span> <span class="n">Stack</span>
+</pre></div>
+</div>
+<div class="section" id="controller">
+<h2>Controller<a class="headerlink" href="#controller" title="Permalink to this headline">¶</a></h2>
+<p>Instead of directly affecting the agent’s environment, the controller places <a class="reference external" href="/../../blob/master/base_agent/task.py">Task</a> objects on a <a class="reference external" href="/../../blob/master/base_agent/sql_memory.py#L555">Task Stack</a>.   In order to choose which to place (if any), it needs to read information about the state of the world from memory.</p>
+<p>In addition to the “abstract” droidlet agent, this repo has two “batteries included” agent instantiations, located <a class="reference external" href="/../../blob/master/locobot/agent">here</a> and <a class="reference external" href="/../../blob/master/craftassist/agent/">here</a>.  In these (lets call the pair of them “McAgents”), the controller is mediated in part by a Dialogue Manager with an associated Dialogue Stack, which attempt to convert human interactions (dialogue) into specifications of Tasks.  The Dialogue Stack is populated with Dialogue Objects, which carry out chunks of human interaction, for example asking for a clarification about a command.</p>
+<p>In the McAgents the Dialogue Manager is in turn powered by a neural semantic parser, which translates natural language into partially specified programs in a DSL decribed <a class="reference external" href="/../../blob/master/base_agent/documents/Action_Dictionary_Spec">here</a>.  The partially specified programs are then made “executable” (i.e. interpreted into Task Stack manipulations, including adding Tasks) by the Intepreter Dialogue Object.  This object is further broken down into subinterpreters that correspond to subtrees of the logical forms in the DSL, and is described in more detail <a class="reference external" href="/../../blob/master/docs/source/interpreter">here</a></p>
+<p>The Controller operation in the McAgents can be sketched as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">new</span> <span class="n">command</span><span class="p">:</span>
+     <span class="n">logical_form</span> <span class="o">=</span> <span class="n">semantic_parser</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">new</span> <span class="n">command</span><span class="p">)</span>
+     <span class="n">interpret</span><span class="p">(</span><span class="n">logical_form</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">TaskStack</span> <span class="ow">is</span> <span class="n">empty</span><span class="p">:</span>
+     <span class="n">maybe</span> <span class="n">place</span> <span class="n">default</span> <span class="n">behaviors</span> <span class="n">on</span> <span class="n">the</span> <span class="n">stack</span>
+</pre></div>
+</div>
+<p>Here “default behaviors” might be running SLAM or other self-supervised exploration.</p>
+</div>
+<div class="section" id="memory">
+<h2>Memory<a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="/../../blob/master/docs/source/memory">memory system</a> serves as the interface for passing information between the various components of the agent.  It consists of</p>
+<p><strong>A database</strong>, currently implemented in SQL, with an overlayed triplestore.  The entry point to the underlying SQL database is an <a class="reference external" href="/../../blob/master/base_agent/sql_memory.py">AgentMemory</a> object.  The database can be directly queried through SQL; some common queries using triples or that otherwise are messy in raw SQL have been simplified and packaged.</p>
+<p><strong>MemoryNodes</strong>, which are Python wrappers for coherent data.  MemoryNodes collate data about a particular entity or event.  There are MemoryNodes for ReferenceObjects (things that have a location in space), for Tasks, for chats and commands, etc.</p>
+<p><strong>FILTERS</strong> objects, which connect the AgentMemory and MemoryNodes to the DSL used in the McAgents</p>
+</div>
+<div class="section" id="tasks">
+<h2>Tasks<a class="headerlink" href="#tasks" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="/../../blob/master/base_agent/task.py">Task</a> objects abstract away the difficulties of actually carrying out the tasks, and allow a uniform interface to the controller and memory across different platforms.</p>
+<p>Task objects define a .step() method; on each iteration through the main agent loop, the Task is stepped, and the Task Stack steps its highest priority Task.
+The Task objects themselves are <em>not</em> generic across agents; and can be heuristic or learned.  In the current droidlet agent controller, they are registered <a class="reference external" href="/../../blob/master/base_agent/dialogue_objects/interpreter.py#L76">here</a>, for example <a class="reference external" href="/../../blob/master/craftassist/agent/dialogue_objects/mc_interpreter.py#L78">here</a> and <a class="reference external" href="/../../blob/master/locobot/agent/dialogue_objects/loco_interpreter.py#L64">here</a></p>
+<p>The <a class="reference external" href="/../../blob/master/base_agent/sql_memory.py#L555">Task Stack</a> is maintained by the Memory system, and provides methods for examining and manipulating Task Objects</p>
+</div>
+<div class="section" id="perception">
+<h2>Perception<a class="headerlink" href="#perception" title="Permalink to this headline">¶</a></h2>
+<p>Perceptual modules process information about the agent’s environment and write to memory.  Each perceptual module should have a .perceive() method, which is called
+<a class="reference external" href="/../../blob/master/base_agent/loco_mc_agent.py#L180">here</a>, during the main agent loop.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="controller.html" class="btn btn-neutral float-right" title="Controller" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Droidlet’s API documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,474 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Controller &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Memory" href="memory.html" />
+    <link rel="prev" title="Droidlet’s API documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Controller</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/controller.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="controller">
+<span id="controller-label"></span><h1>Controller<a class="headerlink" href="#controller" title="Permalink to this headline">¶</a></h1>
+<p>In the “abstract” droidlet agent, the controller chooses whether to put Tasks on the Task Stack based on the memory state.   In the locobot agent and the craftassist agent subclasses, it consists of</p>
+<ul class="simple">
+<li><p>a <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/documents/Action_Dictionary_Spec">DSL</a></p></li>
+<li><p>a neural semantic parser, which translates natural language into partially specified programs over the DSL</p></li>
+<li><p>a Dialogue Manager, Dialogue Stack, and Dialogue objects.</p></li>
+<li><p>the Intepreter, a special Dialogue Object that takes partially specified programs from the DSL and fully specifies them using the Memory</p></li>
+<li><p>a set of “default behaviors”, run randomly when the Task Stack and Dialogue Stack are empty</p></li>
+</ul>
+<p>Dialogue Objects behave similarly to <a class="reference internal" href="tasks.html#tasks-label"><span class="std std-ref">Tasks</span></a> , except they only affect the agent’s environment directly by causing the agent to issue utterances (or indirectly by pushing Task Objects onto the Task Stack).  In particular, each Dialogue Object has a .step() that is run when it is the highest priority object on the Stack. Dialogue Objects, like Task Objects are modular:  a learned model or a heuristic can mediate the Dialogue Object, and the same model or heuristic script can be used across many different agents.</p>
+<p>The Dialogue Manager puts Dialogue Objects on the Dialogue Stack, either on its own, or at the request of a Dialogue Object.  In the locobot and craftassist agent, the manager is powered by a <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/ttad/">neural semantic parser</a>.</p>
+<p>A sketch of the controller’s operation is then</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">new</span> <span class="n">utterance</span> <span class="kn">from</span> <span class="nn">human</span><span class="p">:</span>
+     <span class="n">logical_form</span> <span class="o">=</span> <span class="n">semantic_parser</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">new</span> <span class="n">command</span><span class="p">)</span>
+     <span class="k">if</span> <span class="n">the</span> <span class="n">logical_form</span> <span class="n">denotes</span> <span class="n">a</span> <span class="n">command</span><span class="p">:</span>
+         <span class="n">push</span> <span class="n">Interpreter</span><span class="p">(</span><span class="n">logical_form</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">)</span> <span class="n">onto</span> <span class="n">the</span> <span class="n">DialogueStack</span>
+     <span class="k">else</span> <span class="k">if</span> <span class="n">the</span> <span class="n">logical_form</span> <span class="n">denotes</span> <span class="n">some</span> <span class="n">other</span> <span class="n">kind</span> <span class="n">of</span> <span class="n">dialogue</span> <span class="n">the</span> <span class="n">agent</span> <span class="n">can</span> <span class="n">handle</span><span class="p">:</span>
+         <span class="n">push</span> <span class="n">some</span> <span class="n">other</span> <span class="n">appropriate</span> <span class="n">DialogueObject</span> <span class="n">on</span> <span class="n">the</span> <span class="n">DialogueStack</span>
+<span class="k">if</span> <span class="n">the</span> <span class="n">Dialogue</span> <span class="n">Stack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">empty</span><span class="p">:</span>
+     <span class="n">step</span> <span class="n">the</span> <span class="n">highest</span> <span class="n">priority</span> <span class="n">DialogueObject</span>
+<span class="k">if</span> <span class="n">TaskStack</span> <span class="ow">is</span> <span class="n">empty</span><span class="p">:</span>
+     <span class="n">maybe</span> <span class="n">place</span> <span class="n">default</span> <span class="n">behaviors</span> <span class="n">on</span> <span class="n">the</span> <span class="n">stack</span>
+</pre></div>
+</div>
+<div class="section" id="dialogue-stack-and-manager">
+<h2>Dialogue Stack and Manager<a class="headerlink" href="#dialogue-stack-and-manager" title="Permalink to this headline">¶</a></h2>
+<p>The Dialogue Stack holds Dialogue Objects, and steps them.</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.dialogue_stack.DialogueStack">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_stack.</code><code class="sig-name descname">DialogueStack</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">memory</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_stack.html#DialogueStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_stack.DialogueStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class organizes and steps DialogueObjects.</p>
+<dl class="py method">
+<dt id="base_agent.dialogue_stack.DialogueStack.append">
+<code class="sig-name descname">append</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dialogue_object</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_stack.html#DialogueStack.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_stack.DialogueStack.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append a dialogue_object to stack</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.dialogue_stack.DialogueStack.clear">
+<code class="sig-name descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_stack.html#DialogueStack.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_stack.DialogueStack.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>clear current stack</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.dialogue_stack.DialogueStack.peek">
+<code class="sig-name descname">peek</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_stack.html#DialogueStack.peek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_stack.DialogueStack.peek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the item on top of the DialogueStack</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.dialogue_stack.DialogueStack.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_stack.html#DialogueStack.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_stack.DialogueStack.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process and step through the top-of-stack dialogue object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<p>The Dialogue Manager operates the Stack, and chooses whether to place Dialogue objects</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.nsp_dialogue_manager.NSPDialogueManager">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.nsp_dialogue_manager.</code><code class="sig-name descname">NSPDialogueManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">dialogue_object_classes</span></em>, <em class="sig-param"><span class="n">opts</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/nsp_dialogue_manager.html#NSPDialogueManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.nsp_dialogue_manager.NSPDialogueManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dialogue manager driven by neural network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>~NSPDialogueManager.dialogue_objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – <p>Dictionary specifying the DialogueObject
+class for each dialogue type. Keys are dialogue types. Values are
+corresponding class names.
+.. rubric:: Example</p>
+<dl class="simple">
+<dt>{</dt><dd><p>“interpreter”: MCInterpreter,
+“get_memory”: GetMemoryHandler,
+“put_memory”: …,</p>
+</dd>
+</dl>
+<p>}</p>
+</p></li>
+<li><p><strong>~NSPDialogueManager.botCapabilityQuery</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of commands that trigger
+scripted responses.</p></li>
+<li><p><strong>~NSPDialogueManager.safety_words</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of blacklisted words or phrases. Commands
+containing these are automatically filtered out.</p></li>
+<li><p><strong>~NSPDialogueManager.botGreetings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – <p>Different types of greetings that trigger
+scripted responses.
+Example:
+{</p>
+<blockquote>
+<div><p>”hello”: [“hi bot”, “hello”]</p>
+</div></blockquote>
+<p>}</p>
+</p></li>
+<li><p><strong>~NSPDialogueManager.model</strong> (<a class="reference internal" href="#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel" title="base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel"><em>TTADBertModel</em></a>) – Semantic Parsing model that takes text as
+input and outputs a logical form.
+To use a new model here, ensure that the subfolder directory structure
+mirrors the current model/dataset directories.</p></li>
+<li><p><strong>~NSPDialogueManager.ground_truth_actions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – A key-value with ground truth logical forms.
+These will be queried first (via exact string match), before running the model.</p></li>
+<li><p><strong>~NSPDialogueManager.dialogue_object_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Set the parameters for dialogue objects.
+Sets the agent, memory and dialogue stack.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="base_agent.nsp_dialogue_manager.NSPDialogueManager.get_logical_form">
+<code class="sig-name descname">get_logical_form</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">s</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">chat_as_list</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="_modules/base_agent/nsp_dialogue_manager.html#NSPDialogueManager.get_logical_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.nsp_dialogue_manager.NSPDialogueManager.get_logical_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get logical form output for a given chat command.
+First check the ground truth file for the chat string. If not
+in ground truth, query semantic parsing model to get the output.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Input chat provided by the user.</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel" title="base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel"><em>TTADBertModel</em></a>) – Semantic parsing model, pre-trained and loaded
+by agent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Logical form representation of the task. See paper for more</dt><dd><p>in depth explanation of logical forms:
+<a class="reference external" href="https://arxiv.org/abs/1907.08584">https://arxiv.org/abs/1907.08584</a></p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_logical_form</span><span class="p">(</span><span class="s2">&quot;destroy this&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+<span class="go">{</span>
+<span class="go">    &quot;dialogue_type&quot;: &quot;HUMAN_GIVE_COMMAND&quot;,</span>
+<span class="go">    &quot;action_sequence&quot;: [{</span>
+<span class="go">        &quot;action_type&quot;: &quot;DESTROY&quot;,</span>
+<span class="go">        &quot;reference_object&quot;: {</span>
+<span class="go">            &quot;filters&quot;: {&quot;contains_coreference&quot;: &quot;yes&quot;},</span>
+<span class="go">            &quot;text_span&quot;: [0, [1, 1]]</span>
+<span class="go">        }</span>
+<span class="go">    }]</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.nsp_dialogue_manager.NSPDialogueManager.handle_logical_form">
+<code class="sig-name descname">handle_logical_form</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">speaker</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">d</span><span class="p">:</span> <span class="n">Dict</span></em>, <em class="sig-param"><span class="n">chatstr</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>dialogue_object.DialogueObject<span class="p">]</span><a class="reference internal" href="_modules/base_agent/nsp_dialogue_manager.html#NSPDialogueManager.handle_logical_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.nsp_dialogue_manager.NSPDialogueManager.handle_logical_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the appropriate DialogueObject to handle an action dict d
+d should have spans filled (via process_spans).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.nsp_dialogue_manager.NSPDialogueManager.maybe_get_dialogue_obj">
+<code class="sig-name descname">maybe_get_dialogue_obj</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">chat</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">, </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>dialogue_object.DialogueObject<span class="p">]</span><a class="reference internal" href="_modules/base_agent/nsp_dialogue_manager.html#NSPDialogueManager.maybe_get_dialogue_obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.nsp_dialogue_manager.NSPDialogueManager.maybe_get_dialogue_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a chat and maybe modify the dialogue stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>chat</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Incoming chat from a player.
+Format is (speaker, chat), eg. (“player1”, “build a red house”)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>DialogueObject or empty if no action is needed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<div class="section" id="semantic-parser">
+<h3>Semantic Parser<a class="headerlink" href="#semantic-parser" title="Permalink to this headline">¶</a></h3>
+<p>The training of the semantic parsing model we use is described in detail <a class="reference external" href="https://github.com/fairinternal/minecraft/tree/master/base_agent/ttad/">here</a>; the interface is</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.ttad.ttad_transformer_model.query_model.</code><code class="sig-name descname">TTADBertModel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_dir</span></em>, <em class="sig-param"><span class="n">data_dir</span></em>, <em class="sig-param"><span class="n">model_name</span><span class="o">=</span><span class="default_value">'caip_test_model'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/ttad/ttad_transformer_model/query_model.html#TTADBertModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>TTAD model class that loads a pretrained model and runs inference in the agent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>~TTADBertModel.tokenizer</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – pretrained tokenizer for the model</p></li>
+<li><p><strong>~TTADBertModel.dataset</strong> (<em>CAIPDataset</em>) – CAIP Dataset, empty during inference</p></li>
+<li><p><strong>~TTADBertModel.encoder_decoder</strong> (<em>EncoderDecoderWithLoss</em>) – constructor that loads the model</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel.parse">
+<code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">chat</span></em>, <em class="sig-param"><span class="n">noop_thres</span><span class="o">=</span><span class="default_value">0.95</span></em>, <em class="sig-param"><span class="n">beam_size</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">well_formed_pen</span><span class="o">=</span><span class="default_value">100.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/ttad/ttad_transformer_model/query_model.html#TTADBertModel.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given an incoming chat, query the parser and return a logical form.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>chat</strong> – text input</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Logical form</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="dialogue-objects">
+<h2>Dialogue Objects<a class="headerlink" href="#dialogue-objects" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="interpreter">
+<h3>Interpreter<a class="headerlink" href="#interpreter" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/intepreter.py">Interpreter</a> is responsible for using the world state (via <a class="reference internal" href="memory.html"><span class="doc">memory</span></a>) and a natural language utterance that has been parsed into a logical form over the agent’s DSL from the semantic parser to choose a <a class="reference internal" href="memory.html"><span class="doc">Task</span></a> to put on the Task Stack.   The <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py">locobot</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py">craftassist</a> Interpreters are not the same, but the bulk of the work is done by the shared subinterpreters (in the files *_helper.py) <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/">here</a>.  The subinterpreters, registered in the main Interpreter <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/intepreter.py#L55">here</a> (and for the specialized versions <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py#L56">here</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py#L61">here</a>), roughly follow the structure of the DSL.  This arrangement is to allow replacing the (currently heuristic) subinterpreters with learned versions or specializing them to new agents.</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.dialogue_objects.interpreter.Interpreter">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.interpreter.</code><code class="sig-name descname">Interpreter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">speaker</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">action_dict</span><span class="p">:</span> <span class="n">Dict</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/interpreter.html#Interpreter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.interpreter.Interpreter" title="Permalink to this definition">¶</a></dt>
+<dd><div class="line-block">
+<div class="line">This class processes incoming chats and modifies the task stack.</div>
+<div class="line">Handlers should add/remove/reorder tasks on the stack, but not execute them.</div>
+<div class="line">Most of the logic of the interpreter is run in the subinterpreters or task handlers.</div>
+<div class="line">The keyword args in __init__ match the base DialogueObject class</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>speaker</strong> – The name of the player/human/agent who uttered the chat resulting in this interpreter</p></li>
+<li><p><strong>action_dict</strong> – The logical form, e.g. returned by a semantic parser</p></li>
+</ul>
+</dd>
+<dt class="field-even">Keyword Arguments</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>agent</strong> – the agent running this Interpreter</p></li>
+<li><p><strong>memory</strong> – the agent’s memory</p></li>
+<li><p><strong>dialogue_stack</strong> – a DialogueStack object where this Interpreter object will live</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="memory.html" class="btn btn-neutral float-right" title="Memory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Droidlet’s API documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

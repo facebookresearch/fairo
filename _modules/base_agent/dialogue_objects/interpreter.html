@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent.dialogue_objects.interpreter &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>base_agent.dialogue_objects.interpreter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_agent.dialogue_objects.interpreter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">dialogue_object</span> <span class="kn">import</span> <span class="n">DialogueObject</span><span class="p">,</span> <span class="n">ConfirmTask</span>
+<span class="kn">from</span> <span class="nn">dialogue_object_utils</span> <span class="kn">import</span> <span class="n">SPEAKERLOOK</span>
+
+<span class="c1"># point target should be subinterpret, dance should be in agents subclassed interpreters</span>
+<span class="kn">from</span> <span class="nn">reference_object_helpers</span> <span class="kn">import</span> <span class="n">ReferenceObjectInterpreter</span><span class="p">,</span> <span class="n">interpret_reference_object</span>
+<span class="kn">from</span> <span class="nn">location_helpers</span> <span class="kn">import</span> <span class="n">ReferenceLocationInterpreter</span><span class="p">,</span> <span class="n">interpret_relative_direction</span>
+<span class="kn">from</span> <span class="nn">filter_helper</span> <span class="kn">import</span> <span class="n">FilterInterpreter</span>
+
+<span class="kn">from</span> <span class="nn">base_agent.base_util</span> <span class="kn">import</span> <span class="n">ErrorWithResponse</span><span class="p">,</span> <span class="n">NextDialogueStep</span>
+
+
+<div class="viewcode-block" id="Interpreter"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.interpreter.Interpreter">[docs]</a><span class="k">class</span> <span class="nc">Interpreter</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    | This class processes incoming chats and modifies the task stack.</span>
+<span class="sd">    | Handlers should add/remove/reorder tasks on the stack, but not execute them.</span>
+<span class="sd">    | Most of the logic of the interpreter is run in the subinterpreters or task handlers.</span>
+<span class="sd">    | The keyword args in __init__ match the base DialogueObject class</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        speaker: The name of the player/human/agent who uttered the chat resulting in this interpreter</span>
+<span class="sd">        action_dict: The logical form, e.g. returned by a semantic parser</span>
+
+<span class="sd">    Keyword Args:</span>
+<span class="sd">        agent: the agent running this Interpreter</span>
+<span class="sd">        memory: the agent&#39;s memory</span>
+<span class="sd">        dialogue_stack: a DialogueStack object where this Interpreter object will live</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">action_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">speaker</span> <span class="o">=</span> <span class="n">speaker</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_dict</span> <span class="o">=</span> <span class="n">action_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">provisional</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_dict_frozen</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">archived_loop_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">default_debug_path</span> <span class="o">=</span> <span class="s2">&quot;debug_interpreter.txt&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_process_loc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">loc</span><span class="p">,</span> <span class="n">interpreter</span><span class="p">:</span> <span class="n">loc</span>
+
+        <span class="c1"># make sure to do in subclass</span>
+        <span class="c1"># this is the order of things to search in workspace memory if a ref object</span>
+        <span class="c1"># is not found, FIXME! (use more sophisticated search):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">workspace_memory_prio</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># noqa</span>
+
+        <span class="c1"># reorganize by signature?</span>
+        <span class="c1"># e.g.</span>
+        <span class="c1">#  logical_form --&gt; list(mems)</span>
+        <span class="c1">#  logical_form, list(mems) --&gt; list(mems)</span>
+        <span class="c1">#  logical_form, list(mems), list(vals) --&gt; list(mems), list(vals)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="n">FilterInterpreter</span><span class="p">(),</span>
+            <span class="c1"># FIXME, just make a class</span>
+            <span class="s2">&quot;reference_objects&quot;</span><span class="p">:</span> <span class="n">ReferenceObjectInterpreter</span><span class="p">(</span><span class="n">interpret_reference_object</span><span class="p">),</span>
+            <span class="s2">&quot;reference_locations&quot;</span><span class="p">:</span> <span class="n">ReferenceLocationInterpreter</span><span class="p">(),</span>
+            <span class="c1"># make sure to do this in subclass</span>
+            <span class="c1"># &quot;attribute&quot;: MCAttributeInterpreter(),</span>
+            <span class="c1"># &quot;condition&quot;: MCConditionInterpreter(),</span>
+            <span class="c1"># &quot;specify_locations&quot;: ComputeLocations(),</span>
+            <span class="c1"># &quot;facing&quot;: FacingInterpreter(),</span>
+        <span class="p">}</span>
+        <span class="c1"># logical_form --&gt; possible task placed on stack + side effects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_handlers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;MOVE&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_move</span><span class="p">,</span>
+            <span class="s2">&quot;STOP&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_stop</span><span class="p">,</span>
+            <span class="s2">&quot;RESUME&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_resume</span><span class="p">,</span>
+            <span class="s2">&quot;UNDO&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_undo</span><span class="p">,</span>
+            <span class="s2">&quot;OTHERACTION&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">handle_otheraction</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># fill these in subclasses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># noqa</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dict</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HUMAN_GIVE_COMMAND&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="s2">&quot;action&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dict</span><span class="p">:</span>
+                <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">action_dict</span><span class="p">[</span><span class="s2">&quot;action&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="s2">&quot;action_sequence&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dict</span><span class="p">:</span>
+                <span class="n">actions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_dict</span><span class="p">[</span><span class="s2">&quot;action_sequence&quot;</span><span class="p">]</span>
+                <span class="n">actions</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># The action dict is in an unexpected state</span>
+                <span class="k">raise</span> <span class="n">ErrorWithResponse</span><span class="p">(</span>
+                    <span class="s2">&quot;I thought you wanted me to do something, but now I don&#39;t know what&quot;</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">action_def</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+                <span class="n">action_type</span> <span class="o">=</span> <span class="n">action_def</span><span class="p">[</span><span class="s2">&quot;action_type&quot;</span><span class="p">]</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_handlers</span><span class="p">[</span><span class="n">action_type</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">action_def</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">response</span>
+        <span class="k">except</span> <span class="n">NextDialogueStep</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">ErrorWithResponse</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="n">err</span><span class="o">.</span><span class="n">chat</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">handle_undo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">Undo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span><span class="p">[</span><span class="s2">&quot;undo&quot;</span><span class="p">]</span>
+        <span class="n">task_name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;undo_action&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">task_name</span><span class="p">:</span>
+            <span class="n">task_name</span> <span class="o">=</span> <span class="n">task_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">old_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_last_finished_root_task</span><span class="p">(</span><span class="n">task_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">old_task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ErrorWithResponse</span><span class="p">(</span><span class="s2">&quot;Nothing to be undone ...&quot;</span><span class="p">)</span>
+        <span class="n">undo_tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Undo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;memid&quot;</span><span class="p">:</span> <span class="n">old_task</span><span class="o">.</span><span class="n">memid</span><span class="p">})]</span>
+
+        <span class="c1">#        undo_tasks = [</span>
+        <span class="c1">#            tasks.Undo(self.agent, {&quot;memid&quot;: task.memid})</span>
+        <span class="c1">#            for task in old_task.all_descendent_tasks(include_root=True)</span>
+        <span class="c1">#        ]</span>
+        <span class="n">undo_command</span> <span class="o">=</span> <span class="n">old_task</span><span class="o">.</span><span class="n">get_chat</span><span class="p">()</span><span class="o">.</span><span class="n">chat_text</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Pushing ConfirmTask tasks=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">undo_tasks</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="o">.</span><span class="n">append_new</span><span class="p">(</span>
+            <span class="n">ConfirmTask</span><span class="p">,</span>
+            <span class="s1">&#39;Do you want me to undo the command: &quot;</span><span class="si">{}</span><span class="s1">&quot; ?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">undo_command</span><span class="p">),</span>
+            <span class="n">undo_tasks</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">handle_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">Move</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span><span class="p">[</span><span class="s2">&quot;move&quot;</span><span class="p">]</span>
+        <span class="n">Loop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_objects</span><span class="p">[</span><span class="s2">&quot;loop&quot;</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">new_tasks</span><span class="p">():</span>
+            <span class="c1"># TODO if we do this better will be able to handle &quot;stay between the x&quot;</span>
+            <span class="n">default_loc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;default_loc&quot;</span><span class="p">,</span> <span class="n">SPEAKERLOOK</span><span class="p">)</span>
+            <span class="n">location_d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="n">default_loc</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span><span class="p">,</span> <span class="s2">&quot;get_pos&quot;</span><span class="p">):</span>
+                <span class="n">mems</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;reference_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
+            <span class="c1"># FIXME this should go in the ref_location subinterpret:</span>
+            <span class="n">steps</span><span class="p">,</span> <span class="n">reldir</span> <span class="o">=</span> <span class="n">interpret_relative_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
+            <span class="n">pos</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;specify_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">mems</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">reldir</span><span class="p">)</span>
+            <span class="c1"># TODO: can this actually happen?</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ErrorWithResponse</span><span class="p">(</span><span class="s2">&quot;I don&#39;t understand where you want me to move.&quot;</span><span class="p">)</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_process_loc</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="n">task_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="n">pos</span><span class="p">,</span> <span class="s2">&quot;action_dict&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">}</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="n">Move</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">task_data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">task</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;stop_condition&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;condition&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;stop_condition&quot;</span><span class="p">])</span>
+            <span class="n">location_d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="n">SPEAKERLOOK</span><span class="p">)</span>
+            <span class="n">mems</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subinterpret</span><span class="p">[</span><span class="s2">&quot;reference_locations&quot;</span><span class="p">](</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mems</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span> <span class="o">=</span> <span class="n">mems</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">steps</span><span class="p">,</span> <span class="n">reldir</span> <span class="o">=</span> <span class="n">interpret_relative_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">location_d</span><span class="p">)</span>
+
+            <span class="n">loop_task_data</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;new_tasks_fn&quot;</span><span class="p">:</span> <span class="n">new_tasks</span><span class="p">,</span>
+                <span class="s2">&quot;stop_condition&quot;</span><span class="p">:</span> <span class="n">condition</span><span class="p">,</span>
+                <span class="s2">&quot;action_dict&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">append_new_task</span><span class="p">(</span><span class="n">Loop</span><span class="p">,</span> <span class="n">loop_task_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">new_tasks</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">append_new_task</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1"># TODO mark in memory it was stopped by command</span>
+    <span class="k">def</span> <span class="nf">handle_stop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># TODO if we want to be able stop and resume old tasks, will need to store</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">archived_loop_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_pause</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s2">&quot;Stopping.  What should I do next?&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;I am not doing anything&quot;</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="c1"># TODO mark in memory it was resumed by command</span>
+    <span class="k">def</span> <span class="nf">handle_resume</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_resume</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">archived_loop_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># TODO if we want to be able stop and resume old tasks, will need to store</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loop_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">archived_loop_data</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">archived_loop_data</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="s2">&quot;resuming&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;nothing to resume&quot;</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">handle_otheraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="s2">&quot;I don&#39;t know how to do that yet&quot;</span><span class="p">,</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">append_new_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># this is badly named, FIXME</span>
+        <span class="c1"># add a tick to avoid two tasks having same timestamp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_tick</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_push</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">chat_effect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">task</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_push</span><span class="p">(</span><span class="n">task</span><span class="p">,</span> <span class="n">chat_effect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
