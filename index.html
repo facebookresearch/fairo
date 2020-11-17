@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Droidlet’s API documentation! &mdash; droidlet master documentation</title>
+  <title>droidlet &mdash; droidlet master documentation</title>
   
 
   
@@ -164,7 +164,7 @@
     
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Droidlet’s API documentation!</li>
+      <li>droidlet</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -183,8 +183,18 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="droidlet-s-api-documentation">
-<h1>Droidlet’s API documentation!<a class="headerlink" href="#droidlet-s-api-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="droidlet">
+<h1>droidlet<a class="headerlink" href="#droidlet" title="Permalink to this headline">¶</a></h1>
+<p>droidlet is a modular embodied agent architecture, and a platform for building agents using components from the architecture.  It is designed for integrating machine-learned and heuristically scripted modules.  It includes</p>
+<ul class="simple">
+<li><p>APIs linking memory, action, perception, and language</p></li>
+<li><p>Perceptual and natural-language-understanding models</p></li>
+<li><p>Fully instantiated agents for the <a class="reference external" href="http://www.locobot.org/">locobot</a> and Minecraft</p></li>
+<li><p>Suite of data annotation tools.</p></li>
+</ul>
+<p>Warning!  This is a research project, and the architecture itself is a research artifact.</p>
+<div class="section" id="overview-of-the-droidlet-agent">
+<h2>Overview of the Droidlet Agent<a class="headerlink" href="#overview-of-the-droidlet-agent" title="Permalink to this headline">¶</a></h2>
 <p>The abstract droidlet agent consists of four major components: a <a class="reference internal" href="memory.html#memory-label"><span class="std std-ref">Memory</span></a> system, a <a class="reference internal" href="controller.html#controller-label"><span class="std std-ref">Controller</span></a>, a set of <a class="reference internal" href="perception.html#perception-label"><span class="std std-ref">Perception</span></a> modules, and a set of low level <a class="reference internal" href="tasks.html#tasks-label"><span class="std std-ref">Tasks</span></a>.  In a nutshell,</p>
 <ul class="simple">
 <li><p>the memory system acts as a nexus of information for all the other systems,</p></li>
@@ -199,6 +209,7 @@ The high level control loop of the agent is cartooned in <a class="reference ext
      <span class="n">maybe</span> <span class="n">place</span> <span class="n">tasks</span> <span class="n">on</span> <span class="n">the</span> <span class="n">stack</span><span class="p">,</span> <span class="n">based</span> <span class="n">on</span> <span class="n">memory</span>
      <span class="n">step</span> <span class="n">topmost</span> <span class="n">task</span> <span class="n">on</span> <span class="n">Task</span> <span class="n">Stack</span>
 </pre></div>
+</div>
 </div>
 <div class="section" id="controller">
 <h2>Controller<a class="headerlink" href="#controller" title="Permalink to this headline">¶</a></h2>
@@ -233,6 +244,9 @@ The Task objects themselves are <em>not</em> generic across agents; and can be h
 <h2>Perception<a class="headerlink" href="#perception" title="Permalink to this headline">¶</a></h2>
 <p>Perceptual modules process information about the agent’s environment and write to memory.  Each perceptual module should have a .perceive() method, which is called
 <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/loco_mc_agent.py#L180">here</a>, during the main agent loop.</p>
+</div>
+<div class="section" id="more-in-depth">
+<h2>More in Depth:<a class="headerlink" href="#more-in-depth" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="controller.html">Controller</a><ul>

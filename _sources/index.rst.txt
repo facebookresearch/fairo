@@ -1,6 +1,25 @@
-=============================
-Droidlet's API documentation!
-=============================
+
+
+
+*****
+droidlet
+*****
+
+droidlet is a modular embodied agent architecture, and a platform for building agents using components from the architecture.  It is designed for integrating machine-learned and heuristically scripted modules.  It includes
+
+* APIs linking memory, action, perception, and language
+* Perceptual and natural-language-understanding models
+* Fully instantiated agents for the `locobot <http://www.locobot.org/>`_ and Minecraft
+* Suite of data annotation tools.
+
+
+Warning!  This is a research project, and the architecture itself is a research artifact.
+
+
+
+
+Overview of the Droidlet Agent
+----------
 
 The abstract droidlet agent consists of four major components: a :ref:`memory_label` system, a :ref:`controller_label`, a set of :ref:`perception_label` modules, and a set of low level :ref:`tasks_label`.  In a nutshell,
 
@@ -68,6 +87,10 @@ Perception
 Perceptual modules process information about the agent's environment and write to memory.  Each perceptual module should have a .perceive() method, which is called
 `here <https://github.com/fairinternal/minecraft/blob/master/base_agent/loco_mc_agent.py#L180>`_\ , during the main agent loop.
 
+
+
+More in Depth:
+----------
 
 .. toctree::
    :maxdepth: 2
