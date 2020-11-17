@@ -103,6 +103,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -179,9 +193,11 @@
 
 <div class="viewcode-block" id="MemoryNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.MemoryNode">[docs]</a><span class="k">class</span> <span class="nc">MemoryNode</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;This is the main class representing a node in the memory</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -199,6 +215,7 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the Memories table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -267,11 +284,14 @@
 <div class="viewcode-block" id="ProgramNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.ProgramNode">[docs]</a><span class="k">class</span> <span class="nc">ProgramNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class represents the logical forms (outputs from</span>
 <span class="sd">    the semantic parser)</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        logical_form: The semantic parser output for text</span>
+<span class="sd">        logical_form (dict): The semantic parser output for text</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -297,8 +317,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">logical_form</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the Programs table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; logical_form = {&quot;dialogue_type&quot; : &quot;HUMAN_GIVE_COMMAND&quot;,</span>
@@ -320,11 +342,14 @@
 <div class="viewcode-block" id="NamedAbstractionNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.NamedAbstractionNode">[docs]</a><span class="k">class</span> <span class="nc">NamedAbstractionNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class represents an abstract concept with a name,</span>
 <span class="sd">    to be used in triples</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        name: Name of the abstraction, for example : &quot;has_tag&quot;</span>
+<span class="sd">        name (string): Name of the abstraction, for example : &quot;has_tag&quot;</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -350,8 +375,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the NamedAbstractions table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; name = &quot;has_tag&quot;</span>
@@ -395,9 +422,11 @@
 <div class="viewcode-block" id="ReferenceObjectNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.ReferenceObjectNode">[docs]</a><span class="k">class</span> <span class="nc">ReferenceObjectNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This is a class representing generic memory node for anything that has a spatial location and can be</span>
 <span class="sd">    used a spatial reference (e.g. to the left of the x).</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, ReferenceObjectNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -426,15 +455,18 @@
 <div class="viewcode-block" id="PlayerNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.PlayerNode">[docs]</a><span class="k">class</span> <span class="nc">PlayerNode</span><span class="p">(</span><span class="n">ReferenceObjectNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This class represents humans and other agents that can affect</span>
 <span class="sd">    the world</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        eid: Entity ID</span>
-<span class="sd">        name: Name of player</span>
-<span class="sd">        pos: x, y, z coordinates</span>
-<span class="sd">        pitch: the vertical angle of the agent&#39;s view vector</span>
-<span class="sd">        yaw: the horizontal rotation angle of the agent&#39;s view vector</span>
+<span class="sd">        eid (int): Entity ID</span>
+<span class="sd">        name (string): Name of player</span>
+<span class="sd">        pos (tuple(float, float, float)): x, y, z coordinates</span>
+<span class="sd">        pitch (float): the vertical angle of the agent&#39;s view vector</span>
+<span class="sd">        yaw (float): the horizontal rotation angle of the agent&#39;s view vector</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, PlayerNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -463,8 +495,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">player_struct</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; from collections import namedtuple</span>
@@ -538,9 +572,11 @@
 <div class="viewcode-block" id="SelfNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.SelfNode">[docs]</a><span class="k">class</span> <span class="nc">SelfNode</span><span class="p">(</span><span class="n">PlayerNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class is a special PLayerNode for representing the</span>
 <span class="sd">    agent&#39;s self</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory  (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, PlayerNode, SelfNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -560,12 +596,15 @@
 <div class="viewcode-block" id="LocationNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.LocationNode">[docs]</a><span class="k">class</span> <span class="nc">LocationNode</span><span class="p">(</span><span class="n">ReferenceObjectNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This is a ReferenceObjectNode representing a raw location</span>
 <span class="sd">    (a point in space)</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        location: x, y, z coordinates of the node</span>
-<span class="sd">        pos: x, y, z coordinates of the node</span>
+<span class="sd">        location (tuple): (x, y, z) coordinates of the node</span>
+<span class="sd">        pos (tuple): (x, y, z) coordinates of the node</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, LocationNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -591,8 +630,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; xyz = [0.0, 1.0, 3.0]</span>
@@ -624,11 +665,14 @@
 <span class="c1"># locations should always be archives?</span>
 <div class="viewcode-block" id="AttentionNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.AttentionNode">[docs]</a><span class="k">class</span> <span class="nc">AttentionNode</span><span class="p">(</span><span class="n">LocationNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This is a ReferenceObjectNode representing spatial attention</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        attended: name of the node that is attending</span>
+<span class="sd">        attended (string): name of the node that is attending</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, AttentionNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -654,8 +698,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">attender</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; xyz = [0.0, 2.0, 50.0]</span>
@@ -677,11 +723,14 @@
 
 <div class="viewcode-block" id="TimeNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.TimeNode">[docs]</a><span class="k">class</span> <span class="nc">TimeNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class represents a temporal &#39;location&#39;</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        time: the value of time</span>
+<span class="sd">        time (int): the value of time</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode, TimeNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -705,8 +754,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">time</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the Times table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; time = 1234</span>
@@ -719,13 +770,16 @@
 
 <div class="viewcode-block" id="ChatNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.ChatNode">[docs]</a><span class="k">class</span> <span class="nc">ChatNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This node represents a chat/utterance from another agent/human</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        speaker_id: The memid of the speaker who sent the chat</span>
-<span class="sd">        chat_text: The chat string</span>
-<span class="sd">        time: The time at which the chat was delivered</span>
+<span class="sd">        speaker_id (string): The memid of the speaker who sent the chat</span>
+<span class="sd">        chat_text (string): The chat string</span>
+<span class="sd">        time (int): The time at which the chat was delivered</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode, ChatNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -753,8 +807,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chat</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the Chats table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; speaker = &quot;189fsfagf9382jfjash&quot; #&#39;name&#39; of the Player giving the command</span>
@@ -775,14 +831,17 @@
 <div class="viewcode-block" id="TaskNode"><a class="viewcode-back" href="../../memory.html#base_agent.memory_nodes.TaskNode">[docs]</a><span class="k">class</span> <span class="nc">TaskNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This node represents a task object that was placed on</span>
 <span class="sd">    the agent&#39;s task_stack</span>
+<span class="sd">    </span>
 <span class="sd">    Args:</span>
-<span class="sd">        agent_memory: An AgentMemory object</span>
-<span class="sd">        memid: Memory ID for this node</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
 <span class="sd">    Attributes:</span>
-<span class="sd">        task: Name of the task</span>
-<span class="sd">        created_at: Time at which it was created</span>
-<span class="sd">        finished_at: Time at which it was finished</span>
-<span class="sd">        action_name: The name of action that corresponds to this task</span>
+<span class="sd">        task (object): Name of the task</span>
+<span class="sd">        created_at (int): Time at which it was created</span>
+<span class="sd">        finished_at (int): Time at which it was finished</span>
+<span class="sd">        action_name (string): The name of action that corresponds to this task</span>
+<span class="sd">    </span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; node_list = [TaskNode]</span>
 <span class="sd">        &gt;&gt;&gt; schema_path = [os.path.join(os.path.dirname(__file__), &quot;memory_schema.sql&quot;)]</span>
@@ -811,8 +870,10 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the Tasks table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: memid of the entry</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memory = AgentMemory()</span>
 <span class="sd">            &gt;&gt;&gt; task = Task()</span>
@@ -865,9 +926,7 @@
 
     <span class="k">def</span> <span class="nf">all_descendent_tasks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_root</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a list of &#39;TaskNode&#39; objects whose _has_parent_task root is this task</span>
-
 <span class="sd">        If include_root is True, include this node in the list.</span>
-
 <span class="sd">        Tasks are returned in the order they were finished.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">descendents</span> <span class="o">=</span> <span class="p">[]</span>

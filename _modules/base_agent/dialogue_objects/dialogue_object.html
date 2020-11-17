@@ -1,0 +1,620 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>base_agent.dialogue_objects.dialogue_object &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>base_agent.dialogue_objects.dialogue_object</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for base_agent.dialogue_objects.dialogue_object</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">from</span> <span class="nn">string_lists</span> <span class="kn">import</span> <span class="n">MAP_YES</span><span class="p">,</span> <span class="n">MAP_NO</span>
+<span class="kn">from</span> <span class="nn">base_util</span> <span class="kn">import</span> <span class="n">pos_to_np</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">Enum</span>
+
+
+<div class="viewcode-block" id="DialogueObject"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject">[docs]</a><span class="k">class</span> <span class="nc">DialogueObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;DialogueObject class controls the agent&#39;s use of the dialogue stack.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        agent: the agent process</span>
+<span class="sd">        memory: agent&#39;t memory</span>
+<span class="sd">        dialogue_stack : A stack on which dialogue objects are placed</span>
+<span class="sd">        finished: whether this object has finished processing</span>
+<span class="sd">        awaiting_response: whether this object is awaiting the speaker&#39;s response</span>
+<span class="sd">                           to a question</span>
+<span class="sd">        max_steps: finish after this many steps to avoid getting stuck</span>
+<span class="sd">        current_step: current step count</span>
+<span class="sd">        progeny_data: data from progeny DialogueObjects, for example used to answer a clarification</span>
+
+<span class="sd">    Usage:</span>
+<span class="sd">        class DummyGetMemoryHandler(DialogueObject):</span>
+<span class="sd">            def __init__(self, speaker_name: str, action_dict: Dict, **kwargs):</span>
+<span class="sd">                # initialize everything</span>
+<span class="sd">                super().__init__(**kwargs)</span>
+<span class="sd">                self.speaker_name = speaker_name</span>
+<span class="sd">                self.action_dict = action_dict</span>
+
+<span class="sd">            def step(self) -&gt; Tuple[Optional[str], Any]:</span>
+<span class="sd">                # check for dialogue type &quot;GET_MEMORY&quot;</span>
+<span class="sd">                assert self.action_dict[&quot;dialogue_type&quot;] == &quot;GET_MEMORY&quot;</span>
+<span class="sd">                memory_type = self.action_dict[&quot;filters&quot;][&quot;memory_type&quot;]</span>
+<span class="sd">                if memory_type == &quot;AGENT&quot; or memory_type == &quot;REFERENCE_OBJECT&quot;:</span>
+<span class="sd">                    return self.handle_reference_object() # handle these two by writing them to memory</span>
+<span class="sd">                else:</span>
+<span class="sd">                    raise ValueError(&quot;Unknown memory_type={}&quot;.format(memory_type))</span>
+<span class="sd">                # mark as finished</span>
+<span class="sd">                self.finished = True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">dialogue_stack</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span> <span class="o">=</span> <span class="n">dialogue_stack</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awaiting_response</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span> <span class="o">=</span> <span class="n">max_steps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[]</span>
+        <span class="p">)</span>  <span class="c1"># this should have more structure and some methods for adding/accessing?</span>
+
+<div class="viewcode-block" id="DialogueObject.step"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;the Dialogue Stack runs this objects .step();</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            chat: string to be uttered by the agent (or None)</span>
+<span class="sd">            progeny_data: data for the parent of this object (or None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Subclasses must implement step()&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">update_progeny_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DialogueObject.check_finished"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject.check_finished">[docs]</a>    <span class="k">def</span> <span class="nf">check_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if the object is finished processing.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_step</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Stepped </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> times, finishing&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_steps</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="AwaitResponse"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.AwaitResponse">[docs]</a><span class="k">class</span> <span class="nc">AwaitResponse</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of DialogueObject to await</span>
+<span class="sd">    a response from the user.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        init_time: initial time</span>
+<span class="sd">        response: the response to the question asked</span>
+<span class="sd">        wait_time: how long should we await the response</span>
+<span class="sd">        awaiting_response: a flag to mark where we are awaiting the response</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wait_time</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wait_time</span> <span class="o">=</span> <span class="n">wait_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">awaiting_response</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Wait for wait_time for an answer. Mark finished when a chat comes in.&quot;&quot;&quot;</span>
+        <span class="n">chatmem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">(</span><span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">init_time</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chatmem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="n">chatmem</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait_time</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># FIXME this shouldn&#39;t return data</span>
+            <span class="k">return</span> <span class="s2">&quot;Okay! I&#39;ll stop waiting for you to answer that.&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="Say"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.Say">[docs]</a><span class="k">class</span> <span class="nc">Say</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of DialogueObject to say / send a chat</span>
+<span class="sd">    to the user.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        response_options: a list of responses to pick the final response from</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response_options</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">response_options</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot init a Say with no response options&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">response_options</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">response_options</span> <span class="o">=</span> <span class="p">[</span><span class="n">response_options</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">response_options</span> <span class="o">=</span> <span class="n">response_options</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return one of the response_options.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">response_options</span><span class="p">),</span> <span class="kc">None</span></div>
+
+
+<span class="k">class</span> <span class="nc">BotCapabilities</span><span class="p">(</span><span class="n">Say</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the Say DialogueObject above to answer</span>
+<span class="sd">    something about the current capabilities of the bot, to the user.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">response_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;Try looking at something and tell me &quot;go there&quot;&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Try looking at a structure and tell me &quot;destroy that&quot;&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Try looking somewhere and tell me &quot;build a wall there&quot;&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;Try building something and giving it a name&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Try naming something and telling me to build it&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">response_options</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">GreetingType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Types of bot greetings.&quot;&quot;&quot;</span>
+
+    <span class="n">HELLO</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
+    <span class="n">GOODBYE</span> <span class="o">=</span> <span class="s2">&quot;goodbye&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">BotGreet</span><span class="p">(</span><span class="n">Say</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the Say DialogueObject above to greet</span>
+<span class="sd">    the user as a reply to a greeting.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">greeting_type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">greeting_type</span> <span class="o">==</span> <span class="n">GreetingType</span><span class="o">.</span><span class="n">GOODBYE</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">response_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;goodbye&quot;</span><span class="p">,</span> <span class="s2">&quot;bye&quot;</span><span class="p">,</span> <span class="s2">&quot;see you next time!&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;hi there!&quot;</span><span class="p">,</span> <span class="s2">&quot;hello&quot;</span><span class="p">,</span> <span class="s2">&quot;hey&quot;</span><span class="p">,</span> <span class="s2">&quot;hi&quot;</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">response_options</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BotStackStatus"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.BotStackStatus">[docs]</a><span class="k">class</span> <span class="nc">BotStackStatus</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the DialogueObject to answer</span>
+<span class="sd">    questions about the current status of the bot, to the user.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ing_mapping: A map from task name to present continuous tense language.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ing_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Build&quot;</span><span class="p">:</span> <span class="s2">&quot;building&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Destroy&quot;</span><span class="p">:</span> <span class="s2">&quot;excavating&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Dig&quot;</span><span class="p">:</span> <span class="s2">&quot;digging&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Move&quot;</span><span class="p">:</span> <span class="s2">&quot;moving&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the current task name status.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">task_mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_find_lowest_instance</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ing_mapping</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="n">task_mem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">answer_options</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;Idle. You can tell me what to do!&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;I am doing nothing.&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Nothing. Waiting for your command.&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">doing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ing_mapping</span><span class="p">[</span><span class="n">task_mem</span><span class="o">.</span><span class="n">task</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span>
+            <span class="n">answer_options</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;I am &quot;</span> <span class="o">+</span> <span class="n">doing</span><span class="p">,</span> <span class="n">doing</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">answer_options</span><span class="p">),</span> <span class="kc">None</span></div>
+
+
+<span class="k">class</span> <span class="nc">GetReward</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the DialogueObject to register feedback /</span>
+<span class="sd">    reward given by the user in the form of chat.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;associate pos / neg reward to chat memory.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">chatmem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_most_recent_incoming_chat</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">chatmem</span><span class="o">.</span><span class="n">chat_text</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;that is wrong&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that was wrong&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that was completely wrong&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;not that&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that looks horrible&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that is not what i asked&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that is not what i told you to do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that is not what i asked for&quot;</span> <span class="s2">&quot;not what i told you to do&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;you failed&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;failure&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fail&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;not what i asked for&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">chatmem</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;neg_reward&quot;</span><span class="p">)</span>
+            <span class="c1"># should probably tag recent actions too? not just the text of the chat</span>
+        <span class="k">elif</span> <span class="n">chatmem</span><span class="o">.</span><span class="n">chat_text</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;good job&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that is really cool&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that is awesome&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;awesome&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that is amazing&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;that looks good&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;you did well&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;great&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;good&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;nice&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">chatmem</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;pos_reward&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Thanks for letting me know.&quot;</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">class</span> <span class="nc">BotLocationStatus</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the DialogueObject to answer questions</span>
+<span class="sd">    about the current location of the bot.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract bot&#39;s current location.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="c1"># Get the agent&#39;s current location</span>
+        <span class="n">agent_pos</span> <span class="o">=</span> <span class="n">pos_to_np</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_player</span><span class="p">()</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="n">agent_coordinates</span> <span class="o">=</span> <span class="s2">&quot; , &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">agent_pos</span><span class="p">])</span>
+        <span class="n">answer_options</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;I am here at location : </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">agent_coordinates</span><span class="p">),</span>
+            <span class="s2">&quot;I am standing at : </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">agent_coordinates</span><span class="p">),</span>
+            <span class="s2">&quot;I am at : </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">agent_coordinates</span><span class="p">),</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">answer_options</span><span class="p">),</span> <span class="kc">None</span>
+
+
+<span class="k">class</span> <span class="nc">BotMoveStatus</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the DialogueObject to answer questions</span>
+<span class="sd">    about where the bot is moving to.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Extract bot&#39;s move target coordinates.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_find_lowest_instance</span><span class="p">(</span><span class="s2">&quot;Move&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">answer_options</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;I am not going anywhere&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;I am not heading anywhere&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;I am not off to anywhere&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">target_coordinates</span> <span class="o">=</span> <span class="s2">&quot; , &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span> <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">task</span><span class="o">.</span><span class="n">target</span><span class="p">])</span>
+            <span class="n">answer_options</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;I am heading to location : </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_coordinates</span><span class="p">),</span>
+                <span class="s2">&quot;I am walking over to : </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_coordinates</span><span class="p">),</span>
+                <span class="s2">&quot;I am moving to : </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target_coordinates</span><span class="p">),</span>
+            <span class="p">]</span>
+        <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">answer_options</span><span class="p">),</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="ConfirmTask"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.ConfirmTask">[docs]</a><span class="k">class</span> <span class="nc">ConfirmTask</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the DialogueObject to ask a clarification</span>
+<span class="sd">    question about something.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        question: the question to ask the user</span>
+<span class="sd">        tasks: list of task objects</span>
+<span class="sd">        asked: flag to denote whether the clarification has been asked for</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">question</span><span class="p">,</span> <span class="n">tasks</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">question</span> <span class="o">=</span> <span class="n">question</span>  <span class="c1"># chat text that will be sent to user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span> <span class="o">=</span> <span class="n">tasks</span>  <span class="c1"># list of Task objects, will be pushed in order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asked</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Ask a confirmation question and wait for response.&quot;&quot;&quot;</span>
+        <span class="c1"># Step 1: ask the question</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="o">.</span><span class="n">append_new</span><span class="p">(</span><span class="n">AwaitResponse</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="o">.</span><span class="n">append_new</span><span class="p">(</span><span class="n">Say</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">question</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asked</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="c1"># Step 2: check the response and add the task if necessary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;response&quot;</span><span class="p">],</span> <span class="s2">&quot;chat_text&quot;</span><span class="p">):</span>
+            <span class="n">response_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;response&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">chat_text</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">response_str</span> <span class="o">=</span> <span class="s2">&quot;UNK&quot;</span>
+        <span class="k">if</span> <span class="n">response_str</span> <span class="ow">in</span> <span class="n">MAP_YES</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tasks</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_push</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ConfirmReferenceObject"><a class="viewcode-back" href="../../../controller.html#base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject">[docs]</a><span class="k">class</span> <span class="nc">ConfirmReferenceObject</span><span class="p">(</span><span class="n">DialogueObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a sub-type of the DialogueObject to confirm if the</span>
+<span class="sd">    reference object is correct.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        bounds: general area of reference object to point at</span>
+<span class="sd">        pointed: flag determining whether the agent pointed at the area</span>
+<span class="sd">        asked: flag determining whether the confirmation was asked for</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reference_object</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">reference_object</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">&quot;get_point_at_target&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">get_point_at_target</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this should be an error</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pointed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">asked</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Confirm the block object by pointing and wait for answer.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">asked</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="o">.</span><span class="n">append_new</span><span class="p">(</span><span class="n">Say</span><span class="p">,</span> <span class="s2">&quot;do you mean this?&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">asked</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pointed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">point_at</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bounds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_stack</span><span class="o">.</span><span class="n">append_new</span><span class="p">(</span><span class="n">AwaitResponse</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pointed</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">output_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;response&quot;</span><span class="p">],</span> <span class="s2">&quot;chat_text&quot;</span><span class="p">):</span>
+                <span class="n">response_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">progeny_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;response&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">chat_text</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">response_str</span> <span class="o">=</span> <span class="s2">&quot;UNK&quot;</span>
+            <span class="k">if</span> <span class="n">response_str</span> <span class="ow">in</span> <span class="n">MAP_YES</span><span class="p">:</span>
+                <span class="n">output_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="s2">&quot;yes&quot;</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="n">response_str</span> <span class="ow">in</span> <span class="n">MAP_NO</span><span class="p">:</span>
+                <span class="n">output_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="s2">&quot;no&quot;</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">output_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="s2">&quot;unkown&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">output_data</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

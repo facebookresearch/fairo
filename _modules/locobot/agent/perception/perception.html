@@ -1,0 +1,432 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>locobot.agent.perception.perception &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>locobot.agent.perception.perception</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for locobot.agent.perception.perception</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.handlers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">InputHandler</span><span class="p">,</span>
+    <span class="n">DetectionHandler</span><span class="p">,</span>
+    <span class="n">FaceRecognitionHandler</span><span class="p">,</span>
+    <span class="n">HumanPoseHandler</span><span class="p">,</span>
+    <span class="n">TrackingHandler</span><span class="p">,</span>
+    <span class="n">MemoryHandler</span><span class="p">,</span>
+    <span class="n">LaserPointerHandler</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">objects</span> <span class="kn">import</span> <span class="n">AttributeDict</span>
+<span class="kn">from</span> <span class="nn">mcevent</span> <span class="kn">import</span> <span class="n">sio</span>
+
+<span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">multiprocessing</span> <span class="k">as</span> <span class="n">mp</span>
+
+<span class="n">multiprocessing</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="s2">&quot;spawn&quot;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">queue</span>
+
+
+<span class="k">class</span> <span class="nc">SlowPerception</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Home for all slow perceptual modules used by the LocobotAgent.</span>
+
+<span class="sd">    It is run as a separate process and has all the compute intensive perceptual models.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_data_dir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span> <span class="o">=</span> <span class="n">model_data_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_vision_handlers</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">setup_vision_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="n">AttributeDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;detector&quot;</span><span class="p">:</span> <span class="n">DetectionHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span><span class="p">),</span>
+                <span class="s2">&quot;human_pose&quot;</span><span class="p">:</span> <span class="n">HumanPoseHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span><span class="p">),</span>
+                <span class="s2">&quot;face_recognizer&quot;</span><span class="p">:</span> <span class="n">FaceRecognitionHandler</span><span class="p">(),</span>
+                <span class="s2">&quot;laser_pointer&quot;</span><span class="p">:</span> <span class="n">LaserPointerHandler</span><span class="p">(),</span>
+                <span class="s2">&quot;tracker&quot;</span><span class="p">:</span> <span class="n">TrackingHandler</span><span class="p">(),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">handlers</span>
+
+    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">detections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">detector</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
+        <span class="n">humans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">human_pose</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
+        <span class="n">face_detections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">face_recognizer</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">face_detections</span><span class="p">:</span>
+            <span class="n">detections</span> <span class="o">+=</span> <span class="n">face_detections</span>
+        <span class="c1"># laser_detection_obj = self.vision.laser_pointer(rgb_depth)</span>
+        <span class="c1"># if laser_detection_obj:</span>
+        <span class="c1">#     detections += [laser_detection_obj]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">tracker</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span>
+
+
+<span class="k">def</span> <span class="nf">slow_vision_process</span><span class="p">(</span><span class="n">model_data_dir</span><span class="p">,</span> <span class="n">input_queue</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">):</span>
+    <span class="n">perception</span> <span class="o">=</span> <span class="n">SlowPerception</span><span class="p">(</span><span class="n">model_data_dir</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">img</span><span class="p">,</span> <span class="n">xyz</span> <span class="o">=</span> <span class="n">input_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span> <span class="o">=</span> <span class="n">perception</span><span class="o">.</span><span class="n">perceive</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="n">output_queue</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">xyz</span><span class="p">])</span>
+
+
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+
+<span class="k">class</span> <span class="nc">Process</span><span class="p">(</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class which returns child Exceptions to Parent.</span>
+<span class="sd">    https://stackoverflow.com/a/33599967/4992248</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parent_conn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_child_conn</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pipe</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_exception</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Process</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_child_conn</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">tb</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_child_conn</span><span class="o">.</span><span class="n">send</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
+            <span class="c1"># raise e  # You can still rise this exception if you need to</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">exception</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent_conn</span><span class="o">.</span><span class="n">poll</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exception</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parent_conn</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exception</span>
+
+
+<div class="viewcode-block" id="Perception"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.Perception">[docs]</a><span class="k">class</span> <span class="nc">Perception</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Home for all perceptual modules used by the LocobotAgent.</span>
+
+<span class="sd">    It provides a multiprocessing mechanism to run the more compute intensive perceptual</span>
+<span class="sd">    models (for example our object detector) as a separate process.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        agent (LocoMCAgent): reference to the LocobotAgent</span>
+<span class="sd">        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">model_data_dir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span> <span class="o">=</span> <span class="n">model_data_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_vision_handlers</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recv_queue</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vprocess</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">slow_vision_process</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recv_queue</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vprocess</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vprocess</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audio</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tactile</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">slow_vision_ready</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;image_resolution&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span>  <span class="c1"># pixels</span>
+            <span class="s2">&quot;image_quality&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>  <span class="c1"># from 10 to 100, 100 being best</span>
+        <span class="p">}</span>
+
+        <span class="nd">@sio</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;update_image_settings&quot;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">update_log_settings</span><span class="p">(</span><span class="n">sid</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">[</span><span class="s2">&quot;image_resolution&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_values</span><span class="p">[</span><span class="s2">&quot;image_resolution&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">[</span><span class="s2">&quot;image_quality&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_values</span><span class="p">[</span><span class="s2">&quot;image_quality&quot;</span><span class="p">]</span>
+            <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;image_settings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">setup_vision_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">handlers</span> <span class="o">=</span> <span class="n">AttributeDict</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">InputHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">read_from_camera</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="n">MemoryHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">handlers</span>
+
+<div class="viewcode-block" id="Perception.perceive"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.Perception.perceive">[docs]</a>    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called by the core event loop for the agent to run all perceptual</span>
+<span class="sd">        models and save their state to memory. It fetches the results of</span>
+<span class="sd">        SlowPerception if they are ready.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force (boolean): set to True to force waiting on the SlowPerception models to finish, a good debugging</span>
+<span class="sd">            tool (default: False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rgb_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">input</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">slow_vision_ready</span><span class="p">:</span>
+            <span class="n">xyz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">mover</span><span class="o">.</span><span class="n">get_base_pos_in_canonical_coords</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">send_queue</span><span class="o">.</span><span class="n">put</span><span class="p">([</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">xyz</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slow_vision_ready</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">old_image</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_xyz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recv_queue</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">slow_vision_ready</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+            <span class="n">old_image</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_xyz</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vprocess</span><span class="o">.</span><span class="n">exception</span><span class="p">:</span>
+            <span class="n">error</span><span class="p">,</span> <span class="n">_traceback</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vprocess</span><span class="o">.</span><span class="n">exception</span>
+            <span class="k">raise</span> <span class="ne">ChildProcessError</span><span class="p">(</span><span class="n">_traceback</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">detections</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">memory</span><span class="p">(</span><span class="n">old_image</span><span class="o">.</span><span class="n">rgb</span><span class="p">,</span> <span class="n">detections</span> <span class="o">+</span> <span class="n">humans</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_image</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_rgb_depth</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sio</span><span class="p">,</span> <span class="s2">&quot;mock&quot;</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;image_settings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">old_xyz</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">mover</span><span class="o">.</span><span class="n">get_base_pos_in_canonical_coords</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="n">old_xyz</span>
+        <span class="n">resolution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">[</span><span class="s2">&quot;image_resolution&quot;</span><span class="p">]</span>
+        <span class="n">quality</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">[</span><span class="s2">&quot;image_quality&quot;</span><span class="p">]</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rgb_depth</span><span class="o">.</span><span class="n">to_struct</span><span class="p">(</span><span class="n">resolution</span><span class="p">,</span> <span class="n">quality</span><span class="p">)</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;object_image&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">old_rgb_depth</span><span class="o">.</span><span class="n">to_struct</span><span class="p">(</span><span class="n">resolution</span><span class="p">,</span> <span class="n">quality</span><span class="p">)</span> <span class="k">if</span> <span class="n">old_rgb_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">to_struct</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">detections</span><span class="p">]</span> <span class="k">if</span> <span class="n">detections</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;humans&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">to_struct</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">humans</span><span class="p">]</span> <span class="k">if</span> <span class="n">humans</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;yaw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaw</span>
+        <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;sensor_payload&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Facebook AI
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

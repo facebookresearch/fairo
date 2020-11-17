@@ -36,6 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="batteries included droidlet agents" href="droidlet_agents.html" />
     <link rel="prev" title="Perception" href="perception.html" /> 
 </head>
 
@@ -104,6 +105,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -186,14 +201,14 @@ smaller subtasks).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~Task.memid</strong> – Memory id of the task in agent’s memory</p></li>
-<li><p><strong>~Task.interrupted</strong> – A flag indicating whetherr the task has been interrupted</p></li>
-<li><p><strong>~Task.finished</strong> – A flag indicating whether the task finished</p></li>
-<li><p><strong>~Task.name</strong> – Name of the task</p></li>
-<li><p><strong>~Task.undone</strong> – A flag indicating whether the task was undone / reverted</p></li>
-<li><p><strong>~Task.last_stepped_time</strong> – Timestamp of last step through the task</p></li>
-<li><p><strong>~Task.throttling_tick</strong> – The threshold beyond which the task will be throttled</p></li>
-<li><p><strong>~Task.stop_condition</strong> – The condition on which the task will be stopped (by default,
+<li><p><strong>~Task.memid</strong> (<em>string</em>) – Memory id of the task in agent’s memory</p></li>
+<li><p><strong>~Task.interrupted</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – A flag indicating whetherr the task has been interrupted</p></li>
+<li><p><strong>~Task.finished</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – A flag indicating whether the task finished</p></li>
+<li><p><strong>~Task.name</strong> (<em>string</em>) – Name of the task</p></li>
+<li><p><strong>~Task.undone</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – A flag indicating whether the task was undone / reverted</p></li>
+<li><p><strong>~Task.last_stepped_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Timestamp of last step through the task</p></li>
+<li><p><strong>~Task.throttling_tick</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The threshold beyond which the task will be throttled</p></li>
+<li><p><strong>~Task.stop_condition</strong> (<em>Condition</em>) – The condition on which the task will be stopped (by default,
 this is NeverCondition)</p></li>
 </ul>
 </dd>
@@ -215,6 +230,14 @@ of the parent task (current task)</p>
 <dt id="base_agent.task.Task.check_finished">
 <code class="sig-name descname">check_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/task.html#Task.check_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.task.Task.check_finished" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check if the task has mark itself finished</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>If the task has finished</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -242,6 +265,8 @@ of the parent task (current task)</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="droidlet_agents.html" class="btn btn-neutral float-right" title="batteries included droidlet agents" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="perception.html" class="btn btn-neutral float-left" title="Perception" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

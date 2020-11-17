@@ -103,6 +103,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -187,9 +201,20 @@
     <span class="sd">&quot;&quot;&quot;TTAD model class that loads a pretrained model and runs inference in the agent.</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        tokenizer (str): pretrained tokenizer for the model</span>
-<span class="sd">        dataset (CAIPDataset): CAIP Dataset, empty during inference</span>
-<span class="sd">        encoder_decoder (EncoderDecoderWithLoss): constructor that loads the model</span>
+<span class="sd">        tokenizer (str): Pretrained tokenizer used to tokenize input. Runs end-to-end</span>
+<span class="sd">            tokenization, eg. split punctuation, BPE.</span>
+<span class="sd">        dataset (CAIPDataset): CAIP (CraftAssist Instruction Parsing) Dataset. Note that </span>
+<span class="sd">            this is empty during inference.</span>
+<span class="sd">        encoder_decoder (EncoderDecoderWithLoss): Transformer model class. See</span>
+<span class="sd">        </span>
+<span class="sd">    Args:</span>
+<span class="sd">        model_dir (str): Path to directory containing all files necessary to </span>
+<span class="sd">            load and run the model, including args, tree mappings and the checkpointed model. </span>
+<span class="sd">            Semantic parsing models used by current project are in ``ttad_bert_updated``.</span>
+<span class="sd">            eg. semantic parsing model is ``ttad_bert_updated/caip_test_model.pth`</span>
+<span class="sd">        data_dir (str): Path to directory containing all datasets used by the NSP model.</span>
+<span class="sd">            Note that this data is not used in inference, rather we load from the ground truth</span>
+<span class="sd">            data directory.</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -226,13 +251,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">encoder_decoder</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TTADBertModel.parse"><a class="viewcode-back" href="../../../../controller.html#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chat</span><span class="p">,</span> <span class="n">noop_thres</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">beam_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">well_formed_pen</span><span class="o">=</span><span class="mf">1e2</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Given an incoming chat, query the parser and return a logical form.</span>
+        <span class="sd">&quot;&quot;&quot;Given an incoming chat, query the parser and return a logical form. </span>
+<span class="sd">        Uses beam search decoding, see :any:`beam_search`</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            chat: text input</span>
+<span class="sd">            chat (str): Preprocessed chat command from a player. Used as text input to parser.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Logical form</span>
+<span class="sd">            dict: Logical form. </span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">btr</span> <span class="o">=</span> <span class="n">beam_search</span><span class="p">(</span>

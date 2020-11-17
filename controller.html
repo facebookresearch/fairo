@@ -105,6 +105,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -235,43 +249,61 @@
 <div><dl class="py class">
 <dt id="base_agent.nsp_dialogue_manager.NSPDialogueManager">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.nsp_dialogue_manager.</code><code class="sig-name descname">NSPDialogueManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">dialogue_object_classes</span></em>, <em class="sig-param"><span class="n">opts</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/nsp_dialogue_manager.html#NSPDialogueManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.nsp_dialogue_manager.NSPDialogueManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Dialogue manager driven by neural network</p>
+<dd><p>Dialogue manager driven by neural network.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~NSPDialogueManager.dialogue_objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – <p>Dictionary specifying the DialogueObject
+<li><p><strong>~NSPDialogueManager.dialogue_objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary specifying the DialogueObject
 class for each dialogue type. Keys are dialogue types. Values are
-corresponding class names.
-.. rubric:: Example</p>
-<dl class="simple">
-<dt>{</dt><dd><p>“interpreter”: MCInterpreter,
+corresponding class names. Example dialogue objects :
+{“interpreter”: MCInterpreter,
 “get_memory”: GetMemoryHandler,
-“put_memory”: …,</p>
-</dd>
-</dl>
-<p>}</p>
-</p></li>
-<li><p><strong>~NSPDialogueManager.botCapabilityQuery</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of commands that trigger
-scripted responses.</p></li>
+“put_memory”: …
+}</p></li>
+<li><p><strong>~NSPDialogueManager.botCapabilityQuery</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of commands that trigger scripted responses.</p></li>
 <li><p><strong>~NSPDialogueManager.safety_words</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of blacklisted words or phrases. Commands
 containing these are automatically filtered out.</p></li>
-<li><p><strong>~NSPDialogueManager.botGreetings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – <p>Different types of greetings that trigger
-scripted responses.
-Example:
-{</p>
-<blockquote>
-<div><p>”hello”: [“hi bot”, “hello”]</p>
-</div></blockquote>
-<p>}</p>
-</p></li>
+<li><p><strong>~NSPDialogueManager.botGreetings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Different types of greetings that trigger
+scripted responses. Example:
+{ “hello”: [“hi bot”, “hello”] }</p></li>
 <li><p><strong>~NSPDialogueManager.model</strong> (<a class="reference internal" href="#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel" title="base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel"><em>TTADBertModel</em></a>) – Semantic Parsing model that takes text as
 input and outputs a logical form.
 To use a new model here, ensure that the subfolder directory structure
-mirrors the current model/dataset directories.</p></li>
+mirrors the current model/dataset directories.
+See <code class="xref py py-class docutils literal notranslate"><span class="pre">TTADBertModel</span></code>.</p></li>
 <li><p><strong>~NSPDialogueManager.ground_truth_actions</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – A key-value with ground truth logical forms.
 These will be queried first (via exact string match), before running the model.</p></li>
 <li><p><strong>~NSPDialogueManager.dialogue_object_parameters</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Set the parameters for dialogue objects.
 Sets the agent, memory and dialogue stack.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>agent</strong> – a droidlet agent, eg. <code class="docutils literal notranslate"><span class="pre">CraftAssistAgent</span></code></p></li>
+<li><p><strong>dialogue_object_classes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary specifying the DialogueObject
+class for each dialogue type. See <code class="docutils literal notranslate"><span class="pre">dialogue_objects</span></code> definition above.</p></li>
+<li><p><strong>opts</strong> (<a class="reference external" href="https://docs.python.org/3/library/argparse.html#argparse.Namespace" title="(in Python v3.9)"><em>argparse.Namespace</em></a>) – <p>Parsed command line arguments specifying parameters in agent.
+:param –nsp_models_dir: Path to directory containing all files necessary to</p>
+<blockquote>
+<div><p>load and run the model, including args, tree mappings and the checkpointed model.
+Semantic parsing models used by current project are in <code class="docutils literal notranslate"><span class="pre">ttad_bert_updated</span></code>.
+eg. semantic parsing model is <code class="docutils literal notranslate"><span class="pre">ttad_bert_updated/caip_test_model.pth</span></code></p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">param –nsp_data_dir</dt>
+<dd class="field-odd"><p>Path to directory containing all datasets used by the NSP model.
+Note that this data is not used in inference, rather we load from the ground truth
+data directory.</p>
+</dd>
+<dt class="field-even">param –ground_truth_data_dir</dt>
+<dd class="field-even"><p>Path to directory containing ground truth datasets
+loaded by agent at runtime. Option to include a file for blacklisted words <code class="docutils literal notranslate"><span class="pre">safety.txt</span></code>,
+a class for greetings <code class="docutils literal notranslate"><span class="pre">greetings.json</span></code> and .txt files with text, logical_form pairs in
+<code class="docutils literal notranslate"><span class="pre">datasets/</span></code>.</p>
+</dd>
+</dl>
+<p>See <code class="xref py py-class docutils literal notranslate"><span class="pre">ArgumentParser</span></code> for full list of command line options.</p>
+</p></li>
 </ul>
 </dd>
 </dl>
@@ -353,22 +385,39 @@ Format is (speaker, chat), eg. (“player1”, “build a red house”)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Variables</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~TTADBertModel.tokenizer</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – pretrained tokenizer for the model</p></li>
-<li><p><strong>~TTADBertModel.dataset</strong> (<em>CAIPDataset</em>) – CAIP Dataset, empty during inference</p></li>
-<li><p><strong>~TTADBertModel.encoder_decoder</strong> (<em>EncoderDecoderWithLoss</em>) – constructor that loads the model</p></li>
+<li><p><strong>~TTADBertModel.tokenizer</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Pretrained tokenizer used to tokenize input. Runs end-to-end
+tokenization, eg. split punctuation, BPE.</p></li>
+<li><p><strong>~TTADBertModel.dataset</strong> (<em>CAIPDataset</em>) – CAIP (CraftAssist Instruction Parsing) Dataset. Note that
+this is empty during inference.</p></li>
+<li><p><strong>~TTADBertModel.encoder_decoder</strong> (<em>EncoderDecoderWithLoss</em>) – Transformer model class. See</p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>model_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to directory containing all files necessary to
+load and run the model, including args, tree mappings and the checkpointed model.
+Semantic parsing models used by current project are in <code class="docutils literal notranslate"><span class="pre">ttad_bert_updated</span></code>.
+eg. semantic parsing model is <a href="#id1"><span class="problematic" id="id2">``</span></a>ttad_bert_updated/caip_test_model.pth`</p></li>
+<li><p><strong>data_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Path to directory containing all datasets used by the NSP model.
+Note that this data is not used in inference, rather we load from the ground truth
+data directory.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel.parse">
 <code class="sig-name descname">parse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">chat</span></em>, <em class="sig-param"><span class="n">noop_thres</span><span class="o">=</span><span class="default_value">0.95</span></em>, <em class="sig-param"><span class="n">beam_size</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">well_formed_pen</span><span class="o">=</span><span class="default_value">100.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/ttad/ttad_transformer_model/query_model.html#TTADBertModel.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel.parse" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given an incoming chat, query the parser and return a logical form.</p>
+<dd><p>Given an incoming chat, query the parser and return a logical form.
+Uses beam search decoding, see <code class="xref any docutils literal notranslate"><span class="pre">beam_search</span></code></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>chat</strong> – text input</p>
+<dd class="field-odd"><p><strong>chat</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – Preprocessed chat command from a player. Used as text input to parser.</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Logical form</p>
+<dd class="field-even"><p>Logical form.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)">dict</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -380,6 +429,188 @@ Format is (speaker, chat), eg. (“player1”, “build a red house”)</p>
 </div>
 <div class="section" id="dialogue-objects">
 <h2>Dialogue Objects<a class="headerlink" href="#dialogue-objects" title="Permalink to this headline">¶</a></h2>
+<p>The generic Dialogue Object is</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.dialogue_objects.dialogue_object.DialogueObject">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">DialogueObject</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">memory</span></em>, <em class="sig-param"><span class="n">dialogue_stack</span></em>, <em class="sig-param"><span class="n">max_steps</span><span class="o">=</span><span class="default_value">50</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#DialogueObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.DialogueObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>DialogueObject class controls the agent’s use of the dialogue stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent</strong> – the agent process</p></li>
+<li><p><strong>memory</strong> – agent’t memory</p></li>
+<li><p><strong>dialogue_stack</strong> – A stack on which dialogue objects are placed</p></li>
+<li><p><strong>finished</strong> – whether this object has finished processing</p></li>
+<li><p><strong>awaiting_response</strong> – whether this object is awaiting the speaker’s response
+to a question</p></li>
+<li><p><strong>max_steps</strong> – finish after this many steps to avoid getting stuck</p></li>
+<li><p><strong>current_step</strong> – current step count</p></li>
+<li><p><strong>progeny_data</strong> – data from progeny DialogueObjects, for example used to answer a clarification</p></li>
+</ul>
+</dd>
+</dl>
+<dl>
+<dt>Usage:</dt><dd><dl>
+<dt>class DummyGetMemoryHandler(DialogueObject):</dt><dd><dl>
+<dt>def __init__(self, speaker_name: str, action_dict: Dict, <a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs):</dt><dd><p># initialize everything
+super().__init__(<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs)
+self.speaker_name = speaker_name
+self.action_dict = action_dict</p>
+</dd>
+<dt>def step(self) -&gt; Tuple[Optional[str], Any]:</dt><dd><p># check for dialogue type “GET_MEMORY”
+assert self.action_dict[“dialogue_type”] == “GET_MEMORY”
+memory_type = self.action_dict[“filters”][“memory_type”]
+if memory_type == “AGENT” or memory_type == “REFERENCE_OBJECT”:</p>
+<blockquote>
+<div><p>return self.handle_reference_object() # handle these two by writing them to memory</p>
+</div></blockquote>
+<dl class="simple">
+<dt>else:</dt><dd><p>raise ValueError(“Unknown memory_type={}”.format(memory_type))</p>
+</dd>
+</dl>
+<p># mark as finished
+self.finished = True</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="base_agent.dialogue_objects.dialogue_object.DialogueObject.check_finished">
+<code class="sig-name descname">check_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#DialogueObject.check_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.DialogueObject.check_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the object is finished processing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.dialogue_objects.dialogue_object.DialogueObject.step">
+<code class="sig-name descname">step</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#DialogueObject.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.DialogueObject.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>the Dialogue Stack runs this objects .step();</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>string to be uttered by the agent (or None)
+progeny_data: data for the parent of this object (or None)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>chat</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<p>A DialogueObject’s main method is .step(),
+Some others:</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="base_agent.dialogue_objects.dialogue_object.Say">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">Say</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">response_options</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#Say"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.Say" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of DialogueObject to say / send a chat
+to the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>response_options</strong> – a list of responses to pick the final response from</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="base_agent.dialogue_objects.dialogue_object.AwaitResponse">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">AwaitResponse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wait_time</span><span class="o">=</span><span class="default_value">800</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#AwaitResponse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.AwaitResponse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of DialogueObject to await
+a response from the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>init_time</strong> – initial time</p></li>
+<li><p><strong>response</strong> – the response to the question asked</p></li>
+<li><p><strong>wait_time</strong> – how long should we await the response</p></li>
+<li><p><strong>awaiting_response</strong> – a flag to mark where we are awaiting the response</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="base_agent.dialogue_objects.dialogue_object.BotStackStatus">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">BotStackStatus</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#BotStackStatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.BotStackStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of the DialogueObject to answer
+questions about the current status of the bot, to the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>ing_mapping</strong> – A map from task name to present continuous tense language.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id0">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">AwaitResponse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">wait_time</span><span class="o">=</span><span class="default_value">800</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#AwaitResponse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of DialogueObject to await
+a response from the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>init_time</strong> – initial time</p></li>
+<li><p><strong>response</strong> – the response to the question asked</p></li>
+<li><p><strong>wait_time</strong> – how long should we await the response</p></li>
+<li><p><strong>awaiting_response</strong> – a flag to mark where we are awaiting the response</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="base_agent.dialogue_objects.dialogue_object.ConfirmTask">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">ConfirmTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">question</span></em>, <em class="sig-param"><span class="n">tasks</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#ConfirmTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.ConfirmTask" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of the DialogueObject to ask a clarification
+question about something.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>question</strong> – the question to ask the user</p></li>
+<li><p><strong>tasks</strong> – list of task objects</p></li>
+<li><p><strong>asked</strong> – flag to denote whether the clarification has been asked for</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">ConfirmReferenceObject</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">reference_object</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#ConfirmReferenceObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of the DialogueObject to confirm if the
+reference object is correct.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bounds</strong> – general area of reference object to point at</p></li>
+<li><p><strong>pointed</strong> – flag determining whether the agent pointed at the area</p></li>
+<li><p><strong>asked</strong> – flag determining whether the confirmation was asked for</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="id7">
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.dialogue_objects.dialogue_object.</code><code class="sig-name descname">ConfirmTask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">question</span></em>, <em class="sig-param"><span class="n">tasks</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/dialogue_objects/dialogue_object.html#ConfirmTask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class represents a sub-type of the DialogueObject to ask a clarification
+question about something.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>question</strong> – the question to ask the user</p></li>
+<li><p><strong>tasks</strong> – list of task objects</p></li>
+<li><p><strong>asked</strong> – flag to denote whether the clarification has been asked for</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div></blockquote>
 <div class="section" id="interpreter">
 <h3>Interpreter<a class="headerlink" href="#interpreter" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/intepreter.py">Interpreter</a> is responsible for using the world state (via <a class="reference internal" href="memory.html"><span class="doc">memory</span></a>) and a natural language utterance that has been parsed into a logical form over the agent’s DSL from the semantic parser to choose a <a class="reference internal" href="memory.html"><span class="doc">Task</span></a> to put on the Task Stack.   The <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py">locobot</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py">craftassist</a> Interpreters are not the same, but the bulk of the work is done by the shared subinterpreters (in the files *_helper.py) <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/">here</a>.  The subinterpreters, registered in the main Interpreter <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/intepreter.py#L55">here</a> (and for the specialized versions <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py#L56">here</a> and <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py#L61">here</a>), roughly follow the structure of the DSL.  This arrangement is to allow replacing the (currently heuristic) subinterpreters with learned versions or specializing them to new agents.</p>

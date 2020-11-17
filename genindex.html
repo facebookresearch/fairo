@@ -103,6 +103,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -208,13 +222,15 @@
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.add_triple">add_triple() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory">AgentMemory (class in base_agent.sql_memory)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.append">append() (base_agent.dialogue_stack.DialogueStack method)</a>
 </li>
       <li><a href="memory.html#base_agent.memory_nodes.AttentionNode">AttentionNode (class in base_agent.memory_nodes)</a>
+</li>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.AwaitResponse">AwaitResponse (class in base_agent.dialogue_objects.dialogue_object)</a>, <a href="controller.html#id0">[1]</a>
 </li>
   </ul></td>
 </tr></table>
@@ -225,6 +241,10 @@
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.basic_search">basic_search() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.BotStackStatus">BotStackStatus (class in base_agent.dialogue_objects.dialogue_object)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="C">C</h2>
@@ -232,17 +252,29 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.memory_nodes.ChatNode">ChatNode (class in base_agent.memory_nodes)</a>
 </li>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject.check_finished">check_finished() (base_agent.dialogue_objects.dialogue_object.DialogueObject method)</a>
+
+      <ul>
+        <li><a href="tasks.html#base_agent.task.Task.check_finished">(base_agent.task.Task method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="tasks.html#base_agent.task.Task.check_finished">check_finished() (base_agent.task.Task method)</a>
-</li>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.clear">clear() (base_agent.dialogue_stack.DialogueStack method)</a>
+</li>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject">ConfirmReferenceObject (class in base_agent.dialogue_objects.dialogue_object)</a>
+</li>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.ConfirmTask">ConfirmTask (class in base_agent.dialogue_objects.dialogue_object)</a>, <a href="controller.html#id7">[1]</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject">DialogueObject (class in base_agent.dialogue_objects.dialogue_object)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack">DialogueStack (class in base_agent.dialogue_stack)</a>
 </li>
@@ -268,9 +300,11 @@
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_memids_by_tag">get_memids_by_tag() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
+      <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_recent_entities">get_recent_entities() (base_agent.sql_memory.AgentMemory method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_recent_entities">get_recent_entities() (base_agent.sql_memory.AgentMemory method)</a>
+      <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_tags_by_memid">get_tags_by_memid() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_task_by_id">get_task_by_id() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
@@ -342,8 +376,12 @@
 </li>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.peek">peek() (base_agent.dialogue_stack.DialogueStack method)</a>
 </li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.Perception.perceive">perceive() (locobot.agent.perception.Perception method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.Perception">Perception (class in locobot.agent.perception)</a>
+</li>
       <li><a href="memory.html#base_agent.memory_nodes.PlayerNode">PlayerNode (class in base_agent.memory_nodes)</a>
 </li>
       <li><a href="memory.html#base_agent.memory_nodes.ProgramNode">ProgramNode (class in base_agent.memory_nodes)</a>
@@ -366,13 +404,17 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.Say">Say (class in base_agent.dialogue_objects.dialogue_object)</a>
+</li>
       <li><a href="memory.html#base_agent.memory_nodes.SelfNode">SelfNode (class in base_agent.memory_nodes)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.step">step() (base_agent.dialogue_stack.DialogueStack method)</a>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject.step">step() (base_agent.dialogue_objects.dialogue_object.DialogueObject method)</a>
 
       <ul>
+        <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.step">(base_agent.dialogue_stack.DialogueStack method)</a>
+</li>
         <li><a href="tasks.html#base_agent.task.Task.step">(base_agent.task.Task method)</a>
 </li>
       </ul></li>

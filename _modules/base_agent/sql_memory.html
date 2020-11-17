@@ -103,6 +103,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -208,11 +222,23 @@
 <span class="sd">    capabilities based on the agent&#39;s framework.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        db_file: The database file</span>
-<span class="sd">        schema_path: Path to the file containing the database schema</span>
-<span class="sd">        db_log_path: Path to where the database logs will be written</span>
-<span class="sd">        nodelist: List of memory nodes</span>
-<span class="sd">        agent_time: Current time set by the agent.</span>
+<span class="sd">        db_file (string): The database file</span>
+<span class="sd">        schema_path (string): Path to the file containing the database schema</span>
+<span class="sd">        db_log_path (string): Path to where the database logs will be written</span>
+<span class="sd">        nodelist (list[MemoryNode]): List of memory nodes</span>
+<span class="sd">        agent_time (int): Current time set by the agent.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        _db_log_file (FileHandler): File handler for writing database logs</span>
+<span class="sd">        _db_log_idx (int): Database log index</span>
+<span class="sd">        sql_queries (list) : List of sql queries issued for the memory</span>
+<span class="sd">        db (object): connection object to the database file</span>
+<span class="sd">        _safe_pickle_saved_attrs (dict): Dictionary for pickled attributes</span>
+<span class="sd">        all_tables (list): List of all table names</span>
+<span class="sd">        nodes (dict): Mapping of node name to table name</span>
+<span class="sd">        self_memid (str): MemoryID for the AgentMemory</span>
+<span class="sd">        basic_searcher (BasicMemorySearcher): A class to search through memory</span>
+<span class="sd">        time (int): The time of the agent</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -263,8 +289,9 @@
 
     <span class="k">def</span> <span class="nf">init_time_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_time</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialiaze the current time in memory</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            agent_time: value of time from agent process</span>
+<span class="sd">            agent_time (int): value of time from agent process</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">agent_time</span> <span class="ow">or</span> <span class="n">Time</span><span class="p">()</span>
 
@@ -286,8 +313,9 @@
 
     <span class="k">def</span> <span class="nf">add_tick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ticks</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a tick to time to increment it</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            ticks: number of ticks</span>
+<span class="sd">            ticks (int): number of ticks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">add_tick</span><span class="p">(</span><span class="n">ticks</span><span class="p">)</span>
 
@@ -301,10 +329,13 @@
 
     <span class="k">def</span> <span class="nf">set_memory_updated_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;&quot;Set the updated_time of the memory object with given memid</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
+<span class="sd">            memid (string): Memory ID</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of affected rows</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; set_memory_updated_time(memid)</span>
@@ -313,10 +344,13 @@
 
     <span class="k">def</span> <span class="nf">set_memory_attended_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;&quot;Set the attended_time of the memory object with given memid</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
+<span class="sd">            memid (string): Memory ID</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of affected rows</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; set_memory_attended_time(memid)</span>
@@ -325,8 +359,10 @@
 
     <span class="k">def</span> <span class="nf">update_recent_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mems</span><span class="o">=</span><span class="p">[]):</span>
         <span class="sd">&quot;&quot;&quot;&quot;Update memories in mems as recently attended</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            mems: List of memories </span>
+<span class="sd">            mems (list): List of memories </span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; mems = [&#39;10517cc584844659907ccfa6161e9d32&#39;, </span>
 <span class="sd">                        &#39;3493128492859dfksdfhs34839458934&#39;]</span>
@@ -340,11 +376,14 @@
 <div class="viewcode-block" id="AgentMemory.get_recent_entities"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_recent_entities">[docs]</a>    <span class="k">def</span> <span class="nf">get_recent_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memtype</span><span class="p">,</span> <span class="n">time_window</span><span class="o">=</span><span class="mi">12000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;MemoryNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get all entities of given memtype that were recently (within the </span>
 <span class="sd">        time window) attended </span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memtype: The node type of memory</span>
-<span class="sd">            time_window: The time window for maintaining recency window from current time</span>
+<span class="sd">            memtype (string): The node type of memory</span>
+<span class="sd">            time_window (int): The time window for maintaining recency window from current time</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[MemoryNode]: list of MemoryNode objects</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; memtype = &#39;Player&#39;</span>
 <span class="sd">            &gt;&gt;&gt; get_recent_entities(memtype)</span>
@@ -365,10 +404,13 @@
 
     <span class="k">def</span> <span class="nf">get_node_from_memid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given the memid, return the node type</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
+<span class="sd">            memid (string): Memory ID</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            string: The node type of memory node</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; get_node_from_memid(memid)</span>
@@ -379,11 +421,14 @@
 <div class="viewcode-block" id="AgentMemory.get_mem_by_id"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_mem_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_mem_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;MemoryNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given the memid and an optional node_type, </span>
 <span class="sd">        return the memory node</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
-<span class="sd">            node_type: the type of memory node</span>
+<span class="sd">            memid (string): Memory ID</span>
+<span class="sd">            node_type (string): the type of memory node</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            MemoryNode: a memory node object</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; node_type = &#39;Chat&#39;</span>
@@ -400,10 +445,13 @@
     <span class="c1"># does not search archived mems for now</span>
     <span class="k">def</span> <span class="nf">get_all_tagged_mems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;MemoryNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a list of memory nodes that have the given tag</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            tag: A string representing the tag or description assigned to a memory</span>
+<span class="sd">            tag (string): A string representing the tag or description assigned to a memory</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[MemoryNode]: List of MemoryNode objects</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; tag = &#39;bright&#39;</span>
 <span class="sd">            &gt;&gt;&gt; get_all_tagged_mems(tag)</span>
@@ -413,11 +461,14 @@
 
     <span class="k">def</span> <span class="nf">check_memid_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given the table and memid, check if an entry exists</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memind: Memory id</span>
-<span class="sd">            table: Name of table</span>
+<span class="sd">            memid (string): Memory id</span>
+<span class="sd">            table (string): Name of table</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            bool: whther an object with the memory id exists</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; table = &#39;ReferenceObjects&#39;</span>
@@ -428,9 +479,11 @@
     <span class="c1"># TODO forget should be a method of the memory object</span>
 <div class="viewcode-block" id="AgentMemory.forget"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.forget">[docs]</a>    <span class="k">def</span> <span class="nf">forget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Forget a given memid from memory</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory id </span>
-<span class="sd">            hard: flag indicating whether it is a hard delete</span>
+<span class="sd">            memid (string): Memory id </span>
+<span class="sd">            hard (bool): flag indicating whether it is a hard delete</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; forget(memid, hard=False)</span>
@@ -447,10 +500,13 @@
 
 <div class="viewcode-block" id="AgentMemory.basic_search"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.basic_search">[docs]</a>    <span class="k">def</span> <span class="nf">basic_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Perform a basic search using the filter_dict</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            filter_dict: A dictionary indicating values that the memory should be filtered on</span>
+<span class="sd">            filter_dict (dict): A dictionary indicating values that the memory should be filtered on</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[MemoryNode]: A list of MemoryNode objects.</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; filters_dict = {&quot;base_table&quot; : &quot;ReferenceObject&quot;, </span>
 <span class="sd">                                &quot;triples&quot; : [{&quot;pred_text&quot; : &quot;has_name&quot;, </span>
@@ -473,19 +529,22 @@
         <span class="n">obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Adds (subj, pred, obj) triple to the triplestore.</span>
-<span class="sd">            *_text is the name field of a NamedAbstraction; if</span>
+        <span class="sd">&quot;&quot;&quot;Adds (subj, pred, obj) triple to the triplestore.</span>
+<span class="sd">            _text is the name field of a NamedAbstraction; if</span>
 <span class="sd">            such a NamedAbstraction does not exist, this builds it as a side effect.</span>
 <span class="sd">            subj and obj can be memids or text, but pred_text is required </span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            subj: memid of subject</span>
-<span class="sd">            obj: memid of object</span>
-<span class="sd">            subj_text: text representation for subject</span>
-<span class="sd">            pred_text: predicate text</span>
-<span class="sd">            obj_text: text representation for object</span>
-<span class="sd">            confidence: The confidence score for the triple</span>
+<span class="sd">            subj (string): memid of subject</span>
+<span class="sd">            obj (string): memid of object</span>
+<span class="sd">            subj_text (string): text representation for subject</span>
+<span class="sd">            pred_text (string): predicate text</span>
+<span class="sd">            obj_text (string): text representation for object</span>
+<span class="sd">            confidence (float): The confidence score for the triple</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: number of rows affected</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; subj = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; obj_text = &#39;blue&#39;</span>
@@ -521,11 +580,14 @@
 
 <div class="viewcode-block" id="AgentMemory.tag"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.tag">[docs]</a>    <span class="k">def</span> <span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Tag the subject with tag text.</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            subj_memid: memid of subject</span>
-<span class="sd">            tag_text: string representation of the tag </span>
+<span class="sd">            subj_memid (string): memid of subject</span>
+<span class="sd">            tag_text (string): string representation of the tag </span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: number of rows affected</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; tag_text = &quot;shiny&quot;</span>
@@ -535,11 +597,14 @@
 
 <div class="viewcode-block" id="AgentMemory.untag"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.untag">[docs]</a>    <span class="k">def</span> <span class="nf">untag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tag_text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Delete tag for subject</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            subj_memid: memid of subject</span>
-<span class="sd">            tag_text: string representation of the tag </span>
+<span class="sd">            subj_memid (string): memid of subject</span>
+<span class="sd">            tag_text (string): string representation of the tag </span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: number of rows affected</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; tag_text = &quot;shiny&quot;</span>
@@ -555,10 +620,13 @@
     <span class="c1"># assumes tag is tag text</span>
 <div class="viewcode-block" id="AgentMemory.get_memids_by_tag"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_memids_by_tag">[docs]</a>    <span class="k">def</span> <span class="nf">get_memids_by_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Find all memids with a given tag</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            tag: string representation of the tag </span>
+<span class="sd">            tag (string): string representation of the tag </span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[string]: list of memory ids (which are strings)</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; tag = &quot;round&quot;</span>
 <span class="sd">            &gt;&gt;&gt; get_memids_by_tag(tag)</span>
@@ -569,13 +637,16 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span></div>
 
-    <span class="k">def</span> <span class="nf">get_tags_by_memid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">return_text</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<div class="viewcode-block" id="AgentMemory.get_tags_by_memid"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_tags_by_memid">[docs]</a>    <span class="k">def</span> <span class="nf">get_tags_by_memid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">return_text</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Find all tag for a given memid</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            subj_memid: the subject&#39;s memid (uuid from Memories table)</span>
-<span class="sd">            return_text: if true, return the object text, otherwise return object memid</span>
+<span class="sd">            subj_memid (string): the subject&#39;s memid (uuid from Memories table)</span>
+<span class="sd">            return_text (bool): if true, return the object text, otherwise return object memid</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[string]: list of tags.</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; subj_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; get_tags_by_memid(subj_memid=subj_memid, return_text=True)</span>
@@ -590,7 +661,7 @@
             <span class="o">+</span> <span class="s1">&#39;) FROM Triples WHERE pred_text=&quot;has_tag&quot; AND subj=?&#39;</span>
         <span class="p">)</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">subj_memid</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,)</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]</span></div>
 
     <span class="c1"># does not search archived mems for now</span>
     <span class="c1"># TODO clean up input?</span>
@@ -603,22 +674,25 @@
         <span class="n">obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">return_obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;if_exists&quot;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot; gets triples from the triplestore.</span>
+        <span class="sd">&quot;&quot;&quot;gets triples from the triplestore.</span>
 <span class="sd">        subj is always returned as a memid even when searched as text.</span>
 <span class="sd">        need at least one non-None part of the triple, and</span>
 <span class="sd">        text should not not be input for a part of a triple where a memid is set.</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            subj: memid of subject</span>
-<span class="sd">            obj: memid of object</span>
-<span class="sd">            subj_text: text of the subject (if applicable, as opposed to subject memid)</span>
-<span class="sd">            pred_text: text of the predicate</span>
-<span class="sd">            obj_text: text of the subject (if applicable, as opposed to subject memid)</span>
-<span class="sd">            return_obj_text: if return_obj_text == &quot;if_exists&quot;, will return the obj_text</span>
+<span class="sd">            subj (string): memid of subject</span>
+<span class="sd">            obj (string): memid of object</span>
+<span class="sd">            subj_text (string): text of the subject (if applicable, as opposed to subject memid)</span>
+<span class="sd">            pred_text (string): text of the predicate</span>
+<span class="sd">            obj_text (string): text of the subject (if applicable, as opposed to subject memid)</span>
+<span class="sd">            return_obj_text (string): if return_obj_text == &quot;if_exists&quot;, will return the obj_text</span>
 <span class="sd">                             if it exists, and the memid otherwise. If return_obj_text </span>
 <span class="sd">                             == &quot;always&quot;, returns the obj_text even if it is None. If </span>
 <span class="sd">                             return_obj_text == &quot;never&quot;, returns the obj memid.</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[tuple]: A list of tuples of the form : (subject, predicate, object)</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; subj = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; obj_text = &#39;blue&#39;</span>
@@ -662,12 +736,14 @@
 
 <div class="viewcode-block" id="AgentMemory.remove_memid_triple"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.remove_memid_triple">[docs]</a>    <span class="k">def</span> <span class="nf">remove_memid_triple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s2">&quot;subj&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Delete the triple corresponding to the given memid</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memid of subject or object</span>
-<span class="sd">            role: String that determines whether the memid is for subject or</span>
-<span class="sd">                  object</span>
+<span class="sd">            memid (string): Memid of subject or object</span>
+<span class="sd">            role (string): String that determines whether the memid is for subject or object</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of affected rows</span>
+<span class="sd">        </span>
 <span class="sd">        Examples::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; remove_memid_triple(memid=memid, role=&quot;obj&quot;)</span>
@@ -683,31 +759,35 @@
 
     <span class="k">def</span> <span class="nf">add_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker_memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chat</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new chatNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            speaker_memid: memory ID of speaker</span>
-<span class="sd">            chat: text representing chat</span>
+<span class="sd">            speaker_memid (string): memory ID of speaker</span>
+<span class="sd">            chat (string): text representing chat</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ChatNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">speaker_memid</span><span class="p">,</span> <span class="n">chat</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_chat_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ChatNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return ChatNode, given memid</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID </span>
+<span class="sd">            memid (string): Memory ID </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_recent_chats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;ChatNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return a list of at most n chats</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            n: number of recent chats</span>
+<span class="sd">            n (int): number of recent chats</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM Chats ORDER BY time DESC LIMIT ?&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">ChatNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">get_most_recent_incoming_chat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">after</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;ChatNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get the most recent chat that came in since &#39;after&#39;</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            after: Marks the beginning of time window (from now)</span>
+<span class="sd">            after (int): Marks the beginning of time window (from now)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
             <span class="sd">&quot;&quot;&quot;</span>
@@ -732,8 +812,9 @@
     <span class="c1"># TODO consolidate anything using eid</span>
     <span class="k">def</span> <span class="nf">get_player_by_eid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Given eid, retrieve PlayerNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            eid: Entity ID</span>
+<span class="sd">            eid (int): Entity ID</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span><span class="s2">&quot;SELECT uuid FROM ReferenceObjects WHERE eid=?&quot;</span><span class="p">,</span> <span class="n">eid</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
@@ -744,8 +825,9 @@
     <span class="c1"># TODO get all if there are more than one?</span>
     <span class="k">def</span> <span class="nf">get_player_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Given player name, retrieve PlayerNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            name: Player name</span>
+<span class="sd">            name (string): Player name</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
             <span class="s1">&#39;SELECT uuid FROM ReferenceObjects WHERE ref_type=&quot;player&quot; AND name=?&#39;</span><span class="p">,</span> <span class="n">name</span>
@@ -758,8 +840,9 @@
 
     <span class="k">def</span> <span class="nf">get_players_tagged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">tags</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;PlayerNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Given a list of tags, retrieve all players with the tags</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            tags: list of tags</span>
+<span class="sd">            tags (list): list of tags</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">tags</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;_player&quot;</span><span class="p">,)</span>
         <span class="n">memids</span> <span class="o">=</span> <span class="nb">set</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_memids_by_tag</span><span class="p">(</span><span class="n">t</span><span class="p">))</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">])</span>
@@ -767,8 +850,9 @@
 
     <span class="k">def</span> <span class="nf">get_player_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;PlayerNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given memid, retrieve PlayerNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: memory ID</span>
+<span class="sd">            memid (string): memory ID</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PlayerNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
 
@@ -778,15 +862,17 @@
 
     <span class="k">def</span> <span class="nf">add_location</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new LocationNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            xyz: XYZ coordinates</span>
+<span class="sd">            xyz (tuple): XYZ coordinates</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">LocationNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_location_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LocationNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given memory ID, retrieve LocationNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
+<span class="sd">            memid (string): Memory ID</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">LocationNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
 
@@ -796,15 +882,17 @@
 
     <span class="k">def</span> <span class="nf">add_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a new TimeNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            t: time value</span>
+<span class="sd">            t (int): time value</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TimeNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_time_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TimeNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given memid, retrieve TimeNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
+<span class="sd">            memid (string): Memory ID</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">TimeNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
 
@@ -829,12 +917,15 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">,</span> <span class="n">parent_memid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">chat_effect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TaskNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a task object in memory, add triples and add to task stack</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            task: The task to be pushed</span>
-<span class="sd">            parent_memid: Memory ID of the task&#39;s parent</span>
-<span class="sd">            chat_effect: If the task was a result of a chat, add the triple.</span>
+<span class="sd">            task (Task): The task to be pushed</span>
+<span class="sd">            parent_memid (string): Memory ID of the task&#39;s parent</span>
+<span class="sd">            chat_effect (bool): If the task was a result of a chat, add the triple.</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; task = Move(agent, {&quot;target&quot;: pos_to_np([0, 0 , 0]), &quot;approx&quot; : 3})</span>
 <span class="sd">            &gt;&gt;&gt; parent_memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
@@ -856,11 +947,14 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_update_task"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_update_task">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_update_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="n">Task</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update task in memory</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
-<span class="sd">            task: The task object</span>
+<span class="sd">            memid (string): Memory ID</span>
+<span class="sd">            task (Task): The task object</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of rows affected</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; task = Move(agent, {&quot;target&quot;: pos_to_np([0, 12, 0]), &quot;approx&quot; : 3})</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
@@ -870,8 +964,10 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_peek"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_peek">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_peek</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return the top of task stack</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            TaskNode: TaskNode object or None</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; task_stack_peek()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -891,8 +987,10 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_pop"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_pop">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_pop</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return the &#39;TaskNode&#39; of the stack head and mark finished</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            TaskNode: An object of type TaskNode</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; task_stack_pop()</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -904,6 +1002,7 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_pause"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_pause">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_pause</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Pause the stack and return True iff anything was stopped</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of rows affected</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -911,6 +1010,7 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_clear"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_clear">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clear the task stack</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of rows affected</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -918,6 +1018,7 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_resume"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_resume">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_resume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Resume stopped tasks. Return True if there was something to resume.</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of rows affected</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -927,10 +1028,13 @@
         <span class="bp">self</span><span class="p">,</span> <span class="n">cls_names</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Find and return the lowest item in the stack of the given class(es)</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            cls_names: Class names of tasks</span>
+<span class="sd">            cls_names (Sequence): Class names of tasks</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; cls_names = &#39;Move&#39;</span>
 <span class="sd">            &gt;&gt;&gt; task_stack_find_lowest_instance(cls_names)</span>
@@ -950,6 +1054,7 @@
 
 <div class="viewcode-block" id="AgentMemory.task_stack_get_all"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.task_stack_get_all">[docs]</a>    <span class="k">def</span> <span class="nf">task_stack_get_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;TaskNode&quot;</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Get all tasks from the stack</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[TaskNode]: List of TaskNode objects</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -965,11 +1070,14 @@
 
 <div class="viewcode-block" id="AgentMemory.get_last_finished_root_task"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_last_finished_root_task">[docs]</a>    <span class="k">def</span> <span class="nf">get_last_finished_root_task</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">recency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get last task that was successfully finished </span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            action_name: Name of action associated with task</span>
-<span class="sd">            recency: How recent should the task be</span>
+<span class="sd">            action_name (string): Name of action associated with task</span>
+<span class="sd">            recency (int): How recent should the task be</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; action_name = &quot;BUILD&quot;</span>
 <span class="sd">            &gt;&gt;&gt; get_last_finished_root_task (action_name=action_name)   </span>
@@ -1001,10 +1109,13 @@
 
 <div class="viewcode-block" id="AgentMemory.get_task_by_id"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory.get_task_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_task_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TaskNode&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Given the memid, retrieve the TaskNode</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            memid: Memory ID</span>
+<span class="sd">            memid (string): Memory ID</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            TaskNode: A TaskNode object</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; memid = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="sd">            &gt;&gt;&gt; get_task_by_id(memid = memid)</span>
@@ -1035,17 +1146,20 @@
     <span class="c1">###  Database Access  ###</span>
     <span class="c1">#########################</span>
 
-<div class="viewcode-block" id="AgentMemory._db_read"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory._db_read">[docs]</a>    <span class="k">def</span> <span class="nf">_db_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]:</span>
+<div class="viewcode-block" id="AgentMemory._db_read"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory._db_read">[docs]</a>    <span class="k">def</span> <span class="nf">_db_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Return all entries returned from running the query against</span>
-<span class="sd">        the database</span>
+<span class="sd">        the database.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            query: The query to be run against the database</span>
+<span class="sd">            query (string): The query to be run against the database</span>
+<span class="sd">            args: Arguments for the query</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            list[tuple]: a list of tuples satisfying the query</span>
-<span class="sd">        Examples ::</span>
-<span class="sd">            &gt;&gt;&gt; query = &quot;SELECT uuid FROM Memories WHERE node_type=?&quot;,</span>
-<span class="sd">            &gt;&gt;&gt; args = &#39;Chat&#39;</span>
-<span class="sd">            &gt;&gt;&gt; _db_read(query, args)</span>
+<span class="sd">        </span>
+<span class="sd">        Examples::</span>
+<span class="sd">            &gt;&gt;&gt; query = &quot;SELECT uuid FROM Memories WHERE node_type=?&quot;</span>
+<span class="sd">            &gt;&gt;&gt; _db_read(query, &#39;Chat&#39;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span> <span class="k">else</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -1061,13 +1175,16 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Bad read: </span><span class="si">{}</span><span class="s2"> : </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
             <span class="k">raise</span></div>
 
-    <span class="k">def</span> <span class="nf">_db_read_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_db_read_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return one entry returned from running the query against</span>
 <span class="sd">        the database</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            query: The query to be run against the database</span>
+<span class="sd">            query (string): The query to be run against the database</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple: a single record or None</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; query = &quot;SELECT uuid FROM Memories WHERE node_type=?&quot;,</span>
 <span class="sd">            &gt;&gt;&gt; args = &#39;Chat&#39;</span>
@@ -1089,10 +1206,13 @@
 
 <div class="viewcode-block" id="AgentMemory._db_write"><a class="viewcode-back" href="../../memory.html#base_agent.sql_memory.AgentMemory._db_write">[docs]</a>    <span class="k">def</span> <span class="nf">_db_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the number of rows affected</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            query: The query to be run against the database</span>
+<span class="sd">            query (string): The query to be run against the database</span>
+<span class="sd">        </span>
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Number of rows affected</span>
+<span class="sd">        </span>
 <span class="sd">        Examples ::</span>
 <span class="sd">            &gt;&gt;&gt; query = &quot;UPDATE Memories SET uuid=?&quot;</span>
 <span class="sd">            &gt;&gt;&gt; args = &#39;10517cc584844659907ccfa6161e9d32&#39;</span>
@@ -1115,8 +1235,9 @@
 
     <span class="k">def</span> <span class="nf">_db_script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">script</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Execute a script against the database</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            script: the script to be run</span>
+<span class="sd">            script (string): the script to be run</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="n">c</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
@@ -1134,10 +1255,10 @@
 
     <span class="k">def</span> <span class="nf">_write_to_db_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">no_format</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Write to database log file</span>
+<span class="sd">        </span>
 <span class="sd">        Args:</span>
-<span class="sd">            s: query </span>
-<span class="sd">            args: Arguments</span>
-<span class="sd">            no_format: no formatting needed </span>
+<span class="sd">            s (string): query </span>
+<span class="sd">            no_format (bool): no formatting needed </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_db_log_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
             <span class="k">return</span>
@@ -1168,9 +1289,10 @@
 
     <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sql_file</span><span class="p">,</span> <span class="n">dict_memory_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dump the database </span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            sql_file: File to write database dump to</span>
-<span class="sd">            dict_memory_file: File to dump task database to</span>
+<span class="sd">            sql_file (string): File to write database dump to</span>
+<span class="sd">            dict_memory_file (string): File to dump task database to</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sql_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">iterdump</span><span class="p">()))</span>
         <span class="k">if</span> <span class="n">dict_memory_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

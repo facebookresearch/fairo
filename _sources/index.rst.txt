@@ -2,8 +2,6 @@
 Droidlet's API documentation!
 =============================
 
-Here lies API documentation for droidlet!
-
 The abstract droidlet agent consists of four major components: a :ref:`memory_label` system, a :ref:`controller_label`, a set of :ref:`perception_label` modules, and a set of low level :ref:`tasks_label`.  In a nutshell,
 
 
@@ -27,11 +25,11 @@ Controller
 
 Instead of directly affecting the agent's environment, the controller places `Task <https://github.com/fairinternal/minecraft/blob/master/base_agent/task.py>`_ objects on a `Task Stack <https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py#L555>`_.   In order to choose which to place (if any), it needs to read information about the state of the world from memory.
 
-In addition to the "abstract" droidlet agent, this repo has two "batteries included" agent instantiations, located `here <https://github.com/fairinternal/minecraft/blob/master/locobot/agent>`_ and `here <https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/>`_.  In these (lets call the pair of them "McAgents"), the controller is mediated in part by a Dialogue Manager with an associated Dialogue Stack, which attempt to convert human interactions (dialogue) into specifications of Tasks.  The Dialogue Stack is populated with Dialogue Objects, which carry out chunks of human interaction, for example asking for a clarification about a command.
+In addition to the "abstract" droidlet agent, this repo has two "batteries included" droidlet agent instantiations, located `here <https://github.com/fairinternal/minecraft/blob/master/locobot/agent>`_ and `here <https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/>`_.  In these, the controller is mediated in part by a Dialogue Manager with an associated Dialogue Stack, which attempt to convert human interactions (dialogue) into specifications of Tasks.  The Dialogue Stack is populated with Dialogue Objects, which carry out chunks of human interaction, for example asking for a clarification about a command.
 
-In the McAgents the Dialogue Manager is in turn powered by a neural semantic parser, which translates natural language into partially specified programs in a DSL decribed `here </../../blob/master/base_agent/documents/Action_Dictionary_Spec.md>`_.  The partially specified programs are then made "executable" (i.e. interpreted into Task Stack manipulations, including adding Tasks) by the Intepreter Dialogue Object.  This object is further broken down into subinterpreters that correspond to subtrees of the logical forms in the DSL, and is described in more detail `here </../../blob/master/docs/source/interpreter.md>`_
+The Dialogue Manager is in turn powered by a neural semantic parser, which translates natural language into partially specified programs in a DSL decribed `here </../../blob/master/base_agent/documents/Action_Dictionary_Spec.md>`_.  The partially specified programs are then made "executable" (i.e. interpreted into Task Stack manipulations, including adding Tasks) by the Intepreter Dialogue Object.  This object is further broken down into subinterpreters that correspond to subtrees of the logical forms in the DSL, and is described in more detail `here </../../blob/master/docs/source/interpreter.md>`_
 
-The Controller operation in the McAgents can be sketched as:
+The Controller operation in the droidlet agents can be sketched as:
 
 .. code-block::
 
@@ -52,7 +50,7 @@ The `memory system </../../blob/master/docs/source/memory.md>`_ serves as the in
 
 **MemoryNodes**\ , which are Python wrappers for coherent data.  MemoryNodes collate data about a particular entity or event.  There are MemoryNodes for ReferenceObjects (things that have a location in space), for Tasks, for chats and commands, etc.
 
-**FILTERS** objects, which connect the AgentMemory and MemoryNodes to the DSL used in the McAgents
+**FILTERS** objects, which connect the AgentMemory and MemoryNodes to the DSL used in the droidlet agents
 
 Tasks
 -----
@@ -78,6 +76,8 @@ Perceptual modules process information about the agent's environment and write t
    memory
    perception
    tasks
+   droidlet_agents
+
 
 
 ==================

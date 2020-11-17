@@ -11,7 +11,7 @@ The database can be directly accessed by [\_db\_read\(query, \*args\)](https://g
 
 ```eval_rst
  .. autoclass:: base_agent.sql_memory.AgentMemory
-  :members:     basic_search, get_mem_by_id, forget, _db_read, _db_write, get_time, get_world_time, get_recent_entities, add_triple, tag, untag, get_memids_by_tag, get_tags_by_memids, get_triples, remove_memid_triple, task_stack_push, task_stack_update_task, task_stack_peek, task_stack_pop, task_stack_pause, task_stack_clear, task_stack_resume, task_stack_find_lowest_instance, task_stack_get_all, get_last_finished_root_task, get_task_by_id
+  :members:     basic_search, get_mem_by_id, forget, _db_read, _db_write, get_time, get_world_time, get_recent_entities, add_triple, tag, untag, get_memids_by_tag, get_tags_by_memid, get_triples, remove_memid_triple, task_stack_push, task_stack_update_task, task_stack_peek, task_stack_pop, task_stack_pause, task_stack_clear, task_stack_resume, task_stack_find_lowest_instance, task_stack_get_all, get_last_finished_root_task, get_task_by_id
 ```
 
 ## MemoryNodes #

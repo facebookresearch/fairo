@@ -103,6 +103,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -184,14 +198,14 @@
 <span class="sd">    smaller subtasks).</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        memid: Memory id of the task in agent&#39;s memory</span>
-<span class="sd">        interrupted: A flag indicating whetherr the task has been interrupted</span>
-<span class="sd">        finished: A flag indicating whether the task finished </span>
-<span class="sd">        name: Name of the task</span>
-<span class="sd">        undone: A flag indicating whether the task was undone / reverted</span>
-<span class="sd">        last_stepped_time: Timestamp of last step through the task</span>
-<span class="sd">        throttling_tick: The threshold beyond which the task will be throttled</span>
-<span class="sd">        stop_condition: The condition on which the task will be stopped (by default,</span>
+<span class="sd">        memid (string): Memory id of the task in agent&#39;s memory</span>
+<span class="sd">        interrupted (bool): A flag indicating whetherr the task has been interrupted</span>
+<span class="sd">        finished (bool): A flag indicating whether the task finished </span>
+<span class="sd">        name (string): Name of the task</span>
+<span class="sd">        undone (bool): A flag indicating whether the task was undone / reverted</span>
+<span class="sd">        last_stepped_time (int): Timestamp of last step through the task</span>
+<span class="sd">        throttling_tick (int): The threshold beyond which the task will be throttled</span>
+<span class="sd">        stop_condition (Condition): The condition on which the task will be stopped (by default,</span>
 <span class="sd">                        this is NeverCondition)</span>
 <span class="sd">    Examples::</span>
 <span class="sd">        &gt;&gt;&gt; Task()</span>
@@ -228,7 +242,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">interrupted</span> <span class="o">=</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Task.check_finished"><a class="viewcode-back" href="../../tasks.html#base_agent.task.Task.check_finished">[docs]</a>    <span class="k">def</span> <span class="nf">check_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check if the task has mark itself finished&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Check if the task has mark itself finished</span>
+<span class="sd">        </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: If the task has finished</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span></div>
 

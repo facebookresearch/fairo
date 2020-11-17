@@ -103,6 +103,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -170,7 +184,6 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -194,7 +207,6 @@
     <span class="n">process_spans</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">mcevent</span> <span class="kn">import</span> <span class="n">sio</span>
-<span class="kn">from</span> <span class="nn">post_process_logical_form</span> <span class="kn">import</span> <span class="n">post_process_logical_form</span>
 <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">base_util</span> <span class="kn">import</span> <span class="n">hash_user</span>
@@ -203,38 +215,53 @@
 
 
 <div class="viewcode-block" id="NSPDialogueManager"><a class="viewcode-back" href="../../controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager">[docs]</a><span class="k">class</span> <span class="nc">NSPDialogueManager</span><span class="p">(</span><span class="n">DialogueManager</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Dialogue manager driven by neural network</span>
+    <span class="sd">&quot;&quot;&quot;Dialogue manager driven by neural network.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        dialogue_objects (dict): Dictionary specifying the DialogueObject</span>
 <span class="sd">            class for each dialogue type. Keys are dialogue types. Values are</span>
-<span class="sd">            corresponding class names.</span>
-<span class="sd">            Example:</span>
-<span class="sd">                {</span>
-<span class="sd">                    &quot;interpreter&quot;: MCInterpreter,</span>
-<span class="sd">                    &quot;get_memory&quot;: GetMemoryHandler,</span>
-<span class="sd">                    &quot;put_memory&quot;: ...,</span>
-<span class="sd">                }</span>
-<span class="sd">        botCapabilityQuery (List[str]): Set of commands that trigger</span>
-<span class="sd">            scripted responses.</span>
+<span class="sd">            corresponding class names. Example dialogue objects :</span>
+<span class="sd">            {&quot;interpreter&quot;: MCInterpreter,</span>
+<span class="sd">            &quot;get_memory&quot;: GetMemoryHandler,</span>
+<span class="sd">            &quot;put_memory&quot;: ... </span>
+<span class="sd">            }</span>
+<span class="sd">        botCapabilityQuery (List[str]): Set of commands that trigger scripted responses.</span>
 <span class="sd">        safety_words (List[str]): Set of blacklisted words or phrases. Commands</span>
 <span class="sd">            containing these are automatically filtered out.</span>
 <span class="sd">        botGreetings (dict): Different types of greetings that trigger</span>
-<span class="sd">            scripted responses.</span>
-<span class="sd">            Example:</span>
-<span class="sd">            {</span>
-<span class="sd">                &quot;hello&quot;: [&quot;hi bot&quot;, &quot;hello&quot;]</span>
-<span class="sd">            }</span>
+<span class="sd">            scripted responses. Example: </span>
+<span class="sd">            { &quot;hello&quot;: [&quot;hi bot&quot;, &quot;hello&quot;] }</span>
 <span class="sd">        model (TTADBertModel): Semantic Parsing model that takes text as</span>
 <span class="sd">            input and outputs a logical form.</span>
 <span class="sd">            To use a new model here, ensure that the subfolder directory structure</span>
 <span class="sd">            mirrors the current model/dataset directories.</span>
+<span class="sd">            See :class:`TTADBertModel`.</span>
 <span class="sd">        ground_truth_actions (dict): A key-value with ground truth logical forms.</span>
 <span class="sd">            These will be queried first (via exact string match), before running the model.</span>
 <span class="sd">        dialogue_object_parameters (dict): Set the parameters for dialogue objects.</span>
 <span class="sd">            Sets the agent, memory and dialogue stack.</span>
 
+<span class="sd">    Args:</span>
+<span class="sd">        agent: a droidlet agent, eg. ``CraftAssistAgent``</span>
+<span class="sd">        dialogue_object_classes (dict): Dictionary specifying the DialogueObject</span>
+<span class="sd">            class for each dialogue type. See ``dialogue_objects`` definition above.</span>
+<span class="sd">        opts (argparse.Namespace): Parsed command line arguments specifying parameters in agent.</span>
+<span class="sd">            Args:</span>
+<span class="sd">                --nsp_models_dir: Path to directory containing all files necessary to </span>
+<span class="sd">                    load and run the model, including args, tree mappings and the checkpointed model. </span>
+<span class="sd">                    Semantic parsing models used by current project are in ``ttad_bert_updated``.</span>
+<span class="sd">                    eg. semantic parsing model is ``ttad_bert_updated/caip_test_model.pth``</span>
+<span class="sd">                --nsp_data_dir: Path to directory containing all datasets used by the NSP model.</span>
+<span class="sd">                    Note that this data is not used in inference, rather we load from the ground truth</span>
+<span class="sd">                    data directory.</span>
+<span class="sd">                --ground_truth_data_dir: Path to directory containing ground truth datasets</span>
+<span class="sd">                    loaded by agent at runtime. Option to include a file for blacklisted words ``safety.txt``,</span>
+<span class="sd">                    a class for greetings ``greetings.json`` and .txt files with text, logical_form pairs in</span>
+<span class="sd">                    ``datasets/``.</span>
+<span class="sd">            See :class:`ArgumentParser` for full list of command line options.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">dialogue_object_classes</span><span class="p">,</span> <span class="n">opts</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NSPDialogueManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span> <span class="o">=</span> <span class="n">dialogue_object_classes</span>
@@ -319,7 +346,7 @@
         <span class="n">speaker</span><span class="p">,</span> <span class="n">chatstr</span> <span class="o">=</span> <span class="n">chat</span>
         <span class="n">preprocessed_chatstrs</span> <span class="o">=</span> <span class="n">preprocess</span><span class="o">.</span><span class="n">preprocess_chat</span><span class="p">(</span><span class="n">chatstr</span><span class="p">)</span>
 
-        <span class="c1"># Push appropriate DialogueObjects to stack if incomign chat</span>
+        <span class="c1"># Push appropriate DialogueObjects to stack if incoming chat</span>
         <span class="c1"># is one of the scripted ones</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">chat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botCapabilityQuery</span> <span class="k">for</span> <span class="n">chat</span> <span class="ow">in</span> <span class="n">preprocessed_chatstrs</span><span class="p">]):</span>
             <span class="k">return</span> <span class="n">BotCapabilities</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
@@ -413,7 +440,6 @@
         <span class="p">)</span>
 
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;logical form before grammar update &quot;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">post_process_logical_form</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;logical form after grammar fix &quot;</span><span class="si">{}</span><span class="s1">&quot;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">d</span></div></div>

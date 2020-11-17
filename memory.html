@@ -105,6 +105,20 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#perception-interface">Perception interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#agents">Agents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
             
@@ -180,38 +194,56 @@ The database can be directly accessed by <a class="reference external" href="htt
 <blockquote>
 <div><dl class="py class">
 <dt id="base_agent.sql_memory.AgentMemory">
-<em class="property">class </em><code class="sig-prename descclassname">base_agent.sql_memory.</code><code class="sig-name descname">AgentMemory</code><span class="sig-paren">(</span><em class="sig-param">db_file=':memory:', schema_paths=['/home/bluebox/docker_tests/minecraft/docs/source/../../base_agent/memory_schema.sql'], db_log_path=None, nodelist=[&lt;class 'base_agent.memory_nodes.TaskNode'&gt;, &lt;class 'base_agent.memory_nodes.ChatNode'&gt;, &lt;class 'base_agent.memory_nodes.LocationNode'&gt;, &lt;class 'base_agent.memory_nodes.AttentionNode'&gt;, &lt;class 'base_agent.memory_nodes.SetNode'&gt;, &lt;class 'base_agent.memory_nodes.TimeNode'&gt;, &lt;class 'base_agent.memory_nodes.PlayerNode'&gt;, &lt;class 'base_agent.memory_nodes.SelfNode'&gt;, &lt;class 'base_agent.memory_nodes.ProgramNode'&gt;, &lt;class 'base_agent.memory_nodes.NamedAbstractionNode'&gt;], agent_time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">base_agent.sql_memory.</code><code class="sig-name descname">AgentMemory</code><span class="sig-paren">(</span><em class="sig-param">db_file=':memory:', schema_paths=['/home/bluebox/docker_tests/minecraft/base_agent/memory_schema.sql'], db_log_path=None, nodelist=[&lt;class 'base_agent.memory_nodes.TaskNode'&gt;, &lt;class 'base_agent.memory_nodes.ChatNode'&gt;, &lt;class 'base_agent.memory_nodes.LocationNode'&gt;, &lt;class 'base_agent.memory_nodes.AttentionNode'&gt;, &lt;class 'base_agent.memory_nodes.SetNode'&gt;, &lt;class 'base_agent.memory_nodes.TimeNode'&gt;, &lt;class 'base_agent.memory_nodes.PlayerNode'&gt;, &lt;class 'base_agent.memory_nodes.SelfNode'&gt;, &lt;class 'base_agent.memory_nodes.ProgramNode'&gt;, &lt;class 'base_agent.memory_nodes.NamedAbstractionNode'&gt;], agent_time=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents agent’s memory and can be extended to add more
 capabilities based on the agent’s framework.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>db_file</strong> – The database file</p></li>
-<li><p><strong>schema_path</strong> – Path to the file containing the database schema</p></li>
-<li><p><strong>db_log_path</strong> – Path to where the database logs will be written</p></li>
-<li><p><strong>nodelist</strong> – List of memory nodes</p></li>
-<li><p><strong>agent_time</strong> – Current time set by the agent.</p></li>
+<li><p><strong>db_file</strong> (<em>string</em>) – The database file</p></li>
+<li><p><strong>schema_path</strong> (<em>string</em>) – Path to the file containing the database schema</p></li>
+<li><p><strong>db_log_path</strong> (<em>string</em>) – Path to where the database logs will be written</p></li>
+<li><p><strong>nodelist</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode"><em>MemoryNode</em></a><em>]</em>) – List of memory nodes</p></li>
+<li><p><strong>agent_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Current time set by the agent.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>~AgentMemory._db_log_file</strong> (<em>FileHandler</em>) – File handler for writing database logs</p></li>
+<li><p><strong>~AgentMemory._db_log_idx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Database log index</p></li>
+<li><p><strong>~AgentMemory.sql_queries</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – List of sql queries issued for the memory</p></li>
+<li><p><strong>~AgentMemory.db</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – connection object to the database file</p></li>
+<li><p><strong>~AgentMemory._safe_pickle_saved_attrs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Dictionary for pickled attributes</p></li>
+<li><p><strong>~AgentMemory.all_tables</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – List of all table names</p></li>
+<li><p><strong>~AgentMemory.nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Mapping of node name to table name</p></li>
+<li><p><strong>~AgentMemory.self_memid</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – MemoryID for the AgentMemory</p></li>
+<li><p><strong>~AgentMemory.basic_searcher</strong> (<em>BasicMemorySearcher</em>) – A class to search through memory</p></li>
+<li><p><strong>~AgentMemory.time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The time of the agent</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory._db_read">
-<code class="sig-name descname">_db_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Tuple<span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory._db_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory._db_read" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">_db_read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>Tuple<span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory._db_read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory._db_read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return all entries returned from running the query against
-the database
-:param query: The query to be run against the database</p>
+the database.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a list of tuples satisfying the query</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> (<em>string</em>) – The query to be run against the database</p></li>
+<li><p><strong>args</strong> – Arguments for the query</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>]</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of tuples satisfying the query</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>]</p>
 </dd>
 </dl>
 <dl>
-<dt>Examples ::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT uuid FROM Memories WHERE node_type=?&quot;</span><span class="p">,</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;Chat&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">_db_read</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;SELECT uuid FROM Memories WHERE node_type=?&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_db_read</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="s1">&#39;Chat&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
@@ -221,14 +253,16 @@ the database
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory._db_write">
 <code class="sig-name descname">_db_write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">query</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory._db_write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory._db_write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the number of rows affected
-:param query: The query to be run against the database</p>
+<dd><p>Return the number of rows affected</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Number of rows affected</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>query</strong> (<em>string</em>) – The query to be run against the database</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of rows affected</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 <dl>
@@ -245,7 +279,7 @@ the database
 <dt id="base_agent.sql_memory.AgentMemory.add_triple">
 <code class="sig-name descname">add_triple</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">obj</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">subj_text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">pred_text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">'has_tag'</span></em>, <em class="sig-param"><span class="n">obj_text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">''</span></em>, <em class="sig-param"><span class="n">confidence</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)">float</a></span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.add_triple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.add_triple" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
-<dt>Adds (subj, pred, obj) triple to the triplestore.</dt><dd><p><a href="#id1"><span class="problematic" id="id2">*</span></a>_text is the name field of a NamedAbstraction; if
+<dt>Adds (subj, pred, obj) triple to the triplestore.</dt><dd><p>_text is the name field of a NamedAbstraction; if
 such a NamedAbstraction does not exist, this builds it as a side effect.
 subj and obj can be memids or text, but pred_text is required</p>
 </dd>
@@ -253,12 +287,12 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>subj</strong> – memid of subject</p></li>
-<li><p><strong>obj</strong> – memid of object</p></li>
-<li><p><strong>subj_text</strong> – text representation for subject</p></li>
-<li><p><strong>pred_text</strong> – predicate text</p></li>
-<li><p><strong>obj_text</strong> – text representation for object</p></li>
-<li><p><strong>confidence</strong> – The confidence score for the triple</p></li>
+<li><p><strong>subj</strong> (<em>string</em>) – memid of subject</p></li>
+<li><p><strong>obj</strong> (<em>string</em>) – memid of object</p></li>
+<li><p><strong>subj_text</strong> (<em>string</em>) – text representation for subject</p></li>
+<li><p><strong>pred_text</strong> (<em>string</em>) – predicate text</p></li>
+<li><p><strong>obj_text</strong> (<em>string</em>) – text representation for object</p></li>
+<li><p><strong>confidence</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The confidence score for the triple</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -282,14 +316,16 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.basic_search">
 <code class="sig-name descname">basic_search</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filter_dict</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.basic_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.basic_search" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform a basic search using the filter_dict
-:param filter_dict: A dictionary indicating values that the memory should be filtered on</p>
+<dd><p>Perform a basic search using the filter_dict</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of MemoryNode objects.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filter_dict</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – A dictionary indicating values that the memory should be filtered on</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">MemoryNode</a>]</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of MemoryNode objects.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">MemoryNode</a>]</p>
 </dd>
 </dl>
 <dl>
@@ -306,9 +342,15 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.forget">
 <code class="sig-name descname">forget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">hard</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.forget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.forget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forget a given memid from memory
-:param memid: Memory id
-:param hard: flag indicating whether it is a hard delete</p>
+<dd><p>Forget a given memid from memory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memid</strong> (<em>string</em>) – Memory id</p></li>
+<li><p><strong>hard</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – flag indicating whether it is a hard delete</p></li>
+</ul>
+</dd>
+</dl>
 <dl>
 <dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">memid</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">forget</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="n">hard</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -321,15 +363,19 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.get_last_finished_root_task">
 <code class="sig-name descname">get_last_finished_root_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action_name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">recency</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_last_finished_root_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_last_finished_root_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get last task that was successfully finished
-:param action_name: Name of action associated with task
-:param recency: How recent should the task be</p>
+<dd><p>Get last task that was successfully finished</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A TaskNode object</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>action_name</strong> (<em>string</em>) – Name of action associated with task</p></li>
+<li><p><strong>recency</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – How recent should the task be</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A TaskNode object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
 </dd>
 </dl>
 <dl>
@@ -345,15 +391,19 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dt id="base_agent.sql_memory.AgentMemory.get_mem_by_id">
 <code class="sig-name descname">get_mem_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">node_type</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">base_agent.memory_nodes.MemoryNode</a><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_mem_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_mem_by_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given the memid and an optional node_type,
-return the memory node
-:param memid: Memory ID
-:param node_type: the type of memory node</p>
+return the memory node</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a memory node object</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID</p></li>
+<li><p><strong>node_type</strong> (<em>string</em>) – the type of memory node</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">MemoryNode</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a memory node object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">MemoryNode</a></p>
 </dd>
 </dl>
 <dl>
@@ -369,14 +419,16 @@ return the memory node
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.get_memids_by_tag">
 <code class="sig-name descname">get_memids_by_tag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tag</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_memids_by_tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_memids_by_tag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find all memids with a given tag
-:param tag: string representation of the tag</p>
+<dd><p>Find all memids with a given tag</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>list of memory ids (which are strings)</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>string</em>) – string representation of the tag</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[string]</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of memory ids (which are strings)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[string]</p>
 </dd>
 </dl>
 <dl>
@@ -392,15 +444,19 @@ return the memory node
 <dt id="base_agent.sql_memory.AgentMemory.get_recent_entities">
 <code class="sig-name descname">get_recent_entities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memtype</span></em>, <em class="sig-param"><span class="n">time_window</span><span class="o">=</span><span class="default_value">12000</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">base_agent.memory_nodes.MemoryNode</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_recent_entities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_recent_entities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all entities of given memtype that were recently (within the
-time window) attended
-:param memtype: The node type of memory
-:param time_window: The time window for maintaining recency window from current time</p>
+time window) attended</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>list of MemoryNode objects</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memtype</strong> (<em>string</em>) – The node type of memory</p></li>
+<li><p><strong>time_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The time window for maintaining recency window from current time</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">MemoryNode</a>]</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of MemoryNode objects</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference internal" href="#base_agent.memory_nodes.MemoryNode" title="base_agent.memory_nodes.MemoryNode">MemoryNode</a>]</p>
 </dd>
 </dl>
 <dl>
@@ -413,16 +469,45 @@ time window) attended
 </dd></dl>
 
 <dl class="py method">
+<dt id="base_agent.sql_memory.AgentMemory.get_tags_by_memid">
+<code class="sig-name descname">get_tags_by_memid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subj_memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">return_text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_tags_by_memid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_tags_by_memid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all tag for a given memid</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subj_memid</strong> (<em>string</em>) – the subject’s memid (uuid from Memories table)</p></li>
+<li><p><strong>return_text</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – if true, return the object text, otherwise return object memid</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of tags.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[string]</p>
+</dd>
+</dl>
+<dl>
+<dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subj_memid</span> <span class="o">=</span> <span class="s1">&#39;10517cc584844659907ccfa6161e9d32&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_tags_by_memid</span><span class="p">(</span><span class="n">subj_memid</span><span class="o">=</span><span class="n">subj_memid</span><span class="p">,</span> <span class="n">return_text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.get_task_by_id">
 <code class="sig-name descname">get_task_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">base_agent.memory_nodes.TaskNode</a><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_task_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_task_by_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given the memid, retrieve the TaskNode
-:param memid: Memory ID</p>
+<dd><p>Given the memid, retrieve the TaskNode</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A TaskNode object</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>memid</strong> (<em>string</em>) – Memory ID</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A TaskNode object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
 </dd>
 </dl>
 <dl>
@@ -454,24 +539,26 @@ time window) attended
 <dd><p>gets triples from the triplestore.
 subj is always returned as a memid even when searched as text.
 need at least one non-None part of the triple, and
-text should not not be input for a part of a triple where a memid is set.
-:param subj: memid of subject
-:param obj: memid of object
-:param subj_text: text of the subject (if applicable, as opposed to subject memid)
-:param pred_text: text of the predicate
-:param obj_text: text of the subject (if applicable, as opposed to subject memid)
-:param return_obj_text: if return_obj_text == “if_exists”, will return the obj_text</p>
-<blockquote>
-<div><p>if it exists, and the memid otherwise. If return_obj_text
-== “always”, returns the obj_text even if it is None. If
-return_obj_text == “never”, returns the obj memid.</p>
-</div></blockquote>
+text should not not be input for a part of a triple where a memid is set.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of tuples of the form : (subject, predicate, object)</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subj</strong> (<em>string</em>) – memid of subject</p></li>
+<li><p><strong>obj</strong> (<em>string</em>) – memid of object</p></li>
+<li><p><strong>subj_text</strong> (<em>string</em>) – text of the subject (if applicable, as opposed to subject memid)</p></li>
+<li><p><strong>pred_text</strong> (<em>string</em>) – text of the predicate</p></li>
+<li><p><strong>obj_text</strong> (<em>string</em>) – text of the subject (if applicable, as opposed to subject memid)</p></li>
+<li><p><strong>return_obj_text</strong> (<em>string</em>) – if return_obj_text == “if_exists”, will return the obj_text
+if it exists, and the memid otherwise. If return_obj_text
+== “always”, returns the obj_text even if it is None. If
+return_obj_text == “never”, returns the obj memid.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>]</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of tuples of the form : (subject, predicate, object)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>]</p>
 </dd>
 </dl>
 <dl>
@@ -502,18 +589,19 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.remove_memid_triple">
 <code class="sig-name descname">remove_memid_triple</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">role</span><span class="o">=</span><span class="default_value">'subj'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.remove_memid_triple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.remove_memid_triple" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete the triple corresponding to the given memid
-:param memid: Memid of subject or object
-:param role: String that determines whether the memid is for subject or</p>
-<blockquote>
-<div><p>object</p>
-</div></blockquote>
+<dd><p>Delete the triple corresponding to the given memid</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Number of affected rows</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memid</strong> (<em>string</em>) – Memid of subject or object</p></li>
+<li><p><strong>role</strong> (<em>string</em>) – String that determines whether the memid is for subject or object</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of affected rows</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 <dl>
@@ -528,15 +616,19 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.tag">
 <code class="sig-name descname">tag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subj_memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">tag_text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.tag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Tag the subject with tag text.
-:param subj_memid: memid of subject
-:param tag_text: string representation of the tag</p>
+<dd><p>Tag the subject with tag text.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>number of rows affected</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subj_memid</strong> (<em>string</em>) – memid of subject</p></li>
+<li><p><strong>tag_text</strong> (<em>string</em>) – string representation of the tag</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of rows affected</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 <dl>
@@ -552,22 +644,30 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_clear">
 <code class="sig-name descname">task_stack_clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_clear" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clear the task stack
-:returns: Number of rows affected
-:rtype: int</p>
+<dd><p>Clear the task stack</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of rows affected</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_find_lowest_instance">
 <code class="sig-name descname">task_stack_find_lowest_instance</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cls_names</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">, </span>Sequence<span class="p">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a><span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">base_agent.memory_nodes.TaskNode</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_find_lowest_instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_find_lowest_instance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find and return the lowest item in the stack of the given class(es)
-:param cls_names: Class names of tasks</p>
+<dd><p>Find and return the lowest item in the stack of the given class(es)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A TaskNode object</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cls_names</strong> (<em>Sequence</em>) – Class names of tasks</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A TaskNode object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
 </dd>
 </dl>
 <dl>
@@ -582,25 +682,43 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_get_all">
 <code class="sig-name descname">task_stack_get_all</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">base_agent.memory_nodes.TaskNode</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_get_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_get_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get all tasks from the stack
-:returns: List of TaskNode objects
-:rtype: list[TaskNode]</p>
+<dd><p>Get all tasks from the stack</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>List of TaskNode objects</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[<a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a>]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_pause">
 <code class="sig-name descname">task_stack_pause</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_pause"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_pause" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pause the stack and return True iff anything was stopped
-:returns: Number of rows affected
-:rtype: int</p>
+<dd><p>Pause the stack and return True iff anything was stopped</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Number of rows affected</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_peek">
 <code class="sig-name descname">task_stack_peek</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">base_agent.memory_nodes.TaskNode</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_peek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_peek" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the top of task stack
-:returns: TaskNode object or None
-:rtype: TaskNode</p>
+<dd><p>Return the top of task stack</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>TaskNode object or None</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
+</dd>
+</dl>
 <dl>
 <dt>Examples ::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">task_stack_peek</span><span class="p">()</span>
 </pre></div>
@@ -612,9 +730,15 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_pop">
 <code class="sig-name descname">task_stack_pop</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">base_agent.memory_nodes.TaskNode</a><span class="p">]</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_pop" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the ‘TaskNode’ of the stack head and mark finished
-:returns: An object of type TaskNode
-:rtype: TaskNode</p>
+<dd><p>Return the ‘TaskNode’ of the stack head and mark finished</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>An object of type TaskNode</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
+</dd>
+</dl>
 <dl>
 <dt>Examples ::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">task_stack_pop</span><span class="p">()</span>
 </pre></div>
@@ -626,16 +750,20 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_push">
 <code class="sig-name descname">task_stack_push</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n"><a class="reference internal" href="tasks.html#base_agent.task.Task" title="base_agent.task.Task">base_agent.task.Task</a></span></em>, <em class="sig-param"><span class="n">parent_memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chat_effect</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">base_agent.memory_nodes.TaskNode</a><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_push" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a task object in memory, add triples and add to task stack
-:param task: The task to be pushed
-:param parent_memid: Memory ID of the task’s parent
-:param chat_effect: If the task was a result of a chat, add the triple.</p>
+<dd><p>Create a task object in memory, add triples and add to task stack</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A TaskNode object</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>task</strong> (<a class="reference internal" href="tasks.html#base_agent.task.Task" title="base_agent.task.Task"><em>Task</em></a>) – The task to be pushed</p></li>
+<li><p><strong>parent_memid</strong> (<em>string</em>) – Memory ID of the task’s parent</p></li>
+<li><p><strong>chat_effect</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – If the task was a result of a chat, add the triple.</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A TaskNode object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#base_agent.memory_nodes.TaskNode" title="base_agent.memory_nodes.TaskNode">TaskNode</a></p>
 </dd>
 </dl>
 <dl>
@@ -651,23 +779,33 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.task_stack_resume">
 <code class="sig-name descname">task_stack_resume</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)">bool</a><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_resume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_resume" title="Permalink to this definition">¶</a></dt>
-<dd><p>Resume stopped tasks. Return True if there was something to resume.
-:returns: Number of rows affected
-:rtype: int</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="base_agent.sql_memory.AgentMemory.task_stack_update_task">
-<code class="sig-name descname">task_stack_update_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n"><a class="reference internal" href="tasks.html#base_agent.task.Task" title="base_agent.task.Task">base_agent.task.Task</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_update_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_update_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update task in memory
-:param memid: Memory ID
-:param task: The task object</p>
+<dd><p>Resume stopped tasks. Return True if there was something to resume.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>Number of rows affected</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="base_agent.sql_memory.AgentMemory.task_stack_update_task">
+<code class="sig-name descname">task_stack_update_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">task</span><span class="p">:</span> <span class="n"><a class="reference internal" href="tasks.html#base_agent.task.Task" title="base_agent.task.Task">base_agent.task.Task</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.task_stack_update_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.task_stack_update_task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update task in memory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID</p></li>
+<li><p><strong>task</strong> (<a class="reference internal" href="tasks.html#base_agent.task.Task" title="base_agent.task.Task"><em>Task</em></a>) – The task object</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Number of rows affected</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 <dl>
@@ -683,15 +821,19 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.untag">
 <code class="sig-name descname">untag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">subj_memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">tag_text</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.untag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.untag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete tag for subject
-:param subj_memid: memid of subject
-:param tag_text: string representation of the tag</p>
+<dd><p>Delete tag for subject</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>number of rows affected</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subj_memid</strong> (<em>string</em>) – memid of subject</p></li>
+<li><p><strong>tag_text</strong> (<em>string</em>) – string representation of the tag</p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of rows affected</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
 </dd>
 </dl>
 <dl>
@@ -714,9 +856,15 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dl class="py class">
 <dt id="base_agent.memory_nodes.MemoryNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">MemoryNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#MemoryNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.MemoryNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is the main class representing a node in the memory
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+<dd><p>This is the main class representing a node in the memory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+</dl>
 <dl>
 <dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">node_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">TaskNode</span><span class="p">,</span> <span class="n">ChatNode</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_path</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;memory_schema.sql&quot;</span><span class="p">)]</span>
@@ -735,12 +883,16 @@ return_obj_text == “never”, returns the obj memid.</p>
 <dt id="base_agent.memory_nodes.ProgramNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">ProgramNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#ProgramNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.ProgramNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents the logical forms (outputs from
-the semantic parser)
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+the semantic parser)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
-<dd class="field-odd"><p><strong>~ProgramNode.logical_form</strong> – The semantic parser output for text</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>~ProgramNode.logical_form</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – The semantic parser output for text</p>
 </dd>
 </dl>
 <dl>
@@ -762,12 +914,16 @@ the semantic parser)
 <dt id="base_agent.memory_nodes.NamedAbstractionNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">NamedAbstractionNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#NamedAbstractionNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.NamedAbstractionNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents an abstract concept with a name,
-to be used in triples
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+to be used in triples</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
-<dd class="field-odd"><p><strong>~NamedAbstractionNode.name</strong> – Name of the abstraction, for example : “has_tag”</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>~NamedAbstractionNode.name</strong> (<em>string</em>) – Name of the abstraction, for example : “has_tag”</p>
 </dd>
 </dl>
 <dl>
@@ -789,9 +945,15 @@ to be used in triples
 <dt id="base_agent.memory_nodes.ReferenceObjectNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">ReferenceObjectNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#ReferenceObjectNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.ReferenceObjectNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a class representing generic memory node for anything that has a spatial location and can be
-used a spatial reference (e.g. to the left of the x).
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+used a spatial reference (e.g. to the left of the x).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+</dl>
 <dl>
 <dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">node_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">TaskNode</span><span class="p">,</span> <span class="n">ChatNode</span><span class="p">,</span> <span class="n">ReferenceObjectNode</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_path</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;memory_schema.sql&quot;</span><span class="p">)]</span>
@@ -811,17 +973,21 @@ used a spatial reference (e.g. to the left of the x).
 <dt id="base_agent.memory_nodes.PlayerNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">PlayerNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#PlayerNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.PlayerNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class represents humans and other agents that can affect
-the world
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+the world</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~PlayerNode.eid</strong> – Entity ID</p></li>
-<li><p><strong>~PlayerNode.name</strong> – Name of player</p></li>
-<li><p><strong>~PlayerNode.pos</strong> – x, y, z coordinates</p></li>
-<li><p><strong>~PlayerNode.pitch</strong> – the vertical angle of the agent’s view vector</p></li>
-<li><p><strong>~PlayerNode.yaw</strong> – the horizontal rotation angle of the agent’s view vector</p></li>
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>~PlayerNode.eid</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Entity ID</p></li>
+<li><p><strong>~PlayerNode.name</strong> (<em>string</em>) – Name of player</p></li>
+<li><p><strong>~PlayerNode.pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a><em>(</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>)</em>) – x, y, z coordinates</p></li>
+<li><p><strong>~PlayerNode.pitch</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – the vertical angle of the agent’s view vector</p></li>
+<li><p><strong>~PlayerNode.yaw</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – the horizontal rotation angle of the agent’s view vector</p></li>
 </ul>
 </dd>
 </dl>
@@ -844,9 +1010,15 @@ the world
 <dt id="base_agent.memory_nodes.SelfNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">SelfNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#SelfNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.SelfNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class is a special PLayerNode for representing the
-agent’s self
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+agent’s self</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+</dl>
 <dl>
 <dt>Examples::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">node_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">TaskNode</span><span class="p">,</span> <span class="n">ChatNode</span><span class="p">,</span> <span class="n">PlayerNode</span><span class="p">,</span> <span class="n">SelfNode</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">schema_path</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;memory_schema.sql&quot;</span><span class="p">)]</span>
@@ -866,14 +1038,18 @@ agent’s self
 <dt id="base_agent.memory_nodes.LocationNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">LocationNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#LocationNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.LocationNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a ReferenceObjectNode representing a raw location
-(a point in space)
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+(a point in space)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~LocationNode.location</strong> – x, y, z coordinates of the node</p></li>
-<li><p><strong>~LocationNode.pos</strong> – x, y, z coordinates of the node</p></li>
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>~LocationNode.location</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
+<li><p><strong>~LocationNode.pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)"><em>tuple</em></a>) – (x, y, z) coordinates of the node</p></li>
 </ul>
 </dd>
 </dl>
@@ -895,12 +1071,16 @@ agent’s self
 <dl class="py class">
 <dt id="base_agent.memory_nodes.AttentionNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">AttentionNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#AttentionNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.AttentionNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a ReferenceObjectNode representing spatial attention
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+<dd><p>This is a ReferenceObjectNode representing spatial attention</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
-<dd class="field-odd"><p><strong>~AttentionNode.attended</strong> – name of the node that is attending</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>~AttentionNode.attended</strong> (<em>string</em>) – name of the node that is attending</p>
 </dd>
 </dl>
 <dl>
@@ -921,12 +1101,16 @@ agent’s self
 <dl class="py class">
 <dt id="base_agent.memory_nodes.TimeNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">TimeNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#TimeNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.TimeNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class represents a temporal ‘location’
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+<dd><p>This class represents a temporal ‘location’</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
-<dd class="field-odd"><p><strong>~TimeNode.time</strong> – the value of time</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><p><strong>~TimeNode.time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – the value of time</p>
 </dd>
 </dl>
 <dl>
@@ -947,15 +1131,19 @@ agent’s self
 <dl class="py class">
 <dt id="base_agent.memory_nodes.ChatNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">ChatNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#ChatNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.ChatNode" title="Permalink to this definition">¶</a></dt>
-<dd><p>This node represents a chat/utterance from another agent/human
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+<dd><p>This node represents a chat/utterance from another agent/human</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~ChatNode.speaker_id</strong> – The memid of the speaker who sent the chat</p></li>
-<li><p><strong>~ChatNode.chat_text</strong> – The chat string</p></li>
-<li><p><strong>~ChatNode.time</strong> – The time at which the chat was delivered</p></li>
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>~ChatNode.speaker_id</strong> (<em>string</em>) – The memid of the speaker who sent the chat</p></li>
+<li><p><strong>~ChatNode.chat_text</strong> (<em>string</em>) – The chat string</p></li>
+<li><p><strong>~ChatNode.time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The time at which the chat was delivered</p></li>
 </ul>
 </dd>
 </dl>
@@ -978,16 +1166,20 @@ agent’s self
 <dt id="base_agent.memory_nodes.TaskNode">
 <em class="property">class </em><code class="sig-prename descclassname">base_agent.memory_nodes.</code><code class="sig-name descname">TaskNode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent_memory</span></em>, <em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/memory_nodes.html#TaskNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.memory_nodes.TaskNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>This node represents a task object that was placed on
-the agent’s task_stack
-:param agent_memory: An AgentMemory object
-:param memid: Memory ID for this node</p>
+the agent’s task_stack</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables</dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>~TaskNode.task</strong> – Name of the task</p></li>
-<li><p><strong>~TaskNode.created_at</strong> – Time at which it was created</p></li>
-<li><p><strong>~TaskNode.finished_at</strong> – Time at which it was finished</p></li>
-<li><p><strong>~TaskNode.action_name</strong> – The name of action that corresponds to this task</p></li>
+<li><p><strong>agent_memory</strong> (<a class="reference internal" href="#base_agent.sql_memory.AgentMemory" title="base_agent.sql_memory.AgentMemory"><em>AgentMemory</em></a>) – An AgentMemory object</p></li>
+<li><p><strong>memid</strong> (<em>string</em>) – Memory ID for this node</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>~TaskNode.task</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><em>object</em></a>) – Name of the task</p></li>
+<li><p><strong>~TaskNode.created_at</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Time at which it was created</p></li>
+<li><p><strong>~TaskNode.finished_at</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – Time at which it was finished</p></li>
+<li><p><strong>~TaskNode.action_name</strong> (<em>string</em>) – The name of action that corresponds to this task</p></li>
 </ul>
 </dd>
 </dl>

@@ -49,7 +49,28 @@ The training of the semantic parsing model we use is described in detail [here](
   :members: parse
 ```
 ## Dialogue Objects ##
-### Interpreter
+The generic Dialogue Object is
+```eval_rst
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.DialogueObject
+   :members: step, check_finished
+```
+A DialogueObject's main method is .step(),
+Some others:
+
+```eval_rst
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.Say
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.AwaitResponse
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.BotStackStatus
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.AwaitResponse
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.ConfirmTask
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject
+ .. autoclass:: base_agent.dialogue_objects.dialogue_object.ConfirmTask
+
+```
+
+
+
+### Interpreter ###
 The [Interpreter](https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/intepreter.py) is responsible for using the world state \(via [memory](memory.md)\) and a natural language utterance that has been parsed into a logical form over the agent's DSL from the semantic parser to choose a [Task](memory.md) to put on the Task Stack.   The [locobot](https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py) and [craftassist](https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py) Interpreters are not the same, but the bulk of the work is done by the shared subinterpreters (in the files \*\_helper.py) [here](https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/).  The subinterpreters, registered in the main Interpreter [here](https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/intepreter.py#L55) \(and for the specialized versions [here](https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_intepreter.py#L56) and [here](https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_intepreter.py#L61)\), roughly follow the structure of the DSL.  This arrangement is to allow replacing the (currently heuristic) subinterpreters with learned versions or specializing them to new agents.
 
 ```eval_rst
