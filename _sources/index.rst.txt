@@ -5,7 +5,7 @@
 droidlet
 *****
 
-droidlet is a modular embodied agent architecture, and a platform for building agents using components from the architecture.  It is designed for integrating machine-learned and heuristically scripted modules.  It includes
+droidlet is a modular embodied agent architecture, and a platform for building modular agents.  It is designed for integrating machine-learned and heuristically scripted modules.  It includes
 
 * APIs linking memory, action, perception, and language
 * Perceptual and natural-language-understanding models

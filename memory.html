@@ -106,17 +106,12 @@
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#perception-interface">Perception interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#agents">Agents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
-<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
 </ul>
 </li>
 </ul>
@@ -230,7 +225,7 @@ the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>query</strong> (<em>string</em>) – The query to be run against the database</p></li>
+<li><p><strong>query</strong> (<em>string</em>) – The SQL query to be run against the database</p></li>
 <li><p><strong>args</strong> – Arguments for the query</p></li>
 </ul>
 </dd>
@@ -342,12 +337,16 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.forget">
 <code class="sig-name descname">forget</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memid</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span></em>, <em class="sig-param"><span class="n">hard</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.forget"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.forget" title="Permalink to this definition">¶</a></dt>
-<dd><p>Forget a given memid from memory</p>
+<dd><dl class="simple">
+<dt>remove a memory from the DB. Warning: some of the work is done by</dt><dd><p>delete cascades in SQL</p>
+</dd>
+</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>memid</strong> (<em>string</em>) – Memory id</p></li>
-<li><p><strong>hard</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – flag indicating whether it is a hard delete</p></li>
+<li><p><strong>hard</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – flag indicating whether it is a hard delete
+A ‘soft’ delete is just tagging the memory as _forgotten</p></li>
 </ul>
 </dd>
 </dl>
@@ -363,7 +362,7 @@ subj and obj can be memids or text, but pred_text is required</p>
 <dl class="py method">
 <dt id="base_agent.sql_memory.AgentMemory.get_last_finished_root_task">
 <code class="sig-name descname">get_last_finished_root_task</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">action_name</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)">str</a></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">recency</span><span class="p">:</span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/base_agent/sql_memory.html#AgentMemory.get_last_finished_root_task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#base_agent.sql_memory.AgentMemory.get_last_finished_root_task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get last task that was successfully finished</p>
+<dd><p>Get last task that was marked as finished</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

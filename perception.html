@@ -106,17 +106,12 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#perception-interface">Perception interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#agents">Agents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
-<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-tasks">Locobot Tasks</a></li>
-<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
 </ul>
 </li>
 </ul>
@@ -186,6 +181,9 @@
             
   <div class="section" id="perception">
 <span id="perception-label"></span><h1>Perception<a class="headerlink" href="#perception" title="Permalink to this headline">¶</a></h1>
+<p>Any perceptual information to be used by the agent controllers should be stored in <a class="reference internal" href="memory.html"><span class="doc">Memory</span></a>, and accessed through the databse methods, memory nodes or the memory-query subset of the DSL.  This arrangement makes it easier to swap out perceptual modules and add new ones, and allows that agents with different underlying hardware and perceptual capabilities can share other aspects of the agent.  We also hope this will give hooks for representation learning and especially self-supervised representation learning.</p>
+<p>Perceptual modules are registered with an agent in the agent’s perceptual_modules dict, see e.g. <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent/locobot_agent.py#L54">here</a> and
+<a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/craftassist_agent.py#L167">here</a>.  Perceptual modules have one required method, .perceive(), which should add or update information in the Memory as appropriate.  This method is called on each iteration of the agent’s main loop <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/loco_mc_agent.py#L183">here</a>.  A perceptual module which is slow might run only once in a while (keeping its own time; the agent will call it each step).  If some part of the agent really needs a .perceive(), it can signal this by calling with force=True.</p>
 </div>
 
 

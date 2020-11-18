@@ -17,7 +17,4 @@ The base Task object is
 ```
 
 
-
-
-
-The Task Stack is maintained by the Memory system, and provides methods for examining and manipulating Task Objects
+The Task Stack is maintained by the Memory system, and provides methods for examining and manipulating Task Objects. See the task_stack functions in [memory](memory.md).
