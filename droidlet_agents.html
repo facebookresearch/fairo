@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -201,6 +202,29 @@ models (for example our object detector) as a separate process.</p>
 </dd>
 </dl>
 <dl class="py method">
+<dt id="locobot.agent.perception.Perception.log">
+<code class="sig-name descname">log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em>, <em class="sig-param"><span class="n">detections</span></em>, <em class="sig-param"><span class="n">humans</span></em>, <em class="sig-param"><span class="n">old_rgb_depth</span></em>, <em class="sig-param"><span class="n">old_xyz</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/perception.html#Perception.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.Perception.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log all relevant data from the perceptual models for the dashboard.</p>
+<p>All the data here is sent to the dashboard using a socketio emit event. This data
+is then used by the dashboard for different debugging visualizations. Add any data
+that you would want to fetch on the dashboard here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rgb_depth</strong> (<em>RGBDepth</em>) – the current RGBDepth frame. This frame might be different from</p></li>
+<li><p><strong>old_rgb_depth</strong> (<em>RGBDepth</em>) – </p></li>
+<li><p><strong>is the RGBDepth frame for which SlowPerception has been run</strong> (<em>which</em>) – </p></li>
+<li><p><strong>detections</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>Detections</em><em>]</em>) – list of all detections</p></li>
+<li><p><strong>humans</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>Human</em><em>]</em>) – list of all humans detected</p></li>
+<li><p><strong>old_rgb_depth</strong> – RGBDepth frame for which detections and humans are being sent.</p></li>
+<li><p><strong>is the frame for which SlowPerception has been run.</strong> (<em>This</em>) – </p></li>
+<li><p><strong>old_xyz</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>floats</em><em>]</em>) – the (x,y,yaw) of the robot at the time of old_rgb_depth</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="locobot.agent.perception.Perception.perceive">
 <code class="sig-name descname">perceive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/perception.html#Perception.perceive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.Perception.perceive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Called by the core event loop for the agent to run all perceptual
@@ -209,11 +233,55 @@ SlowPerception if they are ready.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>force</strong> (<em>boolean</em>) – set to True to force waiting on the SlowPerception models to finish, a good debugging</p></li>
-<li><p><strong>(default</strong> (<em>tool</em>) – False)</p></li>
+<li><p><strong>force</strong> (<em>boolean</em>) – set to True to force waiting on the SlowPerception models to finish, and execute</p></li>
+<li><p><strong>perceptual models to execute sequentially</strong> (<em>all</em>) – </p></li>
+<li><p><strong>(default</strong> – False)</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.Perception.setup_vision_handlers">
+<code class="sig-name descname">setup_vision_handlers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/perception.html#Perception.setup_vision_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.Perception.setup_vision_handlers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup all vision handlers, by defining an attribute dict of different perception handlers.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.SlowPerception">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.</code><code class="sig-name descname">SlowPerception</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_data_dir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/perception.html#SlowPerception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.SlowPerception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Home for all slow perceptual modules used by the LocobotAgent.</p>
+<p>It is run as a separate process and has all the compute intensive perceptual models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_data_dir</strong> (<em>string</em>) – path for all perception models (default: ~/locobot/agent/models/perception)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.SlowPerception.perceive">
+<code class="sig-name descname">perceive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/perception.html#SlowPerception.perceive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.SlowPerception.perceive" title="Permalink to this definition">¶</a></dt>
+<dd><p>run all percetion handlers on the current RGBDepth frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rgb_depth</strong> (<em>RGBDepth</em>) – input frame to run all perception handlers on.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>input frame that all perception handlers were run on.
+detections (list[Detections]): list of all detections
+humans (list[Human]): list of all humans detected</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>rgb_depth (RGBDepth)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.SlowPerception.setup_vision_handlers">
+<code class="sig-name descname">setup_vision_handlers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/perception.html#SlowPerception.setup_vision_handlers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.SlowPerception.setup_vision_handlers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup all vision handlers, by defining an attribute dict of different perception handlers.</p>
 </dd></dl>
 
 </dd></dl>
@@ -222,6 +290,523 @@ SlowPerception if they are ready.</p>
 </div>
 <div class="section" id="locobot-pyrobot-interface">
 <h3>Locobot PyRobot interface<a class="headerlink" href="#locobot-pyrobot-interface" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><dl class="py class">
+<dt id="locobot.robot.RemoteLoCoRobot">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.robot.</code><code class="sig-name descname">RemoteLoCoRobot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'locobot'</span></em>, <em class="sig-param"><span class="n">backend_config</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyRobot interface for the Locobot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backend</strong> (<em>string</em>) – the backend for the Locobot (“habitat” for the locobot in Habitat, and “locobot” for the physical LoCoBot)</p></li>
+<li><p><strong>(default</strong> – locobot)</p></li>
+<li><p><strong>backend_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – the backend config used for connecting to Habitat (default: None)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.close_gripper">
+<code class="sig-name descname">close_gripper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.close_gripper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.close_gripper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commands gripper to close fully.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.dip_pix_to_3dpt">
+<code class="sig-name descname">dip_pix_to_3dpt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.dip_pix_to_3dpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.dip_pix_to_3dpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the point cloud at current time step in robot base frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>point coordinates (shape: <span class="math notranslate nohighlight">\([N, 3]\)</span>) in metric unit</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_base_state">
+<code class="sig-name descname">get_base_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_base_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_base_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the  base pose of the robot in the (x,y, yaw) format as
+computed either from Wheel encoder readings or Visual-SLAM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>state_type</strong> (<em>string</em>) – Requested state type. Ex: Odom, SLAM, etc</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pose of the form [x, y, yaw]</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_camera_state">
+<code class="sig-name descname">get_camera_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_camera_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_camera_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current pan and tilt joint angles of the robot camera in
+radian.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A list the form [pan angle, tilt angle]</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_current_pcd">
+<code class="sig-name descname">get_current_pcd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">in_cam</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">in_global</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_current_pcd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_current_pcd" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the point cloud at current time step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>in_cam</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – return points in camera frame,
+otherwise, return points in base frame</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>tuple (pts, colors)</p>
+<p>pts: point coordinates (shape: <span class="math notranslate nohighlight">\([N, 3]\)</span>) in metric unit</p>
+<p>colors: rgb values (shape: <span class="math notranslate nohighlight">\([N, 3]\)</span>)</p>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_depth">
+<code class="sig-name descname">get_depth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the depth image perceived by the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>depth image in meters, dtype-&gt; float32</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_depth_bytes">
+<code class="sig-name descname">get_depth_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_depth_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_depth_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the depth image perceived by the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>depth image in meters, dtype-&gt; bytes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_end_eff_pose">
+<code class="sig-name descname">get_end_eff_pose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_end_eff_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_end_eff_pose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the end effector pose w.r.t ‘ARM_BASE_FRAME’
+:return:tuple (trans, rot_mat, quat)</p>
+<blockquote>
+<div><p>trans: translational vector in metric unit (shape: <span class="math notranslate nohighlight">\([3, 1]\)</span>)</p>
+<p>rot_mat: rotational matrix (shape: <span class="math notranslate nohighlight">\([3, 3]\)</span>)</p>
+<p>quat: rotational matrix in the form of quaternion (shape: <span class="math notranslate nohighlight">\([4,]\)</span>)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_gripper_state">
+<code class="sig-name descname">get_gripper_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_gripper_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_gripper_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the gripper state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>state
+state = -1: unknown gripper state
+state = 0: gripper is fully open
+state = 1: gripper is closing
+state = 2: there is an object in the gripper
+state = 3: gripper is fully closed</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_intrinsics">
+<code class="sig-name descname">get_intrinsics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_intrinsics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_intrinsics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the intrinsic matrix of the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the intrinsic matrix (shape: <span class="math notranslate nohighlight">\([3, 3]\)</span>)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_joint_positions">
+<code class="sig-name descname">get_joint_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_joint_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_joint_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return arm joint angles order-&gt; base_join index 0, wrist joint index
+-1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>joint_angles in radians</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_joint_velocities">
+<code class="sig-name descname">get_joint_velocities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_joint_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_joint_velocities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the joint velocity order-&gt; base_join index 0, wrist joint
+index -1.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>joint_angles in rad/sec</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_pan">
+<code class="sig-name descname">get_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_pan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current pan joint angle of the robot camera.</p>
+<p>:return:Pan joint angle in radian
+:rtype: float</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_pcd_data">
+<code class="sig-name descname">get_pcd_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_pcd_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_pcd_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets all the data to calculate the point cloud for a given rgb, depth frame.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_rgb">
+<code class="sig-name descname">get_rgb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_rgb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_rgb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the RGB image perceived by the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>image in the RGB, [h,w,c] format, dtype-&gt;uint8</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_rgb_bytes">
+<code class="sig-name descname">get_rgb_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_rgb_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_rgb_bytes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the RGB image perceived by the camera.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>image in the RGB, [h,w,c] format, dtype-&gt;bytes</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>np.ndarray or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_tilt">
+<code class="sig-name descname">get_tilt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_tilt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the current tilt joint angle of the robot camera in radian.</p>
+<p>:return:tilt joint angle
+:rtype: float</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.get_transform">
+<code class="sig-name descname">get_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_frame</span></em>, <em class="sig-param"><span class="n">dst_frame</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the transform from the src_frame to dest_frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_frame</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – source frame</p></li>
+<li><p><strong>dest_frame</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – destination frame</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>:return:tuple (trans, rot_mat, quat )</dt><dd><p>trans: translational vector (shape: <span class="math notranslate nohighlight">\([3, 1]\)</span>)
+rot_mat: rotational matrix (shape: <span class="math notranslate nohighlight">\([3, 3]\)</span>)
+quat: rotational matrix in the form of quaternion (shape: <span class="math notranslate nohighlight">\([4,]\)</span>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>(np.ndarray, np.ndarray, np.ndarray)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.go_to_absolute">
+<code class="sig-name descname">go_to_absolute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_position</span></em>, <em class="sig-param"><span class="n">use_map</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">close_loop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">smooth</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.go_to_absolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.go_to_absolute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the robot base to given goal state in the world frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xyt_position</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – The goal state of the form (x,y,yaw)
+in the world (map) frame.</p></li>
+<li><p><strong>use_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When set to “True”, ensures that controller is
+using only free space on the map to move the robot.</p></li>
+<li><p><strong>close_loop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When set to “True”, ensures that controller
+is operating in open loop by taking
+account of odometry.</p></li>
+<li><p><strong>smooth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When set to “True”, ensures that the motion
+leading to the goal is a smooth one.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.go_to_relative">
+<code class="sig-name descname">go_to_relative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_position</span></em>, <em class="sig-param"><span class="n">use_map</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">close_loop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">smooth</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.go_to_relative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.go_to_relative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the robot base to the given goal state relative to its current
+pose.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xyt_position</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – The  relative goal state of the form (x,y,yaw)</p></li>
+<li><p><strong>use_map</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When set to “True”, ensures that controller is
+using only free space on the map to move the robot.</p></li>
+<li><p><strong>close_loop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When set to “True”, ensures that controller is
+operating in open loop by taking
+account of odometry.</p></li>
+<li><p><strong>smooth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – When set to “True”, ensures that the
+motion leading to the goal is a smooth one.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.grasp">
+<code class="sig-name descname">grasp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dims</span><span class="o">=</span><span class="default_value">[(240, 480), (100, 540)]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.grasp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.grasp" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – List of tuples of min and max indices of the image axis to be considered for grasp search</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.move_ee_xyz">
+<code class="sig-name descname">move_ee_xyz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">displacement</span></em>, <em class="sig-param"><span class="n">eef_step</span><span class="o">=</span><span class="default_value">0.005</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.move_ee_xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.move_ee_xyz" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keep the current orientation of arm fixed, move the end effector of
+in {xyz} directions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>displacement</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – (delta_x, delta_y, delta_z) in metric unit</p></li>
+<li><p><strong>eef_step</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – resolution (m) of the interpolation
+on the cartesian path</p></li>
+<li><p><strong>plan</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – use moveit the plan a path to move to the
+desired pose. If False,
+it will do linear interpolation along the path,
+and simply use IK solver to find the
+sequence of desired joint positions and
+then call <cite>set_joint_positions</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.open_gripper">
+<code class="sig-name descname">open_gripper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.open_gripper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.open_gripper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commands gripper to open fully.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.pix_to_3dpt">
+<code class="sig-name descname">pix_to_3dpt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rs</span></em>, <em class="sig-param"><span class="n">cs</span></em>, <em class="sig-param"><span class="n">in_cam</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.pix_to_3dpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.pix_to_3dpt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the 3D points of the pixels in RGB images in metric unit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – rows of interest in the RGB image.
+It can be a list or 1D numpy array
+which contains the row indices.</p></li>
+<li><p><strong>cs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – columns of interest in the RGB image.
+It can be a list or 1D numpy array
+which contains the column indices.</p></li>
+<li><p><strong>in_cam</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – return points in camera frame,
+otherwise, return points in base frame</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>tuple (pts, colors)</p>
+<p>pts: point coordinates in metric unit
+(shape: <span class="math notranslate nohighlight">\([N, 3]\)</span>)</p>
+<p>colors: rgb values
+(shape: <span class="math notranslate nohighlight">\([N, 3]\)</span>)</p>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.9)">tuple</a>(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function resets the pan and tilt joints of robot camera by
+actuating them to their home configuration [0.0, 0.0].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.set_ee_pose">
+<code class="sig-name descname">set_ee_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">position</span></em>, <em class="sig-param"><span class="n">orientation</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_ee_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_ee_pose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commands robot arm to desired end-effector pose (w.r.t.
+‘ARM_BASE_FRAME’). Computes IK solution in joint space and calls
+set_joint_positions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>position</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – position of the end effector in metric (shape: <span class="math notranslate nohighlight">\([3,]\)</span>)</p></li>
+<li><p><strong>orientation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em> or </em><em>np.ndarray</em>) – orientation of the end effector
+(can be rotation matrix, euler angles (yaw,
+pitch, roll), or quaternion)
+(shape: <span class="math notranslate nohighlight">\([3, 3]\)</span>, <span class="math notranslate nohighlight">\([3,]\)</span>
+or <span class="math notranslate nohighlight">\([4,]\)</span>)
+The convention of the Euler angles here
+is z-y’-x’ (intrinsic rotations),
+which is one type of Tait-Bryan angles.</p></li>
+<li><p><strong>plan</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – use moveit the plan a path to move to the desired pose</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.set_joint_positions">
+<code class="sig-name descname">set_joint_positions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_joint</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_joint_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_joint_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the desired joint angles for all arm joints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_joint</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – list of length #of joints(5 for locobot), angles in radians,
+order-&gt; base_join index 0, wrist joint index -1</p></li>
+<li><p><strong>plan</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – whether to use moveit to plan a path. Without planning,
+there is no collision checking and each joint will
+move to its target joint position directly.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.set_joint_velocities">
+<code class="sig-name descname">set_joint_velocities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_vels</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_joint_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_joint_velocities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the desired joint velocities for all arm joints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>target_vels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – target joint velocities, list of length #of joints(5 for locobot)
+velocity in  radians/sec
+order-&gt; base_join index 0, wrist joint index -1</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.set_pan">
+<code class="sig-name descname">set_pan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pan</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_pan" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the pan joint angle of robot camera to the specified value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pan</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – value to be set for pan joint in radian</p></li>
+<li><p><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – wait until the pan angle is set to
+the target angle.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.set_pan_tilt">
+<code class="sig-name descname">set_pan_tilt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pan</span></em>, <em class="sig-param"><span class="n">tilt</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_pan_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_pan_tilt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets both the pan and tilt joint angles of the robot camera  to the
+specified values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pan</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – value to be set for pan joint in radian</p></li>
+<li><p><strong>tilt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – value to be set for the tilt joint in radian</p></li>
+<li><p><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – wait until the pan and tilt angles are set to
+the target angles.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.set_tilt">
+<code class="sig-name descname">set_tilt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tilt</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_tilt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the tilt joint angle of robot camera to the specified value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tilt</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – value to be set for the tilt joint in radian</p></li>
+<li><p><strong>wait</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – wait until the tilt angle is set to
+the target angle.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLoCoRobot.transform_pose">
+<code class="sig-name descname">transform_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">XYZ</span></em>, <em class="sig-param"><span class="n">current_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.transform_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.transform_pose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms the point cloud into geocentric frame to account for
+camera position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>XYZ</strong> – …x3</p></li>
+<li><p><strong>current_pose</strong> – camera position (x, y, theta (radians))</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>…x3</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>XYZ</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
 </div>
 </div>
 <div class="section" id="craftassist">

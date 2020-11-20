@@ -61,10 +61,8 @@ Some others:
  .. autoclass:: base_agent.dialogue_objects.dialogue_object.Say
  .. autoclass:: base_agent.dialogue_objects.dialogue_object.AwaitResponse
  .. autoclass:: base_agent.dialogue_objects.dialogue_object.BotStackStatus
- .. autoclass:: base_agent.dialogue_objects.dialogue_object.AwaitResponse
  .. autoclass:: base_agent.dialogue_objects.dialogue_object.ConfirmTask
  .. autoclass:: base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject
- .. autoclass:: base_agent.dialogue_objects.dialogue_object.ConfirmTask
 
 ```
 

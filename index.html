@@ -30,6 +30,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -180,7 +181,7 @@
             
   <div class="section" id="droidlet">
 <h1>droidlet<a class="headerlink" href="#droidlet" title="Permalink to this headline">¶</a></h1>
-<p>droidlet is a modular embodied agent architecture, and a platform for building modular agents.  It is designed for integrating machine-learned and heuristically scripted modules.  It includes</p>
+<p>droidlet is a modular embodied agent architecture, and a platform for building modular agents.  It is designed for integrating machine-learned and heuristically scripted components.  It includes</p>
 <ul class="simple">
 <li><p>APIs linking memory, action, perception, and language</p></li>
 <li><p>Perceptual and natural-language-understanding models</p></li>
@@ -239,9 +240,8 @@ The Task objects themselves are <em>not</em> generic across agents; and can be h
 <h2>Perception<a class="headerlink" href="#perception" title="Permalink to this headline">¶</a></h2>
 <p>Perceptual modules process information about the agent’s environment and write to memory.  Each perceptual module should have a .perceive() method, which is called
 <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/loco_mc_agent.py#L180">here</a>, during the main agent loop.</p>
-</div>
-<div class="section" id="more-in-depth">
-<h2>More in Depth:<a class="headerlink" href="#more-in-depth" title="Permalink to this headline">¶</a></h2>
+<p>More in Depth:</p>
+<hr class="docutils" />
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="controller.html">Controller</a><ul>
@@ -263,7 +263,6 @@ The Task objects themselves are <em>not</em> generic across agents; and can be h
 </li>
 </ul>
 </div>
-<hr class="docutils" />
 </div>
 </div>
 

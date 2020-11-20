@@ -9,12 +9,16 @@ We instantiate a droidlet [agent](https://github.com/fairinternal/minecraft/blob
 ### Locobot Perception ###
 ```eval_rst
  .. autoclass:: locobot.agent.perception.Perception
-   :members: perceive
+   :members: perceive, setup_vision_handlers, log
+ .. autoclass:: locobot.agent.perception.SlowPerception
+   :members: perceive, setup_vision_handlers
 ```
 
 ### Locobot PyRobot interface ###
-
-
+```eval_rst
+ .. autoclass:: locobot.robot.RemoteLoCoRobot
+   :members: get_pcd_data, go_to_absolute, go_to_relative, get_base_state, set_joint_positions, set_joint_velocities, set_ee_pose, move_ee_xyz, open_gripper, close_gripper, get_gripper_state, get_end_eff_pose, get_joint_positions, get_joint_velocities, get_depth, get_depth_bytes, get_intrinsics, get_rgb, get_rgb_bytes, transform_pose, get_current_pcd, pix_to_3dpt, dip_pix_to_3dpt, get_transform, get_pan, get_camera_state, get_tilt, reset, set_pan, set_pan_tilt, set_tilt, grasp, explore
+```
 
 ## Craftassist ##
 Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/fairinternal/minecraft/blob/master/craftassist/README.md)

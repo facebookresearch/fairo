@@ -30,6 +30,7 @@
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
         <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -194,16 +195,18 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        agent: the agent process</span>
-<span class="sd">        memory: agent&#39;t memory</span>
+<span class="sd">        memory: agent&#39;s memory</span>
 <span class="sd">        dialogue_stack : A stack on which dialogue objects are placed</span>
 <span class="sd">        finished: whether this object has finished processing</span>
-<span class="sd">        awaiting_response: whether this object is awaiting the speaker&#39;s response</span>
-<span class="sd">                           to a question</span>
+<span class="sd">        awaiting_response: whether this object is awaiting the speakers response to a question</span>
 <span class="sd">        max_steps: finish after this many steps to avoid getting stuck</span>
 <span class="sd">        current_step: current step count</span>
 <span class="sd">        progeny_data: data from progeny DialogueObjects, for example used to answer a clarification</span>
 
 <span class="sd">    Usage:</span>
+
+<span class="sd">.. code-block:: python</span>
+
 <span class="sd">        class DummyGetMemoryHandler(DialogueObject):</span>
 <span class="sd">            def __init__(self, speaker_name: str, action_dict: Dict, **kwargs):</span>
 <span class="sd">                # initialize everything</span>
@@ -221,6 +224,7 @@
 <span class="sd">                    raise ValueError(&quot;Unknown memory_type={}&quot;.format(memory_type))</span>
 <span class="sd">                # mark as finished</span>
 <span class="sd">                self.finished = True</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">dialogue_stack</span><span class="p">,</span> <span class="n">max_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>

@@ -30,6 +30,7 @@
         <script src="../../../../_static/underscore.js"></script>
         <script src="../../../../_static/doctools.js"></script>
         <script src="../../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -198,7 +199,7 @@
 <span class="kn">import</span> <span class="nn">queue</span>
 
 
-<span class="k">class</span> <span class="nc">SlowPerception</span><span class="p">:</span>
+<div class="viewcode-block" id="SlowPerception"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.SlowPerception">[docs]</a><span class="k">class</span> <span class="nc">SlowPerception</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Home for all slow perceptual modules used by the LocobotAgent.</span>
 
 <span class="sd">    It is run as a separate process and has all the compute intensive perceptual models.</span>
@@ -211,7 +212,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span> <span class="o">=</span> <span class="n">model_data_dir</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_vision_handlers</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">setup_vision_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SlowPerception.setup_vision_handlers"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.SlowPerception.setup_vision_handlers">[docs]</a>    <span class="k">def</span> <span class="nf">setup_vision_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Setup all vision handlers, by defining an attribute dict of different perception handlers.&quot;&quot;&quot;</span>
         <span class="n">handlers</span> <span class="o">=</span> <span class="n">AttributeDict</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s2">&quot;detector&quot;</span><span class="p">:</span> <span class="n">DetectionHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_data_dir</span><span class="p">),</span>
@@ -221,9 +223,19 @@
                 <span class="s2">&quot;tracker&quot;</span><span class="p">:</span> <span class="n">TrackingHandler</span><span class="p">(),</span>
             <span class="p">}</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">handlers</span>
+        <span class="k">return</span> <span class="n">handlers</span></div>
 
-    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="SlowPerception.perceive"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.SlowPerception.perceive">[docs]</a>    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;run all percetion handlers on the current RGBDepth frame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rgb_depth (RGBDepth): input frame to run all perception handlers on.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            rgb_depth (RGBDepth): input frame that all perception handlers were run on.</span>
+<span class="sd">            detections (list[Detections]): list of all detections</span>
+<span class="sd">            humans (list[Human]): list of all humans detected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">detections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">detector</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
         <span class="n">humans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">human_pose</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
         <span class="n">face_detections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">face_recognizer</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
@@ -233,10 +245,17 @@
         <span class="c1"># if laser_detection_obj:</span>
         <span class="c1">#     detections += [laser_detection_obj]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">tracker</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span>
+        <span class="k">return</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">slow_vision_process</span><span class="p">(</span><span class="n">model_data_dir</span><span class="p">,</span> <span class="n">input_queue</span><span class="p">,</span> <span class="n">output_queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Set up slow vision process, consisting of compute intensive perceptual models.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)</span>
+<span class="sd">        input_queue (multiprocessing.Queue): queue to retrieve input for slow vision process from</span>
+<span class="sd">        output_queue (multiprocessing.Queue): queue to dump slow vision process output in</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">perception</span> <span class="o">=</span> <span class="n">SlowPerception</span><span class="p">(</span><span class="n">model_data_dir</span><span class="p">)</span>
 
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -313,14 +332,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">[</span><span class="s2">&quot;image_quality&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_values</span><span class="p">[</span><span class="s2">&quot;image_quality&quot;</span><span class="p">]</span>
             <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;image_settings&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_settings</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">setup_vision_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Perception.setup_vision_handlers"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.Perception.setup_vision_handlers">[docs]</a>    <span class="k">def</span> <span class="nf">setup_vision_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Setup all vision handlers, by defining an attribute dict of different perception handlers.&quot;&quot;&quot;</span>
         <span class="n">handlers</span> <span class="o">=</span> <span class="n">AttributeDict</span><span class="p">(</span>
             <span class="p">{</span>
                 <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="n">InputHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">read_from_camera</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
                 <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="n">MemoryHandler</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">),</span>
             <span class="p">}</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">handlers</span>
+        <span class="k">return</span> <span class="n">handlers</span></div>
 
 <div class="viewcode-block" id="Perception.perceive"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.Perception.perceive">[docs]</a>    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Called by the core event loop for the agent to run all perceptual</span>
@@ -328,8 +348,9 @@
 <span class="sd">        SlowPerception if they are ready.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            force (boolean): set to True to force waiting on the SlowPerception models to finish, a good debugging</span>
-<span class="sd">            tool (default: False)</span>
+<span class="sd">            force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute </span>
+<span class="sd">            all perceptual models to execute sequentially (doing that is a good debugging tool) </span>
+<span class="sd">            (default: False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">rgb_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">input</span><span class="p">()</span>
 
@@ -353,7 +374,23 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_image</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_rgb_depth</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">):</span>
+<div class="viewcode-block" id="Perception.log"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.Perception.log">[docs]</a>    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_rgb_depth</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Log all relevant data from the perceptual models for the dashboard. </span>
+
+<span class="sd">        All the data here is sent to the dashboard using a socketio emit event. This data</span>
+<span class="sd">        is then used by the dashboard for different debugging visualizations. Add any data</span>
+<span class="sd">        that you would want to fetch on the dashboard here.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rgb_depth (RGBDepth): the current RGBDepth frame. This frame might be different from</span>
+<span class="sd">            old_rgb_depth, which is the RGBDepth frame for which SlowPerception has been run</span>
+<span class="sd">            detections (list[Detections]): list of all detections</span>
+<span class="sd">            humans (list[Human]): list of all humans detected</span>
+<span class="sd">            old_rgb_depth (RGBDepth): RGBDepth frame for which detections and humans are being sent.</span>
+<span class="sd">            This is the frame for which SlowPerception has been run.</span>
+<span class="sd">            old_xyz (list[floats]): the (x,y,yaw) of the robot at the time of old_rgb_depth</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sio</span><span class="p">,</span> <span class="s2">&quot;mock&quot;</span><span class="p">):</span>
             <span class="k">return</span>
 
@@ -375,7 +412,7 @@
         <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
         <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
         <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;yaw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">yaw</span>
-        <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;sensor_payload&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div>
+        <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;sensor_payload&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
