@@ -1,0 +1,33 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+.text-input{
+    width: calc(100% - 30px);
+    border-radius: 10px;
+    height: fit-content;
+    min-height: 25px;;
+    margin: 10px;
+    border: grey 1px solid;
+    background-color: rgba(0, 0, 0, 0);
+    overflow-y: scroll;
+    overflow-wrap: break-word;
+}
+
+.message-container {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    background-color: rgb(255, 255, 255);
+    
+}
+
+.messages {
+    background-color: rgb(226, 226, 226);
+    height: 85%;
+    overflow-y: scroll;
+}
+
+.scrollfix{
+    display: block;
+    height: 30px;
+}

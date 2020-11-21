@@ -1,0 +1,24 @@
+[flake8]
+max-line-length = 99
+ignore =
+    E1, # indentation
+    E2, # whitespace
+    E3, # blank line
+    E5, # line length
+    E402, # module level import not at top of file
+    E722, # do not use bare except
+    E731, # do not assign a lambda expression, use a def
+    E741, # ambiguous variable name 'l'
+    F403, # from module import *’ used; unable to detect undefined
+    F405, # may be undefined, or defined from star imports
+    W1, # indentation
+    W2, # whitespace
+    W3, # blank line
+    W5, # line break
+exclude =
+    ./base_agent/ttad/
+    ./base_agent/ttad/generation_dialogues/
+    ./base_agent/ttad/ttad_model/
+    ./base_agent/ttad-annotate/flows.py
+    .git,
+    __pycache__,

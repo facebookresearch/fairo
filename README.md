@@ -1,0 +1,140 @@
+# droidlet
+
+**This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
+
+`droidlet` helps you rapidly build agents (real or virtual) that perform a wide variety of tasks specified by humans. The agents can use natural language, memory and humans in the loop.
+
+`droidlet` is an ***early research project for AI researchers*** to explore ideas around *grounded dialogue*, *interactive learning* and *human-computer interfaces*.
+
+`droidlet` is in active development and is fairly unstable in design, API, performance and correctness. It is not meant for any production use.
+
+<p align="center">
+   <img src="https://locobot-bucket.s3-us-west-2.amazonaws.com/documentation/droidlet.gif" />
+</p>
+
+## Getting Started
+
+You want to do one of three things:
+
+1. **Robots:** Reproduce and extend the [PyRobot](https://pyrobot.org) based agent on real robots such as [LocoBot](http://www.locobot.org/) or photo-realistic simulators such as [AIHabitat](https://aihabitat.org/).
+2. **Minecraft:** Reproduced and extend the `minecraft` based game agent
+3. **New Agent:** write your own agent from scratch, starting from our `base_agent` abstraction
+
+
+<p align="center">
+  <table align="center">
+    <thead><th>Robots</th>
+        <th>Minecraft</th>
+        <th>New Agent</th>
+    </thead>
+    <tr valign="top">
+        <td colspan="3"  align="left">
+          1. Clone the source code
+            <sub><pre lang="bash">
+git clone --depth=1 --recursive https://github.com/facebookresearch/droidlet.git
+cd droidlet
+            </pre></sub>
+        </td>    
+    </tr>
+    <tr valign="top">        
+        <td> 2. Check system requirements
+        <sub><pre lang="bash">
+- Linux
+- Python 3 (Anaconda environment recommended)
+- NVIDIA GPU with atleast 8GB memory
+- a PyRobot-compatible robot or simulator
+  - See instructions below for setting up Habitat-simulator
+        </pre></sub></td>
+        <td><sub><pre lang="bash">
+        <br/>
+- Linux
+- Python 3 (Anaconda environment recommended)
+- NVIDIA GPU with atleast 4GB memory
+- Minecraft
+  - more instructions below
+        </pre></sub></td>
+        <td><sub><pre lang="bash">
+        <br/>
+- Linux
+- Python 3 (Anaconda environment recommended)
+        </pre></sub></td>
+    </tr>
+    <tr valign="top">        
+        <td> 2. Install dependencies
+        <sub><pre lang="bash">
+pip install -r requirements.txt
+pip install -r locobot/requirements.txt
+        </pre></sub></td>
+        <td><sub><pre lang="bash">
+        <br/>
+pip install -r requirements.txt
+pip install -r craftassist/requirements.txt
+        </pre></sub></td>
+        <td><sub><pre lang="bash">
+        <br/>
+pip install -r requirements.txt
+        </pre></sub></td>
+    </tr>
+    <tr valign="top">        
+        <td> 3. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
+        </td>
+        <td>
+        3. <a href="https://github.com/facebookresearch/droidlet/blob/main/craftassist/README.md">Instructions for running the Craftassist agent</a>
+        </td>
+        <td>
+        <br/>
+        </td>
+    </tr>
+        <tr valign="top">
+        <td colspan=3> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
+        </td>      
+    </tr>    
+    <tr valign="top" align="center">
+        <td colspan=3> 5. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
+        </td>
+    </tr>
+    <tr valign="top" align="center">
+        <td colspan=3> 6. Agent-specific API Documentation</a>
+        </td>
+    </tr>
+    <tr valign="top">        
+        <td align="center"><br/><a href="https://facebookresearch.github.io/droidlet/droidlet_agents.html#locobot"> Locobot agent API</a>
+        </td>
+        <td align="center">
+        <br/><a href="https://facebookresearch.github.io/droidlet/droidlet_agents.html#craftassist"> CraftAssist agent API</a>
+        </td>
+        <td align="center">
+        <br/>
+        Not Applicable
+        </td>
+    </tr>
+  </table>
+</p>
+
+
+## Documentation, Tutorials and Papers
+
+
+Two papers cover the design of droidlet:
+1. [CraftAssist: A Framework for Dialogue-enabled Interactive Agents](https://arxiv.org/abs/1907.08584) covers the design of the dialogue parser and the task system of an earlier version of `droidlet` that is specific to the game [Minecraft](https://www.minecraft.net/en-us)
+2. An unreleased paper covers the overall design of `droidlet` as a more generalized architecture that is extended to physical robots and simulators.
+
+## License
+
+droidlet is [MIT licensed](./LICENSE).
+
+
+## Other Links
+
+### Datasets
+
+Download links to the datasets described in section 6 of [Technical Whitepaper](https://arxiv.org/abs/1907.08584) are provided here:
+
+- **The house dataset**: https://craftassist.s3-us-west-2.amazonaws.com/pubr/house_data.tar.gz
+- **The segmentation dataset**: https://craftassist.s3-us-west-2.amazonaws.com/pubr/instance_segmentation_data.tar.gz
+- **The dialogue dataset**: https://craftassist.s3-us-west-2.amazonaws.com/pubr/dialogue_data.tar.gz
+
+In the root of each tarball is a README that details the file structure contained within.
+
+
+

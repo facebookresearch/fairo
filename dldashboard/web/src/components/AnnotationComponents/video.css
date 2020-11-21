@@ -1,0 +1,13 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+.workspace-controls {
+  display: inline-block;
+  float: right;
+}
+
+#workspace {
+  display: block;
+  width: 700px;
+  margin: auto;
+}

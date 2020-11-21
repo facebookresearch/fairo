@@ -1,0 +1,17 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+body {
+  background-color: rgb(233, 233, 233);
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.control-panel {
+  position: fixed;
+  top: 50%;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+}

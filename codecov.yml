@@ -1,0 +1,32 @@
+ignore:
+      - "test_*.py" 
+codecov:
+  notify:
+    require_ci_to_pass: no
+
+coverage:
+  status:
+    project:
+        default:
+            target: 0%
+            if_not_found: success
+            if_ci_failed: success
+        Locobot:
+            target: 0%
+            paths:
+                - python/locobot/*
+            if_not_found: success
+            if_ci_failed: success
+                
+        Mincraft:
+            target: 0%
+            paths:
+                - python/craftassist/*
+            if_not_found: success
+            if_ci_failed: success
+
+    patch: off
+    changes: off
+
+comment: false
+

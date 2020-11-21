@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<title></title>
+		<script src="d3-mitch-tree.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="d3-mitch-tree.min.css">
+		<link rel="stylesheet" type="text/css" href="d3-mitch-tree-theme-default.min.css">
+	</head>
+	<body>
+		<style>
+			.mitch-d3-tree.boxed-tree.default .node .body-group .body-box {
+				stroke: red;
+				font: 12px sans-serif;
+			}
+			.mitch-d3-tree.boxed-tree.default .node .body-box text {
+				font: 12px sans-serif;
+			}
+
+		</style>
+
+		<div class="text-block" style="float: left;">
+		    <h1>Describe the tree.</h1>
+		    <p style="font-size: 20px">Given a tree like structure, describe the representation using only plain text. The tree should sufficiently represent the intent of the command, your task is to describe the representation using pure text. The nodes of the tree shown in blue are click-able, you can click on it to see a fine-grained detailed breakdown of the concept represented by that node.
+
+		    Please provide upto two different text representations.
+
+		    For example, in the tree shown below:
+		    	<section id="example_visualization" style="max-height: 200 px; width: 800px;float: left;">
+				</section>
+
+				<script>
+					function getData() {
+						var data = {
+							"id": 1,
+							"name": "Build",
+							"type": "Root",
+							"description": "Intended action",
+							"children": [
+								{
+									"id": 2,
+									"name": "cube",
+									"type": "Schematic",
+									"description": "The thing to be built",
+
+								},
+								{
+									"id": 3,
+									"name": "here",
+									"type": "Location",
+									"description": "The place where the build will happen",
+
+								}
+							]
+							};
+						return data;
+					}
+
+					var data = getData();
+
+					var treePlugin = new d3.mitchTree.boxedTree()
+						.setAllowZoom(false)
+						.setAllowPan(false)
+						.setAllowNodeCentering(false)
+						.setMinScale(1.0)
+						.setData(data)
+						.setElement(document.getElementById("example_visualization"))
+						.setIdAccessor(function(data) {
+							return data.id;
+						})
+						.setChildrenAccessor(function(data) {
+							return data.children;
+						})
+						.setBodyDisplayTextAccessor(function(data) {
+							return data.name;
+						})
+						.setTitleDisplayTextAccessor(function(data) {
+							return data.description;
+						})
+						.initialize();
+
+				</script>
+ 			</p>
+ 			<p style="font-size: 20px;">Possible and acceptable descriptions are:
+ 				<ul style="font-size: 20px;">
+ 					<li>create a cube over here</li>
+ 					<li>construct a cube where I am </li>
+ 					<li>build a cube like structure near me </li>
+ 				</ul>
+ 			</p>
+	  	</div>
+
+	  	<div style="font-size: 20px">
+	  		Write descriptions for the tree shown below.
+	  	</div>
+
+		<section id='loop' style="border: 1px black solid; max-width: 800px;">
+			<div>
+				Loop
+			</div>
+		<section id="visualisation" style="border: 1px black solid; max-width: 700px; max-height 200px;">
+		</section>
+	</section>
+
+		<script>
+			function getData() {
+				var data = {
+					"id": 1,
+					"name": "Build",
+					"type": "Root",
+					"description": "Intended action",
+					"children": [
+						{
+							"id": 2,
+							"name": "brick house",
+							"type": "Schematic",
+							"description": "The thing to be built",
+							// "children": [
+							// 	{
+							// 		"id": 3,
+							// 		"name": "brick",
+							// 		"type": "Family",
+							// 		"description": "Made out of",
+							// 	},
+							// 	{
+							// 		"id": 4,
+							// 		"name": "house",
+							// 		"type": "Family",
+							// 		"description": "Has name",
+							// 	},
+							// ]
+						},
+						{
+							"id": 3,
+							"name": "over there",
+							"type": "Location",
+							"description": "The place where the build will happen",
+
+						}
+					]
+					};
+				return data;
+			}
+
+			var data = getData();
+
+			var treePlugin = new d3.mitchTree.boxedTree()
+				.setAllowZoom(false)
+				.setAllowPan(false)
+				.setAllowNodeCentering(false)
+				.setMinScale(1.0)
+				.setData(data)
+				.setElement(document.getElementById("visualisation"))
+				.setIdAccessor(function(data) {
+					return data.id;
+				})
+				.setChildrenAccessor(function(data) {
+					return data.children;
+				})
+				.setBodyDisplayTextAccessor(function(data) {
+					return data.name;
+				})
+				.setTitleDisplayTextAccessor(function(data) {
+					return data.description;
+				})
+				.on("nodeClick", function(event) {
+					console.log('The event object:')
+					console.log(event);
+					console.log("Click event was triggered!");
+					console.log(event.nodeDataItem.data.name);
+					if (event.type == 'focus')
+						console.log("Node is being focused");
+					else if (event.type == 'collapse')
+						console.log("Node is collapsing");
+					else if (event.type == 'expand')
+						console.log("Node is expanding");
+					// You use the below line to cancel the
+					// focus/expand/collapse event
+					//   event.continue = false;
+				})
+				// .setOrientation('topToBottom')
+				.setMargins({
+					top: 10,
+					right: 20,
+					bottom: 10,
+					left: 20
+				})
+				// .getNodeSettings()
+				// 	.setSizingMode('nodesize')
+				// 	.setVerticalSpacing(70)
+				// 	.setHorizontalSpacing(50)
+				// 	.back()
+				.initialize();
+
+			// // Expand all nodes
+			// var nodes = treePlugin.getNodes();
+			// nodes.forEach(function(node, index, arr) {
+			// 	treePlugin.expand(node);
+			// });
+			// treePlugin.update(treePlugin.getRoot());
+
+
+		</script>
+
+		<form style='font-size: 20px;margin: 0 auto;width:250px;'>
+		  <div style='margin: auto;'>Description 1:</div><br>
+		  <input type="text" name="description_1" style='width: 200px'><br>
+		  <div style='margin: auto;'>Description 2:</span><br>
+		  <input type="text" name="description_2" style='width: 200px'>
+		</form>
+	</body>
+</html>

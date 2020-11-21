@@ -1,0 +1,226 @@
+{
+    "spawn creeper":
+    {
+    "properties":
+        [
+        "creeper",
+        "mob"
+        ]
+    },
+    "spawn skeleton":
+    {
+    "properties":
+        [
+        "skeleton",
+        "mob"
+        ]
+    },
+    "spawn spider":
+    {
+    "properties":
+        [
+        "spider",
+        "mob"
+        ]
+    },
+    "spawn zombie":
+    {
+    "properties":
+        [
+        "zombie",
+        "mob"
+        ]
+    },
+    "spawn slime":
+    {
+    "properties":
+        [
+        "slime",
+        "mob"
+        ]
+    },
+    "spawn ghast":
+    {
+    "properties":
+        [
+        "ghast",
+        "mob"
+        ]
+    },
+    "spawn zombie pigman":
+    {
+    "properties":
+        [
+        "zombie pigman",
+        "zombie",
+        "pigman",
+        "mob"
+        ]
+    },
+    "spawn enderman":
+    {
+    "properties":
+        [
+        "enderman",
+        "mob"
+        ]
+    },
+    "spawn cave spider":
+    {
+    "properties":
+        [
+        "cave spider",
+        "spider",
+        "mob"
+        ]
+    },
+    "spawn silverfish":
+    {
+    "properties":
+        [
+        "silverfish",
+        "fish",
+        "mob"
+        ]
+    },
+    "spawn blaze":
+    {
+    "properties":
+        [
+        "blaze",
+        "mob"
+        ]
+    },
+    "spawn magma cube":
+    {
+    "properties":
+        [
+        "magma cube",
+        "magma",
+        "cube",
+        "mob"
+        ]
+    },
+    "spawn bat":
+    {
+    "properties":
+        [
+        "bat",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn witch":
+    {
+    "properties":
+        [
+        "witch",
+        "mob"
+        ]
+    },
+    "spawn guardian":
+    {
+    "properties":
+        [
+        "guardian",
+        "mob"
+        ]
+    },
+    "spawn pig":
+    {
+    "properties":
+        [
+        "pig",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn sheep":
+    {
+    "properties":
+        [
+        "sheep",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn cow":
+    {
+    "properties":
+        [
+        "cow",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn chicken":
+    {
+    "properties":
+        [
+        "chicken",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn squid":
+    {
+    "properties":
+        [
+        "squid",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn wolf":
+    {
+    "properties":
+        [
+        "wolf",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn mooshroom":
+    {
+    "properties":
+        [
+        "mooshroom",
+        "mob"
+        ]
+    },
+    "spawn ocelot":
+    {
+    "properties":
+        [
+        "ocelot",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn horse":
+    {
+    "properties":
+        [
+        "horse",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn rabbit":
+    {
+    "properties":
+        [
+        "rabbit",
+        "animal",
+        "mob"
+        ]
+    },
+    "spawn villager":
+    {
+    "properties":
+        [
+        "villager",
+        "mob"
+        ]
+    }
+}

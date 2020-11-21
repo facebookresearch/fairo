@@ -1,0 +1,1168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Storyshots LiveHumans Default 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots LiveHumans Loading 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots LiveImage Default 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots LiveImage Depth 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots LiveImage Loading 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots LiveObjects Default 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots LiveObjects Loading 1`] = `
+<div
+  className="react-draggable"
+  onMouseDown={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchStart={[Function]}
+  style={
+    Object {
+      "boxSizing": "border-box",
+      "cursor": "move",
+      "display": "inline-block",
+      "flexShrink": 0,
+      "height": "320px",
+      "left": 0,
+      "maxHeight": 9007199254740991,
+      "maxWidth": 9007199254740991,
+      "minHeight": undefined,
+      "minWidth": undefined,
+      "position": "absolute",
+      "top": 0,
+      "touchAction": "none",
+      "transform": "translate(10px,10px)",
+      "userSelect": "auto",
+      "width": "320px",
+    }
+  }
+  transform={null}
+>
+  <p>
+    Loading...
+  </p>
+  <span>
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "top": "-5px",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "position": "absolute",
+          "right": "-5px",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-5px",
+          "cursor": "row-resize",
+          "height": "10px",
+          "left": "0px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "100%",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "col-resize",
+          "height": "100%",
+          "left": "-5px",
+          "position": "absolute",
+          "top": "0px",
+          "userSelect": "none",
+          "width": "10px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "ne-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "se-resize",
+          "height": "20px",
+          "position": "absolute",
+          "right": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "bottom": "-10px",
+          "cursor": "sw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+    <div
+      className=""
+      onMouseDown={[Function]}
+      onTouchStart={[Function]}
+      style={
+        Object {
+          "cursor": "nw-resize",
+          "height": "20px",
+          "left": "-10px",
+          "position": "absolute",
+          "top": "-10px",
+          "userSelect": "none",
+          "width": "20px",
+        }
+      }
+    />
+  </span>
+</div>
+`;
+
+exports[`Storyshots Memory2D Default 1`] = `
+<p>
+  Loading
+</p>
+`;
+
+exports[`Storyshots Memory2D Loading 1`] = `
+<p>
+  Loading
+</p>
+`;

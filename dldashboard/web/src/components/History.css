@@ -1,0 +1,19 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+.history {
+  text-align: center;
+  margin-top: 0px 0;
+}
+
+.chatItem {
+  text-align: center;
+  margin: 0 auto;
+  justify-content: center;
+  font-size: large;
+  display: flex;
+  height: 20%;
+  width: 30%;
+  background-color: gray;
+  color: white;
+}

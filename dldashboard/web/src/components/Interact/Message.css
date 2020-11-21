@@ -1,0 +1,35 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+.Msg {
+  border: 2px solid black;
+  padding: 20px;
+}
+
+.MsgButton {
+  margin: 10px !important;
+  width: 100px;
+}
+
+.SurveyButton {
+  margin: 15px;
+  width: 170px;
+  background-color: blue;
+}
+
+.MuiListItem-root {
+  min-height: 50px;
+}
+
+.Chat {
+  margin-top: 2px auto;
+}
+
+#msg {
+  border-color: white;
+}
+
+.cross {
+  color: white;
+}

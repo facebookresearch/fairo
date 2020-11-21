@@ -1,0 +1,54 @@
+-- Copyright (c) Facebook, Inc. and its affiliates.
+
+
+PLUGIN = nil
+
+BLOCKS_TO_PLACE = __BLOCKS_TO_PLACE__
+BY_CHUNK = {}
+
+function Initialize(Plugin)
+    Plugin:SetName("PlaceBlocks")
+    Plugin:SetVersion(1)
+
+    PLUGIN = Plugin
+    cPluginManager.AddHook(cPluginManager.HOOK_CHUNK_GENERATED, OnChunkGenerated)
+
+    for _, block in ipairs(BLOCKS_TO_PLACE) do
+        local x = block[1]
+        local y = block[2]
+        local z = block[3]
+        local id = block[4]
+        local meta = block[5]
+
+        -- Get chunk offsets
+        local cx = math.floor(x / 16)
+        local cz = math.floor(z / 16)
+        local ox = x % 16
+        local oz = z % 16
+
+        local key = string.format("%d,%d", cx, cz)
+        if BY_CHUNK[key] == nil then
+            BY_CHUNK[key] = {}
+        end
+        table.insert(BY_CHUNK[key], {ox, y, oz, id, meta})
+    end
+
+    LOG("Loaded plugin: PlaceBlocks")
+    return true
+end
+
+function OnChunkGenerated(world, cx, cz, chunkDesc)
+    local key = string.format("%d,%d", cx, cz)
+    if BY_CHUNK[key] == nil then
+        return
+    end
+
+    for _, block in ipairs(BY_CHUNK[key]) do
+        local ox = block[1]
+        local y = block[2]
+        local oz = block[3]
+        local id = block[4]
+        local meta = block[5]
+        chunkDesc:SetBlockTypeMeta(ox, y, oz, id, meta)
+    end
+end

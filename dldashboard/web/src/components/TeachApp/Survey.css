@@ -1,0 +1,23 @@
+/* Copyright (c) Facebook, Inc. and its affiliates. */
+
+.questionLabels {
+  clear: both;
+  float: left;
+  text-align: left;
+  display: block;
+  height: 34px;
+  width: 850px;
+  line-height: 25px;
+  margin-top: 15px;
+}
+
+.questionLabelsTopmost {
+  clear: both;
+  float: left;
+  text-align: left;
+  display: block;
+  height: 34px;
+  width: 700px;
+  line-height: 25px;
+  margin-top: 60px;
+}

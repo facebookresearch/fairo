@@ -1,0 +1,804 @@
+{
+  "granite":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "rock"
+        ]
+    },
+  "polished granite":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "rock"
+        ]
+    },
+  "diorite":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "rock"
+        ]
+    },
+  "polished diorite":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "rock"
+        ]
+    },
+  "andesite":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "rock"
+        ]
+    },
+  "polished andesite":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "rock"
+        ]
+    },
+  "podzol":
+    {
+      "properties":
+        [
+          "dirt"
+        ]
+    },
+  "oak sapling":
+    {
+      "properties":
+        [
+          "tree",
+          "sapling",
+          "oak"
+        ]
+    },
+  "spruce sapling":
+    {
+      "properties":
+        [
+          "tree",
+          "sapling",
+          "spruce"
+        ]
+    },
+  "birch sapling":
+    {
+      "properties":
+        [
+          "tree",
+          "sapling",
+          "birch"
+        ]
+    },
+  "jungle sapling":
+    {
+      "properties":
+        [
+          "tree",
+          "sapling",
+          "jungle"
+        ]
+    },
+  "acacia sapling":
+    {
+      "properties":
+        [
+          "tree",
+          "sapling",
+          "acacia"
+        ]
+    },
+  "dark oak sapling":
+    {
+      "properties":
+        [
+          "tree",
+          "sapling",
+          "dark oak"
+        ]
+    },
+  "flowing lava":
+    {
+      "properties":
+        [
+          "hot"
+        ]
+    },
+  "still lava":
+    {
+      "properties":
+        [
+          "hot"
+        ]
+    },
+  "oak leaves":
+    {
+      "properties":
+        [
+          "oak",
+          "leaves"
+        ]
+    },
+  "spruce leaves":
+    {
+      "properties":
+        [
+          "spruce",
+          "leaves"
+        ]
+    },
+  "birch leaves":
+    {
+      "properties":
+        [
+          "birch",
+          "leaves"
+        ]
+    },
+  "jungle leaves":
+    {
+      "properties":
+        [
+          "jungle",
+          "leaves"
+        ]
+    },
+  "glass":
+    {
+      "properties":
+        [
+          "block",
+          "brittle"
+        ]
+    },
+  "sandstone":
+    {
+      "properties":
+        [
+          "block",
+          "stone"
+        ]
+    },
+  "chiseled sandstone":
+    {
+      "properties":
+        [
+          "block",
+          "stone"
+        ]
+    },
+  "smooth sandstone":
+    {
+      "properties":
+        [
+          "block",
+          "stone"
+        ]
+    },
+  "dead shrub":
+    {
+      "properties":
+        [
+          "grass"
+        ]
+    },
+  "fern":
+    {
+      "properties":
+        [
+          "grass"
+        ]
+    },
+  "dandelion":
+    {
+      "properties":
+        [
+          "flower"
+        ]
+    },
+  "poppy":
+    {
+      "properties":
+        [
+          "flower"
+        ]
+    },
+  "blue orchid":
+    {
+      "properties":
+        [
+          "flower",
+          "orchid"
+        ]
+    },
+  "allium":
+    {
+      "properties":
+        [
+          "flower"
+        ]
+    },
+  "azure bluet":
+    {
+      "properties":
+        [
+          "flower",
+          "bluet"
+        ]
+    },
+  "red tulip":
+    {
+      "properties":
+        [
+          "flower",
+          "tulip"
+        ]
+    },
+  "orange tulip":
+    {
+      "properties":
+        [
+          "flower",
+          "tulip"
+        ]
+    },
+  "white tulip":
+    {
+      "properties":
+        [
+          "flower",
+          "tulip"
+        ]
+    },
+  "pink tulip":
+    {
+      "properties":
+        [
+          "flower",
+          "tulip"
+        ]
+    },
+  "oxeye daisy":
+    {
+      "properties":
+        [
+          "flower",
+          "daisy"
+        ]
+    },
+  "brown mushroom":
+    {
+      "properties":
+        [
+          "mushroom"
+        ]
+    },
+  "red mushroom":
+    {
+      "properties":
+        [
+          "mushroom"
+        ]
+    },
+  "gold block":
+    {
+      "properties":
+        [
+          "block",
+          "gold"
+        ]
+    },
+  "iron block":
+    {
+      "properties":
+        [
+          "block",
+          "iron"
+        ]
+    },
+  "double stone slab":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "slab"
+        ]
+    },
+  "double sandstone slab":
+    {
+      "properties":
+        [
+          "block",
+          "sandstone",
+          "stone",
+          "slab"
+        ]
+    },
+  "double wooden slab":
+    {
+      "properties":
+        [
+          "block",
+          "wood",
+          "slab"
+        ]
+    },
+  "double cobblestone slab":
+    {
+      "properties":
+        [
+          "block",
+          "cobblestone",
+          "stone",
+          "slab"
+        ]
+    },
+  "double brick slab":
+    {
+      "properties":
+        [
+          "block",
+          "brick",
+          "slab"
+        ]
+    },
+  "double stone brick slab":
+    {
+      "properties":
+        [
+          "block",
+          "brick",
+          "slab"
+        ]
+    },
+  "double quartz slab":
+    {
+      "properties":
+        [
+          "block",
+          "quartz",
+          "slab"
+        ]
+    },
+  "stone slab":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "slab"
+        ]
+    },
+  "sandstone slab":
+    {
+      "properties":
+        [
+          "block",
+          "sandstone",
+          "stone",
+          "slab"
+        ]
+    },
+  "wooden slab":
+    {
+      "properties":
+        [
+          "block",
+          "wood",
+          "slab"
+        ]
+    },
+  "cobblestone slab":
+    {
+      "properties":
+        [
+          "block",
+          "cobblestone",
+          "stone",
+          "slab"
+        ]
+    },
+  "brick slab":
+    {
+      "properties":
+        [
+          "block",
+          "brick",
+          "slab"
+        ]
+    },
+  "stone brick slab":
+    {
+      "properties":
+        [
+          "block",
+          "brick",
+          "slab"
+        ]
+    },
+  "quartz slab":
+    {
+      "properties":
+        [
+          "block",
+          "quartz",
+          "slab"
+        ]
+    },
+  "moss stone":
+    {
+      "properties":
+        [
+          "block",
+          "stone",
+          "mossy"
+        ]
+    },
+  "oak wood stairs":
+    {
+      "properties":
+        [
+          "oak",
+          "wood",
+          "stair"
+        ]
+    },
+  "diamond ore":
+    {
+      "properties":
+        [
+          "diamond"
+        ]
+    },
+  "diamond block":
+    {
+      "properties":
+        [
+          "diamond"
+        ]
+    },
+  "wheat crops":
+    {
+      "properties":
+        [
+          "wheat",
+          "crop"
+        ]
+    },
+  "oak door block":
+    {
+      "properties":
+        [
+          "oak",
+          "door"
+        ]
+    },
+  "cobblestone stairs":
+    {
+      "properties":
+        [
+          "cobblestone",
+          "stone",
+          "stair"
+        ]
+    },
+  "glowstone":
+    {
+      "properties":
+        [
+          "block",
+          "glowing",
+          "stone"
+        ]
+    },
+  "white stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "orange stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "magenta stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "light blue stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "yellow stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "lime stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "pink stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "gray stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "light gray stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "cyan stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "purple stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "blue stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "brown stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "green stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "red stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "black stained glass":
+    {
+      "properties":
+        [
+          "block",
+          "stained",
+          "brittle",
+          "glass"
+        ]
+    },
+  "mossy stone bricks":
+    {
+      "properties":
+        [
+          "block",
+          "mossy",
+          "stone",
+          "brick"
+        ]
+    },
+  "double oak wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "oak",
+          "wood",
+          "slab"
+        ]
+    },
+  "double spruce wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "spruce",
+          "wood",
+          "slab"
+        ]
+    },
+  "double birch wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "birch",
+          "wood",
+          "slab"
+        ]
+    },
+  "double jungle wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "jungle",
+          "wood",
+          "slab"
+        ]
+    },
+  "double acacia wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "acacia",
+          "wood",
+          "slab"
+        ]
+    },
+  "double dark oak wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "dark",
+          "oak",
+          "wood",
+          "slab"
+        ]
+    },
+  "oak wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "oak",
+          "wood",
+          "slab"
+        ]
+    },
+  "spruce wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "spruce",
+          "wood",
+          "slab"
+        ]
+    },
+  "birch wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "birch",
+          "wood",
+          "slab"
+        ]
+    },
+  "jungle wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "jungle",
+          "wood",
+          "slab"
+        ]
+    },
+  "acacia wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "acacia",
+          "wood",
+          "slab"
+        ]
+    },
+  "dark oak wood slab":
+    {
+      "properties":
+        [
+          "block",
+          "dark",
+          "oak",
+          "wood",
+          "slab"
+        ]
+    }
+}

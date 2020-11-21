@@ -1,0 +1,33 @@
+```eval_rst
+.. _memory_label:
+```
+# Memory
+The memory system serves as the interface for passing information between the various components of the agent.  It consists of a database, currently implemented in SQL, with an overlayed triplestore, and MemoryNodes, which are Python wrappers for coherent data.  FILTERS objects connect the AgentMemory and MemoryNodes to the controller.
+
+## Database #
+
+The entry point to the underlying SQL database is an [AgentMemory](https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py) object.
+The database can be directly accessed by [\_db\_read\(query, \*args\)](https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py#L719).  Some common queries using triples or that are otherwise unwieldy in raw SQL have been packaged in the [basic\_search\(search_data\)](https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py#L227) [interface](https://github.com/fairinternal/minecraft/blob/master/base_agent/memory_filters.py#L214).
+
+```eval_rst
+ .. autoclass:: base_agent.sql_memory.AgentMemory
+  :members:     basic_search, get_mem_by_id, forget, _db_read, _db_write, get_time, get_world_time, get_recent_entities, add_triple, tag, untag, get_memids_by_tag, get_tags_by_memid, get_triples, remove_memid_triple, task_stack_push, task_stack_update_task, task_stack_peek, task_stack_pop, task_stack_pause, task_stack_clear, task_stack_resume, task_stack_find_lowest_instance, task_stack_get_all, get_last_finished_root_task, get_task_by_id
+```
+
+## MemoryNodes #
+MemoryNodes are python objects that collate data about a particular entity or event.  There are MemoryNodes for ReferenceObjects (things that have a location in space), for Tasks, for chats and commands, etc.  MemoryNode .__init__ calls take a memid (key in the base Memories table in the database).  To create a memid (and to enter information relevant to the MemoryNode)  use the classes' `.create()` method.  These have a different input signature for each type of MemoryNode, but always output a memid.
+
+
+```eval_rst
+.. autoclass:: base_agent.memory_nodes.MemoryNode
+.. autoclass:: base_agent.memory_nodes.ProgramNode
+.. autoclass:: base_agent.memory_nodes.NamedAbstractionNode
+.. autoclass:: base_agent.memory_nodes.ReferenceObjectNode
+.. autoclass:: base_agent.memory_nodes.PlayerNode
+.. autoclass:: base_agent.memory_nodes.SelfNode
+.. autoclass:: base_agent.memory_nodes.LocationNode
+.. autoclass:: base_agent.memory_nodes.AttentionNode
+.. autoclass:: base_agent.memory_nodes.TimeNode
+.. autoclass:: base_agent.memory_nodes.ChatNode
+.. autoclass:: base_agent.memory_nodes.TaskNode
+```

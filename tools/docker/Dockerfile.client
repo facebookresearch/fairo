@@ -1,0 +1,45 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+FROM ubuntu:18.04
+
+ARG current_branch
+
+RUN apt-get -y update
+RUN apt-get install -y \
+	curl \
+        cmake \
+        g++ \
+        git \
+        libboost-all-dev \
+        libeigen3-dev \
+        libgoogle-glog-dev \
+        make \
+        python3-dev \
+        python3-pip \
+        ;
+
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
+RUN apt-get install -y nodejs
+
+RUN pip3 install torch
+
+
+# Clone/make repo
+ADD . /minecraft
+WORKDIR /minecraft
+
+RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
+RUN tar -xzvf models_folder.tar.gz -C python/craftassist/models/ --strip-components 1
+RUN mkdir -p python/craftassist/datasets/
+RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/datasets_folder.tar.gz -o datasets_folder.tar.gz 
+RUN tar -xzvf datasets_folder.tar.gz -C python/craftassist/datasets/ --strip-components 1
+RUN make clean
+RUN make
+
+RUN pip3 install -r requirements.txt
+
+RUN echo "alias python=python3" >> ~/.bashrc
+
+ENV LANG C.UTF-8
+ENV LC_ALL C.UTF-8
+
+CMD ["bash"]

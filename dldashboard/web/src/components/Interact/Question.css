@@ -1,0 +1,42 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+.question {
+  text-align: center;
+}
+
+.MuiInputBase-input {
+  min-width: 90px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.inputtext {
+  min-width: 10px;
+}
+
+.wordgroup {
+  display: block;
+  width: 100px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.MuiFormControl-root {
+  width: 100%;
+}
+
+.wordControl {
+  display: flex;
+}
+
+.msg-header {
+  padding-top: 10px;
+  padding-bottom: 20px;
+  color: #5e80b8;
+}
+
+#outlined-uncontrolled {
+  border-color: white;
+}

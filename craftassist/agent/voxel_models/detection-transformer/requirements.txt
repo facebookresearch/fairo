@@ -1,0 +1,4 @@
+cython
+pillow<7
+pycocotools
+submitit

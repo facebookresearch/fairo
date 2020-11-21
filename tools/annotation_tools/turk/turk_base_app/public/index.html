@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>Turk App</title>
+    <!-- Uncomment this import if using the video annotation tool 
+      <script type="text/javascript" src="jsfeat.js"></script>
+    -->
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script>
+      // Specify any input variables from turk here and the time of the task
+      window.ANN_URL = "${image_url}"
+      // Uncomment for correction tasks
+      //window.ANN_TARGETS = JSON.parse("${targets}")
+      window.MINUTES = 5
+      // Uncomment for testing (TODO: add a debug flag)
+      //window.ANN_URL = "https://www.thesprucepets.com/thmb/EBp990AJt94XwAp7oOAzUtdg9Xg=/2121x1193/smart/filters:no_upscale()/golden-retriever-puppy-in-grass-923135452-5c887d4146e0fb00013365ba.jpg"
+      //window.ANN_TARGETS = JSON.parse("[{\"name\":\"dog\",\"props\":[\"fluffy\",\"yellow\"],\"bbox\":[1050,200,500,500]}]")
+    </script>
+    <form>
+      <input type="text" id="fname" name="fname" style="display: none;"><br>
+    </form>
+  </body>
+</html>

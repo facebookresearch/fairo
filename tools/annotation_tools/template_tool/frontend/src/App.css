@@ -1,0 +1,127 @@
+/**
+ *
+ * @license
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ */
+
+/**
+ * @fileoverview This file contains the css for the template generator.
+ */
+
+.App {
+  text-align: center;
+  background-color: cornsilk;
+}
+
+#searchBar {
+  position: relative;
+  top: 10px;
+  left: -150px;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+#UL {
+  /* Remove default list styling */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  width: 25%;
+  height: 200px;
+  overflow: scroll;
+}
+
+#searchByTag {
+  position: relative;
+  left: 25%;
+  top: -25%;
+}
+
+#searchByName {
+  position: relative;
+  top: -20px;
+}
+#UL li a {
+  border: 1px solid #ddd; /* Add a border to all links */
+  margin-top: -1px; /* Prevent double borders */
+  background-color: #f6f6f6; /* Grey background color */
+  padding: 12px; /* Add some padding */
+  text-decoration: none; /* Remove default text underline */
+  font-size: 18px; /* Increase the font-size */
+  color: black; /* Add a black text color */
+  display: block; /* Make it into a block element to fill the whole 
+ list */
+}
+
+#UL li a:hover:not(.header) {
+  background-color: #eee; /* Add a hover effect to all links, except for headers */
+}
+
+#searchInput {
+  border: 2px solid #ddd; /* Add a border to all links */
+
+  height: 55%;
+  width: 15%;
+  background-color: white;
+}
+
+#surfaceForms {
+  background-color: white;
+  border: 2px solid black; /* Add a border to all links */
+  margin-top: -1px; /* Prevent double borders */
+  padding: 12px; /* Add some padding */
+  text-align: left;
+  width: 25%;
+  height: 200px;
+  overflow: scroll;
+}
+
+#actionDict {
+  background-color: white;
+  border: 2px solid black; /* Add a border to all links */
+  margin-top: -1px; /* Prevent double borders */
+  padding: 12px; /* Add some padding */
+  text-align: left;
+  width: 70%;
+  height: 200px;
+  overflow: scroll;
+}
+#containersForText {
+  position: relative;
+  top: -200px;
+  left: 228px;
+}
+
+#buttons {
+  position: relative;
+  top: -240px;
+  left: 350px;
+}
+
+#generatedCode {
+  background-color: white;
+  width: 26%;
+  height: 450px;
+  position: relative;
+  left: 70%;
+  top: -250px;
+  text-align: left;
+  overflow: scroll;
+
+  border: 2px solid black; /* Add a border to all links */
+  margin-top: -1px; /* Prevent double borders */
+  padding: 12px; /* Add some padding */
+}
+
+#codeHeading {
+  position: relative;
+  left: 455px;
+  top: -250px;
+}

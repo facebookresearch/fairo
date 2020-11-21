@@ -1,0 +1,6 @@
+{
+    "render mesh": "rp_dennis_posed_scaled.glb",
+    "render_asset": "rp_dennis_posed_scaled.glb",
+    "mass": 9,
+    "requires lighting": false
+}

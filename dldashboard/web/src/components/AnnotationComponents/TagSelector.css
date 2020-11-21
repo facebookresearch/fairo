@@ -1,0 +1,19 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+.tag-selected {
+  color: black;
+  background: white;
+  white-space: nowrap;
+  margin: 0px 2px 0px 0px;
+  border: 1px solid rgb(145, 145, 145);
+}
+
+.tag-selected button {
+  border: none;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.tag-selected button:hover {
+  color: red;
+}

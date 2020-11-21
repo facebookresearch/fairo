@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -o nounset
+
+clang-format -style=file client/src/*.{cpp,h} -i

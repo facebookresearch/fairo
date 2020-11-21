@@ -1,0 +1,55 @@
+{
+  "name": "blockly-react-sample",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@material-ui/core": "^4.11.0",
+    "alpha-sort": "^3.1.0",
+    "blockly": "^3.20200123.1",
+    "deepmerge": "^4.2.2",
+    "download-file": "^0.1.5",
+    "file-saver": "^2.0.2",
+    "jquery": "^3.5.1",
+    "js-file-download": "^0.4.12",
+    "nested-property": "^2.0.1",
+    "prismjs": "^1.21.0",
+    "react": "^16.13.1",
+    "react-datepicker": "^2.14.1",
+    "react-dom": "^16.13.1",
+    "react-grid-system": "^7.0.3",
+    "react-native-search-bar": "^3.5.1",
+    "react-scripts": "^3.4.1",
+    "react-select-search": "^2.0.4",
+    "react-simple-code-editor": "^0.11.0",
+    "requirejs": "^2.3.6",
+    "select2": "^4.0.13"
+  },
+  "scripts": {
+    "audit": "npm audit fix",
+    "update": "npm update",
+    "postinstall": "cp -r node_modules/blockly/media public/media",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-react": "^7.20.6"
+  }
+}

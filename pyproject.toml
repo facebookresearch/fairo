@@ -1,0 +1,16 @@
+[tool.black]
+line-length = 99
+exclude = '''
+/(
+    \.git
+  | __pycache__
+  | bin
+  | client
+  | cuberite
+  | cuberite_config
+  | cuberite_plugins
+  | writeups
+  | python/craftassist/ttad/generation
+  | python/craftassist/ttad/generation_dialogues
+)/
+'''
