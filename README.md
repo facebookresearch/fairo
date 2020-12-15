@@ -62,13 +62,11 @@ cd droidlet
     <tr valign="top">        
         <td> 2. Install dependencies
         <sub><pre lang="bash">
-pip install -r requirements.txt
 pip install -r \
     locobot/requirements.txt
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
-pip install -r requirements.txt
 pip install -r \
     craftassist/requirements.txt
         </pre></sub></td>
