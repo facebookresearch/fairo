@@ -40,23 +40,23 @@ cd droidlet
         <td> 2. Check system requirements
         <sub><pre lang="bash">
 - Linux
-- Python 3 (Anaconda environment recommended)
-- NVIDIA GPU with atleast 8GB memory
-- a PyRobot-compatible robot or simulator
-  - See instructions below for setting up Habitat-simulator
+- Python 3 (Anaconda recommended)
+- NVIDIA GPU (8GB+)
+- PyRobot-compatible robot or sim
+  - Habitat-sim instructions below
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
 - Linux
-- Python 3 (Anaconda environment recommended)
-- NVIDIA GPU with atleast 4GB memory
+- Python 3 (Anaconda recommended)
+- NVIDIA GPU (4GB+)
 - Minecraft
   - more instructions below
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
 - Linux
-- Python 3 (Anaconda environment recommended)
+- Python 3 (Anaconda recommended)
         </pre></sub></td>
     </tr>
     <tr valign="top">        
