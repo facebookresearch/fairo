@@ -1,0 +1,4 @@
+HITId,Input.command,Input.word0,Input.word1,Input.word2,Answer.root.action_type,Answer.root.action_type.BUILD.COPY,Answer.root.action_type.BUILD.COPY.no.FREEBUILD,Answer.root.action_type.BUILD.COPY.no.FREEBUILD.BUILD.schematic.span#2,Answer.root.loop,Answer.root.action_type.BUILD.COPY.yes.reference_object.span#2,Answer.root.action_type.BUILD.COPY.yes.location.span#2,Answer.root.action_type.BUILD.COPY.yes.reference_object.span#0
+3LOJFQ4BOZI3E7N72I990AXB1ICDK3,build a house,build,a,house,BUILD,no,BUILD,on,None,,,
+38B7Q9C28I8KC2P1OYA64V9392D69A,build a car,build,a,car,BUILD,no,BUILD,on,None,,,
+~                                                                                        

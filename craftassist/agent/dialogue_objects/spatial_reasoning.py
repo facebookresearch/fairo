@@ -9,6 +9,8 @@ import shapes
 import heuristic_perception
 from mc_util import pos_to_np, to_block_center, to_block_pos, ErrorWithResponse
 
+DEFAULT_NUM_STEPS = 5
+
 
 def post_process_loc(loc, interpreter):
     return to_block_pos(loc)
@@ -66,7 +68,7 @@ class ComputeLocations:
 def compute_location_heuristic(player_look, player_pos, mems, steps, reldir):
     loc = mems[0].get_pos()
     if reldir is not None:
-        steps = steps or 5
+        steps = steps or DEFAULT_NUM_STEPS
         if reldir == "BETWEEN":
             loc = (np.add(mems[0].get_pos(), mems[1].get_pos())) / 2
             loc = (loc[0], loc[1], loc[2])

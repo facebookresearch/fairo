@@ -147,11 +147,15 @@ class MCInterpreter(Interpreter):
             speaker: speaker_id or name.
             d: the complete action dictionary
         """
-        spawn_filters = d.get("reference_object", {}).get("filters", {})
-        if not spawn_filters:
+        # FIXME! use filters appropriately, don't search by hand
+        spawn_triples = d.get("reference_object", {}).get("filters", {}).get("triples", [])
+        if not spawn_triples:
             raise ErrorWithResponse("I don't understand what you want me to spawn.")
-
-        object_name = spawn_filters["has_name"]
+        names = [t.get("obj_text") for t in spawn_triples if t.get("pred_text", "") == "has_name"]
+        if not any(names):
+            raise ErrorWithResponse("I don't understand what you want me to spawn.")
+        # if multiple possible has_name triples, just pick the first:
+        object_name = names[0]
         schematic = self.memory.get_mob_schematic_by_name(object_name)
         if not schematic:
             raise ErrorWithResponse("I don't know how to spawn: %r." % (object_name))
@@ -280,7 +284,15 @@ class MCInterpreter(Interpreter):
         for hole in holes:
             _, hole_info = hole
             poss, hole_idm = hole_info
-            fill_idm = get_block_type(d["has_block_type"]) if "has_block_type" in d else hole_idm
+            # FIXME use filters properly...
+            triples = d.get("triples", [])
+            block_types = [
+                t.get("obj_text") for t in triples if t.get("pred_text", "") == "has_block_type"
+            ]
+            try:
+                fill_idm = get_block_type(block_types[0])
+            except:
+                fill_idm = hole_idm
             task_data = {"action_dict": d, "schematic": poss, "block_idm": fill_idm}
             self.append_new_task(self.task_objects["fill"], task_data)
         if len(holes) > 1:

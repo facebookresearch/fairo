@@ -19,12 +19,16 @@ def strip_prefix(s, pre):
 
 
 # FIXME!? maybe start using triples appropriately now?
-def tags_from_dict(d):
+def tags_from_dict(filters_d):
+    """ 
+    flattens all triples in the "triples" subdict of filters_d, 
+    pulling just the obj_text if exists and if the pred_text is a "has_"
+    """
+    triples = filters_d.get("triples", [])
     tag_list = [
-        strip_prefix(tag, "the ")
-        for key, tags in d.items()
-        if key.startswith("has_")
-        for tag in maybe_listify_tags(tags)
+        strip_prefix(t.get("obj_text"), "the ")
+        for t in triples
+        if t.get("pred_text", "").startswith("has_")
     ]
     return list(set(tag_list))
 
@@ -52,7 +56,14 @@ def process_spans(d, original_words, lemmatized_words):
                 sentence, (L, R) = v
                 if sentence != 0:
                     raise NotImplementedError("Must update process_spans for multi-string inputs")
-                assert 0 <= L <= R <= (len(lemmatized_words) - 1)
+                # FIXME this is a hack for dec 2020
+                if L > R:
+                    L = R
+                if L < 0:
+                    L = 0
+                if R > (len(lemmatized_words) - 1):
+                    R = len(lemmatized_words) - 1
+                # assert 0 <= L <= R <= (len(lemmatized_words) - 1)
             except ValueError:
                 continue
             except TypeError:

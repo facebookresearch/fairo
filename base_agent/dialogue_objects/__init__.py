@@ -43,6 +43,8 @@ from location_helpers import (
 
 from interpreter import Interpreter
 
+from get_memory_handler import GetMemoryHandler
+
 from condition_helper import ConditionInterpreter, get_repeat_num
 from filter_helper import FilterInterpreter
 from attribute_helper import AttributeInterpreter
@@ -78,5 +80,6 @@ __all__ = [
     get_repeat_num,
     FilterInterpreter,
     AttributeInterpreter,
+    GetMemoryHandler,
     Interpreter,
 ]

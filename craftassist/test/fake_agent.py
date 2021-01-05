@@ -5,7 +5,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 from typing import List
-import sys
 
 from craftassist.agent.mc_util import XYZ, IDM, Block
 from utils import Look, Pos, Item, Player
@@ -16,7 +15,7 @@ from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.craftassist_agent import CraftAssistAgent
 from base_agent.base_util import Time
 from base_agent.nsp_dialogue_manager import NSPDialogueManager
-from craftassist.agent.dialogue_objects import GetMemoryHandler, PutMemoryHandler, MCInterpreter
+from craftassist.agent.dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.heuristic_perception import PerceptionWrapper, check_inside
 from craftassist.agent.rotation import look_vec
@@ -296,8 +295,9 @@ class FakeAgent(LocoMCAgent):
 
     def init_controller(self):
         dialogue_object_classes = {}
+        dialogue_object_classes["bot_capabilities"] = MCBotCapabilities
         dialogue_object_classes["interpreter"] = MCInterpreter
-        dialogue_object_classes["get_memory"] = GetMemoryHandler
+        dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
 

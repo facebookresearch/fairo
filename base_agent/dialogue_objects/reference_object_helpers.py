@@ -9,7 +9,6 @@ from typing import cast, List, Tuple, Dict
 
 from dialogue_object_utils import SPEAKERLOOK
 from dialogue_object import ConfirmReferenceObject
-from filter_helper import FilterInterpreter
 from location_helpers import interpret_relative_direction
 from base_agent.base_util import euclid_dist
 from base_agent.memory_attributes import LookRayDistance, LinearExtentAttribute
@@ -125,8 +124,11 @@ def interpret_reference_object(
             logging.error("bad coref_resolve -> {}".format(mem))
 
     if len(interpreter.progeny_data) == 0:
-        # FIXME when tags from dict is better or removed entirely...
-        F["has_extra_tags"] = F.get("has_extra_tags", []) + extra_tags
+        if any(extra_tags):
+            if not F.get("triples"):
+                F["triples"] = []
+            for tag in extra_tags:
+                F["triples"].append({"pred_text": "has_tag", "obj_text": tag})
         # TODO Add ignore_player maybe?
         candidate_mems = apply_memory_filters(interpreter, speaker, F)
         if len(candidate_mems) > 0:
@@ -164,8 +166,7 @@ def interpret_reference_object(
 
 def apply_memory_filters(interpreter, speaker, filters_d) -> List[ReferenceObjectNode]:
     """Return a list of (xyz, memory) tuples encompassing all possible reference objects"""
-    FI = FilterInterpreter()
-    F = FI(interpreter, speaker, filters_d)
+    F = interpreter.subinterpret["filters"](interpreter, speaker, filters_d)
     memids, _ = F()
     mems = [interpreter.agent.memory.get_mem_by_id(i) for i in memids]
     #    f = {"triples": [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]}

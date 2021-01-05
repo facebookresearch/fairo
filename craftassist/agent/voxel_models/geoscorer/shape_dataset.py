@@ -38,12 +38,10 @@ def get_shape(name="random", max_size=20, fixed_size=False, opts=None):
         name = "random"
     if name == "random":
         name = random.choice(SHAPENAMES)
-        while name in ("HOLLOW_RECTANGLE", "RECTANGULOID_FRAME", "HOLLOW_TRIANGLE"):
-            name = random.choice(SHAPENAMES)
     if not opts:
         opts = SHAPE_HELPERS[name](max_size, fixed_size)
     opts["labelme"] = False
-    return SHAPEFNS[name](**opts), opts, name
+    return GEOSCORER_SHAPEFNS[name](**opts), opts, name
 
 
 def options_cube(max_size, fixed_size=False):
@@ -209,29 +207,46 @@ def options_tower(max_size, fixed_size=False):
         height = np.random.randint(3, max_size + 1)
     return {"height": height, "base": np.random.randint(-4, 6)}
 
+def options_hollow_triangle(max_size, fixed_size=False):
+    if fixed_size:
+        size = max_size
+    else:
+        size = np.random.randint(MIN_SIZE, max_size + 1)
+    return {"size": size, "orient": sh.orientation3()}
 
-def options_empty(max_size, fixed_size=False):
-    return {}
+def options_hollow_rectangle(max_size, fixed_size=False):
+    opts = {}
+    if fixed_size:
+        opts["size"] = np.array([max_size for i in range(3)])
+    else:
+        opts["size"] = np.random.randint(MIN_SIZE, max_size + 1, size=3)
+    ms = min(opts["size"])
+    if ms <= 4:
+        opts["thickness"] = 1
+    else:
+        opts["thickness"] = np.random.randint(1, ms - 3 + 1)
+    return opts
 
-
-def empty(labelme=False):
-    num = np.random.randint(1, 64)
-    S = []
-    for i in range(num):
-        pos = np.random.randint(0, 32, 3)
-        bid = np.random.randint(0, 64)
-        S.append((pos, bid))
-    return S, []
-
+def options_rectanguloid_frame(max_size, fixed_size=False):
+    opts = {}
+    if fixed_size:
+        opts["size"] = np.array([max_size for i in range(3)])
+    else:
+        opts["size"] = np.random.randint(MIN_SIZE, max_size + 1, size=3)
+    ms = min(opts["size"])
+    if ms <= 4:
+        opts["thickness"] = 1
+    else:
+        opts["thickness"] = np.random.randint(1, ms - 3 + 1)
+    return opts
 
 # eventually put ground blocks, add 'floating', 'hill', etc.
 # TODO hollow is separate tag
-SHAPENAMES = sh.SHAPE_NAMES
-SHAPENAMES.append("TOWER")
-# SHAPENAMES.append("empty")
-SHAPEFNS = sh.SHAPE_FNS
-SHAPEFNS["TOWER"] = shapes.tower
-SHAPEFNS["empty"] = empty
+GEOSCORER_SHAPENAMES = [n for n in sh.SHAPE_NAMES]
+GEOSCORER_SHAPENAMES.append("TOWER")
+
+GEOSCORER_SHAPEFNS = {k:v for k, v in sh.SHAPE_FNS.items()}
+GEOSCORER_SHAPEFNS["TOWER"] = shapes.tower
 
 SHAPE_HELPERS = {
     "CUBE": options_cube,
@@ -250,7 +265,9 @@ SHAPE_HELPERS = {
     "ARCH": options_arch,
     "ELLIPSOID": options_ellipsoid,
     "TOWER": options_tower,
-    "empty": options_empty,
+    "HOLLOW_TRIANGLE": options_hollow_triangle,
+    "HOLLOW_RECTANGLE": options_hollow_rectangle,
+    "RECTANGULOID_FRAME": options_rectanguloid_frame,
 }
 
 ################################################################################
@@ -385,9 +402,7 @@ def get_two_shape_sparse(c_sl, s_sl, shape_type="random", max_shift=0, fixed_siz
     max_c = c_sl - 2 * max_s
 
     if shape_type == "same":
-        shape_type = random.choice(SHAPENAMES)
-        while shape_type in ("HOLLOW_RECTANGLE", "RECTANGULOID_FRAME", "HOLLOW_TRIANGLE"):
-            shape_type = random.choice(SHAPENAMES)
+        shape_type = random.choice(GEOSCORER_SHAPENAMES)
     elif shape_type not in ["random", "empty"]:
         shape_type = shape_type.upper()
 

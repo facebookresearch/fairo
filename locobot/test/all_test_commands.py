@@ -44,7 +44,9 @@ MOVE_COMMANDS = {
         {
             "action_type": "MOVE",
             "location": {
-                "reference_object": {"filters": {"has_name": "cube"}},
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                },
                 "relative_direction": "BETWEEN",
                 "text_span": "between the cubes",
             },
@@ -65,7 +67,9 @@ MOVE_COMMANDS = {
             "dance_type": {
                 "look_turn": {
                     "location": {
-                        "reference_object": {"filters": {"has_name": "cube"}},
+                        "reference_object": {
+                            "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                        },
                         "text_span": "cube",
                     }
                 }
@@ -76,13 +80,20 @@ MOVE_COMMANDS = {
         {
             "action_type": "MOVE",
             "location": {
-                "reference_object": {"filters": {"has_name": "cube"}},
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                },
                 "text_span": "cube",
             },
         }
     ),
     "get the toy": command(
-        {"action_type": "GET", "reference_object": {"filters": {"has_name": "toy"}}}
+        {
+            "action_type": "GET",
+            "reference_object": {
+                "filters": {"triples": [{"pred_text": "has_name", "obj_text": "toy"}]}
+            },
+        }
     ),
 }
 
@@ -92,7 +103,14 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"filters": {"has_colour": "gray", "has_name": "chair"}}
+                    "reference_object": {
+                        "filters": {
+                            "triples": [
+                                {"pred_text": "has_colour", "obj_text": "gray"},
+                                {"pred_text": "has_name", "obj_text": "chair"},
+                            ]
+                        }
+                    }
                 },
             }
         ],
@@ -102,7 +120,11 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "chair"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                    }
+                },
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -262,7 +284,11 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "chair"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                    }
+                },
                 "stop_condition": {"condition_type": "NEVER"},
             }
         ],
@@ -270,7 +296,12 @@ GROUND_TRUTH_PARSES = {
     },
     "find Laurens": {
         "action_sequence": [
-            {"action_type": "SCOUT", "reference_object": {"filters": {"has_name": "Laurens"}}}
+            {
+                "action_type": "SCOUT",
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Laurens"}]}
+                },
+            }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
@@ -278,8 +309,14 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "GET",
-                "receiver": {"reference_object": {"filters": {"has_name": "Mary"}}},
-                "reference_object": {"filters": {"has_name": "cup"}},
+                "receiver": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Mary"}]}
+                    }
+                },
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cup"}]}
+                },
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -289,7 +326,9 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "GET",
                 "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
-                "reference_object": {"filters": {"has_name": "lunch"}},
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "lunch"}]}
+                },
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",

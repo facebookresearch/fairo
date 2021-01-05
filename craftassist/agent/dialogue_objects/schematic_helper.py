@@ -18,53 +18,76 @@ from word2number.w2n import word_to_num
 from word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
 
 
+def get_properties_from_triples(triples_list, p):
+    return [x.get("obj_text") for x in triples_list if p in x.values()]
+
+
 def interpret_shape_schematic(
     interpreter, speaker, d, shapename=None
 ) -> Tuple[List[Block], List[Tuple[str, str]]]:
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
     - a list of (pred, val) tags
+
+    warning:  if multiple possibilities are given for the same tag, current
+    heursitic just picks one.  e.g. if the lf is 
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+                     {"pred_text": "has_colour", "obj_text": "blue"}]
+    will currently just pick red.   Same for other properties encoded in triples
     """
+    triples = d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
     if shapename is not None:
         shape = shapename
     else:
         # For sentences like "Stack" and "Place" that have the shapename in dict
-        shape = d["has_shape"]
+        shapes = get_properties_from_triples(triples, "has_shape")
+        if any(shapes):
+            # see warning above w.r.t. 0
+            shape = shapes[0]
 
-    numeric_keys = [
-        "has_thickness",
-        "has_radius",
-        "has_depth",
-        "has_width",
-        "has_height",
-        "has_length",
-        "has_slope",
-        #        "has_orientation", #is this supposed to be numeric key?
-        "has_distance",
-        "has_base",
-    ]
+    numeric_keys = {
+        "has_thickness": get_properties_from_triples(triples, "has_thickness"),
+        "has_radius": get_properties_from_triples(triples, "has_radius"),
+        "has_depth": get_properties_from_triples(triples, "has_depth"),
+        "has_width": get_properties_from_triples(triples, "has_width"),
+        "has_height": get_properties_from_triples(triples, "has_height"),
+        "has_length": get_properties_from_triples(triples, "has_length"),
+        "has_slope": get_properties_from_triples(triples, "has_slope"),
+        "has_distance": get_properties_from_triples(triples, "has_distance"),
+        "has_base": get_properties_from_triples(triples, "has_base"),
+    }
 
-    attrs = {key[4:]: word_to_num(d[key]) for key in numeric_keys if key in d}
+    attrs = {key[4:]: word_to_num(val[0]) for key, val in numeric_keys.items() if any(val)}
 
-    if "has_orientation" in d:
-        attrs["orient"] = d["has_orientation"]
+    text_keys = {
+        "has_orientation": get_properties_from_triples(triples, "has_orientation"),
+        "has_size": get_properties_from_triples(triples, "has_size"),
+        "has_block_type": get_properties_from_triples(triples, "has_block_type"),
+        "has_colour": get_properties_from_triples(triples, "has_colour"),
+    }
 
-    if "has_size" in d:
-        attrs["size"] = interpret_size(interpreter, d["has_size"])
+    if any(text_keys["has_orientation"]):
+        attrs["orient"] = text_keys["has_orientation"][0]
 
-    if "has_block_type" in d:
-        block_type = get_block_type(d["has_block_type"])
+    if any(text_keys["has_size"]):
+        attrs["size"] = interpret_size(interpreter, text_keys["has_size"][0])
+
+    if any(text_keys["has_block_type"]):
+        block_type = get_block_type(text_keys["has_block_type"][0])
         attrs["bid"] = block_type
-    elif "has_colour" in d:
-        c = block_data.COLOR_BID_MAP.get(d["has_colour"])
+    elif any(text_keys["has_colour"]):
+        c = block_data.COLOR_BID_MAP.get(text_keys["has_colour"][0])
         if c is not None:
             attrs["bid"] = random.choice(c)
 
     tags = []
-    for key, val in d.items():
+    for t in triples:
+        key = t.get("pred_text", "")
         if key.startswith("has_"):
+            val = t.get("obj_text", "")
             stemmed_val = val
-            tags.append((key, stemmed_val))
+            if val:
+                tags.append((key, stemmed_val))
 
     return SPECIAL_SHAPE_FNS[shape](**attrs), tags
 
@@ -93,11 +116,19 @@ def interpret_named_schematic(
     - the schematic blocks, list[(xyz, idm)]
     - a SchematicNode memid, or None
     - a list of (pred, val) tags
+
+    warning:  if multiple possibilities are given for the same tag, current
+    heursitic just picks one.  e.g. if the lf is 
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+                     {"pred_text": "has_colour", "obj_text": "blue"}]
+    will currently just pick red.   Same for other properties encoded in triples
     """
-    if "has_name" not in d:
+    triples = d.get("triples", [])
+    names = get_properties_from_triples(triples, "has_name")
+    if not any(names):
         raise ErrorWithResponse("I don't know what you want me to build.")
-    name = d["has_name"]
-    stemmed_name = name
+    name = names[0]
+    stemmed_name = name.strip("s")  # why aren't we using stemmer anymore?
     shapename = SPECIAL_SHAPES_CANONICALIZE.get(name) or SPECIAL_SHAPES_CANONICALIZE.get(
         stemmed_name
     )
@@ -116,9 +147,11 @@ def interpret_named_schematic(
     blocks = schematic.blocks
     # TODO generalize to more general block properties
     # Longer term: remove and put a call to the modify model here
-    if d.get("has_colour"):
+    colours = get_properties_from_triples(triples, "has_colour")
+    if any(colours):
+        colour = colours[0]
         old_idm = most_common_idm(blocks.values())
-        c = block_data.COLOR_BID_MAP.get(d["has_colour"])
+        c = block_data.COLOR_BID_MAP.get(colour)
         if c is not None:
             new_idm = random.choice(c)
             for l in blocks:
@@ -141,7 +174,10 @@ def interpret_schematic(
     else:
         repeat = cast(int, get_repeat_num(d))
     assert type(repeat) == int, "bad repeat={}".format(repeat)
-    if "has_shape" in d:
+
+    triples = d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
+    shapes = get_properties_from_triples(triples, "has_shape")
+    if any(shapes):
         blocks, tags = interpret_shape_schematic(interpreter, speaker, d)
         return [(blocks, None, tags)] * repeat
     else:

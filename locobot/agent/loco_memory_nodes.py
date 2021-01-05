@@ -49,13 +49,20 @@ class DetectedObjectNode(ReferenceObjectNode):
             pickle.dumps(detected_obj.feature_repr),
         )
 
-        cls.safe_tag(detected_obj, memory, memid, "has_tag", "label")
-        cls.safe_tag(detected_obj, memory, memid, "has_color", "color")
+        cls.safe_tag(detected_obj, memory, memid, "has_name", "label")
+        cls.safe_tag(detected_obj, memory, memid, "has_colour", "color")
         if hasattr(detected_obj, "properties") and detected_obj.properties is not None:
             cls.safe_tag(detected_obj, memory, memid, "has_properties", "properties")
             for prop in detected_obj.properties:
                 memory.tag(memid, prop)
+        
+        # Tag everything with has_tag predicate
+        if hasattr(detected_obj, 'color') and detected_obj.color is not None:
+            memory.tag(memid, detected_obj.color)
+        if hasattr(detected_obj, 'label') and detected_obj.label is not None:
+            memory.tag(memid, detected_obj.label)
         memory.tag(memid, "_physical_object")
+        memory.tag(memid, "_not_location")
         return memid
 
     @classmethod
@@ -104,8 +111,8 @@ class DetectedObjectNode(ReferenceObjectNode):
                 else:
                     return None
 
-            label = get_value(x[0], "has_tag")
-            color = get_value(x[0], "has_color")
+            label = get_value(x[0], "has_name")
+            color = get_value(x[0], "has_colour")
             properties = get_value(x[0], "has_properties")
 
             # get feature blob

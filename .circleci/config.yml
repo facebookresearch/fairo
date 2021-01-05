@@ -21,8 +21,6 @@ jobs:
           command: |
             echo 'export DOCKER_BUILD_ARGS="--build-arg current_branch=${CIRCLE_BRANCH}"' >> $BASH_ENV
 
-      - setup_remote_docker:
-          docker_layer_caching: true
       - run:
           name: Deploy Github key
           command: |
@@ -35,6 +33,7 @@ jobs:
             echo ${AWS_S3_ACCESS_KEY_ID} > tools/docker/AWS_S3_ACCESS_KEY_ID.txt
             echo ${AWS_S3_SECRET_ACCESS_KEY} > tools/docker/AWS_S3_SECRET_ACCESS_KEY.txt
 
+      - setup_remote_docker
       - run:
           name: Build docker containers
           command: make -C tools/docker build

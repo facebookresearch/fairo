@@ -25,6 +25,21 @@ def getSpanKeys(d):
             yield from getSpanKeys(v)
 
 
+def get_absolute_path_to_key(json, key):
+    if not isinstance(json, dict):
+        return None
+    if key in json.keys():
+        return key
+    ans = None
+    for json_key in json.keys():
+        r = get_absolute_path_to_key(json[json_key], key)
+        if r is None:
+            continue
+        else:
+            ans = "{}.{}".format(json_key, r)
+    return ans
+
+
 def set_span(code, surface_form, span_value):
     """ This function sets the span value in a dictionary given
     a span value """
@@ -34,8 +49,22 @@ def set_span(code, surface_form, span_value):
     end_span = start_span + len(span_array) - 1
     span = [0, [start_span, end_span]]
     spanKeys = getSpanKeys(copy.deepcopy(code))
+    triple_position = ""
+    triples_data = []
+    span_keys = []
     for spans in spanKeys:
-        code = nested_update(code, key=spans, value=span)
+        triples_data.append({"pred_text": spans, "obj_text": span})
+        triple_position = ".".join(get_absolute_path_to_key(code, spans).split(".")[:-1])
+        span_keys.append(spans)
+    # handle triples here: Add a key called 'triples' and delete the
+    # previous 'has_x' key
+    if triples_data:
+        k_code = code
+        for k in triple_position.split("."):
+            k_code = k_code[k]
+        for key in span_keys:
+            k_code.pop(key)
+        k_code["triples"] = triples_data
     return code
 
 
@@ -153,9 +182,9 @@ def update_list_value(d, rnd_index):
 def fixTemplatesWithRandomBlock(codeList, surfaceFormList):
     updatedCodeList, updatedSurfaceFormList = [], []
     for code, surfaceForm in zip(codeList, surfaceFormList):
-        if type(surfaceForm[0]) == list:
+        if surfaceForm and type(surfaceForm[0]) == list:
             rnd_index = random.choice(range(len(surfaceForm)))
-            if code == None:
+            if code is None:
                 updatedCodeList.append(code)
             # code is list
             if type(code) == list:
@@ -172,7 +201,9 @@ def fixTemplatesWithRandomBlock(codeList, surfaceFormList):
 
 
 def getAllTemplates(template_data):
-    spans = template_data["spans"]
+    spans = {}
+    if "spans" in template_data:
+        spans = template_data["spans"]
     templatesSaved = template_data["templates"]
     savedBlocks = template_data["savedBlocks"]
     templates = {}
@@ -248,6 +279,8 @@ if __name__ == "__main__":
         template_data = json.load(f)
 
     templates = getAllTemplates(template_data)
+    if "null" in templates:
+        templates.pop("null")
     generationPairs = generatePairs(templates, args.num_gens)
 
     with open(args.out_file, "w") as f:
@@ -255,14 +288,16 @@ if __name__ == "__main__":
             template_name, generation_obj = obj
             # generate logical-surface form pair array for the template
             text, action_dict = generation_obj.__generate__()
-            updated_dict = {
-                "dialogue_type": "HUMAN_GIVE_COMMAND",
-                "action_sequence": [action_dict],
-            }
+            updated_dict = action_dict
+            # it is of type HUMAN_GIVE_COMMAND
+            if "dialogue_type" not in action_dict:
+                updated_dict = {
+                    "dialogue_type": "HUMAN_GIVE_COMMAND",
+                    "action_sequence": [action_dict],
+                }
             if args.format:
                 f.write(text + "|" + json.dumps(updated_dict) + "\n")
             else:
-                # print(template_name)
                 print(text)
-                print(updated_dict)
+                pprint(updated_dict)
                 print()

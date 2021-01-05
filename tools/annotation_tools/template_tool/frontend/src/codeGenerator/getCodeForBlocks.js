@@ -13,6 +13,7 @@
 
 import * as Blockly from 'blockly/core';
 import getSpans from '../helperFunctions/getSpans';
+import deleteKey from "object-delete-key";
 import getTypes from '../helperFunctions/getTypes';
 import { getAllSurfaceFormsAndCode, generateCodeAndSurfaceForm } from
   '../helperFunctions/generateCodeAndSurface';
@@ -135,8 +136,6 @@ export function getCodeForBlocks() {
   let code; let surfaceForms; let allnewBlocks;
   if (!generateCodeAndSurfaceForm(allBlocks)) return false;
   [allnewBlocks, surfaceForms, code] = generateCodeAndSurfaceForm(allBlocks);
-  console.log("back to master");
-  console.log(allnewBlocks);
   const spans = getSpans(surfaceForms);
   let surfaceForm = surfaceForms.join(' ');
   const templatesString = localStorage.getItem('templates');
@@ -157,6 +156,7 @@ export function getCodeForBlocks() {
   }
 
   for (let i = 0; i < code.length; i++) {
+    var triples_array = {};
     const curCode = code[i];
     if (curCode) {
       // merge current code into the template code
@@ -169,14 +169,19 @@ export function getCodeForBlocks() {
 
       // iterate over every element of last level dictionary
       let lastLevelSubDict = nestedProperty.get(code[i], secondDeepest);
-      console.log(lastLevelSubDict);
       if (lastLevelSubDict) {
         for (let key in lastLevelSubDict) {
           if (lastLevelSubDict[key] === "") {
             // it is a span
             const spanCount = getSpanCount(spans, surfaceForm, i);
-            const deepestKey = secondDeepest + "." + key;
-            nestedProperty.set(code[i], deepestKey, spanCount);
+            const deepestKey = secondDeepest + ".triples";
+            var value = { "pred_text": key, "obj_text": spanCount };
+            if (deepestKey in triples_array) {
+              triples_array[deepestKey].push(value);
+            } else {
+              triples_array[deepestKey] = [value];
+            }
+            code[i] = deleteKey(code[i], { key: key, val: '' });
           }
         }
       } else {
@@ -185,11 +190,20 @@ export function getCodeForBlocks() {
           if (code[i][key] === "") {
             // it is a span
             const spanCount = getSpanCount(spans, surfaceForm, i);
-            code[i][key] = spanCount;
+            var deepestKey = "triples";
+            var value = { "pred_text": key, "obj_text": spanCount };
+            if (deepestKey in triples_array) {
+              triples_array[deepestKey].push(value);
+            } else {
+              triples_array[deepestKey] = [value];
+            }
+            code[i] = deleteKey(code[i], { key: key, val: '' });
           }
         }
       }
-
+      for (let k in triples_array) {
+        nestedProperty.set(code[i], k, triples_array[k]);
+      }
 
       // if (spanPaths.includes(latest)) {
       //   // it is a span

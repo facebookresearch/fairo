@@ -27,7 +27,7 @@ from utils import get_fake_detection
 from objects import Pos
 
 # marker creation should be somewhwere else....
-from locobot.agent.dialogue_objects import GetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from locobot.agent.dialogue_objects import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
 
 # from locobot.perception import Detection
 
@@ -427,7 +427,7 @@ class FakeAgent(LocoMCAgent):
         dialogue_object_classes = {}
         dialogue_object_classes["interpreter"] = LocoInterpreter
         #        dialogue_object_classes["interpreter"] = Interpreter
-        dialogue_object_classes["get_memory"] = GetMemoryHandler
+        dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
 

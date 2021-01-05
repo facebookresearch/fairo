@@ -107,21 +107,26 @@ class PutMemoryHandler(DialogueObject):
         if len(triples) > 0:
             name = triples[0][2].strip("_")
 
-        memory_data = self.action_dict["upsert"]["memory_data"]
         schematic_memid = (
             self.memory.convert_block_object_to_schematic(mem.memid).memid
             if isinstance(mem, VoxelObjectNode)
             else None
         )
-        for k, v in memory_data.items():
-            if k.startswith("has_"):
-                logging.info("Tagging {} {} {}".format(mem.memid, k, v))
-                self.memory.add_triple(subj=mem.memid, pred_text=k, obj_text=v)
-                if schematic_memid:
-                    self.memory.add_triple(subj=schematic_memid, pred_text=k, obj_text=v)
 
+        for t in self.action_dict["upsert"]["memory_data"].get("triples", []):
+            if t.get("pred_text") and t.get("obj_text"):
+                logging.info("Tagging {} {} {}".format(mem.memid, t["pred_text"], t["obj_text"]))
+                self.memory.add_triple(
+                    subj=mem.memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
+                )
+                if schematic_memid:
+                    self.memory.add_triple(
+                        subj=schematic_memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
+                    )
         point_at_target = mem.get_point_at_target()
-        self.agent.send_chat("OK I'm tagging this %r as %r " % (name, v))
+        self.agent.send_chat(
+            "OK I'm tagging this %r as %r %r " % (name, t["pred_text"], t["obj_text"])
+        )
         self.agent.point_at(list(point_at_target))
 
         return "Done!", None

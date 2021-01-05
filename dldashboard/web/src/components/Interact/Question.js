@@ -185,83 +185,85 @@ class Question extends Component {
     var chatMsg = this.props.chats[this.props.failidx].msg;
 
     this.state.action_dict = chatResponses[chatMsg];
-    if ("dialogue_type" in this.state.action_dict) {
-      var dialogue_type = this.state.action_dict.dialogue_type;
-      var question_word = "";
-      if (dialogue_type === "HUMAN_GIVE_COMMAND") {
-        // handle composite action
+    if (this.state.action_dict) {
+      if ("dialogue_type" in this.state.action_dict) {
+        var dialogue_type = this.state.action_dict.dialogue_type;
+        var question_word = "";
+        if (dialogue_type === "HUMAN_GIVE_COMMAND") {
+          // handle composite action
 
-        // get the action type
-        var action_dict = this.state.action_dict.action_sequence[0];
-        var action_type = action_dict.action_type.toLowerCase();
-        question_word = "to " + action_type + " ";
-        // action is build
-        if (["build", "dig"].indexOf(action_type) >= 0) {
-          if ("schematic" in action_dict) {
-            question_word =
-              question_word + "'" + action_dict.schematic.text_span + "'";
+          // get the action type
+          var action_dict = this.state.action_dict.action_sequence[0];
+          var action_type = action_dict.action_type.toLowerCase();
+          question_word = "to " + action_type + " ";
+          // action is build
+          if (["build", "dig"].indexOf(action_type) >= 0) {
+            if ("schematic" in action_dict) {
+              question_word =
+                question_word + "'" + action_dict.schematic.text_span + "'";
+            }
+            if ("location" in action_dict) {
+              question_word =
+                question_word +
+                " at location '" +
+                action_dict.location.text_span +
+                "'";
+            }
+            question_word = question_word + " ?";
+          } else if (
+            ["destroy", "fill", "spawn", "copy", "get", "scout"].indexOf(
+              action_type
+            ) >= 0
+          ) {
+            if ("reference_object" in action_dict) {
+              question_word =
+                question_word +
+                "'" +
+                action_dict.reference_object.text_span +
+                "'";
+            }
+            if ("location" in action_dict) {
+              question_word =
+                question_word +
+                " at location '" +
+                action_dict.location.text_span +
+                "'";
+            }
+            question_word = question_word + " ?";
+          } else if (["move"].indexOf(action_type) >= 0) {
+            if ("location" in action_dict) {
+              question_word =
+                question_word +
+                " at location '" +
+                action_dict.location.text_span +
+                "'";
+            }
+            question_word = question_word + " ?";
+          } else if (["stop", "resume", "undo"].indexOf(action_type) >= 0) {
+            if ("target_action_type" in action_dict) {
+              question_word =
+                question_word +
+                " at location '" +
+                action_dict.target_action_type +
+                "'";
+            }
+            question_word = question_word + " ?";
           }
-          if ("location" in action_dict) {
-            question_word =
-              question_word +
-              " at location '" +
-              action_dict.location.text_span +
-              "'";
-          }
-          question_word = question_word + " ?";
-        } else if (
-          ["destroy", "fill", "spawn", "copy", "get", "scout"].indexOf(
-            action_type
-          ) >= 0
-        ) {
-          if ("reference_object" in action_dict) {
-            question_word =
-              question_word +
-              "'" +
-              action_dict.reference_object.text_span +
-              "'";
-          }
-          if ("location" in action_dict) {
-            question_word =
-              question_word +
-              " at location '" +
-              action_dict.location.text_span +
-              "'";
-          }
-          question_word = question_word + " ?";
-        } else if (["move"].indexOf(action_type) >= 0) {
-          if ("location" in action_dict) {
-            question_word =
-              question_word +
-              " at location '" +
-              action_dict.location.text_span +
-              "'";
-          }
-          question_word = question_word + " ?";
-        } else if (["stop", "resume", "undo"].indexOf(action_type) >= 0) {
-          if ("target_action_type" in action_dict) {
-            question_word =
-              question_word +
-              " at location '" +
-              action_dict.target_action_type +
-              "'";
-          }
-          question_word = question_word + " ?";
+        } else if (dialogue_type === "GET_MEMORY") {
+          // you asked the bot a question
+          question_word =
+            "to answer a question about something in the Minecraft world ?";
+        } else if (dialogue_type === "PUT_MEMORY") {
+          // you were trying to teach the bot something
+          question_word = "to remember or learn something you taught it ?";
+        } else if (dialogue_type === "NOOP") {
+          // no operation was requested.
+          question_word = "to do nothing ?";
         }
-      } else if (dialogue_type === "GET_MEMORY") {
-        // you asked the bot a question
-        question_word =
-          "to answer a question about something in the Minecraft world ?";
-      } else if (dialogue_type === "PUT_MEMORY") {
-        // you were trying to teach the bot something
-        question_word = "to remember or learn something you taught it ?";
-      } else if (dialogue_type === "NOOP") {
-        // no operation was requested.
-        question_word = "to do nothing ?";
+      } else {
+        // NOTE: This should never happen ...
+        question_word = "did you want me to do nothing ?";
       }
-    } else {
-      // NOTE: This should never happen ...
-      question_word = "did you want me to do nothing ?";
     }
     return (
       <div className="question">

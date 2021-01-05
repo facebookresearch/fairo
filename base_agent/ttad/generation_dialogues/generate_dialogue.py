@@ -151,9 +151,10 @@ def fix_composite_in_dict(action_text, action_dict):
 def fix_spans(d, prev_sentence_len):
     """This function updates the spans in d and shifts them by a value equal
     to prev_sentence_len"""
-
     for key, val in d.items():
         if type(val) == list:
+            if type(val[0]) == list:
+                val = val[0]
             if type(val[0]) is int:
                 sent_index, span = val
                 index_1, index_2 = span

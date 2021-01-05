@@ -17,6 +17,8 @@ from torch.utils.data import Dataset
 # Node typing: checking the type of a specific sub-tree (dict value)
 #########
 def is_span(val):
+    if type(val) != list:
+        return False
     try:
         a, (b, c) = val
         return all([type(v) == int for v in [a, b, c]])
@@ -159,6 +161,8 @@ def tree_to_seq(full_tree, tree, idx_map=None):
                     ]
                 res = res[:-1] + [("ILE:" + k, -1, -1, -1, -1)]
             else:
+                print(tree)
+                print(k)
                 raise NotImplementedError
     except IndexError as e:
         raise e
@@ -416,7 +420,7 @@ class CAIPDataset(Dataset):
 
         # We load the (input, tree) pairs for all data types and
         # initialize the hard examples buffer
-        self.data = {}
+        self.data = {"hard": []}
         self.sampling = sampling
         self.word_noise = word_noise
         dtype_samples = json.loads(args.dtype_samples)
@@ -433,6 +437,8 @@ class CAIPDataset(Dataset):
                 self.data[k] = process_txt_data(fname)
             self.hard_buffer_size = 1024
             self.hard_buffer_counter = 0
+        elif prefix == "":
+            self.data[dtype] = []
         else:
             fname = pjoin(args.data_dir, prefix, dtype + ".txt")
             if isfile(fname):
@@ -520,7 +526,7 @@ def caip_collate(batch, tokenizer, tree_to_text=False):
     """Applies padding and makes batch tensors
 
     Args:
-        batch (tuple): tuple containinig raw text and tree pairs
+        batch (tuple): tuple containing raw text and tree pairs
         tokenizer: tokenization method
 
     Returns:

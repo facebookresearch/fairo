@@ -28,7 +28,7 @@ do
 
 	cd $CRAFTASSIST_PATH
 
-	tar -czvf ${dirname}_folder.tar.gz ${dirname}/
+	tar --exclude='*/\.*' --exclude='*checksum*' ${dirname}/ -czvf ${dirname}_folder.tar.gz
 
 	echo "tar file created at ${PWD}/${dirname}_folder.tar.gz"
 

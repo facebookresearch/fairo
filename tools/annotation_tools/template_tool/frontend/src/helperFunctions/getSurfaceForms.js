@@ -42,4 +42,4 @@ function generateAllSurfaceFormsForTemplate(allBlocks) {
   return surfaceForms;
 }
 
-export {generateAllSurfaceFormsForTemplate};
+export { generateAllSurfaceFormsForTemplate };

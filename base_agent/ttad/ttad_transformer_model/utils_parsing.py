@@ -66,11 +66,11 @@ class DecoderWithLoss(nn.Module):
         print("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
-        self.span_b_proj = nn.ModuleList([HighwayLayer(768) for _ in range(args.num_highway)])
-        self.span_e_proj = nn.ModuleList([HighwayLayer(768) for _ in range(args.num_highway)])
+        self.span_b_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
+        self.span_e_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         # predict text span beginning and end
-        self.text_span_start_head = nn.Linear(768, 768)
-        self.text_span_end_head = nn.Linear(768, 768)
+        self.text_span_start_head = nn.Linear(config.hidden_size, config.hidden_size)
+        self.text_span_end_head = nn.Linear(config.hidden_size, config.hidden_size)
         # loss functions
         if args.node_label_smoothing > 0:
             self.lm_ce_loss = LabelSmoothingLoss(
@@ -197,7 +197,6 @@ class DecoderWithLoss(nn.Module):
             y_span_pre_b = y_rep
             for hw in self.span_b_proj:
                 y_span_pre_b = hw(y_span_pre_b)
-
             span_b_scores = (x_reps[:, None, :, :] * y_span_pre_b[:, :, None, :]).sum(dim=-1)
             span_b_scores = (
                 span_b_scores + (1 - y_mask_target.type_as(span_b_scores))[:, :, None] * 1e9
@@ -300,6 +299,8 @@ class EncoderDecoderWithLoss(nn.Module):
             x_reps = model[0]
         if not self.train_encoder:
             x_reps = x_reps.detach()
+        # else:
+        #     x_reps.retain_grad()
         outputs = self.decoder(y, y_mask, x_reps, x_mask, is_eval)
         return outputs
 

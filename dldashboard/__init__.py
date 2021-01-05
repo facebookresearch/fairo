@@ -10,7 +10,8 @@ app = None
 
 def _dashboard_thread(web_root, ip, port):
     global app
-    static_folder = os.path.join(web_root, "build")
+    root_dir = os.path.abspath(os.path.dirname(__file__))
+    static_folder = os.path.join(root_dir, web_root, "build")
     print("static_folder:", static_folder)
     app = Flask(__name__, static_folder=static_folder, static_url_path="")
     sio = socketio.Server(async_mode="threading", cors_allowed_origins="*")

@@ -71,9 +71,9 @@ class GetMemory(ActionNode):
 
         get_mem_obj._filters_args = Arguments(
             {
-                "temporal": None,
+                "has_tag": None,
                 "mem_type": None,
-                "action_type": None,
+                "has_name": None,
                 "block_object_attr": get_mem_obj._block_obj_args,
                 "location_attr": get_mem_obj._location_args,
             }
@@ -170,9 +170,9 @@ class PutMemory(ActionNode):
         )
         put_mem_obj._filters_args = Arguments(
             {
-                "temporal": None,
+                "has_tag": None,
                 "mem_type": None,
-                "action_type": None,
+                "has_name": None,
                 "block_object_attr": put_mem_obj._block_obj_args,
                 "mob_attr": put_mem_obj._mob_args,
             }

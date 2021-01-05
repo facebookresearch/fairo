@@ -46,17 +46,22 @@ class ListAttribute(Attribute):
 
 class LinearExtentAttribute(Attribute):
     """ 
-    computes the (perhaps signed) length between two points in space.  
-    if "relative_direction"=="AWAY", unsigned length
+    computes the (perhaps signed) length between two points in space. 
+    behavior controlled by the location_data array.
+    if field "relative_direction"=="AWAY", unsigned length
     if "relative_direction" in ["LEFT", "RIGHT" ...] projected onto a special direction 
          and signed.  the "arrow" goes from "source" to "destination",
          e.g. if destination is more LEFT than source, "LEFT" will be positive
     if "relative_direction" in ["INSIDE", "OUTSIDE"], signed length is shifted towards zero
          so that 0 is at the boundary of the source.
          This is not implemented yet FIXME!!
+    
     One of the two points in space is given by the positions of a reference object
     either given directly as a memory, or given as FILTERs to search
     the other is the list element input into the call
+
+    if the field "normalized" is True, and relative direction is a cardinal,
+         the extent is divided by distance to the fixed reference
     """
 
     def __init__(self, agent, location_data, mem=None, fixed_role="source"):
@@ -66,6 +71,7 @@ class LinearExtentAttribute(Attribute):
         self.fixed_role = fixed_role
 
         self.frame = location_data.get("frame") or "AGENT"
+        self.normalized = location_data.get("normalized", False)
 
         # TODO generalize/formalize this
         # TODO: currently stores look vecs/orientations at creation,
@@ -104,9 +110,6 @@ class LinearExtentAttribute(Attribute):
         # put a "NULL" mem in input to not build a searcher
         if not self.mem:
             self.searcher = self.location_data.get("filter")
-        #            d = self.location_data.get(fixed_role)
-        #            if d:
-        #                self.searcher = BasicMemorySearcher(search_data=d)
         if not self.mem and (self.searcher == "mem" or not self.searcher):
             raise Exception("Bad linear attribute data, no memory and no searcher specified")
 
@@ -131,23 +134,27 @@ class LinearExtentAttribute(Attribute):
             dir_vec = self.coordinate_transforms.transform(
                 reldir_vec, self.yaw, self.pitch, inverted=True
             )
-            return diff @ dir_vec
+            if self.normalized:
+                return diff @ dir_vec
+            else:
+                return diff @ dir_vec / np.linalg.norm(diff)
         else:  # AWAY
             return np.linalg.norm(diff)
 
     def __call__(self, mems):
         if not self.mem:
             fixed_mem, _ = self.searcher()
-            fixed_mem = fixed_mem[0]
-        #            fixed_mem = self.searcher.search(self.agent.memory)
-        # FIXME!!! handle mem not found
+            fixed_mem = self.agent.memory.get_mem_by_id(fixed_mem[0])
+            # fixed_mem = self.searcher.search(self.agent.memory)
+            # FIXME!!! handle mem not found, more than one, etc.
         else:
             fixed_mem = self.mem
-        # FIMXE TODO store and use an arxiv if we don't want position to track!
+        fixed_pos = fixed_mem.get_pos()
+        # FIXME TODO store and use an arxiv if we don't want position to track!
         if self.fixed_role == "source":
-            return [self.extent(fixed_mem.get_pos(), mem.get_pos()) for mem in mems]
+            return [self.extent(fixed_pos, mem.get_pos()) for mem in mems]
         else:
-            return [self.extent(mem.get_pos(), fixed_mem.get_pos()) for mem in mems]
+            return [self.extent(mem.get_pos(), fixed_pos) for mem in mems]
 
     def __repr__(self):
         return "Attribute: " + str(self.location_data)
@@ -155,13 +162,22 @@ class LinearExtentAttribute(Attribute):
 
 class LookRayDistance(Attribute):
     """ 
-    computes the (perhaps signed) distance between a ref_obj_node and a ray given by an agent's
+    computes the distance between a ref_obj_node and a ray given by an agent's
     look and pos.  The agent's name or eid is input to contructor (in addition to the agent running 
     this attribute)
 
+    constructor inputs:
+    agent: the agent this will run in
+    eid:  the entity id of the LookRay owner (the viewing agent/player/person)
+          if None, assumes it is the eid from the agent's default_frame
+  
+    constructor kv inputs:
+    mode: ="raw" (default) or "normalized".  If "normalized", 
+           computes the distance from the ray divided by the distance to the orgin of the ray
+
     """
 
-    def __init__(self, agent, eid):
+    def __init__(self, agent, eid, mode="raw"):
         super().__init__(agent)
         # TODO: currently stores look vecs/orientations at creation,
         try:
@@ -177,6 +193,7 @@ class LookRayDistance(Attribute):
         self.pitch = pitch
         self.pos = np.array([x, y, z])
         self.coordinate_transforms = agent.coordinate_transforms
+        self.mode = mode
 
     def __call__(self, mems):
         try:
@@ -190,7 +207,13 @@ class LookRayDistance(Attribute):
         ]
         LEFT = self.coordinate_transforms.DIRECTIONS["LEFT"]
         UP = self.coordinate_transforms.DIRECTIONS["UP"]
-        return [((c @ LEFT) ** 2 + (c @ UP) ** 2) ** 0.5 for c in rotated_coords]
+        if self.mode == "raw":
+            return [((c @ LEFT) ** 2 + (c @ UP) ** 2) ** 0.5 for c in rotated_coords]
+        else:
+            return [
+                (((c @ LEFT) ** 2 + (c @ UP) ** 2) ** 0.5) / np.linalg.norm(c)
+                for c in rotated_coords
+            ]
 
     def __repr__(self):
         return "LookRayDistance"

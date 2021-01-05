@@ -94,6 +94,10 @@ class AgentMemory:
         self._db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
         )
+        self.tag(self.self_memid, "_physical_object")
+        self.tag(self.self_memid, "_animate")
+        # this is a hack until memory_filters does "not"
+        self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "_agent")
         self.tag(self.self_memid, "_self")
 

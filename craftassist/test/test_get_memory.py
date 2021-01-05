@@ -2,7 +2,6 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
-from base_agent.dialogue_objects import SPEAKERLOOK
 import craftassist.agent.shapes as shapes
 from base_craftassist_test_case import BaseCraftassistTestCase
 from all_test_commands import *
@@ -11,16 +10,20 @@ from all_test_commands import *
 class GetMemoryTestCase(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        self.cube_right = self.add_object(shapes.cube(bid=(42, 0)), (9, 63, 4))
-        self.cube_left = self.add_object(shapes.cube(), (9, 63, 10))
-        self.set_looking_at(list(self.cube_right.blocks.keys())[0])
+        cube_triples = {"has_name": "cube", "has_shape": "cube"}
+        self.cube = self.add_object(shapes.cube(bid=(42, 0)), (9, 63, -2), relations=cube_triples)
+        sphere_triples = {"has_name": "sphere", "has_shape": "sphere"}
+        self.sphere = self.add_object(
+            shapes.sphere(radius=1), (11, 64, 2), relations=sphere_triples
+        )
+        triangle_triples = {"has_name": "triangle", "has_shape": "triangle"}
+        self.sphere = self.add_object(shapes.triangle(), (6, 64, -5), relations=triangle_triples)
+        self.set_looking_at(list(self.cube.blocks.keys())[0])
 
-    def test_get_name(self):
+    def test_get_name_and_left_of(self):
         # set the name
         name = "fluffball"
-        self.agent.memory.add_triple(
-            subj=self.cube_right.memid, pred_text="has_name", obj_text=name
-        )
+        self.agent.memory.add_triple(subj=self.cube.memid, pred_text="has_name", obj_text=name)
 
         # get the name
         d = GET_MEMORY_COMMANDS["what is where I am looking"]
@@ -28,6 +31,24 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
 
         # check that proper chat was sent
         self.assertIn(name, self.last_outgoing_chat())
+
+        d = GET_MEMORY_COMMANDS["what is to the left of the cube?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+        # check that proper chat was sent
+        self.assertIn("triangle", self.last_outgoing_chat())
+
+        d = GET_MEMORY_COMMANDS["what is the thing closest to you?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+        # check that proper chat was sent
+        # note: the agent excludes itself from these by default, maybe fix?
+        self.assertIn("SPEAKER", self.last_outgoing_chat())
+
+        d = GET_MEMORY_COMMANDS["what is the thing closest to me?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+        # check that proper chat was sent
+        # note: the agent does NOT!! exclude SPEAKER...
+        # FIXME?
+        self.assertIn("SPEAKER", self.last_outgoing_chat())
 
     def test_what_are_you_doing(self):
         # start building a cube
@@ -82,7 +103,49 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         assert loc_in_chat
 
 
-#        self.assertIn("(0.0, 63.0, 0.0)", self.last_outgoing_chat())
+class GetMemoryCountTest(BaseCraftassistTestCase):
+    def setUp(self):
+        super().setUp()
+        red_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "red"}
+        blue_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "blue"}
+        red_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "red"}
+        blue_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "blue"}
+        self.cube1 = self.add_object(
+            shapes.cube(bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
+        )
+        self.cube2 = self.add_object(
+            shapes.cube(bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
+        )
+        self.cube3 = self.add_object(
+            shapes.cube(bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
+        )
+        self.sphere1 = self.add_object(
+            shapes.sphere(bid=(35, 14), radius=2), (14, 63, 8), relations=red_sphere_triples
+        )
+        self.sphere2 = self.add_object(
+            shapes.sphere(bid=(35, 11), radius=2), (8, 63, 14), relations=blue_sphere_triples
+        )
+        self.set_looking_at(list(self.cube1.blocks.keys())[0])
+
+    def test_get_name_and_left_of(self):
+        d = GET_MEMORY_COMMANDS["how many cubes are there?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+
+        # check that proper chat was sent
+        self.assertIn("3", self.last_outgoing_chat())
+
+        # Note that the command is slightly malformed, no "memory_type" key
+        d = GET_MEMORY_COMMANDS["how many blue things are there?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+
+        # check that proper chat was sent
+        self.assertIn("2", self.last_outgoing_chat())
+
+        d = GET_MEMORY_COMMANDS["how many blocks are in the blue cube?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+
+        # check that proper chat was sent
+        self.assertIn("27", self.last_outgoing_chat())
 
 
 if __name__ == "__main__":

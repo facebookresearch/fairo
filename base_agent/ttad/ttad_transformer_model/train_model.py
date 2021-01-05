@@ -93,7 +93,7 @@ class ModelTrainer:
                 text_span_loss = outputs["text_span_loss"]
                 model.zero_grad()
                 # backprop
-                text_span_loss.backward()
+                text_span_loss.backward(retain_graph=True)
                 text_span_optimizer.step()
 
                 loss.backward()
@@ -115,11 +115,11 @@ class ModelTrainer:
                     lm_acc = full_acc
                 else:
                     lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
-                if "hard" in dataset.dtypes:
-                    if e > 0 or tot_steps > 2 * args.decoder_warmup_steps:
+                if self.args.hard:
+                    if e > 0 or tot_steps > 2 * self.args.decoder_warmup_steps:
                         for acc, exple in zip(lm_acc, batch_examples):
                             if not acc.item():
-                                if step % 200 == 100:
+                                if step % 400 == 100:
                                     print("ADDING HE:", step, exple[0])
                                 dataset.add_hard_example(exple)
                 # book-keeping
@@ -295,20 +295,20 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_dir",
-        default="python/craftassist/datasets/annotated_data/",
+        default="craftassist/agent/datasets/annotated_data/",
         type=str,
         help="train/valid/test data",
     )
     parser.add_argument(
         "--output_dir",
-        default="python/craftassist/models/semantic_parser/ttad_bert_updated/",
+        default="craftassist/agent/models/semantic_parser/ttad_bert_updated/",
         type=str,
         help="Where we save the model",
     )
     parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
     parser.add_argument(
         "--tree_voc_file",
-        default="python/craftassist/models/semantic_parser/ttad_bert_updated/caip_test_model_tree.json",
+        default="craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model_tree.json",
         type=str,
         help="Pre-computed grammar and output vocabulary",
     )
@@ -318,6 +318,13 @@ def main():
         default="distilbert-base-uncased",
         type=str,
         help="Pretrained text encoder "
+        "See full list at https://huggingface.co/transformers/pretrained_models.html",
+    )
+    parser.add_argument(
+        "--decoder_config_name",
+        default="bert-base-uncased",
+        type=str,
+        help="Name of Huggingface config used to initialize decoder architecture"
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
     parser.add_argument(
@@ -380,7 +387,7 @@ def main():
     )
     parser.add_argument(
         "--dtype_samples",
-        default='[["templated", 0.55], ["templated_modify", 0.05], ["annotated", 0.4]]',
+        default='[["templated", 0.55], ["templated_filters", 0.05], ["annotated", 0.4]]',
         type=str,
         help="Sampling probabilities for handling different data types",
     )
@@ -399,6 +406,12 @@ def main():
     parser.add_argument("--tree_to_text", action="store_true", help="Back translation flag")
     parser.add_argument(
         "--optional_identifier", default="", type=str, help="Optional run info eg. debug or test"
+    )
+    parser.add_argument(
+        "--hard",
+        default=False,
+        action="store_true",
+        help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
         "--alpha",
@@ -462,7 +475,8 @@ def main():
     # make model
     logging.info("making model")
     enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
-    bert_config = BertConfig.from_pretrained("bert-base-uncased")
+    bert_config = BertConfig.from_pretrained(args.decoder_config_name)
+
     bert_config.is_decoder = True
     bert_config.add_cross_attention = True
     if args.tree_to_text:
@@ -470,7 +484,6 @@ def main():
     else:
         bert_config.vocab_size = len(tree_i2w) + 8
     logging.info("vocab size {}".format(bert_config.vocab_size))
-    bert_config.num_hidden_layers = args.num_decoder_layers
     dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
     encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
     # save configs

@@ -6,6 +6,7 @@ import logging
 import os
 import re
 import spacy
+import ast
 from typing import Tuple, Dict, Optional
 from glob import glob
 
@@ -16,7 +17,6 @@ import preprocess
 from base_agent.memory_nodes import ProgramNode
 from base_agent.dialogue_manager import DialogueManager
 from base_agent.dialogue_objects import (
-    BotCapabilities,
     BotGreet,
     DialogueObject,
     Say,
@@ -42,7 +42,6 @@ class NSPDialogueManager(DialogueManager):
             'get_memory': GetMemoryHandler,
             'put_memory': ...
             }
-        botCapabilityQuery (List[str]): Set of commands that trigger scripted responses.
         safety_words (List[str]): Set of blacklisted words or phrases. Commands
             containing these are automatically filtered out.
         botGreetings (dict): Different types of greetings that trigger
@@ -84,19 +83,6 @@ class NSPDialogueManager(DialogueManager):
     def __init__(self, agent, dialogue_object_classes, opts):
         super(NSPDialogueManager, self).__init__(agent, None)
         self.dialogue_objects = dialogue_object_classes
-        self.botCapabilityQuery = [
-            "what can you do",
-            "what else can you do",
-            "what do you know",
-            "tell me what you can do",
-            "what things can you do",
-            "what are your capabilities",
-            "show me what you can do",
-            "what are you capable of",
-            "help me",
-            "help",
-            "do something",
-        ]
         safety_words_path = opts.ground_truth_data_dir + "safety.txt"
         if os.path.isfile(safety_words_path):
             self.safety_words = self.get_safety_words(safety_words_path)
@@ -129,7 +115,7 @@ class NSPDialogueManager(DialogueManager):
                         for line in f.readlines():
                             text, logical_form = line.strip().split("|")
                             clean_text = text.strip('"')
-                            self.ground_truth_actions[clean_text] = json.loads(logical_form)
+                            self.ground_truth_actions[clean_text] = ast.literal_eval(logical_form)
 
         self.dialogue_object_parameters = {
             "agent": self.agent,
@@ -167,8 +153,6 @@ class NSPDialogueManager(DialogueManager):
 
         # Push appropriate DialogueObjects to stack if incoming chat
         # is one of the scripted ones
-        if any([chat in self.botCapabilityQuery for chat in preprocessed_chatstrs]):
-            return BotCapabilities(**self.dialogue_object_parameters)
         for greeting_type in self.botGreetings:
             if any([chat in self.botGreetings[greeting_type] for chat in preprocessed_chatstrs]):
                 return BotGreet(greeting_type, **self.dialogue_object_parameters)
@@ -187,6 +171,8 @@ class NSPDialogueManager(DialogueManager):
 
         if d["dialogue_type"] == "NOOP":
             return Say("I don't know how to answer that.", **self.dialogue_object_parameters)
+        elif d["dialogue_type"] == "BOT_CAPABILITIES":
+            return self.dialogue_objects["bot_capabilities"](**self.dialogue_object_parameters)
         elif d["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             return self.dialogue_objects["interpreter"](
                 speaker, d, **self.dialogue_object_parameters

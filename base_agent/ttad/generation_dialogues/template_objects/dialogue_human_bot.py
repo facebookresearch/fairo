@@ -8,21 +8,21 @@ from tree_components import *
 from .template_object import *
 
 action_reference_object_map = {
-    "BUILD": "building",
-    "DESTROY": "destroying",
-    "SPAWN": "spawning",
-    "MOVE": "following",
-    "DIG": "digging",
-    "FILL": "filling",
+    "_BUILD": "building",
+    "_DESTROY": "destroying",
+    "_SPAWN": "spawning",
+    "_MOVE": "following",
+    "_DIG": "digging",
+    "_FILL": "filling",
 }
 
 
 class QueryBotCurrentAction(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["temporal"] = "CURRENT"
-        self.node._filters_args["mem_type"] = "ACTION"
+        self.node._filters_args["has_tag"] = "_CURRENTLY_RUNNING"
+        self.node._filters_args["mem_type"] = "TASKS"
         self.node.answer_type = "TAG"
-        self.node.tag_name = "action_name"
+        self.node.tag_name = "NAME"
 
     def generate_description(self, arg_index=0, index=0, templ_index=0):
         question = random.choice(
@@ -70,32 +70,33 @@ class QueryBot(TemplateObject):
 
 class CurrentLocation(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["temporal"] = "CURRENT"
-        self.node._filters_args["mem_type"] = "AGENT"
+        self.node._filters_args["has_tag"] = "_SELF"
+        self.node._filters_args["mem_type"] = "REFERENCE_OBJECT"
         self.node.answer_type = "TAG"
-        self.node.tag_name = "location"
+        self.node.tag_name = "LOCATION"
 
 
 class ActionReferenceObjectName(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["temporal"] = "CURRENT"
-        self.node._filters_args["mem_type"] = "ACTION"
-        self.node._filters_args["action_type"] = random.choice(
+        self.node._filters_args["has_tag"] = "_CURRENTLY_RUNNING"
+        self.node._filters_args["mem_type"] = "TASKS"
+        self.node._filters_args["has_name"] = random.choice(
             list(action_reference_object_map.keys())
         )
         self.node.answer_type = "TAG"
         self.node.tag_name = "action_reference_object_name"
 
     def generate_description(self, arg_index=0, index=0, templ_index=0):
-        question = action_reference_object_map[self.node._filters_args["action_type"]]
+        question = action_reference_object_map[self.node._filters_args["has_name"]]
 
         return question
 
 
 class MoveTarget(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["temporal"] = "CURRENT"
-        self.node._filters_args["mem_type"] = "ACTION"
+        self.node._filters_args["has_tag"] = "_CURRENTLY_RUNNING"
+        self.node._filters_args["mem_type"] = "TASKS"
+        self.node._filters_args["has_name"] = "_MOVE"
         self.node.answer_type = "TAG"
         self.node.tag_name = "move_target"
 

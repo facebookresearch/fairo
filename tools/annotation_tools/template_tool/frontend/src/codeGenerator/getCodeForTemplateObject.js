@@ -15,7 +15,7 @@ var nestedProperty = require("nested-property");
 
 function getCodeForTemplateObject(surfaceForm, topBlock) {
   var span = window.spans[surfaceForm];
-  var startSpan=0;
+  var startSpan = 0;
   if (!span) {
     // if no span is marked, take the entire surface form as span
     span = surfaceForm;
@@ -44,7 +44,7 @@ function getCodeForTemplateObject(surfaceForm, topBlock) {
   }
 
   // depending on whether the key is a categorical value or a span, set the correct value in the action dictionary
- 
+
   if (code?.ordinal) {
     // whether ordinal is a span or not depends on the surfaceForm value, so handle seperately
     if (
@@ -55,27 +55,27 @@ function getCodeForTemplateObject(surfaceForm, topBlock) {
       code["ordinal"] = span.toUpperCase();
     } else {
       code["ordinal"] = {
-        ordinal_span: [0, [startSpan, endSpan]],
+        ordinal_span: [[0, [startSpan, endSpan]]],
       };
     }
   }
-  else{
+  else {
     // not a special case
-    const spanPaths=["block_type","location.steps","location.has_measure","repeat.repeat_count","filers.has_name","filters.has_size","filters.has_colour","num_blocks.block_filters.has_name","num_blocks.block_filters.has_size","num_blocks.block_filters.has_colour"];
-    
-    const categoricalPaths=["location.relative_direction","repeat.repeat_dir"];
+    const spanPaths = ["block_type", "location.steps", "location.has_measure", "repeat.repeat_count", "filters.has_name", "filters.has_size", "filters.has_colour", "num_blocks.block_filters.has_name", "num_blocks.block_filters.has_size", "num_blocks.block_filters.has_colour"];
+
+    const categoricalPaths = ["location.relative_direction", "repeat.repeat_dir"];
 
     // if a span path exists
     spanPaths.forEach(path => {
-      if(nestedProperty.get(code,path)){
-        nestedProperty.set(code,path,[0,[startSpan,endSpan]]);
+      if (nestedProperty.get(code, path)) {
+        nestedProperty.set(code, path, [[0, [startSpan, endSpan]]]);
       }
     });
 
     // if a categorical path exists
     categoricalPaths.forEach(path => {
-      if(nestedProperty.get(code,path)){
-        nestedProperty.set(code,path,span);
+      if (nestedProperty.get(code, path)) {
+        nestedProperty.set(code, path, span);
       }
     });
 

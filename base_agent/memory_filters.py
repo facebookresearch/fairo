@@ -241,7 +241,15 @@ class BasicMemorySearcher:
         self.search_data = search_data
         if search_data.get("special"):
             return self.handle_special(agent_memory, search_data)
-        query, args = self.get_query(search_data)
+        # FIXME more careful handling of "_self",
+        # rn you can only get it if you ask for it specfically
+        ignore_self = "_self" not in [t.get("obj_text", "") for t in search_data.get("triples")]
+        query, args = self.get_query(search_data, ignore_self=ignore_self)
+
+        # for debug:
+        self.query = query
+        self.query_args = args
+
         memids = [m[0] for m in agent_memory._db_read(query, *args)]
         return [agent_memory.get_mem_by_id(memid) for memid in memids]
 
@@ -329,6 +337,21 @@ class MemoryFilter:
             return self._selfstr()
 
 
+class MemidList(MemoryFilter):
+    def __init__(self, agent_memory, memids):
+        super().__init__(agent_memory)
+        self.memids = memids
+
+    def search(self):
+        return self.memids, [None] * len(self.memids)
+
+    def filter(self, memids, vals):
+        mem_dict = dict(zip(memids, vals))
+        filtered_memids = list(set.intersection(set(memids), set(self.memids)))
+        filtered_vals = [mem_dict[m] for m in filtered_memids]
+        return filtered_memids, filtered_vals
+
+
 class NoneTransform(MemoryFilter):
     def __init__(self, agent_memory):
         super().__init__(agent_memory)
@@ -386,8 +409,8 @@ class RandomMemorySelector(MemoryFilter):
 
 class ExtremeValueMemorySelector(MemoryFilter):
     def __init__(self, agent_memory, polarity="argmax", ordinal=1):
-        # polarity is "argmax" or "argmin"
         super().__init__(agent_memory)
+        # polarity is "argmax" or "argmin"
         self.polarity = polarity
 
     # should this give an error? probably it should
@@ -482,11 +505,12 @@ class NotFilter(LogicalOperationFilter):
     def filter(self, memids, vals):
         mem_dict = dict(zip(memids, vals))
         p_memids, _ = self.searchers[0].filter(memids, vals)
-        filtered_memids, _ = list(set(memids) - set(p_memids))
+        filtered_memids = list(set(memids) - set(p_memids))
         filtered_vals = [mem_dict[m] for m in filtered_memids]
         return filtered_memids, filtered_vals
 
 
+# FIXME combine with MemidList
 class FixedMemFilter(MemoryFilter):
     def __init__(self, agent_memory, memid):
         super().__init__(agent_memory)
@@ -522,7 +546,6 @@ class ComparatorFilter(MemoryFilter):
         )
 
 
-# FIXME!!!! has_x : FILTERS doesn't work
 class BasicFilter(MemoryFilter):
     def __init__(self, agent_memory, search_data):
         super().__init__(agent_memory)

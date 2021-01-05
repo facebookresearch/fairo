@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
+import copy
 import random
 
 from generate_utils import *
@@ -82,10 +82,24 @@ class ActionNode:
         def substitute_with_spans(action_description_split, d):
             new_d = {}
             for k, v in d.items():
-                if k.startswith("has"):
+                if k.startswith("has_"):
+                    if type(v) == str and v.startswith("_"):
+                        new_d[k] = v
+                        continue
                     new_d[k] = find_span(action_description_split, v)
                 else:
                     new_d[k] = v
+
+            # Put all 'has_' under triples
+            old_action_dict = copy.deepcopy(new_d)
+            for key, val in old_action_dict.items():
+                if key.startswith("has_"):
+                    if "triples" not in new_d:
+                        new_d["triples"] = []
+                    triples_dict = {"pred_text": key, "obj_text": val}
+                    new_d["triples"].append(triples_dict)
+                    new_d.pop(key)
+
             return new_d
 
         # Prune out unnecessary keys from the tree
@@ -104,11 +118,23 @@ class ActionNode:
                 if (attr.startswith("has_")) or (
                     attr in ["repeat_count", "dance_type_name", "target_action_type"]
                 ):
+                    if type(val) == str and val.startswith("_"):
+                        continue
                     span = find_span(action_description_split, val)
                     action_dict[attr] = span
                 if attr == "dance_type_name":
                     action_dict["dance_type"] = {attr: action_dict[attr]}
                     action_dict.pop(attr)
+
+        # Put all 'has_' under triples
+        old_action_dict = copy.deepcopy(action_dict)
+        for key, val in old_action_dict.items():
+            if key.startswith("has_"):
+                if "triples" not in action_dict:
+                    action_dict["triples"] = []
+                triples_dict = {"pred_text": key, "obj_text": val}
+                action_dict["triples"].append(triples_dict)
+                action_dict.pop(key)
 
         action_name = type(self).__name__
 
@@ -186,14 +212,29 @@ class ActionNode:
                         filters_dict.update(ref_obj_dict)
                         filters_dict.pop("reference_object")
                     # remove 'temporal' key
+                    # NOTE: check if we need this ? we have now renamed 'temporal' -> 'has_tag' -> '_CURRENT_TIME'
                     if filters_dict.get("temporal", None):
                         filters_dict.pop("temporal")
                     # replace old filters
                     action_dict["filters"] = filters_dict
 
                 # fix answer_type and tag_name
+
                 if action_dict.get("answer_type", None):
                     if action_dict["answer_type"] == "TAG" and "tag_name" in action_dict:
+
+                        # fix for tag values to new
+                        tag_val = action_dict["tag_name"]
+                        if tag_val == "action_reference_object_name":
+                            action_dict["tag_name"] = {
+                                "task_info": {"reference_object": {"attribute": "NAME"}}
+                            }
+                        elif tag_val == "move_target":
+                            action_dict["tag_name"] = {
+                                "task_info": {"reference_object": {"attribute": "LOCATION"}}
+                            }
+
+                        # write to output
                         action_dict["filters"]["output"] = {"attribute": action_dict["tag_name"]}
                         action_dict.pop("tag_name")
                     else:

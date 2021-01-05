@@ -13,6 +13,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import FailIcon from "@material-ui/icons/Cancel";
 
 import IconButton from "@material-ui/core/IconButton";
+import KeyboardVoiceIcon from "@material-ui/icons/KeyboardVoice";
 
 import "./Message.css";
 
@@ -22,6 +23,12 @@ recognition.lang = "en-US";
 class Message extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      recognizing: false,
+    };
+
+    this.toggleListen = this.toggleListen.bind(this);
+    this.listen = this.listen.bind(this);
     this.elementRef = React.createRef();
   }
 
@@ -55,6 +62,45 @@ class Message extends Component {
     return this.elementRef.current != null;
   }
 
+  handleKeyPress(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      this.handleSubmit();
+    }
+  }
+
+  componentDidMount() {
+    document.addEventListener("keypress", this.handleKeyPress.bind(this));
+  }
+
+  toggleListen() {
+    //update the variable and call listen
+    console.log("togglelisten");
+    this.setState({ recognizing: !this.state.recognizing }, this.listen);
+  }
+
+  listen() {
+    //start listening and grab the output form ASR model to display in textbox
+    if (this.state.recognizing) {
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+    recognition.onresult = function (event) {
+      let msg = "";
+      for (var i = 0; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          msg += event.results[i][0].transcript;
+        }
+      }
+      document.getElementById("msg").innerHTML = msg;
+    };
+
+    recognition.onerror = (event) => {
+      console.log("Error in recognition: " + event.error);
+    };
+  }
+
   handleSubmit() {
     //get the message
     var chatmsg = document.getElementById("msg").innerHTML;
@@ -72,14 +118,25 @@ class Message extends Component {
     return (
       <div className="Chat">
         {/* <p>Press spacebar to start/stop recording.</p> */}
-        <p>Enter the command to the bot in the input box below.</p>
+        <p>
+          Enter the command to the bot in the input box below, or click the mic
+          button to start/stop voice input.
+        </p>
         <p>
           Click the x next to the message if the outcome wasn't as expected.
         </p>
+        <KeyboardVoiceIcon
+          className="ASRButton"
+          variant="contained"
+          color={this.state.recognizing ? "default" : "secondary"}
+          fontSize="large"
+          onClick={this.toggleListen.bind(this)}
+        ></KeyboardVoiceIcon>
         <List>{this.renderChatHistory()}</List>
         <div contentEditable="true" className="Msg single-line" id="msg">
           {" "}
         </div>
+
         <Button
           className="MsgButton"
           variant="contained"
@@ -89,9 +146,9 @@ class Message extends Component {
           {" "}
           Submit{" "}
         </Button>
-        {}
 
         <p id="callbackMsg">{this.props.status}</p>
+        <p id="assistantReply">{this.props.agent_reply} </p>
       </div>
     );
   }

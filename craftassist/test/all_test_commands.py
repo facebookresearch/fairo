@@ -10,7 +10,7 @@ ATTRIBUTES = {
         "attribute": {
             "linear_extent": {
                 "relative_direction": "AWAY",
-                "source": {"special_reference": "SPEAKER"},
+                "source": {"reference_object": {"special_reference": "SPEAKER"}},
             }
         }
     },
@@ -21,16 +21,26 @@ ATTRIBUTES = {
 
 
 FILTERS = {
-    "that cow": {"has_name": "cow", "contains_coreference": "resolved", "location": SPEAKERLOOK},
-    "that cube": {"has_name": "cube", "contains_coreference": "resolved", "location": SPEAKERLOOK},
-    "a cow": {"has_name": "cow"},
-    "a cube": {"has_name": "cube"},
+    "that cow": {
+        "triples": [{"pred_text": "has_name", "obj_text": "cow"}],
+        "contains_coreference": "resolved",
+        "location": SPEAKERLOOK,
+    },
+    "that cube": {
+        "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
+        "contains_coreference": "resolved",
+        "location": SPEAKERLOOK,
+    },
+    "a cow": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]},
+    "a cube": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]},
     "where I am looking": {"location": SPEAKERLOOK},
     "my location": {"location": AGENTPOS},
     "number of blocks in blue cube": {
         "output": {"attribute": ATTRIBUTES["number of blocks"]},
-        "has_name": "cube",
-        "has_colour": "blue",
+        "triples": [
+            {"pred_text": "has_name", "obj_text": "cube"},
+            {"pred_text": "has_colour", "obj_text": "blue"},
+        ],
     },
 }
 
@@ -48,33 +58,36 @@ REFERENCE_OBJECTS = {
 
 ATTRIBUTES["distance from that cube"] = {
     "attribute": {
-        "linear_extent": {"relative_direction": "AWAY", "source": REFERENCE_OBJECTS["that cube"]}
+        "linear_extent": {
+            "relative_direction": "AWAY",
+            "source": {"reference_object": REFERENCE_OBJECTS["that cube"]},
+        }
     }
 }
 
 # FIXME "built" should check for player made or agent made
 FILTERS["the first thing that was built"] = {
-    "argmin": {"ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "has_tag": "_voxel_object",
+    "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
 }
 FILTERS["the last thing that was built"] = {
-    "argmax": {"ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "has_tag": "_voxel_object",
+    "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argmin": {"ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "has_tag": "_voxel_object",
+    "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argmin": {"ordinal": "SECOND", "quantity": ATTRIBUTES["create time"]},
-    "has_tag": "_voxel_object",
+    "argval": {"polarity": "MIN", "ordinal": "SECOND", "quantity": ATTRIBUTES["create time"]},
+    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argmax": {"ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "has_tag": "_voxel_object",
+    "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
 }
 
 
@@ -88,7 +101,10 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "spawn_5_sheep": {
         "action_type": "SPAWN",
-        "reference_object": {"filters": {"has_name": "sheep"}, "text_span": "sheep"},
+        "reference_object": {
+            "filters": {"triples": [{"pred_text": "has_name", "obj_text": "sheep"}]},
+            "text_span": "sheep",
+        },
         "repeat": {"repeat_key": "FOR", "repeat_count": "5"},
     },
     "copy_speaker_look_to_agent_pos": {
@@ -104,11 +120,23 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "build_small_sphere": {
         "action_type": "BUILD",
-        "schematic": {"has_name": "sphere", "has_size": "small", "text_span": "small sphere"},
+        "schematic": {
+            "triples": [
+                {"pred_text": "has_name", "obj_text": "sphere"},
+                {"pred_text": "has_size", "obj_text": "small"},
+            ],
+            "text_span": "small sphere",
+        },
     },
     "build_1x1x1_cube": {
         "action_type": "BUILD",
-        "schematic": {"has_name": "cube", "has_size": "1 x 1 x 1", "text_span": "1 x 1 x 1 cube"},
+        "schematic": {
+            "triples": [
+                {"pred_text": "has_name", "obj_text": "cube"},
+                {"pred_text": "has_size", "obj_text": "1 x 1 x 1"},
+            ],
+            "text_span": "1 x 1 x 1 cube",
+        },
     },
     "move_speaker_pos": {
         "action_type": "MOVE",
@@ -116,21 +144,41 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "build_diamond": {
         "action_type": "BUILD",
-        "schematic": {"has_name": "diamond", "text_span": "diamond"},
+        "schematic": {
+            "triples": [{"pred_text": "has_name", "obj_text": "diamond"}],
+            "text_span": "diamond",
+        },
     },
     "build_gold_cube": {
         "action_type": "BUILD",
-        "schematic": {"has_block_type": "gold", "has_name": "cube", "text_span": "gold cube"},
+        "schematic": {
+            "triples": [
+                {"pred_text": "has_block_type", "obj_text": "gold"},
+                {"pred_text": "has_name", "obj_text": "cube"},
+            ],
+            "text_span": "gold cube",
+        },
     },
     "build_red_cube": {
         "action_type": "BUILD",
         "location": {"reference_object": {"special_reference": "SPEAKER_LOOK"}},
-        "schematic": {"has_colour": "red", "has_name": "cube", "text_span": "red cube"},
+        "schematic": {
+            "triples": [
+                {"pred_text": "has_colour", "obj_text": "red"},
+                {"pred_text": "has_name", "obj_text": "cube"},
+            ],
+            "text_span": "red cube",
+        },
     },
     "destroy_red_cube": {
         "action_type": "DESTROY",
         "reference_object": {
-            "filters": {"has_name": "cube", "has_colour": "red"},
+            "filters": {
+                "triples": [
+                    {"pred_text": "has_name", "obj_text": "cube"},
+                    {"pred_text": "has_colour", "obj_text": "red"},
+                ]
+            },
             "text_span": "red cube",
         },
     },
@@ -144,11 +192,22 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "go_to_tree": {
         "action_type": "MOVE",
-        "location": {"reference_object": {"filters": {"has_name": "tree"}}, "text_span": "tree"},
+        "location": {
+            "reference_object": {
+                "filters": {"triples": [{"pred_text": "has_name", "obj_text": "tree"}]}
+            },
+            "text_span": "tree",
+        },
     },
     "build_square_height_1": {
         "action_type": "BUILD",
-        "schematic": {"has_name": "square", "has_height": "1", "text_span": "square height 1"},
+        "schematic": {
+            "triples": [
+                {"pred_text": "has_name", "obj_text": "square"},
+                {"pred_text": "has_height", "obj_text": "1"},
+            ],
+            "text_span": "square height 1",
+        },
     },
     "stop": {"action_type": "STOP"},
     "fill_speaker_look": {
@@ -160,7 +219,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "fill_speaker_look_gold": {
         "action_type": "FILL",
-        "has_block_type": "gold",
+        "triples": [{"pred_text": "has_block_type", "obj_text": "gold"}],
         "reference_object": {
             "filters": {"location": SPEAKERLOOK},
             "text_span": "where I'm looking",
@@ -174,7 +233,12 @@ BUILD_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "BUILD",
-                "schematic": {"has_name": "cube", "has_block_type": "gold"},
+                "schematic": {
+                    "triples": [
+                        {"pred_text": "has_name", "obj_text": "cube"},
+                        {"pred_text": "has_block_type", "obj_text": "gold"},
+                    ]
+                },
                 "location": {
                     "reference_object": {"special_reference": {"coordinates_span": "0 66 0"}}
                 },
@@ -184,7 +248,15 @@ BUILD_COMMANDS = {
     "build a small cube": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
-            {"action_type": "BUILD", "schematic": {"has_name": "cube", "has_size": "small"}}
+            {
+                "action_type": "BUILD",
+                "schematic": {
+                    "triples": [
+                        {"pred_text": "has_name", "obj_text": "cube"},
+                        {"pred_text": "has_size", "obj_text": "small"},
+                    ]
+                },
+            }
         ],
     },
     "build a circle to the left of the circle": {
@@ -193,11 +265,16 @@ BUILD_COMMANDS = {
             {
                 "action_type": "BUILD",
                 "location": {
-                    "reference_object": {"filters": {"has_name": "circle"}},
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "circle"}]}
+                    },
                     "relative_direction": "LEFT",
                     "text_span": "to the left of the circle",
                 },
-                "schematic": {"has_name": "circle", "text_span": "circle"},
+                "schematic": {
+                    "triples": [{"pred_text": "has_name", "obj_text": "circle"}],
+                    "text_span": "circle",
+                },
             }
         ],
     },
@@ -227,10 +304,12 @@ BUILD_COMMANDS = {
             {
                 "action_type": "BUILD",
                 "schematic": {
-                    "has_block_type": "stone",
-                    "has_name": "rectangle",
-                    "has_height": "9",
-                    "has_base": "9",  # has_base doesn't belong in "rectangle"
+                    "triples": [
+                        {"pred_text": "has_block_type", "obj_text": "stone"},
+                        {"pred_text": "has_name", "obj_text": "rectangle"},
+                        {"pred_text": "has_height", "obj_text": "9"},
+                        {"pred_text": "has_base", "obj_text": "9"},
+                    ],  # has_base doesn't belong in "rectangle"
                     "text_span": "9 x 9 stone rectangle",
                 },
             }
@@ -249,7 +328,7 @@ BUILD_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "BUILD",
-                "schematic": {"has_name": "fluffy"},
+                "schematic": {"triples": [{"pred_text": "has_name", "obj_text": "fluffy"}]},
                 "location": {"reference_object": {"special_reference": "AGENT"}},
             }
         ],
@@ -297,13 +376,23 @@ DESTROY_COMMANDS = {
     "destroy the fluff thing": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
-            {"action_type": "DESTROY", "reference_object": {"filters": {"has_tag": "fluff"}}}
+            {
+                "action_type": "DESTROY",
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_tag", "obj_text": "fluff"}]}
+                },
+            }
         ],
     },
     "destroy the fluffy object": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
-            {"action_type": "DESTROY", "reference_object": {"filters": {"has_tag": "fluffy"}}}
+            {
+                "action_type": "DESTROY",
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_tag", "obj_text": "fluffy"}]}
+                },
+            }
         ],
     },
 }
@@ -349,7 +438,9 @@ MOVE_COMMANDS = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"filters": {"has_name": "cube"}},
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                    },
                     "relative_direction": "BETWEEN",
                     "text_span": "between the cubes",
                 },
@@ -449,27 +540,115 @@ GET_MEMORY_COMMANDS = {
     "what are you doing": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "memory_type": {"action_type": "NULL"},
-            "output": {"attribute": "ACTION_NAME"},
+            "triples": [{"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"}],
+            "memory_type": "TASKS",
+            "output": {"attribute": "NAME"},
         },
     },
     "what are you building": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "memory_type": {"action_type": "BUILD"},
-            "output": {"attribute": "ACTION_REFERENCE_OBJECT_NAME"},
+            "triples": [
+                {"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"},
+                {"pred_text": "has_name", "obj_text": "_BUILD"},
+            ],
+            "memory_type": "TASKS",
+            "output": {"attribute": {"task_info": {"reference_object": {"attribute": "NAME"}}}},
         },
     },
     "where are you going": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "memory_type": {"action_type": "MOVE"},
-            "output": {"attribute": "MOVE_TARGET"},
+            "output": {
+                "attribute": {"task_info": {"reference_object": {"attribute": "LOCATION"}}}
+            },
+            "memory_type": "TASKS",
+            "triples": [
+                {"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"},
+                {"pred_text": "has_name", "obj_text": "_MOVE"},
+            ],
         },
     },
     "where are you": {
         "dialogue_type": "GET_MEMORY",
-        "filters": {"memory_type": "AGENT", "output": {"attribute": "LOCATION"}},
+        "filters": {
+            "output": {"attribute": "LOCATION"},
+            "memory_type": "REFERENCE_OBJECT",
+            "triples": [{"pred_text": "has_tag", "obj_text": "_SELF"}],
+        },
+    },
+    "what is to the left of the cube?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "output": {"attribute": "NAME"},
+            "memory_type": "REFERENCE_OBJECT",
+            "location": {
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                },
+                "relative_direction": "LEFT",
+            },
+        },
+    },
+    "how many cubes are there?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "output": "count",
+            "memory_type": "REFERENCE_OBJECT",
+            "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
+        },
+    },
+    "how many blue things are there?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "triples": [{"pred_text": "has_colour", "obj_text": "blue"}],
+            "output": "count",
+        },
+    },
+    "how many blocks are in the blue cube?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "output": {"attribute": {"num_blocks": {"block_filters": {}}}},
+            "memory_type": "REFERENCE_OBJECT",
+            "triples": [
+                {"pred_text": "has_name", "obj_text": "cube"},
+                {"pred_text": "has_colour", "obj_text": "blue"},
+            ],
+        },
+    },
+    "what is the thing closest to you?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "output": {"attribute": "name"},
+            "argval": {
+                "ordinal": "FIRST",
+                "polarity": "MIN",
+                "quantity": {
+                    "attribute" : {
+                        "linear_extent": {
+                            "source": {"reference_object": {"special_reference": "AGENT"}}
+                        }
+                    }
+                },
+            },
+        },
+    },
+    "what is the thing closest to me?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "output": {"attribute" : "name"},
+            "argval": {
+                "ordinal": "FIRST",
+                "polarity": "MIN",
+                "quantity": {
+                    "attribute" : {
+                        "linear_extent": {
+                            "source": {"reference_object": {"special_reference": "SPEAKER"}}
+                        }
+                    }
+                },
+            },
+        },
     },
 }
 
@@ -477,7 +656,12 @@ PUT_MEMORY_COMMANDS = {
     "that is fluff": {
         "dialogue_type": "PUT_MEMORY",
         "filters": {"location": SPEAKERLOOK},
-        "upsert": {"memory_data": {"memory_type": "TRIPLE", "has_tag": "fluff"}},
+        "upsert": {
+            "memory_data": {
+                "memory_type": "TRIPLE",
+                "triples": [{"pred_text": "has_tag", "obj_text": "fluff"}],
+            }
+        },
     },
     "good job": {
         "dialogue_type": "PUT_MEMORY",
@@ -486,7 +670,12 @@ PUT_MEMORY_COMMANDS = {
     "that is fluffy": {
         "dialogue_type": "PUT_MEMORY",
         "filters": {"location": SPEAKERLOOK},
-        "upsert": {"memory_data": {"memory_type": "TRIPLE", "has_tag": "fluffy"}},
+        "upsert": {
+            "memory_data": {
+                "memory_type": "TRIPLE",
+                "triples": [{"pred_text": "has_tag", "obj_text": "fluffy"}],
+            }
+        },
     },
 }
 
@@ -501,7 +690,9 @@ CONDITIONS = {
     "a cow has x greater than 5": {
         "condition_type": "COMPARATOR",
         "condition": {
-            "input_left": {"value_extractor": append_output(FILTERS["a cow"], ATTRIBUTES["x"])},
+            "input_left": {
+                "value_extractor": {"filters": append_output(FILTERS["a cow"], ATTRIBUTES["x"])}
+            },
             "comparison_type": "GREATER_THAN",
             "input_right": {"value_extractor": "5"},
         },
@@ -509,7 +700,9 @@ CONDITIONS = {
     "that cow has x greater than 5": {
         "condition_type": "COMPARATOR",
         "condition": {
-            "input_left": {"value_extractor": append_output(FILTERS["that cow"], ATTRIBUTES["x"])},
+            "input_left": {
+                "value_extractor": {"filters": append_output(FILTERS["that cow"], ATTRIBUTES["x"])}
+            },
             "comparison_type": "GREATER_THAN",
             "input_right": {"value_extractor": "5"},
         },
@@ -518,9 +711,9 @@ CONDITIONS = {
         "condition_type": "COMPARATOR",
         "condition": {
             "input_left": {
-                "value_extractor": append_output(
-                    FILTERS["that cow"], ATTRIBUTES["distance from me"]
-                )
+                "value_extractor": {
+                    "filters": append_output(FILTERS["that cow"], ATTRIBUTES["distance from me"])
+                }
             },
             "comparison_type": "LESS_THAN",
             "input_right": {"value_extractor": "2"},
@@ -582,7 +775,11 @@ STOP_CONDITION_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "cow"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
+                    }
+                },
                 "stop_condition": CONDITIONS["2 minutes"],
             }
         ],
@@ -592,7 +789,11 @@ STOP_CONDITION_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "cow"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
+                    }
+                },
                 "stop_condition": CONDITIONS["18 seconds"],
             }
         ],
@@ -602,7 +803,11 @@ STOP_CONDITION_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "cow"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
+                    }
+                },
                 "stop_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
             }
         ],
@@ -612,7 +817,11 @@ STOP_CONDITION_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "cow"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
+                    }
+                },
                 "stop_condition": CONDITIONS["that cow has x greater than 5"],
             }
         ],
@@ -636,7 +845,14 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"filters": {"has_colour": "gray", "has_name": "chair"}}
+                    "reference_object": {
+                        "filters": {
+                            "triples": [
+                                {"pred_text": "has_colour", "obj_text": "gray"},
+                                {"pred_text": "has_name", "obj_text": "chair"},
+                            ]
+                        }
+                    }
                 },
             }
         ],
@@ -646,7 +862,11 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "chair"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                    }
+                },
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -792,7 +1012,11 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "MOVE",
-                "location": {"reference_object": {"filters": {"has_name": "chair"}}},
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                    }
+                },
                 "stop_condition": {"condition_type": "NEVER"},
             }
         ],
@@ -800,7 +1024,12 @@ GROUND_TRUTH_PARSES = {
     },
     "find Laurens": {
         "action_sequence": [
-            {"action_type": "SCOUT", "reference_object": {"filters": {"has_name": "Laurens"}}}
+            {
+                "action_type": "SCOUT",
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Laurens"}]}
+                },
+            }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
@@ -808,8 +1037,14 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "GET",
-                "receiver": {"reference_object": {"filters": {"has_name": "Mary"}}},
-                "reference_object": {"filters": {"has_name": "cup"}},
+                "receiver": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Mary"}]}
+                    }
+                },
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cup"}]}
+                },
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -819,7 +1054,9 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "GET",
                 "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
-                "reference_object": {"filters": {"has_name": "lunch"}},
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "lunch"}]}
+                },
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",

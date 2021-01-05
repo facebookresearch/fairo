@@ -3,12 +3,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import argparse
 
-from annotation_tool_1 import MAX_WORDS
+from annotation_tool_A import MAX_WORDS
 
 
 def print_csv_format(filename, option_num):
     if option_num == 1:
-        # level 1
+        # level 1, tool A
         print("command", *["word{}".format(i) for i in range(MAX_WORDS)], sep=",")
 
         with open(filename) as f:
@@ -19,7 +19,7 @@ def print_csv_format(filename, option_num):
                 print(command, *words, *([""] * (MAX_WORDS - len(words))), sep=",")
 
     elif option_num == 2:
-        # level 2
+        # level 2, tool B
         print(
             "command", "intent", "child", *["word{}".format(i) for i in range(MAX_WORDS)], sep=","
         )
@@ -28,13 +28,54 @@ def print_csv_format(filename, option_num):
             for line in f.readlines():
                 command = line.replace(",", "").strip()
                 # This option is if we need highlighted text to be rendered
-                # file will have : text + "\t" +  text with spans in for highlighted words
+                # file will have : text + "\t" +  text with spans in for highlighted words + "\t" + action_name + "\t" + child_name
                 parts = command.split("\t")
                 words = parts[0].split()
                 intent = parts[2]
                 child = parts[3]
                 print(parts[1], intent, child, *words, *([""] * (MAX_WORDS - len(words))), sep=",")
     elif option_num == 3:
+        # tool C (for reference object only)
+        print(
+            "command", "intent", "child", *["word{}".format(i) for i in range(MAX_WORDS)], sep=","
+        )
+
+        with open(filename) as f:
+            for line in f.readlines():
+                command = line.replace(",", "").strip()
+                # This option is if we need highlighted text to be rendered
+                # file will have :
+                # text + "\t" +  text with spans in for highlighted words + "\t" + action_name + "\t" + reference_object
+                """NOTE: if location and filters allowed as reference_object children: + "\t" + ref_object_child_name"""
+                parts = command.split("\t")
+                words = parts[0].split()  # all words for spans
+                intent = parts[2]
+                child = parts[3]
+                print(parts[1], intent, child, *words, *([""] * (MAX_WORDS - len(words))), sep=",")
+    elif option_num == 4:
+        # tool D, comparison for filters tool
+        print(
+            "command",
+            "child",
+            "ref_child",
+            *["word{}".format(i) for i in range(MAX_WORDS)],
+            sep=","
+        )
+
+        with open(filename) as f:
+            for line in f.readlines():
+                command = line.replace(",", "").strip()
+                # This option is if we need highlighted text to be rendered
+                # file will have :
+                # text + "\t" +  text with spans in for highlighted words + "\t" + reference_object + "\t" + "comparison"
+                parts = command.split("\t")
+                words = parts[0].split()  # all words for spans
+                child = parts[2]
+                ref_child = parts[3]
+                print(
+                    parts[1], child, ref_child, *words, *([""] * (MAX_WORDS - len(words))), sep=","
+                )
+    elif option_num == 5:
         # qualification test
         print(
             "command_1",

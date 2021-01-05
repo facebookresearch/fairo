@@ -17,8 +17,10 @@ class InteractApp extends Component {
       status: "",
       chats: [{ msg: "", failed: false }],
       failidx: -1,
+      agent_reply: "",
     };
     this.state = this.initialState;
+    this.setAssistantReply = this.setAssistantReply.bind(this);
     this.MessageRef = React.createRef();
   }
 
@@ -30,8 +32,21 @@ class InteractApp extends Component {
     this.setState({ chats: new_chats });
   }
 
+  setAssistantReply(res) {
+    // show assistant's reply in the Message component
+    this.setState({
+      agent_reply: res.agent_reply,
+    });
+  }
+
   componentDidMount() {
-    if (this.props.stateManager) this.props.stateManager.connect(this);
+    if (this.props.stateManager) {
+      this.props.stateManager.connect(this);
+      this.props.stateManager.socket.on(
+        "showAssistantReply",
+        this.setAssistantReply
+      );
+    }
   }
 
   getUrlParameterByName(name) {
@@ -70,6 +85,7 @@ class InteractApp extends Component {
               stateManager={this.props.stateManager}
               ref={this.MessageRef}
               chats={this.state.chats}
+              agent_reply={this.state.agent_reply}
               goToQuestion={this.goToQuestion.bind(this)}
               setInteractState={this.setInteractState.bind(this)}
             />

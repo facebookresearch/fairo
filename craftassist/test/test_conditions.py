@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 
+from copy import deepcopy
 from base_craftassist_test_case import BaseCraftassistTestCase
 from all_test_commands import *
 from fake_mobs import LoopMob, make_mob_opts
@@ -73,11 +74,11 @@ class FollowUntilTest(BaseCraftassistTestCase):
 
         print(self.agent.memory._db_read("SELECT * FROM ReferenceObjects WHERE ref_type=?", "mob"))
         print("initial mob pos " + str(self.agent.world.mobs[0].pos))
-        d = STOP_CONDITION_COMMANDS["follow the cow until it has x greater than 5"]
+        d = deepcopy(STOP_CONDITION_COMMANDS["follow the cow until it has x greater than 5"])
         self.handle_logical_form(d, max_steps=1000)
         self.assertLessEqual(abs(self.agent.pos[0] - 5), 1.01)
 
-        d = STOP_CONDITION_COMMANDS["follow the cow for 18 seconds"]
+        d = deepcopy(STOP_CONDITION_COMMANDS["follow the cow for 18 seconds"])
         start_time = self.agent.get_time()
         self.handle_logical_form(d, max_steps=5000)
         end_time = self.agent.get_time()
@@ -88,7 +89,7 @@ class FollowUntilTest(BaseCraftassistTestCase):
         self.assertLessEqual(time_elapsed, 20)
         self.assertGreaterEqual(time_elapsed, 16)
 
-        d = STOP_CONDITION_COMMANDS["follow the cow for 2 minutes"]
+        d = deepcopy(STOP_CONDITION_COMMANDS["follow the cow for 2 minutes"])
         start_time = self.agent.get_time()
         self.handle_logical_form(d, max_steps=5000)
         end_time = self.agent.get_time()
@@ -101,7 +102,9 @@ class FollowUntilTest(BaseCraftassistTestCase):
 
         # TODO make sure cow is moving in x positive direction from below 5 when the test starts
         # it is now if everything else works, but should force it
-        d = STOP_CONDITION_COMMANDS["follow the cow for 18 seconds after it has x greater than 5"]
+        d = deepcopy(
+            STOP_CONDITION_COMMANDS["follow the cow for 18 seconds after it has x greater than 5"]
+        )
         start_time = self.agent.get_time()
         self.handle_logical_form(d, max_steps=5000)
         end_time = self.agent.get_time()

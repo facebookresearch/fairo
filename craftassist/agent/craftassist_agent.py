@@ -7,10 +7,8 @@ import logging
 import faulthandler
 import signal
 import random
-import re
 import sentry_sdk
 import time
-import numpy as np
 from multiprocessing import set_start_method
 from collections import namedtuple
 import subprocess
@@ -37,11 +35,11 @@ from base_agent.nsp_dialogue_manager import NSPDialogueManager
 from base_agent.base_util import Pos, Look
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.argument_parser import ArgumentParser
-from dialogue_objects import GetMemoryHandler, PutMemoryHandler, MCInterpreter
+from dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from low_level_perception import LowLevelMCPerception
 from mc_agent import Agent as MCAgent
 from dlevent import sio
-from mc_util import cluster_areas, hash_user, MCTime
+from mc_util import cluster_areas, MCTime
 from voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 from voxel_models.geoscorer import Geoscorer
 
@@ -107,7 +105,7 @@ class CraftAssistAgent(LocoMCAgent):
                 player_exists = True
         if not player_exists:
             newPlayer = Player(
-                12345678, "dashboard", Pos(0.0, 0.0, 0.0), Look(0.0, 0.0), Item(0, 0)
+                12345678, "dashboard", Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
             )
             updated_players.append(newPlayer)
         return updated_players
@@ -187,8 +185,9 @@ class CraftAssistAgent(LocoMCAgent):
     def init_controller(self):
         """Initialize all controllers"""
         dialogue_object_classes = {}
+        dialogue_object_classes["bot_capabilities"] = MCBotCapabilities
         dialogue_object_classes["interpreter"] = MCInterpreter
-        dialogue_object_classes["get_memory"] = GetMemoryHandler
+        dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
 

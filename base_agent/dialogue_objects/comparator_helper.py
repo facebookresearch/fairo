@@ -30,18 +30,19 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
                 cm = d.get("comparison_measure")
                 v = interpret_span_value(interpreter, speaker, inp, comparison_measure=cm)
                 value_extractors[inp_pos] = v
-        elif inp.get("output"):
+        elif inp.get("filters"):
             # this is a filter
             # TODO FIXME! deal with count
             # TODO logical form etc.?
             # FIXME handle errors/None return in AttributeInterpeter
-            if inp["output"].get("attribute"):
+            inp_filt = inp["filters"]
+            if inp_filt["output"].get("attribute"):
                 search_data = {
                     "attribute": get_attribute(
-                        interpreter, speaker, inp["output"].get("attribute")
+                        interpreter, speaker, inp_filt["output"].get("attribute")
                     )
                 }
-            mem, sd = maybe_specific_mem(interpreter, speaker, {"filters": inp})
+            mem, sd = maybe_specific_mem(interpreter, speaker, inp)
             if sd:
                 for k, v in sd.items():
                     search_data[k] = v

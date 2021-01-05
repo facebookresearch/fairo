@@ -27,7 +27,7 @@ class MainPane extends React.Component {
         <LiveImage
           height={320}
           width={320}
-          offsetH={320 + 30}
+          offsetH={320 + 80}
           offsetW={10}
           stateManager={stateManager}
         />
@@ -35,21 +35,21 @@ class MainPane extends React.Component {
           type={"depth"}
           height={320}
           width={320}
-          offsetH={320 + 30}
+          offsetH={320 + 80}
           offsetW={10 + 320 + 10}
           stateManager={stateManager}
         />
         <LiveObjects
           height={320}
           width={320}
-          offsetH={320 + 30 + 320 + 30}
+          offsetH={320 + 60 + 320 + 30}
           offsetW={10}
           stateManager={stateManager}
         />
         <LiveHumans
           height={320}
           width={320}
-          offsetH={320 + 30 + 320 + 30}
+          offsetH={320 + 60 + 320 + 30}
           offsetW={10 + 320 + 10}
           stateManager={stateManager}
         />

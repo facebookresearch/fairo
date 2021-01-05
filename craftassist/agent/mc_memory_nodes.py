@@ -262,7 +262,11 @@ class InstSegNode(VoxelObjectNode):
         # this is a hack until memory_filters does "not"
         memory.tag(memid, "_not_location")
         for tag in tags:
-            memory.tag(memid, tag)
+            if type(tag) is str:
+                memory.tag(memid, tag)
+            elif type(tag) is dict:
+                for k, v in tag.items():
+                    memory.add_triple(subj=memid, pred_text=k, obj_text=v)
         return memid
 
     def __init__(self, memory, memid: str):

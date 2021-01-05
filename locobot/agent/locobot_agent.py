@@ -27,7 +27,7 @@ from base_agent.loco_mc_agent import LocoMCAgent
 from perception import Perception, SelfPerception
 from base_agent.argument_parser import ArgumentParser
 import default_behaviors
-from locobot.agent.dialogue_objects import GetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from locobot.agent.dialogue_objects import LocoBotCapabilities, LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
 import rotation
 from locobot_mover import LoCoBotMover
 from multiprocessing import set_start_method
@@ -166,8 +166,9 @@ class LocobotAgent(LocoMCAgent):
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
         dialogue_object_classes = {}
+        dialogue_object_classes["bot_capabilities"] = LocoBotCapabilities
         dialogue_object_classes["interpreter"] = LocoInterpreter
-        dialogue_object_classes["get_memory"] = GetMemoryHandler
+        dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
 
@@ -201,6 +202,8 @@ class LocobotAgent(LocoMCAgent):
     # # FIXME!!!!
     def send_chat(self, chat: str):
         logging.info("Sending chat: {}".format(chat))
+        # Send the socket event to show this reply on dashboard
+        sio.emit("showAssistantReply", {'agent_reply' : "Agent: {}".format(chat)})
         self.memory.add_chat(self.memory.self_memid, chat)
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)

@@ -36,6 +36,7 @@ Following is a list of component nodes:
 - Mob
 """
 import os
+import copy
 import random
 
 from collections import OrderedDict
@@ -428,10 +429,27 @@ class ComponentNode:
                 d[attr] = val
                 if (attr.startswith("has_")) or (
                     attr
-                    in ["coordinates", "steps", "block_type", "repeat_count", "target_action_type"]
+                    in [
+                        "coordinates",
+                        "steps",
+                        "block_type",
+                        "repeat_count",
+                        "target_action_type",
+                    ]
                 ):
+                    if type(val) == str and val.startswith("_"):
+                        continue
                     span = find_span(self._action_description, val)
                     d[attr] = span
+        # Put all 'has_' under triples
+        old_d = copy.deepcopy(d)
+        for key, val in old_d.items():
+            if key.startswith("has_"):
+                if "triples" not in d:
+                    d["triples"] = []
+                triples_dict = {"pred_text": key, "obj_text": val}
+                d["triples"].append(triples_dict)
+                d.pop(key)
 
         # fix location type now
         if "location_type" in d:
@@ -1751,9 +1769,9 @@ class Filters(ComponentNode):
 
     def __init__(
         self,
-        temporal=None,  # the temporal value
-        mem_type=None,  # type of memory object
-        action_type=None,
+        has_tag=None,  # the has_tag value
+        mem_type=None,  # type of task
+        has_name=None,
         block_object_attr=None,
         bo_updated=False,
         location_attr=None,
@@ -1762,9 +1780,9 @@ class Filters(ComponentNode):
         mob_updated=False,
     ):
         super().__init__()
-        self.temporal = temporal if temporal else None
+        self.has_tag = has_tag if has_tag else None
         self.type = mem_type if mem_type else None
-        self.action_type = action_type if action_type else None
+        self.has_name = has_name if has_name else None
         self._location = None
         self._reference_object = None
 

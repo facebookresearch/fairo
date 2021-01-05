@@ -6,7 +6,7 @@ from memory_attributes import LinearExtentAttribute, TableColumn, ListAttribute
 from memory_values import LinearExtentValue, FixedValue, convert_comparison_value
 from base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import ReferenceObjectNode
-from dialogue_object_utils import tags_from_dict
+from dialogue_object_utils import tags_from_dict, SPEAKERLOOK, AGENTPOS
 
 
 """
@@ -44,6 +44,8 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
     """
     mem = None
     search_data = None
+    cands = None
+    # FIXME! make a "get_special_reference" fn
     if ref_obj_d.get("special_reference"):
         # this is a special ref object, not filters....
         cands = interpreter.subinterpret["reference_objects"](interpreter, speaker, ref_obj_d)
@@ -61,12 +63,14 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
             cands = interpreter.subinterpret["reference_objects"](
                 interpreter, speaker, sub_ref_obj_d
             )
-        if not cands:
-            # FIXME fix this error
-            raise ErrorWithResponse("I don't know which objects' attribute you are talking about")
-        # TODO if more than one? ask? use the filters?
-        else:
-            mem = cands[0]
+            if not cands:
+                # FIXME fix this error
+                raise ErrorWithResponse(
+                    "I don't know which objects' attribute you are talking about"
+                )
+            # TODO if more than one? ask? use the filters?
+            else:
+                mem = cands[0]
     else:
         # FIXME use FILTERS
         # this object is only defined by the filters and might be different at different moments
@@ -84,6 +88,8 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     the force_value arg forces the output to be a LinearExtentValue
     """
     location_data = {}
+    if d.get("normalized"):
+        location_data["normalized"] = True
     default_frame = getattr(interpreter, "default_frame", "AGENT")
     frame = d.get("frame", default_frame)
     if frame == "SPEAKER":
@@ -106,9 +112,17 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     if not rd:
         rd = d.get("destination")
         fixed_role = "destination"
+    rd = rd["reference_object"]
+
     mem, _ = maybe_specific_mem(interpreter, speaker, rd)
     if not mem:
-        F = interpreter.subinterpret["filters"](interpreter, speaker, rd)
+        # FIXME better defaults?
+        f = deepcopy(rd.get("filters", {}))
+        default_frame = getattr(interpreter.agent, "default_frame", "AGENT")
+        # should we do this?
+        if not f.get("location"):
+            f["location"] = SPEAKERLOOK if default_frame == "SPEAKER" else AGENTPOS
+        F = interpreter.subinterpret["filters"](interpreter, speaker, f)
         location_data["filter"] = F
     L = LinearExtentAttribute(interpreter.agent, location_data, mem=mem, fixed_role=fixed_role)
 
@@ -132,10 +146,10 @@ class AttributeInterpreter:
                 return TableColumn(interpreter.agent, d_attribute, get_all=get_all)
             elif d_attribute and type(d_attribute) is list:
                 alist = [self.__call__(interpreter, speaker, a) for a in d_attribute]
-                if None not in alist:
-                    return ListAttribute(interpreter.agent, alist)
+                return ListAttribute(interpreter.agent, alist)
         elif d_attribute.get("linear_extent"):
             return interpret_linear_extent(interpreter, speaker, d_attribute["linear_extent"])
+        # NB (kavyasrinet) : "num_blocks", "task_info"... are missing here
 
 
 CANONICALIZE_ATTRIBUTES = {
@@ -148,12 +162,10 @@ CANONICALIZE_ATTRIBUTES = {
     "head_yaw": "yaw",  # FIXME!!! prob should have pose type in memory
     "body_yaw": "yaw",  # FIXME!!! prob should have pose type in memory
     "name": "has_name",
-    "has_name": "has_name",
-    "has_colour": "has_colour",
-    "has_tag": "has_tag",
+    "colour": "has_colour",
+    "tag": "has_tag",
     "born_time": "create_time",
     "modify_time": "updated_time",
     "visit_time": "attended_time",  # FIXME!!
-    "action_name": "action_name",
-    # "speaker","finished_time", chat, logical_form ... tasks not supported yet
+    # "speaker","finished_time", "chat", "logical_form" ... tasks not supported yet
 }

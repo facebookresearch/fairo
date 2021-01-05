@@ -9,7 +9,9 @@ var logger = require("morgan");
 var cors = require("cors");
 
 var indexRouter = require("./routes/index");
+var autocompleteRouter = require("./routes/autocomplete");
 var readAndSaveToFile = require("./routes/readAndSaveToFile");
+var serveIndex = require('serve-index');
 var app = express();
 
 // view engine setup
@@ -24,6 +26,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
+app.use("/autocomplete", serveIndex('/autocomplete'));
 app.use("/readAndSaveToFile", readAndSaveToFile);
 
 // catch 404 and forward to error handler
@@ -39,7 +42,7 @@ app.use(function (err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render("error");
+  res.send("error");
 });
 
 module.exports = app;

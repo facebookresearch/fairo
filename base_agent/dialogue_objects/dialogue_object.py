@@ -149,10 +149,10 @@ class BotCapabilities(Say):
     def __init__(self, **kwargs):
         response_options = [
             'Try looking at something and tell me "go there"',
-            'Try looking at a structure and tell me "destroy that"',
-            'Try looking somewhere and tell me "build a wall there"',
-            "Try building something and giving it a name",
-            "Try naming something and telling me to build it",
+            'Try asking to get something for you',
+            'Try asking me to dance',
+            'Try asking me to point something',
+            'Try asking me to drop whatever is in my hand'
         ]
         super().__init__(response_options, **kwargs)
 

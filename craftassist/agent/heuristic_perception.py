@@ -19,7 +19,7 @@ from mc_util import (
     to_block_pos,
     fill_idmeta,
 )
-from block_data import BORING_BLOCKS, PASSABLE_BLOCKS
+from block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
 from search import depth_first_search
 from mc_memory_nodes import InstSegNode, BlockObjectNode
 
@@ -30,7 +30,7 @@ COLOUR_DATA = minecraft_specs.get_colour_data()
 BLOCK_PROPERTY_DATA = minecraft_specs.get_block_property_data()
 MOB_PROPERTY_DATA = minecraft_specs.get_mob_property_data()
 BID_COLOR_DATA = minecraft_specs.get_bid_to_colours()
-
+COLOUR_LIST = list(COLOR_BID_MAP.keys())
 
 # Taken from : stackoverflow.com/questions/16750618/
 # whats-an-efficient-way-to-find-if-a-point-lies-in-the-convex-hull-of-a-point-cl
@@ -384,7 +384,11 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
                                 blocktypes.append(idm)
                                 type_name = BLOCK_DATA["bid_to_name"][idm]
                                 tags = [type_name]
-                                tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
+                                colours = COLOUR_DATA["name_to_colors"].get(type_name, [])
+                                colours.extend([c for c in COLOUR_LIST if c in type_name])
+                                if colours:
+                                    tags.extend(colours)
+                                    tags.extend([{"has_colour": c} for c in colours])
                                 tags.extend(
                                     BLOCK_PROPERTY_DATA["name_to_properties"].get(type_name, [])
                                 )
@@ -397,7 +401,6 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
         if tags:
             shifted_c = [(l[0] + x - radius, l[1] + ymin, l[2] + z - radius) for l in c]
             if len(shifted_c) > 0:
-
                 InstSegNode.create(agent.memory, shifted_c, tags=tags)
     return blocktypes
 
@@ -526,12 +529,31 @@ class PerceptionWrapper:
             # perceive blocks in marked areas
             for pos, radius in self.agent.areas_to_perceive:
                 for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
-                    BlockObjectNode.create(self.agent.memory, obj)
+                    memid = BlockObjectNode.create(self.agent.memory, obj)
+                    color_tags = []
+                    for idm in obj:
+                        type_name = BLOCK_DATA["bid_to_name"][idm]
+                        color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
+                    for color_tag in list(set(color_tags)):
+                        self.agent.memory.add_triple(
+                            subj=memid, pred_text="has_colour", obj_text=color_tag
+                        )
+
                 get_all_nearby_holes(self.agent, pos, radius)
                 get_nearby_airtouching_blocks(self.agent, pos, radius)
 
             # perceive blocks near the agent
-            for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
-                BlockObjectNode.create(self.agent.memory, obj)
+            for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
+                memid = BlockObjectNode.create(self.agent.memory, objs)
+                color_tags = []
+                for obj in objs:
+                    idm = obj[1]
+                    type_name = BLOCK_DATA["bid_to_name"][idm]
+                    color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
+                for color_tag in list(set(color_tags)):
+                    self.agent.memory.add_triple(
+                        subj=memid, pred_text="has_colour", obj_text=color_tag
+                    )
+
             get_all_nearby_holes(self.agent, self.agent.pos, radius=self.radius)
             get_nearby_airtouching_blocks(self.agent, self.agent.pos, radius=self.radius)
