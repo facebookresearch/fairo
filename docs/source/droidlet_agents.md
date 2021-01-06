@@ -2,7 +2,7 @@
 .. _droidlet_agents:
 ```
 # Agents
-We instantiate a droidlet [agent](https://github.com/fairinternal/minecraft/blob/master/locobot/agent) on a [Locobot](http://www.locobot.org/) and an [agent](https://github.com/fairinternal/minecraft/blob/master/craftassist/agent) in Minecraft using the [Craftassist](https://arxiv.org/abs/1907.08584) framework (the droidlet project evolved from Craftassist).  
+We instantiate a droidlet [agent](https://github.com/facebookresearch/droidlet/tree/agent_docs/locobot/agent) on a [Locobot](http://www.locobot.org/) and an [agent](https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/agent) in Minecraft using the [Craftassist](https://arxiv.org/abs/1907.08584) framework (the droidlet project evolved from Craftassist).  
 
 ## Locobot ##
 
@@ -21,6 +21,21 @@ We instantiate a droidlet [agent](https://github.com/fairinternal/minecraft/blob
 ```
 
 ## Craftassist ##
-Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/fairinternal/minecraft/blob/master/craftassist/README.md)
+Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/)
 
-The craftassist perception modules are mostly heuristic.  A model for semantic segmentation is [here](https://github.com/fairinternal/minecraft/tree/master/craftassist/agent/voxel_models/detection-transformer/)
+### Craftassist Perception ###
+
+The craftassist perception modules are mostly heuristic.  
+
+```eval_rst
+ .. autoclass:: craftassist.agent.low_level_perception.LowLevelMCPerception
+   :members: perceive
+ .. autoclass:: craftassist.agent.heuristic_perception.PerceptionWrapper
+   :members: perceive
+```
+
+However, there are voxel models for semantic segmentation, one is [here](https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/agent/voxel_models/detection-transformer).  Its interface is:
+```eval_rst
+  .. autoclass:: craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper
+    :members: perceive
+```

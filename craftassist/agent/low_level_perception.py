@@ -28,6 +28,16 @@ def capped_line_of_sight(agent, player_struct, cap=20):
 
 
 class LowLevelMCPerception:
+    """Perceive the world at a given frequency and update agent
+    memory.
+
+    updates positions of other players, mobs, self, and changed blocks,
+    takes this information directly from the cuberite server
+
+    Args:
+        agent (LocoMCAgent): reference to the minecraft Agent
+        perceive_freq (int): if not forced, how many Agent steps between perception
+    """
     def __init__(self, agent, perceive_freq=5):
         self.agent = agent
         self.memory = agent.memory
@@ -35,9 +45,15 @@ class LowLevelMCPerception:
         self.perceive_freq = perceive_freq
 
     def perceive(self, force=False):
-        """Every n seconds (defined by perceive_freq), update location
-        of all mobs, item position in stack and update state of the
-        world, in agent's memory"""
+        """
+        Every n agent_steps (defined by perceive_freq), update in agent memory
+        location/pose of all agents, players, mobs; item stack positions and
+        changed blocks.
+
+        Args:
+            force (boolean): set to True to run all perceptual heuristics right now,
+                as opposed to waiting for perceive_freq steps (default: False)
+        """
         # FIXME (low pri) remove these in code, get from sql
         self.agent.pos = to_block_pos(pos_to_np(self.agent.get_player().pos))
 
