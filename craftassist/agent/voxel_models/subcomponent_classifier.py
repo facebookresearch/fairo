@@ -22,7 +22,16 @@ from semseg_models import SemSegWrapper
 
 # TODO all "subcomponent" operations are replaced with InstSeg
 class SubcomponentClassifierWrapper:
-    """Wrapper for Subcomponent Classifier
+    """Perceive the world at a given frequency and update agent
+    memory.
+
+    creates InstSegNodes and tags them
+
+    Args:
+        agent (LocoMCAgent): reference to the minecraft Agent
+        model_path (str): path to the segmentation model
+        perceive_freq (int): if not forced, how many Agent steps between perception.
+            If 0, does not run unless forced
     """
     def __init__(self, agent, model_path, perceive_freq=0):
         self.agent = agent
@@ -35,6 +44,14 @@ class SubcomponentClassifierWrapper:
             self.subcomponent_classifier = None
 
     def perceive(self, force=False):
+        """
+        run the classifiers, put tags in memory
+
+        Args:
+            force (boolean): set to True to run all perceptual heuristics right now,
+                as opposed to waiting for perceive_freq steps (default: False)
+
+        """
         if self.perceive_freq == 0 and not force:
             return
         if self.perceive_freq > 0 and self.agent.count % self.perceive_freq != 0 and not force:

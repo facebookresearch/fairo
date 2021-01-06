@@ -333,7 +333,7 @@ def label_top_bottom_blocks(block_list, top_heuristic=15, bottom_heuristic=25):
 def ground_height(agent, pos, radius, yfilt=5, xzfilt=5):
     """Compute height of ground blocks.
     At the moment: heuristic method and can potentially be replaced with a learned model.
-    Can definitely make more sophisticated looks for the first stack of 
+    Can definitely make more sophisticated looks for the first stack of
     non-ground material hfilt high, and can be fooled by e.g. a floating pile of dirt or a big buried object
     """
     ground = np.array(GROUND_BLOCKS).astype("int32")
@@ -357,8 +357,8 @@ def ground_height(agent, pos, radius, yfilt=5, xzfilt=5):
 
 
 def get_nearby_airtouching_blocks(agent, location, radius=15):
-    """Get all blocks ina  radius of 'radius' from location
-    'location' that are touching air on either side.
+    """Get all blocks in 'radius' of 'location'
+    that are touching air on either side.
     Returns:
         A list of blocktypes
     """
@@ -509,15 +509,37 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
 
 class PerceptionWrapper:
     """Perceive the world at a given frequency and update agent
-    memory with perceived BlockObjects, holes and blocks"""
+    memory.
 
-    def __init__(self, agent, perceive_freq=20, slow_perceive_freq_mult=8):
+    | Runs three basic heuristics.
+    | The first finds "interesting" visible (e.g. touching air) blocks, and
+    |     creates InstSegNodes
+    | The second finds "holes", and creates InstSegNodes
+    | The third finds connected components of "interesting" blocks and creates
+    |     BlockObjectNodes.  Note that this only places something in memory if
+    |     the connected component is newly closer than 15 blocks of the agent,
+    |     but was not recently placed (if it were newly visible because of
+    |     a block placement, it would be dealt with via maybe_add_block_to_memory
+    |     in low_level_perception.py)
+
+    Args:
+        agent (LocoMCAgent): reference to the minecraft Agent
+        perceive_freq (int): if not forced, how many Agent steps between perception
+    """
+
+    def __init__(self, agent, perceive_freq=20):
         self.perceive_freq = perceive_freq
         self.agent = agent
         self.radius = 15
-        self.perceive_freq = perceive_freq
 
     def perceive(self, force=False):
+        """Called by the core event loop for the agent to run all perceptual
+        models and save their state to memory.
+
+        Args:
+            force (boolean): set to True to run all perceptual heuristics right now,
+                as opposed to waiting for perceive_freq steps (default: False)
+        """
         if self.perceive_freq == 0 and not force:
             return
         if self.agent.count % self.perceive_freq != 0 and not force:
