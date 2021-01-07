@@ -185,6 +185,22 @@ class StateManager {
           // Right
           commands.push("MOVE_RIGHT");
         }
+        if (k === 65) {
+          // A
+          commands.push("PAN_LEFT");
+        }
+        if (k === 68) {
+          // D
+          commands.push("PAN_RIGHT");
+        }
+        if (k === 87) {
+          // W
+          commands.push("TILT_UP");
+        }
+        if (k === 83) {
+          // S
+          commands.push("TILT_DOWN");
+        }
       }
     }
     if (commands.length > 0) {

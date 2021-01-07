@@ -103,6 +103,22 @@ class LocobotAgent(LocoMCAgent):
                 elif command == "MOVE_RIGHT":
                     movement[2] -= 0.1
                     print("action: RIGHT")
+                elif command == "PAN_LEFT":
+                    self.mover.bot.set_pan(
+                        self.mover.bot.get_pan() + 0.08
+                    )
+                elif command == "PAN_RIGHT":
+                    self.mover.bot.set_pan(
+                        self.mover.bot.get_pan() - 0.08
+                    )
+                elif command == "TILT_UP":
+                    self.mover.bot.set_tilt(
+                        self.mover.bot.get_tilt() - 0.08
+                    )
+                elif command == "TILT_DOWN":
+                    self.mover.bot.set_tilt(
+                        self.mover.bot.get_tilt() + 0.08
+                    )
             self.mover.move_relative([movement])
 
         @sio.on("sendCommandToAgent")

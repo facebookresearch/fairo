@@ -39,16 +39,10 @@ jobs:
           command: make -C tools/docker build
 
       - run:
-          name: Python linter checks (flake8)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e flake8)
-            sh ./tools/codetools/check_flake8_failures.sh
-
-      - run:
           name: Python style checks (black and awscli)
           command: |
             pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            sh ./tools/codetools/check_and_fix_black_failures.sh
+            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
 
       - run:
           name: Python unit tests

@@ -18,12 +18,7 @@ First [install Docker](https://docs.docker.com/get-docker/) in your local system
 
 ### Build docker container
 
-First :
-
-```
-cd minecraft/
-```
-and then run:
+First run:
 ```
 ./tools/docker/local_install.sh
 ```
@@ -55,8 +50,6 @@ to stop the docker container.
 
 ## Option B: Local Installation
 
-Do this section *before* cloning the repo.
-
 ### Dependencies
 
 Make sure the following packages have already been installed before moving on:
@@ -67,16 +60,7 @@ Make sure the following packages have already been installed before moving on:
 * Eigen
 * For Mac users:
   * LLVM version < 10 to successfully use clang. [Working with multiple versions of Xcode](https://medium.com/@hacknicity/working-with-multiple-versions-of-xcode-e331c01aa6bc).
-
-
-### Python Requirements: Using A Conda Environment
-
-Set up and activate the conda env as explained [here](../README.md/#python-requirements-using-a-conda-environment).
-Now install Craftassist specific dependencies with pip:
-```
-
-pip install -r requirements.txt
-```
+  
 
 ### Building client and server
 
@@ -123,7 +107,7 @@ Multiplayer > Direct Connect > localhost:25565
 
 #### Error: Unsupported Protocol Version
 
-Minecraft has recently release v1.16. 4., and our Cuberite system supports at most v1.12
+Our Cuberite system supports at most v1.12 version of Minecraft client.
 [Please follow these instructions](https://help.minecraft.net/hc/en-us/articles/360034754852-Changing-game-versions-) to add a 1.12.x profile and use it to connect.
 
 ## Running the interactive V0 agent
