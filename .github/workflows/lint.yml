@@ -3,7 +3,7 @@ name: Lint
 on:
     push:
       branches:
-      - master
+      - main
     pull_request:
 
 jobs:
@@ -23,9 +23,9 @@ jobs:
           - name: Fix git
             run: |
               set -eux
-              git fetch origin master
+              git fetch origin main
               if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-                git branch -f master origin/master
+                git branch -f main origin/main
               fi
           - name: Run flake8
             run: |
