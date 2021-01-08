@@ -1,4 +1,4 @@
-# Type of Issue
+## Type of Issue
 
 Select the type of issue:
 - [ ] Bug report (to report a bug)

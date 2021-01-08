@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% from 'survey.html' import survey %}
+
+{% block container %}
+<div class="loading">
+  <div class="progress-text">Waiting for your server! This can take a minute or two, so please wait and don't refresh
+    the page.</div>
+  <div class="progress" style="margin-top: 15px;">
+    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="25"
+      aria-valuemin="0" aria-valuemax="100" style="width: 25%"></div>
+  </div>
+</div>
+
+<div class="finished d-none">
+  <div>Your server is ready! The ip address is:</div>
+  <div class="ip-address text-success" style="text-align: center; font-size: 64pt;"></div>
+  <div>Please open Minecraft, and navigate to <b>Multiplayer</b> > <b>Direct Connect</b>, enter the address, and click
+    <b>Join Server</b>.</div>
+  <div>When you are done, disconnect or close Minecraft.</div>
+
+  {% if role in ('manager', 'assistant') %}
+  <div class="role"><br />
+    {% if role == 'manager' %}
+    You are playing the role of <span class="text-success" style="font-size:18pt;">MANAGER</span>.
+    Another player will join who will be your <span>assistant</span>. Press
+    "t" to use the in-game chat to instruct your assistant.
+    {% elif role == 'assistant' %}
+    You are playing the role of <span class="text-success" style="font-size:18pt;">ASSISTANT</span>.
+    Another player will join who will be your <span>manager</span>. Please do
+    nothing unless your manager instructs you. You may press "t" to use the
+    in-game chat to respond or ask questions. Please follow your manager's
+    instructions exactly!
+    {% endif %}
+  </div>
+  <br />
+  <div>Please wait up to <b>five minutes</b> for the other player to join.</div>
+  {% endif %}
+
+  <div class="alert alert-warning" style="margin-top:20px"><b>Unsupported Protocol Version: </b>If you see this error,
+    please
+    <a href="https://help.mojang.com/customer/portal/articles/1475923-changing-game-versions">follow the instructions
+      here</a>
+    to change your game version to <b>1.12.x</b>
+  </div>
+
+
+  {% if not hide_survey %}{{ survey(instance_id, timestamp) }}{% endif %}
+</div>
+{% endblock %}
+
+{% block javascript %}
+$(document).ready(function() {
+    var instance_ip_address = '';
+    var interval = setInterval(function() {
+        $.get('/status', {q: "{{instance_id}}"},
+            function(resp) {
+                var r = JSON.parse(resp)
+                console.log(r)
+                if (r.progress) {
+                    setProgress(r.progress)
+                }
+                if (r.progress == 100) {
+                    clearInterval(interval);
+                    instance_ip_address = r.ip;
+                    finished(r.ip)
+                }
+            }).fail(function(err) {
+                console.error(err)
+                clearInterval(interval)
+            })
+    }, 2000)
+    
+})
+
+function setProgress(progress) {
+    $('.progress-bar').css('width', progress + '%').attr('aria-valuenow', progress)
+}
+
+function finished(ip) {
+    $('.loading').addClass('d-none')
+    $('.finished').removeClass('d-none')
+    $('.ip-address').text(ip)
+}
+{% endblock %}
+

@@ -12,6 +12,14 @@ Please check the options that are relevant.
 - [ ] Proposes a change (non-breaking change that isn't necessarily a bug)
 - [ ] New feature (non-breaking change that adds a new functionality)
 - [ ] Breaking change (fix or feature that would break some existing functionality downstream)
+- [ ] This is a unit test
+- [ ] Documentation only change
+
+## Type of requested review
+
+- [ ] I want a thorough review of the implementation.
+- [ ] I want a high level review. 
+- [ ] I want a deep design review.
 
 ## Before and After
 

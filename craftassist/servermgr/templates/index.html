@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% from 'launch_button.html' import launch_button %}
+
+{% block container %}
+<div>
+    <h3>Welcome to the Minecraft Assistant project!</h3>
+
+    <p>In this project, you will play Minecraft with a bot that is there to
+        help you. Use the in-game chat to talk to the bot. Tell it where to go.
+        Tell it what to do. Try to build something with its help.</p>
+
+    <p>For this project, you are asked to interact with the bot for
+        <b>10 minutes</b>. You may ask it to do anything you'd like. Explore
+        what the bot can and cannot do.</p>
+
+    <p>The bot may ask you questions so it can learn over time. Please try
+        to answer the questions it asks you.</p>
+
+    <p>When you are done, you will be asked to fill out a quick survey to help
+        improve the bot.</p>
+
+    <h3>To Proceed</h3>
+
+    <ol>
+        <li>Please make sure you have downloaded Minecraft and have a valid license.
+            <a href="https://help.minecraft.net/hc/en-us/articles/360034754852-Changing-game-versions-">Follow the
+                instructions here</a> to change your version to 1.12</li>
+        <li>Press the green Launch button to access the loading screen.</li>
+        <li>After 1-2 minutes, you will see an IP address, like <i>123.123.123.123</i>.
+            Open Minecraft, navigate to <b>Multiplayer</b> > <b>Direct Connect</b>, enter the address, and click <b>Join
+                Server</b>.</li>
+        <li>Play with the bot for <b>10 minutes</b>. When you are done, exit Minecraft or press <b>Escape >
+                Disconnect</b>.</li>
+        <li>Please fill out the short survey on the next page.</li>
+    </ol>
+
+    <h4>Please know that</h4>
+    <p>Facebook AI Research will process the log of your game actions and in-game chats in accordance with our Data
+        Policy.
+        The log of your in-game actions and chats with the bot will be recorded for research purposes, and may be used
+        by and/or shared with third parties in connection with this research.
+        This may involve public disclosure of the log as part of a research paper or data set.
+        We will take measures to remove any information that directly identifies you before doing so, but cannot
+        guarantee that the logs will be completely anonymous.
+        Do not send sensitive or personally identifiable information (for example, name, address, email, or phone
+        number) in chats to the bot, and do not build structures with personally identifiable information (for example
+        writing your name in blocks).
+
+        Facebook's Community Standards apply and you may not use any racist, sexist, or otherwise offensive language.
+        If you violate our policies you may be blocked.</p>
+
+
+
+</div>
+
+{{ launch_button("/launch") }}
+
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% from 'launch_button.html' import launch_button %}
+
+{% block container %}
+<div>
+  <h3> Welcome to the Minecraft Assistant project!</h3>
+
+  <p>In this project, you will play Minecraft with another human. You will be
+  assigned either the role of <b>MANAGER</b> or <b>ASSISTANT</b>.</p>
+
+  <p>If you are assigned the role of Manager, you are asked to press "t" to use
+  the in-game chat to direct the other player. You may ask the other player to
+  do anything you'd like.</p>
+
+  <p>If you are assigned the role of Assistant, please do only what the other
+  player instructs you to do! You are free to press "t" to use the in-game chat
+  to respond or ask questions. Please try to follow the instructions exactly!</p>
+
+  <div class="alert alert-warning"><b>IMPORTANT: </b>Please do not discuss anything
+      not related to the in-game task at hand. Managers should give instructions.
+      Assistants may respond with questions or confirmations related to the
+      instructions. Please do not make idle chat, schedule other sessions,
+      or discuss your real personal information!
+  </div>
+
+  <h3>To Proceed</h3>
+
+    <ol>
+    <li>Please make sure you have downloaded Minecraft and have a valid license.
+        <a href="https://help.mojang.com/customer/portal/articles/1475923-changing-game-versions">Follow the instructions here</a> to change your version to 1.12</li>
+    <li>Press the green Launch button to access the loading screen.</li>
+    <li>After 1-2 minutes, you will see an IP address, like <i>123.123.123.123</i>.
+        Open Minecraft, navigate to <b>Multiplayer</b> > <b>Direct Connect</b>,
+        enter the address, and click <b>Join Server</b>.</li>
+    <li>Wait for another player to join. It may take up to 5 minutes.</li>
+    <li>Interact with the other player for around <b>10 minutes</b>. When you
+        are done, exit Minecraft or press <b>Escape > Disconnect</b>.</li>
+    </ol>
+</div>
+
+{{ launch_button("matchmaker/launch") }}
+{% endblock %}
