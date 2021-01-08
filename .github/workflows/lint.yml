@@ -34,7 +34,7 @@ jobs:
               flake8 --version
               bash tools/codetools/check_flake8_failures.sh --ci | tee ${GITHUB_WORKSPACE}/output-annotations.txt
           - name: Add annotations
-            uses: pytorch/add-annotations-github-action@main
+            uses: pytorch/add-annotations-github-action@master
             with:
               check_name: 'lint'
               linter_output_path: 'output-annotations.txt'
