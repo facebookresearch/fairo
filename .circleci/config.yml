@@ -48,7 +48,7 @@ jobs:
           name: Python unit tests
           command: |
               mkdir shared
-              docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/minecraft/craftassist/test.sh craftassist
+              docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
               docker cp mc-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN="318c7f7e-54eb-4692-8651-8ea48857c3a7"
