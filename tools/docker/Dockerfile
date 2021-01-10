@@ -9,8 +9,7 @@ ARG current_branch
 # Clone/make repo
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
 RUN git clone --recursive git@github.com:facebookresearch/droidlet.git
-WORKDIR minecraft
-RUN echo ${current_branch}
+WORKDIR droidlet
 RUN git checkout ${current_branch}
 RUN mkdir -p craftassist/agent/models/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
