@@ -4,10 +4,11 @@ Select the type of issue:
 - [ ] Bug report (to report a bug)
 - [ ] Feature request (to request an additional feature)
 - [ ] Tracker (I am just using this as a tracker)
+- [ ] Documentation Ask
 
-## Feature Description
+## Description
 
-Detailed description of the requested feature.
+Detailed description of the requested feature/documentation ask/bug report.
 
 ## Current Behavior
 
