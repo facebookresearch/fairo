@@ -8,7 +8,7 @@ Select the type of issue:
 
 ## Description
 
-Detailed description of the requested feature/ducmentation ask/bug report.
+Detailed description of the requested feature/documentation ask/bug report.
 
 ## Current Behavior
 
