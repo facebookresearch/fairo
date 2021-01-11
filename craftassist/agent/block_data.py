@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 NORMAL_BLOCKS_N = 454
 
 PASSABLE_BLOCKS = (0, 8, 9, 31, 37, 38, 39, 40, 55, 106, 171, 175)
-BORING_BLOCKS = (0, 1, 2, 3, 6, 12, 31, 32, 37, 38, 39, 40)
+BORING_BLOCKS = (0, 1, 2, 3, 6, 7, 12, 31, 32, 37, 38, 39, 40)
 REMOVABLE_BLOCKS = BORING_BLOCKS + (106,)
 
 # don't bother trying to remove vines, since they grow
