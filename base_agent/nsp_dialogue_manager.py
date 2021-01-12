@@ -171,7 +171,7 @@ class NSPDialogueManager(DialogueManager):
 
         if d["dialogue_type"] == "NOOP":
             return Say("I don't know how to answer that.", **self.dialogue_object_parameters)
-        elif d["dialogue_type"] == "BOT_CAPABILITIES":
+        elif d["dialogue_type"] == "GET_CAPABILITIES":
             return self.dialogue_objects["bot_capabilities"](**self.dialogue_object_parameters)
         elif d["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             return self.dialogue_objects["interpreter"](

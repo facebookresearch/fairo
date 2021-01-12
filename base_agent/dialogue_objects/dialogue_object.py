@@ -151,7 +151,7 @@ class BotCapabilities(Say):
             'Try looking at something and tell me "go there"',
             'Try asking to get something for you',
             'Try asking me to dance',
-            'Try asking me to point something',
+            'Try asking me to point at something',
             'Try asking me to drop whatever is in my hand'
         ]
         super().__init__(response_options, **kwargs)
