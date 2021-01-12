@@ -55,18 +55,23 @@ export LOCOBOT_IP="IP of the locobot"
 python locobot_agent.py
         </pre></sub>
         </td>      
+    </tr>
+    <tr valign="top">
+        <td colspan=3> 4. Open the dashboard to interact with the assistant on `localhost:8000`
+        </td>      
     </tr>    
   </table>
 </p>
 
-This will download models, datasets and spawn the dashboard that is served on `localhost:8000`.
 
-Results should look something like this with `habitat` backend
+
+The Locobot Assistant has some default behaviors (like SLAM mapping shown below), which are things it does when it is idle.
+
 <p align="center">
-    <img src="https://media.giphy.com/media/XwmXCvoGHBXBqYUdMe/giphy.gif", width="960" height="192">
+    <img src="https://media.giphy.com/media/XwmXCvoGHBXBqYUdMe/giphy.gif", width="600" height="192">
 </p>
 
-To `turn off default behaviour`
+To run the Locobot Assistant without these default behaviors, use the `--no_default_behavior` flag.
 ```
 python locobot_agent.py --no_default_behavior
 ```
