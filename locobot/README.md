@@ -23,7 +23,7 @@ This folder introduces the Locobot Assistant, which is a droidlet agent embodied
         <th>Habitat</th>
     </thead>
     <tr valign="top">        
-        <td> 1. <a href="https://github.com/facebookresearch/pyrobot/blob/master/README.md#installation"> Setup PyRobot using Python 3</a>
+        <td> 1. <a href="https://github.com/facebookresearch/pyrobot/blob/master/README.md#installation"> Setup PyRobot<a> using Python 3 on the Locobot.
         <sub><pre lang="bash">
 ./locobot_install_all.sh -t full -p 3 -l interbotix
         </pre></sub></td>
@@ -33,7 +33,7 @@ docker pull theh1ghwayman/locobot-assistant:5.0
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 2. Launch Pyro4 <p> Copy the <a href="https://github.com/facebookresearch/droidlet/tree/main/locobot/robot"> robot<a/> folder onto the Locobot and then do the following: </p>
+      <td> 2. Launch Pyro4 <p> Copy the <a href="https://github.com/facebookresearch/droidlet/tree/main/locobot/robot"> robot<a/> folder onto the Locobot and then do the following: </p>
         <sub><pre lang="bash">
 cd robot
 chmod +x launch_pyro.sh
