@@ -15,7 +15,7 @@ This folder introduces the Locobot Assistant, which is a droidlet agent embodied
   </table>
 </p>
 
-## Setup
+## Getting Started 
 
 <p align="center">
   <table align="center">
@@ -71,15 +71,8 @@ The Locobot Assistant has some default behaviors (like SLAM mapping shown below)
     <img src="https://media.giphy.com/media/XwmXCvoGHBXBqYUdMe/giphy.gif", width="600" height="192">
 </p>
 
+
 To run the Locobot Assistant without these default behaviors, use the `--no_default_behavior` flag.
 ```
 python locobot_agent.py --no_default_behavior
 ```
-
-## ROS cheatsheet 
-
-A set of commands to be run on the locobot to sanity-check basic functionalities. 
-
-* rosrun tf view_frames - creates a PDF with the graph of the current transform tree to help identify different frames. These can then be used to the transformation matrices between any two frames.
-* rostopic echo <topic name> (http://wiki.ros.org/rostopic) - ros publishes a stream for each activity as topics (for example one for the raw camera stream, depth stream etc). This is a useful debugging command to sanity check that the basic functionalities are working on the locobot and can help identify issues like lose cables. 
-
