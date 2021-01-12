@@ -29,6 +29,6 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0
 coverage
 flask-cors
 flask
-python-socketio
+python-socketio>=5.0
 pytest
 pytest-cov

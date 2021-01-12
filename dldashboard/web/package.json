@@ -25,12 +25,13 @@
     "react-rnd": "^10.1.10",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
-    "socketio": "^1.0.0",
+    "socket.io": "^3.0.5",
+    "socket.io-client": "^3.0.5",
     "source-map-explorer": "^2.5.0",
     "status-indicator": "^1.0.9"
   },
   "scripts": {
-    "analyze": "source-map-explorer 'build/static/js/*.js'",    
+    "analyze": "source-map-explorer 'build/static/js/*.js'",
     "start": "react-scripts start",
     "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
