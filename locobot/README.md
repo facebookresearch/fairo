@@ -16,32 +16,49 @@ This folder introduces the Locobot Assistant, which is a droidlet agent embodied
 </p>
 
 ## Setup
-The Locobot Assistant is currently setup using a client-server architecture - with a thin layer on the locobot and a devserver which deals with all the heavy computation. 
 
-**On the Locobot** 
-
-* Setup pyrobot on the locobot using the [python 3 setup](https://github.com/facebookresearch/pyrobot/blob/master/README.md). Copy [remote_locobot.py](./remote_locobot.py) and [launch_pyro.sh](./launch_pyro.sh) to the locobot and launch the environment.
-
-```
+<p align="center">
+  <table align="center">
+    <thead><th>Physical Locobot</th>
+        <th>Habitat</th>
+    </thead>
+    <tr valign="top">        
+        <td> 1. <a href="https://github.com/facebookresearch/pyrobot/blob/master/README.md#installation"> Setup PyRobot using Python 3</a>
+        <sub><pre lang="bash">
+./locobot_install_all.sh -t full -p 3 -l interbotix
+        </pre></sub></td>
+        <td>We provide a docker image for habitat that comes bundled with PyRobot.
+        <sub><pre lang="bash">
+docker pull theh1ghwayman/locobot-assistant:5.0
+        </pre></sub></td>
+    </tr>
+    <tr valign="top">        
+        <td> 2. Launch Pyro4 <p> Copy the [robot folder](./robot) onto the Locobot and then do the following: </p>
+        <sub><pre lang="bash">
+cd robot
 chmod +x launch_pyro.sh
-./launch_pyro.sh  
-```
-
-**On the Devserver** 
-    
-```
-conda create -n droidlet_env python==3.7.4 pip numpy scikit-learn==0.19.1 pytorch torchvision -c conda-forge -c pytorch
-conda activate droidlet_env
-cd ~/droidlet/locobot
-pip install -r requirements.txt
-
-export LOCOBOT_IP=<IP of the locobot>
-```
-
-Run with default behavior, in which agent will explore the environment
-```
+./launch_pyro.sh
+        </pre></sub></td>
+        <td><sub><pre lang="bash">
+        <br/>
+docker run --gpus all -it --rm --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:5.0 bash
+roscore &
+load_pyrobot_env
+cd locobot/robot
+./launch_pyro_habitat.sh
+        </pre></sub></td>
+    </tr>
+        <tr valign="top">
+        <td colspan=3> 3. Run the locobot assistant.
+        <sub><pre lang="bash">
+export LOCOBOT_IP="IP of the locobot"
 python locobot_agent.py
-```
+        </pre></sub>
+        </td>      
+    </tr>    
+  </table>
+</p>
+
 This will download models, datasets and spawn the dashboard that is served on `localhost:8000`.
 
 Results should look something like this with `habitat` backend
