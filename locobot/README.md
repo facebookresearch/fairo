@@ -1,4 +1,4 @@
-This folder introduces the Locobot Assistant, which is a droidlet agent embodied on a [Locobot](http://www.locobot.org/). We also support a virtual backend for the Locobot Assistant the simulation platform [Habitat](https://aihabitat.org/).
+This folder introduces the Locobot Assistant, which is a droidlet agent embodied on a [Locobot](http://www.locobot.org/). We also support a virtual backend for the Locobot Assistant in the simulation platform [Habitat](https://aihabitat.org/).
 
 <center>
 
