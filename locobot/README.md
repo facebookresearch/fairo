@@ -1,7 +1,11 @@
-<p align="center">
-   <img src="locobot_readme.gif" />
-</p>
 
+
+This folder contains a droidlet agent embodied on a [Locobot](http://www.locobot.org/). We support a Locobot Agent embodied on a physical Locobot and also in the simulation platform [Habitat](https://aihabitat.org/).
+
+<p float="left">
+   <img src="https://locobot-bucket.s3-us-west-2.amazonaws.com/documentation/loco_physical.gif" />
+   <img src="https://locobot-bucket.s3-us-west-2.amazonaws.com/documentation/habitat_mover.gif" />
+</p>
 
 ## Setup
 The Locobot Assistant is currently setup using a client-server architecture - with a thin layer on the locobot and a devserver which deals with all the heavy computation. 
