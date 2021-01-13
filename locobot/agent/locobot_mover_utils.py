@@ -62,12 +62,22 @@ def transform_pose(XYZ, current_pose):
     XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
     return XYZ
 
+"""
+Co-ordinate transform utils. Read more at https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
+"""
+
+pyrobot_to_canonical_frame = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
 
 def base_canonical_coords_to_pyrobot_coords(xyt):
     """converts the robot's base coords from canonical to pyrobot coords."""
     return [xyt[1], -xyt[0], xyt[2]]
 
-
 def xyz_pyrobot_to_canonical_coords(xyz):
     """converts 3D coords from pyrobot to canonical coords."""
-    return [-xyz[1], xyz[2], xyz[0]]
+    return xyz @ pyrobot_to_canonical_frame
+    # return [-xyz[1], xyz[2], xyz[0]]
+
+def xyz_canonical_coords_to_pyrobot_coords(xyz):
+    """converts 3D coords from canonical to pyrobot coords."""
+    return xyz @ np.linalg.inverse(pyrobot_to_canonical_frame)
+    # return [xyz[2], -xyz[0], xyz[1]]

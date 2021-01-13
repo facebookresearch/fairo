@@ -19,6 +19,7 @@ from locobot_mover_utils import (
     transform_pose,
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
+    xyz_canonical_coords_to_pyrobot_coords,
 )
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -95,7 +96,9 @@ class LoCoBotMover:
         for xyt in xyt_positions:
             logging.info("Move absolute {}".format(xyt))
             self.bot.go_to_absolute(
-                base_canonical_coords_to_pyrobot_coords(xyt), close_loop=self.close_loop
+                base_canonical_coords_to_pyrobot_coords(xyt), 
+                use_map=False,
+                close_loop=self.close_loop
             )
             start_base_state = self.get_base_pos()
             while not self.bot.command_finished():
@@ -154,8 +157,17 @@ class LoCoBotMover:
         return "finished"
 
     def point_at(self, target_pos):
+        # move to within a certain distance of the target
+        # convert target pos to locobot coors
         pos = self.get_base_pos_in_canonical_coords()
         yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)
+        move_target = [target_pos[0]-0.5, target_pos[2]-0.5, yaw_rad]
+
+        self.move_absolute([move_target])    
+
+        # then get base pos and point
+        pos = self.get_base_pos_in_canonical_coords()
+        yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)        
         states = [
             [yaw_rad, 0.0, pitch_rad, 0.0, 0.0],
             [yaw_rad, 0.0, pitch_rad, -0.2, 0.0],
