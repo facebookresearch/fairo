@@ -80,12 +80,12 @@ class Point(Task):
     def step(self, agent):
         self.interrupted = False
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
-        status = agent.mover.point_at([self.target.tolist()])
+        status = agent.mover.point_at(self.target.tolist())
         if status == "finished":
             self.finished = True
 
     def __repr__(self):
-        return "<Point at {} ±{}>".format(self.target, self.approx)
+        return "<Point at {}>".format(self.target)
 
 
 class Move(Task):

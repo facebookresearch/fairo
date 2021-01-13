@@ -154,18 +154,18 @@ class LoCoBotMover:
         return "finished"
 
     def point_at(self, target_pos):
-        pos = self.get_base_pos()
-        yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[2]], target_pos)
+        pos = self.get_base_pos_in_canonical_coords()
+        yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)
         states = [
             [yaw_rad, 0.0, pitch_rad, 0.0, 0.0],
             [yaw_rad, 0.0, pitch_rad, -0.2, 0.0],
             [0.0, -math.pi / 4.0, math.pi / 2.0, 0.0, 0.0],  # reset joint position
         ]
-
         for state in states:
             self.bot.set_joint_positions(state, plan=False)
             while not self.bot.command_finished():
                 pass
+        return "finished"
 
     def get_base_pos_in_canonical_coords(self):
         """get the current Locobot position in the canonical coordinate system

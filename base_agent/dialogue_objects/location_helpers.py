@@ -97,4 +97,4 @@ def interpret_point_target(interpreter, speaker, d):
         interpreter, speaker, mems, steps, reldir
     )
     #    loc, _ = compute_locations(interpreter, speaker, mems, steps, reldir)
-    return (loc[0], loc[1] + 1, loc[2], loc[0], loc[1] + 1, loc[2])
+    return (loc[0], loc[1], loc[2])
