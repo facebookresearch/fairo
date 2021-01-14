@@ -102,9 +102,9 @@ BEFORE = """
     </div>
 
     <div class="well" style="position:sticky;position:-webkit-sticky;top:0;z-index:9999">
-    <b>Command: ${command}</b></div>
-    <div id='intent_div' style='display:none'>${intent}</div>
-    <div id='child_name_div' style='display:none'>${child}</div>
+    <b>Command: </b><b id='command'></b></div>
+    <div id='intent_div' style='display:none'></div>
+    <div id='child_name_div' style='display:none'></div>
     
     <!-- Content Body -->
     <section>
@@ -209,7 +209,15 @@ if __name__ == "__main__":
     # For location: Turkers can select location type and spans, if location_type
     #               is reference_object, we get the span and reuse this tool further
     #               to get annotations.
+    print("""
+    <HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
+    <HTMLContent><![CDATA[
+    """)
     print(BEFORE)
+    print("""
+        <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
+        <form name='mturk_form' method='post' id='mturk_form' action='https://workersandbox.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
+    """)
     for action in action_children.keys():
         for child in action_children[action]:  # only ref object here
             ref_obj_child = ""
@@ -238,4 +246,57 @@ if __name__ == "__main__":
                     render_output += """</div><br><br>"""
                     print(render_output)
 
+    print("""
+     <p><input type='submit' id='submitButton' value='Submit' /></p></form>
+        <script language='Javascript'>
+        turkSetAssignmentID();
+        const queryString = window.location.search;
+        console.log(queryString);
+        let urlParams = new URLSearchParams(queryString);
+        const highlightRange = JSON.parse(urlParams.get("highlight_words"))[0]
+        console.log(highlightRange)
+        highlightStart = highlightRange[0]
+        highlightEnd = highlightRange[1]
+
+        const command = urlParams.get('command');
+        console.log(command)
+        commandWords = command.split(" ")
+        var commandHTML = ""
+        for (i = 0; i < commandWords.length; i++) {
+            if (i >= highlightStart && i <= highlightEnd) {
+                console.log(commandWords[i])
+                commandHTML += ("<span style='background-color: #FFFF00'> " + commandWords[i] + " </span>")
+            } else {
+                commandHTML += (commandWords[i] + " ")
+            }
+        }
+        document.getElementById("command").innerHTML=commandHTML;
+        const intent = urlParams.get('intent');
+        document.getElementById("intent_div").innerHTML=intent;
+        const child = urlParams.get('child');
+        document.getElementById("child_name_div").innerHTML=child;
+        var styleNode = document.createElement('style');
+
+        for (i = 0; i < 40; i++) {
+          var node = 'word' + i
+          if (urlParams.has(node)) {
+            const word0 = urlParams.get(node);
+            var word_list = document.getElementsByClassName(node);
+            Array.prototype.forEach.call(word_list, function(el) {
+                el.innerHTML = el.innerHTML.replace(node, word0);
+            });
+          } else {
+            styleNode.innerHTML += '.' + node + ' { display: none } ';
+          }
+        }
+        document.body.appendChild(styleNode);
+        </script>
+    """)
+
     print(AFTER)
+    print("""
+      ]]>
+  </HTMLContent>
+  <FrameHeight>600</FrameHeight>
+  </HTMLQuestion>
+    """)
