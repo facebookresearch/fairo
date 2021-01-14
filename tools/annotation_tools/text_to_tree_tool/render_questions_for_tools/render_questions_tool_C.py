@@ -50,7 +50,7 @@ def render_span(parent_id, optional=False):
             input_id=input_id, i=i
         )
         r += '<input type="checkbox" autocomplete="off" id="{input_id}" \
-            name="{input_id}">${{word{i}}}'.format(
+            name="{input_id}">word{i}'.format(
             input_id=input_id, i=i
         )
         r += "</label>"
