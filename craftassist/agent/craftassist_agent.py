@@ -119,6 +119,58 @@ class CraftAssistAgent(LocoMCAgent):
         """Handle the socket events"""
         super().init_event_handlers()
 
+<<<<<<< HEAD
+=======
+        @sio.on("sendCommandToAgent")
+        def send_text_command_to_agent(sid, command):
+            """Add the command to agent's incoming chats list and
+            send back the parse.
+            Args:
+                command: The input text command from dashboard player
+            Returns:
+                return back a socket emit with parse of command and success status
+            """
+            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
+            agent_chat = (
+                "<dashboard> " + command
+            )  # the chat is coming from a player called "dashboard"
+            self.dashboard_chat = agent_chat
+            dialogue_manager = self.dialogue_manager
+            # send back the dictionary
+            try:
+                x = dialogue_manager.get_logical_form(s=command, model=dialogue_manager.model)
+                logging.info("logical form is : %r" % (x))
+                payload = {"status": "Sent successfully", "chat": command, "chatResponse": x}
+            except:
+                logging.info("error in sending chat")
+                payload = {"status": "Error in sending chat", "chat": command, "chatResponse": {}}
+            sio.emit("setChatResponse", payload)
+        
+        @sio.on("getVoxelWorldInitialState")
+        def setup_agent_initial_state(sid):
+            MAX_RADIUS = 50
+            logging.info("in setup_world_initial_state")
+            agent_pos = self.get_player().pos
+            x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
+            origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
+            yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
+            blocks = npy_to_blocks_list(yzxb, origin=origin)
+            blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
+            payload = {
+                "status": "setupWorldInitialState",
+                "world_state": {
+                    "agent": {
+                        "name": "agent",
+                        "x": float(agent_pos.x),
+                        "y": float(agent_pos.y),
+                        "z": float(agent_pos.z),
+                    },
+                    "block": blocks
+                },
+            }
+            sio.emit("setVoxelWorldInitialState", payload)
+
+>>>>>>> 15da213... Added backend changes
     def init_inventory(self):
         """Initialize the agent's inventory"""
         self.inventory = inventory.Inventory()
@@ -170,6 +222,7 @@ class CraftAssistAgent(LocoMCAgent):
         for v in self.perception_modules.values():
             v.perceive(force=force)
         self.areas_to_perceive = []
+        self.update_dashboard_world()
 
     def get_time(self):
         """round to 100th of second, return as
@@ -242,6 +295,81 @@ class CraftAssistAgent(LocoMCAgent):
         self.memory.add_chat(self.memory.self_memid, chat)
         return self.cagent.send_chat(chat)
 
+    def update_agent_pos_dashboard(self):
+        agent_pos = self.get_player().pos
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {
+                "agent": [{
+                    "name": "agent",
+                    "x": float(agent_pos.x),
+                    "y": float(agent_pos.y),
+                    "z": float(agent_pos.z),
+                }]
+            },
+        }
+        sio.emit("updateVoxelWorldState", payload)
+    
+    def update_dashboard_world(self):
+        MAX_RADIUS = 2
+        agent_pos = self.get_player().pos
+        x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
+        origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
+        yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
+
+        # modified from util but keep air blocks
+        def npy_to_blocks_list(npy, origin):
+            import numpy as np
+            blocks = []
+            sy, sz, sx, _ = npy.shape
+            for ry in range(sy):
+                for rz in range(sz):
+                    for rx in range(sx):
+                        idm = tuple(npy[ry, rz, rx, :])
+                        xyz = tuple(np.array([rx, ry, rz]) + origin)
+                        blocks.append((xyz, idm))
+            return blocks
+
+        blocks = npy_to_blocks_list(yzxb, origin=origin)
+        blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
+        payload = {
+            "status": "updateVoxelWorldState",
+            "world_state": {
+                "block": blocks
+            },
+        }
+        sio.emit("updateVoxelWorldState", payload)
+
+
+    def step_pos_x(self):
+        self.cagent.step_pos_x()
+        self.update_agent_pos_dashboard()
+
+    def step_neg_x(self):
+        self.cagent.step_neg_x()
+        self.update_agent_pos_dashboard()
+
+    def step_pos_y(self):
+        self.cagent.step_pos_y()
+        self.update_agent_pos_dashboard()
+
+    def step_neg_y(self):
+        self.cagent.step_neg_y()
+        self.update_agent_pos_dashboard()
+
+    def step_pos_z(self):
+        self.cagent.step_pos_z()
+        self.update_agent_pos_dashboard()
+
+    def step_neg_z(self):
+        self.cagent.step_neg_z()
+        self.update_agent_pos_dashboard()
+
+    def step_forward(self):
+        self.cagent.step_forward()
+        self.update_agent_pos_dashboard()
+
+
     # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,
     #      but under current abstraction should be in init_perception
@@ -264,13 +392,13 @@ class CraftAssistAgent(LocoMCAgent):
         # defined above...
         # self.send_chat = self.cagent.send_chat
         self.set_held_item = self.cagent.set_held_item
-        self.step_pos_x = self.cagent.step_pos_x
-        self.step_neg_x = self.cagent.step_neg_x
-        self.step_pos_z = self.cagent.step_pos_z
-        self.step_neg_z = self.cagent.step_neg_z
-        self.step_pos_y = self.cagent.step_pos_y
-        self.step_neg_y = self.cagent.step_neg_y
-        self.step_forward = self.cagent.step_forward
+        self.step_pos_x = self.step_pos_x
+        self.step_neg_x = self.step_neg_x
+        self.step_pos_z = self.step_pos_z
+        self.step_neg_z = self.step_neg_z
+        self.step_pos_y = self.step_pos_y
+        self.step_neg_y = self.step_neg_y
+        self.step_forward = self.step_forward
         self.look_at = self.cagent.look_at
         self.set_look = self.cagent.set_look
         self.turn_angle = self.cagent.turn_angle
