@@ -17,6 +17,7 @@ import MemoryList from "./components/MemoryList";
 import QuerySemanticParser from "./components/QuerySemanticParser";
 import History from "./components/History";
 import TeachApp from "./components/TeachApp/TeachApp";
+import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
@@ -46,6 +47,14 @@ var config = {
             {
               type: "stack",
               content: [
+                {
+                  title: "Voxel World",
+                  type: "react-component",
+                  component: "VoxelWorld",
+                  props: {
+                    stateManager: stateManager,
+                  },
+                },
                 {
                   title: "Memory 2D",
                   type: "react-component",
@@ -126,6 +135,7 @@ dashboardLayout.registerComponent("MemoryList", MemoryList);
 dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
 dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("TeachApp", TeachApp);
+dashboardLayout.registerComponent("VoxelWorld", VoxelWorld);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
 dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
 
