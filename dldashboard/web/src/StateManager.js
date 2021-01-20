@@ -9,6 +9,7 @@ import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
 import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
+import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 
 /**
  * The main state manager for the dashboard.
@@ -60,6 +61,8 @@ class StateManager {
     this.setConnected = this.setConnected.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
+    this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
+    this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
     this.memory = this.initialMemoryState;
 
     let url = localStorage.getItem("server_url");
@@ -120,6 +123,8 @@ class StateManager {
     socket.on("setChatResponse", this.setChatResponse);
     socket.on("sensor_payload", this.processSensorPayload);
     socket.on("updateState", this.updateStateManagerMemory);
+    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
+    socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
   }
 
   updateStateManagerMemory(data) {
@@ -159,6 +164,30 @@ class StateManager {
       }
       if (ref instanceof History) {
         ref.forceUpdate();
+      }
+    });
+  }
+
+  updateVoxelWorld(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof VoxelWorld) {
+        console.log("update Voxel World with " + res.world_state);
+        ref.setState({
+          world_state: res.world_state,
+          status: res.status,
+        });
+      }
+    });
+  }
+
+  setVoxelWorldInitialState(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof VoxelWorld) {
+        console.log("set Voxel World Initial state: " + res.world_state);
+        ref.setState({
+          world_state: res.world_state,
+          status: res.status,
+        });
       }
     });
   }
