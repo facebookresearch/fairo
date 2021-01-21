@@ -19,6 +19,7 @@ random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
+MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # a BaseAgent with:
 # 1: a controller that is (mostly) a dialogue manager, and the dialogue manager
 #      is powered by a neural semantic parser.
@@ -38,7 +39,9 @@ class LocoMCAgent(BaseAgent):
         self.last_task_memid = None
         self.areas_to_perceive = []
         self.perceive_during_step = False
+        self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
+            "db": {},
             "objects": [],
             "humans": [],
             "chatResponse": {},
@@ -59,6 +62,10 @@ class LocoMCAgent(BaseAgent):
         # create all tables if they don't already exist
         logging.info("creating all tables for Visual programming and error annotation ...")
         create_all_tables(self.conn)
+
+        @sio.on("getMemoryDB")
+        def objects_in_memory(sid):
+            sio.emit("memoryState", self.agent.dashboard_memory["db"])
 
         @sio.on("saveCommand")
         def save_command_to_db(sid, postData):
@@ -95,7 +102,6 @@ class LocoMCAgent(BaseAgent):
         def save_object_annotation_to_db(sid, postData):
             logging.info("in save_object_annotation_to_db, got postData: %r" % (postData))
             saveObjectAnnotationsToDb(self.conn, postData)
-
 
     def init_physical_interfaces(self):
         """
@@ -254,6 +260,20 @@ class LocoMCAgent(BaseAgent):
         if fn != noop:
             logging.info("Default behavior: {}".format(fn))
         fn(self)
+
+    def maybe_dump_memory_to_dashboard(self):
+        if time.time() - self.dashboard_memory_dump_time > MEMORY_DUMP_KEYFRAME_TIME:
+            self.dashboard_memory_dump_time = time.time()
+            memories_main = self.memory._db_read("SELECT * FROM Memories")
+            triples = self.memory._db_read("SELECT * FROM Triples")
+            reference_objects = self.memory._db_read("SELECT * FROM ReferenceObjects")
+            named_abstractions = self.memory._db_read("SELECT * FROM NamedAbstractions")
+            self.dashboard_memory["db"] = {
+                "memories": memories_main,
+                "triples": triples,
+                "reference_objects": reference_objects,
+                "named_abstractions": named_abstractions,
+            }
 
 
 def default_agent_name():
