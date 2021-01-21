@@ -18,6 +18,7 @@ from base_agent.memory_filters import BasicMemorySearcher
 
 from base_agent.memory_nodes import (  # noqa
     TaskNode,
+    TripleNode,
     PlayerNode,
     MemoryNode,
     ChatNode,
@@ -342,7 +343,6 @@ class AgentMemory:
     ###  Triples  ###
     #################
 
-    # TODO should add a MemoryNode and a .create()
     def add_triple(
         self,
         subj: str = "",  # this is a memid if given
@@ -366,7 +366,7 @@ class AgentMemory:
             confidence (float): The confidence score for the triple
 
         Returns:
-            int: number of rows affected
+            memid of triple
 
         Examples::
             >>> subj = '10517cc584844659907ccfa6161e9d32'
@@ -375,30 +375,14 @@ class AgentMemory:
             >>> add_triple(subj=subj, pred_text=pred_text, obj_text=obj_text)
 
         """
-        assert subj or subj_text
-        assert obj or obj_text
-        assert not (subj and subj_text)
-        assert not (obj and obj_text)
-        memid = uuid.uuid4().hex
-        pred = NamedAbstractionNode.create(self, pred_text)
-        if not obj:
-            obj = NamedAbstractionNode.create(self, obj_text)
-        if not subj:
-            subj = NamedAbstractionNode.create(self, subj_text)
-        if not subj_text:
-            subj_text = None  # noqa T484
-        if not obj_text:
-            obj_text = None  # noqa T484
-        self._db_write(
-            "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            memid,
-            subj,
-            subj_text,
-            pred,
-            pred_text,
-            obj,
-            obj_text,
-            confidence,
+        return TripleNode.create(
+            self,
+            subj=subj,
+            obj=obj,
+            subj_text=subj_text,
+            pred_text=pred_text,
+            obj_text=obj_text,
+            confidence=confidence,
         )
 
     def tag(self, subj_memid: str, tag_text: str):

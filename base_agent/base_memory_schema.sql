@@ -107,6 +107,7 @@ CREATE TABLE Triples (
     confidence       FLOAT           NOT NULL DEFAULT 1.0,
 
     UNIQUE(subj, pred, obj) ON CONFLICT REPLACE,
+    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
     FOREIGN KEY(subj) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 CREATE INDEX TriplesSubjPred ON Triples(subj, pred);

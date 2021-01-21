@@ -209,6 +209,99 @@ class NamedAbstractionNode(MemoryNode):
         return memid
 
 
+class TripleNode(MemoryNode):
+    """This class represents a (subject, predicate, object) KB triple
+    
+    Args:
+        agent_memory (AgentMemory): An AgentMemory object
+        memid (string): Memory ID for this node
+    
+    Attributes:
+        subj_text (string): the text of the subject
+        subj (string):      the memid of the subject
+        pred_text (string): the text of the predicate
+        pred (string):      the memid of the predicate (a NamedAbstraction)
+        obj_text (string):  the text of the object
+        obj (string):       the memid of the object
+        confidence (float): float between 0 and 1, currently unused
+    
+    """
+
+    TABLE_COLUMNS = [
+        "uuid",
+        "subj",
+        "subj_text",
+        "pred",
+        "pred_text",
+        "obj",
+        "obj_text",
+        "confidence",
+    ]
+    TABLE = "Triples"
+    NODE_TYPE = "Triple"
+
+    def __init__(self, agent_memory, memid: str):
+        super().__init__(agent_memory, memid)
+        self.triple = self.agent_memory._db_read_one(
+            "SELECT subj_text, subj, pred_text, pred, obj_text, obj, confidence FROM Triples WHERE uuid=?",
+            self.memid,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        memory,
+        snapshot: bool = False,
+        subj: str = "",  # this is a memid if given
+        obj: str = "",  # this is a memid if given
+        subj_text: str = "",
+        pred_text: str = "has_tag",
+        obj_text: str = "",
+        confidence: float = 1.0,
+    ) -> str:
+        """Adds (subj, pred, obj) triple to the triplestore.
+            *_text is the name field of a NamedAbstraction; if
+            such a NamedAbstraction does not exist, this builds it as a side effect.
+            subj and obj can be memids or text, but pred_text is required
+
+        Args:
+            subj (string): memid of subject
+            obj (string): memid of object
+            subj_text (string): text representation for subject
+            pred_text (string): predicate text
+            obj_text (string): text representation for object
+            confidence (float): The confidence score for the triple
+
+        """
+        assert subj or subj_text
+        assert obj or obj_text
+        assert not (subj and subj_text)
+        assert not (obj and obj_text)
+        # TODO check if triple exists, don't make it again
+        memid = cls.new(memory, snapshot=snapshot)
+        pred = NamedAbstractionNode.create(memory, pred_text)
+        if not obj:
+            obj = NamedAbstractionNode.create(memory, obj_text)
+        if not subj:
+            subj = NamedAbstractionNode.create(memory, subj_text)
+        if not subj_text:
+            subj_text = None  # noqa T484
+        if not obj_text:
+            obj_text = None  # noqa T484
+        memory._db_write(
+            "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            memid,
+            subj,
+            subj_text,
+            pred,
+            pred_text,
+            obj,
+            obj_text,
+            confidence,
+        )
+        return memid
+
+
 # the table entry just has the memid and a modification time,
 # actual set elements are handled as triples
 class SetNode(MemoryNode):
@@ -767,6 +860,7 @@ NODELIST = [
     ChatNode,
     LocationNode,
     AttentionNode,
+    TripleNode,
     SetNode,
     TimeNode,
     PlayerNode,
