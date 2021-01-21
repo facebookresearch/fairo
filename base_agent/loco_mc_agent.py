@@ -63,10 +63,6 @@ class LocoMCAgent(BaseAgent):
         logging.info("creating all tables for Visual programming and error annotation ...")
         create_all_tables(self.conn)
 
-        @sio.on("getMemoryDB")
-        def objects_in_memory(sid):
-            sio.emit("memoryState", self.agent.dashboard_memory["db"])
-
         @sio.on("saveCommand")
         def save_command_to_db(sid, postData):
             print("in save_command_to_db, got postData: %r" % (postData))
@@ -165,6 +161,7 @@ class LocoMCAgent(BaseAgent):
         if self.count == 0:
             logging.info("First top-level step()")
         super().step()
+        self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
         # Clean finished tasks
@@ -274,6 +271,7 @@ class LocoMCAgent(BaseAgent):
                 "reference_objects": reference_objects,
                 "named_abstractions": named_abstractions,
             }
+            sio.emit("memoryState", self.dashboard_memory["db"])
 
 
 def default_agent_name():
