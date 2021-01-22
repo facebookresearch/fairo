@@ -15,7 +15,7 @@ import sys
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
-from slam.slam import Slam
+from slam_pkg.slam import Slam
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -30,6 +30,7 @@ class RemoteLocobot(object):
         (default: locobot)
         backend_config (dict): the backend config used for connecting to Habitat (default: None)
     """
+
     def __init__(self, backend="locobot", backend_config=None):
         if backend == "locobot":
             base_config_dict = {"base_controller": "proportional"}
@@ -136,10 +137,9 @@ class RemoteLocobot(object):
         """Moves the robot base to origin point: x, y, yaw 0, 0, 0."""
         if self._done:
             self._done = False
-            self._robot.base.go_to_absolute([0, 0, 0])
+            self._slam.set_absolute_goal_in_pr_frame([0.0, 0.0, 0.0])
             self._done = True
 
-    @Pyro4.oneway
     def go_to_absolute(self, xyt_position, use_map=False, close_loop=True, smooth=False):
         """Moves the robot base to given goal state in the world frame.
 
@@ -160,12 +160,9 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            self._robot.base.go_to_absolute(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-            )
+            self._slam.set_absolute_goal_in_pr_frame(xyt_position)
             self._done = True
 
-    @Pyro4.oneway
     def go_to_relative(self, xyt_position, use_map=False, close_loop=True, smooth=False):
         """Moves the robot base to the given goal state relative to its current
         pose.
@@ -186,9 +183,7 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            self._robot.base.go_to_relative(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-            )
+            self._slam.set_relative_goal_in_pr_frame(xyt_position)
             self._done = True
 
     @Pyro4.oneway

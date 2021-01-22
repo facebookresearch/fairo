@@ -33,7 +33,7 @@ roslaunch locobot_control main.launch use_base:=true use_camera:=true
 
 ```
 load_pyrobot_env
-python slam_test.py --robot locobot --goal 4 0 0 --map_size 1000 --robot_rad 25 --save_vis
+python slam.py --robot locobot --goal 4 0 0 --map_size 1000 --robot_rad 25 --save_vis
 ```
 
 Results should look something like this
