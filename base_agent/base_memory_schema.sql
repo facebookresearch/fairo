@@ -13,6 +13,18 @@ CREATE TABLE Memories (
     is_snapshot             BOOLEAN         NOT NULL DEFAULT FALSE
 );
 
+CREATE TRIGGER MemoryRemoved AFTER DELETE ON Memories
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'deleted');
+END;
+
+-- update_type is "delete" or "update"
+-- allows the agent to change the updated time with its own tick
+-- register and deal with deleted memories (e.g. to send to dashboard)
+-- python agent is expected to keep this cleaned up after reading it
+CREATE TABLE Updates (
+    uuid                    NCHAR(36),
+    update_type             TEXT
+);
 
 CREATE TABLE Chats (
     uuid    NCHAR(36)       PRIMARY KEY,
@@ -23,6 +35,7 @@ CREATE TABLE Chats (
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 CREATE INDEX ChatsTime ON Chats(time);
+
 
 CREATE TABLE ReferenceObjects (
     uuid        NCHAR(36)       PRIMARY KEY,
@@ -41,6 +54,11 @@ CREATE TABLE ReferenceObjects (
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 CREATE INDEX RefObjXYZ ON ReferenceObjects(x, y, z);
+
+CREATE TRIGGER RefObjUpdate AFTER UPDATE ON ReferenceObjects
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
+
 
 CREATE TABLE ArchivedReferenceObjects (
     uuid        NCHAR(36)       PRIMARY KEY,
@@ -87,6 +105,10 @@ CREATE TABLE Tasks (
 );
 CREATE INDEX TasksFinishedAt ON Tasks(finished_at);
 
+CREATE TRIGGER tasks_update AFTER UPDATE ON Tasks
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
+
 
 CREATE TABLE Dances (
     uuid      NCHAR(36)       PRIMARY KEY
@@ -107,13 +129,18 @@ CREATE TABLE Triples (
     confidence       FLOAT           NOT NULL DEFAULT 1.0,
 
     UNIQUE(subj, pred, obj) ON CONFLICT REPLACE,
-    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
-    FOREIGN KEY(subj) REFERENCES Memories(uuid) ON DELETE CASCADE
+    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE,
+    FOREIGN KEY(subj) REFERENCES Memories(uuid) ON DELETE CASCADE,
+    FOREIGN KEY(obj) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 CREATE INDEX TriplesSubjPred ON Triples(subj, pred);
 CREATE INDEX TriplesPredObj ON Triples(pred, obj);
 CREATE INDEX TriplesSubjPredText ON Triples(subj, pred_text);
 CREATE INDEX TriplesPredTextObjText ON Triples(pred_text, obj_text);
+
+CREATE TRIGGER triples_update AFTER UPDATE ON Triples
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
 
 
 CREATE TABLE NamedAbstractions(
@@ -127,3 +154,5 @@ CREATE TABLE SetMems(
     uuid    NCHAR(36)       PRIMARY KEY,
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
+
+

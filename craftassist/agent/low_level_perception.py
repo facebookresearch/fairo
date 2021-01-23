@@ -38,6 +38,7 @@ class LowLevelMCPerception:
         agent (LocoMCAgent): reference to the minecraft Agent
         perceive_freq (int): if not forced, how many Agent steps between perception
     """
+
     def __init__(self, agent, perceive_freq=5):
         self.agent = agent
         self.memory = agent.memory
@@ -93,7 +94,7 @@ class LowLevelMCPerception:
         memid = self.memory.get_player_by_eid(p.entityId).memid
         cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
         cmd = cmd + "uuid=?"
-        self.memory._db_write(
+        self.memory.db_write(
             cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
         )
 
@@ -112,7 +113,7 @@ class LowLevelMCPerception:
                 "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
             )
             cmd = cmd + "uuid=?"
-            self.memory._db_write(
+            self.memory.db_write(
                 cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
             )
             loc = capped_line_of_sight(self.agent, p)
@@ -122,7 +123,7 @@ class LowLevelMCPerception:
                 p.entityId,
             )
             if memids:
-                self.memory._db_write(
+                self.memory.db_write(
                     "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
                     loc[0],
                     loc[1],
@@ -161,7 +162,7 @@ class LowLevelMCPerception:
             pass
 
         # first delete the InstSeg info on the loc of this block
-        self.memory._db_write(
+        self.memory.db_write(
             'DELETE FROM VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?', *xyz
         )
 
@@ -183,7 +184,7 @@ class LowLevelMCPerception:
                     all_deleted = False
             if all_deleted:
                 # TODO make an archive.
-                self.memory._db_write("DELETE FROM Memories WHERE uuid=?", memid)
+                self.memory.db_write("DELETE FROM Memories WHERE uuid=?", memid)
 
     # clean all this up...
     # eventually some conditions for not committing air/negative blocks
@@ -237,14 +238,14 @@ class LowLevelMCPerception:
 
             # merge tags
             where = " OR ".join(["subj=?"] * len(adjacent_memids))
-            self.memory._db_write(
+            self.memory.db_write(
                 "UPDATE Triples SET subj=? WHERE " + where, chosen_memid, *adjacent_memids
             )
 
             # merge multiple block objects (will delete old ones)
             where = " OR ".join(["uuid=?"] * len(adjacent_memids))
             cmd = "UPDATE VoxelObjects SET uuid=? WHERE "
-            self.memory._db_write(cmd + where, chosen_memid, *adjacent_memids)
+            self.memory.db_write(cmd + where, chosen_memid, *adjacent_memids)
 
             # insert new block
             self.memory.upsert_block(

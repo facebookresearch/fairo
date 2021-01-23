@@ -34,7 +34,7 @@ class DetectedObjectNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, detected_obj) -> str:
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?, ?)",
             memid,
             detected_obj.eid,
@@ -43,7 +43,7 @@ class DetectedObjectNode(ReferenceObjectNode):
             detected_obj.get_xyz()["z"],
             cls.NODE_TYPE,
         )
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO DetectedObjectFeatures(uuid, featureBlob) VALUES (?, ?)",
             memid,
             pickle.dumps(detected_obj.feature_repr),
@@ -55,11 +55,11 @@ class DetectedObjectNode(ReferenceObjectNode):
             cls.safe_tag(detected_obj, memory, memid, "has_properties", "properties")
             for prop in detected_obj.properties:
                 memory.tag(memid, prop)
-        
+
         # Tag everything with has_tag predicate
-        if hasattr(detected_obj, 'color') and detected_obj.color is not None:
+        if hasattr(detected_obj, "color") and detected_obj.color is not None:
             memory.tag(memid, detected_obj.color)
-        if hasattr(detected_obj, 'label') and detected_obj.label is not None:
+        if hasattr(detected_obj, "label") and detected_obj.label is not None:
             memory.tag(memid, detected_obj.label)
         memory.tag(memid, "_physical_object")
         memory.tag(memid, "_not_location")
@@ -74,14 +74,14 @@ class DetectedObjectNode(ReferenceObjectNode):
         memid = memids[0][0]
         memory.set_memory_attended_time(memid)
 
-        memory._db_write(
+        memory.db_write(
             "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
             detected_obj.get_xyz()["x"],
             detected_obj.get_xyz()["y"],
             detected_obj.get_xyz()["z"],
             memid,
         )
-        memory._db_write(
+        memory.db_write(
             "UPDATE DetectedObjectFeatures SET featureBlob=? where uuid=?",
             pickle.dumps(detected_obj.feature_repr),
             memid,
@@ -183,7 +183,7 @@ class HumanPoseNode(ReferenceObjectNode):
             return memids[0]
 
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?, ?)",
             memid,
             humanpose.eid,
@@ -192,7 +192,7 @@ class HumanPoseNode(ReferenceObjectNode):
             humanpose.xyz[2],
             cls.NODE_TYPE,
         )
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO HumanPoseFeatures(uuid, keypointsBlob) VALUES (?, ?)",
             memid,
             pickle.dumps(humanpose.keypoints),
@@ -250,7 +250,7 @@ class DanceNode(MemoryNode):
     @classmethod
     def create(cls, memory, dance_fn, name=None, tags=[]) -> str:
         memid = cls.new(memory)
-        memory._db_write("INSERT INTO Dances(uuid) VALUES (?)", memid)
+        memory.db_write("INSERT INTO Dances(uuid) VALUES (?)", memid)
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
