@@ -165,7 +165,7 @@
       "type": "object",
       "properties": {
         "repeat_key": { "enum": [ "FOR", "ALL" ] },
-        "repeat_dir": { "enum": [ "LEFT", "RIGHT", "UP", "DOWN", "FRONT", "BACK", "AROUND" ] },
+        "repeat_dir": { "enum": [ "LEFT", "RIGHT", "UP", "DOWN", "FRONT", "BACK", "AROUND", "SURROUND" ] },
         "repeat_count" : { "$ref": "#/definitions/span"}
       },
       "if": {
