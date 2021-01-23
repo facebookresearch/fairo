@@ -79,7 +79,8 @@
             {"enum": [ "AGENT", "SPEAKER"]},
             {"$ref": "#/definitions/span"}
         ]},
-        "location": {"$ref": "#/definitions/location"}
+        "location": {"$ref": "#/definitions/location"},
+        "repeat": {"$ref": "#/definitions/repeat"}
       },
       "additionalProperties": false
     },
@@ -124,9 +125,9 @@
           "properties": {
               "value_extractor": {
                 "oneOf": [
-                  {"$ref": "#/definitions/filters"},
-                  {"$ref": "#/definitions/attribute"},
-                  {"$ref": "#/definitions/span"}
+                  { "type": "object", "properties": { "filters": { "$ref": "#/definitions/filters" } }, "required": ["filters"] },
+                  { "type": "object", "properties": { "attribute": { "$ref": "#/definitions/attribute" } }, "required": ["attribute"] },
+                  { "$ref": "#/definitions/span" }
                 ]
               }
             }
@@ -182,7 +183,7 @@
         "steps": { "$ref": "#/definitions/span"},
         "has_measure": { "$ref": "#/definitions/span"},
         "contains_coreference": { "enum": ["yes"]},
-        "relative_direction": { "enum": [ "LEFT", "RIGHT", "UP", "DOWN", "FRONT", "BACK", "AWAY", "INSIDE", "NEAR", "OUTSIDE", "BETWEEN", "ANTICLOCKWISE", "CLOCKWISE" ] },
+        "relative_direction": { "enum": [ "LEFT", "RIGHT", "UP", "DOWN", "FRONT", "BACK", "AWAY", "INSIDE", "NEAR", "OUTSIDE", "AROUND", "BETWEEN", "ANTICLOCKWISE", "CLOCKWISE" ] },
         "reference_object" : { "$ref": "#/definitions/reference_object"}
       }
     },
@@ -232,7 +233,8 @@
     },
     "attribute": {
       "oneOf": [
-        { "enum": ["HEIGHT", 
+        { "enum": [
+            "HEIGHT", 
             "WIDTH", 
             "X", 
             "Y", 
@@ -248,15 +250,15 @@
             "FINISHED_TIME",
             "CHAT",
             "LOGICAL_FORM",
-            "NAME",
             "SIZE",
             "COLOUR",
             "LOCATION",
-            "TAG"
+            "TAG",
+            "BLOCK_TYPE"
         ]},
         { "type": "object", "properties": {"num_blocks": {"$ref": "#/definitions/num_blocks" }}, "required": ["num_blocks"]},
-        { "type": "object", "properties": {"num_blocks": {"$ref": "#/definitions/linear_extent" }}, "required": ["linear_extent"]},
-        { "type": "object", "properties": {"task_info": {"properties": {"reference_object": {"$ref": "#/definitions/attribute" }}}}, "required": ["task_info"]}
+        { "type": "object", "properties": {"linear_extent": {"$ref": "#/definitions/linear_extent" }}, "required": ["linear_extent"]},
+        { "type": "object", "properties": {"task_info": {"properties": {"reference_object": {"$ref": "#/definitions/reference_object" }}}}, "required": ["task_info"]}
       ]
     },
     "argval": { 
@@ -383,14 +385,14 @@
         "relative_yaw": {
           "type": "object",
           "properties": {
-            "angle": { "enum": [ -360, -180, -135, -90, -45, 45, 90, 135, 180, 360 ]},
+            "angle": { "enum": [ "-360", "-180", "-135", "-90", "-45", "0", "45", "90", "135", "180", "360" ]},
             "yaw_span": { "$ref": "#/definitions/span" }
           }
         },
         "relative_pitch": {
           "type": "object",
           "properties": {
-            "angle": { "enum": [ -90, -45, 45, 90] },
+            "angle": { "enum": [ "-90", "-45", "0", "45", "90"] },
             "pitch_span": { "$ref": "#/definitions/span" }
           }
         },
@@ -507,6 +509,10 @@
       }},
       { "properties": {
           "dialogue_type": {"enum": ["NOOP", "BOT_CAPABILITIES"]}
+      }},
+      { "properties": {
+        "dialogue_type": {"enum": ["GET_CAPABILITIES"]},
+        "action_type": {"enum": ["UNKNOWN", "ANY", "BUILD", "PUT_MEMORY", "GET_MEMORY"]}
       }},
       { "properties": {
           "dialogue_type": {"const": "GET_MEMORY"},
