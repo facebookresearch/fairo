@@ -107,7 +107,7 @@ class Slam(object):
 
         # for bumper check of locobot
         if self.robot_name == "locobot":
-            from .utils.locobot_bumper_checker import BumperCallbacks
+            from slam_pkg.utils.locobot_bumper_checker import BumperCallbacks
 
             self.bumper_state = BumperCallbacks()
             # for mapping refer to http://docs.ros.org/groovy/api/kobuki_msgs/html/msg/BumperEvent.html
@@ -167,10 +167,12 @@ class Slam(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
+        """
         # add robot collision map to traversable area
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
+        """
 
         # call the planner
         self.planner = FMMPlanner(
@@ -217,11 +219,13 @@ class Slam(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
+        """
         # add robot collision map to traversable area
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
-
+        """
+        
         # check whether goal is on collision
         if not np.logical_or.reduce(
             traversable[
