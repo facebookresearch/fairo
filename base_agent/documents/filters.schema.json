@@ -4,168 +4,361 @@
     "title": "Filters Schema",
     "type": "object",
     "definitions": {
-        "argval": { 
+        "argval": {
             "properties": {
-            "polarity" : { "enum": [ "MAX", "MIN" ] }, 
-            "ordinal": {
-                "anyOf": [
-                {"enum": ["FIRST"]},
-                { "$ref": "action_dict_components.schema.json#/definitions/span" }
-                ]
-            },
-            "quantity": { 
-                "type": "object",
-                "properties": {
-                    "attribute": { "$ref": "#/definitions/attribute" }
+                "polarity": {
+                    "enum": [
+                        "MAX",
+                        "MIN"
+                    ]
                 },
-                "additionalProperties": false
-            }
+                "ordinal": {
+                    "anyOf": [
+                        {
+                            "enum": [
+                                "FIRST"
+                            ]
+                        },
+                        {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    ]
+                },
+                "quantity": {
+                    "type": "object",
+                    "properties": {
+                        "attribute": {
+                            "$ref": "#/definitions/attribute"
+                        }
+                    },
+                    "additionalProperties": false
+                }
             }
         },
         "attribute": {
             "oneOf": [
-            { "enum": [
-                "HEIGHT", 
-                "WIDTH", 
-                "X", 
-                "Y", 
-                "Z", 
-                "REF_TYPE", 
-                "HEAD_PITCH", 
-                "HEAD_YAW", 
-                "NAME",
-                "BORN_TIME",
-                "MODIFY_TIME",
-                "SPEAKER",
-                "VISIT_TIME",
-                "FINISHED_TIME",
-                "CHAT",
-                "LOGICAL_FORM",
-                "SIZE",
-                "COLOUR",
-                "LOCATION",
-                "TAG",
-                "BLOCK_TYPE"
-            ]},
-            { "type": "object", "properties": {"num_blocks": {"$ref": "#/definitions/num_blocks" }}, "required": ["num_blocks"]},
-            { "type": "object", "properties": {"linear_extent": {"$ref": "#/definitions/linear_extent" }}, "required": ["linear_extent"]},
-            { "type": "object", "properties": {"task_info": {"properties": {"reference_object": {"$ref": "grammar_spec.schema.json#/definitions/reference_object" }}}}, "required": ["task_info"]}
+                {
+                    "enum": [
+                        "HEIGHT",
+                        "WIDTH",
+                        "X",
+                        "Y",
+                        "Z",
+                        "REF_TYPE",
+                        "HEAD_PITCH",
+                        "HEAD_YAW",
+                        "NAME",
+                        "BORN_TIME",
+                        "MODIFY_TIME",
+                        "SPEAKER",
+                        "VISIT_TIME",
+                        "FINISHED_TIME",
+                        "CHAT",
+                        "LOGICAL_FORM",
+                        "SIZE",
+                        "COLOUR",
+                        "LOCATION",
+                        "TAG",
+                        "BLOCK_TYPE"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "num_blocks": {
+                            "$ref": "#/definitions/num_blocks"
+                        }
+                    },
+                    "required": [
+                        "num_blocks"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "linear_extent": {
+                            "$ref": "#/definitions/linear_extent"
+                        }
+                    },
+                    "required": [
+                        "linear_extent"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "task_info": {
+                            "properties": {
+                                "reference_object": {
+                                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                                }
+                            }
+                        }
+                    },
+                    "required": [
+                        "task_info"
+                    ]
+                }
             ]
         },
         "close_to": {
             "type": "object",
             "properties": {
-              "close_tolerance": {
-                "oneOf": [
-                { "enum": ["DEFAULT"] },
-                { "$ref": "action_dict_components.schema.json#/definitions/span" }
-              ]}
+                "close_tolerance": {
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "DEFAULT"
+                            ]
+                        },
+                        {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    ]
+                }
             }
-          },
+        },
         "comparator": {
             "properties": {
-            "input_left": {
-                "properties": {
-                    "value_extractor": {
-                    "oneOf": [
-                        { "type": "object", "properties": { "filters": { "$ref": "#/definitions/filters" } }, "required": ["filters"] },
-                        { "type": "object", "properties": { "attribute": { "$ref": "#/definitions/attribute" } }, "required": ["attribute"] },
-                        { "$ref": "action_dict_components.schema.json#/definitions/span" }
-                    ]
+                "input_left": {
+                    "properties": {
+                        "value_extractor": {
+                            "oneOf": [
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "filters": {
+                                            "$ref": "#/definitions/filters"
+                                        }
+                                    },
+                                    "required": [
+                                        "filters"
+                                    ]
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "attribute": {
+                                            "$ref": "#/definitions/attribute"
+                                        }
+                                    },
+                                    "required": [
+                                        "attribute"
+                                    ]
+                                },
+                                {
+                                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                                }
+                            ]
+                        }
                     }
-                }
-            },
-            "comparison_type": {"oneOf": [
-                {"enum": [ "GREATER_THAN", "LESS_THAN", "GREATER_THAN_EQUAL", "LESS_THAN_EQUAL", "NOT_EQUAL", "EQUAL"]},
-                {"$ref": "#/definitions/close_to"},
-                {"$ref": "#/definitions/mod_equal"},
-                {"$ref": "#/definitions/mod_close"}]},
-            "input_right": {
-                "properties": {
-                "value_extractor": {
+                },
+                "comparison_type": {
                     "oneOf": [
-                    {"$ref": "#/definitions/filters"},
-                    {"$ref": "#/definitions/attribute"},
-                    {"$ref": "action_dict_components.schema.json#/definitions/span"}
+                        {
+                            "enum": [
+                                "GREATER_THAN",
+                                "LESS_THAN",
+                                "GREATER_THAN_EQUAL",
+                                "LESS_THAN_EQUAL",
+                                "NOT_EQUAL",
+                                "EQUAL"
+                            ]
+                        },
+                        {
+                            "$ref": "#/definitions/close_to"
+                        },
+                        {
+                            "$ref": "#/definitions/mod_equal"
+                        },
+                        {
+                            "$ref": "#/definitions/mod_close"
+                        }
+                    ]
+                },
+                "input_right": {
+                    "properties": {
+                        "value_extractor": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#/definitions/filters"
+                                },
+                                {
+                                    "$ref": "#/definitions/attribute"
+                                },
+                                {
+                                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "comparison_measure": {
+                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                },
+                "set_comparison": {
+                    "enum": [
+                        "ANY",
+                        "ALL"
                     ]
                 }
-                }
-            },
-            "comparison_measure": {"$ref": "action_dict_components.schema.json#/definitions/span"},
-            "set_comparison": {"enum": [ "ANY", "ALL"]}
             }
         },
         "filters": {
             "type": "object",
             "properties": {
-                "output": { 
-                "oneOf": [
-                    {"enum": [ "MEMORY", "COUNT" ] },
-                    {
-                    "type": "object",
-                    "properties": {
-                        "attribute": {"$ref": "#/definitions/attribute"}
-                    }
-                    }
-                ]
+                "output": {
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "MEMORY",
+                                "COUNT"
+                            ]
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "attribute": {
+                                    "$ref": "#/definitions/attribute"
+                                }
+                            }
+                        }
+                    ]
                 },
-                "contains_coreference": {"const": "yes" },
-                "memory_type": { "enum": [ "TASKS", "REFERENCE_OBJECT", "CHAT", "PROGRAM", "ALL" ] },
-                "argval": {"$ref": "#/definitions/argval"},
-                "comparator": {"$ref": "#/definitions/comparator"},
-                "triples": {"$ref": "#/definitions/triples"},
+                "contains_coreference": {
+                    "const": "yes"
+                },
+                "memory_type": {
+                    "enum": [
+                        "TASKS",
+                        "REFERENCE_OBJECT",
+                        "CHAT",
+                        "PROGRAM",
+                        "ALL"
+                    ]
+                },
+                "argval": {
+                    "$ref": "#/definitions/argval"
+                },
+                "comparator": {
+                    "$ref": "#/definitions/comparator"
+                },
+                "triples": {
+                    "$ref": "#/definitions/triples"
+                },
                 "author": {
-                "oneOf": [
-                    {"enum": [ "AGENT", "SPEAKER"]},
-                    {"$ref": "action_dict_components.schema.json#/definitions/span"}
-                ]},
-                "location": {"$ref": "action_dict_components.schema.json#/definitions/location"},
-                "repeat": {"$ref": "grammar_spec.schema.json#/definitions/repeat"}
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "AGENT",
+                                "SPEAKER"
+                            ]
+                        },
+                        {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    ]
+                },
+                "location": {
+                    "$ref": "action_dict_components.schema.json#/definitions/location"
+                },
+                "repeat": {
+                    "$ref": "grammar_spec.schema.json#/definitions/repeat"
+                }
             },
             "additionalProperties": false
         },
         "linear_extent": {
             "properties": {
-            "relative_direction": { "enum": [ "LEFT", "RIGHT", "UP", "DOWN", "FRONT", "BACK", "AWAY", "INSIDE", "OUTSIDE"] },
-            "frame": { "enum": [ "SPEAKER", "AGENT", "ABSOLUTE" ] },
-            "has_measure": {"$ref": "action_dict_components.schema.json#/definitions/span"},
-            "source": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" },
-            "destination": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                "relative_direction": {
+                    "enum": [
+                        "LEFT",
+                        "RIGHT",
+                        "UP",
+                        "DOWN",
+                        "FRONT",
+                        "BACK",
+                        "AWAY",
+                        "INSIDE",
+                        "OUTSIDE"
+                    ]
+                },
+                "frame": {
+                    "enum": [
+                        "SPEAKER",
+                        "AGENT",
+                        "ABSOLUTE"
+                    ]
+                },
+                "has_measure": {
+                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                },
+                "source": {
+                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                },
+                "destination": {
+                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                }
             },
             "additionalProperties": false
         },
-          "mod_close": {
+        "mod_close": {
             "type": "object",
             "properties": {
-              "modulus": {
-                "oneOf": [
-                  { "enum": ["DEFAULT"] },
-                  { "$ref": "action_dict_components.schema.json#/definitions/span" }
-                ]},
-              "close_tolerance": {
-                "oneOf": [
-                  { "enum": ["DEFAULT"] },
-                  { "$ref": "action_dict_components.schema.json#/definitions/span" }
-                ]}
+                "modulus": {
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "DEFAULT"
+                            ]
+                        },
+                        {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    ]
+                },
+                "close_tolerance": {
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "DEFAULT"
+                            ]
+                        },
+                        {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    ]
+                }
             }
         },
         "mod_equal": {
             "type": "object",
             "properties": {
                 "modulus": {
-                  "oneOf": [
-                  { "enum": ["DEFAULT"] },
-                  { "$ref": "action_dict_components.schema.json#/definitions/span" }
-                ]}
-              }
-          },
+                    "oneOf": [
+                        {
+                            "enum": [
+                                "DEFAULT"
+                            ]
+                        },
+                        {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    ]
+                }
+            }
+        },
         "num_blocks": {
             "type": "object",
             "description": "This represents number of blocks and hence a filter over those. For example: go to the house with most red blocks.",
             "properties": {
-            "block_filters": {
-                "properties": {"triples": {"$ref": "#/definitions/triples"}}
-            }
+                "block_filters": {
+                    "properties": {
+                        "triples": {
+                            "$ref": "#/definitions/triples"
+                        }
+                    }
+                }
             }
         },
         "triples": {
@@ -174,19 +367,73 @@
             "minItems": 1,
             "uniqueItems": true,
             "items": {
-            "type": "object",
-            "anyOf": [
-                {"required": ["pred_text", "obj_text"]},
-                {"required": ["pred_text", "subj_text"]}
-            ],
-            "properties":
-                { "pred_text": { "type": "string" },
-                "subj_text": { "oneOf": [{"type": "string"}, {"$ref": "action_dict_components.schema.json#/definitions/span"}] },
-                "obj_text": { "oneOf": [{"type": "string"}, {"$ref": "action_dict_components.schema.json#/definitions/span"}] },
-                "subj": { "oneOf": [{"type": "string"}, {"$ref": "#/definitions/filters"}, {"$ref": "action_dict_components.schema.json#/definitions/span"}] },
-                "obj": { "oneOf": [{"type": "string"}, {"$ref": "#/definitions/filters"}, {"$ref": "action_dict_components.schema.json#/definitions/span"}] } 
+                "type": "object",
+                "anyOf": [
+                    {
+                        "required": [
+                            "pred_text",
+                            "obj_text"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "pred_text",
+                            "subj_text"
+                        ]
+                    }
+                ],
+                "properties": {
+                    "pred_text": {
+                        "type": "string"
+                    },
+                    "subj_text": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "action_dict_components.schema.json#/definitions/span"
+                            }
+                        ]
+                    },
+                    "obj_text": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "action_dict_components.schema.json#/definitions/span"
+                            }
+                        ]
+                    },
+                    "subj": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/filters"
+                            },
+                            {
+                                "$ref": "action_dict_components.schema.json#/definitions/span"
+                            }
+                        ]
+                    },
+                    "obj": {
+                        "oneOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/definitions/filters"
+                            },
+                            {
+                                "$ref": "action_dict_components.schema.json#/definitions/span"
+                            }
+                        ]
+                    }
+                }
             }
-            }
-        } 
+        }
     }
 }
