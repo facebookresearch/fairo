@@ -14,7 +14,7 @@ CREATE TABLE Memories (
 );
 
 CREATE TRIGGER MemoryRemoved AFTER DELETE ON Memories
-    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'deleted');
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'delete');
 END;
 
 -- update_type is "delete" or "update"

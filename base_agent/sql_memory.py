@@ -420,7 +420,7 @@ class AgentMemory:
             >>> tag_text = "shiny"
             >>> tag(subj_memid, tag_text)
         """
-        self.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
+        return self.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
 
     # TODO remove_triple
     def untag(self, subj_memid: str, tag_text: str):
@@ -1035,8 +1035,8 @@ class AgentMemory:
         # but its a bit of a pain bc we want the agent's time in the update
         # not system time
         updated_memids = self._db_read("SELECT * FROM Updates")
-        updated = [mem[0] for mem in updated_memids if mem[1] == "updated"]
-        deleted = [mem[0] for mem in updated_memids if mem[1] == "deleted"]
+        updated = [mem[0] for mem in updated_memids if mem[1] == "update"]
+        deleted = [mem[0] for mem in updated_memids if mem[1] == "delete"]
         for u in set(updated):
             self.set_memory_updated_time(u)
         if self.on_delete_callback is not None and deleted:
