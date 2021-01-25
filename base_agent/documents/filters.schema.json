@@ -294,10 +294,10 @@
                     "$ref": "action_dict_components.schema.json#/definitions/span"
                 },
                 "source": {
-                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                    "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
                 },
                 "destination": {
-                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                    "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
                 }
             },
             "additionalProperties": false
