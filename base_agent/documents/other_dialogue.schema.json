@@ -1,0 +1,48 @@
+{
+    "$id": "other_dialogue.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Other dialogue types, such as get or put memory, NOOPs and get capability.",
+    "type": "object",
+    "definitions": {
+        "get_memory": {
+            "type": "object",
+             "anyOf": [
+                { "filters": {"$ref": "filters.schema.json#/definitions/filters" }},
+                { "replace": {"$ref": "grammar_spec.schema.json#/definitions/replace" }}
+             ] 
+          },
+          "upsert": {
+            "type": "object",
+             "properties": {
+               "memory_data": {
+                 "type": "object",
+                 "properties": {
+                   "memory_type": { "enum": [ "REWARD", "TRIPLE" ] },
+                   "reward_value": { "enum": [ "POSITIVE", "NEGATIVE" ] },
+                   "triples": {"$ref": "filters.schema.json#/definitions/triples" }
+                 }
+               }
+             }
+          },
+          "put_memory": {
+            "type": "object",
+             "anyOf": [
+                { "filters": {"$ref": "filters.schema.json#/definitions/filters" }},
+                { "replace": {"$ref": "#/definitions/upsert" }}
+             ] 
+          },
+          "otheraction": {
+            "type": "object",
+            "properties": {
+              "action_type": {
+                "const": "OTHERACTION"
+              },
+              "reference_object": {"$ref": "action_dict_components.schema.json#/definitions/reference_object" },
+              "location": {"$ref": "action_dict_components.schema.json#/definitions/location" },
+              "repeat": {"$ref": "grammar_spec.schema.json#/definitions/repeat"}
+            },
+            "required": ["action_type"],
+            "additionalProperties": false
+          }
+    }
+}
