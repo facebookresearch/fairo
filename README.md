@@ -2,7 +2,7 @@
 
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
-`droidlet` helps you rapidly build agents (real or virtual) that perform a wide variety of tasks specified by humans. The agents can use natural language, memory and humans in the loop.
+`droidlet` helps you rapidly build agents (real or virtual) to perform a wide variety of tasks specified by humans.  It provides primitives for natural language understanding, perception, and memory; and a GUI to keep humans in the loop.
 
 `droidlet` is an ***early research project for AI researchers*** to explore ideas around *grounded dialogue*, *interactive learning* and *human-computer interfaces*.
 
@@ -16,8 +16,8 @@
 
 You want to do one of three things:
 
-1. **Robots:** Reproduce and extend the [PyRobot](https://pyrobot.org) based agent on real robots such as [LocoBot](http://www.locobot.org/) or photo-realistic simulators such as [AIHabitat](https://aihabitat.org/).
-2. **Minecraft:** Reproduced and extend the `minecraft` based game agent
+1. **Robots:** Reproduce and/or extend the [PyRobot](https://pyrobot.org) based agent on real robots such as [LocoBot](http://www.locobot.org/) or photo-realistic simulators such as [AIHabitat](https://aihabitat.org/).
+2. **Minecraft:** Reproduce and/or extend the `minecraft` based game agent
 3. **New Agent:** write your own agent from scratch, starting from our `base_agent` abstraction
 
 
