@@ -155,36 +155,15 @@ class LowLevelMCPerception:
         pass
 
     def maybe_remove_inst_seg(self, xyz):
-        """Update instance segmentation label of blocks"""
+        """if the block is changed, the old instance segmentation is considered no longer valid"""
         # get all associated instseg nodes
+        # FIXME make this into a basic search
         info = self.memory.get_instseg_object_ids_by_xyz(xyz)
-        if not info or len(info) == 0:
-            pass
-
-        # first delete the InstSeg info on the loc of this block
-        self.memory.db_write(
-            'DELETE FROM VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?', *xyz
-        )
-
-        # then for each InstSeg, check if all blocks of same InstSeg node has
-        # already been deleted. if so, delete the InstSeg node entirely
-        for memid in info:
-            memid = memid[0]
-            xyzs = self.memory._db_read(
-                'SELECT x, y, z FROM VoxelObjects WHERE ref_type="inst_seg" AND uuid=?', memid
-            )
-            all_deleted = True
-            for xyz in xyzs:
-                r = self.memory._db_read(
-                    'SELECT * FROM VoxelObjects WHERE ref_type="inst_seg" AND uuid=? AND x=? AND y=? AND z=?',
-                    memid,
-                    *xyz
-                )
-                if bool(r):
-                    all_deleted = False
-            if all_deleted:
-                # TODO make an archive.
-                self.memory.db_write("DELETE FROM Memories WHERE uuid=?", memid)
+        if info and len(info) > 0:
+            # delete the InstSeg info on the loc of this block;
+            # the SQL triggers will remove the object if this was the last block
+            # of the inst_seg Node
+            self.memory.remove_voxel(xyz[0], xyz[1], xyz[2], "inst_seg")
 
     # clean all this up...
     # eventually some conditions for not committing air/negative blocks

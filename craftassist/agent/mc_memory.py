@@ -113,6 +113,8 @@ class MCAgentMemory(AgentMemory):
     ### Voxels  ###
     ###############
 
+    # FIXME: move these to VoxelObjectNode
+
     # count updates are done by hand to not need to count all voxels every time
     # use these functions, don't add/delete/modify voxels with raw sql
 

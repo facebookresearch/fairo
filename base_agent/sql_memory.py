@@ -438,11 +438,14 @@ class AgentMemory:
             >>> tag_text = "shiny"
             >>> untag(subj_memid, tag_text)
         """
-        self.db_write(
-            'DELETE FROM Memories WHERE uuid in (SELECT uuid FROM Triples WHERE subj=? AND pred_text="has_tag" AND obj_text=?)',
+        # FIXME replace me with a basic filters when _self handled better
+        triple_memids = self._db_read(
+            'SELECT uuid FROM Triples WHERE subj=? AND pred_text="has_tag" AND obj_text=?',
             subj_memid,
             tag_text,
         )
+        if triple_memids:
+            self.forget(triple_memids[0][0])
 
     # does not search archived mems for now
     # assumes tag is tag text
@@ -823,6 +826,7 @@ class AgentMemory:
         Returns:
             int: Number of rows affected
         """
+        # FIXME use forget; fix this when tasks become MemoryNodes
         self.db_write("DELETE FROM Tasks WHERE finished_at < 0")
 
     def task_stack_resume(self) -> bool:

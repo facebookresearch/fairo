@@ -51,18 +51,20 @@ class BasicTest(unittest.TestCase):
             subj=jane_memid, pred_text="sister_of", obj=joe_memid
         )
 
+        triples = self.memory.get_triples(subj=jane_memid, pred_text="sister_of")
+        assert len(triples) == 1
+
         self.time.add_tick()
-        #        import ipdb
-        #        ipdb.set_trace()
         self.memory.db_write("UPDATE ReferenceObjects SET x=? WHERE uuid=?", 2, joe_memid)
-        joe_t = self.memory._db_read("SELECT updated_time FROM Memories WHERE uuid=?", joe_memid)[
-            0
-        ][0]
-        jane_t = self.memory._db_read(
-            "SELECT updated_time FROM Memories WHERE uuid=?", jane_memid
-        )[0][0]
+        cmd = "SELECT updated_time FROM Memories WHERE uuid=?"
+        joe_t = self.memory._db_read(cmd, joe_memid)[0][0]
+        jane_t = self.memory._db_read(cmd, jane_memid)[0][0]
         assert joe_t == 2
         assert jane_t == 0
+
+        self.memory.forget(joe_memid)
+        triples = self.memory.get_triples(subj=jane_memid, pred_text="sister_of")
+        assert len(triples) == 0
 
 
 if __name__ == "__main__":

@@ -246,7 +246,7 @@ class InstSegNode(VoxelObjectNode):
             olocs = memory._db_read("SELECT x, y, z from VoxelObjects WHERE uuid=?", m)
             # TODO maybe make an archive?
             if len(set(olocs) - set(locs)) == 0:
-                memory.db_write("DELETE FROM Memories WHERE uuid=?", m)
+                memory.forget(m)
 
         memid = cls.new(memory)
         loc = np.mean(locs, axis=0)
