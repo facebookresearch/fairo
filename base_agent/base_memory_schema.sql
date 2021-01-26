@@ -111,7 +111,7 @@ END;
 
 
 CREATE TABLE Dances (
-    uuid      NCHAR(36)       PRIMARY KEY
+    uuid      NCHAR(36)       PRIMARY KEY,
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
