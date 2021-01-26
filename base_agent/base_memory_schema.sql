@@ -112,7 +112,12 @@ END;
 
 CREATE TABLE Dances (
     uuid      NCHAR(36)       PRIMARY KEY
+    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
+
+CREATE TRIGGER DancesUpdate AFTER UPDATE ON Dances
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
 
 -- TODO! make sure subj_text matches the name field of the subj NamedAbstraction
 -- if subj is a NamedAbstraction, and make sure subj is a NamedAbstraction
