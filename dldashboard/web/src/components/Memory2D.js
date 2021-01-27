@@ -15,6 +15,8 @@ var hashCode = function (s) {
   }, 0);
 };
 
+const DEFAULT_SPACING = 12;
+
 class Memory2D extends React.Component {
   constructor(props) {
     super(props);
@@ -194,8 +196,8 @@ class Memory2D extends React.Component {
           <Layer>
             <Text
               text={tooltip}
-              offsetX={-10}
-              offsetY={-10}
+              offsetX={-DEFAULT_SPACING}
+              offsetY={-DEFAULT_SPACING}
               visible={tooltip != null}
               shadowEnabled={true}
             />
