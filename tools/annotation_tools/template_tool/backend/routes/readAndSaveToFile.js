@@ -27,6 +27,9 @@ router.get("/", function (req, res, next) {
   }
 });
 
+/***
+ * Fetch the commands we want to label
+ */
 router.get("/get_memory", function (req, res, next) {
   if (fs.existsSync("get_memory.txt")) {
     // the file exists
@@ -40,12 +43,15 @@ router.get("/get_memory", function (req, res, next) {
   }
 });
 
+/***
+ * Fetch progress on labels
+ */
 router.get("/get_labels_progress", function (req, res, next) {
   if (fs.existsSync("get_memory_command_dict_pairs.json")) {
     // the file exists
     fs.readFile("get_memory_command_dict_pairs.json", function (err, data) {
       if (err) throw err;
-      // console.log(data.toString())
+      console.log(data.toString())
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(data);
       return res.end();
@@ -76,9 +82,12 @@ router.post("/append", function (req, res, next) {
   res.send("post is working properly");
 });
 
+/**
+ * Write labelled pairs
+ */
 router.post("/writeLabels", function (req, res, next) {
   console.log(req.body);
-  fs.writeFile("get_memory_command_dict_pairs.txt", JSON.stringify(req.body, undefined, 4), function (err) {
+  fs.writeFile("get_memory_command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;

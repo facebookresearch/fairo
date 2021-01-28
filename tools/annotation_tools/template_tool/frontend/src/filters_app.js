@@ -105,25 +105,26 @@ class FiltersAnnotator extends React.Component {
       let items = {...this.state.dataset};
       items[this.state.fullText[this.state.currIndex]] = JSON.parse(this.state.value);
       // Set state to the data items
-      this.setState({dataset: items});
+      this.setState({dataset: items}, function() {
+        try {
+          let actionDict = JSON.parse(this.state.value)
+          let JSONString = {
+            "command": this.state.fullText[this.state.currIndex],
+            "logical_form": actionDict
+          }
+          console.log("writing dataset")
+          console.log(this.state.dataset)
+          this.writeLabels(this.state.dataset)
+        } catch (error) {
+          alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
+        }
+      });
   }
 
   logSerialized() {
     console.log("saving serialized tree")
     // First save to local storage
     this.updateLabels()
-    try {
-      let actionDict = JSON.parse(this.state.value)
-      let JSONString = {
-        "command": this.state.fullText[this.state.currIndex],
-        "logical_form": actionDict
-      }
-      console.log("writing dataset")
-      console.log(this.state.dataset)
-      this.writeLabels(this.state.dataset)
-    } catch (error) {
-      alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
-    }
   }
 
 
