@@ -102,13 +102,13 @@ class VoxelObjectNode(ReferenceObjectNode):
                 self.update_times[loc],
                 self.memtype,
             )
-            agent_memory._db_write(cmd, *values)
+            agent_memory.db_write(cmd, *values)
 
         archive_memid = self.new(agent_memory, snapshot=True)
         cmd = "INSERT INTO ArchivedReferenceObjects (uuid, eid, x, y, z, yaw, pitch, name, type_name, ref_type, player_placed, agent_placed, created, updated, voxel_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         info = list(self.ref_info)
         info[0] = archive_memid
-        agent_memory._db_write(cmd, *info)
+        agent_memory.db_write(cmd, *info)
         link_archive_to_mem(agent_memory, self.memid, archive_memid)
         return archive_memid
 
@@ -166,7 +166,7 @@ class BlockObjectNode(VoxelObjectNode):
         # TODO check/assert this isn't there...
         cmd = "INSERT INTO ReferenceObjects (uuid, x, y, z, ref_type, voxel_count) VALUES ( ?, ?, ?, ?, ?, ?)"
         # TODO this is going to cause a bug, need better way to initialize and track mean loc
-        memory._db_write(cmd, memid, 0, 0, 0, "BlockObjects", 0)
+        memory.db_write(cmd, memid, 0, 0, 0, "BlockObjects", 0)
         for block in blocks:
             memory.upsert_block(block, memid, "BlockObjects")
         memory.tag(memid, "_block_object")
@@ -246,16 +246,16 @@ class InstSegNode(VoxelObjectNode):
             olocs = memory._db_read("SELECT x, y, z from VoxelObjects WHERE uuid=?", m)
             # TODO maybe make an archive?
             if len(set(olocs) - set(locs)) == 0:
-                memory._db_write("DELETE FROM Memories WHERE uuid=?", m)
+                memory.forget(m)
 
         memid = cls.new(memory)
         loc = np.mean(locs, axis=0)
         # TODO check/assert this isn't there...
         cmd = "INSERT INTO ReferenceObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
-        memory._db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
+        memory.db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
         for loc in locs:
             cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
-            memory._db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
+            memory.db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
         memory.tag(memid, "_voxel_object")
         memory.tag(memid, "_inst_seg")
         memory.tag(memid, "_destructible")
@@ -352,7 +352,7 @@ class MobNode(ReferenceObjectNode):
         # TODO warn/error if mob already in memory?
         memid = cls.new(memory)
         mobtype = MOBS_BY_ID[mob.mobType]
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, yaw, pitch, ref_type, type_name, player_placed, agent_placed, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             mob.entityId,
@@ -458,7 +458,7 @@ class ItemStackNode(ReferenceObjectNode):
         bid_to_name = minecraft_specs.get_block_data()["bid_to_name"]
         type_name = bid_to_name[(item_stack.item.id, item_stack.item.meta)]
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, type_name, ref_type, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             item_stack.entityId,
@@ -551,7 +551,7 @@ class SchematicNode(MemoryNode):
         """
         memid = cls.new(memory)
         for ((x, y, z), (b, m)) in blocks:
-            memory._db_write(
+            memory.db_write(
                 """
                     INSERT INTO Schematics(uuid, x, y, z, bid, meta)
                     VALUES (?, ?, ?, ?, ?, ?)""",
@@ -615,7 +615,7 @@ class BlockTypeNode(MemoryNode):
             >>> create(memory, type_name, idm)
         """
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO BlockTypes(uuid, type_name, bid, meta) VALUES (?, ?, ?, ?)",
             memid,
             type_name,
@@ -676,7 +676,7 @@ class MobTypeNode(MemoryNode):
             >>> create(memory, type_name, idm)
         """
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO MobTypes(uuid, type_name, bid, meta) VALUES (?, ?, ?, ?)",
             memid,
             type_name,
@@ -742,7 +742,7 @@ class DanceNode(MemoryNode):
             >>> create(memory, dance_fn, name=name, tags=tags)
         """
         memid = cls.new(memory)
-        memory._db_write("INSERT INTO Dances(uuid) VALUES (?)", memid)
+        memory.db_write("INSERT INTO Dances(uuid) VALUES (?)", memid)
         # TODO put in db via pickle like tasks?
         memory.dances[memid] = dance_fn
         if name is not None:
@@ -781,7 +781,7 @@ class RewardNode(MemoryNode):
             >>> create(memory, reward_value)
         """
         memid = cls.new(agent_memory)
-        agent_memory._db_write(
+        agent_memory.db_write(
             "INSERT INTO Rewards(uuid, value, time) VALUES (?,?,?)",
             memid,
             reward_value,
