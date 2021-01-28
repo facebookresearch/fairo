@@ -252,11 +252,11 @@ class TripleNode(MemoryNode):
         cls,
         memory,
         snapshot: bool = False,
-        subj: str = "",  # this is a memid if given
-        obj: str = "",  # this is a memid if given
-        subj_text: str = "",
+        subj: str = None,  # this is a memid if given
+        obj: str = None,  # this is a memid if given
+        subj_text: str = None,
         pred_text: str = "has_tag",
-        obj_text: str = "",
+        obj_text: str = None,
         confidence: float = 1.0,
     ) -> str:
         """Adds (subj, pred, obj) triple to the triplestore.
@@ -272,6 +272,10 @@ class TripleNode(MemoryNode):
             obj_text (string): text representation for object
             confidence (float): The confidence score for the triple
 
+        Returns:
+            str: memid of triple
+
+
         """
         assert subj or subj_text
         assert obj or obj_text
@@ -284,10 +288,6 @@ class TripleNode(MemoryNode):
             obj = NamedAbstractionNode.create(memory, obj_text)
         if not subj:
             subj = NamedAbstractionNode.create(memory, subj_text)
-        if not subj_text:
-            subj_text = None  # noqa T484
-        if not obj_text:
-            obj_text = None  # noqa T484
         memory.db_write(
             "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             memid,

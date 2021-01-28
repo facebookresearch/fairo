@@ -105,7 +105,7 @@ CREATE TABLE Tasks (
 );
 CREATE INDEX TasksFinishedAt ON Tasks(finished_at);
 
-CREATE TRIGGER tasks_update AFTER UPDATE ON Tasks
+CREATE TRIGGER TasksUpdate AFTER UPDATE ON Tasks
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
 END;
 
@@ -143,7 +143,7 @@ CREATE INDEX TriplesPredObj ON Triples(pred, obj);
 CREATE INDEX TriplesSubjPredText ON Triples(subj, pred_text);
 CREATE INDEX TriplesPredTextObjText ON Triples(pred_text, obj_text);
 
-CREATE TRIGGER triples_update AFTER UPDATE ON Triples
+CREATE TRIGGER TriplesUpdate AFTER UPDATE ON Triples
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
 END;
 

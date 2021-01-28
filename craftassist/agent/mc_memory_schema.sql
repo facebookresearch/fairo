@@ -70,11 +70,11 @@ CREATE TRIGGER VoxelObjectsDelete AFTER DELETE ON VoxelObjects
     WHEN ((SELECT COUNT(*) FROM VoxelObjects WHERE uuid=OLD.uuid LIMIT 1) == 0)
     BEGIN DELETE FROM Memories WHERE uuid=OLD.uuid;
 END; -- delete memory when last block is removed
-CREATE TRIGGER VoxelObjectsUpdate AFTER UPDATE ON VoxelObjects
+CREATE TRIGGER VoxelObjectsUpdateCheckDeleted AFTER UPDATE ON VoxelObjects
     WHEN ((SELECT COUNT(*) FROM VoxelObjects WHERE uuid=OLD.uuid LIMIT 1) == 0)
     BEGIN DELETE FROM Memories WHERE uuid=OLD.uuid;
 END; -- delete memory when last block is removed
-CREATE TRIGGER VoxelObjectsChanged AFTER UPDATE ON VoxelObjects
+CREATE TRIGGER VoxelObjectsUpdate AFTER UPDATE ON VoxelObjects
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
 END;
 --if a block is deleted, mark the uuid as updated, not deleted
@@ -138,7 +138,7 @@ CREATE TABLE Mobs (
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
-CREATE TRIGGER MobsChanged AFTER UPDATE ON Mobs
+CREATE TRIGGER MobsUpdate AFTER UPDATE ON Mobs
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
 END;
 
@@ -150,6 +150,6 @@ CREATE TABLE Rewards (
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
-CREATE TRIGGER RewardsChanged AFTER UPDATE ON Rewards
+CREATE TRIGGER RewardsUpdate AFTER UPDATE ON Rewards
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
 END;

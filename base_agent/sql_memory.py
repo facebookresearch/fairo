@@ -365,11 +365,11 @@ class AgentMemory:
 
     def add_triple(
         self,
-        subj: str = "",  # this is a memid if given
-        obj: str = "",  # this is a memid if given
-        subj_text: str = "",
+        subj: str = None,  # this is a memid if given
+        obj: str = None,  # this is a memid if given
+        subj_text: str = None,
         pred_text: str = "has_tag",
-        obj_text: str = "",
+        obj_text: str = None,
         confidence: float = 1.0,
     ):
         """Adds (subj, pred, obj) triple to the triplestore.
@@ -413,7 +413,7 @@ class AgentMemory:
             tag_text (string): string representation of the tag
 
         Returns:
-            int: number of rows affected
+            memid of triple representing the tag
 
         Examples::
             >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
@@ -429,9 +429,6 @@ class AgentMemory:
         Args:
             subj_memid (string): memid of subject
             tag_text (string): string representation of the tag
-
-        Returns:
-            int: number of rows affected
 
         Examples::
             >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
@@ -1162,19 +1159,3 @@ class AgentMemory:
                     delattr(obj, "__had_attr_" + attr)
                     setattr(obj, attr, self._safe_pickle_saved_attrs[obj.pickled_attrs_id][attr])
         return obj
-
-
-if __name__ == "__main__":
-
-    class P:
-        pass
-
-    m = AgentMemory()
-
-    pp = P()
-    pp.x, pp.y, pp.z = 1, 0, 1
-    pl = P()
-    pl.pitch, pl.yaw = 0, 0
-    p = P()
-    p.entityId, p.name, p.pos, p.look = 10, "joe", pp, pl
-    pmemid = PlayerNode.create(m, p)
