@@ -4,6 +4,8 @@ import ast
 from pprint import pprint
 import os
 import argparse
+import glob
+import re
 
 """
 Validates JSON style parse trees from a dataset, where each row has the format
@@ -36,14 +38,24 @@ if __name__ == "__main__":
         default="craftassist/agent/datasets/full_data/templated_filters.txt",
         help="path to dataset with examples we want to validate, where each row contains a command and parse tree separated by |.",
     )
+    parser.add_argument(
+        "--schema_dir",
+        type=str,
+        default="base_agent/documents/json_schema/",
+        help="path to directory containing JSON schemas we want to load",
+    )
     args = parser.parse_args()
-    schema = json.load(open("grammar_spec.schema.json"))
-    filters_schema = json.load(open("filters.schema.json"))
-    action_dict_components = json.load(open("action_dict_components.schema.json"))
-    other_dialogue = json.load(open("other_dialogue.schema.json"))
-
-    resolver = RefResolver("filters.schema.json", filters_schema)
-    resolver.store["grammar_spec.schema.json"] = schema
-    resolver.store["action_dict_components.schema.json"] = action_dict_components
-    resolver.store["other_dialogue.schema.json"] = other_dialogue
-    validate_data(args.data_path, schema, resolver)
+    # RefResolver initialization requires a base schema and URI
+    base_uri = args.schema_dir + "grammar_spec.schema.json"
+    base_schema = json.load(open(base_uri))
+    # NOTE: Though not required, naming convention is that schemas end in .schema.json
+    re_pattern = "(.*)\/(.*).schema.json$"
+    base_schema_name = re.search(re_pattern, base_uri).group(2)
+    resolver = RefResolver(base_schema_name + ".schema.json", base_schema)
+    # Load all subschemas in schema directory
+    for schema_path in glob.glob(args.schema_dir + "*.json"):
+        schema_name = re.search(re_pattern, schema_path).group(2)
+        json_schema = json.load(open(schema_path))
+        resolver.store[schema_name + ".schema.json"] = json_schema
+    # Validate dataset against schema using resolver to resolve cross references
+    validate_data(args.data_path, base_schema, resolver)
