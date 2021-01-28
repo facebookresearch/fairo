@@ -1,0 +1,252 @@
+{
+  "$id": "action_dict_components.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Subcomponents of action dictionaries",
+  "type": "object",
+  "definitions": {
+    "span": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "array"
+          }
+        ]
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "text_span": {
+          "$ref": "#/definitions/span"
+        },
+        "steps": {
+          "$ref": "#/definitions/span"
+        },
+        "has_measure": {
+          "$ref": "#/definitions/span"
+        },
+        "contains_coreference": {
+          "enum": [
+            "yes"
+          ]
+        },
+        "relative_direction": {
+          "enum": [
+            "LEFT",
+            "RIGHT",
+            "UP",
+            "DOWN",
+            "FRONT",
+            "BACK",
+            "AWAY",
+            "INSIDE",
+            "NEAR",
+            "OUTSIDE",
+            "AROUND",
+            "BETWEEN",
+            "ANTICLOCKWISE",
+            "CLOCKWISE"
+          ]
+        },
+        "reference_object": {
+          "$ref": "#/definitions/reference_object"
+        }
+      }
+    },
+    "reference_object": {
+      "type": "object",
+      "properties": {
+        "special_reference": {
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "SPEAKER",
+                "AGENT",
+                "SPEAKER_LOOK"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "coordinates_span": {
+                  "$ref": "#/definitions/span"
+                }
+              },
+              "additionalProperties": false
+            }
+          ]
+        },
+        "text_span": {
+          "$ref": "#/definitions/span"
+        },
+        "repeat": {
+          "$ref": "grammar_spec.schema.json#/definitions/repeat"
+        },
+        "filters": {
+          "$ref": "filters.schema.json#/definitions/filters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "stop_condition": {
+      "type": "object",
+      "description": "Condition for stopping a repeat",
+      "properties": {
+        "condition_type": {
+          "enum": [
+            "ADJACENT_TO_BLOCK_TYPE",
+            "NEVER"
+          ]
+        },
+        "block_type": {
+          "$ref": "#/definitions/span"
+        }
+      }
+    },
+    "schematic": {
+      "type": "object",
+      "properties": {
+        "triples": {
+          "$ref": "filters.schema.json#/definitions/triples"
+        },
+        "repeat": {
+          "$ref": "#/definitions/repeat"
+        },
+        "text_span": {
+          "$ref": "#/definitions/span"
+        }
+      },
+      "required": [
+        "triples"
+      ]
+    },
+    "repeat": {
+      "type": "object",
+      "properties": {
+        "repeat_key": {
+          "enum": [
+            "FOR",
+            "ALL"
+          ]
+        },
+        "repeat_dir": {
+          "enum": [
+            "LEFT",
+            "RIGHT",
+            "UP",
+            "DOWN",
+            "FRONT",
+            "BACK",
+            "AROUND",
+            "SURROUND"
+          ]
+        },
+        "repeat_count": {
+          "$ref": "#/definitions/span"
+        }
+      },
+      "if": {
+        "properties": {
+          "repeat_key": {
+            "const": "FOR"
+          }
+        },
+        "required": [
+          "repeat_key"
+        ]
+      },
+      "then": {
+        "required": [
+          "repeat_count"
+        ]
+      }
+    },
+    "facing": {
+      "type": "object",
+      "properties": {
+        "text_span": {
+          "$ref": "#/definitions/span"
+        },
+        "yaw_pitch": {
+          "$ref": "#/definitions/span"
+        },
+        "yaw": {
+          "$ref": "#/definitions/span"
+        },
+        "pitch": {
+          "$ref": "#/definitions/span"
+        },
+        "relative_yaw": {
+          "type": "object",
+          "properties": {
+            "angle": {
+              "enum": [
+                "-360",
+                "-180",
+                "-135",
+                "-90",
+                "-45",
+                "0",
+                "45",
+                "90",
+                "135",
+                "180",
+                "360"
+              ]
+            },
+            "yaw_span": {
+              "$ref": "#/definitions/span"
+            }
+          }
+        },
+        "relative_pitch": {
+          "type": "object",
+          "properties": {
+            "angle": {
+              "enum": [
+                "-90",
+                "-45",
+                "0",
+                "45",
+                "90"
+              ]
+            },
+            "pitch_span": {
+              "$ref": "#/definitions/span"
+            }
+          }
+        },
+        "location": {
+          "$ref": "#/definitions/location"
+        }
+      }
+    },
+    "dance_type": {
+      "type": "object",
+      "properties": {
+        "dance_type_name": {
+          "$ref": "#/definitions/span"
+        },
+        "dance_type_tag": {
+          "$ref": "#/definitions/span"
+        },
+        "point": {
+          "$ref": "#/definitions/facing"
+        },
+        "look_turn": {
+          "$ref": "#/definitions/facing"
+        },
+        "body_turn": {
+          "$ref": "#/definitions/facing"
+        }
+      }
+    }
+  }
+}
