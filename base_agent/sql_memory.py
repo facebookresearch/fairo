@@ -304,28 +304,23 @@ class AgentMemory:
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object
-    def forget(self, memid: str, hard=True):
+    def forget(self, memid: str):
         """remove a memory from the DB. Warning: some of the work is done by
            delete cascades in SQL
 
         Args:
             memid (string): Memory id
-            hard (bool): flag indicating whether it is a hard delete
-                         A 'soft' delete is just tagging the memory as _forgotten
 
         Examples::
             >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> forget(memid, hard=False)
+            >>> forget(memid)
         """
-        if not hard:
-            self.add_triple(subj=memid, pred_text="has_tag", obj_text="_forgotten")
-        else:
-            self.db_write("DELETE FROM Memories WHERE uuid=?", memid)
-            # TRIGGERs in the db clean up triples referencing the memid.
-            # TODO this less brutally.  might want to remember some
-            # triples where the subject or object has been removed
-            # eventually we might have second-order relations etc, this could set
-            # off a chain reaction
+        self.db_write("DELETE FROM Memories WHERE uuid=?", memid)
+        # TRIGGERs in the db clean up triples referencing the memid.
+        # TODO this less brutally.  might want to remember some
+        # triples where the subject or object has been removed
+        # eventually we might have second-order relations etc, this could set
+        # off a chain reaction
 
     def forget_by_query(self, query: str, hard=True):
         """remove memories from DB that match a query
