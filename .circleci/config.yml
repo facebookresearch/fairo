@@ -48,8 +48,8 @@ jobs:
           name: Base Agent Python unit tests
           command: |
               mkdir shared
-              docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
-              docker cp mc-tests:/shared shared
+              docker run --name base-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/base_agent/test.sh craftassist
+              docker cp base-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN="318c7f7e-54eb-4692-8651-8ea48857c3a7"
               bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "base_agent tests"|| echo "Codecov did not collect coverage reports"
@@ -57,7 +57,6 @@ jobs:
       - run:
           name: CraftAssist Python unit tests
           command: |
-              mkdir shared
               docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
               docker cp mc-tests:/shared shared
               pip3 install codecov

@@ -1,7 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
+import sys
+print(sys.path)
 import unittest
 from base_agent.memory_nodes import PlayerNode
 from base_agent.sql_memory import AgentMemory
