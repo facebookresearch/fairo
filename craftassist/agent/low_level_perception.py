@@ -158,12 +158,13 @@ class LowLevelMCPerception:
         """if the block is changed, the old instance segmentation is considered no longer valid"""
         # get all associated instseg nodes
         # FIXME make this into a basic search
-        info = self.memory.get_instseg_object_ids_by_xyz(xyz)
-        if info and len(info) > 0:
-            # delete the InstSeg info on the loc of this block;
-            # the SQL triggers will remove the object if this was the last block
-            # of the inst_seg Node
-            self.memory.remove_voxel(xyz[0], xyz[1], xyz[2], "inst_seg")
+        inst_seg_memids = self.memory.get_instseg_object_ids_by_xyz(xyz)
+        if inst_seg_memids:
+            # delete the InstSeg, they are ephemeral and should be recomputed
+            # TODO/FIXME  more refined approach: if a block changes
+            # ask the models to recompute.  if the tags are the same, keep it
+            for i in inst_seg_memids:
+                self.memory.forget(i[0])
 
     # clean all this up...
     # eventually some conditions for not committing air/negative blocks
