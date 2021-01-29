@@ -104,14 +104,13 @@ router.post("/writeLabels", function (req, res, next) {
 router.post("/uploadDataToS3", function (req, res, next) {
   console.log(req.body);
   const execSync = require('child_process').execSync;
-  const output = execSync('aws s3 cp get_memory_command_dict_pairs.json s3://craftassist/pubr/', { encoding: 'utf-8' });  // the default is 'buffer'
-  console.log('Output was:\n', output);
-  // fs.writeFile("get_memory_command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
-  //   // err is an error other than fileNotExists
-  //   // if file does not exist, writeFile will create it
-  //   if (err) throw err;
-  //   console.log("Saved template information to file!");
-  // });
+  // const output = execSync('./tools/data_scripts/upload_file_to_aws_mac_os.sh datasets', { encoding: 'utf-8' });
+  const postprocessing_output = execSync('python ../../../data_processing/get_memory_postprocess.py', { encoding: 'utf-8' });
+  console.log('Postprocessing Output was:\n', postprocessing_output);
+
+  const s3_output = execSync('aws s3 cp autocomplete_annotations.txt  s3://craftassist/pubr/', { encoding: 'utf-8' });
+  console.log('S3 Output was:\n', postprocessing_output);
+
   res.send("upload data is working properly");
 });
 
