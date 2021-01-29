@@ -10,6 +10,7 @@ import time
 import numpy as np
 
 from core import BaseAgent
+from base_agent.base_util import ErrorWithResponse
 from dlevent import sio
 
 from base_util import hash_user
@@ -150,12 +151,24 @@ class LocoMCAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
-        self.send_chat("Oops! I got confused and wasn't able to complete my last task :(")
-        self.memory.task_stack_clear()
-        self.dialogue_manager.dialogue_stack.clear()
-        self.uncaught_error_count += 1
-        if self.uncaught_error_count >= 100:
-            sys.exit(1)
+
+        # we check if the exception raised is in one of our whitelisted exceptions
+        # if so, we raise a reasonable message to the user, and then do some clean
+        # up and continue
+        if isinstance(e, ErrorWithResponse):
+            self.send_chat("Oops! I got confused and wasn't able to complete my last task :(")
+            self.memory.task_stack_clear()
+            self.dialogue_manager.dialogue_stack.clear()
+            self.uncaught_error_count += 1
+            if self.uncaught_error_count >= 100:
+                raise e
+        else:
+            # if it's not a whitelisted exception, immediatelly raise upwards,
+            # unless you are in some kind of a debug mode
+            if os.getenv('DROIDLET_DEBUG_MODE'):
+                return
+            else:
+                raise e
 
     def step(self):
         if self.count == 0:
