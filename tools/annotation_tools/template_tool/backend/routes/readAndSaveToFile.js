@@ -32,10 +32,10 @@ router.get("/", function (req, res, next) {
 /***
  * Fetch the commands we want to label
  */
-router.get("/get_memory", function (req, res, next) {
-  if (fs.existsSync("get_memory.txt")) {
+router.get("/get_commands", function (req, res, next) {
+  if (fs.existsSync("commands.txt")) {
     // the file exists
-    fs.readFile("get_memory.txt", function (err, data) {
+    fs.readFile("commands.txt", function (err, data) {
       if (err) throw err;
       // console.log(data.toString())
       res.writeHead(200, { "Content-Type": "text/html" });
@@ -49,9 +49,9 @@ router.get("/get_memory", function (req, res, next) {
  * Fetch progress on labels
  */
 router.get("/get_labels_progress", function (req, res, next) {
-  if (fs.existsSync("get_memory_command_dict_pairs.json")) {
+  if (fs.existsSync("command_dict_pairs.json")) {
     // the file exists
-    fs.readFile("get_memory_command_dict_pairs.json", function (err, data) {
+    fs.readFile("command_dict_pairs.json", function (err, data) {
       if (err) throw err;
       console.log(data.toString())
       res.writeHead(200, { "Content-Type": "application/json" });
@@ -75,7 +75,7 @@ router.post("/", function (req, res, next) {
 
 router.post("/append", function (req, res, next) {
   console.log(req.body);
-  fs.appendFile("get_memory_command_dict_pairs.txt", "hi" + JSON.stringify(req.body) + "\n", function (err) {
+  fs.appendFile("command_dict_pairs.txt", "hi" + JSON.stringify(req.body) + "\n", function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;
@@ -89,7 +89,7 @@ router.post("/append", function (req, res, next) {
  */
 router.post("/writeLabels", function (req, res, next) {
   console.log(req.body);
-  fs.writeFile("get_memory_command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
+  fs.writeFile("command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;
@@ -104,8 +104,7 @@ router.post("/writeLabels", function (req, res, next) {
 router.post("/uploadDataToS3", function (req, res, next) {
   console.log(req.body);
   const execSync = require('child_process').execSync;
-  // const output = execSync('./tools/data_scripts/upload_file_to_aws_mac_os.sh datasets', { encoding: 'utf-8' });
-  const postprocessing_output = execSync('python ../../../data_processing/get_memory_postprocess.py', { encoding: 'utf-8' });
+  const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py', { encoding: 'utf-8' });
   console.log('Postprocessing Output was:\n', postprocessing_output);
 
   const s3_output = execSync('aws s3 cp autocomplete_annotations.txt  s3://craftassist/pubr/', { encoding: 'utf-8' });

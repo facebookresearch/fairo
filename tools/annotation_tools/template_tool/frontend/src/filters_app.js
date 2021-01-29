@@ -69,7 +69,7 @@ class FiltersAnnotator extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:9000/readAndSaveToFile/get_memory")
+    fetch("http://localhost:9000/readAndSaveToFile/get_commands")
       .then(res => res.text())
       .then((text) => { this.setState({ fullText: text.split("\n") }) })
 

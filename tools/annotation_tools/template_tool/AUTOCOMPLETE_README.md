@@ -52,7 +52,7 @@ To pretty print a JSON valid dictionary, press Enter in the text box.
 ## Save and Upload
 On `Save`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/backend/`.
 
-On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components, and written to `~/droidlet/tools/annotation_tools/template_tool/backend/autocomplete_outputs.txt`. This is in the format
+On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components, and written to `~/droidlet/tools/annotation_tools/template_tool/backend/autocomplete_annotations.txt`. This is in the format
 
 ```
 [command]|[action_dict]\n

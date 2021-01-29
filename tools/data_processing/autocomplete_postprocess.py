@@ -58,7 +58,7 @@ def write_file(dataset, file_path):
 if __name__ == "__main__":
     print("*** Applying grammar updates ***")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--source_path", default="get_memory_command_dict_pairs.json")
+    parser.add_argument("--source_path", default="command_dict_pairs.json")
     parser.add_argument("--dest_path", default="autocomplete_annotations.txt")
     args = parser.parse_args()
     # load the annotated dataset
