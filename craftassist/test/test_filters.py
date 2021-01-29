@@ -7,7 +7,7 @@ import craftassist.agent.shapes as shapes
 from base_craftassist_test_case import BaseCraftassistTestCase
 from base_agent.dialogue_stack import DialogueStack
 from craftassist.agent.dialogue_objects import DummyInterpreter
-import all_test_commands
+import base_agent.test.all_test_commands
 
 
 def add_many_objects(test):
@@ -46,8 +46,8 @@ class FiltersTest(BaseCraftassistTestCase):
         add_many_objects(self)
 
     def test_first_and_last(self):
-        f = all_test_commands.FILTERS["number of blocks in the first thing built"]
-        l = all_test_commands.FILTERS["number of blocks in the last thing built"]
+        f = base_agent.test.all_test_commands.FILTERS["number of blocks in the first thing built"]
+        l = base_agent.test.all_test_commands.FILTERS["number of blocks in the last thing built"]
         DI = self.dummy_interpreter
 
         b = DI.subinterpret["filters"](DI, "SPEAKER", f)

@@ -7,7 +7,7 @@ import time
 import craftassist.agent.shapes as shapes
 from base_agent.dialogue_objects import AwaitResponse
 from base_craftassist_test_case import BaseCraftassistTestCase
-from all_test_commands import *
+from base_agent.test.all_test_commands import *
 
 
 class UndoTest(BaseCraftassistTestCase):

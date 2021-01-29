@@ -11,7 +11,7 @@ from base_craftassist_test_case import BaseCraftassistTestCase
 from base_agent.base_util import NextDialogueStep
 from typing import List
 from craftassist.agent.mc_util import Block, strip_idmeta, euclid_dist
-from all_test_commands import *
+from base_agent.test.all_test_commands import *
 
 
 def add_two_cubes(test):
