@@ -5,7 +5,7 @@ from .face_recognition import FaceRecognitionHandler
 from .laser_pointer import LaserPointerHandler
 from .tracker import TrackingHandler
 from .memory import MemoryHandler
-from .core import RGBDepth
+from .core import RGBDepth, WorldObject
 
 __all__ = [
     InputHandler,
@@ -19,4 +19,5 @@ __all__ = [
     Human,
     HumanKeypoints,
     Detection,
+    WorldObject,
 ]
