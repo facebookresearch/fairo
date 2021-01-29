@@ -1,0 +1,504 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>craftassist.agent.low_level_perception &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>craftassist.agent.low_level_perception</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for craftassist.agent.low_level_perception</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">mc_util</span> <span class="kn">import</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">IDM</span><span class="p">,</span> <span class="n">to_block_pos</span><span class="p">,</span> <span class="n">pos_to_np</span><span class="p">,</span> <span class="n">euclid_dist</span><span class="p">,</span> <span class="n">diag_adjacent</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">block_data</span> <span class="kn">import</span> <span class="n">BORING_BLOCKS</span>
+
+<span class="n">BASE_AGENT_ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BASE_AGENT_ROOT</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">base_agent.memory_nodes</span> <span class="kn">import</span> <span class="n">PlayerNode</span><span class="p">,</span> <span class="n">AttentionNode</span>
+<span class="kn">from</span> <span class="nn">mc_memory_nodes</span> <span class="kn">import</span> <span class="n">BlockObjectNode</span>
+
+
+<span class="k">def</span> <span class="nf">capped_line_of_sight</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">player_struct</span><span class="p">,</span> <span class="n">cap</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the block directly in the entity&#39;s line of sight, or a point in the distance&quot;&quot;&quot;</span>
+    <span class="n">xsect</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_player_line_of_sight</span><span class="p">(</span><span class="n">player_struct</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">xsect</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">euclid_dist</span><span class="p">(</span><span class="n">pos_to_np</span><span class="p">(</span><span class="n">xsect</span><span class="p">),</span> <span class="n">pos_to_np</span><span class="p">(</span><span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="n">cap</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pos_to_np</span><span class="p">(</span><span class="n">xsect</span><span class="p">)</span>
+
+    <span class="c1"># default to cap blocks in front of entity</span>
+    <span class="n">vec</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">coordinate_transforms</span><span class="o">.</span><span class="n">look_vec</span><span class="p">(</span><span class="n">player_struct</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">pitch</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cap</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span> <span class="o">+</span> <span class="n">to_block_pos</span><span class="p">(</span><span class="n">pos_to_np</span><span class="p">(</span><span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="LowLevelMCPerception"><a class="viewcode-back" href="../../../droidlet_agents.html#craftassist.agent.low_level_perception.LowLevelMCPerception">[docs]</a><span class="k">class</span> <span class="nc">LowLevelMCPerception</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Perceive the world at a given frequency and update agent</span>
+<span class="sd">    memory.</span>
+
+<span class="sd">    updates positions of other players, mobs, self, and changed blocks,</span>
+<span class="sd">    takes this information directly from the cuberite server</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        agent (LocoMCAgent): reference to the minecraft Agent</span>
+<span class="sd">        perceive_freq (int): if not forced, how many Agent steps between perception</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">perceive_freq</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pending_agent_placed_blocks</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">=</span> <span class="n">perceive_freq</span>
+
+<div class="viewcode-block" id="LowLevelMCPerception.perceive"><a class="viewcode-back" href="../../../droidlet_agents.html#craftassist.agent.low_level_perception.LowLevelMCPerception.perceive">[docs]</a>    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Every n agent_steps (defined by perceive_freq), update in agent memory</span>
+<span class="sd">        location/pose of all agents, players, mobs; item stack positions and</span>
+<span class="sd">        changed blocks.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force (boolean): set to True to run all perceptual heuristics right now,</span>
+<span class="sd">                as opposed to waiting for perceive_freq steps (default: False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME (low pri) remove these in code, get from sql</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">to_block_pos</span><span class="p">(</span><span class="n">pos_to_np</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_player</span><span class="p">()</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mob</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_mobs</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">euclid_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">pos_to_np</span><span class="p">(</span><span class="n">mob</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">perception_range</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">set_mob_position</span><span class="p">(</span><span class="n">mob</span><span class="p">)</span>
+            <span class="n">item_stack_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">item_stack</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_item_stacks</span><span class="p">():</span>
+                <span class="n">item_stack_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">item_stack</span><span class="o">.</span><span class="n">entityId</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">euclid_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">pos_to_np</span><span class="p">(</span><span class="n">item_stack</span><span class="o">.</span><span class="n">pos</span><span class="p">))</span>
+                    <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">perception_range</span>
+                <span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">set_item_stack_position</span><span class="p">(</span><span class="n">item_stack</span><span class="p">)</span>
+            <span class="n">old_item_stacks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_all_item_stacks</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">old_item_stacks</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">old_item_stack</span> <span class="ow">in</span> <span class="n">old_item_stacks</span><span class="p">:</span>
+                    <span class="n">memid</span> <span class="o">=</span> <span class="n">old_item_stack</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">eid</span> <span class="o">=</span> <span class="n">old_item_stack</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">eid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">item_stack_set</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">untag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_on_ground&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;_on_ground&quot;</span><span class="p">)</span>
+
+        <span class="c1"># note: no &quot;force&quot;; these run on every perceive call.  assumed to be fast</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_self_memory</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_other_players</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_other_players</span><span class="p">())</span>
+
+        <span class="c1"># use safe_get_changed_blocks to deal with pointing</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">safe_get_changed_blocks</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_block_changed</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">update_self_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update agent&#39;s current position and attributes in memory&quot;&quot;&quot;</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_player</span><span class="p">()</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_player_by_eid</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">)</span><span class="o">.</span><span class="n">memid</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE &quot;</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s2">&quot;uuid=?&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
+            <span class="n">cmd</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="n">memid</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update_other_players</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">player_list</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update other in-game players in agen&#39;t memory</span>
+<span class="sd">        Args:</span>
+<span class="sd">            a list of player_structs from agent</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">player_list</span><span class="p">:</span>
+            <span class="n">mem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_player_by_eid</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">memid</span> <span class="o">=</span> <span class="n">PlayerNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">memid</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">memid</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE &quot;</span>
+            <span class="p">)</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s2">&quot;uuid=?&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
+                <span class="n">cmd</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="n">memid</span>
+            <span class="p">)</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="n">capped_line_of_sight</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>
+            <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">memids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+                <span class="s1">&#39;SELECT uuid FROM ReferenceObjects WHERE ref_type=&quot;attention&quot; AND type_name=?&#39;</span><span class="p">,</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">memids</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
+                    <span class="s2">&quot;UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?&quot;</span><span class="p">,</span>
+                    <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="n">memids</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">AttentionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">attender</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">)</span>
+
+    <span class="c1"># TODO replace name by eid everywhere</span>
+    <span class="k">def</span> <span class="nf">get_player_struct_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the raw player struct by player name</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            a raw player struct, e.g. to use in agent.get_player_line_of_sight</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_other_players</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">p</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">on_block_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">idm</span><span class="p">:</span> <span class="n">IDM</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update the state of the world when a block is changed.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO don&#39;t need to do this for far away blocks if this is slowing down bot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maybe_remove_inst_seg</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maybe_remove_block_from_memory</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maybe_add_block_to_memory</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">clear_air_surrounded_negatives</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">maybe_remove_inst_seg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;if the block is changed, the old instance segmentation is considered no longer valid&quot;&quot;&quot;</span>
+        <span class="c1"># get all associated instseg nodes</span>
+        <span class="c1"># FIXME make this into a basic search</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_instseg_object_ids_by_xyz</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">info</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># delete the InstSeg info on the loc of this block;</span>
+            <span class="c1"># the SQL triggers will remove the object if this was the last block</span>
+            <span class="c1"># of the inst_seg Node</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">remove_voxel</span><span class="p">(</span><span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xyz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xyz</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;inst_seg&quot;</span><span class="p">)</span>
+
+    <span class="c1"># clean all this up...</span>
+    <span class="c1"># eventually some conditions for not committing air/negative blocks</span>
+    <span class="k">def</span> <span class="nf">maybe_add_block_to_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">idm</span><span class="p">:</span> <span class="n">IDM</span><span class="p">,</span> <span class="n">agent_placed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update blocks to memory when any change in the environment</span>
+<span class="sd">        is caused either by agent or player&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">agent_placed</span><span class="p">:</span>
+            <span class="n">interesting</span><span class="p">,</span> <span class="n">player_placed</span><span class="p">,</span> <span class="n">agent_placed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_placed_block_interesting</span><span class="p">(</span>
+                <span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">interesting</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">player_placed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">interesting</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># TODO remove this, clean up</span>
+        <span class="k">if</span> <span class="n">agent_placed</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pending_agent_placed_blocks</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="n">adjacent</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_object_info_by_xyz</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">&quot;BlockObjects&quot;</span><span class="p">,</span> <span class="n">just_memid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">diag_adjacent</span><span class="p">(</span><span class="n">xyz</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">idm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># block removed / air block added</span>
+            <span class="n">adjacent_memids</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">adjacent</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># normal block added</span>
+            <span class="n">adjacent_memids</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">adjacent</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">adjacent_memids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">adjacent_memids</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">adjacent_memids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># new block object</span>
+            <span class="n">BlockObjectNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="p">[(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">)])</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">adjacent_memids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># update block object</span>
+            <span class="n">memid</span> <span class="o">=</span> <span class="n">adjacent_memids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">upsert_block</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">),</span> <span class="n">memid</span><span class="p">,</span> <span class="s2">&quot;BlockObjects&quot;</span><span class="p">,</span> <span class="n">player_placed</span><span class="p">,</span> <span class="n">agent_placed</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">set_memory_updated_time</span><span class="p">(</span><span class="n">memid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">set_memory_attended_time</span><span class="p">(</span><span class="n">memid</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">chosen_memid</span> <span class="o">=</span> <span class="n">adjacent_memids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">set_memory_updated_time</span><span class="p">(</span><span class="n">chosen_memid</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">set_memory_attended_time</span><span class="p">(</span><span class="n">chosen_memid</span><span class="p">)</span>
+
+            <span class="c1"># merge tags</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="s2">&quot; OR &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;subj=?&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">adjacent_memids</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
+                <span class="s2">&quot;UPDATE Triples SET subj=? WHERE &quot;</span> <span class="o">+</span> <span class="n">where</span><span class="p">,</span> <span class="n">chosen_memid</span><span class="p">,</span> <span class="o">*</span><span class="n">adjacent_memids</span>
+            <span class="p">)</span>
+
+            <span class="c1"># merge multiple block objects (will delete old ones)</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="s2">&quot; OR &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;uuid=?&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">adjacent_memids</span><span class="p">))</span>
+            <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;UPDATE VoxelObjects SET uuid=? WHERE &quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span><span class="n">cmd</span> <span class="o">+</span> <span class="n">where</span><span class="p">,</span> <span class="n">chosen_memid</span><span class="p">,</span> <span class="o">*</span><span class="n">adjacent_memids</span><span class="p">)</span>
+
+            <span class="c1"># insert new block</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">upsert_block</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">idm</span><span class="p">),</span> <span class="n">chosen_memid</span><span class="p">,</span> <span class="s2">&quot;BlockObjects&quot;</span><span class="p">,</span> <span class="n">player_placed</span><span class="p">,</span> <span class="n">agent_placed</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">maybe_remove_block_from_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">idm</span><span class="p">:</span> <span class="n">IDM</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update agent&#39;s memory with blocks that have been destroyed.&quot;&quot;&quot;</span>
+        <span class="n">tables</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;BlockObjects&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">get_object_info_by_xyz</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">just_memid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">info</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="n">memid</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">delete</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">idm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">b</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">idm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">delete</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">remove_voxel</span><span class="p">(</span><span class="o">*</span><span class="n">xyz</span><span class="p">,</span> <span class="n">table</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">areas_to_perceive</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">xyz</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="c1"># FIXME move removal of block to parent</span>
+    <span class="k">def</span> <span class="nf">is_placed_block_interesting</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyz</span><span class="p">:</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">bid</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Return three values:</span>
+<span class="sd">        - bool: is the placed block interesting?</span>
+<span class="sd">        - bool: is it interesting because it was placed by a player?</span>
+<span class="sd">        - bool: is it interesting because it was placed by the agent?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">interesting</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">player_placed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">agent_placed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># TODO record *which* player placed it</span>
+        <span class="k">if</span> <span class="n">xyz</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pending_agent_placed_blocks</span><span class="p">:</span>
+            <span class="n">interesting</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">agent_placed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">player_struct</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_other_players</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">euclid_dist</span><span class="p">(</span><span class="n">pos_to_np</span><span class="p">(</span><span class="n">player_struct</span><span class="o">.</span><span class="n">pos</span><span class="p">),</span> <span class="n">xyz</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span>
+                <span class="ow">and</span> <span class="n">player_struct</span><span class="o">.</span><span class="n">mainHand</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">bid</span>
+            <span class="p">):</span>
+                <span class="n">interesting</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">agent_placed</span><span class="p">:</span>
+                    <span class="n">player_placed</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">bid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BORING_BLOCKS</span><span class="p">:</span>
+            <span class="n">interesting</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">interesting</span><span class="p">,</span> <span class="n">player_placed</span><span class="p">,</span> <span class="n">agent_placed</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>locobot.robot.remote_locobot &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
@@ -50,7 +52,7 @@
           
 
           
-            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="../../../index.html" class="icon icon-home"> droidlet
           
 
           
@@ -104,13 +106,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -138,6 +143,8 @@
         <div class="rst-content">
         
           
+
+
 
 
 
@@ -200,12 +207,12 @@
 <span class="n">Pyro4</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ITER_STREAMING</span> <span class="o">=</span> <span class="kc">True</span>
 
 
-<div class="viewcode-block" id="RemoteLoCoRobot"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot">[docs]</a><span class="nd">@Pyro4</span><span class="o">.</span><span class="n">expose</span>
-<span class="k">class</span> <span class="nc">RemoteLoCoRobot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot">[docs]</a><span class="nd">@Pyro4</span><span class="o">.</span><span class="n">expose</span>
+<span class="k">class</span> <span class="nc">RemoteLocobot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;PyRobot interface for the Locobot.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        backend (string): the backend for the Locobot (&quot;habitat&quot; for the locobot in Habitat, and &quot;locobot&quot; for the physical LoCoBot) </span>
+<span class="sd">        backend (string): the backend for the Locobot (&quot;habitat&quot; for the locobot in Habitat, and &quot;locobot&quot; for the physical LocoBot)</span>
 <span class="sd">        (default: locobot)</span>
 <span class="sd">        backend_config (dict): the backend config used for connecting to Habitat (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -271,7 +278,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Connected!!&quot;</span><span class="p">)</span>  <span class="c1"># should print on server terminal</span>
         <span class="k">return</span> <span class="s2">&quot;Connected!&quot;</span>  <span class="c1"># should print on client terminal</span>
 
-    <span class="k">def</span> <span class="nf">get_img_resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_img_resolution"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_img_resolution">[docs]</a>    <span class="k">def</span> <span class="nf">get_img_resolution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; return height and width&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;locobot&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>
@@ -281,9 +288,9 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;habitat&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_pcd_data"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_pcd_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pcd_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_pcd_data"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_pcd_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pcd_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gets all the data to calculate the point cloud for a given rgb, depth frame.&quot;&quot;&quot;</span>
         <span class="n">rgb</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">get_rgb_depth</span><span class="p">()</span>
         <span class="n">depth</span> <span class="o">*=</span> <span class="mi">1000</span>  <span class="c1"># convert to mm</span>
@@ -310,15 +317,15 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
     <span class="c1"># Navigation wrapper</span>
-    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.go_home"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.go_home">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">go_home</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Moves the robot base to origin point: x, y, yaw 0, 0, 0.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_done</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">go_to_absolute</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.go_to_absolute"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.go_to_absolute">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.go_to_absolute"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.go_to_absolute">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">go_to_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyt_position</span><span class="p">,</span> <span class="n">use_map</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">close_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Moves the robot base to given goal state in the world frame.</span>
 
@@ -344,7 +351,7 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.go_to_relative"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.go_to_relative">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.go_to_relative"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.go_to_relative">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">go_to_relative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyt_position</span><span class="p">,</span> <span class="n">use_map</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">close_loop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Moves the robot base to the given goal state relative to its current</span>
 <span class="sd">        pose.</span>
@@ -370,12 +377,12 @@
             <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.stop"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.stop">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;stops robot base movement.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_base_state"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_base_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_base_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_type</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_base_state"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_base_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_base_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_type</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the  base pose of the robot in the (x,y, yaw) format as</span>
 <span class="sd">        computed either from Wheel encoder readings or Visual-SLAM.</span>
 
@@ -390,7 +397,7 @@
 
     <span class="c1"># Manipulation wrapper</span>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.set_joint_positions"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_joint_positions">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.set_joint_positions"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.set_joint_positions">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">set_joint_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_joint</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets the desired joint angles for all arm joints.</span>
 
@@ -409,7 +416,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">set_joint_positions</span><span class="p">(</span><span class="n">target_joint</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="n">plan</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.set_joint_velocities"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_joint_velocities">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.set_joint_velocities"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.set_joint_velocities">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">set_joint_velocities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_vels</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets the desired joint velocities for all arm joints.</span>
 
@@ -424,7 +431,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">set_joint_velocities</span><span class="p">(</span><span class="n">target_vels</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.set_ee_pose"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_ee_pose">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.set_ee_pose"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.set_ee_pose">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">set_ee_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Commands robot arm to desired end-effector pose (w.r.t.</span>
 <span class="sd">        &#39;ARM_BASE_FRAME&#39;). Computes IK solution in joint space and calls</span>
@@ -452,7 +459,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">set_ee_pose</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">orientation</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="n">plan</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.move_ee_xyz"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.move_ee_xyz">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.move_ee_xyz"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.move_ee_xyz">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">move_ee_xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">displacement</span><span class="p">,</span> <span class="n">eef_step</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Keep the current orientation of arm fixed, move the end effector of</span>
 <span class="sd">        in {xyz} directions.</span>
@@ -478,7 +485,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
     <span class="c1"># Gripper wrapper</span>
-<div class="viewcode-block" id="RemoteLoCoRobot.open_gripper"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.open_gripper">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.open_gripper"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.open_gripper">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">open_gripper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Commands gripper to open fully.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_done</span><span class="p">:</span>
@@ -486,7 +493,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">gripper</span><span class="o">.</span><span class="n">open</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.close_gripper"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.close_gripper">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.close_gripper"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.close_gripper">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">close_gripper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Commands gripper to close fully.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_done</span><span class="p">:</span>
@@ -494,7 +501,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">gripper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_gripper_state"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_gripper_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_gripper_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_gripper_state"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_gripper_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_gripper_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the gripper state.</span>
 
 <span class="sd">        :return: state</span>
@@ -507,7 +514,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">gripper</span><span class="o">.</span><span class="n">get_gripper_state</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_end_eff_pose"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_end_eff_pose">[docs]</a>    <span class="k">def</span> <span class="nf">get_end_eff_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_end_eff_pose"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_end_eff_pose">[docs]</a>    <span class="k">def</span> <span class="nf">get_end_eff_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the end effector pose w.r.t &#39;ARM_BASE_FRAME&#39;</span>
 <span class="sd">        :return:tuple (trans, rot_mat, quat)</span>
@@ -523,7 +530,7 @@
         <span class="n">pos</span><span class="p">,</span> <span class="n">rotmat</span><span class="p">,</span> <span class="n">quat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">pose_ee</span>
         <span class="k">return</span> <span class="n">pos</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">rotmat</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">quat</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_joint_positions"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_joint_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_joint_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_joint_positions"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_joint_positions">[docs]</a>    <span class="k">def</span> <span class="nf">get_joint_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return arm joint angles order-&gt; base_join index 0, wrist joint index</span>
 <span class="sd">        -1.</span>
 
@@ -532,7 +539,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">get_joint_angles</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_joint_velocities"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_joint_velocities">[docs]</a>    <span class="k">def</span> <span class="nf">get_joint_velocities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_joint_velocities"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_joint_velocities">[docs]</a>    <span class="k">def</span> <span class="nf">get_joint_velocities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the joint velocity order-&gt; base_join index 0, wrist joint</span>
 <span class="sd">        index -1.</span>
 
@@ -542,16 +549,16 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">get_joint_velocities</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
 
     <span class="c1"># Common wrapper</span>
-    <span class="k">def</span> <span class="nf">command_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.command_finished"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.command_finished">[docs]</a>    <span class="k">def</span> <span class="nf">command_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns whether previous executed command finished execution.</span>
 
 <span class="sd">        return: command execution state [True for finished execution, False for still executing]</span>
 <span class="sd">        rtype: bool</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_done</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_done</span></div>
 
     <span class="c1"># Camera wrapper</span>
-<div class="viewcode-block" id="RemoteLoCoRobot.get_depth"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_depth">[docs]</a>    <span class="k">def</span> <span class="nf">get_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_depth"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_depth">[docs]</a>    <span class="k">def</span> <span class="nf">get_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the depth image perceived by the camera.</span>
 
 <span class="sd">        :return: depth image in meters, dtype-&gt; float32</span>
@@ -562,7 +569,7 @@
             <span class="k">return</span> <span class="n">depth</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_depth_bytes"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_depth_bytes">[docs]</a>    <span class="k">def</span> <span class="nf">get_depth_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_depth_bytes"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_depth_bytes">[docs]</a>    <span class="k">def</span> <span class="nf">get_depth_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the depth image perceived by the camera.</span>
 
 <span class="sd">        :return: depth image in meters, dtype-&gt; bytes</span>
@@ -573,7 +580,7 @@
             <span class="k">return</span> <span class="n">depth</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_intrinsics"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_intrinsics">[docs]</a>    <span class="k">def</span> <span class="nf">get_intrinsics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_intrinsics"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_intrinsics">[docs]</a>    <span class="k">def</span> <span class="nf">get_intrinsics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the intrinsic matrix of the camera.</span>
 
 <span class="sd">        :return: the intrinsic matrix (shape: :math:`[3, 3]`)</span>
@@ -584,7 +591,7 @@
             <span class="k">return</span> <span class="n">intrinsics</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_rgb"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_rgb">[docs]</a>    <span class="k">def</span> <span class="nf">get_rgb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_rgb"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_rgb">[docs]</a>    <span class="k">def</span> <span class="nf">get_rgb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the RGB image perceived by the camera.</span>
 
 <span class="sd">        :return: image in the RGB, [h,w,c] format, dtype-&gt;uint8</span>
@@ -595,7 +602,7 @@
             <span class="k">return</span> <span class="n">rgb</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_rgb_bytes"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_rgb_bytes">[docs]</a>    <span class="k">def</span> <span class="nf">get_rgb_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_rgb_bytes"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_rgb_bytes">[docs]</a>    <span class="k">def</span> <span class="nf">get_rgb_bytes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the RGB image perceived by the camera.</span>
 
 <span class="sd">        :return: image in the RGB, [h,w,c] format, dtype-&gt;bytes</span>
@@ -606,7 +613,7 @@
             <span class="k">return</span> <span class="n">rgb</span><span class="o">.</span><span class="n">tobytes</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.transform_pose"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.transform_pose">[docs]</a>    <span class="k">def</span> <span class="nf">transform_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">current_pose</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.transform_pose"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.transform_pose">[docs]</a>    <span class="k">def</span> <span class="nf">transform_pose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">XYZ</span><span class="p">,</span> <span class="n">current_pose</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transforms the point cloud into geocentric frame to account for</span>
 <span class="sd">        camera position</span>
@@ -623,7 +630,7 @@
         <span class="n">XYZ</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">XYZ</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">current_pose</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">XYZ</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_current_pcd"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_current_pcd">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_pcd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_cam</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">in_global</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_current_pcd"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_current_pcd">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_pcd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_cam</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">in_global</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the point cloud at current time step.</span>
 
 <span class="sd">        :param in_cam: return points in camera frame,</span>
@@ -644,7 +651,7 @@
             <span class="n">pts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_pose</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">get_state</span><span class="p">(</span><span class="s2">&quot;odom&quot;</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">pts</span><span class="p">,</span> <span class="n">colors</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.pix_to_3dpt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.pix_to_3dpt">[docs]</a>    <span class="k">def</span> <span class="nf">pix_to_3dpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">in_cam</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.pix_to_3dpt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.pix_to_3dpt">[docs]</a>    <span class="k">def</span> <span class="nf">pix_to_3dpt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">in_cam</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the 3D points of the pixels in RGB images in metric unit.</span>
 
 <span class="sd">        :param rs: rows of interest in the RGB image.</span>
@@ -673,7 +680,7 @@
         <span class="n">pts</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">pix_to_3dpt</span><span class="p">(</span><span class="n">rs</span><span class="p">,</span> <span class="n">cs</span><span class="p">,</span> <span class="n">in_cam</span><span class="o">=</span><span class="n">in_cam</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pts</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">colors</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.dip_pix_to_3dpt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.dip_pix_to_3dpt">[docs]</a>    <span class="k">def</span> <span class="nf">dip_pix_to_3dpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.dip_pix_to_3dpt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.dip_pix_to_3dpt">[docs]</a>    <span class="k">def</span> <span class="nf">dip_pix_to_3dpt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the point cloud at current time step in robot base frame.</span>
 
 <span class="sd">        :returns: point coordinates (shape: :math:`[N, 3]`) in metric unit</span>
@@ -692,7 +699,7 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;exiting pix_to_3dpt&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pts</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_transform"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_frame</span><span class="p">,</span> <span class="n">dst_frame</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_transform"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_transform">[docs]</a>    <span class="k">def</span> <span class="nf">get_transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_frame</span><span class="p">,</span> <span class="n">dst_frame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the transform from the src_frame to dest_frame.</span>
 
 <span class="sd">        :param src_frame: source frame</span>
@@ -711,7 +718,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">arm</span><span class="o">.</span><span class="n">get_transform</span><span class="p">(</span><span class="n">src_frame</span><span class="p">,</span> <span class="n">dst_frame</span><span class="p">)</span></div>
 
     <span class="c1"># Camera pan wrapper</span>
-<div class="viewcode-block" id="RemoteLoCoRobot.get_pan"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_pan">[docs]</a>    <span class="k">def</span> <span class="nf">get_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_pan"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_pan">[docs]</a>    <span class="k">def</span> <span class="nf">get_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the current pan joint angle of the robot camera.</span>
 
 <span class="sd">        :return:Pan joint angle in radian</span>
@@ -719,7 +726,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">get_pan</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_camera_state"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_camera_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_camera_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_camera_state"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_camera_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_camera_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the current pan and tilt joint angles of the robot camera in</span>
 <span class="sd">        radian.</span>
 
@@ -728,7 +735,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.get_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_tilt">[docs]</a>    <span class="k">def</span> <span class="nf">get_tilt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RemoteLocobot.get_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.get_tilt">[docs]</a>    <span class="k">def</span> <span class="nf">get_tilt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the current tilt joint angle of the robot camera in radian.</span>
 
 <span class="sd">        :return:tilt joint angle</span>
@@ -736,7 +743,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">get_tilt</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.reset"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.reset">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.reset"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.reset">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;This function resets the pan and tilt joints of robot camera by</span>
 <span class="sd">        actuating them to their home configuration [0.0, 0.0].&quot;&quot;&quot;</span>
@@ -745,7 +752,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.set_pan"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_pan">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.set_pan"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.set_pan">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">set_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pan</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets the pan joint angle of robot camera to the specified value.</span>
 
@@ -761,7 +768,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">set_pan</span><span class="p">(</span><span class="n">pan</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.set_pan_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_pan_tilt">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.set_pan_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.set_pan_tilt">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">set_pan_tilt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pan</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets both the pan and tilt joint angles of the robot camera  to the</span>
 <span class="sd">        specified values.</span>
@@ -780,7 +787,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_robot</span><span class="o">.</span><span class="n">camera</span><span class="o">.</span><span class="n">set_pan_tilt</span><span class="p">(</span><span class="n">pan</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="RemoteLoCoRobot.set_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_tilt">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
+<div class="viewcode-block" id="RemoteLocobot.set_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.set_tilt">[docs]</a>    <span class="nd">@Pyro4</span><span class="o">.</span><span class="n">oneway</span>
     <span class="k">def</span> <span class="nf">set_tilt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets the tilt joint angle of robot camera to the specified value.</span>
 
@@ -797,7 +804,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_done</span> <span class="o">=</span> <span class="kc">True</span></div>
 
     <span class="c1"># grasping wrapper</span>
-<div class="viewcode-block" id="RemoteLoCoRobot.grasp"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLoCoRobot.grasp">[docs]</a>    <span class="k">def</span> <span class="nf">grasp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">540</span><span class="p">)]):</span>
+<div class="viewcode-block" id="RemoteLocobot.grasp"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.robot.RemoteLocobot.grasp">[docs]</a>    <span class="k">def</span> <span class="nf">grasp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">[(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">540</span><span class="p">)]):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param dims: List of tuples of min and max indices of the image axis to be considered for grasp search</span>
 <span class="sd">        :type dims: list</span>
@@ -859,7 +866,7 @@
         <span class="n">Pyro4</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">SERVERTYPE</span> <span class="o">=</span> <span class="s2">&quot;multiplex&quot;</span>
 
     <span class="k">with</span> <span class="n">Pyro4</span><span class="o">.</span><span class="n">Daemon</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">ip</span><span class="p">)</span> <span class="k">as</span> <span class="n">daemon</span><span class="p">:</span>
-        <span class="n">robot</span> <span class="o">=</span> <span class="n">RemoteLoCoRobot</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">backend_config</span><span class="p">)</span>
+        <span class="n">robot</span> <span class="o">=</span> <span class="n">RemoteLocobot</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">backend_config</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">backend_config</span><span class="p">)</span>
         <span class="n">robot_uri</span> <span class="o">=</span> <span class="n">daemon</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">robot</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">Pyro4</span><span class="o">.</span><span class="n">locateNS</span><span class="p">()</span> <span class="k">as</span> <span class="n">ns</span><span class="p">:</span>
             <span class="n">ns</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="s2">&quot;remotelocobot&quot;</span><span class="p">,</span> <span class="n">robot_uri</span><span class="p">)</span>
@@ -870,7 +877,7 @@
 
 <span class="c1"># Below is client code to run in a separate Python shell...</span>
 <span class="c1"># import Pyro4</span>
-<span class="c1"># robot = Pyro4.Proxy(&quot;PYRONAME:remotelocorobot&quot;)</span>
+<span class="c1"># robot = Pyro4.Proxy(&quot;PYRONAME:remotelocobot&quot;)</span>
 <span class="c1"># robot.go_home()</span>
 </pre></div>
 
@@ -878,28 +885,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

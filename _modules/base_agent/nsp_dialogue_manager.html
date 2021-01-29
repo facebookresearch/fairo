@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>base_agent.nsp_dialogue_manager &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
@@ -50,7 +52,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="../../index.html" class="icon icon-home"> droidlet
           
 
           
@@ -104,13 +106,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -138,6 +143,8 @@
         <div class="rst-content">
         
           
+
+
 
 
 
@@ -185,6 +192,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">spacy</span>
+<span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 
@@ -195,14 +203,13 @@
 <span class="kn">from</span> <span class="nn">base_agent.memory_nodes</span> <span class="kn">import</span> <span class="n">ProgramNode</span>
 <span class="kn">from</span> <span class="nn">base_agent.dialogue_manager</span> <span class="kn">import</span> <span class="n">DialogueManager</span>
 <span class="kn">from</span> <span class="nn">base_agent.dialogue_objects</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">BotCapabilities</span><span class="p">,</span>
     <span class="n">BotGreet</span><span class="p">,</span>
     <span class="n">DialogueObject</span><span class="p">,</span>
     <span class="n">Say</span><span class="p">,</span>
     <span class="n">coref_resolve</span><span class="p">,</span>
     <span class="n">process_spans</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">mcevent</span> <span class="kn">import</span> <span class="n">sio</span>
+<span class="kn">from</span> <span class="nn">dlevent</span> <span class="kn">import</span> <span class="n">sio</span>
 <span class="n">dirname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">base_util</span> <span class="kn">import</span> <span class="n">hash_user</span>
@@ -221,7 +228,6 @@
 <span class="sd">            &#39;get_memory&#39;: GetMemoryHandler,</span>
 <span class="sd">            &#39;put_memory&#39;: ...</span>
 <span class="sd">            }</span>
-<span class="sd">        botCapabilityQuery (List[str]): Set of commands that trigger scripted responses.</span>
 <span class="sd">        safety_words (List[str]): Set of blacklisted words or phrases. Commands</span>
 <span class="sd">            containing these are automatically filtered out.</span>
 <span class="sd">        botGreetings (dict): Different types of greetings that trigger</span>
@@ -263,19 +269,6 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">dialogue_object_classes</span><span class="p">,</span> <span class="n">opts</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NSPDialogueManager</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span> <span class="o">=</span> <span class="n">dialogue_object_classes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">botCapabilityQuery</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;what can you do&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;what else can you do&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;what do you know&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;tell me what you can do&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;what things can you do&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;what are your capabilities&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;show me what you can do&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;what are you capable of&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;help me&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;help&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;do something&quot;</span><span class="p">,</span>
-        <span class="p">]</span>
         <span class="n">safety_words_path</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">ground_truth_data_dir</span> <span class="o">+</span> <span class="s2">&quot;safety.txt&quot;</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">safety_words_path</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">safety_words</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_safety_words</span><span class="p">(</span><span class="n">safety_words_path</span><span class="p">)</span>
@@ -308,7 +301,7 @@
                         <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
                             <span class="n">text</span><span class="p">,</span> <span class="n">logical_form</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|&quot;</span><span class="p">)</span>
                             <span class="n">clean_text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth_actions</span><span class="p">[</span><span class="n">clean_text</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">logical_form</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">ground_truth_actions</span><span class="p">[</span><span class="n">clean_text</span><span class="p">]</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">logical_form</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;agent&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span>
@@ -346,8 +339,6 @@
 
         <span class="c1"># Push appropriate DialogueObjects to stack if incoming chat</span>
         <span class="c1"># is one of the scripted ones</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">chat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botCapabilityQuery</span> <span class="k">for</span> <span class="n">chat</span> <span class="ow">in</span> <span class="n">preprocessed_chatstrs</span><span class="p">]):</span>
-            <span class="k">return</span> <span class="n">BotCapabilities</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">greeting_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botGreetings</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">chat</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">botGreetings</span><span class="p">[</span><span class="n">greeting_type</span><span class="p">]</span> <span class="k">for</span> <span class="n">chat</span> <span class="ow">in</span> <span class="n">preprocessed_chatstrs</span><span class="p">]):</span>
                 <span class="k">return</span> <span class="n">BotGreet</span><span class="p">(</span><span class="n">greeting_type</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
@@ -366,6 +357,8 @@
 
         <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NOOP&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Say</span><span class="p">(</span><span class="s2">&quot;I don&#39;t know how to answer that.&quot;</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GET_CAPABILITIES&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span><span class="p">[</span><span class="s2">&quot;bot_capabilities&quot;</span><span class="p">](</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;dialogue_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;HUMAN_GIVE_COMMAND&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dialogue_objects</span><span class="p">[</span><span class="s2">&quot;interpreter&quot;</span><span class="p">](</span>
                 <span class="n">speaker</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">dialogue_object_parameters</span>
@@ -448,28 +441,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

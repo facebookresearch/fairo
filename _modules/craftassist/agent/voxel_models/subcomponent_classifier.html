@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>craftassist.agent.voxel_models.subcomponent_classifier &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>craftassist.agent.voxel_models.subcomponent_classifier</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for craftassist.agent.voxel_models.subcomponent_classifier</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Process</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">mc_memory_nodes</span> <span class="kn">import</span> <span class="n">InstSegNode</span>
+<span class="kn">from</span> <span class="nn">heuristic_perception</span> <span class="kn">import</span> <span class="n">all_nearby_objects</span>
+<span class="kn">from</span> <span class="nn">shapes</span> <span class="kn">import</span> <span class="n">get_bounds</span>
+
+<span class="n">VISION_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+<span class="n">CRAFTASSIST_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">VISION_DIR</span><span class="p">,</span> <span class="s2">&quot;../&quot;</span><span class="p">)</span>
+<span class="n">SEMSEG_DIR</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">VISION_DIR</span><span class="p">,</span> <span class="s2">&quot;semantic_segmentation/&quot;</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CRAFTASSIST_DIR</span><span class="p">)</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SEMSEG_DIR</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">build_utils</span> <span class="k">as</span> <span class="nn">bu</span>
+<span class="kn">from</span> <span class="nn">semseg_models</span> <span class="kn">import</span> <span class="n">SemSegWrapper</span>
+
+
+<span class="c1"># TODO all &quot;subcomponent&quot; operations are replaced with InstSeg</span>
+<div class="viewcode-block" id="SubcomponentClassifierWrapper"><a class="viewcode-back" href="../../../../droidlet_agents.html#craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper">[docs]</a><span class="k">class</span> <span class="nc">SubcomponentClassifierWrapper</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Perceive the world at a given frequency and update agent</span>
+<span class="sd">    memory.</span>
+
+<span class="sd">    creates InstSegNodes and tags them</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        agent (LocoMCAgent): reference to the minecraft Agent</span>
+<span class="sd">        model_path (str): path to the segmentation model</span>
+<span class="sd">        perceive_freq (int): if not forced, how many Agent steps between perception.</span>
+<span class="sd">            If 0, does not run unless forced</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">model_path</span><span class="p">,</span> <span class="n">perceive_freq</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">=</span> <span class="n">perceive_freq</span>
+        <span class="k">if</span> <span class="n">model_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span> <span class="o">=</span> <span class="n">SubComponentClassifier</span><span class="p">(</span><span class="n">voxel_model_path</span><span class="o">=</span><span class="n">model_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SubcomponentClassifierWrapper.perceive"><a class="viewcode-back" href="../../../../droidlet_agents.html#craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper.perceive">[docs]</a>    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        run the classifiers, put tags in memory</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force (boolean): set to True to run all perceptual heuristics right now,</span>
+<span class="sd">                as opposed to waiting for perceive_freq steps (default: False)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="c1"># TODO don&#39;t all_nearby_objects again, search in memory instead</span>
+        <span class="n">to_label</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># add all blocks in marked areas</span>
+        <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">areas_to_perceive</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">all_nearby_objects</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+                <span class="n">to_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="c1"># add all blocks near the agent</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">all_nearby_objects</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">):</span>
+            <span class="n">to_label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">to_label</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span><span class="o">.</span><span class="n">block_objs_q</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="c1"># everytime we try to retrieve as many recognition results as possible</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span><span class="o">.</span><span class="n">loc2labels_q</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">loc2labels</span><span class="p">,</span> <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subcomponent_classifier</span><span class="o">.</span><span class="n">loc2labels_q</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">loc2ids</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="n">label2blocks</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="k">def</span> <span class="nf">contaminated</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">                Check if blocks are still consistent with the current world</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+                <span class="n">mx</span><span class="p">,</span> <span class="n">Mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">My</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Mz</span> <span class="o">=</span> <span class="n">get_bounds</span><span class="p">(</span><span class="n">blocks</span><span class="p">)</span>
+                <span class="n">yzxb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">(</span><span class="n">mx</span><span class="p">,</span> <span class="n">Mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">My</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Mz</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span>
+                    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">b</span>
+                    <span class="k">if</span> <span class="n">loc2ids</span><span class="p">[</span><span class="n">b</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">yzxb</span><span class="p">[</span><span class="n">y</span> <span class="o">-</span> <span class="n">my</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="n">mz</span><span class="p">,</span> <span class="n">x</span> <span class="o">-</span> <span class="n">mx</span><span class="p">,</span> <span class="mi">0</span><span class="p">]:</span>
+                        <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">loc</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">loc2labels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">loc2ids</span><span class="p">[</span><span class="n">loc</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">label2blocks</span><span class="p">:</span>
+                        <span class="n">label2blocks</span><span class="p">[</span><span class="n">l</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">label2blocks</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">blocks</span> <span class="ow">in</span> <span class="n">label2blocks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1">## if the blocks are contaminated we just ignore</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">contaminated</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+                    <span class="n">locs</span> <span class="o">=</span> <span class="p">[</span><span class="n">loc</span> <span class="k">for</span> <span class="n">loc</span><span class="p">,</span> <span class="n">idm</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">]</span>
+                    <span class="n">InstSegNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">locs</span><span class="p">,</span> <span class="p">[</span><span class="n">l</span><span class="p">])</span></div></div>
+
+
+<span class="k">class</span> <span class="nc">SubComponentClassifier</span><span class="p">(</span><span class="n">Process</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A classifier class that calls a voxel model to output object tags.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voxel_model_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">voxel_model_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;SubComponentClassifier using voxel_model_path=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">voxel_model_path</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">SemSegWrapper</span><span class="p">(</span><span class="n">voxel_model_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;specify a segmentation model&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">block_objs_q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>  <span class="c1"># store block objects to be recognized</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loc2labels_q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>  <span class="c1"># store loc2labels dicts to be retrieved by the agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The main recognition loop of the classifier</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>  <span class="c1"># run forever</span>
+            <span class="n">tb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">block_objs_q</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">loc2labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_watch_single_object</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loc2labels_q</span><span class="o">.</span><span class="n">put</span><span class="p">((</span><span class="n">loc2labels</span><span class="p">,</span> <span class="n">tb</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_watch_single_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tuple_blocks</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Input: a list of tuples, where each tuple is ((x, y, z), [bid, mid]). This list</span>
+<span class="sd">               represents a block object.</span>
+<span class="sd">        Output: a dict of (loc, [tag1, tag2, ..]) pairs for all non-air blocks.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            convert a list of tag indices to a list of tags</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">tags</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">apply_offsets</span><span class="p">(</span><span class="n">cube_loc</span><span class="p">,</span> <span class="n">offsets</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Convert the cube location back to world location</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">cube_loc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cube_loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cube_loc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">offsets</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="n">np_blocks</span><span class="p">,</span> <span class="n">offsets</span> <span class="o">=</span> <span class="n">bu</span><span class="o">.</span><span class="n">blocks_list_to_npy</span><span class="p">(</span><span class="n">blocks</span><span class="o">=</span><span class="n">tuple_blocks</span><span class="p">,</span> <span class="n">xyz</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">segment_object</span><span class="p">(</span><span class="n">np_blocks</span><span class="p">)</span>
+
+        <span class="c1"># convert prediction results to string tags</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">apply_offsets</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">offsets</span><span class="p">),</span> <span class="n">get_tags</span><span class="p">([</span><span class="n">p</span><span class="p">]))</span> <span class="k">for</span> <span class="n">loc</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pred</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+    <span class="k">def</span> <span class="nf">recognize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">list_of_tuple_blocks</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Multiple calls to _watch_single_object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tb</span> <span class="ow">in</span> <span class="n">list_of_tuple_blocks</span><span class="p">:</span>
+            <span class="n">tags</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_watch_single_object</span><span class="p">(</span><span class="n">tb</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">tags</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

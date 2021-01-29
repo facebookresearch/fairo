@@ -1,0 +1,813 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>craftassist.agent.heuristic_perception &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>craftassist.agent.heuristic_perception</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for craftassist.agent.heuristic_perception</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">heapq</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage.filters</span> <span class="kn">import</span> <span class="n">median_filter</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linprog</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">minecraft_specs</span>
+
+<span class="kn">from</span> <span class="nn">mc_util</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">manhat_dist</span><span class="p">,</span>
+    <span class="n">get_locs_from_entity</span><span class="p">,</span>
+    <span class="n">build_safe_diag_adjacent</span><span class="p">,</span>
+    <span class="n">euclid_dist</span><span class="p">,</span>
+    <span class="n">to_block_pos</span><span class="p">,</span>
+    <span class="n">fill_idmeta</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">block_data</span> <span class="kn">import</span> <span class="n">BORING_BLOCKS</span><span class="p">,</span> <span class="n">PASSABLE_BLOCKS</span><span class="p">,</span> <span class="n">COLOR_BID_MAP</span>
+<span class="kn">from</span> <span class="nn">search</span> <span class="kn">import</span> <span class="n">depth_first_search</span>
+<span class="kn">from</span> <span class="nn">mc_memory_nodes</span> <span class="kn">import</span> <span class="n">InstSegNode</span><span class="p">,</span> <span class="n">BlockObjectNode</span>
+
+<span class="n">GROUND_BLOCKS</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">79</span><span class="p">,</span> <span class="mi">80</span><span class="p">]</span>
+<span class="n">MAX_RADIUS</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">BLOCK_DATA</span> <span class="o">=</span> <span class="n">minecraft_specs</span><span class="o">.</span><span class="n">get_block_data</span><span class="p">()</span>
+<span class="n">COLOUR_DATA</span> <span class="o">=</span> <span class="n">minecraft_specs</span><span class="o">.</span><span class="n">get_colour_data</span><span class="p">()</span>
+<span class="n">BLOCK_PROPERTY_DATA</span> <span class="o">=</span> <span class="n">minecraft_specs</span><span class="o">.</span><span class="n">get_block_property_data</span><span class="p">()</span>
+<span class="n">MOB_PROPERTY_DATA</span> <span class="o">=</span> <span class="n">minecraft_specs</span><span class="o">.</span><span class="n">get_mob_property_data</span><span class="p">()</span>
+<span class="n">BID_COLOR_DATA</span> <span class="o">=</span> <span class="n">minecraft_specs</span><span class="o">.</span><span class="n">get_bid_to_colours</span><span class="p">()</span>
+<span class="n">COLOUR_LIST</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">COLOR_BID_MAP</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<span class="c1"># Taken from : stackoverflow.com/questions/16750618/</span>
+<span class="c1"># whats-an-efficient-way-to-find-if-a-point-lies-in-the-convex-hull-of-a-point-cl</span>
+<span class="k">def</span> <span class="nf">in_hull</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if x is in the convex hull of points&quot;&quot;&quot;</span>
+    <span class="n">n_points</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_points</span><span class="p">)</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">points</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_points</span><span class="p">))]</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">r_</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="n">lp</span> <span class="o">=</span> <span class="n">linprog</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">A_eq</span><span class="o">=</span><span class="n">A</span><span class="p">,</span> <span class="n">b_eq</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lp</span><span class="o">.</span><span class="n">success</span>
+
+
+<span class="k">def</span> <span class="nf">all_nearby_objects</span><span class="p">(</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">max_radius</span><span class="o">=</span><span class="n">MAX_RADIUS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of connected components near pos.</span>
+
+<span class="sd">    Each component is a list of ((x, y, z), (id, meta))</span>
+
+<span class="sd">    i.e. this function returns list[list[((x, y, z), (id, meta))]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">)</span>
+    <span class="n">mask</span><span class="p">,</span> <span class="n">off</span><span class="p">,</span> <span class="n">blocks</span> <span class="o">=</span> <span class="n">all_close_interesting_blocks</span><span class="p">(</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">max_radius</span><span class="p">)</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="n">connected_components</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;all_nearby_objects found </span><span class="si">{}</span><span class="s2"> objects near </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),</span> <span class="n">pos</span><span class="p">))</span>
+    <span class="n">xyzbms</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[((</span><span class="n">c</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">off</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">off</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">off</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">blocks</span><span class="p">[</span><span class="n">c</span><span class="p">]))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">component_yzxs</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">component_yzxs</span> <span class="ow">in</span> <span class="n">components</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">xyzbms</span>
+
+
+<span class="k">def</span> <span class="nf">closest_nearby_object</span><span class="p">(</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the closest interesting object to pos</span>
+
+<span class="sd">    Returns a list of ((x,y,z), (id, meta)), or None if no interesting objects are nearby</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">objects</span> <span class="o">=</span> <span class="n">all_nearby_objects</span><span class="p">(</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">centroids</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">pos</span> <span class="k">for</span> <span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">]</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="p">[</span><span class="n">manhat_dist</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">centroids</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">objects</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">dists</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">all_close_interesting_blocks</span><span class="p">(</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">max_radius</span><span class="o">=</span><span class="n">MAX_RADIUS</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find all &quot;interesting&quot; blocks close to pos, within a max_radius&quot;&quot;&quot;</span>
+    <span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">mz</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">max_radius</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">max_radius</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">max_radius</span>
+    <span class="n">Mx</span><span class="p">,</span> <span class="n">My</span><span class="p">,</span> <span class="n">Mz</span> <span class="o">=</span> <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">max_radius</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">max_radius</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">max_radius</span>
+
+    <span class="n">yzxb</span> <span class="o">=</span> <span class="n">get_blocks</span><span class="p">(</span><span class="n">mx</span><span class="p">,</span> <span class="n">Mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">My</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">Mz</span><span class="p">)</span>
+    <span class="n">relpos</span> <span class="o">=</span> <span class="n">pos</span> <span class="o">-</span> <span class="p">[</span><span class="n">mx</span><span class="p">,</span> <span class="n">my</span><span class="p">,</span> <span class="n">mz</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">accessible_interesting_blocks</span><span class="p">(</span><span class="n">yzxb</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">relpos</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask</span><span class="p">,</span> <span class="p">(</span><span class="n">my</span><span class="p">,</span> <span class="n">mz</span><span class="p">,</span> <span class="n">mx</span><span class="p">),</span> <span class="n">yzxb</span>
+
+
+<span class="k">def</span> <span class="nf">accessible_interesting_blocks</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a boolean mask of blocks that are accessible-interesting from pos.</span>
+
+<span class="sd">    A block b is accessible-interesting if it is</span>
+<span class="sd">    1. interesting, AND</span>
+<span class="sd">    2. there exists a path from pos to b through only passable or interesting blocks</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">passable</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span> <span class="n">PASSABLE_BLOCKS</span><span class="p">)</span>
+    <span class="n">interesting</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">blocks</span><span class="p">,</span> <span class="n">BORING_BLOCKS</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">passable_or_interesting</span> <span class="o">=</span> <span class="n">passable</span> <span class="o">|</span> <span class="n">interesting</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">passable</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fn</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">passable_or_interesting</span><span class="p">[</span><span class="n">p</span><span class="p">]:</span>
+            <span class="n">X</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">depth_first_search</span><span class="p">(</span><span class="n">blocks</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">pos</span><span class="p">,</span> <span class="n">_fn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X</span> <span class="o">&amp;</span> <span class="n">interesting</span>
+
+
+<span class="k">def</span> <span class="nf">find_closest_component</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">relpos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find the connected component of nonzeros that is closest to loc</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    - mask is a 3d array</span>
+<span class="sd">    - relpos is a relative position in the mask, with the same ordering</span>
+
+<span class="sd">    Returns: a list of indices of the closest connected component, or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="n">connected_components</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">centroids</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">cs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">cs</span> <span class="ow">in</span> <span class="n">components</span><span class="p">]</span>
+    <span class="n">dists</span> <span class="o">=</span> <span class="p">[</span><span class="n">manhat_dist</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">relpos</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">centroids</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">components</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">dists</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">connected_components</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">unique_idm</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Find all connected nonzero components in a array X.</span>
+<span class="sd">    X is either rank 3 (volume) or rank 4 (volume-idm)</span>
+<span class="sd">    If unique_idm == True, different block types are different</span>
+<span class="sd">    components</span>
+
+<span class="sd">    Returns a list of lists of indices of connected components</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">visited</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;bool&quot;</span><span class="p">)</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_component</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">diag_adj</span> <span class="o">=</span> <span class="n">build_safe_diag_adjacent</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_air</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">unique_idm</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">_build_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">current_component</span><span class="p">,</span> <span class="n">idm</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_fn</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">X</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">current_component</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+
+            <span class="k">return</span> <span class="n">_fn</span>
+
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="k">def</span> <span class="nf">_build_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">current_component</span><span class="p">,</span> <span class="n">idm</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_fn</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">p</span><span class="p">])</span> <span class="o">==</span> <span class="n">idm</span><span class="p">:</span>
+                    <span class="n">current_component</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+
+            <span class="k">return</span> <span class="n">_fn</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">visited</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">visited</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">visited</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">visited</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="n">visited</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">is_air</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="c1"># found a new component</span>
+                <span class="n">pos</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                <span class="n">_fn</span> <span class="o">=</span> <span class="n">_build_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">current_component</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="p">:]))</span>
+                <span class="n">visited</span> <span class="o">|=</span> <span class="n">depth_first_search</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span> <span class="n">pos</span><span class="p">,</span> <span class="n">_fn</span><span class="p">,</span> <span class="n">diag_adj</span><span class="p">)</span>
+                <span class="n">components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">current_component</span><span class="p">))</span>
+                <span class="n">current_component</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">components</span>
+
+
+<span class="k">def</span> <span class="nf">check_between</span><span class="p">(</span><span class="n">entities</span><span class="p">,</span> <span class="n">fat_scale</span><span class="o">=</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Heuristic check if entities[0] is between entities[1] and entities[2]</span>
+<span class="sd">    by checking if the locs of enitity[0] are in the convex hull of</span>
+<span class="sd">    union of the max cardinal points of entity[1] and entity[2]&quot;&quot;&quot;</span>
+    <span class="n">locs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">get_locs_from_entity</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">locs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this is not a thing we know how to assign &#39;between&#39; to</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">mean_separation</span> <span class="o">=</span> <span class="n">euclid_dist</span><span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">means</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">fat</span> <span class="o">=</span> <span class="n">fat_scale</span> <span class="o">*</span> <span class="n">mean_separation</span>
+    <span class="n">bounding_locs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">locs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">bl</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fat</span>
+                <span class="n">bl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="o">+</span> <span class="n">fat</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">fat</span>
+                <span class="n">bl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span> <span class="o">-</span> <span class="n">fat</span><span class="p">)</span>
+            <span class="n">bounding_locs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">bl</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bounding_locs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">bounding_locs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">bounding_locs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bounding_locs</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+    <span class="k">return</span> <span class="n">in_hull</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">find_between</span><span class="p">(</span><span class="n">entities</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Heurisitc search for points between entities[0] and entities[1]</span>
+<span class="sd">    for now : just pick the point half way between their means</span>
+<span class="sd">    TODO: fuzz a bit if target is unreachable&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+        <span class="n">means</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">get_locs_from_entity</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this is not a thing we know how to assign &#39;between&#39; to</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">means</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+
+
+<span class="k">def</span> <span class="nf">check_inside</span><span class="p">(</span><span class="n">entities</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Heuristic check on whether an entity[0] is inside entity[1]</span>
+<span class="sd">    if in some 2d slice, cardinal rays cast from some point in</span>
+<span class="sd">    entity[0] all hit a block in entity[1], we say entity[0] is inside</span>
+<span class="sd">    entity[1].  This allows an entity to be inside a ring or</span>
+<span class="sd">    an open cylinder. This will fail for a &quot;diagonal&quot; ring.</span>
+<span class="sd">    TODO: &quot;enclosed&quot;, where the object is inside in the topological sense&quot;&quot;&quot;</span>
+    <span class="n">locs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">get_locs_from_entity</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">locs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># this is not a thing we know how to assign &#39;inside&#39; to</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">locs</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">inside</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">coplanar</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">locs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="n">fixed</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
+                <span class="n">to_check</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span>
+                <span class="n">colin</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="n">to_check</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coplanar</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="n">fixed</span><span class="p">]</span> <span class="o">==</span> <span class="n">b</span><span class="p">[</span><span class="n">fixed</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colin</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">inside</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">colin</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">[</span><span class="n">to_check</span><span class="p">]</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">colin</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">b</span><span class="p">[</span><span class="n">to_check</span><span class="p">]:</span>
+                        <span class="n">inside</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">inside</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">find_inside</span><span class="p">(</span><span class="n">entity</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a point inside the entity if it can find one.</span>
+<span class="sd">    TODO: heuristic quick check to find that there aren&#39;t any,</span>
+<span class="sd">    and maybe make this not d^3&quot;&quot;&quot;</span>
+
+    <span class="c1"># is this a negative object? if yes, just return its mean:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="s2">&quot;blocks&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">b</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">entity</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">blocks</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">to_block_pos</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="n">get_locs_from_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">l</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">maxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">mins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mins</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">maxes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mins</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">maxes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mins</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">maxes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">check_inside</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">entity</span><span class="p">]):</span>
+                    <span class="n">inside</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">inside</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">euclid_dist</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">label_top_bottom_blocks</span><span class="p">(</span><span class="n">block_list</span><span class="p">,</span> <span class="n">top_heuristic</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">bottom_heuristic</span><span class="o">=</span><span class="mi">25</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This function takes in a list of blocks, where each block is :</span>
+<span class="sd">    [[x, y, z], id] or [[x, y, z], [id, meta]]</span>
+<span class="sd">    and outputs a dict:</span>
+<span class="sd">    {</span>
+<span class="sd">    &quot;top&quot; : [list of blocks],</span>
+<span class="sd">    &quot;bottom&quot; : [list of blocks],</span>
+<span class="sd">    &quot;neither&quot; : [list of blocks]</span>
+<span class="sd">    }</span>
+
+<span class="sd">    The heuristic being used here is : The top blocks are within top_heuristic %</span>
+<span class="sd">    of the topmost block and the bottom blocks are within bottom_heuristic %</span>
+<span class="sd">    of the bottommost block.</span>
+
+<span class="sd">    Every other block in the list belongs to the category : &quot;neither&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">block_list</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="n">block_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">block_list</span><span class="p">)</span>
+
+    <span class="c1"># Sort the list on z, y, x in decreasing order, to order the list</span>
+    <span class="c1"># to top-down.</span>
+    <span class="n">block_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">num_blocks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">block_list</span><span class="p">)</span>
+
+    <span class="n">cnt_top</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">top_heuristic</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_blocks</span><span class="p">)</span>
+    <span class="n">cnt_bottom</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">bottom_heuristic</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">num_blocks</span><span class="p">)</span>
+    <span class="n">cnt_remaining</span> <span class="o">=</span> <span class="n">num_blocks</span> <span class="o">-</span> <span class="p">(</span><span class="n">cnt_top</span> <span class="o">+</span> <span class="n">cnt_bottom</span><span class="p">)</span>
+
+    <span class="n">dict_top_bottom</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dict_top_bottom</span><span class="p">[</span><span class="s2">&quot;top&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_list</span><span class="p">[:</span><span class="n">cnt_top</span><span class="p">]</span>
+    <span class="n">dict_top_bottom</span><span class="p">[</span><span class="s2">&quot;bottom&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_list</span><span class="p">[</span><span class="o">-</span><span class="n">cnt_bottom</span><span class="p">:]</span>
+    <span class="n">dict_top_bottom</span><span class="p">[</span><span class="s2">&quot;neither&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">block_list</span><span class="p">[</span><span class="n">cnt_top</span> <span class="p">:</span> <span class="n">cnt_top</span> <span class="o">+</span> <span class="n">cnt_remaining</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">dict_top_bottom</span>
+
+
+<span class="k">def</span> <span class="nf">ground_height</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">yfilt</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">xzfilt</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute height of ground blocks.</span>
+<span class="sd">    At the moment: heuristic method and can potentially be replaced with a learned model.</span>
+<span class="sd">    Can definitely make more sophisticated looks for the first stack of</span>
+<span class="sd">    non-ground material hfilt high, and can be fooled by e.g. a floating pile of dirt or a big buried object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ground</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">GROUND_BLOCKS</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">)</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="n">yfilt</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">yfilt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">yfilt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int32&quot;</span><span class="p">)</span>
+    <span class="n">L</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">(</span>
+        <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">radius</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">80</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">radius</span>
+    <span class="p">)</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">radius</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">stack</span> <span class="o">=</span> <span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+            <span class="n">inground</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="n">ground</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span>
+            <span class="n">inground</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">inground</span><span class="p">,</span> <span class="n">yfilt</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
+            <span class="n">G</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">inground</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># fixme what if there isn&#39;t one</span>
+
+    <span class="n">G</span> <span class="o">=</span> <span class="n">median_filter</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">xzfilt</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">G</span> <span class="o">-</span> <span class="n">offset</span>
+
+
+<span class="k">def</span> <span class="nf">get_nearby_airtouching_blocks</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">15</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get all blocks in &#39;radius&#39; of &#39;location&#39;</span>
+<span class="sd">    that are touching air on either side.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        A list of blocktypes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gh</span> <span class="o">=</span> <span class="n">ground_height</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">location</span>
+    <span class="n">ymin</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">gh</span><span class="p">))</span>
+    <span class="n">yzxb</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">radius</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="n">radius</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">z</span> <span class="o">+</span> <span class="n">radius</span><span class="p">)</span>
+    <span class="n">xyzb</span> <span class="o">=</span> <span class="n">yzxb</span><span class="o">.</span><span class="n">transpose</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="n">connected_components</span><span class="p">(</span><span class="n">xyzb</span><span class="p">,</span> <span class="n">unique_idm</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">blocktypes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">idm</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">xyzb</span><span class="p">[</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">:])</span>
+            <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">off</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">off</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span>
+                    <span class="n">l</span> <span class="o">=</span> <span class="p">(</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">off</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">off</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">off</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">l</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">l</span><span class="p">[</span><span class="n">coord</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">xyzb</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">coord</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">xyzb</span><span class="p">[</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="n">blocktypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idm</span><span class="p">)</span>
+                                <span class="n">type_name</span> <span class="o">=</span> <span class="n">BLOCK_DATA</span><span class="p">[</span><span class="s2">&quot;bid_to_name&quot;</span><span class="p">][</span><span class="n">idm</span><span class="p">]</span>
+                                <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="n">type_name</span><span class="p">]</span>
+                                <span class="n">colours</span> <span class="o">=</span> <span class="n">COLOUR_DATA</span><span class="p">[</span><span class="s2">&quot;name_to_colors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="p">[])</span>
+                                <span class="n">colours</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COLOUR_LIST</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">type_name</span><span class="p">])</span>
+                                <span class="k">if</span> <span class="n">colours</span><span class="p">:</span>
+                                    <span class="n">tags</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">colours</span><span class="p">)</span>
+                                    <span class="n">tags</span><span class="o">.</span><span class="n">extend</span><span class="p">([{</span><span class="s2">&quot;has_colour&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">}</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colours</span><span class="p">])</span>
+                                <span class="n">tags</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                                    <span class="n">BLOCK_PROPERTY_DATA</span><span class="p">[</span><span class="s2">&quot;name_to_properties&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="p">[])</span>
+                                <span class="p">)</span>
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                                    <span class="s2">&quot;I see a weird block, ignoring: (</span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                        <span class="n">idm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                                    <span class="p">)</span>
+                                <span class="p">)</span>
+        <span class="k">if</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="n">shifted_c</span> <span class="o">=</span> <span class="p">[(</span><span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span> <span class="o">-</span> <span class="n">radius</span><span class="p">,</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">l</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">z</span> <span class="o">-</span> <span class="n">radius</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shifted_c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">InstSegNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">shifted_c</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">blocktypes</span>
+
+
+<span class="k">def</span> <span class="nf">get_all_nearby_holes</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">location</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">store_inst_seg</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns:</span>
+<span class="sd">        a list of holes. Each hole is tuple(list[xyz], idm)&quot;&quot;&quot;</span>
+    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">location</span>
+    <span class="n">max_height</span> <span class="o">=</span> <span class="n">sy</span> <span class="o">+</span> <span class="mi">5</span>
+    <span class="n">map_size</span> <span class="o">=</span> <span class="n">radius</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">height_map</span> <span class="o">=</span> <span class="p">[[</span><span class="n">sz</span><span class="p">]</span> <span class="o">*</span> <span class="n">map_size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">map_size</span><span class="p">)]</span>
+    <span class="n">hid_map</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">map_size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">map_size</span><span class="p">)]</span>
+    <span class="n">idm_map</span> <span class="o">=</span> <span class="p">[[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="n">map_size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">map_size</span><span class="p">)]</span>
+    <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+    <span class="k">global</span> <span class="n">current_connected_comp</span><span class="p">,</span> <span class="n">current_idm</span>
+    <span class="n">current_connected_comp</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_idm</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># helper functions</span>
+    <span class="k">def</span> <span class="nf">get_block_info</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>  <span class="c1"># fudge factor 5</span>
+        <span class="n">height</span> <span class="o">=</span> <span class="n">max_height</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">x</span> <span class="o">!=</span> <span class="n">sx</span> <span class="ow">or</span> <span class="n">z</span> <span class="o">!=</span> <span class="n">sz</span> <span class="ow">or</span> <span class="n">height</span> <span class="o">!=</span> <span class="n">sy</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">x</span> <span class="o">!=</span> <span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">z</span> <span class="o">!=</span> <span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="n">height</span> <span class="o">!=</span> <span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">383</span><span class="p">)</span>
+            <span class="p">):</span>  <span class="c1"># if it&#39;s not a mobile block (agent, speaker, mobs)</span>
+                <span class="k">return</span> <span class="n">height</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">B</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+            <span class="n">height</span> <span class="o">-=</span> <span class="mi">1</span>
+
+    <span class="n">gx</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">gz</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">dfs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Traverse current connected component and return minimum</span>
+<span class="sd">        height of all surrounding blocks &quot;&quot;&quot;</span>
+        <span class="n">build_height</span> <span class="o">=</span> <span class="mi">100000</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">build_height</span>
+        <span class="k">global</span> <span class="n">current_connected_comp</span><span class="p">,</span> <span class="n">current_idm</span>
+        <span class="n">current_connected_comp</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">radius</span> <span class="o">+</span> <span class="n">sx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="n">radius</span> <span class="o">+</span> <span class="n">sz</span><span class="p">))</span>  <span class="c1"># absolute positions</span>
+        <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">nx</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">gx</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="n">nz</span> <span class="o">=</span> <span class="n">z</span> <span class="o">+</span> <span class="n">gz</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">nx</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nz</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">nx</span> <span class="o">&lt;</span> <span class="n">map_size</span> <span class="ow">and</span> <span class="n">nz</span> <span class="o">&lt;</span> <span class="n">map_size</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">height_map</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">z</span><span class="p">]</span> <span class="o">==</span> <span class="n">height_map</span><span class="p">[</span><span class="n">nx</span><span class="p">][</span><span class="n">nz</span><span class="p">]:</span>
+                    <span class="n">build_height</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">build_height</span><span class="p">,</span> <span class="n">dfs</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">nz</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">build_height</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">build_height</span><span class="p">,</span> <span class="n">height_map</span><span class="p">[</span><span class="n">nx</span><span class="p">][</span><span class="n">nz</span><span class="p">])</span>
+                    <span class="n">current_idm</span> <span class="o">=</span> <span class="n">idm_map</span><span class="p">[</span><span class="n">nx</span><span class="p">][</span><span class="n">nz</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># bad ... hole is not within defined radius</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">100000</span>
+        <span class="k">return</span> <span class="n">build_height</span>
+
+    <span class="c1"># find all holes</span>
+    <span class="n">blocks_queue</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">map_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">map_size</span><span class="p">):</span>
+            <span class="n">height_map</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">idm_map</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_block_info</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">radius</span> <span class="o">+</span> <span class="n">sx</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="n">radius</span> <span class="o">+</span> <span class="n">sz</span><span class="p">)</span>
+            <span class="n">heapq</span><span class="o">.</span><span class="n">heappush</span><span class="p">(</span><span class="n">blocks_queue</span><span class="p">,</span> <span class="p">(</span><span class="n">height_map</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">height_map</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">)))</span>
+    <span class="n">holes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">blocks_queue</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">hxyz</span> <span class="o">=</span> <span class="n">heapq</span><span class="o">.</span><span class="n">heappop</span><span class="p">(</span><span class="n">blocks_queue</span><span class="p">)</span>
+        <span class="n">h</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="o">=</span> <span class="n">hxyz</span>  <span class="c1"># NB: relative positions</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="n">visited</span> <span class="ow">or</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="n">max_height</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">assert</span> <span class="n">h</span> <span class="o">==</span> <span class="n">height_map</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">z</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot; h=</span><span class="si">%d</span><span class="s2"> heightmap=</span><span class="si">%d</span><span class="s2">, x,z=</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">h</span><span class="p">,</span>
+            <span class="n">height_map</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">z</span><span class="p">],</span>
+            <span class="n">x</span><span class="p">,</span>
+            <span class="n">z</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># sanity check</span>
+        <span class="n">current_connected_comp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_idm</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">build_height</span> <span class="o">=</span> <span class="n">dfs</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">build_height</span> <span class="o">&gt;=</span> <span class="n">h</span><span class="p">:</span>
+            <span class="n">holes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">current_connected_comp</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">current_idm</span><span class="p">))</span>
+            <span class="n">cur_hid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">holes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">xyz</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">current_connected_comp</span><span class="p">):</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">xyz</span>
+                <span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">rz</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="n">sx</span> <span class="o">+</span> <span class="n">radius</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">z</span> <span class="o">-</span> <span class="n">sz</span> <span class="o">+</span> <span class="n">radius</span>
+                <span class="n">heapq</span><span class="o">.</span><span class="n">heappush</span><span class="p">(</span><span class="n">blocks_queue</span><span class="p">,</span> <span class="p">(</span><span class="n">ry</span><span class="p">,</span> <span class="p">(</span><span class="n">rx</span><span class="p">,</span> <span class="n">ry</span><span class="p">,</span> <span class="n">rz</span><span class="p">)))</span>
+                <span class="n">height_map</span><span class="p">[</span><span class="n">rx</span><span class="p">][</span><span class="n">rz</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">hid_map</span><span class="p">[</span><span class="n">rx</span><span class="p">][</span><span class="n">rz</span><span class="p">]</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">holes</span><span class="p">[</span><span class="n">cur_hid</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">holes</span><span class="p">[</span><span class="n">hid_map</span><span class="p">[</span><span class="n">rx</span><span class="p">][</span><span class="n">rz</span><span class="p">]][</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">holes</span><span class="p">[</span><span class="n">hid_map</span><span class="p">[</span><span class="n">rx</span><span class="p">][</span><span class="n">rz</span><span class="p">]]</span> <span class="o">=</span> <span class="p">([],</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+                <span class="n">hid_map</span><span class="p">[</span><span class="n">rx</span><span class="p">][</span><span class="n">rz</span><span class="p">]</span> <span class="o">=</span> <span class="n">cur_hid</span>
+
+    <span class="c1"># A bug in the algorithm above produces holes that include non-air blocks.</span>
+    <span class="c1"># Just patch the problem here, since this function will eventually be</span>
+    <span class="c1"># performed by an ML model</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">xyzs</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">holes</span><span class="p">):</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="n">fill_idmeta</span><span class="p">(</span><span class="n">agent</span><span class="p">,</span> <span class="n">xyzs</span><span class="p">)</span>
+        <span class="n">xyzs</span> <span class="o">=</span> <span class="p">[</span><span class="n">xyz</span> <span class="k">for</span> <span class="n">xyz</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">blocks</span> <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># remove non-air blocks</span>
+        <span class="n">holes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">xyzs</span><span class="p">,</span> <span class="n">idm</span><span class="p">)</span>
+
+    <span class="c1"># remove 0-length holes</span>
+    <span class="n">holes</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">holes</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">store_inst_seg</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">hole</span> <span class="ow">in</span> <span class="n">holes</span><span class="p">:</span>
+            <span class="n">InstSegNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">hole</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;hole&quot;</span><span class="p">,</span> <span class="s2">&quot;pit&quot;</span><span class="p">,</span> <span class="s2">&quot;mine&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">holes</span>
+
+
+<div class="viewcode-block" id="PerceptionWrapper"><a class="viewcode-back" href="../../../droidlet_agents.html#craftassist.agent.heuristic_perception.PerceptionWrapper">[docs]</a><span class="k">class</span> <span class="nc">PerceptionWrapper</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Perceive the world at a given frequency and update agent</span>
+<span class="sd">    memory.</span>
+
+<span class="sd">    | Runs three basic heuristics.</span>
+<span class="sd">    | The first finds &quot;interesting&quot; visible (e.g. touching air) blocks, and</span>
+<span class="sd">    |     creates InstSegNodes</span>
+<span class="sd">    | The second finds &quot;holes&quot;, and creates InstSegNodes</span>
+<span class="sd">    | The third finds connected components of &quot;interesting&quot; blocks and creates</span>
+<span class="sd">    |     BlockObjectNodes.  Note that this only places something in memory if</span>
+<span class="sd">    |     the connected component is newly closer than 15 blocks of the agent,</span>
+<span class="sd">    |     but was not recently placed (if it were newly visible because of</span>
+<span class="sd">    |     a block placement, it would be dealt with via maybe_add_block_to_memory</span>
+<span class="sd">    |     in low_level_perception.py)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        agent (LocoMCAgent): reference to the minecraft Agent</span>
+<span class="sd">        perceive_freq (int): if not forced, how many Agent steps between perception</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">perceive_freq</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">=</span> <span class="n">perceive_freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="mi">15</span>
+
+<div class="viewcode-block" id="PerceptionWrapper.perceive"><a class="viewcode-back" href="../../../droidlet_agents.html#craftassist.agent.heuristic_perception.PerceptionWrapper.perceive">[docs]</a>    <span class="k">def</span> <span class="nf">perceive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Called by the core event loop for the agent to run all perceptual</span>
+<span class="sd">        models and save their state to memory.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            force (boolean): set to True to run all perceptual heuristics right now,</span>
+<span class="sd">                as opposed to waiting for perceive_freq steps (default: False)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">count</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">perceive_freq</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">force</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">task_stack_peek</span><span class="p">():</span>
+            <span class="c1"># perceive blocks in marked areas</span>
+            <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">areas_to_perceive</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">all_nearby_objects</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="p">):</span>
+                    <span class="n">memid</span> <span class="o">=</span> <span class="n">BlockObjectNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+                    <span class="n">color_tags</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">idm</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">:</span>
+                        <span class="n">type_name</span> <span class="o">=</span> <span class="n">BLOCK_DATA</span><span class="p">[</span><span class="s2">&quot;bid_to_name&quot;</span><span class="p">][</span><span class="n">idm</span><span class="p">]</span>
+                        <span class="n">color_tags</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">COLOUR_DATA</span><span class="p">[</span><span class="s2">&quot;name_to_colors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="p">[]))</span>
+                    <span class="k">for</span> <span class="n">color_tag</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">color_tags</span><span class="p">)):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span>
+                            <span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_colour&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">color_tag</span>
+                        <span class="p">)</span>
+
+                <span class="n">get_all_nearby_holes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+                <span class="n">get_nearby_airtouching_blocks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+
+            <span class="c1"># perceive blocks near the agent</span>
+            <span class="k">for</span> <span class="n">objs</span> <span class="ow">in</span> <span class="n">all_nearby_objects</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">get_blocks</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">):</span>
+                <span class="n">memid</span> <span class="o">=</span> <span class="n">BlockObjectNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">objs</span><span class="p">)</span>
+                <span class="n">color_tags</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objs</span><span class="p">:</span>
+                    <span class="n">idm</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">type_name</span> <span class="o">=</span> <span class="n">BLOCK_DATA</span><span class="p">[</span><span class="s2">&quot;bid_to_name&quot;</span><span class="p">][</span><span class="n">idm</span><span class="p">]</span>
+                    <span class="n">color_tags</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">COLOUR_DATA</span><span class="p">[</span><span class="s2">&quot;name_to_colors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="p">[]))</span>
+                <span class="k">for</span> <span class="n">color_tag</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">color_tags</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">add_triple</span><span class="p">(</span>
+                        <span class="n">subj</span><span class="o">=</span><span class="n">memid</span><span class="p">,</span> <span class="n">pred_text</span><span class="o">=</span><span class="s2">&quot;has_colour&quot;</span><span class="p">,</span> <span class="n">obj_text</span><span class="o">=</span><span class="n">color_tag</span>
+                    <span class="p">)</span>
+
+            <span class="n">get_all_nearby_holes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+            <span class="n">get_nearby_airtouching_blocks</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

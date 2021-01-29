@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>base_agent.memory_nodes &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
@@ -50,7 +52,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="../../index.html" class="icon icon-home"> droidlet
           
 
           
@@ -104,13 +106,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -138,6 +143,8 @@
         <div class="rst-content">
         
           
+
+
 
 
 
@@ -217,7 +224,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">agent_memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">()</span>
-        <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">agent_memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO Memories VALUES (?,?,?,?,?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">NODE_TYPE</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">snapshot</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span>
@@ -268,7 +275,7 @@
             <span class="n">qs</span> <span class="o">+=</span> <span class="s2">&quot;?, &quot;</span>
         <span class="n">write_cmd</span> <span class="o">=</span> <span class="n">write_cmd</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span>
         <span class="n">write_cmd</span> <span class="o">+=</span> <span class="s2">&quot;) VALUES (&quot;</span> <span class="o">+</span> <span class="n">qs</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
-        <span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="n">write_cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">new_data</span><span class="p">)</span>
+        <span class="n">agent_memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span><span class="n">write_cmd</span><span class="p">,</span> <span class="o">*</span><span class="n">new_data</span><span class="p">)</span>
         <span class="n">link_archive_to_mem</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span> <span class="n">archive_memid</span><span class="p">)</span></div>
 
 
@@ -328,7 +335,7 @@
 <span class="sd">            &gt;&gt;&gt; create(memory, logical_form)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO Programs(uuid, logical_form) VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="nb">format</span><span class="p">(</span><span class="n">logical_form</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span></div>
@@ -384,8 +391,101 @@
         <span class="k">if</span> <span class="n">memid</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">memid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO NamedAbstractions(uuid, name) VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO NamedAbstractions(uuid, name) VALUES (?,?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span></div>
+
+
+<span class="k">class</span> <span class="nc">TripleNode</span><span class="p">(</span><span class="n">MemoryNode</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class represents a (subject, predicate, object) KB triple</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        agent_memory (AgentMemory): An AgentMemory object</span>
+<span class="sd">        memid (string): Memory ID for this node</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        subj_text (string): the text of the subject</span>
+<span class="sd">        subj (string):      the memid of the subject</span>
+<span class="sd">        pred_text (string): the text of the predicate</span>
+<span class="sd">        pred (string):      the memid of the predicate (a NamedAbstraction)</span>
+<span class="sd">        obj_text (string):  the text of the object</span>
+<span class="sd">        obj (string):       the memid of the object</span>
+<span class="sd">        confidence (float): float between 0 and 1, currently unused</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TABLE_COLUMNS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;uuid&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;subj&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;subj_text&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;pred&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;pred_text&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;obj&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;obj_text&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;confidence&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">TABLE</span> <span class="o">=</span> <span class="s2">&quot;Triples&quot;</span>
+    <span class="n">NODE_TYPE</span> <span class="o">=</span> <span class="s2">&quot;Triple&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">agent_memory</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">triple</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent_memory</span><span class="o">.</span><span class="n">_db_read_one</span><span class="p">(</span>
+            <span class="s2">&quot;SELECT subj_text, subj, pred_text, pred, obj_text, obj, confidence FROM Triples WHERE uuid=?&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memid</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">memory</span><span class="p">,</span>
+        <span class="n">snapshot</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">subj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># this is a memid if given</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># this is a memid if given</span>
+        <span class="n">subj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pred_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;has_tag&quot;</span><span class="p">,</span>
+        <span class="n">obj_text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Adds (subj, pred, obj) triple to the triplestore.</span>
+<span class="sd">            *_text is the name field of a NamedAbstraction; if</span>
+<span class="sd">            such a NamedAbstraction does not exist, this builds it as a side effect.</span>
+<span class="sd">            subj and obj can be memids or text, but pred_text is required</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            subj (string): memid of subject</span>
+<span class="sd">            obj (string): memid of object</span>
+<span class="sd">            subj_text (string): text representation for subject</span>
+<span class="sd">            pred_text (string): predicate text</span>
+<span class="sd">            obj_text (string): text representation for object</span>
+<span class="sd">            confidence (float): The confidence score for the triple</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: memid of triple</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">subj</span> <span class="ow">or</span> <span class="n">subj_text</span>
+        <span class="k">assert</span> <span class="n">obj</span> <span class="ow">or</span> <span class="n">obj_text</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">subj</span> <span class="ow">and</span> <span class="n">subj_text</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="p">(</span><span class="n">obj</span> <span class="ow">and</span> <span class="n">obj_text</span><span class="p">)</span>
+        <span class="c1"># TODO check if triple exists, don&#39;t make it again</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">NamedAbstractionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">NamedAbstractionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">obj_text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">subj</span><span class="p">:</span>
+            <span class="n">subj</span> <span class="o">=</span> <span class="n">NamedAbstractionNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">subj_text</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)&quot;</span><span class="p">,</span>
+            <span class="n">memid</span><span class="p">,</span>
+            <span class="n">subj</span><span class="p">,</span>
+            <span class="n">subj_text</span><span class="p">,</span>
+            <span class="n">pred</span><span class="p">,</span>
+            <span class="n">pred_text</span><span class="p">,</span>
+            <span class="n">obj</span><span class="p">,</span>
+            <span class="n">obj_text</span><span class="p">,</span>
+            <span class="n">confidence</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">memid</span>
 
 
 <span class="c1"># the table entry just has the memid and a modification time,</span>
@@ -405,7 +505,7 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">snapshot</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO SetMems(uuid) VALUES (?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">())</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO SetMems(uuid) VALUES (?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">memory</span><span class="o">.</span><span class="n">get_time</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">memid</span>
 
     <span class="k">def</span> <span class="nf">get_members</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -489,7 +589,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">yaw</span> <span class="o">=</span> <span class="n">yaw</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">player_struct</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">player_struct</span><span class="p">,</span> <span class="n">memid</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Creates a new entry into the ReferenceObjects table</span>
 <span class="sd">        </span>
 <span class="sd">        Returns:</span>
@@ -504,8 +604,8 @@
 <span class="sd">            )</span>
 <span class="sd">            &gt;&gt;&gt; create(memory, player_struct)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)&quot;</span><span class="p">,</span>
             <span class="n">memid</span><span class="p">,</span>
             <span class="n">player_struct</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span>
@@ -531,7 +631,7 @@
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">memory</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">memid</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE &quot;</span>
         <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span> <span class="o">+</span> <span class="s2">&quot;uuid=?&quot;</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="n">cmd</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">entityId</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">pitch</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">look</span><span class="o">.</span><span class="n">yaw</span><span class="p">,</span> <span class="n">memid</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span>
@@ -636,7 +736,7 @@
 <span class="sd">            &gt;&gt;&gt; create(memory, xyz)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?)&quot;</span><span class="p">,</span>
             <span class="n">memid</span><span class="p">,</span>
             <span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
@@ -705,7 +805,7 @@
 <span class="sd">            &gt;&gt;&gt; create(memory, xyz, attender)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO ReferenceObjects(uuid, x, y, z, type_name, ref_type) VALUES (?, ?, ?, ?, ?, ?)&quot;</span><span class="p">,</span>
             <span class="n">memid</span><span class="p">,</span>
             <span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
@@ -760,7 +860,7 @@
 <span class="sd">            &gt;&gt;&gt; create(memory, time)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO Times(uuid, time) VALUES (?, ?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span><span class="s2">&quot;INSERT INTO Times(uuid, time) VALUES (?, ?)&quot;</span><span class="p">,</span> <span class="n">memid</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">memid</span></div>
 
 
@@ -814,7 +914,7 @@
 <span class="sd">            &gt;&gt;&gt; create(memory, speaker, chat)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO Chats(uuid, speaker, chat, time) VALUES (?, ?, ?, ?)&quot;</span><span class="p">,</span>
             <span class="n">memid</span><span class="p">,</span>
             <span class="n">speaker</span><span class="p">,</span>
@@ -877,7 +977,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">memid</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">memory</span><span class="p">)</span>
         <span class="n">task</span><span class="o">.</span><span class="n">memid</span> <span class="o">=</span> <span class="n">memid</span>  <span class="c1"># FIXME: this shouldn&#39;t be necessary, merge Task and TaskNode?</span>
-        <span class="n">memory</span><span class="o">.</span><span class="n">_db_write</span><span class="p">(</span>
+        <span class="n">memory</span><span class="o">.</span><span class="n">db_write</span><span class="p">(</span>
             <span class="s2">&quot;INSERT INTO Tasks (uuid, action_name, pickled, created_at) VALUES (?,?,?,?)&quot;</span><span class="p">,</span>
             <span class="n">memid</span><span class="p">,</span>
             <span class="n">task</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
@@ -946,6 +1046,7 @@
     <span class="n">ChatNode</span><span class="p">,</span>
     <span class="n">LocationNode</span><span class="p">,</span>
     <span class="n">AttentionNode</span><span class="p">,</span>
+    <span class="n">TripleNode</span><span class="p">,</span>
     <span class="n">SetNode</span><span class="p">,</span>
     <span class="n">TimeNode</span><span class="p">,</span>
     <span class="n">PlayerNode</span><span class="p">,</span>
@@ -959,28 +1060,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

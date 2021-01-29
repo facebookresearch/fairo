@@ -1,0 +1,402 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>locobot.agent.perception.handlers.human_pose &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>locobot.agent.perception.handlers.human_pose</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for locobot.agent.perception.handlers.human_pose</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">loco_memory</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">AbstractHandler</span><span class="p">,</span> <span class="n">WorldObject</span><span class="p">,</span> <span class="n">RGBDepth</span>
+<span class="kn">from</span> <span class="nn">detectron2.config</span> <span class="kn">import</span> <span class="n">get_cfg</span>
+<span class="kn">from</span> <span class="nn">detectron2.engine.defaults</span> <span class="kn">import</span> <span class="n">DefaultPredictor</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="n">file_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="HumanPoseHandler"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.HumanPoseHandler">[docs]</a><span class="k">class</span> <span class="nc">HumanPoseHandler</span><span class="p">(</span><span class="n">AbstractHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for Human Pose estimation.</span>
+
+<span class="sd">    We use a keypoint estimator.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_data_dir (string): path to the model directory</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_data_dir</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detector</span> <span class="o">=</span> <span class="n">HumanPose</span><span class="p">(</span><span class="n">model_data_dir</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HumanPoseHandler.handle"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.HumanPoseHandler.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">):</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;In HumanPoseHandler ... &quot;</span><span class="p">)</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">rgb_depth</span><span class="o">.</span><span class="n">rgb</span>
+        <span class="n">keypoints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="p">(</span><span class="n">rgb</span><span class="p">)</span>
+        <span class="n">humans</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keypoints</span><span class="p">)):</span>
+            <span class="n">humans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Human</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">keypoints</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+        <span class="c1"># self.draw(rgb_depth, keypoints)</span>
+        <span class="k">return</span> <span class="n">humans</span></div>
+
+    <span class="k">def</span> <span class="nf">_debug_draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">keypoints</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detector</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">rgb_depth</span><span class="o">.</span><span class="n">rgb</span><span class="p">,</span> <span class="n">keypoints</span><span class="p">)</span></div>
+
+
+<span class="n">keypoints_yaml</span> <span class="o">=</span> <span class="s2">&quot;detectron/configs/Keypoints/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml&quot;</span>
+<span class="n">keypoints_weights</span> <span class="o">=</span> <span class="s2">&quot;keypoints_model_final_a6e10b.pkl&quot;</span>
+
+<span class="n">COCO_PERSON_KEYPOINT_ORDERING</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;nose&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_eye&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_eye&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_ear&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_ear&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_shoulder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_shoulder&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_elbow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_elbow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_wrist&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_wrist&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_hip&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_hip&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_knee&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_knee&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;left_ankle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;right_ankle&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">class</span> <span class="nc">HumanPose</span><span class="p">:</span>
+    <span class="n">draw_lines</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;left_ear&quot;</span><span class="p">,</span> <span class="s2">&quot;left_eye&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_ear&quot;</span><span class="p">,</span> <span class="s2">&quot;right_eye&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_eye&quot;</span><span class="p">,</span> <span class="s2">&quot;right_eye&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_eye&quot;</span><span class="p">,</span> <span class="s2">&quot;nose&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_eye&quot;</span><span class="p">,</span> <span class="s2">&quot;nose&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_shoulder&quot;</span><span class="p">,</span> <span class="s2">&quot;right_elbow&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_elbow&quot;</span><span class="p">,</span> <span class="s2">&quot;right_wrist&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_shoulder&quot;</span><span class="p">,</span> <span class="s2">&quot;left_elbow&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_elbow&quot;</span><span class="p">,</span> <span class="s2">&quot;left_wrist&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_shoulder&quot;</span><span class="p">,</span> <span class="s2">&quot;left_hip&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_hip&quot;</span><span class="p">,</span> <span class="s2">&quot;left_knee&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;left_knee&quot;</span><span class="p">,</span> <span class="s2">&quot;left_ankle&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_shoulder&quot;</span><span class="p">,</span> <span class="s2">&quot;right_hip&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_hip&quot;</span><span class="p">,</span> <span class="s2">&quot;right_knee&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_knee&quot;</span><span class="p">,</span> <span class="s2">&quot;right_ankle&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_hip&quot;</span><span class="p">,</span> <span class="s2">&quot;left_hip&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;right_shoulder&quot;</span><span class="p">,</span> <span class="s2">&quot;left_shoulder&quot;</span><span class="p">),</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_data_dir</span><span class="p">):</span>
+        <span class="n">cfg</span> <span class="o">=</span> <span class="n">get_cfg</span><span class="p">()</span>
+        <span class="n">yaml_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">file_root</span><span class="p">,</span> <span class="s2">&quot;../..&quot;</span><span class="p">,</span> <span class="n">keypoints_yaml</span><span class="p">))</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">merge_from_file</span><span class="p">(</span><span class="n">yaml_path</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">model_data_dir</span><span class="p">,</span> <span class="n">keypoints_weights</span><span class="p">)</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">MODEL</span><span class="o">.</span><span class="n">WEIGHTS</span> <span class="o">=</span> <span class="n">weights</span>
+        <span class="n">cfg</span><span class="o">.</span><span class="n">freeze</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span> <span class="o">=</span> <span class="n">DefaultPredictor</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">):</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictor</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="s2">&quot;instances&quot;</span><span class="p">]</span>
+
+        <span class="n">points_indices</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">pred_keypoints</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">scores</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points_indices</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">scores</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mf">0.8</span><span class="p">:</span>
+                <span class="n">p_i</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">point</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">points_indices</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">COCO_PERSON_KEYPOINT_ORDERING</span><span class="p">):</span>
+                    <span class="n">p_i</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">int</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">HumanKeypoints</span><span class="p">(</span><span class="o">**</span><span class="n">p_i</span><span class="p">))</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> humans detected.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">points</span>
+
+    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bgr</span><span class="p">,</span> <span class="n">keypoints</span><span class="p">):</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">bgr</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keypoints</span><span class="p">)):</span>
+            <span class="n">points_i</span> <span class="o">=</span> <span class="n">keypoints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">draw_lines</span><span class="p">:</span>
+                <span class="n">p1</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">points_i</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">p2</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">points_i</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">rgb</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">),</span> <span class="p">(</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">thickness</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s2">&quot;Humans&quot;</span><span class="p">,</span> <span class="n">rgb</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+
+<span class="n">HumanKeypoints</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s2">&quot;HumanKeypoints&quot;</span><span class="p">,</span>
+    <span class="p">[</span>
+        <span class="s2">&quot;nose&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_eye&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_eye&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_ear&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_ear&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_shoulder&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_shoulder&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_elbow&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_elbow&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_wrist&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_wrist&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_hip&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_hip&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_knee&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_knee&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;left_ankle&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;right_ankle&quot;</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">Human</span><span class="p">(</span><span class="n">WorldObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Instantiation of the WorldObject that is used by the human pose estimator. </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">:</span> <span class="n">RGBDepth</span><span class="p">,</span> <span class="n">keypoints</span><span class="p">:</span> <span class="n">HumanKeypoints</span><span class="p">):</span>
+        <span class="n">WorldObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;human_pose&quot;</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="n">keypoints</span><span class="o">.</span><span class="n">nose</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="o">=</span><span class="n">rgb_depth</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keypoints</span> <span class="o">=</span> <span class="n">keypoints</span>
+
+    <span class="k">def</span> <span class="nf">save_to_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="n">loco_memory</span><span class="o">.</span><span class="n">HumanPoseNode</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">to_struct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;xyz&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">),</span> <span class="s2">&quot;keypoints&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">keypoints</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()}</span>
+
+    <span class="c1"># FIXME - currently just returns a random rgb image</span>
+    <span class="k">def</span> <span class="nf">get_masked_img</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rgb_depth</span><span class="o">.</span><span class="n">rgb</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

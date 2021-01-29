@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>locobot.agent.perception.handlers.face_recognition &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>locobot.agent.perception.handlers.face_recognition</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for locobot.agent.perception.handlers.face_recognition</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">AbstractHandler</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">face_recognition</span> <span class="k">as</span> <span class="nn">fr</span>
+<span class="kn">from</span> <span class="nn">facenet_pytorch</span> <span class="kn">import</span> <span class="n">MTCNN</span>
+<span class="kn">from</span> <span class="nn">.detector</span> <span class="kn">import</span> <span class="n">Detection</span>
+
+
+<div class="viewcode-block" id="FaceRecognitionHandler"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler">[docs]</a><span class="k">class</span> <span class="nc">FaceRecognitionHandler</span><span class="p">(</span><span class="n">AbstractHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for Face Recognition models.</span>
+
+<span class="sd">    We use a keypoint estimator.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        face_ids_dir (string): path to faces used to seed the face recognizer with</span>
+<span class="sd">        silent (boolean): boolean to suppress all self.draw() calls</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_ids_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">face_ids_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">face_ids_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;../&quot;</span><span class="p">,</span> <span class="s2">&quot;offline_files/faces&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">faces_path</span> <span class="o">=</span> <span class="n">face_ids_dir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">encoded_faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_encoded_faces</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">face_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="FaceRecognitionHandler.get_encoded_faces"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.get_encoded_faces">[docs]</a>    <span class="k">def</span> <span class="nf">get_encoded_faces</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;looks through the faces folder and encodes all the faces.</span>
+
+<span class="sd">        :return: dict of (name, image encoded)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">encoded</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">dnames</span><span class="p">,</span> <span class="n">fnames</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">faces_path</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fnames</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.jpg&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.png&quot;</span><span class="p">):</span>
+                    <span class="n">face</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">load_image_file</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">faces_path</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+                    <span class="n">encoding</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">face_encodings</span><span class="p">(</span><span class="n">face</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">encoded</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">encoding</span>
+        <span class="k">return</span> <span class="n">encoded</span></div>
+
+<div class="viewcode-block" id="FaceRecognitionHandler.overlap"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.overlap">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">overlap</span><span class="p">(</span><span class="n">box1</span><span class="p">,</span> <span class="n">box2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if two bounding boxes overlap or not each box&#39;s coordinates</span>
+<span class="sd">        is: (y1, x2, y2, x1)&quot;&quot;&quot;</span>
+
+        <span class="c1"># If one rectangle is on left side of other</span>
+        <span class="k">if</span> <span class="n">box1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">box2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="n">box2</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">box1</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="c1"># If one rectangle is above other</span>
+        <span class="k">if</span> <span class="n">box1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">box2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="n">box2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">box1</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="FaceRecognitionHandler.get_facenet_boxes"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.get_facenet_boxes">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_facenet_boxes</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get the face locations from facenet module.&quot;&quot;&quot;</span>
+
+        <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">mtcnn</span> <span class="o">=</span> <span class="n">MTCNN</span><span class="p">(</span>
+            <span class="n">image_size</span><span class="o">=</span><span class="mi">160</span><span class="p">,</span>
+            <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">min_face_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">thresholds</span><span class="o">=</span><span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">],</span>
+            <span class="n">factor</span><span class="o">=</span><span class="mf">0.709</span><span class="p">,</span>
+            <span class="n">post_process</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">face_locations_float</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="n">mtcnn</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">landmarks</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">face_locations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">face_locations_float</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># convert the location boxes to integer</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">face_locations_float</span><span class="p">:</span>
+                <span class="n">face_locations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">i</span><span class="p">])</span>
+            <span class="c1"># flip the (x1, y1, x2, y2) from facenet to (y1, x2, y2, x1) of face_recognition</span>
+            <span class="k">for</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">face_locations</span><span class="p">:</span>
+                <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">x1</span> <span class="o">=</span> <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">loc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">x1</span>
+        <span class="k">return</span> <span class="n">face_locations</span></div>
+
+<div class="viewcode-block" id="FaceRecognitionHandler.get_union"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.get_union">[docs]</a>    <span class="k">def</span> <span class="nf">get_union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">locations1</span><span class="p">,</span> <span class="n">locations2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the union of two sets of bounding boxes.&quot;&quot;&quot;</span>
+        <span class="n">non_overlap</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">box1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">locations1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">box2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">locations2</span><span class="p">):</span>
+                <span class="c1"># check if it intersects with another in the larger set</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">overlap</span><span class="p">(</span><span class="n">box1</span><span class="p">,</span> <span class="n">box2</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">locations2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">non_overlap</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">box1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">locations2</span> <span class="o">+</span> <span class="n">non_overlap</span></div>
+
+<div class="viewcode-block" id="FaceRecognitionHandler.detect_faces"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.detect_faces">[docs]</a>    <span class="k">def</span> <span class="nf">detect_faces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;will find all of the faces in a given image and label them if it</span>
+<span class="sd">        knows what they are then save them in the object.</span>
+
+<span class="sd">        :param rgb_depth: the captured picture by Locobot camera</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoded_faces</span>
+        <span class="n">faces_encoded</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">faces</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">known_face_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">faces</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="n">img</span> <span class="o">=</span> <span class="n">rgb_depth</span><span class="o">.</span><span class="n">rgb</span>
+        <span class="c1"># get the bounding boxes from the face_recognition module</span>
+        <span class="n">face_rec_locations</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">face_locations</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+        <span class="c1"># get the bounding boxes from facenet module</span>
+        <span class="n">facenet_locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_facenet_boxes</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">facenet_locations</span> <span class="ow">and</span> <span class="n">face_rec_locations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_union</span><span class="p">(</span><span class="n">face_rec_locations</span><span class="p">,</span> <span class="n">facenet_locations</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">facenet_locations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span> <span class="o">=</span> <span class="n">facenet_locations</span>
+        <span class="k">elif</span> <span class="n">face_rec_locations</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span> <span class="o">=</span> <span class="n">face_rec_locations</span>
+
+        <span class="n">unknown_face_encodings</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">face_encodings</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detected </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span><span class="p">)</span><span class="si">}</span><span class="s2"> face(s)&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">face_encoding</span> <span class="ow">in</span> <span class="n">unknown_face_encodings</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Unknown&quot;</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">faces_encoded</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># See if the face is a match for the known face(s)</span>
+                <span class="n">matches</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">compare_faces</span><span class="p">(</span><span class="n">faces_encoded</span><span class="p">,</span> <span class="n">face_encoding</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.55</span><span class="p">)</span>
+
+                <span class="c1"># use the known face with the smallest distance to the new face</span>
+                <span class="n">face_distances</span> <span class="o">=</span> <span class="n">fr</span><span class="o">.</span><span class="n">face_distance</span><span class="p">(</span><span class="n">faces_encoded</span><span class="p">,</span> <span class="n">face_encoding</span><span class="p">)</span>
+                <span class="n">best_match_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">face_distances</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">matches</span><span class="p">[</span><span class="n">best_match_index</span><span class="p">]:</span>
+                    <span class="n">name</span> <span class="o">=</span> <span class="n">known_face_names</span><span class="p">[</span><span class="n">best_match_index</span><span class="p">]</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">face_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FaceRecognitionHandler.handle"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detect_faces</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;In FaceDetectionHandler ... &quot;</span><span class="p">)</span>
+        <span class="n">detections</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">face</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">face_names</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">face_locations</span><span class="p">)):</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">loc</span> <span class="o">=</span> <span class="n">face</span>
+            <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">left</span> <span class="o">=</span> <span class="n">loc</span>
+            <span class="n">center_point</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">left</span><span class="p">),</span> <span class="nb">int</span><span class="p">((</span><span class="n">bottom</span> <span class="o">-</span> <span class="n">top</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">top</span><span class="p">))</span>
+
+            <span class="c1"># define a mask on the detected face</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rgb_depth</span><span class="o">.</span><span class="n">get_pillow_image</span><span class="p">())</span>
+            <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">bottom</span> <span class="o">-</span> <span class="n">top</span><span class="p">)</span>
+            <span class="n">detected_face</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">top</span> <span class="p">:</span> <span class="n">top</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">left</span> <span class="p">:</span> <span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">top</span> <span class="p">:</span> <span class="n">top</span> <span class="o">+</span> <span class="n">h</span><span class="p">,</span> <span class="n">left</span> <span class="p">:</span> <span class="n">left</span> <span class="o">+</span> <span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">detected_face</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="n">left</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">]</span>
+
+            <span class="n">detections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">Detection</span><span class="p">(</span>
+                    <span class="n">rgb_depth</span><span class="p">,</span>
+                    <span class="n">class_label</span><span class="o">=</span><span class="s2">&quot;person&quot;</span><span class="p">,</span>
+                    <span class="n">properties</span><span class="o">=</span><span class="p">{},</span>
+                    <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">bbox</span><span class="o">=</span><span class="n">bbox</span><span class="p">,</span>
+                    <span class="n">face_tag</span><span class="o">=</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">loc</span><span class="p">),</span>
+                    <span class="n">center</span><span class="o">=</span><span class="n">center_point</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DEBUG_DRAW&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;True&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_debug_draw</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">detections</span></div>
+
+    <span class="k">def</span> <span class="nf">_debug_draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">):</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">rgb_depth</span><span class="o">.</span><span class="n">get_pillow_image</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">detections</span><span class="p">:</span>
+            <span class="c1"># draw a rectangle on each face</span>
+            <span class="n">top</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">left</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">facial_rec_tag</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">facial_rec_tag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="c1"># Draw a box around the face</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="mi">20</span><span class="p">,</span> <span class="n">top</span> <span class="o">-</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="n">right</span> <span class="o">+</span> <span class="mi">20</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">+</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="c1"># Draw a label with a name below the face</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">rectangle</span><span class="p">(</span>
+                <span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="mi">20</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">-</span> <span class="mi">15</span><span class="p">),</span> <span class="p">(</span><span class="n">right</span> <span class="o">+</span> <span class="mi">20</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">+</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">FILLED</span>
+            <span class="p">)</span>
+            <span class="n">font</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">FONT_HERSHEY_DUPLEX</span>
+            <span class="n">cv2</span><span class="o">.</span><span class="n">putText</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">left</span> <span class="o">-</span> <span class="mi">20</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">+</span> <span class="mi">15</span><span class="p">),</span> <span class="n">font</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">cv2</span><span class="o">.</span><span class="n">namedWindow</span><span class="p">(</span><span class="s2">&quot;faces&quot;</span><span class="p">,</span> <span class="n">cv2</span><span class="o">.</span><span class="n">WINDOW_NORMAL</span><span class="p">)</span>  <span class="c1"># Create window with freedom of dimensions</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1960</span><span class="p">))</span>  <span class="c1"># Resize image</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="p">),</span> <span class="n">cv2</span><span class="o">.</span><span class="n">COLOR_RGB2BGR</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="s2">&quot;faces&quot;</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+        <span class="n">cv2</span><span class="o">.</span><span class="n">waitKey</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

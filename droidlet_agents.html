@@ -3,11 +3,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>batteries included droidlet agents &mdash; droidlet master documentation</title>
+  <title>Agents &mdash; droidlet master documentation</title>
   
 
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -51,7 +53,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="index.html" class="icon icon-home"> droidlet
           
 
           
@@ -105,13 +107,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">batteries included droidlet agents</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -154,18 +159,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>batteries included droidlet agents</li>
+      <li>Agents</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/droidlet_agents.md.txt" rel="nofollow"> View page source</a>
           
         
@@ -179,13 +186,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="batteries-included-droidlet-agents">
-<span id="droidlet-agents"></span><h1>batteries included droidlet agents<a class="headerlink" href="#batteries-included-droidlet-agents" title="Permalink to this headline">¶</a></h1>
-<p>We instantiate a droidlet <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/locobot/agent">agent</a> on a <a class="reference external" href="http://www.locobot.org/">Locobot</a> and an <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/agent">agent</a> in Minecraft using the <a class="reference external" href="https://arxiv.org/abs/1907.08584">Craftassist</a> framework (the droidlet project evolved from Craftassist).</p>
+  <div class="section" id="agents">
+<span id="droidlet-agents"></span><h1>Agents<a class="headerlink" href="#agents" title="Permalink to this headline">¶</a></h1>
+<p>We instantiate a droidlet <a class="reference external" href="https://github.com/facebookresearch/droidlet/tree/agent_docs/locobot/agent">agent</a> on a <a class="reference external" href="http://www.locobot.org/">Locobot</a> and an <a class="reference external" href="https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/agent">agent</a> in Minecraft using the <a class="reference external" href="https://arxiv.org/abs/1907.08584">Craftassist</a> framework (the droidlet project evolved from Craftassist).</p>
 <div class="section" id="locobot">
 <h2>Locobot<a class="headerlink" href="#locobot" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="locobot-perception">
 <h3>Locobot Perception<a class="headerlink" href="#locobot-perception" title="Permalink to this headline">¶</a></h3>
+<p>We have a high-level pipeline that runs many of the perception handlers that exist.
+This pipeline is split into <code class="docutils literal notranslate"><span class="pre">Perception</span></code> and <code class="docutils literal notranslate"><span class="pre">SlowPerception</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Perception</span></code> only consists of the fast processing modules, that can be run in the main thread and likely need to be run at a high frequency.
+<code class="docutils literal notranslate"><span class="pre">SlowPerception</span></code> consists of heavier modules such as Face Recognition, Object Detection and can be run at a much lower frequency in a background thread.</p>
 <blockquote>
 <div><dl class="py class">
 <dt id="locobot.agent.perception.Perception">
@@ -232,11 +243,9 @@ models and save their state to memory. It fetches the results of
 SlowPerception if they are ready.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>force</strong> (<em>boolean</em>) – set to True to force waiting on the SlowPerception models to finish, and execute</p></li>
-<li><p><strong>perceptual models to execute sequentially</strong> (<em>all</em>) – </p></li>
-<li><p><strong>(default</strong> – False)</p></li>
-</ul>
+<dd class="field-odd"><p><strong>force</strong> (<em>boolean</em>) – set to True to force waiting on the SlowPerception models to finish, and execute
+all perceptual models to execute sequentially (doing that is a good debugging tool)
+(default: False)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -287,32 +296,257 @@ humans (list[Human]): list of all humans detected</p>
 </dd></dl>
 
 </div></blockquote>
+<p>These pipelines are powered by components that can be stringed together in arbitrary ways, to create your own custom pipeline:</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="locobot.agent.perception.handlers.InputHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">InputHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">read_from_camera</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/input.html#InputHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.InputHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches all input sensor data from the robot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent</strong> (<em>LocoMCAgent</em>) – reference to the agent instance</p></li>
+<li><p><strong>read_from_camera</strong> (<em>boolean</em>) – boolean to enable/disable reading from the camera
+sensor and possibly reading from a local video instead (default: True)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.InputHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/input.html#InputHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.InputHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method to hold the core execution logic.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.handlers.DetectionHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">DetectionHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_data_dir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/detector.html#DetectionHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.DetectionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for object detector.</p>
+<p>We use a modified Mask R-CNN with an additional head that predicts object properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_data_dir</strong> (<em>string</em>) – path to the model directory</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.DetectionHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/detector.html#DetectionHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.DetectionHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>the inference logic for the handler lives here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rgb_depth</strong> (<em>RGBDepth</em>) – the current input frame to run inference on.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of detections found</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>detections (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)">list</a>[Detections])</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.handlers.HumanPoseHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">HumanPoseHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model_data_dir</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/human_pose.html#HumanPoseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.HumanPoseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for Human Pose estimation.</p>
+<p>We use a keypoint estimator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>model_data_dir</strong> (<em>string</em>) – path to the model directory</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.HumanPoseHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/human_pose.html#HumanPoseHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.HumanPoseHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method to hold the core execution logic.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">FaceRecognitionHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">face_ids_dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for Face Recognition models.</p>
+<p>We use a keypoint estimator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>face_ids_dir</strong> (<em>string</em>) – path to faces used to seed the face recognizer with</p></li>
+<li><p><strong>silent</strong> (<em>boolean</em>) – boolean to suppress all self.draw() calls</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler.detect_faces">
+<code class="sig-name descname">detect_faces</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler.detect_faces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler.detect_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>will find all of the faces in a given image and label them if it
+knows what they are then save them in the object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>rgb_depth</strong> – the captured picture by Locobot camera</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler.get_encoded_faces">
+<code class="sig-name descname">get_encoded_faces</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler.get_encoded_faces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler.get_encoded_faces" title="Permalink to this definition">¶</a></dt>
+<dd><p>looks through the faces folder and encodes all the faces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of (name, image encoded)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler.get_facenet_boxes">
+<em class="property">static </em><code class="sig-name descname">get_facenet_boxes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">img</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler.get_facenet_boxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler.get_facenet_boxes" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the face locations from facenet module.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler.get_union">
+<code class="sig-name descname">get_union</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">locations1</span></em>, <em class="sig-param"><span class="n">locations2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler.get_union"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler.get_union" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the union of two sets of bounding boxes.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method to hold the core execution logic.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.FaceRecognitionHandler.overlap">
+<em class="property">static </em><code class="sig-name descname">overlap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">box1</span></em>, <em class="sig-param"><span class="n">box2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/face_recognition.html#FaceRecognitionHandler.overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.FaceRecognitionHandler.overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if two bounding boxes overlap or not each box’s coordinates
+is: (y1, x2, y2, x1)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.handlers.LaserPointerHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">LaserPointerHandler</code><a class="reference internal" href="_modules/locobot/agent/perception/handlers/laser_pointer.html#LaserPointerHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.LaserPointerHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifies an especially prepared laser pointer in an image to use it
+for proprioception.</p>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.LaserPointerHandler.get_hsv_laser_mask">
+<em class="property">static </em><code class="sig-name descname">get_hsv_laser_mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/laser_pointer.html#LaserPointerHandler.get_hsv_laser_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.LaserPointerHandler.get_hsv_laser_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the masked image with the laser dot using HSV color model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.LaserPointerHandler.get_laser_point_center">
+<em class="property">static </em><code class="sig-name descname">get_laser_point_center</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mask</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/laser_pointer.html#LaserPointerHandler.get_laser_point_center"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.LaserPointerHandler.get_laser_point_center" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the center of a masked laser pointer in screen coordinate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.LaserPointerHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/laser_pointer.html#LaserPointerHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.LaserPointerHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement this method to hold the core execution logic.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.handlers.TrackingHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">TrackingHandler</code><a class="reference internal" href="_modules/locobot/agent/perception/handlers/tracker.html#TrackingHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.TrackingHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for real-time 2D object tracking.</p>
+<p>We use the results of DetectionHandler and the norfair tracking library (<a class="reference external" href="https://github.com/tryolabs/norfair">https://github.com/tryolabs/norfair</a>)</p>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.TrackingHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span></em>, <em class="sig-param"><span class="n">detections</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/tracker.html#TrackingHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.TrackingHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>run tracker on the current rgb_depth frame for the detections found</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.handlers.MemoryHandler">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.handlers.</code><code class="sig-name descname">MemoryHandler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/memory.html#MemoryHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.MemoryHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for saving the state of the world parsed by all perceptual models
+to memory.</p>
+<p>The MemoryHandler also performs object reidentification and is responsible for maintaining
+a consistent state of the world using the output of all other perception handlers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>agent</strong> (<em>LocoMCAgent</em>) – reference to the agent.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.MemoryHandler.handle">
+<code class="sig-name descname">handle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb</span></em>, <em class="sig-param"><span class="n">objects</span></em>, <em class="sig-param"><span class="n">dedupe</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/memory.html#MemoryHandler.handle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.MemoryHandler.handle" title="Permalink to this definition">¶</a></dt>
+<dd><p>run the memory handler for the current rgb, objects detected.</p>
+<p>This is also where each WorldObject is assigned a unique entity id (eid).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rgb</strong> (<em>np.array</em>) – current RGB image for which the handlers are being run</p></li>
+<li><p><strong>objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>WorldObject</em><em>]</em>) – a list of all WorldObjects detected</p></li>
+<li><p><strong>dedupe</strong> (<em>boolean</em>) – boolean to indicate whether to deduplicate objects or not. If False, all objects</p></li>
+<li><p><strong>considered to be new/novel objects that the agent hasn't seen before. If True</strong> (<em>are</em>) – </p></li>
+<li><p><strong>handler tries to</strong> (<em>the</em>) – </p></li>
+<li><p><strong>whether it has seen a WorldObject before and updates it if it has.</strong> (<em>identify</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.handlers.MemoryHandler.is_novel">
+<code class="sig-name descname">is_novel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb</span></em>, <em class="sig-param"><span class="n">world_obj</span></em>, <em class="sig-param"><span class="n">dedupe</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/memory.html#MemoryHandler.is_novel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.handlers.MemoryHandler.is_novel" title="Permalink to this definition">¶</a></dt>
+<dd><p>this is long-term tracking (not in-frame). it does some feature
+matching to figure out if we’ve seen this exact instance of object
+before.</p>
+<p>It uses the cosine similarity of conv features and (separately),
+distance between two objects</p>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
 </div>
 <div class="section" id="locobot-pyrobot-interface">
 <h3>Locobot PyRobot interface<a class="headerlink" href="#locobot-pyrobot-interface" title="Permalink to this headline">¶</a></h3>
+<p>We have a <code class="docutils literal notranslate"><span class="pre">RemoteLocobot</span></code> object that runs on the robot, and marshals data back and forth from the robot to the server.
+Additionally, on the server-side, we have a <code class="docutils literal notranslate"><span class="pre">LoCoBotMover</span></code> class that communicates with <code class="docutils literal notranslate"><span class="pre">RemoteLocobot</span></code> and provides a low-level API to the robot.</p>
 <blockquote>
 <div><dl class="py class">
-<dt id="locobot.robot.RemoteLoCoRobot">
-<em class="property">class </em><code class="sig-prename descclassname">locobot.robot.</code><code class="sig-name descname">RemoteLoCoRobot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'locobot'</span></em>, <em class="sig-param"><span class="n">backend_config</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.robot.</code><code class="sig-name descname">RemoteLocobot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'locobot'</span></em>, <em class="sig-param"><span class="n">backend_config</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot" title="Permalink to this definition">¶</a></dt>
 <dd><p>PyRobot interface for the Locobot.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>backend</strong> (<em>string</em>) – the backend for the Locobot (“habitat” for the locobot in Habitat, and “locobot” for the physical LoCoBot)</p></li>
+<li><p><strong>backend</strong> (<em>string</em>) – the backend for the Locobot (“habitat” for the locobot in Habitat, and “locobot” for the physical LocoBot)</p></li>
 <li><p><strong>(default</strong> – locobot)</p></li>
 <li><p><strong>backend_config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – the backend config used for connecting to Habitat (default: None)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.close_gripper">
-<code class="sig-name descname">close_gripper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.close_gripper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.close_gripper" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.close_gripper">
+<code class="sig-name descname">close_gripper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.close_gripper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.close_gripper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Commands gripper to close fully.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.dip_pix_to_3dpt">
-<code class="sig-name descname">dip_pix_to_3dpt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.dip_pix_to_3dpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.dip_pix_to_3dpt" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.command_finished">
+<code class="sig-name descname">command_finished</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.command_finished"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.command_finished" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether previous executed command finished execution.</p>
+<p>return: command execution state [True for finished execution, False for still executing]
+rtype: bool</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLocobot.dip_pix_to_3dpt">
+<code class="sig-name descname">dip_pix_to_3dpt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.dip_pix_to_3dpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.dip_pix_to_3dpt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the point cloud at current time step in robot base frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -325,8 +559,8 @@ humans (list[Human]): list of all humans detected</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_base_state">
-<code class="sig-name descname">get_base_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_base_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_base_state" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_base_state">
+<code class="sig-name descname">get_base_state</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">state_type</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_base_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_base_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the  base pose of the robot in the (x,y, yaw) format as
 computed either from Wheel encoder readings or Visual-SLAM.</p>
 <dl class="field-list simple">
@@ -343,8 +577,8 @@ computed either from Wheel encoder readings or Visual-SLAM.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_camera_state">
-<code class="sig-name descname">get_camera_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_camera_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_camera_state" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_camera_state">
+<code class="sig-name descname">get_camera_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_camera_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_camera_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the current pan and tilt joint angles of the robot camera in
 radian.</p>
 <dl class="field-list simple">
@@ -358,8 +592,8 @@ radian.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_current_pcd">
-<code class="sig-name descname">get_current_pcd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">in_cam</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">in_global</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_current_pcd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_current_pcd" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_current_pcd">
+<code class="sig-name descname">get_current_pcd</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">in_cam</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">in_global</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_current_pcd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_current_pcd" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the point cloud at current time step.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -379,8 +613,8 @@ otherwise, return points in base frame</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_depth">
-<code class="sig-name descname">get_depth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_depth" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_depth">
+<code class="sig-name descname">get_depth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the depth image perceived by the camera.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -393,8 +627,8 @@ otherwise, return points in base frame</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_depth_bytes">
-<code class="sig-name descname">get_depth_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_depth_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_depth_bytes" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_depth_bytes">
+<code class="sig-name descname">get_depth_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_depth_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_depth_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the depth image perceived by the camera.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -407,8 +641,8 @@ otherwise, return points in base frame</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_end_eff_pose">
-<code class="sig-name descname">get_end_eff_pose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_end_eff_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_end_eff_pose" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_end_eff_pose">
+<code class="sig-name descname">get_end_eff_pose</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_end_eff_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_end_eff_pose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the end effector pose w.r.t ‘ARM_BASE_FRAME’
 :return:tuple (trans, rot_mat, quat)</p>
 <blockquote>
@@ -424,8 +658,8 @@ otherwise, return points in base frame</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_gripper_state">
-<code class="sig-name descname">get_gripper_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_gripper_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_gripper_state" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_gripper_state">
+<code class="sig-name descname">get_gripper_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_gripper_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_gripper_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the gripper state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -443,8 +677,14 @@ state = 3: gripper is fully closed</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_intrinsics">
-<code class="sig-name descname">get_intrinsics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_intrinsics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_intrinsics" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_img_resolution">
+<code class="sig-name descname">get_img_resolution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_img_resolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_img_resolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>return height and width</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLocobot.get_intrinsics">
+<code class="sig-name descname">get_intrinsics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_intrinsics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_intrinsics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the intrinsic matrix of the camera.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -457,8 +697,8 @@ state = 3: gripper is fully closed</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_joint_positions">
-<code class="sig-name descname">get_joint_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_joint_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_joint_positions" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_joint_positions">
+<code class="sig-name descname">get_joint_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_joint_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_joint_positions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return arm joint angles order-&gt; base_join index 0, wrist joint index
 -1.</p>
 <dl class="field-list simple">
@@ -472,8 +712,8 @@ state = 3: gripper is fully closed</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_joint_velocities">
-<code class="sig-name descname">get_joint_velocities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_joint_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_joint_velocities" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_joint_velocities">
+<code class="sig-name descname">get_joint_velocities</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_joint_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_joint_velocities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the joint velocity order-&gt; base_join index 0, wrist joint
 index -1.</p>
 <dl class="field-list simple">
@@ -487,22 +727,22 @@ index -1.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_pan">
-<code class="sig-name descname">get_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_pan" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_pan">
+<code class="sig-name descname">get_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the current pan joint angle of the robot camera.</p>
 <p>:return:Pan joint angle in radian
 :rtype: float</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_pcd_data">
-<code class="sig-name descname">get_pcd_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_pcd_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_pcd_data" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_pcd_data">
+<code class="sig-name descname">get_pcd_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_pcd_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_pcd_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets all the data to calculate the point cloud for a given rgb, depth frame.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_rgb">
-<code class="sig-name descname">get_rgb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_rgb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_rgb" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_rgb">
+<code class="sig-name descname">get_rgb</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_rgb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_rgb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the RGB image perceived by the camera.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -515,8 +755,8 @@ index -1.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_rgb_bytes">
-<code class="sig-name descname">get_rgb_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_rgb_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_rgb_bytes" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_rgb_bytes">
+<code class="sig-name descname">get_rgb_bytes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_rgb_bytes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_rgb_bytes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the RGB image perceived by the camera.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -529,16 +769,16 @@ index -1.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_tilt">
-<code class="sig-name descname">get_tilt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_tilt" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_tilt">
+<code class="sig-name descname">get_tilt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_tilt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the current tilt joint angle of the robot camera in radian.</p>
 <p>:return:tilt joint angle
 :rtype: float</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.get_transform">
-<code class="sig-name descname">get_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_frame</span></em>, <em class="sig-param"><span class="n">dst_frame</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.get_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.get_transform" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.get_transform">
+<code class="sig-name descname">get_transform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">src_frame</span></em>, <em class="sig-param"><span class="n">dst_frame</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.get_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.get_transform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the transform from the src_frame to dest_frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -562,8 +802,14 @@ quat: rotational matrix in the form of quaternion (shape: <span class="math notr
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.go_to_absolute">
-<code class="sig-name descname">go_to_absolute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_position</span></em>, <em class="sig-param"><span class="n">use_map</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">close_loop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">smooth</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.go_to_absolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.go_to_absolute" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.go_home">
+<code class="sig-name descname">go_home</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.go_home"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.go_home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the robot base to origin point: x, y, yaw 0, 0, 0.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLocobot.go_to_absolute">
+<code class="sig-name descname">go_to_absolute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_position</span></em>, <em class="sig-param"><span class="n">use_map</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">close_loop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">smooth</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.go_to_absolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.go_to_absolute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Moves the robot base to given goal state in the world frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -583,8 +829,8 @@ leading to the goal is a smooth one.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.go_to_relative">
-<code class="sig-name descname">go_to_relative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_position</span></em>, <em class="sig-param"><span class="n">use_map</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">close_loop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">smooth</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.go_to_relative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.go_to_relative" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.go_to_relative">
+<code class="sig-name descname">go_to_relative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_position</span></em>, <em class="sig-param"><span class="n">use_map</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">close_loop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">smooth</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.go_to_relative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.go_to_relative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Moves the robot base to the given goal state relative to its current
 pose.</p>
 <dl class="field-list simple">
@@ -604,8 +850,8 @@ motion leading to the goal is a smooth one.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.grasp">
-<code class="sig-name descname">grasp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dims</span><span class="o">=</span><span class="default_value">[(240, 480), (100, 540)]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.grasp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.grasp" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.grasp">
+<code class="sig-name descname">grasp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dims</span><span class="o">=</span><span class="default_value">[(240, 480), (100, 540)]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.grasp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.grasp" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>dims</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – List of tuples of min and max indices of the image axis to be considered for grasp search</p>
@@ -617,8 +863,8 @@ motion leading to the goal is a smooth one.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.move_ee_xyz">
-<code class="sig-name descname">move_ee_xyz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">displacement</span></em>, <em class="sig-param"><span class="n">eef_step</span><span class="o">=</span><span class="default_value">0.005</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.move_ee_xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.move_ee_xyz" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.move_ee_xyz">
+<code class="sig-name descname">move_ee_xyz</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">displacement</span></em>, <em class="sig-param"><span class="n">eef_step</span><span class="o">=</span><span class="default_value">0.005</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.move_ee_xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.move_ee_xyz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Keep the current orientation of arm fixed, move the end effector of
 in {xyz} directions.</p>
 <dl class="field-list simple">
@@ -639,14 +885,14 @@ then call <cite>set_joint_positions</cite></p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.open_gripper">
-<code class="sig-name descname">open_gripper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.open_gripper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.open_gripper" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.open_gripper">
+<code class="sig-name descname">open_gripper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.open_gripper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.open_gripper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Commands gripper to open fully.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.pix_to_3dpt">
-<code class="sig-name descname">pix_to_3dpt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rs</span></em>, <em class="sig-param"><span class="n">cs</span></em>, <em class="sig-param"><span class="n">in_cam</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.pix_to_3dpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.pix_to_3dpt" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.pix_to_3dpt">
+<code class="sig-name descname">pix_to_3dpt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rs</span></em>, <em class="sig-param"><span class="n">cs</span></em>, <em class="sig-param"><span class="n">in_cam</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.pix_to_3dpt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.pix_to_3dpt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the 3D points of the pixels in RGB images in metric unit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -676,15 +922,15 @@ otherwise, return points in base frame</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.reset">
-<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.reset" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.reset">
+<code class="sig-name descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function resets the pan and tilt joints of robot camera by
 actuating them to their home configuration [0.0, 0.0].</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.set_ee_pose">
-<code class="sig-name descname">set_ee_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">position</span></em>, <em class="sig-param"><span class="n">orientation</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_ee_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_ee_pose" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.set_ee_pose">
+<code class="sig-name descname">set_ee_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">position</span></em>, <em class="sig-param"><span class="n">orientation</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.set_ee_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.set_ee_pose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Commands robot arm to desired end-effector pose (w.r.t.
 ‘ARM_BASE_FRAME’). Computes IK solution in joint space and calls
 set_joint_positions.</p>
@@ -707,8 +953,8 @@ which is one type of Tait-Bryan angles.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.set_joint_positions">
-<code class="sig-name descname">set_joint_positions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_joint</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_joint_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_joint_positions" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.set_joint_positions">
+<code class="sig-name descname">set_joint_positions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_joint</span></em>, <em class="sig-param"><span class="n">plan</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.set_joint_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.set_joint_positions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the desired joint angles for all arm joints.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -724,8 +970,8 @@ move to its target joint position directly.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.set_joint_velocities">
-<code class="sig-name descname">set_joint_velocities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_vels</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_joint_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_joint_velocities" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.set_joint_velocities">
+<code class="sig-name descname">set_joint_velocities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">target_vels</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.set_joint_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.set_joint_velocities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the desired joint velocities for all arm joints.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -737,8 +983,8 @@ order-&gt; base_join index 0, wrist joint index -1</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.set_pan">
-<code class="sig-name descname">set_pan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pan</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_pan" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.set_pan">
+<code class="sig-name descname">set_pan</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pan</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.set_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.set_pan" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the pan joint angle of robot camera to the specified value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -752,8 +998,8 @@ the target angle.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.set_pan_tilt">
-<code class="sig-name descname">set_pan_tilt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pan</span></em>, <em class="sig-param"><span class="n">tilt</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_pan_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_pan_tilt" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.set_pan_tilt">
+<code class="sig-name descname">set_pan_tilt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pan</span></em>, <em class="sig-param"><span class="n">tilt</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.set_pan_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.set_pan_tilt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets both the pan and tilt joint angles of the robot camera  to the
 specified values.</p>
 <dl class="field-list simple">
@@ -769,8 +1015,8 @@ the target angles.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.set_tilt">
-<code class="sig-name descname">set_tilt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tilt</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.set_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.set_tilt" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.set_tilt">
+<code class="sig-name descname">set_tilt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tilt</span></em>, <em class="sig-param"><span class="n">wait</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.set_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.set_tilt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets the tilt joint angle of robot camera to the specified value.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -784,8 +1030,14 @@ the target angle.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt id="locobot.robot.RemoteLoCoRobot.transform_pose">
-<code class="sig-name descname">transform_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">XYZ</span></em>, <em class="sig-param"><span class="n">current_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLoCoRobot.transform_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLoCoRobot.transform_pose" title="Permalink to this definition">¶</a></dt>
+<dt id="locobot.robot.RemoteLocobot.stop">
+<code class="sig-name descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>stops robot base movement.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.robot.RemoteLocobot.transform_pose">
+<code class="sig-name descname">transform_pose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">XYZ</span></em>, <em class="sig-param"><span class="n">current_pose</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/robot/remote_locobot.html#RemoteLocobot.transform_pose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.robot.RemoteLocobot.transform_pose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transforms the point cloud into geocentric frame to account for
 camera position</p>
 <dl class="field-list simple">
@@ -806,13 +1058,270 @@ camera position</p>
 
 </dd></dl>
 
+<dl class="py class">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.locobot_mover.</code><code class="sig-name descname">LoCoBotMover</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ip</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'locobot'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements methods that call the physical interfaces of the Locobot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ip</strong> (<em>string</em>) – IP of the Locobot.</p></li>
+<li><p><strong>backend</strong> (<em>string</em>) – backend where the Locobot lives, either “habitat” or “locobot”</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.get_base_pos">
+<code class="sig-name descname">get_base_pos</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.get_base_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.get_base_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return Locobot (x, y, yaw) in the robot base coordinates as
+illustrated in the docs:</p>
+<p><a class="reference external" href="https://www.pyrobot.org/docs/navigation">https://www.pyrobot.org/docs/navigation</a></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.get_base_pos_in_canonical_coords">
+<code class="sig-name descname">get_base_pos_in_canonical_coords</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.get_base_pos_in_canonical_coords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.get_base_pos_in_canonical_coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the current Locobot position in the canonical coordinate system
+instead of the Locobot’s global coordinates as stated in the Locobot
+documentation: <a class="reference external" href="https://www.pyrobot.org/docs/navigation">https://www.pyrobot.org/docs/navigation</a>.</p>
+<dl>
+<dt>the standard coordinate systems:</dt><dd><blockquote>
+<div><p>Camera looks at (0, 0, 1),
+its right direction is (1, 0, 0) and
+its up-direction is (0, 1, 0)</p>
+</div></blockquote>
+<p>return:
+(x, z, yaw) of the Locobot base in standard coordinates</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.get_pan">
+<code class="sig-name descname">get_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.get_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.get_pan" title="Permalink to this definition">¶</a></dt>
+<dd><p>get yaw in radians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.get_rgb_depth">
+<code class="sig-name descname">get_rgb_depth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.get_rgb_depth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.get_rgb_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches rgb, depth and pointcloud in pyrobot world coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>an RGBDepth object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.get_tilt">
+<code class="sig-name descname">get_tilt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.get_tilt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.get_tilt" title="Permalink to this definition">¶</a></dt>
+<dd><p>get pitch in radians.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.grab_nearby_object">
+<code class="sig-name descname">grab_nearby_object</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bounding_box</span><span class="o">=</span><span class="default_value">[(240, 480), (100, 540)]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.grab_nearby_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.grab_nearby_object" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>bounding_box</strong> – region in image to search for grasp</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.look_at">
+<code class="sig-name descname">look_at</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj_pos</span></em>, <em class="sig-param"><span class="n">yaw_deg</span></em>, <em class="sig-param"><span class="n">pitch_deg</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.look_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.look_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes “look at” by setting the pan, tilt of the camera or turning the base if required.</p>
+<p>Uses both the base state and object coordinates in canonical world coordinates to calculate
+expected yaw and pitch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj_pos</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a>) – object coordinates as saved in memory.</p></li>
+<li><p><strong>yaw_deg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – yaw in degrees</p></li>
+<li><p><strong>pitch_deg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – pitch in degrees</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>string “finished”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.move_absolute">
+<code class="sig-name descname">move_absolute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_positions</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.move_absolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.move_absolute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command to execute a move to an absolute position.</p>
+<p>It receives positions in canonical world coordinates and converts them to pyrobot’s coordinates
+before calling the bot APIs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xyt_positions</strong> – a list of (x_c,y_c,yaw) positions for the bot to move to.</p></li>
+<li><p><strong>(x_c</strong> – </p></li>
+<li><p><strong>y_c</strong> – </p></li>
+<li><p><strong>are in the canonical world coordinates.</strong> (<em>yaw</em><em>)</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.move_relative">
+<code class="sig-name descname">move_relative</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">xyt_positions</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.move_relative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.move_relative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command to execute a relative move.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xyt_positions</strong> – a list of relative (x,y,yaw) positions for the bot to execute.</p></li>
+<li><p><strong>x</strong> – </p></li>
+<li><p><strong>y</strong> – </p></li>
+<li><p><strong>are in the pyrobot's coordinates.</strong> (<em>yaw</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.reset_camera">
+<code class="sig-name descname">reset_camera</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.reset_camera"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.reset_camera" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset the camera to 0 pan and tilt.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.locobot_mover.LoCoBotMover.turn">
+<code class="sig-name descname">turn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">yaw</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/locobot_mover.html#LoCoBotMover.turn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.locobot_mover.LoCoBotMover.turn" title="Permalink to this definition">¶</a></dt>
+<dd><p>turns the bot by the yaw specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>yaw</strong> – the yaw to execute in degree.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </div></blockquote>
 </div>
 </div>
 <div class="section" id="craftassist">
 <h2>Craftassist<a class="headerlink" href="#craftassist" title="Permalink to this headline">¶</a></h2>
-<p>Details for setting up and running the Cuberite server and Craftassist agent are <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/craftassist/README">here</a></p>
-<p>The craftassist perception modules are mostly heuristic.  A model for semantic segmentation is <a class="reference external" href="https://github.com/fairinternal/minecraft/tree/master/craftassist/agent/voxel_models/detection-transformer/">here</a></p>
+<p>Details for setting up and running the Cuberite server and Craftassist agent are <a class="reference external" href="https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/">here</a></p>
+<div class="section" id="craftassist-perception">
+<h3>Craftassist Perception<a class="headerlink" href="#craftassist-perception" title="Permalink to this headline">¶</a></h3>
+<p>The craftassist perception modules are mostly heuristic.</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="craftassist.agent.low_level_perception.LowLevelMCPerception">
+<em class="property">class </em><code class="sig-prename descclassname">craftassist.agent.low_level_perception.</code><code class="sig-name descname">LowLevelMCPerception</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">perceive_freq</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/craftassist/agent/low_level_perception.html#LowLevelMCPerception"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#craftassist.agent.low_level_perception.LowLevelMCPerception" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perceive the world at a given frequency and update agent
+memory.</p>
+<p>updates positions of other players, mobs, self, and changed blocks,
+takes this information directly from the cuberite server</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent</strong> (<em>LocoMCAgent</em>) – reference to the minecraft Agent</p></li>
+<li><p><strong>perceive_freq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – if not forced, how many Agent steps between perception</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="craftassist.agent.low_level_perception.LowLevelMCPerception.perceive">
+<code class="sig-name descname">perceive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/craftassist/agent/low_level_perception.html#LowLevelMCPerception.perceive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#craftassist.agent.low_level_perception.LowLevelMCPerception.perceive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Every n agent_steps (defined by perceive_freq), update in agent memory
+location/pose of all agents, players, mobs; item stack positions and
+changed blocks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>force</strong> (<em>boolean</em>) – set to True to run all perceptual heuristics right now,
+as opposed to waiting for perceive_freq steps (default: False)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="craftassist.agent.heuristic_perception.PerceptionWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">craftassist.agent.heuristic_perception.</code><code class="sig-name descname">PerceptionWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">perceive_freq</span><span class="o">=</span><span class="default_value">20</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/craftassist/agent/heuristic_perception.html#PerceptionWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#craftassist.agent.heuristic_perception.PerceptionWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perceive the world at a given frequency and update agent
+memory.</p>
+<div class="line-block">
+<div class="line">Runs three basic heuristics.</div>
+<div class="line">The first finds “interesting” visible (e.g. touching air) blocks, and</div>
+<div class="line-block">
+<div class="line">creates InstSegNodes</div>
+</div>
+<div class="line">The second finds “holes”, and creates InstSegNodes</div>
+<div class="line">The third finds connected components of “interesting” blocks and creates</div>
+<div class="line-block">
+<div class="line">BlockObjectNodes.  Note that this only places something in memory if</div>
+<div class="line">the connected component is newly closer than 15 blocks of the agent,</div>
+<div class="line">but was not recently placed (if it were newly visible because of</div>
+<div class="line">a block placement, it would be dealt with via maybe_add_block_to_memory</div>
+<div class="line">in low_level_perception.py)</div>
+</div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent</strong> (<em>LocoMCAgent</em>) – reference to the minecraft Agent</p></li>
+<li><p><strong>perceive_freq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – if not forced, how many Agent steps between perception</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="craftassist.agent.heuristic_perception.PerceptionWrapper.perceive">
+<code class="sig-name descname">perceive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/craftassist/agent/heuristic_perception.html#PerceptionWrapper.perceive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#craftassist.agent.heuristic_perception.PerceptionWrapper.perceive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called by the core event loop for the agent to run all perceptual
+models and save their state to memory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>force</strong> (<em>boolean</em>) – set to True to run all perceptual heuristics right now,
+as opposed to waiting for perceive_freq steps (default: False)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+<p>However, there are voxel models for semantic segmentation, one is <a class="reference external" href="https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/agent/voxel_models/detection-transformer">here</a>.  Its interface is:</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">craftassist.agent.voxel_models.subcomponent_classifier.</code><code class="sig-name descname">SubcomponentClassifierWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">agent</span></em>, <em class="sig-param"><span class="n">model_path</span></em>, <em class="sig-param"><span class="n">perceive_freq</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/craftassist/agent/voxel_models/subcomponent_classifier.html#SubcomponentClassifierWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perceive the world at a given frequency and update agent
+memory.</p>
+<p>creates InstSegNodes and tags them</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>agent</strong> (<em>LocoMCAgent</em>) – reference to the minecraft Agent</p></li>
+<li><p><strong>model_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – path to the segmentation model</p></li>
+<li><p><strong>perceive_freq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – if not forced, how many Agent steps between perception.
+If 0, does not run unless forced</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper.perceive">
+<code class="sig-name descname">perceive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/craftassist/agent/voxel_models/subcomponent_classifier.html#SubcomponentClassifierWrapper.perceive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper.perceive" title="Permalink to this definition">¶</a></dt>
+<dd><p>run the classifiers, put tags in memory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>force</strong> (<em>boolean</em>) – set to True to run all perceptual heuristics right now,
+as opposed to waiting for perceive_freq steps (default: False)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div></blockquote>
+</div>
 </div>
 </div>
 
@@ -821,35 +1330,28 @@ camera position</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-      
-        <a href="tasks.html" class="btn btn-neutral float-left" title="Tasks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="tasks.html" class="btn btn-neutral float-left" title="Tasks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

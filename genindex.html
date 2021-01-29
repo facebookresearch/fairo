@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Index &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -50,7 +52,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="index.html" class="icon icon-home"> droidlet
           
 
           
@@ -104,13 +106,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -153,6 +158,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -164,7 +171,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
         
       </li>
     
@@ -204,10 +211,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory._db_read">_db_read() (base_agent.sql_memory.AgentMemory method)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="memory.html#base_agent.sql_memory.AgentMemory._db_write">_db_write() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -255,11 +258,13 @@
         <li><a href="tasks.html#base_agent.task.Task.check_finished">(base_agent.task.Task method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.clear">clear() (base_agent.dialogue_stack.DialogueStack method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.close_gripper">close_gripper() (locobot.robot.RemoteLoCoRobot method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.close_gripper">close_gripper() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.command_finished">command_finished() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.ConfirmReferenceObject">ConfirmReferenceObject (class in base_agent.dialogue_objects.dialogue_object)</a>
 </li>
@@ -271,19 +276,27 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject">DialogueObject (class in base_agent.dialogue_objects.dialogue_object)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.detect_faces">detect_faces() (locobot.agent.perception.handlers.FaceRecognitionHandler method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.DetectionHandler">DetectionHandler (class in locobot.agent.perception.handlers)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="controller.html#base_agent.dialogue_objects.dialogue_object.DialogueObject">DialogueObject (class in base_agent.dialogue_objects.dialogue_object)</a>
+</li>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack">DialogueStack (class in base_agent.dialogue_stack)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.dip_pix_to_3dpt">dip_pix_to_3dpt() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.dip_pix_to_3dpt">dip_pix_to_3dpt() (locobot.robot.RemoteLocobot method)</a>
 </li>
   </ul></td>
 </tr></table>
 
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler">FaceRecognitionHandler (class in locobot.agent.perception.handlers)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.forget">forget() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
@@ -293,25 +306,39 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_base_state">get_base_state() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_base_pos">get_base_pos() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_camera_state">get_camera_state() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_base_pos_in_canonical_coords">get_base_pos_in_canonical_coords() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_current_pcd">get_current_pcd() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_base_state">get_base_state() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_depth">get_depth() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_camera_state">get_camera_state() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_depth_bytes">get_depth_bytes() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_current_pcd">get_current_pcd() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_end_eff_pose">get_end_eff_pose() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_depth">get_depth() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_gripper_state">get_gripper_state() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_depth_bytes">get_depth_bytes() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_intrinsics">get_intrinsics() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.get_encoded_faces">get_encoded_faces() (locobot.agent.perception.handlers.FaceRecognitionHandler method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_joint_positions">get_joint_positions() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_end_eff_pose">get_end_eff_pose() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_joint_velocities">get_joint_velocities() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.get_facenet_boxes">get_facenet_boxes() (locobot.agent.perception.handlers.FaceRecognitionHandler static method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_gripper_state">get_gripper_state() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.LaserPointerHandler.get_hsv_laser_mask">get_hsv_laser_mask() (locobot.agent.perception.handlers.LaserPointerHandler static method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_img_resolution">get_img_resolution() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_intrinsics">get_intrinsics() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_joint_positions">get_joint_positions() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_joint_velocities">get_joint_velocities() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.LaserPointerHandler.get_laser_point_center">get_laser_point_center() (locobot.agent.perception.handlers.LaserPointerHandler static method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_last_finished_root_task">get_last_finished_root_task() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
@@ -323,35 +350,51 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_pan">get_pan() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_pan">get_pan() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
+
+      <ul>
+        <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_pan">(locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_pcd_data">get_pcd_data() (locobot.robot.RemoteLoCoRobot method)</a>
+      </ul></li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_pcd_data">get_pcd_data() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_recent_entities">get_recent_entities() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_rgb">get_rgb() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_rgb">get_rgb() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_rgb_bytes">get_rgb_bytes() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_rgb_bytes">get_rgb_bytes() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_rgb_depth">get_rgb_depth() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_tags_by_memid">get_tags_by_memid() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_task_by_id">get_task_by_id() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_tilt">get_tilt() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_tilt">get_tilt() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
+
+      <ul>
+        <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_tilt">(locobot.robot.RemoteLocobot method)</a>
 </li>
+      </ul></li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_time">get_time() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.get_transform">get_transform() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_transform">get_transform() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_triples">get_triples() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.get_union">get_union() (locobot.agent.perception.handlers.FaceRecognitionHandler method)</a>
+</li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_world_time">get_world_time() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.go_to_absolute">go_to_absolute() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.go_home">go_home() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.go_to_relative">go_to_relative() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.go_to_absolute">go_to_absolute() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.grasp">grasp() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.go_to_relative">go_to_relative() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.grab_nearby_object">grab_nearby_object() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.grasp">grasp() (locobot.robot.RemoteLocobot method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -359,7 +402,27 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.DetectionHandler.handle">handle() (locobot.agent.perception.handlers.DetectionHandler method)</a>
+
+      <ul>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.handle">(locobot.agent.perception.handlers.FaceRecognitionHandler method)</a>
+</li>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.HumanPoseHandler.handle">(locobot.agent.perception.handlers.HumanPoseHandler method)</a>
+</li>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.InputHandler.handle">(locobot.agent.perception.handlers.InputHandler method)</a>
+</li>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.LaserPointerHandler.handle">(locobot.agent.perception.handlers.LaserPointerHandler method)</a>
+</li>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.MemoryHandler.handle">(locobot.agent.perception.handlers.MemoryHandler method)</a>
+</li>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.TrackingHandler.handle">(locobot.agent.perception.handlers.TrackingHandler method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager.handle_logical_form">handle_logical_form() (base_agent.nsp_dialogue_manager.NSPDialogueManager method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.HumanPoseHandler">HumanPoseHandler (class in locobot.agent.perception.handlers)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -367,11 +430,15 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.InputHandler">InputHandler (class in locobot.agent.perception.handlers)</a>
+</li>
       <li><a href="controller.html#base_agent.dialogue_objects.interpreter.Interpreter">Interpreter (class in base_agent.dialogue_objects.interpreter)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="tasks.html#base_agent.task.Task.interrupt">interrupt() (base_agent.task.Task method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.MemoryHandler.is_novel">is_novel() (locobot.agent.perception.handlers.MemoryHandler method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -379,11 +446,19 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.LaserPointerHandler">LaserPointerHandler (class in locobot.agent.perception.handlers)</a>
+</li>
       <li><a href="memory.html#base_agent.memory_nodes.LocationNode">LocationNode (class in base_agent.memory_nodes)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover">LoCoBotMover (class in locobot.agent.locobot_mover)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="droidlet_agents.html#locobot.agent.perception.Perception.log">log() (locobot.agent.perception.Perception method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.look_at">look_at() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
+</li>
+      <li><a href="droidlet_agents.html#craftassist.agent.low_level_perception.LowLevelMCPerception">LowLevelMCPerception (class in craftassist.agent.low_level_perception)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -393,11 +468,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager.maybe_get_dialogue_obj">maybe_get_dialogue_obj() (base_agent.nsp_dialogue_manager.NSPDialogueManager method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.MemoryHandler">MemoryHandler (class in locobot.agent.perception.handlers)</a>
+</li>
       <li><a href="memory.html#base_agent.memory_nodes.MemoryNode">MemoryNode (class in base_agent.memory_nodes)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.move_ee_xyz">move_ee_xyz() (locobot.robot.RemoteLoCoRobot method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.move_absolute">move_absolute() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.move_ee_xyz">move_ee_xyz() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.move_relative">move_relative() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -417,7 +498,11 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.open_gripper">open_gripper() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.open_gripper">open_gripper() (locobot.robot.RemoteLocobot method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.overlap">overlap() (locobot.agent.perception.handlers.FaceRecognitionHandler static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -429,9 +514,15 @@
 </li>
       <li><a href="controller.html#base_agent.dialogue_stack.DialogueStack.peek">peek() (base_agent.dialogue_stack.DialogueStack method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.agent.perception.Perception.perceive">perceive() (locobot.agent.perception.Perception method)</a>
+      <li><a href="droidlet_agents.html#craftassist.agent.heuristic_perception.PerceptionWrapper.perceive">perceive() (craftassist.agent.heuristic_perception.PerceptionWrapper method)</a>
 
       <ul>
+        <li><a href="droidlet_agents.html#craftassist.agent.low_level_perception.LowLevelMCPerception.perceive">(craftassist.agent.low_level_perception.LowLevelMCPerception method)</a>
+</li>
+        <li><a href="droidlet_agents.html#craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper.perceive">(craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper method)</a>
+</li>
+        <li><a href="droidlet_agents.html#locobot.agent.perception.Perception.perceive">(locobot.agent.perception.Perception method)</a>
+</li>
         <li><a href="droidlet_agents.html#locobot.agent.perception.SlowPerception.perceive">(locobot.agent.perception.SlowPerception method)</a>
 </li>
       </ul></li>
@@ -439,7 +530,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="droidlet_agents.html#locobot.agent.perception.Perception">Perception (class in locobot.agent.perception)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.pix_to_3dpt">pix_to_3dpt() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#craftassist.agent.heuristic_perception.PerceptionWrapper">PerceptionWrapper (class in craftassist.agent.heuristic_perception)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.pix_to_3dpt">pix_to_3dpt() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="memory.html#base_agent.memory_nodes.PlayerNode">PlayerNode (class in base_agent.memory_nodes)</a>
 </li>
@@ -453,13 +546,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.memory_nodes.ReferenceObjectNode">ReferenceObjectNode (class in base_agent.memory_nodes)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot">RemoteLoCoRobot (class in locobot.robot)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot">RemoteLocobot (class in locobot.robot)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="memory.html#base_agent.sql_memory.AgentMemory.remove_memid_triple">remove_memid_triple() (base_agent.sql_memory.AgentMemory method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.reset">reset() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.reset">reset() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.reset_camera">reset_camera() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -471,20 +564,20 @@
 </li>
       <li><a href="memory.html#base_agent.memory_nodes.SelfNode">SelfNode (class in base_agent.memory_nodes)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_ee_pose">set_ee_pose() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.set_ee_pose">set_ee_pose() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_joint_positions">set_joint_positions() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.set_joint_positions">set_joint_positions() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_joint_velocities">set_joint_velocities() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.set_joint_velocities">set_joint_velocities() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_pan">set_pan() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.set_pan">set_pan() (locobot.robot.RemoteLocobot method)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_pan_tilt">set_pan_tilt() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.set_pan_tilt">set_pan_tilt() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.set_tilt">set_tilt() (locobot.robot.RemoteLocobot method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.set_tilt">set_tilt() (locobot.robot.RemoteLoCoRobot method)</a>
-</li>
       <li><a href="droidlet_agents.html#locobot.agent.perception.Perception.setup_vision_handlers">setup_vision_handlers() (locobot.agent.perception.Perception method)</a>
 
       <ul>
@@ -501,6 +594,10 @@
         <li><a href="tasks.html#base_agent.task.Task.step">(base_agent.task.Task method)</a>
 </li>
       </ul></li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.stop">stop() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper">SubcomponentClassifierWrapper (class in craftassist.agent.voxel_models.subcomponent_classifier)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -521,10 +618,10 @@
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.task_stack_peek">task_stack_peek() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.task_stack_pop">task_stack_pop() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.task_stack_push">task_stack_push() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.task_stack_resume">task_stack_resume() (base_agent.sql_memory.AgentMemory method)</a>
@@ -535,9 +632,13 @@
 </li>
       <li><a href="memory.html#base_agent.memory_nodes.TimeNode">TimeNode (class in base_agent.memory_nodes)</a>
 </li>
-      <li><a href="droidlet_agents.html#locobot.robot.RemoteLoCoRobot.transform_pose">transform_pose() (locobot.robot.RemoteLoCoRobot method)</a>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.TrackingHandler">TrackingHandler (class in locobot.agent.perception.handlers)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.transform_pose">transform_pose() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="controller.html#base_agent.ttad.ttad_transformer_model.query_model.TTADBertModel">TTADBertModel (class in base_agent.ttad.ttad_transformer_model.query_model)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.turn">turn() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -556,28 +657,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>locobot.agent.locobot_mover &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>locobot.agent.locobot_mover</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for locobot.agent.locobot_mover</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">Pyro4</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cv2</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">perception</span> <span class="kn">import</span> <span class="n">RGBDepth</span>
+<span class="kn">from</span> <span class="nn">objects</span> <span class="kn">import</span> <span class="n">Marker</span><span class="p">,</span> <span class="n">Pos</span>
+<span class="kn">from</span> <span class="nn">locobot_mover_utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_camera_angles</span><span class="p">,</span>
+    <span class="n">angle_diff</span><span class="p">,</span>
+    <span class="n">MAX_PAN_RAD</span><span class="p">,</span>
+    <span class="n">CAMERA_HEIGHT</span><span class="p">,</span>
+    <span class="n">ARM_HEIGHT</span><span class="p">,</span>
+    <span class="n">transform_pose</span><span class="p">,</span>
+    <span class="n">base_canonical_coords_to_pyrobot_coords</span><span class="p">,</span>
+    <span class="n">xyz_pyrobot_to_canonical_coords</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">Pyro4</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">SERIALIZER</span> <span class="o">=</span> <span class="s2">&quot;pickle&quot;</span>
+<span class="n">Pyro4</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">SERIALIZERS_ACCEPTED</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;pickle&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="LoCoBotMover"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover">[docs]</a><span class="k">class</span> <span class="nc">LoCoBotMover</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Implements methods that call the physical interfaces of the Locobot.</span>
+
+<span class="sd">    Arguments:</span>
+<span class="sd">        ip (string): IP of the Locobot.</span>
+<span class="sd">        backend (string): backend where the Locobot lives, either &quot;habitat&quot; or &quot;locobot&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ip</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;locobot&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span> <span class="o">=</span> <span class="n">Pyro4</span><span class="o">.</span><span class="n">Proxy</span><span class="p">(</span><span class="s2">&quot;PYRONAME:remotelocobot@&quot;</span> <span class="o">+</span> <span class="n">ip</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_loop</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;habitat&quot;</span> <span class="k">else</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">curr_look_dir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># initial look dir is along the z-axis</span>
+
+        <span class="n">intrinsic_mat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_intrinsics</span><span class="p">()</span>
+        <span class="n">intrinsic_mat_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">intrinsic_mat</span><span class="p">)</span>
+        <span class="n">img_resolution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_img_resolution</span><span class="p">()</span>
+        <span class="n">img_pixs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="n">img_resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span> <span class="p">:</span> <span class="n">img_resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">:</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">img_pixs</span> <span class="o">=</span> <span class="n">img_pixs</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">img_pixs</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">img_pixs</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">:]</span>
+        <span class="n">uv_one</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">img_pixs</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">img_pixs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uv_one_in_cam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">intrinsic_mat_inv</span><span class="p">,</span> <span class="n">uv_one</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
+
+    <span class="c1"># TODO/FIXME!  instead of just True/False, return diagnostic messages</span>
+    <span class="c1"># so e.g. if a grip attempt fails, the task is finished, but the status is a failure</span>
+    <span class="k">def</span> <span class="nf">bot_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">command_finished</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="c1"># do better here?</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">f</span>
+
+<div class="viewcode-block" id="LoCoBotMover.get_pan"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_pan">[docs]</a>    <span class="k">def</span> <span class="nf">get_pan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get yaw in radians.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_pan</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.get_tilt"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_tilt">[docs]</a>    <span class="k">def</span> <span class="nf">get_tilt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get pitch in radians.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_tilt</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.reset_camera"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.reset_camera">[docs]</a>    <span class="k">def</span> <span class="nf">reset_camera</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;reset the camera to 0 pan and tilt.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.move_relative"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.move_relative">[docs]</a>    <span class="k">def</span> <span class="nf">move_relative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyt_positions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Command to execute a relative move.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.</span>
+<span class="sd">            x,y,yaw are in the pyrobot&#39;s coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">xyt</span> <span class="ow">in</span> <span class="n">xyt_positions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">go_to_relative</span><span class="p">(</span><span class="n">xyt</span><span class="p">,</span> <span class="n">close_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_loop</span><span class="p">)</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">command_finished</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_base_state</span><span class="p">(</span><span class="s2">&quot;odom&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.move_absolute"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.move_absolute">[docs]</a>    <span class="k">def</span> <span class="nf">move_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xyt_positions</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Command to execute a move to an absolute position.</span>
+
+<span class="sd">        It receives positions in canonical world coordinates and converts them to pyrobot&#39;s coordinates</span>
+<span class="sd">        before calling the bot APIs.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.</span>
+<span class="sd">            (x_c,y_c,yaw) are in the canonical world coordinates.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">xyt</span> <span class="ow">in</span> <span class="n">xyt_positions</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Move absolute </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xyt</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">go_to_absolute</span><span class="p">(</span>
+                <span class="n">base_canonical_coords_to_pyrobot_coords</span><span class="p">(</span><span class="n">xyt</span><span class="p">),</span> <span class="n">close_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_loop</span>
+            <span class="p">)</span>
+            <span class="n">start_base_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_base_pos</span><span class="p">()</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">command_finished</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_base_pos</span><span class="p">())</span>
+
+            <span class="n">end_base_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_base_pos</span><span class="p">()</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;start </span><span class="si">{}</span><span class="s2">, end </span><span class="si">{}</span><span class="s2">, diff </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">start_base_state</span><span class="p">,</span>
+                    <span class="n">end_base_state</span><span class="p">,</span>
+                    <span class="p">[</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">start_base_state</span><span class="p">,</span> <span class="n">end_base_state</span><span class="p">)],</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;finished&quot;</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.look_at"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.look_at">[docs]</a>    <span class="k">def</span> <span class="nf">look_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj_pos</span><span class="p">,</span> <span class="n">yaw_deg</span><span class="p">,</span> <span class="n">pitch_deg</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Executes &quot;look at&quot; by setting the pan, tilt of the camera or turning the base if required.</span>
+
+<span class="sd">        Uses both the base state and object coordinates in canonical world coordinates to calculate</span>
+<span class="sd">        expected yaw and pitch.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            obj_pos (list): object coordinates as saved in memory.</span>
+<span class="sd">            yaw_deg (float): yaw in degrees</span>
+<span class="sd">            pitch_deg (float): pitch in degrees</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            string &quot;finished&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pan_rad</span><span class="p">,</span> <span class="n">tilt_rad</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+        <span class="n">old_pan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_pan</span><span class="p">()</span>
+        <span class="n">old_tilt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_tilt</span><span class="p">()</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_base_pos_in_canonical_coords</span><span class="p">()</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current Locobot state (x, z, yaw): </span><span class="si">{</span><span class="n">pos</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">yaw_deg</span><span class="p">:</span>
+            <span class="n">pan_rad</span> <span class="o">=</span> <span class="n">old_pan</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">yaw_deg</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+        <span class="k">if</span> <span class="n">pitch_deg</span><span class="p">:</span>
+            <span class="n">tilt_rad</span> <span class="o">=</span> <span class="n">old_tilt</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">pitch_deg</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+        <span class="k">if</span> <span class="n">obj_pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;looking at x,y,z: </span><span class="si">{</span><span class="n">obj_pos</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">pan_rad</span><span class="p">,</span> <span class="n">tilt_rad</span> <span class="o">=</span> <span class="n">get_camera_angles</span><span class="p">([</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">CAMERA_HEIGHT</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="n">obj_pos</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Returned new pan and tilt angles (radians): (</span><span class="si">{</span><span class="n">pan_rad</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">tilt_rad</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># FIXME!!! more async; move head and body at the same time</span>
+        <span class="n">head_res</span> <span class="o">=</span> <span class="n">angle_diff</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">pan_rad</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">head_res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">MAX_PAN_RAD</span><span class="p">:</span>
+            <span class="n">dyaw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">head_res</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">head_res</span><span class="p">)</span> <span class="o">-</span> <span class="n">MAX_PAN_RAD</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">turn</span><span class="p">(</span><span class="n">dyaw</span><span class="p">)</span>
+            <span class="n">pan_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">head_res</span><span class="p">)</span> <span class="o">*</span> <span class="n">MAX_PAN_RAD</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pan_rad</span> <span class="o">=</span> <span class="n">head_res</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Camera new pan and tilt angles (radians): (</span><span class="si">{</span><span class="n">pan_rad</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">tilt_rad</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">set_pan_tilt</span><span class="p">(</span><span class="n">pan_rad</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">tilt_rad</span><span class="p">,</span> <span class="n">tilt_rad</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;locobot pan and tilt now: (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_camera_state</span><span class="p">()</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s2">&quot;finished&quot;</span></div>
+
+    <span class="k">def</span> <span class="nf">point_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_pos</span><span class="p">):</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_base_pos</span><span class="p">()</span>
+        <span class="n">yaw_rad</span><span class="p">,</span> <span class="n">pitch_rad</span> <span class="o">=</span> <span class="n">get_camera_angles</span><span class="p">([</span><span class="n">pos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ARM_HEIGHT</span><span class="p">,</span> <span class="n">pos</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">target_pos</span><span class="p">)</span>
+        <span class="n">states</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">yaw_rad</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">pitch_rad</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">yaw_rad</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">pitch_rad</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+            <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>  <span class="c1"># reset joint position</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">states</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">set_joint_positions</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">plan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">command_finished</span><span class="p">():</span>
+                <span class="k">pass</span>
+
+<div class="viewcode-block" id="LoCoBotMover.get_base_pos_in_canonical_coords"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_base_pos_in_canonical_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_base_pos_in_canonical_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;get the current Locobot position in the canonical coordinate system</span>
+<span class="sd">        instead of the Locobot&#39;s global coordinates as stated in the Locobot</span>
+<span class="sd">        documentation: https://www.pyrobot.org/docs/navigation.</span>
+
+<span class="sd">        the standard coordinate systems:</span>
+<span class="sd">          Camera looks at (0, 0, 1),</span>
+<span class="sd">          its right direction is (1, 0, 0) and</span>
+<span class="sd">          its up-direction is (0, 1, 0)</span>
+
+<span class="sd">         return:</span>
+<span class="sd">         (x, z, yaw) of the Locobot base in standard coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">x_global</span><span class="p">,</span> <span class="n">y_global</span><span class="p">,</span> <span class="n">yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_base_state</span><span class="p">(</span><span class="s2">&quot;odom&quot;</span><span class="p">)</span>
+        <span class="n">x_standard</span> <span class="o">=</span> <span class="o">-</span><span class="n">y_global</span>
+        <span class="n">z_standard</span> <span class="o">=</span> <span class="n">x_global</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x_standard</span><span class="p">,</span> <span class="n">z_standard</span><span class="p">,</span> <span class="n">yaw</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.get_base_pos"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_base_pos">[docs]</a>    <span class="k">def</span> <span class="nf">get_base_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return Locobot (x, y, yaw) in the robot base coordinates as</span>
+<span class="sd">        illustrated in the docs:</span>
+
+<span class="sd">        https://www.pyrobot.org/docs/navigation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_base_state</span><span class="p">(</span><span class="s2">&quot;odom&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.get_rgb_depth"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.get_rgb_depth">[docs]</a>    <span class="k">def</span> <span class="nf">get_rgb_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fetches rgb, depth and pointcloud in pyrobot world coordinates.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            an RGBDepth object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rgb</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">trans</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_pcd_data</span><span class="p">()</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">depth</span><span class="p">)</span>
+        <span class="n">depth</span> <span class="o">/=</span> <span class="mf">1000.0</span>
+        <span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pts_in_cam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uv_one_in_cam</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="n">pts_in_cam</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">pts_in_cam</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">pts_in_cam</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">pts_in_cam</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">rot</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">pts</span> <span class="o">+</span> <span class="n">trans</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;habitat&quot;</span><span class="p">:</span>
+            <span class="n">ros_to_habitat_frame</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]])</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">ros_to_habitat_frame</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">pts</span><span class="o">.</span><span class="n">T</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">pts</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">transform_pose</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_base_state</span><span class="p">(</span><span class="s2">&quot;odom&quot;</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetched all camera sensor input.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">RGBDepth</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">pts</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">dance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">dance</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LoCoBotMover.turn"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.turn">[docs]</a>    <span class="k">def</span> <span class="nf">turn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">yaw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;turns the bot by the yaw specified.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            yaw: the yaw to execute in degree.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">turn_rad</span> <span class="o">=</span> <span class="n">yaw</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">go_to_relative</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">turn_rad</span><span class="p">],</span> <span class="n">close_loop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">close_loop</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LoCoBotMover.grab_nearby_object"><a class="viewcode-back" href="../../../droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.grab_nearby_object">[docs]</a>    <span class="k">def</span> <span class="nf">grab_nearby_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bounding_box</span><span class="o">=</span><span class="p">[(</span><span class="mi">240</span><span class="p">,</span> <span class="mi">480</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">540</span><span class="p">)]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param bounding_box: region in image to search for grasp</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">grasp</span><span class="p">(</span><span class="n">bounding_box</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">is_object_in_gripper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">get_gripper_state</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">explore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">explore</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">drop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">bot</span><span class="o">.</span><span class="n">open_gripper</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

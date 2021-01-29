@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Controller &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
@@ -52,7 +54,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="index.html" class="icon icon-home"> droidlet
           
 
           
@@ -106,13 +108,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -155,6 +160,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -166,7 +173,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/controller.md.txt" rel="nofollow"> View page source</a>
           
         
@@ -184,7 +191,7 @@
 <span id="controller-label"></span><h1>Controller<a class="headerlink" href="#controller" title="Permalink to this headline">¶</a></h1>
 <p>In the “abstract” droidlet agent, the controller chooses whether to put Tasks on the Task Stack based on the memory state.   In the locobot agent and the craftassist agent subclasses, it consists of</p>
 <ul class="simple">
-<li><p>a <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/documents/Action_Dictionary_Spec">DSL</a></p></li>
+<li><p>a <a class="reference external" href="https://github.com/fairinternal/minecraft/blob/master/base_agent/documents/Action_Dictionary_Spec.md">DSL</a></p></li>
 <li><p>a neural semantic parser, which translates natural language into partially specified programs over the DSL</p></li>
 <li><p>a Dialogue Manager, Dialogue Stack, and Dialogue objects.</p></li>
 <li><p>the Intepreter, a special Dialogue Object that takes partially specified programs from the DSL and fully specifies them using the Memory</p></li>
@@ -256,7 +263,6 @@ corresponding class names. Example dialogue objects:
 ‘get_memory’: GetMemoryHandler,
 ‘put_memory’: …
 }</p></li>
-<li><p><strong>~NSPDialogueManager.botCapabilityQuery</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of commands that trigger scripted responses.</p></li>
 <li><p><strong>~NSPDialogueManager.safety_words</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>]</em>) – Set of blacklisted words or phrases. Commands
 containing these are automatically filtered out.</p></li>
 <li><p><strong>~NSPDialogueManager.botGreetings</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – Different types of greetings that trigger
@@ -605,37 +611,29 @@ reference object is correct.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="memory.html" class="btn btn-neutral float-right" title="Memory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="index.html" class="btn btn-neutral float-left" title="droidlet" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="memory.html" class="btn btn-neutral float-right" title="Memory" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="droidlet" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

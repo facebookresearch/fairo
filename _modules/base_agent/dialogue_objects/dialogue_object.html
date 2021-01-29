@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>base_agent.dialogue_objects.dialogue_object &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="../../../_static/jquery.js"></script>
         <script src="../../../_static/underscore.js"></script>
         <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
@@ -50,7 +52,7 @@
           
 
           
-            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="../../../index.html" class="icon icon-home"> droidlet
           
 
           
@@ -104,13 +106,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -138,6 +143,8 @@
         <div class="rst-content">
         
           
+
+
 
 
 
@@ -328,10 +335,10 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">response_options</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s1">&#39;Try looking at something and tell me &quot;go there&quot;&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;Try looking at a structure and tell me &quot;destroy that&quot;&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;Try looking somewhere and tell me &quot;build a wall there&quot;&#39;</span><span class="p">,</span>
-            <span class="s2">&quot;Try building something and giving it a name&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Try naming something and telling me to build it&quot;</span><span class="p">,</span>
+            <span class="s1">&#39;Try asking to get something for you&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Try asking me to dance&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Try asking me to point at something&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Try asking me to drop whatever is in my hand&#39;</span>
         <span class="p">]</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">response_options</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -574,28 +581,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

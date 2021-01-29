@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>locobot.agent.perception.handlers.memory &mdash; droidlet master documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../../" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../../index.html" class="icon icon-home"> droidlet
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                master
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../controller.html">Controller</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../controller.html#dialogue-stack-and-manager">Dialogue Stack and Manager</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../controller.html#semantic-parser">Semantic Parser</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../controller.html#dialogue-objects">Dialogue Objects</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../controller.html#interpreter">Interpreter</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../memory.html">Memory</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../memory.html#database">Database</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../memory.html#memorynodes">MemoryNodes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../perception.html">Perception</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tasks.html">Tasks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../droidlet_agents.html">Agents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot">Locobot</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">droidlet</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>locobot.agent.perception.handlers.memory</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for locobot.agent.perception.handlers.memory</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright (c) Facebook, Inc. and its affiliates.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">AbstractHandler</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">torchvision.models</span> <span class="k">as</span> <span class="nn">models</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">loco_memory</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">torchvision</span> <span class="kn">import</span> <span class="n">transforms</span>
+<span class="kn">from</span> <span class="nn">dlevent</span> <span class="kn">import</span> <span class="n">sio</span>
+
+
+<div class="viewcode-block" id="MemoryHandler"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.MemoryHandler">[docs]</a><span class="k">class</span> <span class="nc">MemoryHandler</span><span class="p">(</span><span class="n">AbstractHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for saving the state of the world parsed by all perceptual models</span>
+<span class="sd">    to memory.</span>
+
+<span class="sd">    The MemoryHandler also performs object reidentification and is responsible for maintaining</span>
+<span class="sd">    a consistent state of the world using the output of all other perception handlers.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        agent (LocoMCAgent): reference to the agent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_id_counter</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dedupe_model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dedupe_model</span><span class="o">.</span><span class="n">_modules</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;avgpool&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dedupe_model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_event_handlers</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">init_event_handlers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nd">@sio</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="s2">&quot;get_memory_objects&quot;</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">objects_in_memory</span><span class="p">(</span><span class="n">sid</span><span class="p">):</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="n">loco_memory</span><span class="o">.</span><span class="n">DetectedObjectNode</span><span class="o">.</span><span class="n">get_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">o</span><span class="p">[</span><span class="s2">&quot;feature_repr&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">dashboard_memory</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">objects</span>
+            <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;updateState&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">dashboard_memory</span><span class="p">})</span>
+
+    <span class="k">def</span> <span class="nf">get_feature_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">):</span>
+        <span class="n">normalize</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="p">[</span><span class="mf">0.485</span><span class="p">,</span> <span class="mf">0.456</span><span class="p">,</span> <span class="mf">0.406</span><span class="p">],</span> <span class="n">std</span><span class="o">=</span><span class="p">[</span><span class="mf">0.229</span><span class="p">,</span> <span class="mf">0.224</span><span class="p">,</span> <span class="mf">0.225</span><span class="p">])</span>
+        <span class="n">to_tensor</span> <span class="o">=</span> <span class="n">transforms</span><span class="o">.</span><span class="n">ToTensor</span><span class="p">()</span>
+        <span class="n">t_img</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">to_tensor</span><span class="p">(</span><span class="n">img</span><span class="p">))</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+        <span class="n">my_embedding</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">512</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">copy_data</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span><span class="p">):</span>
+            <span class="n">my_embedding</span><span class="o">.</span><span class="n">copy_</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">o</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="n">copy_data</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dedupe_model</span><span class="p">(</span><span class="n">t_img</span><span class="p">)</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">my_embedding</span>
+
+    <span class="c1"># Not accounting for moving objects</span>
+    <span class="k">def</span> <span class="nf">is_match</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">dist</span><span class="p">):</span>
+        <span class="n">score_thresh</span> <span class="o">=</span> <span class="mf">0.95</span>
+        <span class="n">dist_thresh</span> <span class="o">=</span> <span class="mf">0.6</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">score_thresh</span> <span class="ow">and</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="n">dist_thresh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Similar object, different places.</span>
+        <span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">score_thresh</span> <span class="ow">and</span> <span class="n">dist</span> <span class="o">&lt;</span> <span class="n">dist_thresh</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># same object, same place</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="MemoryHandler.is_novel"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.MemoryHandler.is_novel">[docs]</a>    <span class="k">def</span> <span class="nf">is_novel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb</span><span class="p">,</span> <span class="n">world_obj</span><span class="p">,</span> <span class="n">dedupe</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;this is long-term tracking (not in-frame). it does some feature</span>
+<span class="sd">        matching to figure out if we&#39;ve seen this exact instance of object</span>
+<span class="sd">        before.</span>
+
+<span class="sd">        It uses the cosine similarity of conv features and (separately),</span>
+<span class="sd">        distance between two objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Treat all objects as novel if dedupe is turned off.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dedupe</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">world_obj</span><span class="o">.</span><span class="n">feature_repr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_feature_repr</span><span class="p">(</span><span class="n">world_obj</span><span class="o">.</span><span class="n">get_masked_img</span><span class="p">())</span>
+        <span class="n">cos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CosineSimilarity</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">is_novel</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="n">loco_memory</span><span class="o">.</span><span class="n">DetectedObjectNode</span><span class="o">.</span><span class="n">get_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">memory</span><span class="p">)</span>
+        <span class="c1"># Future = use all object features to calculate novelty</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+            <span class="n">score</span> <span class="o">=</span> <span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;feature_repr&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">world_obj</span><span class="o">.</span><span class="n">feature_repr</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">world_obj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;xyz&quot;</span><span class="p">][:</span><span class="mi">2</span><span class="p">]))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s2">&quot;Similarity </span><span class="si">{}</span><span class="s2">.</span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">world_obj</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">],</span> <span class="n">score</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">dist</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="c1"># FIXME pick best match?</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_match</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">dist</span><span class="p">):</span>
+                <span class="n">is_novel</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">world_obj</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;eid&quot;</span><span class="p">]</span>
+            <span class="c1"># delete so that we can emit it (i.e. x becomes serializable as-is)</span>
+            <span class="k">del</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;feature_repr&quot;</span><span class="p">]</span>
+        <span class="c1"># todo: only emit new or updated objects, rather than emitting everything everything</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">dashboard_memory</span><span class="p">[</span><span class="s2">&quot;objects&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">objects</span>
+        <span class="n">sio</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="s2">&quot;updateState&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">dashboard_memory</span><span class="p">})</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;world object </span><span class="si">{}</span><span class="s2">, is_novel </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">world_obj</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">is_novel</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">is_novel</span></div>
+
+<div class="viewcode-block" id="MemoryHandler.handle"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.MemoryHandler.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb</span><span class="p">,</span> <span class="n">objects</span><span class="p">,</span> <span class="n">dedupe</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;run the memory handler for the current rgb, objects detected.</span>
+
+<span class="sd">        This is also where each WorldObject is assigned a unique entity id (eid).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            rgb (np.array): current RGB image for which the handlers are being run</span>
+<span class="sd">            objects (list[WorldObject]): a list of all WorldObjects detected</span>
+<span class="sd">            dedupe (boolean): boolean to indicate whether to deduplicate objects or not. If False, all objects</span>
+<span class="sd">            are considered to be new/novel objects that the agent hasn&#39;t seen before. If True, the handler tries to</span>
+<span class="sd">            identify whether it has seen a WorldObject before and updates it if it has.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;In MemoryHandler ... &quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">objects</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_novel</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">dedupe</span><span class="p">):</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">eid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_id_counter</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">object_id_counter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_id_counter</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">save_to_memory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Instance#</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">label</span><span class="si">}</span><span class="s2">) is at location: (</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">around</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">xyz</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">), Center:(</span><span class="si">{</span><span class="n">x</span><span class="o">.</span><span class="n">center</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">save_to_memory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Current Locobot pos (x_standard, z_standard, yaw) is: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">agent</span><span class="o">.</span><span class="n">mover</span><span class="o">.</span><span class="n">get_base_pos_in_canonical_coords</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2020, Facebook AI.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

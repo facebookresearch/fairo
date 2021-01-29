@@ -3,9 +3,9 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>locobot.agent.perception.perception &mdash; droidlet master documentation</title>
   
@@ -16,7 +16,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -29,7 +32,6 @@
         <script src="../../../../_static/jquery.js"></script>
         <script src="../../../../_static/underscore.js"></script>
         <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/language_data.js"></script>
         <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
@@ -50,7 +52,7 @@
           
 
           
-            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> droidlet
+            <a href="../../../../index.html" class="icon icon-home"> droidlet
           
 
           
@@ -104,13 +106,16 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../perception.html">Perception</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tasks.html">Tasks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../droidlet_agents.html">batteries included droidlet agents</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#locobot">Locobot</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist">Craftassist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist">Craftassist</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../../droidlet_agents.html#craftassist-perception">Craftassist Perception</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -138,6 +143,8 @@
         <div class="rst-content">
         
           
+
+
 
 
 
@@ -191,7 +198,7 @@
 <span class="p">)</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">objects</span> <span class="kn">import</span> <span class="n">AttributeDict</span>
-<span class="kn">from</span> <span class="nn">mcevent</span> <span class="kn">import</span> <span class="n">sio</span>
+<span class="kn">from</span> <span class="nn">dlevent</span> <span class="kn">import</span> <span class="n">sio</span>
 
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">multiprocessing</span> <span class="k">as</span> <span class="n">mp</span>
 
@@ -348,9 +355,9 @@
 <span class="sd">        SlowPerception if they are ready.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute </span>
-<span class="sd">            all perceptual models to execute sequentially (doing that is a good debugging tool) </span>
-<span class="sd">            (default: False)</span>
+<span class="sd">            force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute</span>
+<span class="sd">                all perceptual models to execute sequentially (doing that is a good debugging tool)</span>
+<span class="sd">                (default: False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">rgb_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vision</span><span class="o">.</span><span class="n">input</span><span class="p">()</span>
 
@@ -375,7 +382,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_image</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Perception.log"><a class="viewcode-back" href="../../../../droidlet_agents.html#locobot.agent.perception.Perception.log">[docs]</a>    <span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">,</span> <span class="n">detections</span><span class="p">,</span> <span class="n">humans</span><span class="p">,</span> <span class="n">old_rgb_depth</span><span class="p">,</span> <span class="n">old_xyz</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Log all relevant data from the perceptual models for the dashboard. </span>
+        <span class="sd">&quot;&quot;&quot;Log all relevant data from the perceptual models for the dashboard.</span>
 
 <span class="sd">        All the data here is sent to the dashboard using a socketio emit event. This data</span>
 <span class="sd">        is then used by the dashboard for different debugging visualizations. Add any data</span>
@@ -419,28 +426,25 @@
            
           </div>
           <footer>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright 2020, Facebook AI
+        &#169; Copyright 2020, Facebook AI.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
