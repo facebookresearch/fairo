@@ -17,6 +17,7 @@ class FiltersAnnotator extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     // this.keyPress = this.keyPress.bind(this);
     this.logSerialized = this.logSerialized.bind(this);
+    this.uploadData = this.uploadData.bind(this);
     this.incrementIndex = this.incrementIndex.bind(this);
     this.decrementIndex = this.decrementIndex.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
@@ -127,6 +128,29 @@ class FiltersAnnotator extends React.Component {
     this.updateLabels()
   }
 
+  uploadData() {
+    console.log("Uploading Data to S3")
+    // First postprocess
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    };
+    fetch("http://localhost:9000/readAndSaveToFile/uploadDataToS3", requestOptions)
+    // .then(res => res.json())
+    .then(
+      (result) => {
+        console.log("success")
+        console.log(result)
+        this.setState({ value: "" })
+        alert("saved!")
+      },
+      (error) => {
+        console.log(error)
+      }
+    )
+  }
+
 
   render() {
     return (
@@ -136,6 +160,9 @@ class FiltersAnnotator extends React.Component {
         <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
+        </div>
+        <div onClick={this.uploadData}>
+          <button>Upload to S3</button>
         </div>
       </div>
     )

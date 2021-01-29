@@ -12,6 +12,8 @@
 var express = require("express");
 var fs = require("fs");
 var router = express.Router();
+const execSync = require('child_process').execSync;
+
 
 router.get("/", function (req, res, next) {
   if (fs.existsSync("templates.txt")) {
@@ -94,6 +96,23 @@ router.post("/writeLabels", function (req, res, next) {
     console.log("Saved template information to file!");
   });
   res.send("post is working properly");
+});
+
+/**
+ * Write labelled pairs
+ */
+router.post("/uploadDataToS3", function (req, res, next) {
+  console.log(req.body);
+  const execSync = require('child_process').execSync;
+  const output = execSync('aws s3 cp get_memory_command_dict_pairs.json s3://craftassist/pubr/', { encoding: 'utf-8' });  // the default is 'buffer'
+  console.log('Output was:\n', output);
+  // fs.writeFile("get_memory_command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
+  //   // err is an error other than fileNotExists
+  //   // if file does not exist, writeFile will create it
+  //   if (err) throw err;
+  //   console.log("Saved template information to file!");
+  // });
+  res.send("upload data is working properly");
 });
 
 module.exports = router;
