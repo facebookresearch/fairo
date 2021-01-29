@@ -1003,6 +1003,20 @@ GROUND_TRUTH_PARSES = {
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
+    "go right 3 feet": {	
+        "action_sequence": [	
+            {	
+                "action_type": "MOVE",	
+                "location": {	
+                    "reference_object": {"special_reference": "AGENT"},	
+                    "relative_direction": "RIGHT",	
+                    "steps": "3",	
+                    "has_measure": "feet",	
+                },	
+            }	
+        ],	
+        "dialogue_type": "HUMAN_GIVE_COMMAND",	
+    },
     "go left 3 meters": {
         "action_sequence": [
             {
