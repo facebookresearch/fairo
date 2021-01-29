@@ -14,9 +14,9 @@ joblib==0.11
 matplotlib==2.2.2
 mypy-extensions==0.4.1
 mypy==0.701
-numpy
+numpy>=1.18.1
 python-dateutil==2.7.2
-python-Levenshtein==0.12.0
+python-Levenshtein==0.12.1
 s3transfer==0.3.3
 scikit-learn==0.23.1
 sentry-sdk==0.7.9
@@ -29,9 +29,9 @@ tqdm==4.41.1
 word2number==1.1
 transformers==3.3.1
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz
-coverage
-flask-cors
-flask
+coverage==5.3
+flask-cors==3.0.9
+flask==1.1.2
 python-socketio>=5.0
-pytest
-pytest-cov
+pytest==6.2.2
+pytest-cov==2.11.1
