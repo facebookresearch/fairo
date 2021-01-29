@@ -44,8 +44,9 @@ def traverse_subtree(command: str, action_dict: dict):
         if type(value) == dict:
             traverse_subtree(command, value)
         if type(value) == list:
-            for ad in value:
-                traverse_subtree(command, ad)
+            if type(value[0]) == dict:
+                for ad in value:
+                    traverse_subtree(command, ad)
         if value == "":
             del action_dict[key]
     return action_dict
