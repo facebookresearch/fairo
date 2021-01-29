@@ -108,7 +108,12 @@
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="droidlet_agents.html#locobot">Locobot</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-perception">Locobot Perception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#pipelines">Pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#components">Components</a></li>
+<li class="toctree-l4"><a class="reference internal" href="droidlet_agents.html#data-structures">Data Structures</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
@@ -205,6 +210,7 @@
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
  | <a href="#U"><strong>U</strong></a>
+ | <a href="#W"><strong>W</strong></a>
  
 </div>
 <h2 id="_">_</h2>
@@ -278,6 +284,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.FaceRecognitionHandler.detect_faces">detect_faces() (locobot.agent.perception.handlers.FaceRecognitionHandler method)</a>
 </li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.Detection">Detection (class in locobot.agent.perception)</a>
+</li>
       <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.DetectionHandler">DetectionHandler (class in locobot.agent.perception.handlers)</a>
 </li>
   </ul></td>
@@ -313,6 +321,8 @@
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_base_state">get_base_state() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_camera_state">get_camera_state() (locobot.robot.RemoteLocobot method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.RGBDepth.get_coords_for_point">get_coords_for_point() (locobot.agent.perception.RGBDepth method)</a>
 </li>
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.get_current_pcd">get_current_pcd() (locobot.robot.RemoteLocobot method)</a>
 </li>
@@ -386,6 +396,8 @@
 </li>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.get_world_time">get_world_time() (base_agent.sql_memory.AgentMemory method)</a>
 </li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.WorldObject.get_xyz">get_xyz() (locobot.agent.perception.WorldObject method)</a>
+</li>
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.go_home">go_home() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.go_to_absolute">go_to_absolute() (locobot.robot.RemoteLocobot method)</a>
@@ -422,6 +434,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager.handle_logical_form">handle_logical_form() (base_agent.nsp_dialogue_manager.NSPDialogueManager method)</a>
 </li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.Human">Human (class in locobot.agent.perception)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints">HumanKeypoints (class in locobot.agent.perception)</a>
+</li>
       <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.HumanPoseHandler">HumanPoseHandler (class in locobot.agent.perception.handlers)</a>
 </li>
   </ul></td>
@@ -448,12 +464,28 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="droidlet_agents.html#locobot.agent.perception.handlers.LaserPointerHandler">LaserPointerHandler (class in locobot.agent.perception.handlers)</a>
 </li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_ankle">left_ankle() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_ear">left_ear() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_elbow">left_elbow() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_eye">left_eye() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_hip">left_hip() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_knee">left_knee() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_shoulder">left_shoulder() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.left_wrist">left_wrist() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
       <li><a href="memory.html#base_agent.memory_nodes.LocationNode">LocationNode (class in base_agent.memory_nodes)</a>
 </li>
       <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover">LoCoBotMover (class in locobot.agent.locobot_mover)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="droidlet_agents.html#locobot.agent.perception.Perception.log">log() (locobot.agent.perception.Perception method)</a>
 </li>
       <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.look_at">look_at() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
@@ -490,6 +522,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.nose">nose() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
       <li><a href="controller.html#base_agent.nsp_dialogue_manager.NSPDialogueManager">NSPDialogueManager (class in base_agent.nsp_dialogue_manager)</a>
 </li>
   </ul></td>
@@ -548,11 +582,29 @@
 </li>
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot">RemoteLocobot (class in locobot.robot)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="droidlet_agents.html#locobot.robot.RemoteLocobot.reset">reset() (locobot.robot.RemoteLocobot method)</a>
 </li>
       <li><a href="droidlet_agents.html#locobot.agent.locobot_mover.LoCoBotMover.reset_camera">reset_camera() (locobot.agent.locobot_mover.LoCoBotMover method)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.RGBDepth">RGBDepth (class in locobot.agent.perception)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_ankle">right_ankle() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_ear">right_ear() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_elbow">right_elbow() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_eye">right_eye() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_hip">right_hip() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_knee">right_knee() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_shoulder">right_shoulder() (locobot.agent.perception.HumanKeypoints property)</a>
+</li>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.HumanKeypoints.right_wrist">right_wrist() (locobot.agent.perception.HumanKeypoints property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -647,6 +699,14 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="memory.html#base_agent.sql_memory.AgentMemory.untag">untag() (base_agent.sql_memory.AgentMemory method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="droidlet_agents.html#locobot.agent.perception.WorldObject">WorldObject (class in locobot.agent.perception)</a>
 </li>
   </ul></td>
 </tr></table>

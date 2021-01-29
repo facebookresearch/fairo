@@ -11,6 +11,8 @@ We instantiate a droidlet [agent](https://github.com/facebookresearch/droidlet/t
 We have a high-level pipeline that runs many of the perception handlers that exist.
 This pipeline is split into `Perception` and `SlowPerception`.
 
+#### Pipelines
+
 `Perception` only consists of the fast processing modules, that can be run in the main thread and likely need to be run at a high frequency.
 `SlowPerception` consists of heavier modules such as Face Recognition, Object Detection and can be run at a much lower frequency in a background thread.
 
@@ -20,6 +22,8 @@ This pipeline is split into `Perception` and `SlowPerception`.
  .. autoclass:: locobot.agent.perception.SlowPerception
     :members: perceive, setup_vision_handlers
 ```
+
+#### Components
 
 These pipelines are powered by components that can be stringed together in arbitrary ways, to create your own custom pipeline:
 
@@ -39,6 +43,24 @@ These pipelines are powered by components that can be stringed together in arbit
  .. autoclass:: locobot.agent.perception.handlers.MemoryHandler
     :members:
 ```
+
+#### Data Structures
+
+The components use some data structure classes to create metadata such as object information and have convenient functions registered on these classes
+
+```eval_rst
+ .. autoclass:: locobot.agent.perception.RGBDepth
+    :members:
+ .. autoclass:: locobot.agent.perception.WorldObject
+    :members:
+ .. autoclass:: locobot.agent.perception.Human
+    :members:
+ .. autoclass:: locobot.agent.perception.HumanKeypoints
+    :members:
+ .. autoclass:: locobot.agent.perception.Detection
+    :members:
+```
+
 
 ### Locobot PyRobot interface ###
 

@@ -109,7 +109,12 @@
 <li class="toctree-l1"><a class="reference internal" href="tasks.html">Tasks</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#locobot">Locobot</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#locobot-perception">Locobot Perception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#pipelines">Pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#components">Components</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-structures">Data Structures</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
@@ -195,6 +200,8 @@
 <h3>Locobot Perception<a class="headerlink" href="#locobot-perception" title="Permalink to this headline">¶</a></h3>
 <p>We have a high-level pipeline that runs many of the perception handlers that exist.
 This pipeline is split into <code class="docutils literal notranslate"><span class="pre">Perception</span></code> and <code class="docutils literal notranslate"><span class="pre">SlowPerception</span></code>.</p>
+<div class="section" id="pipelines">
+<h4>Pipelines<a class="headerlink" href="#pipelines" title="Permalink to this headline">¶</a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">Perception</span></code> only consists of the fast processing modules, that can be run in the main thread and likely need to be run at a high frequency.
 <code class="docutils literal notranslate"><span class="pre">SlowPerception</span></code> consists of heavier modules such as Face Recognition, Object Detection and can be run at a much lower frequency in a background thread.</p>
 <blockquote>
@@ -222,11 +229,11 @@ that you would want to fetch on the dashboard here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>rgb_depth</strong> (<em>RGBDepth</em>) – the current RGBDepth frame. This frame might be different from</p></li>
-<li><p><strong>old_rgb_depth</strong> (<em>RGBDepth</em>) – </p></li>
+<li><p><strong>rgb_depth</strong> (<a class="reference internal" href="#locobot.agent.perception.RGBDepth" title="locobot.agent.perception.RGBDepth"><em>RGBDepth</em></a>) – the current RGBDepth frame. This frame might be different from</p></li>
+<li><p><strong>old_rgb_depth</strong> (<a class="reference internal" href="#locobot.agent.perception.RGBDepth" title="locobot.agent.perception.RGBDepth"><em>RGBDepth</em></a>) – </p></li>
 <li><p><strong>is the RGBDepth frame for which SlowPerception has been run</strong> (<em>which</em>) – </p></li>
 <li><p><strong>detections</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>Detections</em><em>]</em>) – list of all detections</p></li>
-<li><p><strong>humans</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>Human</em><em>]</em>) – list of all humans detected</p></li>
+<li><p><strong>humans</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference internal" href="#locobot.agent.perception.Human" title="locobot.agent.perception.Human"><em>Human</em></a><em>]</em>) – list of all humans detected</p></li>
 <li><p><strong>old_rgb_depth</strong> – RGBDepth frame for which detections and humans are being sent.</p></li>
 <li><p><strong>is the frame for which SlowPerception has been run.</strong> (<em>This</em>) – </p></li>
 <li><p><strong>old_xyz</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>floats</em><em>]</em>) – the (x,y,yaw) of the robot at the time of old_rgb_depth</p></li>
@@ -274,7 +281,7 @@ all perceptual models to execute sequentially (doing that is a good debugging to
 <dd><p>run all percetion handlers on the current RGBDepth frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>rgb_depth</strong> (<em>RGBDepth</em>) – input frame to run all perception handlers on.</p>
+<dd class="field-odd"><p><strong>rgb_depth</strong> (<a class="reference internal" href="#locobot.agent.perception.RGBDepth" title="locobot.agent.perception.RGBDepth"><em>RGBDepth</em></a>) – input frame to run all perception handlers on.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>input frame that all perception handlers were run on.
@@ -282,7 +289,7 @@ detections (list[Detections]): list of all detections
 humans (list[Human]): list of all humans detected</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>rgb_depth (RGBDepth)</p>
+<dd class="field-odd"><p>rgb_depth (<a class="reference internal" href="#locobot.agent.perception.RGBDepth" title="locobot.agent.perception.RGBDepth">RGBDepth</a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -296,6 +303,9 @@ humans (list[Human]): list of all humans detected</p>
 </dd></dl>
 
 </div></blockquote>
+</div>
+<div class="section" id="components">
+<h4>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h4>
 <p>These pipelines are powered by components that can be stringed together in arbitrary ways, to create your own custom pipeline:</p>
 <blockquote>
 <div><dl class="py class">
@@ -335,7 +345,7 @@ sensor and possibly reading from a local video instead (default: True)</p></li>
 <dd><p>the inference logic for the handler lives here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>rgb_depth</strong> (<em>RGBDepth</em>) – the current input frame to run inference on.</p>
+<dd class="field-odd"><p><strong>rgb_depth</strong> (<a class="reference internal" href="#locobot.agent.perception.RGBDepth" title="locobot.agent.perception.RGBDepth"><em>RGBDepth</em></a>) – the current input frame to run inference on.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>list of detections found</p>
@@ -488,7 +498,7 @@ a consistent state of the world using the output of all other perception handler
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>rgb</strong> (<em>np.array</em>) – current RGB image for which the handlers are being run</p></li>
-<li><p><strong>objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>WorldObject</em><em>]</em>) – a list of all WorldObjects detected</p></li>
+<li><p><strong>objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference internal" href="#locobot.agent.perception.WorldObject" title="locobot.agent.perception.WorldObject"><em>WorldObject</em></a><em>]</em>) – a list of all WorldObjects detected</p></li>
 <li><p><strong>dedupe</strong> (<em>boolean</em>) – boolean to indicate whether to deduplicate objects or not. If False, all objects</p></li>
 <li><p><strong>considered to be new/novel objects that the agent hasn't seen before. If True</strong> (<em>are</em>) – </p></li>
 <li><p><strong>handler tries to</strong> (<em>the</em>) – </p></li>
@@ -511,6 +521,166 @@ distance between two objects</p>
 </dd></dl>
 
 </div></blockquote>
+</div>
+<div class="section" id="data-structures">
+<h4>Data Structures<a class="headerlink" href="#data-structures" title="Permalink to this headline">¶</a></h4>
+<p>The components use some data structure classes to create metadata such as object information and have convenient functions registered on these classes</p>
+<blockquote>
+<div><dl class="py class">
+<dt id="locobot.agent.perception.RGBDepth">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.</code><code class="sig-name descname">RGBDepth</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb</span></em>, <em class="sig-param"><span class="n">depth</span></em>, <em class="sig-param"><span class="n">pts</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/core.html#RGBDepth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.RGBDepth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for the current RGB, depth and point cloud fetched from the robot.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rgb</strong> (<em>np.array</em>) – RGB image fetched from the robot</p></li>
+<li><p><strong>depth</strong> (<em>np.array</em>) – depth map fetched from the robot</p></li>
+<li><p><strong>pts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><em>(</em><em>x</em><em>,</em><em>y</em><em>,</em><em>z</em><em>)</em><em>]</em>) – list of x,y,z coordinates of the pointcloud corresponding</p></li>
+<li><p><strong>the rgb and depth maps.</strong> (<em>to</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="locobot.agent.perception.RGBDepth.get_coords_for_point">
+<code class="sig-name descname">get_coords_for_point</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">point</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/core.html#RGBDepth.get_coords_for_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.RGBDepth.get_coords_for_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>fetches xyz from the point cloud in pyrobot coordinates and converts it to
+canonical world coordinates.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.WorldObject">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.</code><code class="sig-name descname">WorldObject</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">label</span></em>, <em class="sig-param"><span class="n">center</span></em>, <em class="sig-param"><span class="n">rgb_depth</span></em>, <em class="sig-param"><span class="n">mask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xyz</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/core.html#WorldObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.WorldObject" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="locobot.agent.perception.WorldObject.get_xyz">
+<code class="sig-name descname">get_xyz</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/core.html#WorldObject.get_xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.WorldObject.get_xyz" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns xyz in canonical world coordinates.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.Human">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.</code><code class="sig-name descname">Human</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span><span class="p">:</span> <span class="n">locobot.agent.perception.handlers.core.RGBDepth</span></em>, <em class="sig-param"><span class="n">keypoints</span><span class="p">:</span> <span class="n">locobot.agent.perception.handlers.human_pose.HumanKeypoints</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/human_pose.html#Human"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.Human" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiation of the WorldObject that is used by the human pose estimator.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.HumanKeypoints">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.</code><code class="sig-name descname">HumanKeypoints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nose</span></em>, <em class="sig-param"><span class="n">left_eye</span></em>, <em class="sig-param"><span class="n">right_eye</span></em>, <em class="sig-param"><span class="n">left_ear</span></em>, <em class="sig-param"><span class="n">right_ear</span></em>, <em class="sig-param"><span class="n">left_shoulder</span></em>, <em class="sig-param"><span class="n">right_shoulder</span></em>, <em class="sig-param"><span class="n">left_elbow</span></em>, <em class="sig-param"><span class="n">right_elbow</span></em>, <em class="sig-param"><span class="n">left_wrist</span></em>, <em class="sig-param"><span class="n">right_wrist</span></em>, <em class="sig-param"><span class="n">left_hip</span></em>, <em class="sig-param"><span class="n">right_hip</span></em>, <em class="sig-param"><span class="n">left_knee</span></em>, <em class="sig-param"><span class="n">right_knee</span></em>, <em class="sig-param"><span class="n">left_ankle</span></em>, <em class="sig-param"><span class="n">right_ankle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_ankle">
+<em class="property">property </em><code class="sig-name descname">left_ankle</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_ankle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 15</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_ear">
+<em class="property">property </em><code class="sig-name descname">left_ear</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_ear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_elbow">
+<em class="property">property </em><code class="sig-name descname">left_elbow</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_elbow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_eye">
+<em class="property">property </em><code class="sig-name descname">left_eye</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_eye" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_hip">
+<em class="property">property </em><code class="sig-name descname">left_hip</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_hip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 11</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_knee">
+<em class="property">property </em><code class="sig-name descname">left_knee</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_knee" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 13</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_shoulder">
+<em class="property">property </em><code class="sig-name descname">left_shoulder</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_shoulder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.left_wrist">
+<em class="property">property </em><code class="sig-name descname">left_wrist</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.left_wrist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 9</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.nose">
+<em class="property">property </em><code class="sig-name descname">nose</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.nose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_ankle">
+<em class="property">property </em><code class="sig-name descname">right_ankle</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_ankle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 16</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_ear">
+<em class="property">property </em><code class="sig-name descname">right_ear</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_ear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_elbow">
+<em class="property">property </em><code class="sig-name descname">right_elbow</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_elbow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 8</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_eye">
+<em class="property">property </em><code class="sig-name descname">right_eye</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_eye" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_hip">
+<em class="property">property </em><code class="sig-name descname">right_hip</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_hip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 12</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_knee">
+<em class="property">property </em><code class="sig-name descname">right_knee</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_knee" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 14</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_shoulder">
+<em class="property">property </em><code class="sig-name descname">right_shoulder</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_shoulder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="locobot.agent.perception.HumanKeypoints.right_wrist">
+<em class="property">property </em><code class="sig-name descname">right_wrist</code><a class="headerlink" href="#locobot.agent.perception.HumanKeypoints.right_wrist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 10</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="locobot.agent.perception.Detection">
+<em class="property">class </em><code class="sig-prename descclassname">locobot.agent.perception.</code><code class="sig-name descname">Detection</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">rgb_depth</span><span class="p">:</span> <span class="n">locobot.agent.perception.handlers.core.RGBDepth</span></em>, <em class="sig-param"><span class="n">class_label</span></em>, <em class="sig-param"><span class="n">properties</span></em>, <em class="sig-param"><span class="n">mask</span></em>, <em class="sig-param"><span class="n">bbox</span></em>, <em class="sig-param"><span class="n">face_tag</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">center</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xyz</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/locobot/agent/perception/handlers/detector.html#Detection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#locobot.agent.perception.Detection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiation of the WorldObject that is used by the detector.</p>
+</dd></dl>
+
+</div></blockquote>
+</div>
 </div>
 <div class="section" id="locobot-pyrobot-interface">
 <h3>Locobot PyRobot interface<a class="headerlink" href="#locobot-pyrobot-interface" title="Permalink to this headline">¶</a></h3>

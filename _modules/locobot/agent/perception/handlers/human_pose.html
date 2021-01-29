@@ -108,7 +108,12 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tasks.html">Tasks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../droidlet_agents.html">Agents</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot">Locobot</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-perception">Locobot Perception</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../droidlet_agents.html#pipelines">Pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../droidlet_agents.html#components">Components</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../../../droidlet_agents.html#data-structures">Data Structures</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="../../../../../droidlet_agents.html#locobot-pyrobot-interface">Locobot PyRobot interface</a></li>
 </ul>
 </li>
@@ -337,7 +342,7 @@
 <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">Human</span><span class="p">(</span><span class="n">WorldObject</span><span class="p">):</span>
+<div class="viewcode-block" id="Human"><a class="viewcode-back" href="../../../../../droidlet_agents.html#locobot.agent.perception.handlers.Human">[docs]</a><span class="k">class</span> <span class="nc">Human</span><span class="p">(</span><span class="n">WorldObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Instantiation of the WorldObject that is used by the human pose estimator. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rgb_depth</span><span class="p">:</span> <span class="n">RGBDepth</span><span class="p">,</span> <span class="n">keypoints</span><span class="p">:</span> <span class="n">HumanKeypoints</span><span class="p">):</span>
@@ -353,7 +358,7 @@
     <span class="c1"># FIXME - currently just returns a random rgb image</span>
     <span class="k">def</span> <span class="nf">get_masked_img</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rgb_depth</span><span class="o">.</span><span class="n">rgb</span><span class="o">.</span><span class="n">shape</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
