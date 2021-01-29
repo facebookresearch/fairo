@@ -118,7 +118,7 @@ pip install -r requirements.txt
 
 
 Two papers cover the design of droidlet:
-1. [droidlet: modular, heterogenous, multi-modal agents](./droidlet.pdf) covers the overall design of `droidlet` as an embodied AI platform that is extensible to physical robots and simulators.
+1. [droidlet: modular, heterogenous, multi-modal agents](https://arxiv.org/abs/2101.10384) covers the overall design of `droidlet` as an embodied AI platform that is extensible to physical robots and simulators.
 2. [CraftAssist: A Framework for Dialogue-enabled Interactive Agents](https://arxiv.org/abs/1907.08584) covers the design of the dialogue parser and the task system of an earlier version of `droidlet` that is specific to the game [Minecraft](https://www.minecraft.net/en-us)
 
 ## License
