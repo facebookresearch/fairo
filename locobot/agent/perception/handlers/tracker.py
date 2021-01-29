@@ -22,7 +22,8 @@ class TrackingHandler(AbstractHandler):
     We use the results of DetectionHandler and the norfair tracking library (https://github.com/tryolabs/norfair)
     """
 
-    def __init__(self):
+    def __init__(self, silent=False):
+        self.silent=silent
         def euclidean_distance(detection, tracked_object):
             return np.linalg.norm(detection.points - tracked_object.estimate)
 
@@ -45,7 +46,9 @@ class TrackingHandler(AbstractHandler):
         detections = self.to_norfair(detections)
         self.tracked_objects = self.tracker.update(detections, period=4)
         img = rgb_depth.rgb
-        print_objects_as_table(self.tracked_objects)
+
+        if not self.silent:
+            print_objects_as_table(self.tracked_objects)
         if os.getenv("DEBUG_DRAW") == "True":
             draw_tracked_objects(img, self.tracked_objects)
             cv2.imshow("Norfair", img)

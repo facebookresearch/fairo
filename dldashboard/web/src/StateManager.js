@@ -61,6 +61,9 @@ class StateManager {
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.memory = this.initialMemoryState;
+    this.processRGB = this.processRGB.bind(this);
+    this.processDepth = this.processDepth.bind(this);
+    this.processObjects = this.processObjects.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -120,6 +123,9 @@ class StateManager {
     socket.on("setChatResponse", this.setChatResponse);
     socket.on("sensor_payload", this.processSensorPayload);
     socket.on("updateState", this.updateStateManagerMemory);
+    socket.on("rgb", this.processRGB);
+    socket.on("depth", this.processDepth);
+    socket.on("objects", this.processObjects);
   }
 
   updateStateManagerMemory(data) {
@@ -208,6 +214,51 @@ class StateManager {
     }
   }
 
+  processRGB(res) {
+    let rgb = new Image();
+    rgb.src = "data:image/webp;base64," + res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveImage) {
+        if (ref.props.type === "rgb") {
+          ref.setState({
+            isLoaded: true,
+            rgb: rgb,
+          });
+        }
+      }
+    });
+  }
+
+  processDepth(res) {
+    let depth = new Image();
+    depth.src = "data:image/webp;base64," + res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveImage) {
+        if (ref.props.type === "depth") {
+          ref.setState({
+            isLoaded: true,
+            depth: depth,
+          });
+        }
+      }
+    });
+  }
+
+  processObjects(res) {
+    let rgb = new Image();
+    rgb.src = "data:image/webp;base64," + res.image.rgb;
+
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          isLoaded: true,
+          objects: res.objects,
+          rgb: rgb,
+        });
+      }
+    });
+  }
+
   processSensorPayload(res) {
     let fps_time = performance.now();
     let fps = 1000 / (fps_time - this.fps_time);
@@ -217,7 +268,7 @@ class StateManager {
     let depth = new Image();
     depth.src = "data:image/webp;base64," + res.image.depth;
     let object_rgb = new Image();
-    if (res.object_image !== -1) {
+    if (res.object_image !== -1 && res.object_image !== undefined) {
       object_rgb.src = "data:image/webp;base64," + res.object_image.rgb;
     }
 
@@ -237,7 +288,7 @@ class StateManager {
           depth: depth,
         });
       } else if (ref instanceof LiveObjects || ref instanceof LiveHumans) {
-        if (res.object_image !== -1) {
+        if (res.object_image !== -1 && res.object_image !== undefined) {
           ref.setState({
             isLoaded: true,
             rgb: object_rgb,

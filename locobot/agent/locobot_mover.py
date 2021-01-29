@@ -10,6 +10,7 @@ import math
 import copy
 from perception import RGBDepth
 from objects import Marker, Pos
+from collections.abc import Iterable
 from locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
@@ -77,6 +78,9 @@ class LoCoBotMover:
             xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
             x,y,yaw are in the pyrobot's coordinates.
         """
+        if not isinstance(next(iter(xyt_positions)), Iterable):
+            # single xyt position given
+            xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             self.bot.go_to_relative(xyt, close_loop=self.close_loop)
             while not self.bot.command_finished():
@@ -92,6 +96,9 @@ class LoCoBotMover:
             xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
             (x_c,y_c,yaw) are in the canonical world coordinates.
         """
+        if not isinstance(next(iter(xyt_positions)), Iterable):
+            # single xyt position given
+            xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute {}".format(xyt))
             self.bot.go_to_absolute(

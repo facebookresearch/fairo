@@ -19,14 +19,9 @@ except ImportError:
 app = None
 
 
-def _dashboard_thread(web_root, ip, port, quiet=None):
+def _dashboard_thread(web_root, ip, port, quiet=True):
     context = _get_context()
-    if quiet is None:
-        if context == _CONTEXT_COLAB or context == _CONTEXT_IPYTHON:
-            quiet = True
-        else:
-            quiet = False
-        global app
+    global app
     root_dir = os.path.abspath(os.path.dirname(__file__))
     static_folder = os.path.join(root_dir, web_root, "build")
     if not quiet:
@@ -67,9 +62,17 @@ def _dashboard_thread(web_root, ip, port, quiet=None):
     app.run(ip, threaded=True, port=port, debug=False)
 
 
-def start(web_root="web", ip="0.0.0.0", port=8000, quiet=None):
+def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):
     t = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port, quiet))
     t.start()
+    context = _get_context()
+    if context == _CONTEXT_COLAB or context == _CONTEXT_IPYTHON:
+        # avoid race conditions when we do "run_all" on cells", give the
+        # webserver thread to start and initialize sockets so that
+        # `dlevent.sio` registers properly against those sockets if imported
+        # immediately after the start() call
+        import time
+        time.sleep(5)
 
 # Return values for `_get_context` (see that function's docs for
 # details).

@@ -5,6 +5,7 @@ from .face_recognition import FaceRecognitionHandler
 from .laser_pointer import LaserPointerHandler
 from .tracker import TrackingHandler
 from .memory import MemoryHandler
+from .deduplicater import ObjectDeduplicationHandler
 from .core import RGBDepth
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     LaserPointerHandler,
     TrackingHandler,
     MemoryHandler,
+    ObjectDeduplicationHandler,
     RGBDepth,
     Human,
     HumanKeypoints,
