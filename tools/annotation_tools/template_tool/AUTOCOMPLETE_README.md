@@ -19,7 +19,12 @@ In order to write to the Craftassist S3 bucket, you need to be in an environment
 
 # Usage
 ## Setting Up 
-The tool loads from `annotated.txt`, `templated_locobot.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/ground_truth/datasets/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
+To prepopulate the tool with annotated data, run the preprocessing script 
+```
+python ~/droidlet/tools/data_processing/txt_to_JSON.py [args]
+```
+
+By default, the tool loads from `annotated.txt`, `locobot.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
 
 Commands we want to label are in `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt`. Write one command for each line.
 
