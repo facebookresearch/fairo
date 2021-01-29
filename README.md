@@ -31,7 +31,7 @@ You want to do one of three things:
         <td colspan="3"  align="left">
           1. Clone the source code
             <sub><pre lang="bash">
-git clone --depth=1 --recursive https://github.com/facebookresearch/droidlet.git
+git clone --recursive https://github.com/facebookresearch/droidlet.git
 cd droidlet
             </pre></sub>
         </td>    
