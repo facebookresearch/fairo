@@ -42,13 +42,7 @@ const autocompleteMatches = [
     {match: /"schematic":  /gi, replacement: `"schematic": {\n"text_span":"", \n"repeat":"", \n"triples":""\n}`},
     {match: /"repeat":  /gi, replacement: `"repeat": {\n"repeat_key":"", \n"repeat_count":"", \n"repeat_dir":""\n}`},
     {match: /"facing":  /gi, replacement: `"facing": {\n"text_span":"", \n"yaw_pitch":"", \n"yaw":"", \n"pitch":"", \n"relative_yaw":"", \n"relative_pitch":"", \n"location":""\n}`},
-    {match: /"dance_type":  /gi, replacement: `"dance_type": {\n"dance_type_name":"", \n"dance_type_tag":"", \n"point":"", \n"look_turn":"", \n"body_turn":""\n}`},
-    {match: /"schematic":  /gi, replacement: `"schematic": {\n"text_span":"", \n"repeat":"", \n"triples":""\n}`},
-    {match: /"schematic":  /gi, replacement: `"schematic": {\n"text_span":"", \n"repeat":"", \n"triples":""\n}`},
-    {match: /"schematic":  /gi, replacement: `"schematic": {\n"text_span":"", \n"repeat":"", \n"triples":""\n}`},
-    {match: /"schematic":  /gi, replacement: `"schematic": {\n"text_span":"", \n"repeat":"", \n"triples":""\n}`},
-    {match: /"schematic":  /gi, replacement: `"schematic": {\n"text_span":"", \n"repeat":"", \n"triples":""\n}`},
-
+    {match: /"dance_type":  /gi, replacement: `"dance_type": {\n"dance_type_name":"", \n"dance_type_tag":"", \n"point":"", \n"look_turn":"", \n"body_turn":""\n}`}
   ];
 
   export default autocompleteMatches;
