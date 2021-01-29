@@ -910,23 +910,6 @@ class AgentMemory:
 
             return TaskNode(self, memid)
 
-    #        raise ValueError("Called get_last_finished_root_task with no finished root tasks")
-
-    def get_task_by_id(self, memid: str) -> "TaskNode":
-        """Given the memid, retrieve the TaskNode
-
-        Args:
-            memid (string): Memory ID
-
-        Returns:
-            TaskNode: A TaskNode object
-
-        Examples ::
-            >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> get_task_by_id(memid = memid)
-        """
-        return TaskNode(self, memid)
-
     #################
     ###   Time    ###
     #################

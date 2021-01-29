@@ -794,7 +794,7 @@ class Undo(Task):
         # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
         #    pass
 
-        old_task_mem = agent.memory.get_task_by_id(self.to_undo_memid)
+        old_task_mem = agent.memory.get_mem_by_id(self.to_undo_memid)
         old_task_mem.task.undo(agent)
         self.finished = True
 
