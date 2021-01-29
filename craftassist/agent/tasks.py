@@ -140,16 +140,14 @@ class Point(Task):
     
     Examples::
 
-        >>> target = [0, 0, 0]
+        >>> target = [0, 0, 0, 2, 3, 4]
         >>> task_data = {"target": target}
         >>> point = Point(agent, task_data)
     """
 
     def __init__(self, agent, task_data):
         super(Point, self).__init__()
-        loc = task_data.get("target")
-        # make a region from the triple 
-        self.target = (loc[0], loc[1] + 1, loc[2], loc[0], loc[1] + 1, loc[2])
+        self.target = task_data.get("target")
         self.start_time = agent.memory.get_time()
         self.last_stepped_time = agent.memory.get_time()
 
