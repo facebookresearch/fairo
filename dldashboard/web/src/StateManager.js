@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 import io from "socket.io-client";
 import Memory2D from "./components/Memory2D";
+import MemoryList from "./components/MemoryList";
 import LiveImage from "./components/LiveImage";
 import Settings from "./components/Settings";
 import LiveObjects from "./components/LiveObjects";
@@ -56,6 +57,7 @@ class StateManager {
 
   constructor() {
     this.processSensorPayload = this.processSensorPayload.bind(this);
+    this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
@@ -119,6 +121,7 @@ class StateManager {
 
     socket.on("setChatResponse", this.setChatResponse);
     socket.on("sensor_payload", this.processSensorPayload);
+    socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
   }
 
@@ -206,6 +209,14 @@ class StateManager {
     if (commands.length > 0) {
       this.socket.emit("command", commands);
     }
+  }
+
+  processMemoryState(msg) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof MemoryList) {
+        ref.setState({ isLoaded: true, memory: msg });
+      }
+    });
   }
 
   processSensorPayload(res) {

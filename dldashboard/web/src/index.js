@@ -13,6 +13,7 @@ import Console from "./components/Console";
 import Settings from "./components/Settings";
 import Navigator from "./components/Navigator";
 import Memory2D from "./components/Memory2D";
+import MemoryList from "./components/MemoryList";
 import QuerySemanticParser from "./components/QuerySemanticParser";
 import History from "./components/History";
 import TeachApp from "./components/TeachApp/TeachApp";
@@ -48,6 +49,12 @@ var config = {
                   title: "Memory 2D",
                   type: "react-component",
                   component: "Memory2D",
+                  props: { stateManager: stateManager },
+                },
+                {
+                  title: "Memory List",
+                  type: "react-component",
+                  component: "MemoryList",
                   props: { stateManager: stateManager },
                 },
                 {
@@ -114,6 +121,7 @@ dashboardLayout.registerComponent("Console", Console);
 dashboardLayout.registerComponent("Settings", Settings);
 dashboardLayout.registerComponent("Navigator", Navigator);
 dashboardLayout.registerComponent("Memory2D", Memory2D);
+dashboardLayout.registerComponent("MemoryList", MemoryList);
 dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
 dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("TeachApp", TeachApp);
