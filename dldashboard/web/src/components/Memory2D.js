@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 // src/components/Memory2D.js
 
 import React from "react";
-import { Stage, Layer, Circle, Line } from "react-konva";
+import { Stage, Layer, Circle, Line, Text } from "react-konva";
 import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 
 var hashCode = function (s) {
@@ -14,6 +14,8 @@ var hashCode = function (s) {
     return a & a;
   }, 0);
 };
+
+const DEFAULT_SPACING = 12;
 
 class Memory2D extends React.Component {
   constructor(props) {
@@ -28,6 +30,7 @@ class Memory2D extends React.Component {
       ymin: -10,
       ymax: 10,
       bot_xyz: [0.0, 0.0, 0.0],
+      tooltip: null,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -83,7 +86,7 @@ class Memory2D extends React.Component {
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
-    let { height, width, memory, bot_xyz } = this.state;
+    let { height, width, memory, bot_xyz, tooltip } = this.state;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];
@@ -111,7 +114,27 @@ class Memory2D extends React.Component {
       let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
       y = height - y;
       renderedObjects.push(
-        <Circle key={j++} radius={3} x={x} y={y} fill={color} />
+        <Circle
+          key={j++}
+          radius={3}
+          x={x}
+          y={y}
+          fill={color}
+          onMouseEnter={(e) => {
+            let label = String(obj.eid).concat(": ", obj.label);
+            let properties = obj.properties;
+
+            this.setState({
+              tooltip: JSON.stringify(obj, null, 4),
+            });
+
+            e.currentTarget.setRadius(6);
+          }}
+          onMouseLeave={(e) => {
+            this.setState({ tooltip: null });
+            e.currentTarget.setRadius(3);
+          }}
+        />
       );
       // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
     });
@@ -170,6 +193,15 @@ class Memory2D extends React.Component {
         <Stage className="memory2d" width={width} height={height}>
           <Layer className="gridLayer">{gridLayer}</Layer>
           <Layer className="renderedObjects">{renderedObjects}</Layer>
+          <Layer>
+            <Text
+              text={tooltip}
+              offsetX={-DEFAULT_SPACING}
+              offsetY={-DEFAULT_SPACING}
+              visible={tooltip != null}
+              shadowEnabled={true}
+            />
+          </Layer>
         </Stage>
       </div>
     );
