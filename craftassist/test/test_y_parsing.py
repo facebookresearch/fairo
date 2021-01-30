@@ -893,6 +893,7 @@ class TestDialogueManager(unittest.TestCase):
         print(print_str.format(pass_cnt, fail_cnt, accuracy))
         print("Total commands : %r" % (len(list(common_functional_commands.keys()))))
         print("total found in ground truth: %r" % (cnt))
+        self.assertTrue(accuracy==100.0)
 
 
 if __name__ == "__main__":
