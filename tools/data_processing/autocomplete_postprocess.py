@@ -68,5 +68,5 @@ if __name__ == "__main__":
     for command in dataset:
         action_dict = dataset[command]
         updated_tree = traverse_tree(command, action_dict)
-        updated_dataset.append("{}|{}".format(command, str(updated_tree)))
+        updated_dataset.append("{}|{}".format(command, json.dumps(updated_tree)))
     write_file(updated_dataset, args.dest_path)
