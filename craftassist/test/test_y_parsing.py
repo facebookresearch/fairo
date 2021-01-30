@@ -4,11 +4,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-import craftassist.agent.heuristic_perception as heuristic_perception
-import ast
+
 from base_agent.nsp_dialogue_manager import NSPDialogueManager
 from base_agent.loco_mc_agent import LocoMCAgent
-from all_test_commands import *
 from fake_agent import MockOpt
 from prettytable import PrettyTable
 from glob import glob
@@ -55,9 +53,6 @@ class fontcolors:
 # "find the closest red thing",
 # "copy this motion",
 # "topple the pile of notebooks",
-'''Get all annotated commands and their ground truth dictionaries
-from all_test_commands'''
-# NOTE: These dictionaries don't have "text_span" key in them
 common_functional_commands = {
 "turn right" : {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"dance_type": {"body_turn": {"relative_yaw": {"angle": "-90"}}}, "action_type": "DANCE"}]},
 "where are my keys" : {"dialogue_type": "GET_MEMORY", "filters": {"output": {"attribute": "LOCATION"}, "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]}},
@@ -126,7 +121,6 @@ common_functional_commands = {
 "find the hoodie" : {"dialogue_type": "GET_MEMORY", "filters": {"output": {"attribute": "LOCATION"}, "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]}},
 }
 
-
 TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../agent/models/semantic_parser/")
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/annotated_data/")
 GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/")
@@ -171,7 +165,9 @@ def compare_dicts(dict1, dict2):
                 return False
             return compare_dicts(v, dict2[k])
     return True
-            
+
+
+
 def compare_full_dictionaries(d1, d2):
     if d1["dialogue_type"] == "HUMAN_GIVE_COMMAND":
         if d2["dialogue_type"] != d1["dialogue_type"]:
@@ -200,14 +196,12 @@ class TestDialogueManager(unittest.TestCase):
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:
             if os.path.isdir(opts.ground_truth_data_dir):
-                #files = glob(opts.ground_truth_data_dir + "datasets/*.txt")
-                files = [opts.ground_truth_data_dir + "datasets/high_pri_commands.txt"]
-                for dataset in files:
-                    with open(dataset) as f:
-                        for line in f.readlines():
-                            text, logical_form = line.strip().split("|")
-                            clean_text = text.strip('"').lower()
-                            self.ground_truth_actions[clean_text] = json.loads(logical_form)
+                dataset = opts.ground_truth_data_dir + "datasets/high_pri_commands.txt"
+                with open(dataset) as f:
+                    for line in f.readlines():
+                        text, logical_form = line.strip().split("|")
+                        clean_text = text.strip('"').lower()
+                        self.ground_truth_actions[clean_text] = json.loads(logical_form)
 
 
     def test_parses(self):
@@ -215,14 +209,12 @@ class TestDialogueManager(unittest.TestCase):
         records = []
         pass_cnt, fail_cnt  = 0, 0
         cnt =  0
-
         for command in common_functional_commands.keys():
-            # compare the dictionaries without text spans
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
             else:
-                # else query the model
+                # else query the model and remove the value for key "text_span"
                 model_prediction = remove_text_span(self.agent.dialogue_manager.get_logical_form(
                     command, self.agent.dialogue_manager.model
                 ))
@@ -237,9 +229,8 @@ class TestDialogueManager(unittest.TestCase):
         
         for record in records:
             table.add_row(record)
-        
         print(table)
-
+        
         accuracy = round((pass_cnt / (pass_cnt + fail_cnt))*100.0, 2)
         print_str = fontcolors.OKGREEN + "Pass: {} " + fontcolors.ENDC  + fontcolors.FAIL + "Fail: {} " + fontcolors.ENDC + fontcolors.OKCYAN + "Accuracy: {}%" + fontcolors.ENDC
         print(print_str.format(pass_cnt, fail_cnt, accuracy))
