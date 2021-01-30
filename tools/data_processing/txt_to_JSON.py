@@ -14,15 +14,13 @@ def create_JSON_from_txt(annotations_dir_path):
     # Dictionary of all commands and parse trees
     all_commands = {}
     output_JSON_commands = {}
-    commands_to_annotate = []
+    commands_to_annotate = open(args.commands_path).read().splitlines()
+
     for file_path in glob.glob(annotations_dir_path + "*.txt"):
         # Skip templated generations
         if "templated" in file_path:
             continue
         
-        if "commands.txt" in file_path:
-            commands_to_annotate = open(file_path).read().splitlines()
-
         with open(file_path) as fd:
             data = fd.readlines()
 
@@ -51,8 +49,9 @@ def write_JSON(json_out_path, all_commands):
 if __name__ == "__main__":
     print("*** Preparing data store for Autocomplete Tool ***")
     parser = argparse.ArgumentParser()
-    # Loading relative from the template tool backend
+    # Default is assuming script is run from template tool backend
     parser.add_argument("--annotations_dir_path", default="../../../../craftassist/agent/datasets/full_data/")
+    parser.add_argument("--commands_path", default="commands.txt")
     parser.add_argument("--json_out_path", default="command_dict_pairs.json")
     args = parser.parse_args()
     print("*** Loading data pairs from {} ***".format(args.annotations_dir_path))
