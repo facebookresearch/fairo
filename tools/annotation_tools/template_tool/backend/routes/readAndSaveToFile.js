@@ -107,7 +107,7 @@ router.post("/uploadDataToS3", function (req, res, next) {
   const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py', { encoding: 'utf-8' });
   console.log('Postprocessing Output was:\n', postprocessing_output);
 
-  const s3_output = execSync('aws s3 cp autocomplete_annotations.txt  s3://craftassist/pubr/', { encoding: 'utf-8' });
+  const s3_output = execSync('aws s3 cp autocomplete_annotations.txt  s3://craftassist/pubr/high_pri_commands.txt', { encoding: 'utf-8' });
   console.log('S3 Output was:\n', postprocessing_output);
 
   res.send("upload data is working properly");
