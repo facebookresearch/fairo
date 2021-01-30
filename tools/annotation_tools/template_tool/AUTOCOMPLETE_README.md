@@ -3,6 +3,30 @@
 The Autocomplete Data Annotator provides an easy way to create parse trees for natural language commands. This tool is in ongoing development.
 
 # Set up and Installation
+## Fetching Data
+Make sure that you have the latest datasets downloaded from S3.
+```
+cd droidlet
+./tools/data_scripts/compare_directory_hash.sh
+```
+
+## Preprocessing
+To prepopulate the tool with annotated data, run the preprocessing script from the `backend` folder:
+```
+cd ~/droidlet/tools/annotation_tools/template_tool/backend/
+python ~/droidlet/tools/data_processing/preprocess_datasets_for_autocomplete.py [args]
+
+Args:
+--annotations_dir_path: Path to directory containing existing labelled data.
+--commands_path: Path to file with one command per line, which we want to annotate. Defaults to commands.txt
+```
+
+By default, the tool loads from `annotated.txt`, `locobot.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
+
+Commands we want to label are in `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt`. Write one command for each line.
+
+
+## Running the Autocomplete Tool
 Running server:
 ```
 cd ~/droidlet/tools/annotation_tools/template_tool/backend/
@@ -18,22 +42,6 @@ npm install && npm start
 In order to write to the Craftassist S3 bucket, you need to be in an environment with `boto3` installed and have valid AWS credentials. For instructions on how to configure awscli, see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html .
 
 # Usage
-## Setting Up 
-To prepopulate the tool with annotated data, run the preprocessing script from the `backend` folder:
-```
-cd ~/droidlet/tools/annotation_tools/template_tool/backend/
-python ~/droidlet/tools/data_processing/preprocess_datasets_for_autocomplete.py [args]
-
-Args:
---annotations_dir_path: Path to directory containing existing labelled data.
---commands_path: Path to file with one command per line, which we want to annotate.
---json_out_path: Where to write the output JSON.
-```
-
-By default, the tool loads from `annotated.txt`, `locobot.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
-
-Commands we want to label are in `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt`. Write one command for each line.
-
 ## Autocomplete
 
 Currently the tool supports all of `HUMAN_GIVE_COMMAND`, `GET_MEMORY`, `PUT_MEMORY` and `NOOP` dialogue types.
