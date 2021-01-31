@@ -157,7 +157,8 @@ class GetMemoryHandler(DialogueObject):
                     return "none", None
                 return str(vals[0]), None
             elif type(output_type) is dict and output_type.get("attribute"):
-                t = self.task_objects["point"](self.agent, {"target": vals[0]})
+                target = self.subinterpret["point_target"].point_to_region(vals[0])
+                t = self.task_objects["point"](self.agent, {"target": target})
                 self.append_new_task(t)
                 return str(vals[0]), None
             elif type(output_type) is str and output_type.lower() == "memory":

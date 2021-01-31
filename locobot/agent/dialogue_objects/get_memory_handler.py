@@ -13,6 +13,7 @@ from base_agent.dialogue_objects import (
     GetMemoryHandler,
 )
 from .spatial_reasoning import ComputeLocations
+from .point_target import PointTargetInterpreter
 from base_agent.base_util import ErrorWithResponse
 from base_agent.memory_nodes import MemoryNode, ReferenceObjectNode
 from base_agent.string_lists import ACTION_ING_MAPPING
@@ -42,6 +43,7 @@ class LocoGetMemoryHandler(GetMemoryHandler):
             "reference_locations": ReferenceLocationInterpreter(),
             "specify_locations": ComputeLocations(),
             "attribute": AttributeInterpreter(),
+            "point_target": PointTargetInterpreter()
         }
         self.task_objects = {
             "point": Point

@@ -82,19 +82,3 @@ class ReferenceLocationInterpreter:
         interpreter.memory.update_recent_entities(mems)
 
         return mems
-
-
-def interpret_point_target(interpreter, speaker, d):
-    if d.get("location") is None:
-        # TODO other facings
-        raise ErrorWithResponse("I am not sure where you want me to point")
-    # TODO: We might want to specifically check for BETWEEN/INSIDE, I'm not sure
-    # what the +1s are in the return value
-    mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, d["location"])
-    #    mems = interpret_reference_location(interpreter, speaker, d["location"])
-    steps, reldir = interpret_relative_direction(interpreter.agent, d)
-    loc, _ = interpreter.subinterpret["specify_locations"](
-        interpreter, speaker, mems, steps, reldir
-    )
-    #    loc, _ = compute_locations(interpreter, speaker, mems, steps, reldir)
-    return (loc[0], loc[1], loc[2], loc[0], loc[1]+1, loc[2])
