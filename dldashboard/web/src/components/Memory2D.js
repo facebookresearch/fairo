@@ -83,7 +83,7 @@ class Memory2D extends React.Component {
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
-    let { height, width, memory, bot_xyz } = this.state;
+    let { height, width, memory, bot_xyz, obstacle_map } = this.state;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];
@@ -102,7 +102,16 @@ class Memory2D extends React.Component {
     bot_y = height - bot_y;
 
     let renderedObjects = [];
+    let mapBoundry = [];
     let j = 0;
+
+    // Visualize map
+    obstacle_map.forEach((obj) => {
+      let color = "#827f7f";
+      let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+      let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+      mapBoundry.push(<Circle key={j++} radius={2} x={x} y={y} fill={color} />);
+    });
 
     objects.forEach((obj, key, map) => {
       let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
@@ -170,6 +179,7 @@ class Memory2D extends React.Component {
         <Stage className="memory2d" width={width} height={height}>
           <Layer className="gridLayer">{gridLayer}</Layer>
           <Layer className="renderedObjects">{renderedObjects}</Layer>
+          <Layer className="mapBoundry">{mapBoundry}</Layer>
         </Stage>
       </div>
     );
