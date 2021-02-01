@@ -64,12 +64,10 @@ class RemoteLocobot(object):
 
         # check skfmm, skimage in installed, its necessary for slam
         self._slam = Slam(self._robot, backend)
-        self._slam.set_goal(
-            (19, 19, 0)
-        )  # set  far away goal for exploration, default map size [-20,20]
         self._slam_step_size = 25  # step size in cm
         self._done = True
         self.backend = backend
+        self._move_done = True
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -135,10 +133,10 @@ class RemoteLocobot(object):
     @Pyro4.oneway
     def go_home(self):
         """Moves the robot base to origin point: x, y, yaw 0, 0, 0."""
-        if self._done:
-            self._done = False
+        if self._move_done:
+            self._move_done = False
             self._slam.set_absolute_goal_in_pr_frame([0.0, 0.0, 0.0])
-            self._done = True
+            self._move_done = True
 
     def go_to_absolute(self, xyt_position, use_map=False, close_loop=True, smooth=False):
         """Moves the robot base to given goal state in the world frame.
@@ -158,10 +156,10 @@ class RemoteLocobot(object):
         :type close_loop: bool
         :type smooth: bool
         """
-        if self._done:
-            self._done = False
+        if self._move_done:
+            self._move_done = False
             self._slam.set_absolute_goal_in_pr_frame(xyt_position)
-            self._done = True
+            self._move_done = True
 
     def go_to_relative(self, xyt_position, use_map=False, close_loop=True, smooth=False):
         """Moves the robot base to the given goal state relative to its current
@@ -181,10 +179,10 @@ class RemoteLocobot(object):
         :type close_loop: bool
         :type smooth: bool
         """
-        if self._done:
-            self._done = False
+        if self._move_done:
+            self._move_done = False
             self._slam.set_relative_goal_in_pr_frame(xyt_position)
-            self._done = True
+            self._move_done = True
 
     @Pyro4.oneway
     def stop(self):
@@ -632,10 +630,14 @@ class RemoteLocobot(object):
 
     # slam wrapper
     def explore(self):
-        if self._done:
-            self._done = False
-            self._slam.take_step(self._slam_step_size)
-            self._done = True
+        if self._move_done:
+            self._move_done = False
+            if not self._slam.whole_area_explored:
+                self._slam.set_goal(
+                    (19, 19, 0)
+                )  # set  far away goal for exploration, default map size [-20,20]
+                self._slam.take_step(self._slam_step_size)
+            self._move_done = True
             return True
 
 

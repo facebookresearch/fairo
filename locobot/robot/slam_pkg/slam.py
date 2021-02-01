@@ -140,7 +140,7 @@ class Slam(object):
         self.goal_loc = self.get_rel_state(abs_pr_goal, self.init_state)
         self.goal_loc_map = self.real2map(self.goal_loc[:2])
 
-        # TODO: make it non blocking 
+        # TODO: make it non blocking
         while self.take_step(25) is None:
             continue
 
@@ -149,8 +149,8 @@ class Slam(object):
         self.goal_loc = self.get_rel_state(goal, self.init_state)
         # convert the goal in inti frame
         self.goal_loc_map = self.real2map(self.goal_loc[:2])
-        
-        # TODO make it non blocking 
+
+        # TODO make it non blocking
         while self.take_step(25) is None:
             continue
 
@@ -160,8 +160,6 @@ class Slam(object):
         :param step_size:
         :return:
         """
-        if self.whole_area_explored:
-            return None
         # explode the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
@@ -225,7 +223,7 @@ class Slam(object):
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
         """
-        
+
         # check whether goal is on collision
         if not np.logical_or.reduce(
             traversable[
