@@ -27,7 +27,7 @@ def assert_turn_degree(initial_yaw, final_yaw, turn_degree):
     # if x is very small: x ~ sin(x)
     final_d = math.sin(math.radians(final_d))
     expect_fd = math.sin(math.radians(expect_fd))
-    assert_allclose([final_d], [expect_fd], atol=1e-7)
+    assert_allclose([final_d], [expect_fd], atol=2e-7)
 
 
 class UtilsTest(unittest.TestCase):
