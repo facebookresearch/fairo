@@ -84,13 +84,11 @@ This defines the polarity of minimum, so ranking from min to max on the quantity
 ### COMPARATOR ###
 Comparator compares two values on the left and right based on the comparison type.
 - `comparison_type` represents the kind of comparison (>, <, >=, != , =)
-- `input_left` is the candidate on left of the comparison,
-- `input_right` is the candidate on right of the comparison,`input_left` or `input_right` has value <ATTRIBUTE> when the comparator is being used as part of a filter; and is searching over variables (and where the <ATTRIBUTE> of the variable is used for the filter).
+- `input_left` is the candidate on left of the comparison,`input_right` is the candidate on right of the comparison,
+- `input_left` or `input_right` can be either a \<FILTER\>, a span, or an \<ATTRIBUTE\>.   \<ATTRIBUTE\> is used when the comparator is part of a \<FILTER\>; and the \<ATTRIBUTE\> applied to a list of memories is used for making a decision on their inclusion.
 - `comparison_measure` is the unit (seconds, minutes, blocks etc).
-By default, the value of `comparison_measure` is `'EQUAL'`.
-- `set_comparison` specifies the behavior when the input_right or input_left return a list (e.g. from <FILTERS>).  Default is `"ANY"`; which means that if any of the comparisons are True, the comparator returns True.
-
-The representation of `COMPARATOR` is:
+- `set_comparison` specifies the behavior when the input_right or input_left return a list (e.g. from \<FILTERS\>).  Default is `"ANY"`; which means that if any of the comparisons are True, the comparator returns True.
+		
 ```
 {
   "input_left" : {"value_extractor" : <FILTERS> / <ATTRIBUTE> / span }
