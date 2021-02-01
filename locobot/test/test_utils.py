@@ -26,7 +26,7 @@ def assert_turn_degree(initial_yaw, final_yaw, turn_degree):
     # to make dist(0, 359.9) = dist(0, 0.1), convert angle in 2D location based on unit circle and then take l2 dist between point
     final_loc = [math.cos(math.radians(final_d)), math.sin(math.radians(final_d))]
     expect_loc = [math.cos(math.radians(expect_fd)), math.sin(math.radians(expect_fd))]
-    assert_allclose(final_loc, expect_loc, atol=1e-7)
+    assert_allclose(final_loc, expect_loc, atol=2e-7)
 
 
 class UtilsTest(unittest.TestCase):
