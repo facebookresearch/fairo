@@ -640,6 +640,18 @@ class RemoteLocobot(object):
             self._move_done = True
             return True
 
+    def get_map(self):
+        """returns the location of obstacles created by slam only for the obstacles,
+        """
+        # get the index correspnding to obstacles
+        indices = np.where(self._slam.map_builder.map[:, :, 1] >= 1.0)
+        # convert them into robot frame
+        real_world_locations = [
+            self._slam.map2real([indice[0], indice[1]]).tolist()
+            for indice in zip(indices[0], indices[1])
+        ]
+        return real_world_locations
+
 
 if __name__ == "__main__":
     import argparse

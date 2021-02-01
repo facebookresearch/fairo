@@ -244,3 +244,20 @@ class LoCoBotMover:
 
     def drop(self):
         return self.bot.open_gripper()
+
+    def get_obstacles_in_canonical_coords(self):
+        """get the positions of obtacles position in the canonical coordinate system
+        instead of the Locobot's global coordinates as stated in the Locobot
+        documentation: https://www.pyrobot.org/docs/navigation.
+
+        the standard coordinate systems:
+          Camera looks at (0, 0, 1),
+         its right direction is (1, 0, 0) and
+         its up-direction is (0, 1, 0)
+
+         return:
+         list[(x, z)] of the obstacle location in standard coordinates
+        """
+        cordinates_in_robot_frame = self.bot.get_map()
+        cordinates_in_standard_frame = [(-c[1], c[0]) for c in cordinates_in_robot_frame]
+        return cordinates_in_standard_frame
