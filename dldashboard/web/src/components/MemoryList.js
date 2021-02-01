@@ -13,6 +13,8 @@ import TableContainer from "@material-ui/core/TableContainer";
 import TableHead from "@material-ui/core/TableHead";
 import TableRow from "@material-ui/core/TableRow";
 import Paper from "@material-ui/core/Paper";
+import ReactVirtualizedTable from "./Memory/MemoryVirtualizedTable";
+import MemoryManager from "./Memory/MemoryManager";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -65,10 +67,10 @@ class MemoryList extends React.Component {
     let { height, width, memory, isLoaded } = this.state;
     let { memories, named_abstractions, reference_objects, triples } = memory;
 
-    console.log("Memories: ", memories.slice(0, 5));
-    console.log("named_abstractions: ", named_abstractions.slice(0, 5));
-    console.log("reference_objects: ", reference_objects.slice(0, 5));
-    console.log("triples: ", triples.slice(0, 5));
+    // console.log("Memories: ", memories.slice(0, 5));
+    // console.log("named_abstractions: ", named_abstractions.slice(0, 5));
+    // console.log("reference_objects: ", reference_objects.slice(0, 5));
+    // console.log("triples: ", triples.slice(0, 5));
 
     // Triples Schema
     // uuid, subj, subj_text, pred, pred_text, obj, obj_text, confidence
@@ -76,7 +78,7 @@ class MemoryList extends React.Component {
     // Named Abstraction Columns
     // uuid, name
 
-    //     SELECT uuid, node_type, create_time, updated_time, attended_time, is_snapshot
+    // SELECT uuid, node_type, create_time, updated_time, attended_time, is_snapshot
     // FROM Memories;
 
     // SELECT uuid, eid, x, y, z, yaw, pitch, name, type_name, ref_type
@@ -97,29 +99,12 @@ class MemoryList extends React.Component {
       );
     }
 
+    const memoryManager = new MemoryManager(memory);
+
     // final render
     return (
       <div ref={this.outer_div} style={{ margin: 12 }}>
-        <TableContainer component={Paper}>
-          <Table aria-label="simple table" size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell align="right">EID</TableCell>
-                <TableCell align="right">Type</TableCell>
-                <TableCell align="right">Name</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reference_objects.slice(0, 5).map((row) => (
-                <TableRow key={row[0]}>
-                  <TableCell align="right">{row[1]}</TableCell>
-                  <TableCell align="right">{row[9]}</TableCell>
-                  <TableCell align="right">{row[7]}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <ReactVirtualizedTable memoryManager={memoryManager} />
       </div>
     );
   }
