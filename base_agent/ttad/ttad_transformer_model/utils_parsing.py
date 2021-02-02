@@ -26,6 +26,7 @@ def my_xavier_init(m, gain=1):
 class HighwayLayer(torch.nn.Module):
     """Highway transformation used in span prediction.
     """
+
     def __init__(self, dim):
         super(HighwayLayer, self).__init__()
         self.gate_proj = nn.Linear(dim, dim, bias=True)
@@ -60,14 +61,19 @@ class DecoderWithLoss(nn.Module):
         text_span_loss: Cross Entropy loss for text spans
 
     """
+
     def __init__(self, config, args, tokenizer):
         super(DecoderWithLoss, self).__init__()
         # model components
         print("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
-        self.span_b_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
-        self.span_e_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
+        self.span_b_proj = nn.ModuleList(
+            [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
+        )
+        self.span_e_proj = nn.ModuleList(
+            [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
+        )
         # predict text span beginning and end
         self.text_span_start_head = nn.Linear(config.hidden_size, config.hidden_size)
         self.text_span_end_head = nn.Linear(config.hidden_size, config.hidden_size)
@@ -287,6 +293,7 @@ class EncoderDecoderWithLoss(nn.Module):
 
 
     """
+
     def __init__(self, encoder, decoder, args):
         super(EncoderDecoderWithLoss, self).__init__()
         self.encoder = encoder
@@ -571,6 +578,7 @@ def compute_accuracy(outputs, y):
 class OptimWarmupEncoderDecoder(object):
     """Custom wrapper for Adam optimizer, handles lr warmup and smaller lr for encoder fine-tuning.
     """
+
     def __init__(self, model, args):
         self.encoder = model.encoder
         self.decoder = model.decoder

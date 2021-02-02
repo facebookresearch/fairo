@@ -16,6 +16,8 @@ data_path (str) -- Path to plaintext file, eg. annotated.txt
 schema (jsonschema) -- JSON schema we are validating against
 resolver (RefResolver) -- A store of subschemas referenced in the main action dict spec.
 """
+
+
 def validate_data(data_path, schema, resolver):
     with open(data_path) as fd:
         dataset = fd.readlines()
@@ -27,7 +29,7 @@ def validate_data(data_path, schema, resolver):
             except exceptions.ValidationError as e:
                 print(command)
                 pprint(parse_tree)
-                print("\n")                            
+                print("\n")
 
 
 if __name__ == "__main__":

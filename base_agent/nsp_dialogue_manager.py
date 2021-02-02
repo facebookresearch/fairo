@@ -16,14 +16,9 @@ import preprocess
 
 from base_agent.memory_nodes import ProgramNode
 from base_agent.dialogue_manager import DialogueManager
-from base_agent.dialogue_objects import (
-    BotGreet,
-    DialogueObject,
-    Say,
-    coref_resolve,
-    process_spans,
-)
+from base_agent.dialogue_objects import BotGreet, DialogueObject, Say, coref_resolve, process_spans
 from dlevent import sio
+
 dirname = os.path.dirname(__file__)
 
 from base_util import hash_user

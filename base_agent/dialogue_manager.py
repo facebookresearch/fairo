@@ -37,6 +37,7 @@ class DialogueManager(object):
         agent: a droidlet agent
         model: a (perhaps ML) model used by and the model used for manager.
     """
+
     def __init__(self, agent, model):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)

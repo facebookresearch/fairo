@@ -27,7 +27,12 @@ from base_agent.loco_mc_agent import LocoMCAgent
 from perception import Perception, SelfPerception
 from base_agent.argument_parser import ArgumentParser
 import default_behaviors
-from locobot.agent.dialogue_objects import LocoBotCapabilities, LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from locobot.agent.dialogue_objects import (
+    LocoBotCapabilities,
+    LocoGetMemoryHandler,
+    PutMemoryHandler,
+    LocoInterpreter,
+)
 import rotation
 from locobot_mover import LoCoBotMover
 from multiprocessing import set_start_method
@@ -104,21 +109,13 @@ class LocobotAgent(LocoMCAgent):
                     movement[2] -= 0.1
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
-                    self.mover.bot.set_pan(
-                        self.mover.bot.get_pan() + 0.08
-                    )
+                    self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
                 elif command == "PAN_RIGHT":
-                    self.mover.bot.set_pan(
-                        self.mover.bot.get_pan() - 0.08
-                    )
+                    self.mover.bot.set_pan(self.mover.bot.get_pan() - 0.08)
                 elif command == "TILT_UP":
-                    self.mover.bot.set_tilt(
-                        self.mover.bot.get_tilt() - 0.08
-                    )
+                    self.mover.bot.set_tilt(self.mover.bot.get_tilt() - 0.08)
                 elif command == "TILT_DOWN":
-                    self.mover.bot.set_tilt(
-                        self.mover.bot.get_tilt() + 0.08
-                    )
+                    self.mover.bot.set_tilt(self.mover.bot.get_tilt() + 0.08)
             self.mover.move_relative([movement])
 
         @sio.on("sendCommandToAgent")
@@ -219,7 +216,7 @@ class LocobotAgent(LocoMCAgent):
     def send_chat(self, chat: str):
         logging.info("Sending chat: {}".format(chat))
         # Send the socket event to show this reply on dashboard
-        sio.emit("showAssistantReply", {'agent_reply' : "Agent: {}".format(chat)})
+        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
         self.memory.add_chat(self.memory.self_memid, chat)
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)

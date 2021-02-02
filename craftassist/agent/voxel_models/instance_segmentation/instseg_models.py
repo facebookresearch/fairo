@@ -45,6 +45,7 @@ def convbnup(in_planes, out_planes, bias=True):
 class InstSegNet(nn.Module):
     """Basic Instance Segmentation Neural Network
     """
+
     def __init__(self, opts):
         super(InstSegNet, self).__init__()
         if opts.load:
@@ -81,6 +82,7 @@ class InstSegNet(nn.Module):
 class FlatInstSegNet(InstSegNet):
     """Flat Instance Segmentation Neural Network
     """
+
     def __init__(self, opts):
         super(FlatInstSegNet, self).__init__(opts)
 
@@ -145,6 +147,7 @@ class FlatInstSegNet(InstSegNet):
 class MsInstSegNet(InstSegNet):
     """Multi-scale Instance Segmentation Neural Network
     """
+
     def __init__(self, opts):
         super(MsInstSegNet, self).__init__(opts)
 
@@ -225,6 +228,7 @@ class Opt:
 class InstSegWrapper:
     """Wrapper for Instance Segmentation Net
     """
+
     def __init__(self, model, threshold=-1.0, blocks_only=True, cuda=False):
         if type(model) is str:
             opts = Opt()
