@@ -39,7 +39,7 @@ class MCGetMemoryHandler(GetMemoryHandler):
             "reference_objects": ReferenceObjectInterpreter(interpret_reference_object),
             "reference_locations": ReferenceLocationInterpreter(),
             "specify_locations": ComputeLocations(),
-            "point_target": PointTargetInterpreter()
+            "point_target": PointTargetInterpreter(),
         }
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.task_objects = {

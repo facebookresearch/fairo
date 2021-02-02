@@ -43,7 +43,7 @@ class LocoGetMemoryHandler(GetMemoryHandler):
             "reference_locations": ReferenceLocationInterpreter(),
             "specify_locations": ComputeLocations(),
             "attribute": AttributeInterpreter(),
-            "point_target": PointTargetInterpreter()
+            "point_target": PointTargetInterpreter(),
         }
         self.task_objects = {
             "point": Point
