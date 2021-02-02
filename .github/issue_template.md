@@ -1,10 +1,6 @@
 ## Type of Issue
 
-Select the type of issue:
-- [ ] Bug report (to report a bug)
-- [ ] Feature request (to request an additional feature)
-- [ ] Tracker (I am just using this as a tracker)
-- [ ] Documentation Ask
+Tag this issue with one of our Github labels from the Labels menu on the right hand side. For eg - bug reports (to report a bug), feature request (to request an additional feature), documentation (for documentation asks) etc.
 
 ## Description
 
