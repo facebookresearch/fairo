@@ -844,10 +844,11 @@ class TestDialogueManager(unittest.TestCase):
                         self.ground_truth_actions[clean_text] = json.loads(logical_form)
 
     def test_parses(self):
-        table = PrettyTable(["Status", "Command"])
+        table = PrettyTable(["Command", "Overall parsing status", "Parsing model status"])
         records = []
-        pass_cnt, fail_cnt = 0, 0
-        cnt = 0
+        parsing_model_status = False
+        pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
+
         for command in common_functional_commands.keys():
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
@@ -859,19 +860,34 @@ class TestDialogueManager(unittest.TestCase):
                         command, self.agent.dialogue_manager.model
                     )
                 )
+            # compute parsing pipeline accuracy
             status = compare_full_dictionaries(model_prediction, ground_truth_parse)
             if status:
                 pass_cnt += 1
                 record = [
-                    fontcolors.OKGREEN + "PASS" + fontcolors.ENDC,
                     fontcolors.OKGREEN + command + fontcolors.ENDC,
+                    fontcolors.OKGREEN + "PASS" + fontcolors.ENDC, 
                 ]
             else:
                 fail_cnt += 1
                 record = [
-                    fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                     fontcolors.FAIL + command + fontcolors.ENDC,
+                    fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
+            # compute model correctness status
+            model_output = remove_text_span(
+                    self.agent.dialogue_manager.get_logical_form(
+                        command, self.agent.dialogue_manager.model
+                    )
+                )
+            parsing_model_status = compare_full_dictionaries(model_output, ground_truth_parse)
+            if parsing_model_status:
+                model_pass_cnt += 1
+                record += [fontcolors.OKGREEN + "PASS" + fontcolors.ENDC]
+            else:
+                model_fail_cnt += 1
+                record += [fontcolors.FAIL + "FAIL" + fontcolors.ENDC]
+
             records.append(record)
 
         for record in records:
@@ -879,6 +895,7 @@ class TestDialogueManager(unittest.TestCase):
         print(table)
 
         accuracy = round((pass_cnt / (pass_cnt + fail_cnt)) * 100.0, 2)
+        model_accuracy = round((model_pass_cnt / (model_pass_cnt + model_fail_cnt)) * 100.0, 2)
         print_str = (
             fontcolors.OKGREEN
             + "Pass: {} "
@@ -887,12 +904,24 @@ class TestDialogueManager(unittest.TestCase):
             + "Fail: {} "
             + fontcolors.ENDC
             + fontcolors.OKCYAN
-            + "Accuracy: {}%"
+            + "Parsing pipeline accuracy: {}%"
+            + fontcolors.ENDC
+        )
+        print_model_str = (
+            fontcolors.OKGREEN
+            + "Pass: {} "
+            + fontcolors.ENDC
+            + fontcolors.FAIL
+            + "Fail: {} "
+            + fontcolors.ENDC
+            + fontcolors.OKCYAN
+            + "Parsing model accuracy: {}%"
             + fontcolors.ENDC
         )
         print(print_str.format(pass_cnt, fail_cnt, accuracy))
-        print("Total commands : %r" % (len(list(common_functional_commands.keys()))))
-        print("total found in ground truth: %r" % (cnt))
+        print("Printing Model accuracy status ... ")
+        print(print_model_str.format(model_pass_cnt, model_fail_cnt, model_accuracy))
+        # check that parsing pipeline is at a 100% accuracy
         self.assertTrue(accuracy==100.0)
 
 
