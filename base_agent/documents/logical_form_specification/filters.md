@@ -17,13 +17,13 @@ The supported fields are :
 ```
 FILTERS = { 
       "output" : "MEMORY" / "COUNT" / <ATTRIBUTE>,
-	    "contains_coreference": "yes",
+      "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
-	    "argval" : <ARGMAX> / <ARGMIN> ,
-	    "comparator": [<COMPARATOR> , ...],
-	    "triples": <TRIPLES>,
-	    "author":  "AGENT" / "SPEAKER" / span,
-	    "location": <LOCATION> }
+      "argval" : <ARGMAX> / <ARGMIN> ,
+      "comparator": [<COMPARATOR> , ...],
+      "triples": <TRIPLES>,
+      "author":  "AGENT" / "SPEAKER" / span,
+      "location": <LOCATION> }
 ```
 
 ## ATTRIBUTE ##
