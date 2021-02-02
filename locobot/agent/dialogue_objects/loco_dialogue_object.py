@@ -17,5 +17,8 @@ class LocoBotCapabilities(BotCapabilities):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        loco_response_options = []
+        loco_response_options = [
+            "I can find your jacket",
+            "I can find humans",
+        ]
         self.response_options.extend(loco_response_options)

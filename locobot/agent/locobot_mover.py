@@ -174,8 +174,8 @@ class LoCoBotMover:
 
         the standard coordinate systems:
           Camera looks at (0, 0, 1),
-         its right direction is (1, 0, 0) and
-         its up-direction is (0, 1, 0)
+          its right direction is (1, 0, 0) and
+          its up-direction is (0, 1, 0)
 
          return:
          (x, z, yaw) of the Locobot base in standard coordinates
