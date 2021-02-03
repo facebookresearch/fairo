@@ -2,7 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 # This script checks if models and datasets are up to date, and either triggers a download or gives the user a warning to update local files.
-ROOTDIR=$(readlink -f $(dirname "$0")/../../)
+function pyabspath() {
+    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+}
+
+ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
 
 if [ -z $1 ]

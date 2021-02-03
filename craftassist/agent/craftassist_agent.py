@@ -34,6 +34,7 @@ if __name__ == "__main__":
 from base_agent.nsp_dialogue_manager import NSPDialogueManager
 from base_agent.base_util import Pos, Look
 from base_agent.loco_mc_agent import LocoMCAgent
+from base_agent.memory_nodes import PlayerNode
 from base_agent.argument_parser import ArgumentParser
 from dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from low_level_perception import LowLevelMCPerception
@@ -331,18 +332,7 @@ class CraftAssistAgent(LocoMCAgent):
             p = self.get_player()
         except:  # this is for test/test_agent
             return
-        self.memory._db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, name, ref_type, x, y, z, pitch, yaw) VALUES (?,?,?,?,?,?,?,?,?)",
-            self.memory.self_memid,
-            p.entityId,
-            p.name,
-            "player",
-            p.pos.x,
-            p.pos.y,
-            p.pos.z,
-            p.look.pitch,
-            p.look.yaw,
-        )
+        PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
 
 
 if __name__ == "__main__":

@@ -70,10 +70,18 @@ CREATE TRIGGER VoxelObjectsDelete AFTER DELETE ON VoxelObjects
     WHEN ((SELECT COUNT(*) FROM VoxelObjects WHERE uuid=OLD.uuid LIMIT 1) == 0)
     BEGIN DELETE FROM Memories WHERE uuid=OLD.uuid;
 END; -- delete memory when last block is removed
-CREATE TRIGGER VoxelObjectsUpdate AFTER UPDATE ON VoxelObjects
+CREATE TRIGGER VoxelObjectsUpdateCheckDeleted AFTER UPDATE ON VoxelObjects
     WHEN ((SELECT COUNT(*) FROM VoxelObjects WHERE uuid=OLD.uuid LIMIT 1) == 0)
     BEGIN DELETE FROM Memories WHERE uuid=OLD.uuid;
 END; -- delete memory when last block is removed
+CREATE TRIGGER VoxelObjectsUpdate AFTER UPDATE ON VoxelObjects
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
+--if a block is deleted, mark the uuid as updated, not deleted
+--if all the blocks are deleted, VoxelObjectsDelete and then MemoryRemoved Triggers will fire
+CREATE TRIGGER VoxelObjectsBlockDelete AFTER DELETE ON VoxelObjects
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
 
 
 CREATE TABLE ArchivedVoxelObjects (
@@ -130,8 +138,18 @@ CREATE TABLE Mobs (
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
+CREATE TRIGGER MobsUpdate AFTER UPDATE ON Mobs
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;
+
 CREATE TABLE Rewards (
     uuid    NCHAR(36)       PRIMARY KEY,
     value   VARCHAR(32)     NOT NULL, -- {POSITIVE, NEGATIVE}
-    time    INTEGER         NOT NULL
+    time    INTEGER         NOT NULL,
+    
+    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
+
+CREATE TRIGGER RewardsUpdate AFTER UPDATE ON Rewards
+    BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
+END;

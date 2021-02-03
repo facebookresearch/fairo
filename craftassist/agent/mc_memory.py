@@ -113,6 +113,8 @@ class MCAgentMemory(AgentMemory):
     ### Voxels  ###
     ###############
 
+    # FIXME: move these to VoxelObjectNode
+
     # count updates are done by hand to not need to count all voxels every time
     # use these functions, don't add/delete/modify voxels with raw sql
 
@@ -122,7 +124,7 @@ class MCAgentMemory(AgentMemory):
         c = self._db_read_one("SELECT voxel_count FROM ReferenceObjects WHERE uuid=?", memid)
         if c:
             count = c[0] + dn
-            self._db_write("UPDATE ReferenceObjects SET voxel_count=? WHERE uuid=?", count, memid)
+            self.db_write("UPDATE ReferenceObjects SET voxel_count=? WHERE uuid=?", count, memid)
             return count
         else:
             return None
@@ -148,7 +150,7 @@ class MCAgentMemory(AgentMemory):
                 old_loc[1] * a + loc[1] * b,
                 old_loc[2] * a + loc[2] * b,
             )
-            self._db_write(
+            self.db_write(
                 "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?", *new_loc, memid
             )
             return new_loc
@@ -170,13 +172,9 @@ class MCAgentMemory(AgentMemory):
         c = self.update_voxel_count(memid, -1)
         if c > 0:
             self.update_voxel_mean(memid, c, (x, y, z))
-        self._db_write(
+        self.db_write(
             "DELETE FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?", x, y, z, ref_type
         )
-        if c == 0:
-            # if not self.memory.check_memid_exists(memid, "VoxelObjects"):
-            # object is gone now.  TODO be more careful here... maybe want to keep some records?
-            self.remove_memid_triple(memid, role="both")
 
     def upsert_block(
         self,
@@ -212,7 +210,7 @@ class MCAgentMemory(AgentMemory):
                 cmd = "UPDATE VoxelObjects SET uuid=?, bid=?, meta=?, updated=?, player_placed=?, agent_placed=? WHERE ref_type=? AND x=? AND y=? AND z=?"
         else:
             cmd = "INSERT INTO VoxelObjects (uuid, bid, meta, updated, player_placed, agent_placed, ref_type, x, y, z) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        self._db_write(
+        self.db_write(
             cmd, memid, b, m, self.get_time(), player_placed, agent_placed, ref_type, x, y, z
         )
 
@@ -471,7 +469,7 @@ class MCAgentMemory(AgentMemory):
         """Update the position of mob in memory"""
         r = self._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", mob.entityId)
         if r:
-            self._db_write(
+            self.db_write(
                 "UPDATE ReferenceObjects SET x=?, y=?, z=?, yaw=?, pitch=? WHERE eid=?",
                 mob.pos.x,
                 mob.pos.y,
@@ -496,7 +494,7 @@ class MCAgentMemory(AgentMemory):
         """
         r = self._db_read_one("SELECT * FROM ReferenceObjects WHERE uuid=?", memid)
         if r:
-            self._db_write("UPDATE ReferenceObjects SET eid=? WHERE uuid=?", eid, memid)
+            self.db_write("UPDATE ReferenceObjects SET eid=? WHERE uuid=?", eid, memid)
         return self.get_mem_by_id(memid)
 
     def set_item_stack_position(self, item_stack) -> "ItemStackNode":
@@ -507,7 +505,7 @@ class MCAgentMemory(AgentMemory):
         """
         r = self._db_read_one("SELECT uuid FROM ReferenceObjects WHERE eid=?", item_stack.entityId)
         if r:
-            self._db_write(
+            self.db_write(
                 "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE eid=?",
                 item_stack.pos.x,
                 item_stack.pos.y,

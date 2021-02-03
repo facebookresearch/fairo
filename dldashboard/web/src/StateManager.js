@@ -188,20 +188,20 @@ class StateManager {
           // Right
           commands.push("MOVE_RIGHT");
         }
-        if (k === 65) {
-          // A
+        if (k === 49) {
+          // 1
           commands.push("PAN_LEFT");
         }
-        if (k === 68) {
-          // D
+        if (k === 50) {
+          // 2
           commands.push("PAN_RIGHT");
         }
-        if (k === 87) {
-          // W
+        if (k === 51) {
+          // 3
           commands.push("TILT_UP");
         }
-        if (k === 83) {
-          // S
+        if (k === 52) {
+          // 4
           commands.push("TILT_DOWN");
         }
       }

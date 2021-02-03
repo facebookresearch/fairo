@@ -31,7 +31,7 @@ You want to do one of three things:
         <td colspan="3"  align="left">
           1. Clone the source code
             <sub><pre lang="bash">
-git clone --depth=1 --recursive https://github.com/facebookresearch/droidlet.git
+git clone --recursive https://github.com/facebookresearch/droidlet.git
 cd droidlet
             </pre></sub>
         </td>    
@@ -62,13 +62,11 @@ cd droidlet
     <tr valign="top">        
         <td> 2. Install dependencies
         <sub><pre lang="bash">
-pip install -r requirements.txt
 pip install -r \
     locobot/requirements.txt
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
-pip install -r requirements.txt
 pip install -r \
     craftassist/requirements.txt
         </pre></sub></td>
@@ -118,7 +116,7 @@ pip install -r requirements.txt
 
 
 Two papers cover the design of droidlet:
-1. [droidlet: modular, heterogenous, multi-modal agents](./droidlet.pdf) covers the overall design of `droidlet` as an embodied AI platform that is extensible to physical robots and simulators.
+1. [droidlet: modular, heterogenous, multi-modal agents](https://arxiv.org/abs/2101.10384) covers the overall design of `droidlet` as an embodied AI platform that is extensible to physical robots and simulators.
 2. [CraftAssist: A Framework for Dialogue-enabled Interactive Agents](https://arxiv.org/abs/1907.08584) covers the design of the dialogue parser and the task system of an earlier version of `droidlet` that is specific to the game [Minecraft](https://www.minecraft.net/en-us)
 
 ## License

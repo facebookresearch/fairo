@@ -31,8 +31,8 @@ bert_config.vocab_size = len(tree_i2w) + 8
 bert_config.num_hidden_layers = args.num_decoder_layers
 dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
 encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
-encoder_decoder.load_state_dict(torch.load(model))
-
+map_location = None if torch.cuda.is_available() else torch.device("cpu")
+encoder_decoder.load_state_dict(torch.load(model, map_location=map_location), strict=False)
 encoder_decoder = encoder_decoder.cuda()
 _ = encoder_decoder.eval()
 

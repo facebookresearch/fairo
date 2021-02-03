@@ -245,7 +245,7 @@ bool Agent::setHeldItem(py::object arg) {
     auto slotPair = arg.cast<pair<uint16_t, uint8_t>>();
     item.id = slotPair.first;
     item.meta = slotPair.second;
-  } catch (py::cast_error) {
+  } catch (py::cast_error const&) {
     // Handle id
     item.id = arg.cast<uint16_t>();
     item.meta = 0;
@@ -319,7 +319,7 @@ int Agent::craft(py::object arg) {
     // Handle (id, meta)
     auto p = arg.cast<pair<uint16_t, uint8_t>>();
     return client_.craft(p.first, p.second);
-  } catch (py::cast_error) {
+  } catch (py::cast_error const&) {
     // Handle id
     return client_.craft(arg.cast<uint16_t>(), 0);
   }

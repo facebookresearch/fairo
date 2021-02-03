@@ -18,7 +18,7 @@ ReactDOM.render(
                 <Link to="/">Root</Link>
               </li>
               <li>
-                <Link to="/autocomplete">Filters Annotator</Link>
+                <Link to="/autocomplete">Autocomplete Parse Tree Annotator</Link>
               </li>
             </ul>
           </nav>
