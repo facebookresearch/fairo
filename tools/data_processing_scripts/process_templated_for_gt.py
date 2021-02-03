@@ -1,5 +1,5 @@
 """
-This script scrapes player logs from S3 and grabs the commands that are most played.
+This script processes large files eg. templated generations to create ground truth annotations.
 """
 import argparse
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_path",
         type=str,
-        help="Where to write groound truth annootations to.",
+        help="Where to write groound truth annotations to.",
         default="craftassist/agent/datasets/ground_truth/datasets/templated.txt"
     )
     args = parser.parse_args()
