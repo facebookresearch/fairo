@@ -23,7 +23,7 @@ def assert_turn_degree(initial_yaw, final_yaw, turn_degree):
     initial_d = math.degrees(initial_yaw) % 360
     final_d = math.degrees(final_yaw) % 360
     expect_fd = (initial_d + turn_degree) % 360
-    # to make dist(0, 359.9) = dist(0, 0.1), convert angle in 2D location based on unit circle and then take l2 dist between point
+    # to make dist(0, 359.9) = dist(0, 0.1), convert angle to 2D location based on unit circle and then compare location
     final_loc = [math.cos(math.radians(final_d)), math.sin(math.radians(final_d))]
     expect_loc = [math.cos(math.radians(expect_fd)), math.sin(math.radians(expect_fd))]
     assert_allclose(final_loc, expect_loc, atol=2e-7)

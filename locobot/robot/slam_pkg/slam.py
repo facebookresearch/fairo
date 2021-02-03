@@ -127,8 +127,15 @@ class Slam(object):
         self.goal_loc = goal
         self.goal_loc_map = self.real2map(self.goal_loc[:2])
 
-    def set_relative_goal_in_pr_frame(self, goal):
+    def set_relative_goal_in_robot_frame(self, goal):
+        """
+        goal is 3 len tuple with position in real world in robot current frmae
+        :param goal: goal to be reached in metric unit
 
+        :type goal: tuple
+
+        :return:
+        """
         robot_pr_pose = self.get_robot_global_state()
         # check this part
         abs_pr_goal = list(self.get_rel_state(goal, (0.0, 0.0, -robot_pr_pose[2])))
@@ -144,7 +151,15 @@ class Slam(object):
         while self.take_step(25) is None:
             continue
 
-    def set_absolute_goal_in_pr_frame(self, goal):
+    def set_absolute_goal_in_robot_frame(self, goal):
+        """
+        goal is 3 len tuple with position in real world in robot start frmae
+        :param goal: goal to be reached in metric unit
+
+        :type goal: tuple
+
+        :return:
+        """
         # convert the relative goal to abs goal
         self.goal_loc = self.get_rel_state(goal, self.init_state)
         # convert the goal in inti frame
