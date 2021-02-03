@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autocompleteMatches from './spec/filters_spec';
+import autocompleteMatches from './spec/grammar_spec';
 
 
 class FiltersAnnotator extends React.Component {
