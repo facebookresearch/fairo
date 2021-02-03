@@ -17,14 +17,14 @@ def read_file(file_path):
 def update_tree():
     raise NotImplementedException
 
-def traverse_tree(command: str, action_dict: dict):
+def traverse_tree(command, action_dict):
     traverse_subtree(command, action_dict)
     print("final tree:")
     pp.pprint(action_dict)
     print(action_dict)
     return action_dict
 
-def get_span_range(text: str, command: str):
+def get_span_range(text, command):
     index = command.find(text)
     if index == -1:
         return index
@@ -39,7 +39,7 @@ def get_span_range(text: str, command: str):
 
         return -1
 
-def traverse_subtree(command: str, action_dict: dict):
+def traverse_subtree(command, action_dict):
     for key, value in [x for x in action_dict.items()]:
         if type(value) == dict:
             traverse_subtree(command, value)
