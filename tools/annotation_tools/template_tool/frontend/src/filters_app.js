@@ -71,7 +71,7 @@ class FiltersAnnotator extends React.Component {
   componentDidMount() {
     fetch("http://localhost:9000/readAndSaveToFile/get_commands")
       .then(res => res.text())
-      .then((text) => { this.setState({ fullText: text.split("\n") }) })
+      .then((text) => { this.setState({ fullText: text.split("\n").filter(r => r !== "") }) })
 
     fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
       .then(res => res.json())
@@ -86,6 +86,10 @@ class FiltersAnnotator extends React.Component {
   incrementIndex() {
     console.log("Moving to the next command")
     console.log(this.state.currIndex)
+    console.log(this.state.fullText)
+    if (this.state.currIndex + 1 >= this.state.fullText.length) {
+      alert("Congrats! You have reached the end of annotations.")
+    }
     this.setState({ currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex + 1]] ?? "")});
   }
 
