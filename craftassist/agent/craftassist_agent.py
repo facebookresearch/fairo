@@ -136,14 +136,27 @@ class CraftAssistAgent(LocoMCAgent):
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
             dialogue_manager = self.dialogue_manager
-            # send back the dictionary
+            logical_form = {}
+            status = ""
             try:
-                x = dialogue_manager.get_logical_form(s=command, model=dialogue_manager.model)
-                logging.info("logical form is : %r" % (x))
-                payload = {"status": "Sent successfully", "chat": command, "chatResponse": x}
+                logical_form = dialogue_manager.get_logical_form(
+                    s=command, model=dialogue_manager.model
+                )
+                logging.info("logical form is : %r" % (logical_form))
+                status = "Sent successfully"
             except:
                 logging.info("error in sending chat")
-                payload = {"status": "Error in sending chat", "chat": command, "chatResponse": {}}
+                status = "Error in sending chat"
+            # update server memory
+            self.dashboard_memory["chatResponse"][command] = logical_form
+            self.dashboard_memory["chats"].pop(0)
+            self.dashboard_memory["chats"].append({"msg": command, "failed": False})
+            payload = {
+                "status": status,
+                "chat": command,
+                "chatResponse": self.dashboard_memory["chatResponse"][command],
+                "allChats": self.dashboard_memory["chats"],
+            }
             sio.emit("setChatResponse", payload)
 
     def init_inventory(self):
