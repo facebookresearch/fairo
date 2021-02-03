@@ -96,7 +96,7 @@ class RemoteLocobot(object):
         if self.backend == "locobot":
             return (
                 self._robot.camera.depth_cam.cfg_data["Camera.height"],
-                self._robot.camera.depth_cam.cfg_data["Camera.height"],
+                self._robot.camera.depth_cam.cfg_data["Camera.width"],
             )
         elif self.backend == "habitat":
             return (512, 512)
