@@ -16,12 +16,15 @@ mypy-extensions==0.4.1
 mypy==0.701
 numpy
 python-dateutil==2.7.2
+python-Levenshtein==0.12.0
 s3transfer==0.3.3
 scikit-learn==0.23.1
 sentry-sdk==0.7.9
 six==1.11.0
 snowballstemmer==1.2.1
 spacy==2.0.12
+torch>=1.4.0
+torchvision>=0.5.0
 tqdm==4.41.1
 word2number==1.1
 transformers==3.3.1
@@ -29,6 +32,7 @@ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0
 coverage
 flask-cors
 flask
-python-socketio>=5.0
+prettytable
+python-socketio>=5.0.3
 pytest
 pytest-cov

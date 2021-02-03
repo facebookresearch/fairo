@@ -22,7 +22,6 @@ from base_agent.dialogue_objects import (
     interpret_relative_direction,
     get_repeat_num,
     filter_by_sublocation,
-    interpret_point_target,
 )
 
 from .schematic_helper import get_repeat_dir, interpret_schematic, interpret_size
@@ -40,6 +39,7 @@ from .spatial_reasoning import ComputeLocations
 from .block_helpers import get_block_type
 from .condition_helper import MCConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
+from .point_target import PointTargetInterpreter
 from base_agent.base_util import ErrorWithResponse
 from base_agent.memory_nodes import PlayerNode
 from mc_memory_nodes import MobNode, ItemStackNode
@@ -62,6 +62,7 @@ class MCInterpreter(Interpreter):
         self.subinterpret["condition"] = MCConditionInterpreter()
         self.subinterpret["specify_locations"] = ComputeLocations()
         self.subinterpret["facing"] = FacingInterpreter()
+        self.subinterpret["point_target"] = PointTargetInterpreter()
 
         # logical_form --> possible task placed on stack + side effects
         self.action_handlers["BUILD"] = self.handle_build
@@ -448,7 +449,7 @@ class MCInterpreter(Interpreter):
             if type(dance_type) is str:
                 dance_type = dance_type = {"dance_type_name": "dance"}
             if dance_type.get("point"):
-                target = interpret_point_target(self, speaker, dance_type["point"])
+                target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
                 for i in range(repeat):
                     t = self.task_objects["point"](self.agent, {"target": target})
                     tasks_to_do.append(t)

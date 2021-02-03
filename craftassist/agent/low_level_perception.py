@@ -38,6 +38,7 @@ class LowLevelMCPerception:
         agent (LocoMCAgent): reference to the minecraft Agent
         perceive_freq (int): if not forced, how many Agent steps between perception
     """
+
     def __init__(self, agent, perceive_freq=5):
         self.agent = agent
         self.memory = agent.memory
@@ -93,7 +94,7 @@ class LowLevelMCPerception:
         memid = self.memory.get_player_by_eid(p.entityId).memid
         cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
         cmd = cmd + "uuid=?"
-        self.memory._db_write(
+        self.memory.db_write(
             cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
         )
 
@@ -112,7 +113,7 @@ class LowLevelMCPerception:
                 "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
             )
             cmd = cmd + "uuid=?"
-            self.memory._db_write(
+            self.memory.db_write(
                 cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
             )
             loc = capped_line_of_sight(self.agent, p)
@@ -122,7 +123,7 @@ class LowLevelMCPerception:
                 p.entityId,
             )
             if memids:
-                self.memory._db_write(
+                self.memory.db_write(
                     "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
                     loc[0],
                     loc[1],
@@ -154,36 +155,16 @@ class LowLevelMCPerception:
         pass
 
     def maybe_remove_inst_seg(self, xyz):
-        """Update instance segmentation label of blocks"""
+        """if the block is changed, the old instance segmentation is considered no longer valid"""
         # get all associated instseg nodes
-        info = self.memory.get_instseg_object_ids_by_xyz(xyz)
-        if not info or len(info) == 0:
-            pass
-
-        # first delete the InstSeg info on the loc of this block
-        self.memory._db_write(
-            'DELETE FROM VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?', *xyz
-        )
-
-        # then for each InstSeg, check if all blocks of same InstSeg node has
-        # already been deleted. if so, delete the InstSeg node entirely
-        for memid in info:
-            memid = memid[0]
-            xyzs = self.memory._db_read(
-                'SELECT x, y, z FROM VoxelObjects WHERE ref_type="inst_seg" AND uuid=?', memid
-            )
-            all_deleted = True
-            for xyz in xyzs:
-                r = self.memory._db_read(
-                    'SELECT * FROM VoxelObjects WHERE ref_type="inst_seg" AND uuid=? AND x=? AND y=? AND z=?',
-                    memid,
-                    *xyz
-                )
-                if bool(r):
-                    all_deleted = False
-            if all_deleted:
-                # TODO make an archive.
-                self.memory._db_write("DELETE FROM Memories WHERE uuid=?", memid)
+        # FIXME make this into a basic search
+        inst_seg_memids = self.memory.get_instseg_object_ids_by_xyz(xyz)
+        if inst_seg_memids:
+            # delete the InstSeg, they are ephemeral and should be recomputed
+            # TODO/FIXME  more refined approach: if a block changes
+            # ask the models to recompute.  if the tags are the same, keep it
+            for i in inst_seg_memids:
+                self.memory.forget(i[0])
 
     # clean all this up...
     # eventually some conditions for not committing air/negative blocks
@@ -237,14 +218,14 @@ class LowLevelMCPerception:
 
             # merge tags
             where = " OR ".join(["subj=?"] * len(adjacent_memids))
-            self.memory._db_write(
+            self.memory.db_write(
                 "UPDATE Triples SET subj=? WHERE " + where, chosen_memid, *adjacent_memids
             )
 
             # merge multiple block objects (will delete old ones)
             where = " OR ".join(["uuid=?"] * len(adjacent_memids))
             cmd = "UPDATE VoxelObjects SET uuid=? WHERE "
-            self.memory._db_write(cmd + where, chosen_memid, *adjacent_memids)
+            self.memory.db_write(cmd + where, chosen_memid, *adjacent_memids)
 
             # insert new block
             self.memory.upsert_block(

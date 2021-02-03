@@ -18,9 +18,6 @@ class BaseAgent:
                 self.step()
             except Exception as e:
                 self.handle_exception(e)
-                if os.getenv('DEVMODE'):
-                    # raise immediately in dev mode to catch and fix errors
-                    raise e
 
     def step(self):
         self.perceive()

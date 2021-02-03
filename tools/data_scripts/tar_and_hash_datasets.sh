@@ -10,7 +10,11 @@
 # https://s3.console.aws.amazon.com/s3/buckets/craftassist?region=us-west-2&prefix=pubr/&showversions=false 
 # and upload both ``datasets_folder.tar.gz`` and ``checksum.txt``.
 
-ROOTDIR=$(readlink -f $(dirname "$0")/../../)
+function pyabspath() {
+    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+}
+
+ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
 
 if [ -z $1 ]

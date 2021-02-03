@@ -15,7 +15,7 @@ class SelfPerception:
         # clean this up!  FIXME!!!!! put in base_agent_memory?
         # how/when to, memory is initialized before physical interfaces...
         # currently use self_memid for eid
-        self.memory._db_write(
+        self.memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, name, ref_type, x, y, z, pitch, yaw) VALUES (?,?,?,?,?,?,?,?,?)",
             self.memory.self_memid,
             self.memory.self_memid,
@@ -50,13 +50,13 @@ class SelfPerception:
         cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
         cmd = cmd + "uuid=?"
         # using self_memid as eid too
-        self.memory._db_write(
+        self.memory.db_write(
             cmd,
             memid,
             self.agent.name,
             self.agent.pos[0],
-            self.agent.pos[1],
             0.0,
+            self.agent.pos[1],
             self.agent.pitch,
             self.agent.yaw,
             memid,

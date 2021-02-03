@@ -38,7 +38,7 @@ class MemoryNode:
         """
         memid = uuid.uuid4().hex
         t = agent_memory.get_time()
-        agent_memory._db_write(
+        agent_memory.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", memid, cls.NODE_TYPE, t, t, t, snapshot
         )
         return memid
@@ -89,7 +89,7 @@ class MemoryNode:
             qs += "?, "
         write_cmd = write_cmd.strip(", ")
         write_cmd += ") VALUES (" + qs.strip(", ") + ")"
-        agent_memory._db_write(write_cmd, *new_data)
+        agent_memory.db_write(write_cmd, *new_data)
         link_archive_to_mem(agent_memory, self.memid, archive_memid)
 
 
@@ -149,7 +149,7 @@ class ProgramNode(MemoryNode):
             >>> create(memory, logical_form)
         """
         memid = cls.new(memory, snapshot=snapshot)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)", memid, format(logical_form)
         )
         return memid
@@ -205,7 +205,100 @@ class NamedAbstractionNode(MemoryNode):
         if memid:
             return memid[0]
         memid = cls.new(memory, snapshot=snapshot)
-        memory._db_write("INSERT INTO NamedAbstractions(uuid, name) VALUES (?,?)", memid, name)
+        memory.db_write("INSERT INTO NamedAbstractions(uuid, name) VALUES (?,?)", memid, name)
+        return memid
+
+
+class TripleNode(MemoryNode):
+    """This class represents a (subject, predicate, object) KB triple
+    
+    Args:
+        agent_memory (AgentMemory): An AgentMemory object
+        memid (string): Memory ID for this node
+    
+    Attributes:
+        subj_text (string): the text of the subject
+        subj (string):      the memid of the subject
+        pred_text (string): the text of the predicate
+        pred (string):      the memid of the predicate (a NamedAbstraction)
+        obj_text (string):  the text of the object
+        obj (string):       the memid of the object
+        confidence (float): float between 0 and 1, currently unused
+    
+    """
+
+    TABLE_COLUMNS = [
+        "uuid",
+        "subj",
+        "subj_text",
+        "pred",
+        "pred_text",
+        "obj",
+        "obj_text",
+        "confidence",
+    ]
+    TABLE = "Triples"
+    NODE_TYPE = "Triple"
+
+    def __init__(self, agent_memory, memid: str):
+        super().__init__(agent_memory, memid)
+        self.triple = self.agent_memory._db_read_one(
+            "SELECT subj_text, subj, pred_text, pred, obj_text, obj, confidence FROM Triples WHERE uuid=?",
+            self.memid,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        memory,
+        snapshot: bool = False,
+        subj: str = None,  # this is a memid if given
+        obj: str = None,  # this is a memid if given
+        subj_text: str = None,
+        pred_text: str = "has_tag",
+        obj_text: str = None,
+        confidence: float = 1.0,
+    ) -> str:
+        """Adds (subj, pred, obj) triple to the triplestore.
+            *_text is the name field of a NamedAbstraction; if
+            such a NamedAbstraction does not exist, this builds it as a side effect.
+            subj and obj can be memids or text, but pred_text is required
+
+        Args:
+            subj (string): memid of subject
+            obj (string): memid of object
+            subj_text (string): text representation for subject
+            pred_text (string): predicate text
+            obj_text (string): text representation for object
+            confidence (float): The confidence score for the triple
+
+        Returns:
+            str: memid of triple
+
+
+        """
+        assert subj or subj_text
+        assert obj or obj_text
+        assert not (subj and subj_text)
+        assert not (obj and obj_text)
+        # TODO check if triple exists, don't make it again
+        memid = cls.new(memory, snapshot=snapshot)
+        pred = NamedAbstractionNode.create(memory, pred_text)
+        if not obj:
+            obj = NamedAbstractionNode.create(memory, obj_text)
+        if not subj:
+            subj = NamedAbstractionNode.create(memory, subj_text)
+        memory.db_write(
+            "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            memid,
+            subj,
+            subj_text,
+            pred,
+            pred_text,
+            obj,
+            obj_text,
+            confidence,
+        )
         return memid
 
 
@@ -226,7 +319,7 @@ class SetNode(MemoryNode):
     @classmethod
     def create(cls, memory, snapshot=False) -> str:
         memid = cls.new(memory, snapshot=snapshot)
-        memory._db_write("INSERT INTO SetMems(uuid) VALUES (?)", memid, memory.get_time())
+        memory.db_write("INSERT INTO SetMems(uuid) VALUES (?)", memid, memory.get_time())
         return memid
 
     def get_members(self):
@@ -310,7 +403,7 @@ class PlayerNode(ReferenceObjectNode):
         self.yaw = yaw
 
     @classmethod
-    def create(cls, memory, player_struct) -> str:
+    def create(cls, memory, player_struct, memid=None) -> str:
         """Creates a new entry into the ReferenceObjects table
         
         Returns:
@@ -325,8 +418,8 @@ class PlayerNode(ReferenceObjectNode):
             )
             >>> create(memory, player_struct)
         """
-        memid = cls.new(memory)
-        memory._db_write(
+        memid = memid or cls.new(memory)
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, eid, name, x, y, z, pitch, yaw, ref_type) VALUES (?,?,?,?,?,?,?,?,?)",
             memid,
             player_struct.entityId,
@@ -352,7 +445,7 @@ class PlayerNode(ReferenceObjectNode):
     def update(cls, memory, p, memid) -> str:
         cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
         cmd = cmd + "uuid=?"
-        memory._db_write(
+        memory.db_write(
             cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
         )
         return memid
@@ -457,7 +550,7 @@ class LocationNode(ReferenceObjectNode):
             >>> create(memory, xyz)
         """
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?)",
             memid,
             xyz[0],
@@ -526,7 +619,7 @@ class AttentionNode(LocationNode):
             >>> create(memory, xyz, attender)
         """
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO ReferenceObjects(uuid, x, y, z, type_name, ref_type) VALUES (?, ?, ?, ?, ?, ?)",
             memid,
             xyz[0],
@@ -581,7 +674,7 @@ class TimeNode(MemoryNode):
             >>> create(memory, time)
         """
         memid = cls.new(memory)
-        memory._db_write("INSERT INTO Times(uuid, time) VALUES (?, ?)", memid, time)
+        memory.db_write("INSERT INTO Times(uuid, time) VALUES (?, ?)", memid, time)
         return memid
 
 
@@ -635,7 +728,7 @@ class ChatNode(MemoryNode):
             >>> create(memory, speaker, chat)
         """
         memid = cls.new(memory)
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO Chats(uuid, speaker, chat, time) VALUES (?, ?, ?, ?)",
             memid,
             speaker,
@@ -698,7 +791,7 @@ class TaskNode(MemoryNode):
         """
         memid = cls.new(memory)
         task.memid = memid  # FIXME: this shouldn't be necessary, merge Task and TaskNode?
-        memory._db_write(
+        memory.db_write(
             "INSERT INTO Tasks (uuid, action_name, pickled, created_at) VALUES (?,?,?,?)",
             memid,
             task.__class__.__name__,
@@ -767,6 +860,7 @@ NODELIST = [
     ChatNode,
     LocationNode,
     AttentionNode,
+    TripleNode,
     SetNode,
     TimeNode,
     PlayerNode,

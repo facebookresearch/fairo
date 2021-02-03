@@ -80,6 +80,16 @@ class DialogueObject(object):
             self.finished = True
         return self.finished
 
+    def append_new_task(self, cls, data=None):
+        # this is badly named, FIXME
+        # add a tick to avoid two tasks having same timestamp
+        self.memory.add_tick()
+        if data is None:
+            self.memory.task_stack_push(cls, chat_effect=True)
+        else:
+            task = cls(self.agent, data)
+            self.memory.task_stack_push(task, chat_effect=True)
+
     def __repr__(self):
         return str(type(self))
 
