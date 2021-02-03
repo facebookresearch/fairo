@@ -203,8 +203,8 @@ class Memory2D extends React.Component {
       <div ref={this.outer_div} style={{ height: "100%", width: "100%" }}>
         <Stage className="memory2d" width={width} height={height}>
           <Layer className="gridLayer">{gridLayer}</Layer>
-          <Layer className="renderedObjects">{renderedObjects}</Layer>
           <Layer className="mapBoundary">{mapBoundary}</Layer>
+          <Layer className="renderedObjects">{renderedObjects}</Layer>
           <Layer>
             <Text
               text={tooltip}
