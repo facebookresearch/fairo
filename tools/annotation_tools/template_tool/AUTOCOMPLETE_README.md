@@ -79,5 +79,5 @@ On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/temp
 ...
 ```
 
-Then, this file is uploaded to our S3 bucket `s3://craftassist/pubr/`. It is now ready to be used in training, validation or ground truth actions!
+Then, this file is uploaded to the S3 URI `s3://craftassist/pubr/high_pri_commands.txt`. It is now ready to be used in training, validation or ground truth actions!
 
