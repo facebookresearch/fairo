@@ -249,7 +249,8 @@ class LoCoBotMover:
     def get_obstacles_in_canonical_coords(self):
         """get the positions of obtacles position in the canonical coordinate system
         instead of the Locobot's global coordinates as stated in the Locobot
-        documentation: https://www.pyrobot.org/docs/navigation.
+        documentation: https://www.pyrobot.org/docs/navigation or 
+        https://github.com/facebookresearch/pyrobot/blob/master/docs/website/docs/ex_navigation.md
 
         the standard coordinate systems:
           Camera looks at (0, 0, 1),
