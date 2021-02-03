@@ -33,7 +33,7 @@ class LoCoBotMover:
         backend (string): backend where the Locobot lives, either "habitat" or "locobot"
     """
 
-    def __init__(self, ip=None, backend="locobot"):
+    def __init__(self, ip=None, backend="locobot", use_dslam=False):
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
         self.close_loop = False if backend == "habitat" else True
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
@@ -47,6 +47,7 @@ class LoCoBotMover:
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
+        self.bot.set_use_dslam(use_dslam)
 
     # TODO/FIXME!  instead of just True/False, return diagnostic messages
     # so e.g. if a grip attempt fails, the task is finished, but the status is a failure
@@ -244,3 +245,24 @@ class LoCoBotMover:
 
     def drop(self):
         return self.bot.open_gripper()
+
+    def get_obstacles_in_canonical_coords(self):
+        """get the positions of obtacles position in the canonical coordinate system
+        instead of the Locobot's global coordinates as stated in the Locobot
+        documentation: https://www.pyrobot.org/docs/navigation or 
+        https://github.com/facebookresearch/pyrobot/blob/master/docs/website/docs/ex_navigation.md
+
+        the standard coordinate systems:
+          Camera looks at (0, 0, 1),
+         its right direction is (1, 0, 0) and
+         its up-direction is (0, 1, 0)
+
+         return:
+         list[(x, z)] of the obstacle location in standard coordinates
+        """
+        cordinates_in_robot_frame = self.bot.get_map()
+        cordinates_in_standard_frame = [
+            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
+        ]
+        cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
+        return cordinates_in_standard_frame

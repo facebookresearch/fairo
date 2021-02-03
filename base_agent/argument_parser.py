@@ -90,6 +90,11 @@ class ArgumentParser:
             default="models/perception/",
             help="path to perception model data dir",
         )
+        self.parser.add_argument(
+            "--use_dslam",
+            action="store_true",
+            help="sets slam_pkg to be used for navigation, otherwise pyrobot slam pkg will be used",
+        )
         # FIXME should be in common group
         self.parser.add_argument(
             "--verify_hash_script_path",

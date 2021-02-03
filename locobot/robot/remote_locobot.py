@@ -15,7 +15,7 @@ import sys
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
-from slam.slam import Slam
+from slam_pkg.slam import Slam
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -30,6 +30,7 @@ class RemoteLocobot(object):
         (default: locobot)
         backend_config (dict): the backend config used for connecting to Habitat (default: None)
     """
+
     def __init__(self, backend="locobot", backend_config=None):
         if backend == "locobot":
             base_config_dict = {"base_controller": "proportional"}
@@ -63,12 +64,10 @@ class RemoteLocobot(object):
 
         # check skfmm, skimage in installed, its necessary for slam
         self._slam = Slam(self._robot, backend)
-        self._slam.set_goal(
-            (19, 19, 0)
-        )  # set  far away goal for exploration, default map size [-20,20]
         self._slam_step_size = 25  # step size in cm
         self._done = True
         self.backend = backend
+        self.use_dslam = False
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -136,10 +135,12 @@ class RemoteLocobot(object):
         """Moves the robot base to origin point: x, y, yaw 0, 0, 0."""
         if self._done:
             self._done = False
-            self._robot.base.go_to_absolute([0, 0, 0])
+            if self.use_dslam:
+                self._slam.set_absolute_goal_in_robot_frame([0.0, 0.0, 0.0])
+            else:
+                self._robot.base.go_to_absolute([0, 0, 0])
             self._done = True
 
-    @Pyro4.oneway
     def go_to_absolute(self, xyt_position, use_map=False, close_loop=True, smooth=False):
         """Moves the robot base to given goal state in the world frame.
 
@@ -160,12 +161,14 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            self._robot.base.go_to_absolute(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-            )
+            if self.use_dslam:
+                self._slam.set_absolute_goal_in_robot_frame(xyt_position)
+            else:
+                self._robot.base.go_to_absolute(
+                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
+                    )
             self._done = True
 
-    @Pyro4.oneway
     def go_to_relative(self, xyt_position, use_map=False, close_loop=True, smooth=False):
         """Moves the robot base to the given goal state relative to its current
         pose.
@@ -186,9 +189,12 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            self._robot.base.go_to_relative(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-            )
+            if self.use_dslam:
+                self._slam.set_relative_goal_in_robot_frame(xyt_position)
+            else:
+                self._robot.base.go_to_relative(
+                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
+                    )
             self._done = True
 
     @Pyro4.oneway
@@ -639,9 +645,30 @@ class RemoteLocobot(object):
     def explore(self):
         if self._done:
             self._done = False
-            self._slam.take_step(self._slam_step_size)
+            if not self._slam.whole_area_explored:
+                self._slam.set_goal(
+                    (19, 19, 0)
+                )  # set  far away goal for exploration, default map size [-20,20]
+                self._slam.take_step(self._slam_step_size)
             self._done = True
             return True
+
+    def get_map(self):
+        """returns the location of obstacles created by slam only for the obstacles,
+        """
+        # get the index correspnding to obstacles
+        indices = np.where(self._slam.map_builder.map[:, :, 1] >= 1.0)
+        # convert them into robot frame
+        real_world_locations = [
+            self._slam.map2real([indice[0], indice[1]]).tolist()
+            for indice in zip(indices[0], indices[1])
+        ]
+        return real_world_locations
+    
+    def set_use_dslam(self, use_dslam):
+        """sets whether to use basic slam_pkg
+        """
+        self.use_dslam = use_dslam
 
 
 if __name__ == "__main__":
