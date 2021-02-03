@@ -9,7 +9,7 @@ from base_agent.base_util import ErrorWithResponse
 from base_agent.memory_nodes import MemoryNode
 from string_lists import ACTION_ING_MAPPING
 from copy import deepcopy
-
+import logging
 
 class GetMemoryHandler(DialogueObject):
     """This class handles logical forms that ask questions about the environment or 
@@ -32,6 +32,7 @@ class GetMemoryHandler(DialogueObject):
         self.action_dict_orig = deepcopy(self.action_dict)
         # fill in subclasses
         self.subinterpret = {}  # noqa
+        self.task_objects = {}  # noqa
 
     def step(self) -> Tuple[Optional[str], Any]:
         """Read the action dictionary and take immediate actions based
@@ -156,12 +157,19 @@ class GetMemoryHandler(DialogueObject):
                     return "none", None
                 return str(vals[0]), None
             elif type(output_type) is dict and output_type.get("attribute"):
+                attrib = output_type["attribute"]
+                if type(attrib) is str and attrib.lower() == "location":
+                    # add a Point task if attribute is a location
+                    target = self.subinterpret["point_target"].point_to_region(vals[0])
+                    t = self.task_objects["point"](self.agent, {"target": target})
+                    self.append_new_task(t)
                 return str(vals[0]), None
             elif type(output_type) is str and output_type.lower() == "memory":
                 return self.handle_exists(mems)
             else:
                 raise ValueError("Bad answer_type={}".format(output_type))
-        except:
+        except Exception as e:
+            logging.exception(e)
             raise ErrorWithResponse("I don't understand what you're asking")
 
     def handle_exists(self, mems: Sequence[MemoryNode]) -> Tuple[Optional[str], Any]:
