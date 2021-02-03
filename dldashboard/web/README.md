@@ -1,7 +1,5 @@
 # Dashboard app
 
-This is a React based app.
-
 - Install app: `npm install -g yarn ; yarn upgrade`
 - Start app: `yarn start`
 - Start storybook to see individual react components: `yarn storybook`
