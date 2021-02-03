@@ -260,6 +260,8 @@ class LoCoBotMover:
          list[(x, z)] of the obstacle location in standard coordinates
         """
         cordinates_in_robot_frame = self.bot.get_map()
-        cordinates_in_standard_frame = [xyz_pyrobot_to_canonical_coords[c] for c in cordinates_in_robot_frame]
+        cordinates_in_standard_frame = [
+            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
+        ]
         cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
         return cordinates_in_standard_frame
