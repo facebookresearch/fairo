@@ -21,10 +21,12 @@ from locobot_mover_utils import (
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
 )
+from tenacity import retry, stop_after_attempt
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 
+@retry(stop=stop_after_attempt(5))
 def safe_call(f, *args):
     try:
         return f(*args)
