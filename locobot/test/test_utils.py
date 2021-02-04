@@ -8,6 +8,18 @@ import math
 import unittest
 import logging
 
+import os
+import sys
+
+BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
+sys.path.append(BASE_AGENT_ROOT)
+
+from locobot.agent.locobot_mover_utils import (
+    get_move_target_for_point,
+    xyz_canonical_coords_to_pyrobot_coords,
+    xyz_pyrobot_to_canonical_coords,
+    pyrobot_to_canonical_frame,    
+)
 
 def assert_distance_moved(pos1, pos2, movement_vector):
     act_dist = norm(array(pos1)[:2] - array(pos2)[:2])
@@ -42,6 +54,51 @@ class UtilsTest(unittest.TestCase):
         assert_turn_degree(math.radians(45), math.radians(-45), -90)
         assert_turn_degree(math.radians(-45), math.radians(-45), 360)
 
+
+class LocoboMoverUtilsTest(unittest.TestCase):
+    """
+    Coordinate transform related tests https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
+    """
+    def test_pyrobot_to_canonical_to_pyrobot(self):
+        pt_r = (1, 2, 3)
+        pt_c = xyz_pyrobot_to_canonical_coords(pt_r)
+        assert_allclose(pt_c, (-2, 3, 1))
+        assert_allclose(xyz_canonical_coords_to_pyrobot_coords(pt_c), pt_r)
+    
+    def test_canonical_to_pyrobot_to_canonical(self):
+        pt_c = (1, 2, 3)
+        pt_r = xyz_canonical_coords_to_pyrobot_coords(pt_c)
+        assert_allclose(pt_r, (3, -1, 2))
+        assert_allclose(xyz_pyrobot_to_canonical_coords(pt_r), pt_c)
+
+    def test_get_move_target_for_point(self):
+        base_pos = (0, 0, 0)
+        # test each quadrant
+
+        # define a dictionary that maps point target to move targets if eps is 1 (ie we want to move to with 1)
+        # of the x, z and coordinates.
+        target_move_dict_1 = {
+            (2, 0, 3): (1, 2, 0), # (x,y,z) : (x,z,yaw)
+            (-2, 0, 3): (-1, 2, 0),
+            (-2, 0, -3): (-1, -2, 0),
+            (2, 0, -3): (1, -2, 0),
+        }
+
+        for pt_target, mv_target in target_move_dict_1.items():
+            act_mv = get_move_target_for_point(base_pos, pt_target, 0, eps=1)
+            assert_allclose(act_mv, mv_target)
+
+        # check for eps 4
+        target_move_dict_4 = {
+            (2, 0, 3): (-2, -1, 0),
+            (-2, 0, 3): (2, -1, 0),
+            (-2, 0, -3): (2, 1, 0),
+            (2, 0, -3): (-2, 1, 0),
+        }
+
+        for pt_target, mv_target in target_move_dict_4.items():
+            act_mv = get_move_target_for_point(base_pos, pt_target, 0, eps=4)
+            assert_allclose(act_mv, mv_target)
 
 if __name__ == "__main__":
     unittest.main()

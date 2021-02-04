@@ -272,7 +272,7 @@ class LoCoBotMover:
         # Part 1: move to within a certain distance of the target.
         pos = self.get_base_pos_in_canonical_coords()
         yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)
-        self.move_absolute([get_move_target_for_point(pos, target_pos)])       
+        self.move_absolute([get_move_target_for_point(pos, target_pos, yaw_rad)])       
         
         # Part 2: point.
         pos = self.get_base_pos_in_canonical_coords()

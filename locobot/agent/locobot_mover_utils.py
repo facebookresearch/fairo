@@ -63,7 +63,7 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 
-def get_move_target_for_point(base_pos, target):
+def get_move_target_for_point(base_pos, target, yaw, eps=1):
     """
     For point, we first want to move close to the object and then point to it.
 
@@ -81,10 +81,10 @@ def get_move_target_for_point(base_pos, target):
     dz = target[2] - base_pos[1]
     signz = 1 if dz > 0 else -1 
 
-    targetx = base_pos[0] + signx * (abs(dx) - 0.5)
-    targetz = base_pos[2] + signz * (abs(dz) - 0.5) 
+    targetx = base_pos[0] + signx * (abs(dx) - eps)
+    targetz = base_pos[2] + signz * (abs(dz) - eps) 
 
-    return [targetx, targetz, base_pos[2]] 
+    return [targetx, targetz, yaw] 
 
 
 """
@@ -103,4 +103,4 @@ def xyz_pyrobot_to_canonical_coords(xyz):
 
 def xyz_canonical_coords_to_pyrobot_coords(xyz):
     """converts 3D coords from canonical to pyrobot coords."""
-    return xyz @ np.linalg.inverse(pyrobot_to_canonical_frame)
+    return xyz @ np.linalg.inv(pyrobot_to_canonical_frame)
