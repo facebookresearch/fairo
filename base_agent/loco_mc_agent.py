@@ -249,11 +249,7 @@ class LocoMCAgent(BaseAgent):
     def controller_step(self):
         """Process incoming chats and modify task stack"""
         raw_incoming_chats = self.get_incoming_chats()
-        # if raw_incoming_chats:
-        #     # force to get objects
-        #     self.perceive(force=True)
-        #     logging.info("Incoming chats: {}".format(raw_incoming_chats))
-
+        logging.info("Incoming chats: {}".format(raw_incoming_chats))
         incoming_chats = []
         for raw_chat in raw_incoming_chats:
             match = re.search("^<([^>]+)> (.*)", raw_chat)
