@@ -10,6 +10,7 @@ Please check the options that are relevant.
 
 - [ ] Bug fix (non-breaking change that fixes an issue)
 - [ ] Proposes a change (non-breaking change that isn't necessarily a bug)
+- [ ] Refactor
 - [ ] New feature (non-breaking change that adds a new functionality)
 - [ ] Breaking change (fix or feature that would break some existing functionality downstream)
 - [ ] This is a unit test

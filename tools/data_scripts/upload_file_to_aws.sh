@@ -1,7 +1,11 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-ROOTDIR=$(readlink -f $(dirname "$0")/../../)
+function pyabspath() {
+    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+}
+
+ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
 
 CRAFTASSIST_PATH="${ROOTDIR}/craftassist/agent/"
