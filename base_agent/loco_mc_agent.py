@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-
+import os 
 import logging
 import os
 import random
@@ -197,7 +197,7 @@ class LocoMCAgent(BaseAgent):
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
         if isinstance(e, ErrorWithResponse):
-            self.send_chat("Oops! I got confused and wasn't able to complete my last task :(")
+            self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
             self.memory.task_stack_clear()
             self.dialogue_manager.dialogue_stack.clear()
             self.uncaught_error_count += 1
