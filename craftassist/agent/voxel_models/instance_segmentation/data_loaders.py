@@ -154,6 +154,7 @@ def make_example_from_raw(
 class InstSegData(tds.Dataset):
     """Instance Segmentation Dataset out of raw data
     """
+
     def __init__(
         self,
         data_path,

@@ -429,13 +429,7 @@ class ComponentNode:
                 d[attr] = val
                 if (attr.startswith("has_")) or (
                     attr
-                    in [
-                        "coordinates",
-                        "steps",
-                        "block_type",
-                        "repeat_count",
-                        "target_action_type",
-                    ]
+                    in ["coordinates", "steps", "block_type", "repeat_count", "target_action_type"]
                 ):
                     if type(val) == str and val.startswith("_"):
                         continue

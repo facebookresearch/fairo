@@ -174,6 +174,7 @@ def organize_classes(classes, min_occurence):
 class SemSegData(tds.Dataset):
     """Semantic Segmentation Dataset out of raw data
     """
+
     def __init__(
         self,
         data_path,

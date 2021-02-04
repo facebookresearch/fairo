@@ -76,6 +76,7 @@ class DetectionHandler(AbstractHandler):
 
 class Detector:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
+
     def __init__(self, model_data_dir):
         with open(os.path.join(model_data_dir, properties), "rb") as h:
             self.properties = pickle.load(h)
@@ -147,6 +148,7 @@ class Detector:
 class Detection(WorldObject):
     """Instantiation of the WorldObject that is used by the detector. 
     """
+
     def __init__(
         self,
         rgb_depth: RGBDepth,
@@ -203,5 +205,3 @@ class Detection(WorldObject):
         im = cv2.bitwise_and(rgb, rgb, mask=mask)
         logging.debug("Calculating feature repr for {}".format(self.label))
         return im
-
-

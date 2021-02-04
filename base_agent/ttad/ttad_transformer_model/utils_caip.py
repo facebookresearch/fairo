@@ -156,9 +156,9 @@ def tree_to_seq(full_tree, tree, idx_map=None):
             elif is_int_list(tree[k]):
                 res += [("ILB:" + k, -1, -1, -1, -1)]
                 for c in tree[k]:
-                    res += tree_to_seq(full_tree.get(k, {"children": {}})["children"], c, idx_map) + [
-                        ("IL&:" + k, -1, -1, -1, -1)
-                    ]
+                    res += tree_to_seq(
+                        full_tree.get(k, {"children": {}})["children"], c, idx_map
+                    ) + [("IL&:" + k, -1, -1, -1, -1)]
                 res = res[:-1] + [("ILE:" + k, -1, -1, -1, -1)]
             else:
                 print(tree)

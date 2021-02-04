@@ -48,14 +48,12 @@ def reconfigure_scene(env, scene_path):
 
     assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/test_assets"))
 
-    if hasattr(sim, 'get_object_template_manager'):
+    if hasattr(sim, "get_object_template_manager"):
         load_object_configs = sim.get_object_template_manager().load_object_configs
     else:
         load_object_configs = sim.load_object_configs
     human_male_template_id = load_object_configs(os.path.join(assets_path, "human_male"))[0]
-    human_female_template_id = load_object_configs(os.path.join(assets_path, "human_female"))[
-        0
-    ]
+    human_female_template_id = load_object_configs(os.path.join(assets_path, "human_female"))[0]
 
     if scene_name == "apartment_0":
         id_male = sim.add_object(human_male_template_id)

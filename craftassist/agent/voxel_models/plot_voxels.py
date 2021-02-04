@@ -122,6 +122,7 @@ def plotCubeAt(pos=(0, 0, 0), color=(0, 1, 0, 1), ax=None):
 class SchematicPlotter:
     """Schematic Plotter
     """
+
     def __init__(self, viz):
         self.viz = viz
         ims = pickle.load(

@@ -4,11 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from base_agent.dialogue_objects import SPEAKERLOOK, AGENTPOS
 from copy import deepcopy
 
+
 def command(d):
     if type(d) is list:
         return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": d}
     else:
         return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [d]}
+
 
 ATTRIBUTES = {
     "x": {"attribute": "x"},
@@ -714,7 +716,7 @@ GET_MEMORY_COMMANDS = {
                 "ordinal": "FIRST",
                 "polarity": "MIN",
                 "quantity": {
-                    "attribute" : {
+                    "attribute": {
                         "linear_extent": {
                             "source": {"reference_object": {"special_reference": "AGENT"}}
                         }
@@ -726,12 +728,12 @@ GET_MEMORY_COMMANDS = {
     "what is the thing closest to me?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute" : "name"},
+            "output": {"attribute": "name"},
             "argval": {
                 "ordinal": "FIRST",
                 "polarity": "MIN",
                 "quantity": {
-                    "attribute" : {
+                    "attribute": {
                         "linear_extent": {
                             "source": {"reference_object": {"special_reference": "SPEAKER"}}
                         }
@@ -1003,19 +1005,19 @@ GROUND_TRUTH_PARSES = {
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
-    "go right 3 feet": {	
-        "action_sequence": [	
-            {	
-                "action_type": "MOVE",	
-                "location": {	
-                    "reference_object": {"special_reference": "AGENT"},	
-                    "relative_direction": "RIGHT",	
-                    "steps": "3",	
-                    "has_measure": "feet",	
-                },	
-            }	
-        ],	
-        "dialogue_type": "HUMAN_GIVE_COMMAND",	
+    "go right 3 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "RIGHT",
+                    "steps": "3",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go left 3 meters": {
         "action_sequence": [

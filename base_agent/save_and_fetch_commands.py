@@ -231,6 +231,6 @@ def saveObjectAnnotationsToDb(conn, postData):
         object_point_map = postData["pointMap"][key]
         cur.execute(
             """INSERT INTO object_annotations (object_name, object_tags, object_points) VALUES (?, ?, ?)""",
-            (object_name, json.dumps(object_property_map), json.dumps(object_point_map),),
+            (object_name, json.dumps(object_property_map), json.dumps(object_point_map)),
         )
     print("successfully saved annotation info")

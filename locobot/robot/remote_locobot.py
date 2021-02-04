@@ -30,6 +30,7 @@ class RemoteLocobot(object):
         (default: locobot)
         backend_config (dict): the backend config used for connecting to Habitat (default: None)
     """
+
     def __init__(self, backend="locobot", backend_config=None):
         if backend == "locobot":
             base_config_dict = {"base_controller": "proportional"}

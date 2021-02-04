@@ -20,9 +20,11 @@ from transformers import AutoModel, AutoTokenizer, BertConfig
 from utils_parsing import *
 from utils_caip import *
 
+
 class ModelTrainer:
     """Wrapper Class around training model and data loader
     """
+
     def __init__(self, args):
         self.args = args
 
@@ -411,7 +413,7 @@ def main():
         "--hard",
         default=False,
         action="store_true",
-        help="Whether to feed in failed examples during training"
+        help="Whether to feed in failed examples during training",
     )
     parser.add_argument(
         "--alpha",

@@ -165,7 +165,7 @@ class LocoMCAgent(BaseAgent):
         else:
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
-            if os.getenv('DROIDLET_DEBUG_MODE'):
+            if os.getenv("DROIDLET_DEBUG_MODE"):
                 return
             else:
                 raise e

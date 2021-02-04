@@ -207,12 +207,14 @@ def options_tower(max_size, fixed_size=False):
         height = np.random.randint(3, max_size + 1)
     return {"height": height, "base": np.random.randint(-4, 6)}
 
+
 def options_hollow_triangle(max_size, fixed_size=False):
     if fixed_size:
         size = max_size
     else:
         size = np.random.randint(MIN_SIZE, max_size + 1)
     return {"size": size, "orient": sh.orientation3()}
+
 
 def options_hollow_rectangle(max_size, fixed_size=False):
     opts = {}
@@ -227,6 +229,7 @@ def options_hollow_rectangle(max_size, fixed_size=False):
         opts["thickness"] = np.random.randint(1, ms - 3 + 1)
     return opts
 
+
 def options_rectanguloid_frame(max_size, fixed_size=False):
     opts = {}
     if fixed_size:
@@ -240,12 +243,13 @@ def options_rectanguloid_frame(max_size, fixed_size=False):
         opts["thickness"] = np.random.randint(1, ms - 3 + 1)
     return opts
 
+
 # eventually put ground blocks, add 'floating', 'hill', etc.
 # TODO hollow is separate tag
 GEOSCORER_SHAPENAMES = [n for n in sh.SHAPE_NAMES]
 GEOSCORER_SHAPENAMES.append("TOWER")
 
-GEOSCORER_SHAPEFNS = {k:v for k, v in sh.SHAPE_FNS.items()}
+GEOSCORER_SHAPEFNS = {k: v for k, v in sh.SHAPE_FNS.items()}
 GEOSCORER_SHAPEFNS["TOWER"] = shapes.tower
 
 SHAPE_HELPERS = {

@@ -69,6 +69,7 @@ class RGBDepth:
         pts (list[(x,y,z)]): list of x,y,z coordinates of the pointcloud corresponding 
         to the rgb and depth maps.
     """
+
     rgb: np.array
     depth: np.array
     ptcloud: list
