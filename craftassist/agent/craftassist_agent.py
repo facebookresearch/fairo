@@ -68,7 +68,6 @@ class CraftAssistAgent(LocoMCAgent):
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.point_targets = []
-        self.dashboard_chat = None
         self.last_chat_time = 0
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
@@ -120,44 +119,6 @@ class CraftAssistAgent(LocoMCAgent):
     def init_event_handlers(self):
         """Handle the socket events"""
         super().init_event_handlers()
-
-        @sio.on("sendCommandToAgent")
-        def send_text_command_to_agent(sid, command):
-            """Add the command to agent's incoming chats list and
-            send back the parse.
-            Args:
-                command: The input text command from dashboard player
-            Returns:
-                return back a socket emit with parse of command and success status
-            """
-            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
-            agent_chat = (
-                "<dashboard> " + command
-            )  # the chat is coming from a player called "dashboard"
-            self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
-            logical_form = {}
-            status = ""
-            try:
-                logical_form = dialogue_manager.get_logical_form(
-                    s=command, model=dialogue_manager.model
-                )
-                logging.info("logical form is : %r" % (logical_form))
-                status = "Sent successfully"
-            except:
-                logging.info("error in sending chat")
-                status = "Error in sending chat"
-            # update server memory
-            self.dashboard_memory["chatResponse"][command] = logical_form
-            self.dashboard_memory["chats"].pop(0)
-            self.dashboard_memory["chats"].append({"msg": command, "failed": False})
-            payload = {
-                "status": status,
-                "chat": command,
-                "chatResponse": self.dashboard_memory["chatResponse"][command],
-                "allChats": self.dashboard_memory["chats"],
-            }
-            sio.emit("setChatResponse", payload)
 
     def init_inventory(self):
         """Initialize the agent's inventory"""
