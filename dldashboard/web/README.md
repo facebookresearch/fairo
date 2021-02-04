@@ -4,6 +4,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Know-hows of the app
 
+Note: All the commands below should be run from the `droidlet/dldashboard/web` folder.
+
 - To install the app first, do: 
 ```
 npm install -g yarn ; yarn upgrade
@@ -13,9 +15,8 @@ npm install -g yarn ; yarn upgrade
 
 This will run the app in development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+The page will reload if you make edits.You will also see any lint errors in the console. <br />
+For debugging: you can set up the debugger in your IDE (for example [here](https://code.visualstudio.com/docs/nodejs/reactjs-tutorial#_debugging-react)) or use the developer console on your browser (for example: Command + option + J for Chrome on Macbook)
 
 - To start the storybook to see the individual react components, run : `yarn storybook`
 
