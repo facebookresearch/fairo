@@ -41,7 +41,7 @@ class LocoMCAgent(BaseAgent):
         self.last_task_memid = None
         self.dashboard_chat = None
         self.areas_to_perceive = []
-        self.perceive_during_step = False
+        self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -267,7 +267,7 @@ class LocoMCAgent(BaseAgent):
 
         if len(incoming_chats) > 0:
             # force to get objects, speaker info
-            if self.perceive_during_step:
+            if self.perceive_on_chat:
                 self.perceive(force=True)
             # change this to memory.get_time() format?
             self.last_chat_time = time.time()
