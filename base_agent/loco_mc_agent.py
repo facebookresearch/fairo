@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import sys
 
 import logging
+import os
 import random
 import re
 import time
