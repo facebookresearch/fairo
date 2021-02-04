@@ -81,7 +81,7 @@ class CraftAssistAgent(LocoMCAgent):
             (0.001, default_behaviors.build_random_shape),
             (0.005, default_behaviors.come_to_player),
         ]
-        self.perceive_during_step = True
+        self.perceive_on_chat = True
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
