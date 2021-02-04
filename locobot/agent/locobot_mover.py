@@ -33,6 +33,7 @@ from locobot_mover_utils import (
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
     xyz_canonical_coords_to_pyrobot_coords,
+    get_move_target_for_point,
 )
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -258,15 +259,22 @@ class LoCoBotMover:
         return "finished"
 
     def point_at(self, target_pos):
-        # move to within a certain distance of the target
-        # convert target pos to locobot coors
+        """Executes pointing the arm at the specified target pos. 
+
+        The robot will try to move to within a certain distance of the target position and then point to it.
+
+        Args:
+            target_pos ([x,y,z]): canonical coordinates to point to.
+
+        Returns:
+            string "finished"
+        """
+        # Part 1: move to within a certain distance of the target.
         pos = self.get_base_pos_in_canonical_coords()
         yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)
-        move_target = [target_pos[0]-0.5, target_pos[2]-0.5, yaw_rad]
-
-        self.move_absolute([move_target])    
-
-        # then get base pos and point
+        self.move_absolute([get_move_target_for_point(pos, target_pos)])       
+        
+        # Part 2: point.
         pos = self.get_base_pos_in_canonical_coords()
         yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)        
         states = [

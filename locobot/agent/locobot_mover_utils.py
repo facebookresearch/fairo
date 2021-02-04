@@ -62,6 +62,31 @@ def transform_pose(XYZ, current_pose):
     XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
     return XYZ
 
+
+def get_move_target_for_point(base_pos, target):
+    """
+    For point, we first want to move close to the object and then point to it.
+
+    Args:
+        base_pos ([x,z,yaw]): robot base in canonical coords
+        target ([x,y,z]): point target in canonical coords
+    
+    Returns:
+        move_target ([x,z,yaw]): robot base move target in canonical coords 
+    """
+
+    dx = target[0] - base_pos[0]
+    signx = 1 if dx > 0 else -1 
+
+    dz = target[2] - base_pos[1]
+    signz = 1 if dz > 0 else -1 
+
+    targetx = base_pos[0] + signx * (abs(dx) - 0.5)
+    targetz = base_pos[2] + signz * (abs(dz) - 0.5) 
+
+    return [targetx, targetz, base_pos[2]] 
+
+
 """
 Co-ordinate transform utils. Read more at https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
 """
@@ -75,9 +100,7 @@ def base_canonical_coords_to_pyrobot_coords(xyt):
 def xyz_pyrobot_to_canonical_coords(xyz):
     """converts 3D coords from pyrobot to canonical coords."""
     return xyz @ pyrobot_to_canonical_frame
-    # return [-xyz[1], xyz[2], xyz[0]]
 
 def xyz_canonical_coords_to_pyrobot_coords(xyz):
     """converts 3D coords from canonical to pyrobot coords."""
     return xyz @ np.linalg.inverse(pyrobot_to_canonical_frame)
-    # return [xyz[2], -xyz[0], xyz[1]]
