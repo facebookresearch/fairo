@@ -23,6 +23,11 @@ class ArgumentParser:
             action="store_true",
             help="do not perform default behaviors when idle",
         )
+        self.parser.add_argument(
+            "--verify_hash_script_path",
+            default="../../tools/data_scripts/compare_directory_hash.sh",
+            help="path to script that checks hash against latest models",
+        )
 
     def add_nsp_parser(self):
         nsp_parser = self.parser.add_argument_group("Neural Semantic Parser Args")
@@ -67,12 +72,6 @@ class ArgumentParser:
             "--geoscorer_model_path", default="", help="path to geoscorer model"
         )
         mc_parser.add_argument("--port", type=int, default=25565)
-        # FIXME should be in common group
-        self.parser.add_argument(
-            "--verify_hash_script_path",
-            default="../../tools/data_scripts/compare_directory_hash.sh",
-            help="path to script that checks hash against latest models",
-        )
 
     def add_loco_parser(self):
         loco_parser = self.parser.add_argument_group("Locobot Agent Args")
@@ -94,12 +93,6 @@ class ArgumentParser:
             "--use_dslam",
             action="store_true",
             help="sets slam_pkg to be used for navigation, otherwise pyrobot slam pkg will be used",
-        )
-        # FIXME should be in common group
-        self.parser.add_argument(
-            "--verify_hash_script_path",
-            default="../../tools/data_scripts/compare_directory_hash.sh",
-            help="path to script that checks hash against latest models",
         )
 
     def fix_path(self, opts):
