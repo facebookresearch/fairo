@@ -95,6 +95,11 @@ class ArgumentParser:
             action="store_true",
             help="sets slam_pkg to be used for navigation, otherwise pyrobot slam pkg will be used",
         )
+        self.parser.add_argument(
+            "--run_diag",
+            action="store_true",
+            help="runs some diagnostics on the robot to sanity check movement, camera, arm.",
+        )
         # FIXME should be in common group
         self.parser.add_argument(
             "--verify_hash_script_path",

@@ -83,7 +83,7 @@ class LocobotAgent(LocoMCAgent):
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
     
-    def bootstrap_agent(self):
+    def run_diagnostics(self):
         """
         Sanity checks move, turn, look, point.
 
@@ -109,15 +109,9 @@ class LocobotAgent(LocoMCAgent):
         execute_move_dbg(pos, [pos[0], pos[1]+0.3, pos[2]], "Move Right")
         execute_move_dbg(pos, [pos[0], pos[1], pos[2]], "Move Backward")
 
-        # turn
-        self.mover.turn(90)
-        logging.debug("Completed 90 deg turn left {}".format(self.mover.get_base_pos_in_canonical_coords()))
-        self.mover.turn(-90)
-        logging.debug("Completed 90 deg turn right {}".format(self.mover.get_base_pos_in_canonical_coords()))
-
         # look & point at the same target
         pos = self.mover.get_base_pos_in_canonical_coords()
-        look_pt_target = [pos[0]+0.5, pos[1]+1, pos[2]+2]
+        look_pt_target = [pos[0] + 0.5, pos[1]+1, pos[2]+2]
         # look
         self.mover.look_at(look_pt_target, 0, 0)
         logging.debug("Completed Look at.")        
@@ -125,6 +119,13 @@ class LocobotAgent(LocoMCAgent):
         self.mover.point_at(look_pt_target)
         logging.debug("Completed Point.")
         self.mover.reset_camera()
+
+        # turn
+        self.mover.turn(90)
+        logging.debug("Completed 90 deg turn left {}".format(self.mover.get_base_pos_in_canonical_coords()))
+        self.mover.turn(-90)
+        logging.debug("Completed 90 deg turn right {}".format(self.mover.get_base_pos_in_canonical_coords()))
+
 
     def init_event_handlers(self):
         super().init_event_handlers()
@@ -246,14 +247,14 @@ if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Locobot", base_path)
     opts = parser.parse()
-
+    
     # set up stdout logging
     sh = logging.StreamHandler()
     sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
     sh.setFormatter(log_formatter)
     logging.getLogger().addHandler(sh)
     logging.info("Info logging")
-    logging.debug("Debug logging")
+    logging.debug("Debug logging")    
 
     # Check that models and datasets are up to date
     if not opts.dev:
@@ -262,4 +263,8 @@ if __name__ == "__main__":
     set_start_method("spawn", force=True)
 
     sa = LocobotAgent(opts)
-    sa.start()
+    # run diag
+    if opts.run_diag:
+        sa.run_diagnostics()
+    else:
+        sa.start()
