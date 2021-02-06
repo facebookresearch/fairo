@@ -1,7 +1,6 @@
 A high level design diagram of the current architecture of the dashboard is :
-<p align="center">
-    ![dashboard architecture diagram](https://s3.console.aws.amazon.com/s3/object/craftassist?region=us-west-2&prefix=pubr/backend+architecture.png)
-</p>
+
+![dashboard architecture diagram](https://craftassist.s3-us-west-2.amazonaws.com/pubr/backend+architecture.png)
 
 Here:
 - frontend: The React based frontend that hosts other React subcomponents.
@@ -10,8 +9,7 @@ Here:
 
 
 Here's a flowchart of how the current dashboard works:
-<p align="center">
-    ![dashboard flowchart](https://s3.console.aws.amazon.com/s3/object/craftassist?region=us-west-2&prefix=pubr/dashboard_flowchart.png)
-</p>
+![dashboard flowchart](https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_flowchart.png)
+
 
 The text on the communication arrows shows the names of the socket events being handled currently.
