@@ -13,6 +13,7 @@ class BaseAgent:
         self.init_perception()
 
     def start(self):
+        self.bootstrap_agent()
         while True:  # count forever
             try:
                 self.step()

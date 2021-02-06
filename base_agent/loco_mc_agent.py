@@ -57,6 +57,9 @@ class LocoMCAgent(BaseAgent):
             ],
         }
 
+    def bootstrap_agent(self):
+        pass
+
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
         # create a connection to database file

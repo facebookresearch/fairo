@@ -96,7 +96,9 @@ class LoCoBotMover:
         for xyt in xyt_positions:
             logging.info("Move absolute {}".format(xyt))
             self.bot.go_to_absolute(
-                base_canonical_coords_to_pyrobot_coords(xyt), close_loop=self.close_loop
+                base_canonical_coords_to_pyrobot_coords(xyt), 
+                use_map=False,
+                close_loop=self.close_loop,
             )
             start_base_state = self.get_base_pos()
             while not self.bot.command_finished():
