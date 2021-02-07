@@ -14,37 +14,37 @@ from enum import Enum
 class DialogueObject(object):
     """DialogueObject class controls the agent's use of the dialogue stack.
 
-    Args:
-        agent: the agent process
-        memory: agent's memory
-        dialogue_stack : A stack on which dialogue objects are placed
-        finished: whether this object has finished processing
-        awaiting_response: whether this object is awaiting the speakers response to a question
-        max_steps: finish after this many steps to avoid getting stuck
-        current_step: current step count
-        progeny_data: data from progeny DialogueObjects, for example used to answer a clarification
+        Args:
+            agent: the agent process
+            memory: agent's memory
+            dialogue_stack : A stack on which dialogue objects are placed
+            finished: whether this object has finished processing
+            awaiting_response: whether this object is awaiting the speakers response to a question
+            max_steps: finish after this many steps to avoid getting stuck
+            current_step: current step count
+            progeny_data: data from progeny DialogueObjects, for example used to answer a clarification
 
-    Usage:
+        Usage:
 
-.. code-block:: python
+    .. code-block:: python
 
-        class DummyGetMemoryHandler(DialogueObject):
-            def __init__(self, speaker_name: str, action_dict: Dict, **kwargs):
-                # initialize everything
-                super().__init__(**kwargs)
-                self.speaker_name = speaker_name
-                self.action_dict = action_dict
+            class DummyGetMemoryHandler(DialogueObject):
+                def __init__(self, speaker_name: str, action_dict: Dict, **kwargs):
+                    # initialize everything
+                    super().__init__(**kwargs)
+                    self.speaker_name = speaker_name
+                    self.action_dict = action_dict
 
-            def step(self) -> Tuple[Optional[str], Any]:
-                # check for dialogue type "GET_MEMORY"
-                assert self.action_dict["dialogue_type"] == "GET_MEMORY"
-                memory_type = self.action_dict["filters"]["memory_type"]
-                if memory_type == "AGENT" or memory_type == "REFERENCE_OBJECT":
-                    return self.handle_reference_object() # handle these two by writing them to memory
-                else:
-                    raise ValueError("Unknown memory_type={}".format(memory_type))
-                # mark as finished
-                self.finished = True
+                def step(self) -> Tuple[Optional[str], Any]:
+                    # check for dialogue type "GET_MEMORY"
+                    assert self.action_dict["dialogue_type"] == "GET_MEMORY"
+                    memory_type = self.action_dict["filters"]["memory_type"]
+                    if memory_type == "AGENT" or memory_type == "REFERENCE_OBJECT":
+                        return self.handle_reference_object() # handle these two by writing them to memory
+                    else:
+                        raise ValueError("Unknown memory_type={}".format(memory_type))
+                    # mark as finished
+                    self.finished = True
 
     """
 

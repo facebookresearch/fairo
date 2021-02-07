@@ -26,6 +26,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 
+
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))
 def safe_call(f, *args):
     try:
@@ -33,6 +34,7 @@ def safe_call(f, *args):
     except Pyro4.errors.ConnectionClosedError as e:
         msg = "{} - {}".format(f._RemoteMethod__name, e)
         raise ErrorWithResponse(msg)
+
 
 class LoCoBotMover:
     """Implements methods that call the physical interfaces of the Locobot.
@@ -56,8 +58,7 @@ class LoCoBotMover:
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
-    
-    
+
     # TODO/FIXME!  instead of just True/False, return diagnostic messages
     # so e.g. if a grip attempt fails, the task is finished, but the status is a failure
     def bot_step(self):
@@ -258,7 +259,7 @@ class LoCoBotMover:
     def get_obstacles_in_canonical_coords(self):
         """get the positions of obtacles position in the canonical coordinate system
         instead of the Locobot's global coordinates as stated in the Locobot
-        documentation: https://www.pyrobot.org/docs/navigation or 
+        documentation: https://www.pyrobot.org/docs/navigation or
         https://github.com/facebookresearch/pyrobot/blob/master/docs/website/docs/ex_navigation.md
 
         the standard coordinate systems:

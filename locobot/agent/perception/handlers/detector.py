@@ -146,8 +146,7 @@ class Detector:
 
 
 class Detection(WorldObject):
-    """Instantiation of the WorldObject that is used by the detector. 
-    """
+    """Instantiation of the WorldObject that is used by the detector."""
 
     def __init__(
         self,

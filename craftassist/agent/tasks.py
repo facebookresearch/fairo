@@ -43,7 +43,7 @@ class Dance(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> m = Movement(agent, move_fn)
@@ -130,14 +130,14 @@ class DanceMove(Task):
 
 
 class Point(Task):
-    """Perform a Point task. 
+    """Perform a Point task.
 
     The pointed target is added to a queue for and agent will wait 200 ms to let pointing happen.
 
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> target = [0, 0, 0, 2, 3, 4]
@@ -175,11 +175,11 @@ class Move(Task):
         - negative of y axis
         - positive of z axis
         - negative of z axis
-    
+
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> target = (3, 7, 1)
@@ -286,11 +286,11 @@ class Move(Task):
 class Build(Task):
     """Perform a Build task.
 
-    Agent will first clean up all blocks that needed to be removed, then start 
+    Agent will first clean up all blocks that needed to be removed, then start
     to build blocks. Both destroying and building operations are stepped one block
     at a time.
 
-    The farthest block agent can destroy/build a three blocks away (by default). 
+    The farthest block agent can destroy/build a three blocks away (by default).
     If a block is out of reach, a child move task will be added to task stack first.
 
     Args:
@@ -651,7 +651,7 @@ class Fill(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> schematic = [(0, 0, 1), (0, 0, 2)]
@@ -705,7 +705,7 @@ class Destroy(Task):
     Args:
         agent (Agent): the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> schematic = [((2, 1, 0), (3, 0)), ((2, 2, 0), (3, 0))]
@@ -777,7 +777,7 @@ class Undo(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"memid": 2}
@@ -812,7 +812,7 @@ class Spawn(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> object_idm = (383, 90)
@@ -894,7 +894,7 @@ class Dig(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"ORIGIN": (0, 0, 1), "length": 3, "width": 2, "depth": 1}
@@ -957,7 +957,7 @@ class Get(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"idm": (319, 0), "pos": (1, 0, 1), "eid": 11, "memid": 99}
@@ -1015,7 +1015,7 @@ class Drop(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"eid": 11, "idm": (182, 0), "memid": 99}

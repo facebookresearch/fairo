@@ -44,8 +44,7 @@ class DialogueManager(object):
         self.model = model
 
     def get_safety_words(self, safety_words_path):
-        """Read a list of safety words to prevent abuse.
-        """
+        """Read a list of safety words to prevent abuse."""
         with open(safety_words_path) as f:
             safety_lines = f.readlines()
         safety_words = []
@@ -56,8 +55,7 @@ class DialogueManager(object):
         return safety_words
 
     def is_safe(self, chat):
-        """Check that chat does not contain unsafe words.
-        """
+        """Check that chat does not contain unsafe words."""
         safety_set = set(self.safety_words)
         cmd_set = set(chat.lower().split())
         notsafe = len(cmd_set & safety_set) > 0

@@ -24,8 +24,7 @@ def my_xavier_init(m, gain=1):
 
 
 class HighwayLayer(torch.nn.Module):
-    """Highway transformation used in span prediction.
-    """
+    """Highway transformation used in span prediction."""
 
     def __init__(self, dim):
         super(HighwayLayer, self).__init__()
@@ -160,8 +159,7 @@ class DecoderWithLoss(nn.Module):
         return res
 
     def forward(self, y, y_mask, x_reps, x_mask, is_eval=False):
-        """Same as step, except with loss. Set is_eval=True for validation.
-        """
+        """Same as step, except with loss. Set is_eval=True for validation."""
         if self.tree_to_text:
             bert_model = self.bert(
                 input_ids=y,
@@ -288,7 +286,7 @@ class EncoderDecoderWithLoss(nn.Module):
     Args:
         encoder: Pre-trained BERT encoder
         decoder: Transformer decoder, see DecoderWithLoss
-        args: Parsed command line args from running agent, 
+        args: Parsed command line args from running agent,
             eg. ``train_encoder`` specifies whether to train the encoder
 
 
@@ -313,8 +311,7 @@ class EncoderDecoderWithLoss(nn.Module):
 
 
 def predict_tree(txt, model, tokenizer, dataset, ban_noop=False, noop_threshold=0.0):
-    """DEPRECATED: tree prediction. Use beam search.
-    """
+    """DEPRECATED: tree prediction. Use beam search."""
     model_device = model.decoder.lm_head.predictions.decoder.weight.device
     # prepare batch
     text, idx_maps = tokenize_mapidx(txt, tokenizer)
@@ -370,7 +367,7 @@ def predict_tree(txt, model, tokenizer, dataset, ban_noop=False, noop_threshold=
 
 
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
-    """Beam search decoding. 
+    """Beam search decoding.
 
     Note: Only uses node prediction scores, not the span scores.
 
@@ -576,8 +573,7 @@ def compute_accuracy(outputs, y):
 
 
 class OptimWarmupEncoderDecoder(object):
-    """Custom wrapper for Adam optimizer, handles lr warmup and smaller lr for encoder fine-tuning.
-    """
+    """Custom wrapper for Adam optimizer, handles lr warmup and smaller lr for encoder fine-tuning."""
 
     def __init__(self, model, args):
         self.encoder = model.encoder

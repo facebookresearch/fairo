@@ -47,10 +47,10 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
 
 
 def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid=None):
-    """ subinterpret a special reference object.  
+    """subinterpret a special reference object.
     args:
     interpreter:  the root interpreter
-    speaker (str): The name of the player/human/agent who uttered 
+    speaker (str): The name of the player/human/agent who uttered
         the chat resulting in this interpreter
     S:  the special reference object logical form from
     """
@@ -98,13 +98,13 @@ def interpret_reference_object(
 
     args:
     interpreter:  root interpreter.
-    speaker (str): The name of the player/human/agent who uttered 
+    speaker (str): The name of the player/human/agent who uttered
         the chat resulting in this interpreter
     d: logical form from semantic parser
 
     extra_tags (list of strings): tags added by parent to narrow the search
     limit (natural number): maximum number of reference objects to return
-    allow_clarification (bool): should a Clarification object be put on the DialogueStack    
+    allow_clarification (bool): should a Clarification object be put on the DialogueStack
     """
     F = d.get("filters")
     special = d.get("special_reference")
@@ -324,7 +324,7 @@ def object_looked_at(
 
 
 def capped_line_of_sight(agent, speaker=None, eid=None, cap=20):
-    """Return the location directly in the entity's line of sight, or a point in the distance 
+    """Return the location directly in the entity's line of sight, or a point in the distance
     if LOS does not intersect nearby point"""
 
     assert eid or speaker

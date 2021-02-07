@@ -10,8 +10,7 @@ from copy import deepcopy
 
 
 def underdirt(schematic, labels=None, max_shift=0, nothing_id=0):
-    """Convert schematic to underdirt
-    """
+    """Convert schematic to underdirt"""
     # todo fancier dirt!
     # FIXME!!!! label as ground where appropriate
     shift = torch.randint(max_shift + 1, (1,)).item()
@@ -65,8 +64,7 @@ def flip_rotate(c, l=None, idx=None):
 
 
 def pad_to_sidelength(schematic, labels=None, nothing_id=0, sidelength=32):
-    """Add padding to schematics to sidelength
-    """
+    """Add padding to schematics to sidelength"""
     szs = list(schematic.size())
     szs = np.add(szs, -sidelength)
     pad = []
@@ -87,8 +85,7 @@ def pad_to_sidelength(schematic, labels=None, nothing_id=0, sidelength=32):
 
 # TODO simplify
 def fit_in_sidelength(schematic, labels=None, nothing_id=0, sl=32, max_shift=0):
-    """Adjust schematics to the center of the padded one
-    """
+    """Adjust schematics to the center of the padded one"""
     schematic, labels = pad_to_sidelength(
         schematic, labels=labels, nothing_id=nothing_id, sidelength=sl
     )
@@ -110,8 +107,7 @@ def fit_in_sidelength(schematic, labels=None, nothing_id=0, sl=32, max_shift=0):
 
 
 def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=32):
-    """Preprocess raw data and make good examples out of it
-    """
+    """Preprocess raw data and make good examples out of it"""
     max_shift = augment.get("max_shift", 0)
     s, l, o = fit_in_sidelength(
         schematic, labels=labels, nothing_id=nothing_id, max_shift=max_shift
@@ -129,8 +125,7 @@ def make_example_from_raw(schematic, labels=None, augment={}, nothing_id=0, sl=3
 
 
 def swallow_classes(classes, predator, prey_classes, class_map):
-    """Swallow classes
-    """
+    """Swallow classes"""
     new_classes = deepcopy(classes)
     apex = class_map.get(predator, predator)
     for prey in prey_classes:
@@ -145,8 +140,7 @@ def swallow_classes(classes, predator, prey_classes, class_map):
 
 
 def organize_classes(classes, min_occurence):
-    """Organize classes
-    """
+    """Organize classes"""
     class_map = {}
     new_classes = deepcopy(classes)
     for cname in classes["name2count"]:
@@ -172,8 +166,7 @@ def organize_classes(classes, min_occurence):
 
 
 class SemSegData(tds.Dataset):
-    """Semantic Segmentation Dataset out of raw data
-    """
+    """Semantic Segmentation Dataset out of raw data"""
 
     def __init__(
         self,

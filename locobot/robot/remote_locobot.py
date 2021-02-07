@@ -166,7 +166,7 @@ class RemoteLocobot(object):
             else:
                 self._robot.base.go_to_absolute(
                     xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-                    )
+                )
             self._done = True
 
     def go_to_relative(self, xyt_position, use_map=False, close_loop=True, smooth=False):
@@ -194,7 +194,7 @@ class RemoteLocobot(object):
             else:
                 self._robot.base.go_to_relative(
                     xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-                    )
+                )
             self._done = True
 
     @Pyro4.oneway
@@ -654,8 +654,7 @@ class RemoteLocobot(object):
             return True
 
     def get_map(self):
-        """returns the location of obstacles created by slam only for the obstacles,
-        """
+        """returns the location of obstacles created by slam only for the obstacles,"""
         # get the index correspnding to obstacles
         indices = np.where(self._slam.map_builder.map[:, :, 1] >= 1.0)
         # convert them into robot frame
@@ -664,10 +663,9 @@ class RemoteLocobot(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
-    
+
     def set_use_dslam(self, use_dslam):
-        """sets whether to use basic slam_pkg
-        """
+        """sets whether to use basic slam_pkg"""
         self.use_dslam = use_dslam
 
 

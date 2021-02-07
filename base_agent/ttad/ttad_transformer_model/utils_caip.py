@@ -50,8 +50,8 @@ def is_int_list(val):
 
 
 def add_tree(full_tree, new_tree, vocounts, nw=1):
-    """Make grammar from dataset. 
-    
+    """Make grammar from dataset.
+
     Starts with empty full_tree, then add all nodes found in the dataset.
     If new_tree is outside of what the grammar can handle, modifies grammar.
     Also counts number of occurence of each node.
@@ -93,8 +93,7 @@ def add_tree(full_tree, new_tree, vocounts, nw=1):
 
 
 def make_full_tree(trees_weight_ls):
-    """Starts with an empty grammar and adds trees from the dataset.
-    """
+    """Starts with an empty grammar and adds trees from the dataset."""
     res = {}
     vocounts = {}
     for trees, weight in trees_weight_ls:
@@ -112,8 +111,7 @@ def make_full_tree(trees_weight_ls):
 
 
 def process_txt_data(filepath: str):
-    """Converts a txt file format to the tree format needed to construct grammar
-    """
+    """Converts a txt file format to the tree format needed to construct grammar"""
     samples = open(filepath, "r").readlines()
     split_lines = [line.split("|") for line in samples]
     # Format of each sample is [text, action_dict]
@@ -129,11 +127,14 @@ def tree_to_seq(full_tree, tree, idx_map=None):
 
     """
     res = []
-    sorted_keys = sorted(
-        [k for k in tree.keys() if k in full_tree],
-        key=lambda x: full_tree[x]["count"],
-        reverse=True,
-    ) + sorted([k for k, v in tree.items() if k not in full_tree])
+    sorted_keys = (
+        sorted(
+            [k for k in tree.keys() if k in full_tree],
+            key=lambda x: full_tree[x]["count"],
+            reverse=True,
+        )
+        + sorted([k for k, v in tree.items() if k not in full_tree])
+    )
     try:
         for k in sorted_keys:
             if is_cat(tree[k]):
@@ -170,8 +171,7 @@ def tree_to_seq(full_tree, tree, idx_map=None):
 
 
 def select_spans(seq):
-    """Selects sub-tree in (span in the output sequence) so we can apply recursively seq_to_tree
-    """
+    """Selects sub-tree in (span in the output sequence) so we can apply recursively seq_to_tree"""
     spans = [-1 for _ in seq]
     active = {}
     unopened = False
@@ -210,7 +210,7 @@ def select_spans(seq):
 
 def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
     """Transforms sequence back into tree of nested dictionaries
-    
+
     span_dict identifies the sub-sequences corresponding to sub-trees
     """
     res = {}
@@ -297,8 +297,7 @@ def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
 
 
 def compare_tree(ta, tb):
-    """Returns empty tree if ta and tb are the same tree
-    """
+    """Returns empty tree if ta and tb are the same tree"""
     res = {}
     # internal node
     if is_int(ta) or is_int_list(ta):
@@ -321,8 +320,7 @@ def compare_tree(ta, tb):
 
 
 def align_post_tok(pre_tok, post_tok, seen_toks=0):
-    """Helper function to align word indices before and after applying BPE
-    """
+    """Helper function to align word indices before and after applying BPE"""
     i, j, ci, cj = [0] * 4
     idx_map = [[seen_toks, seen_toks] for _ in range(len(pre_tok.split()))]
     while ci < len(pre_tok) and cj < len(post_tok):
@@ -351,8 +349,7 @@ def align_post_tok(pre_tok, post_tok, seen_toks=0):
 
 
 def tokenize_mapidx(text, tokenizer):
-    """Applies BPE to input and creates mapping of span indices before and after BPE
-    """
+    """Applies BPE to input and creates mapping of span indices before and after BPE"""
     # re-order lines: last chat in multi-chat is first in the list
     # rev_lines = [line.strip() for line in text.split('<SEP>')]
     # text_lines = [rev_lines[i - 1] for i in range(len(rev_lines), 0, -1)]
@@ -371,8 +368,7 @@ def tokenize_mapidx(text, tokenizer):
 
 
 def tokenize_linearize(text, tree, tokenizer, full_tree, word_noise=0.0):
-    """Takes raw text and tree, returns BPE-ed text and linearized tree
-    """
+    """Takes raw text and tree, returns BPE-ed text and linearized tree"""
     tok_text, idx_maps = tokenize_mapidx(text, tokenizer)
     tokenized = " ".join(
         [
@@ -390,7 +386,7 @@ def tokenize_linearize(text, tree, tokenizer, full_tree, word_noise=0.0):
 class CAIPDataset(Dataset):
     """Torch Dataset for the CAIP format, applies BPE and linearizes trees on-the-fly
 
-    CAIP: CraftAssist Instruction Parsing 
+    CAIP: CraftAssist Instruction Parsing
 
     Args:
         tokenizer: pre-trained tokenizer for input
@@ -401,7 +397,7 @@ class CAIPDataset(Dataset):
         tree_voc: Tree vocabulary file
         tree_idxs: Tree dictionary
         data: Dictionary containing datasets loaded into memory.
-        
+
     """
 
     def __init__(
@@ -477,8 +473,7 @@ class CAIPDataset(Dataset):
         return self.dataset_length
 
     def __getitem__(self, idx):
-        """Sample data type and get example
-        """
+        """Sample data type and get example"""
         if self.sampling:
             dtype = np.random.choice(self.dtypes, p=self.sample_probas)
             if len(self.data[dtype]) == 0:
@@ -513,8 +508,7 @@ class CAIPDataset(Dataset):
         return (text_idx_ls, tree_idx_ls, (text, p_text, p_tree))
 
     def add_hard_example(self, exple):
-        """Add a given example for resampling.
-        """
+        """Add a given example for resampling."""
         if self.hard_buffer_counter < self.hard_buffer_size:
             self.data["hard"] += [exple]
         else:

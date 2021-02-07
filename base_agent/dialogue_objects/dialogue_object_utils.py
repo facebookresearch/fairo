@@ -20,8 +20,8 @@ def strip_prefix(s, pre):
 
 # FIXME!? maybe start using triples appropriately now?
 def tags_from_dict(filters_d):
-    """ 
-    flattens all triples in the "triples" subdict of filters_d, 
+    """
+    flattens all triples in the "triples" subdict of filters_d,
     pulling just the obj_text if exists and if the pred_text is a "has_"
     """
     triples = filters_d.get("triples", [])
@@ -81,13 +81,13 @@ def process_spans(d, original_words, lemmatized_words):
 # and
 # in addition to being bad, abstraction is leaking
 def coref_resolve(memory, d, chat):
-    """Walk logical form "d" and replace coref_resolve values    
+    """Walk logical form "d" and replace coref_resolve values
 
     Possible substitutions:
     - a subdict lik SPEAKERPOS
     - a MemoryNode object
     - "NULL"
-    
+
     Assumes spans have been substituted.
     """
 

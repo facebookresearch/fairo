@@ -21,8 +21,7 @@ A = Axes3D  # to make flake happy :(
 
 
 def draw_color_hash(schematic, vis, title="", threshold=0.05, win=None, bins=3):
-    """schematic is DxHxW, each entry an index into hash bin
-    """
+    """schematic is DxHxW, each entry an index into hash bin"""
     clrs = []
     schematic = schematic.cpu()
     X = torch.nonzero(schematic)
@@ -52,8 +51,7 @@ def draw_color_hash(schematic, vis, title="", threshold=0.05, win=None, bins=3):
 
 
 def draw_rgb(schematic, vis, title="", threshold=0.05, win=None, colorio=2):
-    """Draw rgb plot of schematics
-    """
+    """Draw rgb plot of schematics"""
     clrs = []
     schematic = schematic.cpu()
     szs = schematic.shape
@@ -83,9 +81,9 @@ def draw_rgb(schematic, vis, title="", threshold=0.05, win=None, colorio=2):
 
 def cuboid_data(pos, size=(1, 1, 1)):
     """code taken from
-        https://stackoverflow.com/a/35978146/4124317
-        suppose axis direction: x: to left; y: to inside; z: to upper
-        get the (left, outside, bottom) point
+    https://stackoverflow.com/a/35978146/4124317
+    suppose axis direction: x: to left; y: to inside; z: to upper
+    get the (left, outside, bottom) point
     """
     o = [a - b / 2 for a, b in zip(pos, size)]
     # get the length, width, and height
@@ -112,16 +110,14 @@ def cuboid_data(pos, size=(1, 1, 1)):
 
 
 def plotCubeAt(pos=(0, 0, 0), color=(0, 1, 0, 1), ax=None):
-    """Plotting a cube element at position pos
-    """
+    """Plotting a cube element at position pos"""
     if ax is not None:
         X, Y, Z = cuboid_data(pos)
         ax.plot_surface(X, Y, Z, color=color, rstride=1, cstride=1, alpha=1)
 
 
 class SchematicPlotter:
-    """Schematic Plotter
-    """
+    """Schematic Plotter"""
 
     def __init__(self, viz):
         self.viz = viz

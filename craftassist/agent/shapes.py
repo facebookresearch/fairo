@@ -544,7 +544,7 @@ def dome(radius=3, size=None, bid=DEFAULT_IDM, thickness=2, labelme=False, **kwa
 
 
 def arch(size=3, distance=11, bid=DEFAULT_IDM, orient="xy", labelme=False, **kwargs):
-    """ Arch is a combination of 2 parallel columns, where the columns
+    """Arch is a combination of 2 parallel columns, where the columns
     are connected by a stepped roof.
     Total height of the arch structure:length + distance//2 + 1"""
     length = size  # Length is the height of 2 parallel columns

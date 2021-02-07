@@ -155,7 +155,7 @@ class AgentMemory:
     ########################
 
     def set_memory_updated_time(self, memid):
-        """"Set the updated_time of the memory object with given memid
+        """ "Set the updated_time of the memory object with given memid
 
         Args:
             memid (string): Memory ID
@@ -170,7 +170,7 @@ class AgentMemory:
         self._db_write("UPDATE Memories SET updated_time=? WHERE uuid=?", self.get_time(), memid)
 
     def set_memory_attended_time(self, memid):
-        """"Set the attended_time of the memory object with given memid
+        """ "Set the attended_time of the memory object with given memid
 
         Args:
             memid (string): Memory ID
@@ -185,7 +185,7 @@ class AgentMemory:
         self._db_write("UPDATE Memories SET attended_time=? WHERE uuid=?", self.get_time(), memid)
 
     def update_recent_entities(self, mems=[]):
-        """"Update memories in mems as recently attended
+        """ "Update memories in mems as recently attended
 
         Args:
             mems (list): List of memories
@@ -1011,8 +1011,8 @@ class AgentMemory:
 
     def db_write(self, query: str, *args) -> int:
         """Return the number of rows affected.  As a side effect,
-           sets the updated_time entry for each affected memory, 
-           and applies self.on_delete_callback to the list of deleted memids 
+           sets the updated_time entry for each affected memory,
+           and applies self.on_delete_callback to the list of deleted memids
            if there are any and on_delete_callback is not None
 
         Args:

@@ -21,9 +21,9 @@ CARDINAL_RADIUS = 20
 
 
 def build_linear_extent_selector(interpreter, speaker, location_d):
-    """ 
-    builds a MemoryFilter that selects by a linear_extent dict 
-    chooses memory location nearest to 
+    """
+    builds a MemoryFilter that selects by a linear_extent dict
+    chooses memory location nearest to
     the linear_extent dict interpreted as a location
     """
 
@@ -56,11 +56,11 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
 class FilterInterpreter:
     def __call__(self, interpreter, speaker, filters_d, get_all=False):
         """
-        This is a subinterpreter to handle FILTERS dictionaries 
+        This is a subinterpreter to handle FILTERS dictionaries
 
         Args:
         interpreter:  root interpreter.
-        speaker (str): The name of the player/human/agent who uttered 
+        speaker (str): The name of the player/human/agent who uttered
             the chat resulting in this interpreter
         filters_d: FILTERS logical form from semantic parser
         get_all (bool): if True, output attributes are set with get_all=True

@@ -9,15 +9,15 @@ THROTTLING_TICK_LOWER_LIMIT = 4
 
 # put a counter and a max_count so can't get stuck?
 class Task(object):
-    """This class represents a Task, the exact implementation of which 
-    will depend on the framework and environment. A task can be placed on a 
+    """This class represents a Task, the exact implementation of which
+    will depend on the framework and environment. A task can be placed on a
     task stack, and represents a unit (which in itself can contain a sequence of s
     smaller subtasks).
 
     Attributes:
         memid (string): Memory id of the task in agent's memory
         interrupted (bool): A flag indicating whetherr the task has been interrupted
-        finished (bool): A flag indicating whether the task finished 
+        finished (bool): A flag indicating whether the task finished
         name (string): Name of the task
         undone (bool): A flag indicating whether the task was undone / reverted
         last_stepped_time (int): Timestamp of last step through the task
@@ -47,7 +47,7 @@ class Task(object):
         return
 
     def add_child_task(self, t, agent, pass_stop_condition=True):
-        """Add a child task to the task_stack and pass along the id 
+        """Add a child task to the task_stack and pass along the id
         of the parent task (current task)"""
         # FIXME, this is ugly and dangerous; some conditions might keep state etc?
         if pass_stop_condition:
@@ -60,7 +60,7 @@ class Task(object):
 
     def check_finished(self):
         """Check if the task has mark itself finished
-        
+
         Returns:
             bool: If the task has finished
         """

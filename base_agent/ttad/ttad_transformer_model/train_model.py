@@ -22,8 +22,7 @@ from utils_caip import *
 
 
 class ModelTrainer:
-    """Wrapper Class around training model and data loader
-    """
+    """Wrapper Class around training model and data loader"""
 
     def __init__(self, args):
         self.args = args
@@ -99,11 +98,13 @@ class ModelTrainer:
                 text_span_optimizer.step()
 
                 loss.backward()
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    text_span_loss_attenuation_factor
-                    * (
-                        model.decoder.text_span_start_hidden_z.grad
-                        + model.decoder.text_span_end_hidden_z.grad
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        text_span_loss_attenuation_factor
+                        * (
+                            model.decoder.text_span_start_hidden_z.grad
+                            + model.decoder.text_span_end_hidden_z.grad
+                        )
                     )
                 )
                 if step % self.args.param_update_freq == 0:
@@ -179,8 +180,7 @@ class ModelTrainer:
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
 
     def validate(self, model, dataset, tokenizer, args):
-        """Validation: same as training loop but without back-propagation
-        """
+        """Validation: same as training loop but without back-propagation"""
         # make data sampler
         train_sampler = SequentialSampler(dataset)
         model_collate_fn = functools.partial(
@@ -263,7 +263,7 @@ def generate_model_name(args, optional_identifier=""):
 
     Returns:
         String
-        
+
     """
     name = ""
     # unix time in seconds, used as a unique identifier

@@ -86,7 +86,7 @@ def moment_at_center(npy, sl):
 # this doesn't preserve corners.  should it?
 # separate deltas per dim?
 def thicker_blocks(blocks, delta=1):
-    """Takes a list of blocks and thickens them 
+    """Takes a list of blocks and thickens them
     by an amount equal to delta"""
     newblocks = {l: idm for (l, idm) in blocks}
     for b in blocks:
@@ -115,8 +115,8 @@ def thicker(blocks, delta=1):
 
 
 def get_loc_weight(idx, cell_size):
-    """ compute the scaled indices and amount in 1d they 
-        extend on either side of the block boundary
+    """compute the scaled indices and amount in 1d they
+    extend on either side of the block boundary
     """
     left = idx * cell_size
     right = (idx + 1) * cell_size
@@ -132,8 +132,8 @@ def get_loc_weight(idx, cell_size):
 
 
 def get_cell_weights(idxs, cell_szs):
-    """ compute the amount of the cell in each of 
-    the 8 cubes it might touch """
+    """compute the amount of the cell in each of
+    the 8 cubes it might touch"""
     index = []
     dw = []
     for k in range(3):
@@ -158,10 +158,10 @@ def get_cell_weights(idxs, cell_szs):
 
 
 def scale(blocks, lams=(1.0, 1.0, 1.0)):
-    """ scales the blockobject in the ith direction with factor lams[i]
-        algorithm is to first scale the blocks up (so each minecraft cube has
-        size lams), and then for each 1x1x1 block arranged in place assign it
-        the id, meta of the big block it most intersects
+    """scales the blockobject in the ith direction with factor lams[i]
+    algorithm is to first scale the blocks up (so each minecraft cube has
+    size lams), and then for each 1x1x1 block arranged in place assign it
+    the id, meta of the big block it most intersects
     """
     assert lams[0] >= 1.0  # eventually FIXME?
     assert lams[1] >= 1.0  # eventually FIXME?
@@ -181,10 +181,10 @@ def scale(blocks, lams=(1.0, 1.0, 1.0)):
 
 
 def scale_sparse(blocks, lams=(1.0, 1.0, 1.0)):
-    """ scales the blockobject in the ith direction with factor lams[i]
-        algorithm is to first scale the blocks up (so each minecraft cube has
-        size lams), and then for each 1x1x1 block arranged in place assign it
-        the id, meta of the big block it most intersects
+    """scales the blockobject in the ith direction with factor lams[i]
+    algorithm is to first scale the blocks up (so each minecraft cube has
+    size lams), and then for each 1x1x1 block arranged in place assign it
+    the id, meta of the big block it most intersects
     """
     assert lams[0] >= 1.0  # eventually FIXME?
     assert lams[1] >= 1.0  # eventually FIXME?
@@ -277,7 +277,7 @@ def unhash_idm(npy):
 # TODO current_idm should be a list
 def replace_by_blocktype(blocks, new_idm=(0, 0), current_idm=None, every_n=1, replace_every=False):
     """replace some blocks with a different kind
-       note that it is allowed that new_idm is (0,0)
+    note that it is allowed that new_idm is (0,0)
     """
     if current_idm is not None:  # specifying a transformation of one blocktype to another
         blocks = maybe_convert_to_npy(blocks)
@@ -314,9 +314,9 @@ def replace_by_blocktype(blocks, new_idm=(0, 0), current_idm=None, every_n=1, re
 
 def replace_by_halfspace(blocks, new_idm=(0, 0), geometry=None, replace_every=False):
     """replace some blocks with a different kind, chosen by
-       block at (i,j,k) is changed if
-       geometry['v']@((i,j,k) - geometry['offset']) > geometry['threshold']
-       note that it is allowed that new_idm is (0, 0)
+    block at (i,j,k) is changed if
+    geometry['v']@((i,j,k) - geometry['offset']) > geometry['threshold']
+    note that it is allowed that new_idm is (0, 0)
     """
     if not replace_every:
         lblocks = maybe_convert_to_list(blocks)
@@ -348,9 +348,9 @@ def replace_by_halfspace(blocks, new_idm=(0, 0), geometry=None, replace_every=Fa
 
 
 def maybe_update_extreme_loc(extremes, loc, axis):
-    """ given a non-air index loc into a block list, updates 
-        a list of max and min values along axis at projections
-        given by the non-axis entries in loc
+    """given a non-air index loc into a block list, updates
+    a list of max and min values along axis at projections
+    given by the non-axis entries in loc
     """
     other_indices = list(range(3))[:axis] + list(range(3))[axis + 1 :]
     loc_in = (loc[other_indices[0]], loc[other_indices[1]])
@@ -368,8 +368,8 @@ def maybe_update_extreme_loc(extremes, loc, axis):
 
 
 def get_index_from_proj(proj, proj_axes, i):
-    """ returns a tuple that can be used to index the rank-3 npy array
-        from the proj coords, proj_axes, and coordinate in the remaining dimension
+    """returns a tuple that can be used to index the rank-3 npy array
+    from the proj coords, proj_axes, and coordinate in the remaining dimension
     """
     index = [0, 0, 0]
     index[proj_axes[0]] = proj[0]
@@ -379,10 +379,10 @@ def get_index_from_proj(proj, proj_axes, i):
 
 
 def maybe_fill_line(old_npy, new_npy, proj, extremes, proj_axes, fill_material=None):
-    """fill the line from starting from extremes[0] to extremes[1].  
-       proj_axes is the gives the axes of the non-extreme coordinates
-       proj gives the coordinates in the proj_axes coordinates 
-       if the extremes are different block types changes in the middle
+    """fill the line from starting from extremes[0] to extremes[1].
+    proj_axes is the gives the axes of the non-extreme coordinates
+    proj gives the coordinates in the proj_axes coordinates
+    if the extremes are different block types changes in the middle
     """
     if (
         extremes[0] < extremes[1] + 1
@@ -398,8 +398,8 @@ def maybe_fill_line(old_npy, new_npy, proj, extremes, proj_axes, fill_material=N
 
 # TODO specify a slice or direction
 def fill_flat(blocks, fill_material=None):
-    """ attempts to fill areas in a shape.  basic algorithm:  if two blocks in the shape
-        are connected by an x, y, or z only line, fills that line
+    """attempts to fill areas in a shape.  basic algorithm:  if two blocks in the shape
+    are connected by an x, y, or z only line, fills that line
     """
     blocks = maybe_convert_to_npy(blocks)
     szs = blocks.shape

@@ -11,15 +11,16 @@ from string_lists import ACTION_ING_MAPPING
 from copy import deepcopy
 import logging
 
+
 class GetMemoryHandler(DialogueObject):
-    """This class handles logical forms that ask questions about the environment or 
+    """This class handles logical forms that ask questions about the environment or
     the assistant's current state. This requires querying the assistant's memory.
 
     Args:
         provisional: A dictionary used to store information to support clarifications
         speaker_name: Name or id of the speaker
         action_dict: output of the semantic parser (also called the logical form).
-        subinterpret: A dictionary that contains handlers to resolve the details of 
+        subinterpret: A dictionary that contains handlers to resolve the details of
                       salient components of a dictionary for this kind of dialogue.
 
     """
@@ -37,7 +38,7 @@ class GetMemoryHandler(DialogueObject):
     def step(self) -> Tuple[Optional[str], Any]:
         """Read the action dictionary and take immediate actions based
         on memory type - either delegate to other handlers or raise an exception.
-        
+
         Returns:
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
@@ -53,9 +54,9 @@ class GetMemoryHandler(DialogueObject):
         self.finished = True
 
     def handle_reference_object(self, voxels_only=False) -> Tuple[Optional[str], Any]:
-        """This function handles questions about a reference object and generates 
+        """This function handles questions about a reference object and generates
         and answer based on the state of the reference object in memory.
-        
+
         Returns:
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
@@ -80,9 +81,9 @@ class GetMemoryHandler(DialogueObject):
         return self.do_answer(mems, vals)
 
     def handle_action(self) -> Tuple[Optional[str], Any]:
-        """This function handles questions about the attributes and status of 
+        """This function handles questions about the attributes and status of
         the current action.
-        
+
         Returns:
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
@@ -138,10 +139,10 @@ class GetMemoryHandler(DialogueObject):
         raise NotImplementedError
 
     def do_answer(self, mems: Sequence[Any], vals: Sequence[Any]) -> Tuple[Optional[str], Any]:
-        """This function uses the action dictionary and memory state to return an answer. 
+        """This function uses the action dictionary and memory state to return an answer.
 
         Args:
-            mems: Sequence of memories 
+            mems: Sequence of memories
             vals: Sequence of values
 
         Returns:
@@ -177,7 +178,7 @@ class GetMemoryHandler(DialogueObject):
 
         Args:
             mems: Sequence of memories
-        
+
         Returns:
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
