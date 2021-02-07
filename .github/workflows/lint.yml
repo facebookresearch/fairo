@@ -69,8 +69,10 @@ jobs:
           - name: Update droidlet submodule to latest
             run: |
               git submodule update --remote --merge
-              pushd droidlet
+              cd droidlet
+              pwd
               commit_msg="[Droidlet Update] $(git show -s --format=%s)"
-              popd
+              cd ..
+              pwd
               git commit -m $commit_msg && git push
           
