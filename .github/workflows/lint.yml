@@ -38,7 +38,7 @@ jobs:
           - name: Run black
             run: |
               set -eux
-              pip3 install $(cat requirements.txt | grep -e black -e awscli)
+              pip3 install $(cat requirements.txt | grep -e black)
               bash tools/codetools/check_and_fix_black_failures.sh --ci
           - name: Add annotations
             uses: pytorch/add-annotations-github-action@master
@@ -58,7 +58,7 @@ jobs:
             uses: actions/checkout@v2
             with:
               repository: fairinternal/minecraft
-              token: ${{ secrets.INTERNAL_MC_PAT }}
+              token: ${{ secrets.SNYXAN_REPO }}
           - name: Fix git
             run: |
               set -eux

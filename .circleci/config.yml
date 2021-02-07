@@ -60,6 +60,7 @@ jobs:
       - run:
           name: Push versioned docker containers
           command: |
+            pip3 install $(cat requirements.txt | grep -e awscli)
             tools/docker/login.sh
             make -C tools/docker push-versioned
 
