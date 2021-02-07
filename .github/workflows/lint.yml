@@ -74,4 +74,6 @@ jobs:
               commit_msg="[Droidlet Update] $(git show -s --format=%s)"
               popd
               git status
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
