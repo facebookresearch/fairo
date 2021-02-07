@@ -63,6 +63,8 @@ jobs:
           - name: Fix git
             run: |
               set -eux
+              pwd
+              cd minecraft
               git fetch origin master
               if [[ "${{ github.event_name }}" == "pull_request" ]]; then
                 git checkout -b yuxuans/sync_test origin/master
