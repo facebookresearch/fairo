@@ -75,5 +75,5 @@ jobs:
               popd
               git status
             env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              GITHUB_TOKEN: ${{ secrets.SNYXAN_REPO }}
           
