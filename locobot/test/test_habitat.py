@@ -60,12 +60,14 @@ class NavigationTests(unittest.TestCase):
         initial_state = [4.8, 0.16, -1.0]  # in apartment_0, right in front of the humans
         self.bot.go_to_absolute(initial_state, close_loop=False)
         self.bot.go_to_absolute(initial_state, close_loop=False)
-        assert_visual(self.bot, "go_to_absolute1")
+        assert_allclose(initial_state, self.bot.get_base_state("odom"), rtol=1e-3)
+        # assert_visual(self.bot, "go_to_absolute1")
 
         for i in range(10):
             # test that multiple calls don't create side-effects
             self.bot.go_to_absolute(initial_state, close_loop=False)
-        assert_visual(self.bot, "go_to_absolute2")
+        assert_allclose(initial_state, self.bot.get_base_state("odom"), rtol=1e-3)
+        # assert_visual(self.bot, "go_to_absolute2")
 
     def test_turn(self):
         # turn a set of a angles

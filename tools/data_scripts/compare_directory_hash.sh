@@ -2,7 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 # This script checks if models and datasets are up to date, and either triggers a download or gives the user a warning to update local files.
-ROOTDIR=$(readlink -f $(dirname "$0")/../../)
+function pyabspath() {
+    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+}
+
+ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
 
 if [ -z $1 ]
@@ -32,27 +36,23 @@ compare_checksum() {
     then
         echo "Local $FOLDER directory is up to date."
     else
-	    maybe_download $FOLDER
+	    try_download $FOLDER
     fi
 }
 
-maybe_download() {
+try_download() {
     FOLDER=$1
-    echo "Local ${FOLDER} directory is out of sync. Would you like to download the updated files from AWS?"
-	read -p "Enter Y/N: " permission
-	echo $permission
-	if [ "$permission" == "Y" ] || [ "$permission" == "y" ] || [ "$permission" == "yes" ]; then
-		echo "Downloading ${FOLDER} directory"
-		SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_models.sh"
-        if cmp -s $FOLDER "datasets"
-        then
-            SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
-        fi
-		echo "Downloading using script " $SCRIPT_PATH
-		"$SCRIPT_PATH" "$AGENT"
-	else
-		echo "Warning: Outdated models can cause breakages in the repo."
-	fi
+    echo "*********************************************************************************************"
+    echo "Local ${FOLDER} directory is out of sync. Downloading latest. Use --dev to disable downloads."
+    echo "*********************************************************************************************"
+    echo "Downloading ${FOLDER} directory"
+    SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_models.sh"
+    if cmp -s $FOLDER "datasets"
+    then
+        SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
+    fi
+    echo "Downloading using script " $SCRIPT_PATH
+    "$SCRIPT_PATH" "$AGENT"
 }
 
 pushd $AGENT_PATH
