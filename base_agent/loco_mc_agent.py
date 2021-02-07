@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-
+import os 
 import logging
 import os
 import random
@@ -41,7 +41,7 @@ class LocoMCAgent(BaseAgent):
         self.last_task_memid = None
         self.dashboard_chat = None
         self.areas_to_perceive = []
-        self.perceive_during_step = False
+        self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -197,7 +197,7 @@ class LocoMCAgent(BaseAgent):
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
         if isinstance(e, ErrorWithResponse):
-            self.send_chat("Oops! I got confused and wasn't able to complete my last task :(")
+            self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
             self.memory.task_stack_clear()
             self.dialogue_manager.dialogue_stack.clear()
             self.uncaught_error_count += 1
@@ -249,11 +249,7 @@ class LocoMCAgent(BaseAgent):
     def controller_step(self):
         """Process incoming chats and modify task stack"""
         raw_incoming_chats = self.get_incoming_chats()
-        if raw_incoming_chats:
-            # force to get objects
-            self.perceive(force=True)
-            logging.info("Incoming chats: {}".format(raw_incoming_chats))
-
+        logging.info("Incoming chats: {}".format(raw_incoming_chats))
         incoming_chats = []
         for raw_chat in raw_incoming_chats:
             match = re.search("^<([^>]+)> (.*)", raw_chat)
@@ -271,7 +267,7 @@ class LocoMCAgent(BaseAgent):
 
         if len(incoming_chats) > 0:
             # force to get objects, speaker info
-            if self.perceive_during_step:
+            if self.perceive_on_chat:
                 self.perceive(force=True)
             # change this to memory.get_time() format?
             self.last_chat_time = time.time()
