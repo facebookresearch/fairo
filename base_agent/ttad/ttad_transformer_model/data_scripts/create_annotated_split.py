@@ -34,8 +34,7 @@ def create_data_split(data_path, filename, output_path, split_ratios):
 
 
 def write_data_split(output_path, split, filename, data_chunk):
-    """Writes a chunk of data to the output file path.
-    """
+    """Writes a chunk of data to the output file path."""
     dirpath = output_path + "/" + split
     filepath = dirpath + filename
     if not isdir(dirpath):

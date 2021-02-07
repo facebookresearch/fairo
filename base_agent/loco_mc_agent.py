@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-import os 
+import os
 import logging
 import os
 import random
@@ -140,7 +140,6 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("setChatResponse", payload)
 
-
     def init_physical_interfaces(self):
         """
         should define or otherwise set up
@@ -168,7 +167,7 @@ class LocoMCAgent(BaseAgent):
         raise NotImplementedError
 
     def init_memory(self):
-        """ something like:
+        """something like:
         self.memory = memory.AgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),

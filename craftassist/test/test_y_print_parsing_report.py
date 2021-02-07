@@ -866,7 +866,7 @@ class TestDialogueManager(unittest.TestCase):
                 pass_cnt += 1
                 record = [
                     fontcolors.OKGREEN + command + fontcolors.ENDC,
-                    fontcolors.OKGREEN + "PASS" + fontcolors.ENDC, 
+                    fontcolors.OKGREEN + "PASS" + fontcolors.ENDC,
                 ]
             else:
                 fail_cnt += 1
@@ -876,10 +876,10 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             model_output = remove_text_span(
-                    self.agent.dialogue_manager.get_logical_form(
-                        command, self.agent.dialogue_manager.model
-                    )
+                self.agent.dialogue_manager.get_logical_form(
+                    command, self.agent.dialogue_manager.model
                 )
+            )
             parsing_model_status = compare_full_dictionaries(model_output, ground_truth_parse)
             if parsing_model_status:
                 model_pass_cnt += 1
@@ -922,7 +922,7 @@ class TestDialogueManager(unittest.TestCase):
         print("Printing Model accuracy status ... ")
         print(print_model_str.format(model_pass_cnt, model_fail_cnt, model_accuracy))
         # check that parsing pipeline is at a 100% accuracy
-        self.assertTrue(accuracy==100.0)
+        self.assertTrue(accuracy == 100.0)
 
 
 if __name__ == "__main__":

@@ -77,10 +77,10 @@ def build_special_time_condition(agent, start_time, end_time, epsilon=0.01):
 # eventually do "x minutes before condition"?  how?
 # KEEPS state (did the event occur- starts timer then)
 class TimeCondition(Condition):
-    """ 
+    """
     if event is None, the timer starts now
     if event is not None, it should be a condition, timer starts on the condition being true
-    This time condition is true when the comparator between 
+    This time condition is true when the comparator between
     timer (as value_left) and the comparator's value_right is true
     if comparator is a string, it should be "SUNSET" / "SUNRISE" / "DAY" / "NIGHT" / "AFTERNOON" / "MORNING"
     else it should be built in the parent, and the value_right should be commeasurable (properly scaled)

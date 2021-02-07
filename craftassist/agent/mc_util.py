@@ -46,8 +46,8 @@ def adjacent(p):
 
 
 def build_safe_diag_adjacent(bounds):
-    """ bounds is [mx, Mx, my, My, mz, Mz],
-    if nothing satisfies, returns empty list """
+    """bounds is [mx, Mx, my, My, mz, Mz],
+    if nothing satisfies, returns empty list"""
 
     def a(p):
         """Return the adjacent positions to p including diagonal adjaceny, within the bounds"""
@@ -71,8 +71,8 @@ def build_safe_diag_adjacent(bounds):
 def cluster_areas(areas):
     """Cluster a list of areas so that intersected ones are unioned
 
-       areas: list of tuple ((x, y, z), radius), each defines a cube
-       where (x, y, z) is the center and radius is half the side length
+    areas: list of tuple ((x, y, z), radius), each defines a cube
+    where (x, y, z) is the center and radius is half the side length
     """
 
     def expand_xyzs(pos, radius):

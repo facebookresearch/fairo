@@ -154,7 +154,9 @@ class LocobotAgent(LocoMCAgent):
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend, use_dslam=self.opts.use_dslam)
+        self.mover = LoCoBotMover(
+            ip=self.opts.ip, backend=self.opts.backend, use_dslam=self.opts.use_dslam
+        )
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)

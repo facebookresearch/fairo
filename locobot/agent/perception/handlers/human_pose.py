@@ -152,8 +152,7 @@ HumanKeypoints = namedtuple(
 
 
 class Human(WorldObject):
-    """Instantiation of the WorldObject that is used by the human pose estimator. 
-    """
+    """Instantiation of the WorldObject that is used by the human pose estimator."""
 
     def __init__(self, rgb_depth: RGBDepth, keypoints: HumanKeypoints):
         WorldObject.__init__(self, label="human_pose", center=keypoints.nose, rgb_depth=rgb_depth)

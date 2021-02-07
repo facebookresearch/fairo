@@ -19,8 +19,8 @@ DIRECTIONS = {
 
 def transform(coords, yaw, pitch, inverted=False):
     """Coordinate transforms with respect to yaw/pitch of the viewer
-       coords should be relative to the viewer *before* pitch/yaw transform
-       If we want to transform any of DIRECTIONS back, then it would be inverted=True
+    coords should be relative to the viewer *before* pitch/yaw transform
+    If we want to transform any of DIRECTIONS back, then it would be inverted=True
     """
     # our yaw and pitch are clockwise in the standard coordinate system
     theta = deg2rad(-yaw)
@@ -55,9 +55,9 @@ def transform(coords, yaw, pitch, inverted=False):
 
 
 def look_vec(yaw, pitch):
-    """Takes yaw and pitch and 
+    """Takes yaw and pitch and
     Returns:
-        the look vector representing the coordinates of where the 
+        the look vector representing the coordinates of where the
     entity is looking"""
     yaw = deg2rad(yaw)
     pitch = deg2rad(pitch)

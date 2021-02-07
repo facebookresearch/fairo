@@ -45,17 +45,17 @@ class ListAttribute(Attribute):
 
 
 class LinearExtentAttribute(Attribute):
-    """ 
-    computes the (perhaps signed) length between two points in space. 
+    """
+    computes the (perhaps signed) length between two points in space.
     behavior controlled by the location_data array.
     if field "relative_direction"=="AWAY", unsigned length
-    if "relative_direction" in ["LEFT", "RIGHT" ...] projected onto a special direction 
+    if "relative_direction" in ["LEFT", "RIGHT" ...] projected onto a special direction
          and signed.  the "arrow" goes from "source" to "destination",
          e.g. if destination is more LEFT than source, "LEFT" will be positive
     if "relative_direction" in ["INSIDE", "OUTSIDE"], signed length is shifted towards zero
          so that 0 is at the boundary of the source.
          This is not implemented yet FIXME!!
-    
+
     One of the two points in space is given by the positions of a reference object
     either given directly as a memory, or given as FILTERs to search
     the other is the list element input into the call
@@ -161,18 +161,18 @@ class LinearExtentAttribute(Attribute):
 
 
 class LookRayDistance(Attribute):
-    """ 
+    """
     computes the distance between a ref_obj_node and a ray given by an agent's
-    look and pos.  The agent's name or eid is input to contructor (in addition to the agent running 
+    look and pos.  The agent's name or eid is input to contructor (in addition to the agent running
     this attribute)
 
     constructor inputs:
     agent: the agent this will run in
     eid:  the entity id of the LookRay owner (the viewing agent/player/person)
           if None, assumes it is the eid from the agent's default_frame
-  
+
     constructor kv inputs:
-    mode: ="raw" (default) or "normalized".  If "normalized", 
+    mode: ="raw" (default) or "normalized".  If "normalized",
            computes the distance from the ray divided by the distance to the orgin of the ray
 
     """

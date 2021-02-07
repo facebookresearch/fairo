@@ -66,7 +66,7 @@ class RGBDepth:
     Args:
         rgb (np.array): RGB image fetched from the robot
         depth (np.array): depth map fetched from the robot
-        pts (list[(x,y,z)]): list of x,y,z coordinates of the pointcloud corresponding 
+        pts (list[(x,y,z)]): list of x,y,z coordinates of the pointcloud corresponding
         to the rgb and depth maps.
     """
 

@@ -10,7 +10,7 @@ from mc_util import IDM
 # TODO FILTERS!
 def get_block_type(s) -> IDM:
     """string -> (id, meta)
-    or  {"has_x": span} -> (id, meta) """
+    or  {"has_x": span} -> (id, meta)"""
 
     name_to_bid = minecraft_specs.get_block_data()["name_to_bid"]
     if type(s) is str:
