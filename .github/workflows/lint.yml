@@ -59,47 +59,19 @@ jobs:
             with:
               repository: fairinternal/minecraft
               token: ${{ secrets.SNYXAN_REPO }}
-              path: minecraft
           - name: Fix git
             run: |
               set -eux
-              pwd
-              cd minecraft
               git fetch origin master
-              if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-                git checkout -b yuxuans/sync_test origin/master
-              fi
+              git checkout -b yuxuans/sync_test origin/master
           - name: Update droidlet submodule to latest
             run: |
+              echo "branch"
+              git status
+              git submodule update --init
               git submodule update --remote --merge
-              echo "--- minecraft--- "
-              pwd
-              echo "------"
-              ls -la
-              echo "------"
-              git status
-              echo "------"
-              git remote -v
-              echo "------"
-              cd droidlet
-              echo "--- droidlet--- "
-              pwd
-              echo "------"
-              ls
-              echo "------"
-              git status
-              echo "------"
-              git remote -v
-              echo "------"
+              pushd droidlet
               commit_msg="[Droidlet Update] $(git show -s --format=%s)"
-              echo $commit_msg
-              cd ..
-              echo "--- minecraft---"
-              pwd
-              echo "------"
-              ls
-              echo "------"
+              popd
               git status
-              echo "------"
-              git commit -m $commit_msg && git push
           
