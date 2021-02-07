@@ -71,8 +71,8 @@ jobs:
               git submodule update --remote --merge
               echo "minecraft"
               pwd
-              ls
-              git staus
+              ls -la
+              git status
               cd droidlet
               echo "droidlet"
               pwd
@@ -83,6 +83,6 @@ jobs:
               echo "minecraft"
               pwd
               ls
-              git staus
+              git status
               git commit -m $commit_msg && git push
           
