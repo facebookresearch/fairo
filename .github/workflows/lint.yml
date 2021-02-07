@@ -59,6 +59,7 @@ jobs:
             with:
               repository: fairinternal/minecraft
               token: ${{ secrets.SNYXAN_REPO }}
+              path: minecraft
           - name: Fix git
             run: |
               set -eux
@@ -69,20 +70,34 @@ jobs:
           - name: Update droidlet submodule to latest
             run: |
               git submodule update --remote --merge
-              echo "minecraft"
+              echo "--- minecraft--- "
               pwd
+              echo "------"
               ls -la
+              echo "------"
               git status
+              echo "------"
+              git remote -v
+              echo "------"
               cd droidlet
-              echo "droidlet"
+              echo "--- droidlet--- "
               pwd
+              echo "------"
               ls
+              echo "------"
               git status
+              echo "------"
+              git remote -v
+              echo "------"
               commit_msg="[Droidlet Update] $(git show -s --format=%s)"
+              echo $commit_msg
               cd ..
-              echo "minecraft"
+              echo "--- minecraft---"
               pwd
+              echo "------"
               ls
+              echo "------"
               git status
+              echo "------"
               git commit -m $commit_msg && git push
           
