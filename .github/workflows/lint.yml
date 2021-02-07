@@ -3,8 +3,10 @@ name: Lint
 on:
     push:
       branches:
-      - main
+      - yuxuans/bot
     pull_request:
+      branches:
+      - yuxuans/bot
 
 jobs:
     lint:
@@ -47,3 +49,28 @@ jobs:
               regex: '^(?<filename>.*?):(?<lineNumber>\d+):(?<columnNumber>\d+): (?<errorCode>\w+\d+) (?<errorDesc>.*)'
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    update_internal:
+        needs: lint
+        runs-on: ubuntu-latest
+        steps:
+          - name: Fetch Internal repo
+            uses: actions/checkout@v2
+            with:
+              repository: fairinternal/minecraft
+              token: ${{ secrets.INTERNAL_MC_PAT }}
+          - name: Fix git
+            run: |
+              set -eux
+              git fetch origin master
+              if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                git checkout -b yuxuans/sync_test origin/master
+              fi
+          - name: Update droidlet submodule to latest
+            run: |
+              git submodule update --remote --merge
+              pushd droidlet
+              commit_msg="[Droidlet Update] $(git show -s --format=%s)"
+              popd
+              git commit -m $commit_msg && git push
+          
