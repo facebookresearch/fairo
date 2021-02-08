@@ -72,7 +72,7 @@ class LoCoBotMover:
         """
         Sanity checks all the mover interfaces. 
         
-        Checks move by moving the locobot around in a square and reporting L2 drift and total time taken
+        Checks move by moving the locobot around in a square and reporting L1 drift and total time taken
             for the three movement modes available to the locobot - using PyRobot slam (vslam), 
             using Droidlet slam (dslam) and without using any slam (default)
         Checks look and point by poiting and looking at the same target.
@@ -105,7 +105,7 @@ class LoCoBotMover:
                 side (float): side of the square
 
             Returns:
-                total L2 drift, total time taken to move around the square.
+                total L1 drift, total time taken to move around the square.
             """
             pos = self.get_base_pos_in_canonical_coords()
             logging.info("Initial agent pos {}".format(pos))
