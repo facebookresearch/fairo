@@ -78,8 +78,8 @@ class LoCoBotMover:
         Checks look and point by poiting and looking at the same target.
         """
         self.reset_camera()
-        table = PrettyTable(["Command", "L1 Drift", "Time (sec)"])
-        sq_table = PrettyTable(["Mode", "Total L1 drift", "Total time (sec)"])
+        table = PrettyTable(["Command", "L1 Drift (meters)", "Time (sec)"])
+        sq_table = PrettyTable(["Mode", "Total L1 drift (meters)", "Total time (sec)"])
         
         def l1_drift(a, b):
             return round(abs(a[0] - b[0]) + abs(a[1] - b[1]), ndigits=3)
