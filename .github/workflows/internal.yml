@@ -31,10 +31,5 @@ jobs:
               popd
               git config --global user.email "yuxuans+bot@fb.com"
               git config --global user.name "Droidlet Bot"
-              echo "--- add --- "
-              git add droidlet
-              echo "--- commit --- "
-              git commit -m "$commit_msg"
-              echo "--- push --- "
-              git push
+              git add droidlet && git commit -m "$commit_msg" && git push
           
