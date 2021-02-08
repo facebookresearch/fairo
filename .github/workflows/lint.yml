@@ -62,8 +62,8 @@ jobs:
           - name: Fix git
             run: |
               set -eux
-              git fetch origin master
-              git checkout -b yuxuans/sync_test origin/master
+              git fetch origin yuxuans/sync_test
+              git checkout yuxuans/sync_test
           - name: Update droidlet submodule to latest
             run: |
               echo "branch"
