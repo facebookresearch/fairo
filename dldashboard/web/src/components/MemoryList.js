@@ -8,6 +8,9 @@ import React from "react";
 
 import ReactVirtualizedTable from "./Memory/MemoryVirtualizedTable";
 import MemoryManager from "./Memory/MemoryManager";
+import TextField from "@material-ui/core/TextField";
+
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -24,6 +27,7 @@ class MemoryList extends React.Component {
       width: 600,
       isLoaded: false,
       memory: null,
+      filter: "",
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -72,7 +76,13 @@ class MemoryList extends React.Component {
       );
     }
 
-    const memoryManager = new MemoryManager(memory);
+    const darkTheme = createMuiTheme({
+      palette: {
+        type: "dark",
+      },
+    });
+
+    const memoryManager = new MemoryManager(memory, this.state.filter);
 
     const showMemeoryDetail = (memoryUUID) => {
       if (this.props.stateManager && this.props.stateManager.dashboardLayout) {
@@ -105,17 +115,32 @@ class MemoryList extends React.Component {
 
     // final render
     return (
-      <div
-        ref={this.outer_div}
-        style={{ padding: 12, height: paddedHeight, width: paddedWidth }}
-      >
-        <ReactVirtualizedTable
-          height={paddedHeight}
-          width={paddedWidth}
-          memoryManager={memoryManager}
-          onShowMemeoryDetail={showMemeoryDetail}
-        />
-      </div>
+      <ThemeProvider theme={darkTheme}>
+        <div
+          ref={this.outer_div}
+          style={{ padding: 12, height: paddedHeight, width: paddedWidth }}
+        >
+          <TextField
+            style={{
+              borderBlockColor: "white",
+            }}
+            color="primary"
+            id="outlined-uncontrolled"
+            label="Search"
+            margin="dense"
+            variant="outlined"
+            onChange={(event) => {
+              this.setState({ filter: event.target.value });
+            }}
+          />
+          <ReactVirtualizedTable
+            height={paddedHeight}
+            width={paddedWidth}
+            memoryManager={memoryManager}
+            onShowMemeoryDetail={showMemeoryDetail}
+          />
+        </div>
+      </ThemeProvider>
     );
   }
 }

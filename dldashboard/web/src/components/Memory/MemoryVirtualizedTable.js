@@ -180,39 +180,39 @@ export default function ReactVirtualizedTable({
 
   return (
     // TODO setting the heingt to 100% is not working. Will need to figure this out.
-    <Paper style={{ height: { height }, width: { width } }}>
-      <VirtualizedTable
-        height={height}
-        width={width}
-        rowCount={getCount()}
-        rowGetter={({ index }) => toReferencedObject(getMemoryForIndex(index))}
-        onRowClick={({ event, index, rowData }) => {
-          console.log("Clicked ", event, index, rowData);
-          if (rowData && rowData.uuid) {
-            onShowMemeoryDetail(rowData.uuid);
-          }
-        }}
-        columns={[
-          {
-            width: 60,
-            label: "ID",
-            dataKey: "id",
-            numeric: true,
-          },
-          {
-            width: 120,
-            label: "Type",
-            dataKey: "type",
-            numeric: false,
-          },
-          {
-            width: 120,
-            label: "Name",
-            dataKey: "name",
-            numeric: false,
-          },
-        ]}
-      />
-    </Paper>
+    // <Paper style={{ height: { height }, width: { width } }}>
+    <VirtualizedTable
+      height={height}
+      width={width}
+      rowCount={getCount()}
+      rowGetter={({ index }) => toReferencedObject(getMemoryForIndex(index))}
+      onRowClick={({ event, index, rowData }) => {
+        console.log("Clicked ", event, index, rowData);
+        if (rowData && rowData.uuid) {
+          onShowMemeoryDetail(rowData.uuid);
+        }
+      }}
+      columns={[
+        {
+          width: 60,
+          label: "ID",
+          dataKey: "id",
+          numeric: true,
+        },
+        {
+          width: 120,
+          label: "Type",
+          dataKey: "type",
+          numeric: false,
+        },
+        {
+          width: 120,
+          label: "Name",
+          dataKey: "name",
+          numeric: false,
+        },
+      ]}
+    />
+    // </Paper>
   );
 }

@@ -1,9 +1,7 @@
-export default function MemoryManager({
-  memories,
-  named_abstractions,
-  reference_objects,
-  triples,
-}) {
+export default function MemoryManager(
+  { memories, named_abstractions, reference_objects, triples },
+  filter
+) {
   // TODO create a lookup of memory from uuid
   const lookup = new Map(reference_objects.map((data) => [data[0], data]));
 
@@ -27,14 +25,29 @@ export default function MemoryManager({
     });
   }
 
+  var filtered_refrence_objects = [];
+  // build out a list of filtered objects
+  if (null != filter && filter.length > 0) {
+    debugger;
+    reference_objects.forEach((ref_object) => {
+      // Check the name
+      if (JSON.stringify({ ...ref_object }).includes(filter)) {
+        debugger;
+        filtered_refrence_objects.push(ref_object);
+      }
+    });
+  } else {
+    filtered_refrence_objects = reference_objects;
+  }
+
   // TODO create a search lookup of memories to find by id.
 
   function getCount() {
-    return reference_objects.length;
+    return filtered_refrence_objects.length;
   }
 
   function getMemoryForIndex(index) {
-    return reference_objects[index];
+    return filtered_refrence_objects[index];
   }
 
   function getMemoryForUUID(uuid) {
