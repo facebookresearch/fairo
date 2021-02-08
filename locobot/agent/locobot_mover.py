@@ -96,7 +96,7 @@ class LoCoBotMover:
             table.add_row([cmd_text, drift, tt])
             return drift, tt
         
-        def move_in_a_square(magic_text, side=0.3):
+        def move_in_a_square(magic_text, side=0.3, use_vslam=False, use_dslam=False):
             """
             Moves the locobot in a square starting from the bottom right - goes left, forward, right, back.
 
@@ -109,20 +109,20 @@ class LoCoBotMover:
             """
             pos = self.get_base_pos_in_canonical_coords()
             logging.info("Initial agent pos {}".format(pos))
-            dl, tl = execute_move(pos, [pos[0]-side, pos[1], pos[2]], "Move Left " + magic_text)
-            df, tf = execute_move(pos, [pos[0]-side, pos[1]+side, pos[2]], "Move Forward " + magic_text)
-            dr, tr = execute_move(pos, [pos[0], pos[1]+side, pos[2]], "Move Right " + magic_text)
-            db, tb = execute_move(pos, [pos[0], pos[1], pos[2]], "Move Backward " + magic_text)
+            dl, tl = execute_move(pos, [pos[0]-side, pos[1], pos[2]], "Move Left " + magic_text, use_map=use_vslam, use_dslam=use_dslam)
+            df, tf = execute_move(pos, [pos[0]-side, pos[1]+side, pos[2]], "Move Forward " + magic_text, use_map=use_vslam, use_dslam=use_dslam)
+            dr, tr = execute_move(pos, [pos[0], pos[1]+side, pos[2]], "Move Right " + magic_text, use_map=use_vslam, use_dslam=use_dslam)
+            db, tb = execute_move(pos, [pos[0], pos[1], pos[2]], "Move Backward " + magic_text, use_map=use_vslam, use_dslam=use_dslam)
             return dl+df+dr+db, tl+tf+tr+tb
 
         # move in a square of side 0.3 starting at current base pos
         d, t = move_in_a_square("default", side=0.3)
         sq_table.add_row(["default", d, t])
 
-        d, t = move_in_a_square("use_vslam", side=0.3)
+        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True)
         sq_table.add_row(["use_vslam", d, t])
 
-        d, t = move_in_a_square("use_dslam", side=0.3)
+        d, t = move_in_a_square("use_dslam", side=0.3, use_dslam=True)
         sq_table.add_row(["use_dslam", d, t])
 
         print(table)
