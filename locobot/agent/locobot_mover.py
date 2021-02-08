@@ -4,11 +4,22 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import Pyro4
 import logging
 import numpy as np
+
+import os
+import sys
+if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
+    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
+BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
+sys.path.append(BASE_AGENT_ROOT)
+
 import cv2
 import os
 import math
 import copy
+import time
 from base_agent.base_util import ErrorWithResponse
+from base_agent.argument_parser import ArgumentParser
+from prettytable import PrettyTable
 from perception import RGBDepth
 from objects import Marker, Pos
 from locobot_mover_utils import (
@@ -57,6 +68,78 @@ class LoCoBotMover:
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
     
+    def check(self):
+        """
+        Sanity checks all the mover interfaces. 
+        
+        Checks move by moving the locobot around in a square and reporting L2 drift and total time taken
+            for the three movement modes available to the locobot - using PyRobot slam (vslam), 
+            using Droidlet slam (dslam) and without using any slam (default)
+        Checks look and point by poiting and looking at the same target.
+        """
+        self.reset_camera()
+        table = PrettyTable(["Command", "L2 Drift", "Time (sec)"])
+        sq_table = PrettyTable(["Mode", "Total L2 drift", "Total time (sec)"])
+        
+        def l2_drift(a, b):
+            return round(abs(a[0] - b[0]) + abs(a[1] - b[1]), ndigits=3)
+
+        def execute_move(init_pos, dest_pos, cmd_text, use_map=False, use_dslam=False):
+            logging.info("Executing {} ... ".format(cmd_text))
+            start = time.time()
+            self.move_absolute([dest_pos], use_map=use_map, use_dslam=use_dslam)
+            end = time.time()
+            tt = round((end-start), ndigits=3)
+            pos_after = self.get_base_pos_in_canonical_coords()
+            drift = l2_drift(pos_after, dest_pos)
+            logging.info("Finished Executing. \nDrift: {} Time taken: {}".format(drift, tt))
+            table.add_row([cmd_text, drift, end-start])
+            return drift, tt
+        
+        def move_in_a_square(magic_text, side=0.3):
+            """
+            Moves the locobot in a square starting from the bottom right - goes left, forward, right, back.
+
+            Args:
+                magic_text (str): unique text to differentiate each scenario
+                side (float): side of the square
+
+            Returns:
+                total L2 drift, total time taken to move around the square.
+            """
+            pos = self.get_base_pos_in_canonical_coords()
+            logging.info("Initial agent pos {}".format(pos))
+            dl, tl = execute_move(pos, [pos[0]-side, pos[1], pos[2]], "Move Left " + magic_text)
+            df, tf = execute_move(pos, [pos[0]-side, pos[1]+side, pos[2]], "Move Forward " + magic_text)
+            dr, tr = execute_move(pos, [pos[0], pos[1]+side, pos[2]], "Move Right " + magic_text)
+            db, tb = execute_move(pos, [pos[0], pos[1], pos[2]], "Move Backward " + magic_text)
+            return dl+df+dr+db, tl+tf+tr+tb
+
+        # move in a square of side 0.3 starting at current base pos
+        d, t = move_in_a_square("default", side=0.3)
+        sq_table.add_row(["default", d, t])
+
+        d, t = move_in_a_square("use_vslam", side=0.3)
+        sq_table.add_row(["use_vslam", d, t])
+
+        d, t = move_in_a_square("use_dslam", side=0.3)
+        sq_table.add_row(["use_dslam", d, t])
+
+        print(table)
+        print(sq_table)
+
+        # Check that look & point are at the same target
+        logging.info("Visually check that look and point are at the same target")
+        pos = self.get_base_pos_in_canonical_coords()
+        look_pt_target = [pos[0] + 0.5, 1, pos[1]+1]
+
+        # look
+        self.look_at(look_pt_target, 0, 0)
+        logging.info("Completed Look at.")        
+        
+        # point
+        self.point_at(look_pt_target)
+        logging.info("Completed Point.")
     
     # TODO/FIXME!  instead of just True/False, return diagnostic messages
     # so e.g. if a grip attempt fails, the task is finished, but the status is a failure
@@ -92,7 +175,7 @@ class LoCoBotMover:
             while not self.bot.command_finished():
                 print(self.bot.get_base_state("odom"))
 
-    def move_absolute(self, xyt_positions):
+    def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -105,7 +188,10 @@ class LoCoBotMover:
         for xyt in xyt_positions:
             logging.info("Move absolute {}".format(xyt))
             self.bot.go_to_absolute(
-                base_canonical_coords_to_pyrobot_coords(xyt), close_loop=self.close_loop
+                base_canonical_coords_to_pyrobot_coords(xyt), 
+                close_loop=self.close_loop,
+                use_map=use_map,
+                use_dslam=use_dslam,
             )
             start_base_state = self.get_base_pos()
             while not self.bot.command_finished():
@@ -275,3 +361,12 @@ class LoCoBotMover:
         ]
         cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
         return cordinates_in_standard_frame
+
+if __name__ == "__main__":
+    base_path = os.path.dirname(__file__)
+    parser = ArgumentParser("Locobot", base_path)
+    opts = parser.parse()
+    mover = LoCoBotMover(ip=opts.ip, backend=opts.backend, use_dslam=opts.use_dslam)
+    if opts.check_controller:
+        mover.check()
+        
