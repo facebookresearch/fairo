@@ -16,7 +16,7 @@ jobs:
             uses: actions/checkout@v2
             with:
               repository: fairinternal/minecraft
-              token: ${{ secrets.SNYXAN_REPO }}
+              token: ${{ secrets.INTERNAL_MC_PAT }}
           - name: Fix git
             run: |
               set -eux
