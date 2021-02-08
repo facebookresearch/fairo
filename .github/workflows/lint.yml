@@ -49,31 +49,4 @@ jobs:
               regex: '^(?<filename>.*?):(?<lineNumber>\d+):(?<columnNumber>\d+): (?<errorCode>\w+\d+) (?<errorDesc>.*)'
             env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    update_internal:
-        needs: lint
-        runs-on: ubuntu-latest
-        steps:
-          - name: Fetch Internal repo
-            uses: actions/checkout@v2
-            with:
-              repository: fairinternal/minecraft
-              token: ${{ secrets.SNYXAN_REPO }}
-          - name: Fix git
-            run: |
-              set -eux
-              git fetch origin yuxuans/sync_test
-              git checkout yuxuans/sync_test
-          - name: Update droidlet submodule to latest
-            run: |
-              echo "branch"
-              git status
-              git submodule update --init
-              git submodule update --remote --merge
-              pushd droidlet
-              commit_msg="[Droidlet Update] $(git show -s --format=%s)"
-              popd
-              git status
-            env:
-              GITHUB_TOKEN: ${{ secrets.SNYXAN_REPO }}
           
