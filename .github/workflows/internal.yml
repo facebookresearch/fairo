@@ -29,5 +29,10 @@ jobs:
               pushd droidlet
               commit_msg="[Droidlet Update] $(git show -s --format=%s)"
               popd
-              git add droidlet && git commit -m $commit_msg && git push
+              echo "--- add --- "
+              git add droidlet
+              echo "--- commit --- "
+              git commit -m $commit_msg
+              echo "--- push --- "
+              git push
           
