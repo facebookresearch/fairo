@@ -6,13 +6,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import React from "react";
 
-import Table from "@material-ui/core/Table";
-import TableBody from "@material-ui/core/TableBody";
-import TableCell from "@material-ui/core/TableCell";
-import TableContainer from "@material-ui/core/TableContainer";
-import TableHead from "@material-ui/core/TableHead";
-import TableRow from "@material-ui/core/TableRow";
-import Paper from "@material-ui/core/Paper";
 import ReactVirtualizedTable from "./Memory/MemoryVirtualizedTable";
 import MemoryManager from "./Memory/MemoryManager";
 
@@ -22,8 +15,6 @@ var hashCode = function (s) {
     return a & a;
   }, 0);
 };
-
-const DEFAULT_SPACING = 12;
 
 class MemoryList extends React.Component {
   constructor(props) {
@@ -65,24 +56,6 @@ class MemoryList extends React.Component {
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
     let { height, width, memory, isLoaded } = this.state;
-    let { memories, named_abstractions, reference_objects, triples } = memory;
-
-    // console.log("Memories: ", memories.slice(0, 5));
-    // console.log("named_abstractions: ", named_abstractions.slice(0, 5));
-    // console.log("reference_objects: ", reference_objects.slice(0, 5));
-    // console.log("triples: ", triples.slice(0, 5));
-
-    // Triples Schema
-    // uuid, subj, subj_text, pred, pred_text, obj, obj_text, confidence
-
-    // Named Abstraction Columns
-    // uuid, name
-
-    // SELECT uuid, node_type, create_time, updated_time, attended_time, is_snapshot
-    // FROM Memories;
-
-    // SELECT uuid, eid, x, y, z, yaw, pitch, name, type_name, ref_type
-    // FROM ReferenceObjects;
 
     if (height === 0 && width === 0) {
       // return early for performance
@@ -101,10 +74,47 @@ class MemoryList extends React.Component {
 
     const memoryManager = new MemoryManager(memory);
 
+    const showMemeoryDetail = (memoryUUID) => {
+      if (this.props.stateManager && this.props.stateManager.dashboardLayout) {
+        var newItemConfig = {
+          title: "Memory Detail",
+          type: "react-component",
+          component: "MemoryDetail",
+          props: { memoryManager, uuid: memoryUUID },
+        };
+
+        const layout = this.props.stateManager.dashboardLayout;
+
+        var detailViewStack = {
+          type: "stack",
+          content: [],
+        };
+
+        if (layout.root.contentItems[0].contentItems.length < 3) {
+          layout.root.contentItems[0].addChild(detailViewStack);
+        }
+        // add detail view
+        layout.root.contentItems[0].contentItems[2].addChild(newItemConfig);
+      }
+    };
+
+    console.log(this.state.height);
+
+    const paddedHeight = this.state.height - 24;
+    const paddedWidth = this.state.width - 24;
+
     // final render
     return (
-      <div ref={this.outer_div} style={{ margin: 12 }}>
-        <ReactVirtualizedTable memoryManager={memoryManager} />
+      <div
+        ref={this.outer_div}
+        style={{ padding: 12, height: paddedHeight, width: paddedWidth }}
+      >
+        <ReactVirtualizedTable
+          height={paddedHeight}
+          width={paddedWidth}
+          memoryManager={memoryManager}
+          onShowMemeoryDetail={showMemeoryDetail}
+        />
       </div>
     );
   }

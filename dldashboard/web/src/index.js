@@ -19,6 +19,7 @@ import History from "./components/History";
 import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
+import MemoryDetail from "./components/Memory/MemoryDetail";
 
 import "./index.css";
 
@@ -109,6 +110,7 @@ var config = {
             },
           ],
         },
+        ,
       ],
     },
   ],
@@ -126,6 +128,8 @@ dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
 dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("TeachApp", TeachApp);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
+dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
+
 dashboardLayout.init();
 
 stateManager.dashboardLayout = dashboardLayout;

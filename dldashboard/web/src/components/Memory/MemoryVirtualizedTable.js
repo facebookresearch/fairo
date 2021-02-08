@@ -93,48 +93,58 @@ class MuiVirtualizedTable extends React.PureComponent {
 
   render() {
     const {
+      height,
+      width,
       classes,
       columns,
       rowHeight,
       headerHeight,
       ...tableProps
     } = this.props;
+
+    console.log("MuiVirtualizedTable", height, width);
     return (
-      <AutoSizer>
-        {({ height, width }) => (
-          <Table
-            height={height}
-            width={width}
-            rowHeight={rowHeight}
-            gridStyle={{
-              direction: "inherit",
-            }}
-            size="small"
-            headerHeight={headerHeight}
-            className={classes.table}
-            {...tableProps}
-            rowClassName={this.getRowClassName}
-          >
-            {columns.map(({ dataKey, ...other }, index) => {
-              return (
-                <Column
-                  key={dataKey}
-                  headerRenderer={(headerProps) =>
-                    this.headerRenderer({
-                      ...headerProps,
-                      columnIndex: index,
-                    })
-                  }
-                  className={classes.flexContainer}
-                  cellRenderer={this.cellRenderer}
-                  dataKey={dataKey}
-                  {...other}
-                />
-              );
-            })}
-          </Table>
-        )}
-      </AutoSizer>
+      // <AutoSizer style={{ height: { height }, width: { width } }}>
+      //   {({ height, width }) => (
+      //     <>
+      //       <div>
+      //         {" "}
+      //         {height}, {width}{" "}
+      //       </div>
+      <Table
+        height={height}
+        width={width}
+        rowHeight={rowHeight}
+        gridStyle={{
+          direction: "inherit",
+        }}
+        size="small"
+        headerHeight={headerHeight}
+        className={classes.table}
+        {...tableProps}
+        rowClassName={this.getRowClassName}
+      >
+        {columns.map(({ dataKey, ...other }, index) => {
+          return (
+            <Column
+              key={dataKey}
+              headerRenderer={(headerProps) =>
+                this.headerRenderer({
+                  ...headerProps,
+                  columnIndex: index,
+                })
+              }
+              className={classes.flexContainer}
+              cellRenderer={this.cellRenderer}
+              dataKey={dataKey}
+              {...other}
+            />
+          );
+        })}
+      </Table>
+      //     </>
+      //   )}
+      // </AutoSizer>
     );
   }
 }
@@ -160,22 +170,29 @@ function toReferencedObject(arr) {
   return { uuid: arr[0], id: arr[1], type: arr[9], name: arr[7] };
 }
 
-export default function ReactVirtualizedTable({ memoryManager }) {
-  const [getCount, getMemory] = memoryManager;
+export default function ReactVirtualizedTable({
+  height,
+  width,
+  memoryManager,
+  onShowMemeoryDetail,
+}) {
+  const [getCount, getMemoryForIndex] = memoryManager;
 
   return (
     // TODO setting the heingt to 100% is not working. Will need to figure this out.
-    <Paper style={{ height: 400, width: "100%" }}>
+    <Paper style={{ height: { height }, width: { width } }}>
       <VirtualizedTable
+        height={height}
+        width={width}
         rowCount={getCount()}
-        rowGetter={({ index }) => toReferencedObject(getMemory(index))}
+        rowGetter={({ index }) => toReferencedObject(getMemoryForIndex(index))}
+        onRowClick={({ event, index, rowData }) => {
+          console.log("Clicked ", event, index, rowData);
+          if (rowData && rowData.uuid) {
+            onShowMemeoryDetail(rowData.uuid);
+          }
+        }}
         columns={[
-          {
-            width: 200,
-            label: "UUID",
-            dataKey: "uuid",
-            numeric: true,
-          },
           {
             width: 60,
             label: "ID",
