@@ -93,7 +93,7 @@ class LoCoBotMover:
             pos_after = self.get_base_pos_in_canonical_coords()
             drift = l2_drift(pos_after, dest_pos)
             logging.info("Finished Executing. \nDrift: {} Time taken: {}".format(drift, tt))
-            table.add_row([cmd_text, drift, end-start])
+            table.add_row([cmd_text, drift, tt])
             return drift, tt
         
         def move_in_a_square(magic_text, side=0.3):
