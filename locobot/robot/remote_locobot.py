@@ -67,7 +67,6 @@ class RemoteLocobot(object):
         self._slam_step_size = 25  # step size in cm
         self._done = True
         self.backend = backend
-        self.use_dslam = False
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -131,17 +130,23 @@ class RemoteLocobot(object):
 
     # Navigation wrapper
     @Pyro4.oneway
-    def go_home(self):
+    def go_home(self, use_dslam=False):
         """Moves the robot base to origin point: x, y, yaw 0, 0, 0."""
         if self._done:
             self._done = False
-            if self.use_dslam:
+            if use_dslam:
                 self._slam.set_absolute_goal_in_robot_frame([0.0, 0.0, 0.0])
             else:
                 self._robot.base.go_to_absolute([0, 0, 0])
             self._done = True
 
-    def go_to_absolute(self, xyt_position, use_map=False, close_loop=True, smooth=False):
+    def go_to_absolute(self, 
+        xyt_position, 
+        use_map=False, 
+        close_loop=True, 
+        smooth=False,
+        use_dslam=False,
+    ):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
@@ -161,7 +166,7 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            if self.use_dslam:
+            if use_dslam:
                 self._slam.set_absolute_goal_in_robot_frame(xyt_position)
             else:
                 self._robot.base.go_to_absolute(
@@ -169,7 +174,13 @@ class RemoteLocobot(object):
                     )
             self._done = True
 
-    def go_to_relative(self, xyt_position, use_map=False, close_loop=True, smooth=False):
+    def go_to_relative(self, 
+        xyt_position, 
+        use_map=False, 
+        close_loop=True, 
+        smooth=False,
+        use_dslam=False,
+    ):
         """Moves the robot base to the given goal state relative to its current
         pose.
 
@@ -189,7 +200,7 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            if self.use_dslam:
+            if use_dslam:
                 self._slam.set_relative_goal_in_robot_frame(xyt_position)
             else:
                 self._robot.base.go_to_relative(
@@ -664,12 +675,6 @@ class RemoteLocobot(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
-    
-    def set_use_dslam(self, use_dslam):
-        """sets whether to use basic slam_pkg
-        """
-        self.use_dslam = use_dslam
-
 
 if __name__ == "__main__":
     import argparse

@@ -89,10 +89,15 @@ class ArgumentParser:
             default="models/perception/",
             help="path to perception model data dir",
         )
-        self.parser.add_argument(
+        loco_parser.add_argument(
             "--use_dslam",
             action="store_true",
             help="sets slam_pkg to be used for navigation, otherwise pyrobot slam pkg will be used",
+        )
+        loco_parser.add_argument(
+            "--check_controller",
+            action="store_true",
+            help="sanity checks the robot's movement, camera, arm."
         )
 
     def fix_path(self, opts):
