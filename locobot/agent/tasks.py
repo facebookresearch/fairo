@@ -12,13 +12,7 @@ import time
 # from locobot_mover_utils import CAMERA_HEIGHT
 
 
-# tasks should be interruptible; that is, if they
-# store state, stopping the task and doing something
-# else should not mess up their state and just the
-# current state should be enough to do the task from
-# any ob
-
-
+# FIXME store dances, etc.
 class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
         super(Dance, self).__init__()
@@ -34,7 +28,9 @@ class Dance(Task):
 
         elif not self.movement:  # default move
             mv = Move(agent, {"target": [-1000, -1000, -1000], "approx": 2})
-            agent.memory.task_stack_push(mv, parent_memid=self.memid)
+            self.add_child_task(mv)
+
+        self.finished = True
 
 
 #### TODO, FIXME!:
@@ -78,7 +74,6 @@ class Point(Task):
         self.target = np.array(task_data["target"])
 
     def step(self, agent):
-        self.interrupted = False
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
         status = agent.mover.point_at([self.target.tolist()])
         if status == "finished":
@@ -116,21 +111,6 @@ class Move(Task):
 
     def __repr__(self):
         return "<Move {}>".format(self.target)
-
-
-class Loop(Task):
-    def __init__(self, agent, task_data):
-        super(Loop, self).__init__()
-        self.new_tasks_fn = task_data["new_tasks_fn"]
-        self.stop_condition = task_data["stop_condition"]
-
-    def step(self, agent):
-        if self.stop_condition.check():
-            self.finished = True
-            return
-        else:
-            for t in self.new_tasks_fn():
-                agent.memory.task_stack_push(t, parent_memid=self.memid)
 
 
 class Turn(Task):

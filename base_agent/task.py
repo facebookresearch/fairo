@@ -1,11 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from condition import NeverCondition
-
-DEFAULT_THROTTLING_TICK = 16
-THROTTLING_TICK_UPPER_LIMIT = 64
-THROTTLING_TICK_LOWER_LIMIT = 4
+from condition import NeverCondition, AlwaysCondition, TaskStatusCondition
+from memory_nodes import TaskNode
 
 # put a counter and a max_count so can't get stuck?
 class Task(object):
@@ -28,38 +25,57 @@ class Task(object):
         >>> Task()
     """
 
-    def __init__(self):
-        self.memid = None
+    def __init__(self, agent):
+        self.agent = agent
         self.interrupted = False
         self.finished = False
         self.name = None
         self.undone = False
         self.last_stepped_time = None
-        self.throttling_tick = DEFAULT_THROTTLING_TICK
+        self.prio = -1
+        self.running = 0
+        self.memid = TaskNode.create(self.agent.memory, self)
+        # TODO put these in memory in a new table?
+        # TODO methods for safely changing these
         self.stop_condition = NeverCondition(None)
+        self.on_condition = AlwaysCondition(None)
+        self.remove_condition = TaskStatusCondition(agent, self.memid)
+        self.child_generator = TaskGenerator()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
+    def check_remove_and_running_children(stepfn):
+        def modified_step(self):
+            if self.remove_condition.check():
+                self.finished = True
+            if self.finished:
+                TaskNode(self.agent.memory, self.memid).get_update_status(
+                    {"prio": -1, "finished": True}
+                )
+                return
+            query = {
+                "base_table": "Tasks",
+                "base_range": {"minprio": 0.5},
+                "triples": [{"pred_text": "_has_parent_task", "obj": self.memid}],
+            }
+            child_task_mems = self.agent.memory.basic_search(query)
+            if child_task_mems:  # this task has active children, step them
+                return
+            return stepfn(self)
+
+        return modified_step
+
+    @check_remove_and_running_children
+    def step(self):
         """The actual execution of a single step of the task is defined here."""
-        # todo? make it so something stopped by condition can be resumed?
-        if self.stop_condition.check():
-            self.finished = True
-            return
-        return
+        pass
 
-    def add_child_task(self, t, agent, pass_stop_condition=True):
-        """Add a child task to the task_stack and pass along the id 
-        of the parent task (current task)"""
-        # FIXME, this is ugly and dangerous; some conditions might keep state etc?
-        if pass_stop_condition:
-            t.stop_condition = self.stop_condition
-        agent.memory.task_stack_push(t, parent_memid=self.memid)
-
+    # FIXME remove all this its dead now...
     def interrupt(self):
         """Interrupt the task and set the flag"""
         self.interrupted = True
 
     def check_finished(self):
-        """Check if the task has mark itself finished
+        """Check if the task has marked itself finished
         
         Returns:
             bool: If the task has finished
@@ -67,17 +83,96 @@ class Task(object):
         if self.finished:
             return self.finished
 
-    def hurry_up(self):
-        """Speed up the task execution"""
-        self.throttling_tick /= 4
-        if self.throttling_tick < THROTTLING_TICK_LOWER_LIMIT:
-            self.throttling_tick = THROTTLING_TICK_LOWER_LIMIT
-
-    def slow_down(self):
-        """Slow down task execution"""
-        self.throttling_tick *= 4
-        if self.throttling_tick > THROTTLING_TICK_UPPER_LIMIT:
-            self.throttling_tick = THROTTLING_TICK_UPPER_LIMIT
+    def add_child_task(self, t):
+        TaskNode(self.agent.memory, self.memid).add_child_task(t)
 
     def __repr__(self):
         return str(type(self))
+
+    check_remove_and_running_children = staticmethod(check_remove_and_running_children)
+
+
+# FIXME new_tasks_fn --> new_tasks
+# FIXME/TODO: name any nonpicklable attributes in the object
+# should we just have this be the behavior of the step of an unsublcassed Task object?
+class ControlBlock(Task):
+    """Container for task control
+    
+
+    Args:
+        agent: the agent who will perform this task
+        task_data (dict): a dictionary stores all task related data
+    """
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        for task in task_data.get("new_tasks_fn"):
+            self.child_generator.append(task)
+        self.stop_condition = task_data.get("stop_condition", NeverCondition(None))
+        self.on_condition = task_data.get("on_condition", AlwaysCondition(None))
+        self.remove_condition = task_data.get(
+            "remove_condition", TaskStatusCondition(agent, self.memid)
+        )
+        TaskNode(self.agent.memory, self.memid).update_task(task=self)
+
+    @Task.check_remove_and_running_children
+    def step(self):
+        try:
+            t = next(self.child_generator)
+        except StopIteration:
+            t = None
+        if t:
+            self.add_child_task(t)
+        else:
+            self.finished = True
+
+
+# the extra complexity here is that we are
+# allowing loops that are finite sequences, and loops
+# driven by a task generator, AND allowing child tasks to be
+# appended to a parent after the parent is placed in memory or is active
+# Probably can clean this up
+# without building this mini-stack,
+# just by using stop/remove conditions.... TODO?
+class TaskGenerator:
+    def __init__(self):
+        self.count = 0
+
+        # this one for debug purposes, counts actual tasks output
+        # not actually used for anything rn
+        self.tasks_added = 0
+
+        self.tasks = []
+
+    def append(self, tasks):
+        if type(tasks) is list:
+            self.tasks.extend(tasks)
+        else:
+            self.tasks.append(tasks)
+
+    def __len__(self):
+        return len(self.tasks) - self.count
+
+    def __iter__(self):
+        self.count = 0
+        return self
+
+    def __next__(self):
+        if self.count >= len(self.tasks):
+            raise StopIteration
+        task_gen = self.tasks[self.count]
+        task = None
+        if callable(task_gen):
+            # WARNING: getting a task from the generator does not increment count!
+            task = task_gen()
+            if task:
+                self.tasks_added += 1
+                return task
+            else:
+                self.count += 1
+                return next(self)
+        else:
+            task = self.tasks[self.count]
+            self.count += 1
+            self.tasks_added += 1
+            return task

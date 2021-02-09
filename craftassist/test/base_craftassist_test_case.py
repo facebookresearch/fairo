@@ -37,6 +37,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         self.set_looking_at((0, 63, 0))
         self.speaker = self.agent.get_other_players()[0].name
         self.agent.perceive()
+        self.num_steps = 0
 
     def handle_logical_form(
         self, d, chatstr: str = "", answer: str = None, stop_on_chat=False, max_steps=10000
@@ -64,12 +65,13 @@ class BaseCraftassistTestCase(unittest.TestCase):
 
         Return the set of blocks that were changed.
         """
+
         if stop_on_chat:
             self.agent.clear_outgoing_chats()
 
         world_before = self.agent.world.blocks_to_dict()
 
-        for _ in range(max_steps):
+        for i in range(max_steps):
             self.agent.step()
             if self.agent_should_stop(stop_on_chat):
                 break

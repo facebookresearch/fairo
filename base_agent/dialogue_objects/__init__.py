@@ -41,7 +41,7 @@ from location_helpers import (
     interpret_relative_direction,
 )
 
-from interpreter import Interpreter
+from interpreter import Interpreter, TaskListWrapper
 
 from get_memory_handler import GetMemoryHandler
 
@@ -81,5 +81,6 @@ __all__ = [
     FilterInterpreter,
     AttributeInterpreter,
     GetMemoryHandler,
+    TaskListWrapper,
     Interpreter,
 ]

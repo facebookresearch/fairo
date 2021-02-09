@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Tuple, Dict, Any, Optional
 
 from base_agent.memory_nodes import PlayerNode
+from base_agent.task import ControlBlock
 from base_agent.dialogue_objects import (
     AGENTPOS,
     ConditionInterpreter,
@@ -69,7 +70,7 @@ class LocoInterpreter(Interpreter):
             "point": tasks.Point,
             "turn": tasks.Turn,
             "autograsp": tasks.AutoGrasp,
-            "loop": tasks.Loop,
+            "control": ControlBlock,
             "get": tasks.Get,
             "drop": tasks.Drop,
         }
@@ -98,14 +99,12 @@ class LocoInterpreter(Interpreter):
                 raise ErrorWithResponse("I don't know where you want me to take it")
             receiver = receiver[0].memid
 
-        num_get_tasks = 0
+        tasks = []
         for obj in objs:
             task_data = {"get_target": obj.memid, "give_target": receiver, "action_dict": d}
-            self.append_new_task(self.task_objects["get"], task_data)
-            num_get_tasks += 1
-        #        logging.info("Added {} Get tasks to stack".format(num_get_tasks))
-        self.finished = True
-        return None, None
+            tasks.append(self.task_objects["get"](self.agent, task_data))
+        #        logging.info("Added {} Get tasks to stack".format(len(tasks)))
+        return tasks, None, None
 
     def handle_dance(self, speaker, d) -> Tuple[Optional[str], Any]:
         def new_tasks():
@@ -135,7 +134,7 @@ class LocoInterpreter(Interpreter):
                         )
                         t = self.task_objects["dance"](self.agent, {"movement": refmove})
                         tasks_to_do.append(t)
-                    return list(reversed(tasks_to_do))
+                    return tasks_to_do
 
             dance_type = d.get("dance_type", {"dance_type_name": "dance"})
             if dance_type.get("point"):
@@ -160,26 +159,30 @@ class LocoInterpreter(Interpreter):
             else:
                 # FIXME ! merge dances, refactor.  search by name in sql
                 raise ErrorWithResponse("I don't know how to do that dance yet!")
-            return list(reversed(tasks_to_do))
+            return tasks_to_do
 
         if "stop_condition" in d:
-            condition = self.subinterpret["stop_condition"](self, speaker, d["stop_condition"])
-            self.append_new_task(
-                self.task_objects["loop"],
-                {"new_tasks_fn": new_tasks, "conditions": condition, "action_dict": d},
+            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
+            return (
+                [
+                    self.task_objects["control"](
+                        self.agent,
+                        data={
+                            "new_tasks_fn": TaskListWrapper(new_tasks),
+                            "stop_condition": condition,
+                            "action_dict": d,
+                        },
+                    )
+                ],
+                None,
+                None,
             )
         else:
-            for t in new_tasks():
-                self.append_new_task(t)
-
-        self.finished = True
-        return None, None
+            return new_tasks(), None, None
 
     def handle_drop(self, speaker, d) -> Tuple[Optional[str], Any]:
         """
         Drops whatever object in hand
         """
-        task_data = {"action_dict": d}
-        self.append_new_task(self.task_objects["drop"], task_data)
-        self.finished = True
-        return None, None
+
+        return [self.task_objects["drop"](self.agent, {"action_dict": d})], None, None

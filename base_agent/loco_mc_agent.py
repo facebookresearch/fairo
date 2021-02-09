@@ -164,24 +164,23 @@ class LocoMCAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        # Clean finished tasks
-        while (
-            self.memory.task_stack_peek() and self.memory.task_stack_peek().task.check_finished()
-        ):
-            self.memory.task_stack_pop()
-
-        # If nothing to do, wait a moment
-        if self.memory.task_stack_peek() is None:
+        query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
+        task_mems = self.memory.basic_search(query)
+        for mem in task_mems:
+            if mem.task.on_condition.check():
+                # eventually we need to use the multiplex filter to decide what runs
+                mem.get_update_status({"prio": 1, "running": 1})
+            if mem.task.stop_condition.check():
+                mem.get_update_status({"prio": 0, "running": 0})
+        query = {"base_table": "Tasks", "base_range": {"minrunning": 0.5}}
+        task_mems = self.memory.basic_search(query)
+        if not task_mems:
             time.sleep(sleep_time)
             return
-
-        # If something to do, step the topmost task
-        task_mem = self.memory.task_stack_peek()
-        if task_mem.memid != self.last_task_memid:
-            logging.info("Starting task {}".format(task_mem.task))
-            self.last_task_memid = task_mem.memid
-        task_mem.task.step(self)
-        self.memory.task_stack_update_task(task_mem.memid, task_mem.task)
+        for mem in task_mems:
+            mem.task.step()
+            if mem.task.finished:
+                mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as

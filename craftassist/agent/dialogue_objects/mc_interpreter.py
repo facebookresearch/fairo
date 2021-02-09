@@ -16,6 +16,7 @@ BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.dialogue_objects import (
+    TaskListWrapper,
     Interpreter,
     Say,
     SPEAKERLOOK,
@@ -45,6 +46,7 @@ from base_agent.memory_nodes import PlayerNode
 from mc_memory_nodes import MobNode, ItemStackNode
 import dance
 import tasks
+from base_agent.task import ControlBlock
 from mc_util import to_block_pos, Hole, XYZ
 
 
@@ -88,7 +90,7 @@ class MCInterpreter(Interpreter):
             "dancemove": tasks.DanceMove,
             "get": tasks.Get,
             "drop": tasks.Drop,
-            "loop": tasks.Loop,
+            "control": ControlBlock,
         }
 
     def handle_modify(self, speaker, d) -> Tuple[Optional[str], Any]:
@@ -114,6 +116,7 @@ class MCInterpreter(Interpreter):
             raise ErrorWithResponse(
                 "I think you want me to modify an object but am not sure what to do"
             )
+        tasks = []
         for obj in objs:
             if m_d["modify_type"] == "THINNER" or m_d["modify_type"] == "THICKER":
                 destroy_task_data, build_task_data = handle_thicken(self, speaker, m_d, obj)
@@ -131,12 +134,12 @@ class MCInterpreter(Interpreter):
                 )
 
             if build_task_data:
-                self.append_new_task(self.task_objects["build"], build_task_data)
-            if destroy_task_data:
-                self.append_new_task(self.task_objects["destroy"], destroy_task_data)
+                tasks.append(self.task_objects["build"](self.agent, build_task_data))
 
-        self.finished = True
-        return None, None
+            if destroy_task_data:
+                tasks.append(self.task_objects["build"](self.agent, destroy_task_data))
+
+        return tasks, None, None
 
     def handle_spawn(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -166,11 +169,11 @@ class MCInterpreter(Interpreter):
         steps, reldir = interpret_relative_direction(self, location_d)
         pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
         repeat_times = get_repeat_num(d)
+        tasks = []
         for i in range(repeat_times):
             task_data = {"object_idm": object_idm, "pos": pos, "action_dict": d}
-            self.append_new_task(self.task_objects["spawn"], task_data)
-        self.finished = True
-        return None, None
+            tasks.append(self.task_objects["spawn"](self.agent, task_data))
+        return tasks, None, None
 
     def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -228,7 +231,7 @@ class MCInterpreter(Interpreter):
             (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
         ]
 
-        tasks_todo = []
+        tasks_data = []
         for schematic, schematic_memid, tags, offset in interprets_with_offsets:
             og = np.array(origin) + offset
             task_data = {
@@ -239,13 +242,15 @@ class MCInterpreter(Interpreter):
                 "action_dict": d,
             }
 
-            tasks_todo.append(task_data)
+            tasks_data.append(task_data)
 
-        for task_data in reversed(tasks_todo):
-            self.append_new_task(self.task_objects["build"], task_data)
-        logging.info("Added {} Build tasks to stack".format(len(tasks_todo)))
-        self.finished = True
-        return None, None
+        tasks = []
+        for td in tasks_data:
+            t = self.task_objects["build"](self.agent, td)
+            tasks.append(t)
+            print(self.agent.memory._db_read("SELECT uuid FROM Tasks WHERE uuid=?", t.memid))
+        logging.info("Adding {} Build tasks to stack".format(len(tasks)))
+        return tasks, None, None
 
     def handle_fill(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -256,8 +261,8 @@ class MCInterpreter(Interpreter):
             speaker: speaker_id or name.
             d: the complete action dictionary
         """
+        tasks = []
         r = d.get("reference_object")
-        self.finished = True
         if not r.get("filters"):
             r["filters"] = {"location", SPEAKERLOOK}
 
@@ -280,7 +285,7 @@ class MCInterpreter(Interpreter):
             self.dialogue_stack.append_new(
                 Say, "I don't understand what holes you want me to fill."
             )
-            return None, None
+            return tasks, None, None
         for hole in holes:
             _, hole_info = hole
             poss, hole_idm = hole_info
@@ -294,13 +299,15 @@ class MCInterpreter(Interpreter):
             except:
                 fill_idm = hole_idm
             task_data = {"action_dict": d, "schematic": poss, "block_idm": fill_idm}
-            self.append_new_task(self.task_objects["fill"], task_data)
+
+            tasks.append(self.task_objects["fill"](self.agent, task_data))
+
         if len(holes) > 1:
             self.dialogue_stack.append_new(Say, "Ok. I'll fill up the holes.")
         else:
             self.dialogue_stack.append_new(Say, "Ok. I'll fill that hole up.")
-        self.finished = True
-        return None, None
+
+        return tasks, None, None
 
     def handle_destroy(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -325,16 +332,14 @@ class MCInterpreter(Interpreter):
         if all(isinstance(obj, PlayerNode) for obj in objs):
             raise ErrorWithResponse("I don't kill players, sorry!")
         objs = [obj for obj in objs if not isinstance(obj, MobNode)]
-        num_destroy_tasks = 0
+        tasks = []
         for obj in objs:
             if hasattr(obj, "blocks"):
                 schematic = list(obj.blocks.items())
                 task_data = {"schematic": schematic, "action_dict": d}
-                self.append_new_task(self.task_objects["destroy"], task_data)
-                num_destroy_tasks += 1
-        logging.info("Added {} Destroy tasks to stack".format(num_destroy_tasks))
-        self.finished = True
-        return None, None
+                tasks.append(self.task_objects["destroy"](self.agent, task_data))
+        logging.info("Added {} Destroy tasks to stack".format(len(tasks)))
+        return tasks, None, None
 
     def handle_dig(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -360,13 +365,9 @@ class MCInterpreter(Interpreter):
                     attrs[dim] = default
             # minecraft world is [z, x, y]
             padding = (attrs["depth"] + 4, attrs["length"] + 4, attrs["width"] + 4)
-            print("attrs", attrs)
-            print("padding", padding)
-
             location_d = d.get("location", SPEAKERLOOK)
             repeat_num = get_repeat_num(d)
             repeat_dir = get_repeat_dir(d)
-            print("loc d in dig", location_d, "repeat", repeat_num, repeat_dir)
             mems = self.subinterpret["reference_locations"](self, speaker, location_d)
             steps, reldir = interpret_relative_direction(self, location_d)
             origin, offsets = self.subinterpret["specify_locations"](
@@ -379,30 +380,32 @@ class MCInterpreter(Interpreter):
                 repeat_dir=repeat_dir,
                 padding=padding,
             )
-            print("origin from dig", origin, "offsets", offsets)
-
             # add dig tasks in a loop
             tasks_todo = []
             for offset in offsets:
                 og = np.array(origin) + offset
                 t = self.task_objects["dig"](self.agent, {"origin": og, "action_dict": d, **attrs})
-                print("append task:", t, og, d, attrs)
                 tasks_todo.append(t)
-            return list(reversed(tasks_todo))
+            return tasks_todo
 
-        print("inside dig, dict", d)
         if "stop_condition" in d:
-            print("stop condition", d["stop_condition"])
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            self.append_new_task(
-                self.task_objects["loop"],
-                {"new_tasks_fn": new_tasks, "stop_condition": condition, "action_dict": d},
+            return (
+                [
+                    self.task_objects["control"](
+                        self.agent,
+                        data={
+                            "new_tasks_fn": TaskListWrapper(new_tasks),
+                            "stop_condition": condition,
+                            "action_dict": d,
+                        },
+                    )
+                ],
+                None,
+                None,
             )
         else:
-            for t in new_tasks():
-                self.append_new_task(t)
-        self.finished = True
-        return None, None
+            return new_tasks(), None, None
 
     def handle_dance(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -441,7 +444,7 @@ class MCInterpreter(Interpreter):
                         )
                         t = self.task_objects["dance"](self.agent, {"movement": refmove})
                         tasks_to_do.append(t)
-                    return list(reversed(tasks_to_do))
+                    return tasks_to_do
 
             dance_type = d.get("dance_type", {"dance_type_name": "dance"})
             # FIXME holdover from old dict format
@@ -490,21 +493,28 @@ class MCInterpreter(Interpreter):
                     )
                     t = self.task_objects["dance"](self.agent, {"movement": dance_obj})
                     tasks_to_do.append(t)
-            return list(reversed(tasks_to_do))
+            return tasks_to_do
 
         if "stop_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            self.append_new_task(
-                self.task_objects["loop"],
-                {"new_tasks_fn": new_tasks, "stop_condition": condition, "action_dict": d},
+            return (
+                [
+                    self.task_objects["control"](
+                        self.agent,
+                        data={
+                            "new_tasks_fn": TaskListWrapper(new_tasks),
+                            "stop_condition": condition,
+                            "action_dict": d,
+                        },
+                    )
+                ],
+                None,
+                None,
             )
         else:
-            for t in new_tasks():
-                self.append_new_task(t)
+            return new_tasks(), None, None
 
-        self.finished = True
-        return None, None
-
+    # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_get(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
@@ -527,11 +537,9 @@ class MCInterpreter(Interpreter):
         item_stack = self.agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
         task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "memid": obj.memid}
-        self.append_new_task(self.task_objects["get"], task_data)
+        return [self.task_objects["get"](self.agent, task_data)], None, None
 
-        self.finished = True
-        return None, None
-
+    # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_drop(self, speaker, d) -> Tuple[Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'drop' command by either pushing a dialogue object
@@ -555,7 +563,5 @@ class MCInterpreter(Interpreter):
         item_stack = self.agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
         task_data = {"eid": obj.eid, "idm": idm, "memid": obj.memid}
+        return [self.task_objects["drop"](self.agent, task_data)], None, None
         self.append_new_task(self.task_objects["drop"], task_data)
-
-        self.finished = True
-        return None, None
