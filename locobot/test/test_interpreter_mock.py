@@ -13,7 +13,7 @@ import numpy as np
 
 from base_fakeagent_test_case import BaseFakeAgentTestCase
 import rotation
-from all_test_commands import MOVE_COMMANDS, GROUND_TRUTH_PARSES
+from base_agent.test.all_test_commands import MOVE_COMMANDS, GROUND_TRUTH_PARSES
 from test_utils import assert_turn_degree
 
 CUBE1 = (9, 0, 4)
@@ -62,9 +62,9 @@ class MoveAbsoluteTest(BaseFakeAgentTestCase):
         self.assert_move("RIGHT", 3, changes)
 
     def test_move_left(self):
-        d = GROUND_TRUTH_PARSES["go left 4 feet"]
+        d = GROUND_TRUTH_PARSES["go left 3 feet"]
         changes = self.handle_logical_form(d)
-        self.assert_move("LEFT", 4, changes)
+        self.assert_move("LEFT", 3, changes)
 
     def test_move_coordinates(self):
         d = MOVE_COMMANDS["move to -7 0 -8"]

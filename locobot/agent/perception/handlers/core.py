@@ -28,16 +28,7 @@ class AbstractHandler:
         pass
 
     def __call__(self, *input):
-        try:
-            return self.handle(*input)
-        except Exception as e:
-            logging.warning(
-                "Exception raised in {}. \n{}".format(self.__class__.__name__, e), exc_info=True
-            )
-            if os.getenv("DEVMODE"):
-                # raise immediately in dev mode to catch and fix errors
-                raise e
-            return
+        return self.handle(*input)
 
     def _debug_draw(self, *input):
         """Implement this method to hold visualization details useful in

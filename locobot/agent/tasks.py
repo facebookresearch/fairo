@@ -73,14 +73,19 @@ class Point(Task):
         super(Point, self).__init__()
         self.target = np.array(task_data["target"])
 
+    def get_pt_from_region(self, region):
+        assert len(region) == 6, "Region list has less than 6 elements (minx, miny, minz, maxx, maxy, maxz)"
+        return region[:3] # just return the min xyz for now
+
     def step(self, agent):
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
-        status = agent.mover.point_at([self.target.tolist()])
+        pt = self.get_pt_from_region(self.target.tolist())
+        status = agent.mover.point_at(pt)
         if status == "finished":
             self.finished = True
 
     def __repr__(self):
-        return "<Point at {} ±{}>".format(self.target, self.approx)
+        return "<Point at {}>".format(self.target)
 
 
 class Move(Task):

@@ -37,7 +37,6 @@ from reference_object_helpers import (
 
 from location_helpers import (
     ReferenceLocationInterpreter,
-    interpret_point_target,
     interpret_relative_direction,
 )
 
@@ -75,7 +74,6 @@ __all__ = [
     filter_by_sublocation,
     ReferenceLocationInterpreter,
     interpret_relative_direction,
-    interpret_point_target,
     ConditionInterpreter,
     get_repeat_num,
     FilterInterpreter,

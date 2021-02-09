@@ -2,14 +2,16 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-
+import os 
 import logging
+import os
 import random
 import re
 import time
 import numpy as np
 
 from core import BaseAgent
+from base_agent.base_util import ErrorWithResponse
 from dlevent import sio
 
 from base_util import hash_user
@@ -37,8 +39,9 @@ class LocoMCAgent(BaseAgent):
         self.uncaught_error_count = 0
         self.last_chat_time = 0
         self.last_task_memid = None
+        self.dashboard_chat = None
         self.areas_to_perceive = []
-        self.perceive_during_step = False
+        self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -99,6 +102,45 @@ class LocoMCAgent(BaseAgent):
             logging.info("in save_object_annotation_to_db, got postData: %r" % (postData))
             saveObjectAnnotationsToDb(self.conn, postData)
 
+        @sio.on("sendCommandToAgent")
+        def send_text_command_to_agent(sid, command):
+            """Add the command to agent's incoming chats list and
+            send back the parse.
+            Args:
+                command: The input text command from dashboard player
+            Returns:
+                return back a socket emit with parse of command and success status
+            """
+            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
+            agent_chat = (
+                "<dashboard> " + command
+            )  # the chat is coming from a player called "dashboard"
+            self.dashboard_chat = agent_chat
+            dialogue_manager = self.dialogue_manager
+            logical_form = {}
+            status = ""
+            try:
+                logical_form = dialogue_manager.get_logical_form(
+                    s=command, model=dialogue_manager.model
+                )
+                logging.info("logical form is : %r" % (logical_form))
+                status = "Sent successfully"
+            except:
+                logging.info("error in sending chat")
+                status = "Error in sending chat"
+            # update server memory
+            self.dashboard_memory["chatResponse"][command] = logical_form
+            self.dashboard_memory["chats"].pop(0)
+            self.dashboard_memory["chats"].append({"msg": command, "failed": False})
+            payload = {
+                "status": status,
+                "chat": command,
+                "chatResponse": self.dashboard_memory["chatResponse"][command],
+                "allChats": self.dashboard_memory["chats"],
+            }
+            sio.emit("setChatResponse", payload)
+
+
     def init_physical_interfaces(self):
         """
         should define or otherwise set up
@@ -150,12 +192,24 @@ class LocoMCAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
-        self.send_chat("Oops! I got confused and wasn't able to complete my last task :(")
-        self.memory.task_stack_clear()
-        self.dialogue_manager.dialogue_stack.clear()
-        self.uncaught_error_count += 1
-        if self.uncaught_error_count >= 100:
-            sys.exit(1)
+
+        # we check if the exception raised is in one of our whitelisted exceptions
+        # if so, we raise a reasonable message to the user, and then do some clean
+        # up and continue
+        if isinstance(e, ErrorWithResponse):
+            self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
+            self.memory.task_stack_clear()
+            self.dialogue_manager.dialogue_stack.clear()
+            self.uncaught_error_count += 1
+            if self.uncaught_error_count >= 100:
+                raise e
+        else:
+            # if it's not a whitelisted exception, immediatelly raise upwards,
+            # unless you are in some kind of a debug mode
+            if os.getenv('DROIDLET_DEBUG_MODE'):
+                return
+            else:
+                raise e
 
     def step(self):
         if self.count == 0:
@@ -194,11 +248,7 @@ class LocoMCAgent(BaseAgent):
     def controller_step(self):
         """Process incoming chats and modify task stack"""
         raw_incoming_chats = self.get_incoming_chats()
-        if raw_incoming_chats:
-            # force to get objects
-            self.perceive(force=True)
-            logging.info("Incoming chats: {}".format(raw_incoming_chats))
-
+        logging.info("Incoming chats: {}".format(raw_incoming_chats))
         incoming_chats = []
         for raw_chat in raw_incoming_chats:
             match = re.search("^<([^>]+)> (.*)", raw_chat)
@@ -216,7 +266,7 @@ class LocoMCAgent(BaseAgent):
 
         if len(incoming_chats) > 0:
             # force to get objects, speaker info
-            if self.perceive_during_step:
+            if self.perceive_on_chat:
                 self.perceive(force=True)
             # change this to memory.get_time() format?
             self.last_chat_time = time.time()
