@@ -21,14 +21,14 @@ class Dance(Task):
         self.movement_type = task_data.get("movement_type", None)
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
         self.interrupted = False
 
         if self.movement_type == "wave":
             self.movement.wave()
 
         elif not self.movement:  # default move
-            mv = Move(agent, {"target": [-1000, -1000, -1000], "approx": 2})
+            mv = Move(self.agent, {"target": [-1000, -1000, -1000], "approx": 2})
             self.add_child_task(mv)
 
         self.finished = True
@@ -46,7 +46,7 @@ class Look(Task):
         self.command_sent = False
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
         self.finished = False
         self.interrupted = False
         if self.target:
@@ -56,12 +56,12 @@ class Look(Task):
         if self.yaw:
             logging.info(f"calling bot to shift yaw {self.yaw}")
         if not self.command_sent:
-            status = agent.mover.look_at(self.target, self.yaw, self.pitch)
+            status = self.agent.mover.look_at(self.target, self.yaw, self.pitch)
             self.command_sent = True
             if status == "finished":
                 self.finished = True
         else:
-            self.finished = agent.mover.bot_step()
+            self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
         if self.target:
@@ -82,10 +82,10 @@ class Point(Task):
         return region[:3]  # just return the min xyz for now
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
         pt = self.get_pt_from_region(self.target.tolist())
-        status = agent.mover.point_at(pt)
+        status = self.agent.mover.point_at(pt)
         if status == "finished":
             self.finished = True
 
@@ -102,23 +102,19 @@ class Move(Task):
         self.command_sent = False
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
             logging.info("calling move with : %r" % (self.target.tolist()))
             self.command_sent = True
             if self.is_relative:
-                agent.mover.move_relative([self.target.tolist()])
+                self.agent.mover.move_relative([self.target.tolist()])
             else:
-                agent.mover.move_absolute([self.target.tolist()])
+                self.agent.mover.move_absolute([self.target.tolist()])
 
         else:
-            self.finished = agent.mover.bot_step()
-
-    # FIXME FOR HACKATHON
-    def handle_no_path(self, agent):
-        pass
+            self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
         return "<Move {}>".format(self.target)
@@ -131,14 +127,14 @@ class Turn(Task):
         self.command_sent = False
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            agent.mover.turn(self.yaw)
+            self.agent.mover.turn(self.yaw)
         else:
-            self.finished = agent.mover.bot_step()
+            self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
         return "<Turn {} degrees>".format(self.yaw)
@@ -160,7 +156,7 @@ class Get(Task):
             # approach_pickup, look_at_object, grab, approach_dropoff, give/drop
             self.steps = ["not_started"] * 5
 
-    def get_mv_target(self, agent, get_or_give="get", end_distance=0.35):
+    def get_mv_target(self, get_or_give="get", end_distance=0.35):
         """figure out the location where agent should move to in order to get or give object in global frame
         all units are in metric unit
 
@@ -171,12 +167,12 @@ class Get(Task):
         Returns:
             [tuple]: (x,y,theta) location the agent should move to, in global co-ordinate system
         """
-        agent_pos = np.array(agent.mover.get_base_pos())[:2]
+        agent_pos = np.array(self.agent.mover.get_base_pos())[:2]
         if get_or_give == "get":
             target_memid = self.get_target
         else:
             target_memid = self.give_target
-        target_pos = agent.memory.get_mem_by_id(target_memid).get_pos()
+        target_pos = self.agent.memory.get_mem_by_id(target_memid).get_pos()
         target_pos = np.array((target_pos[0], target_pos[2]))
         diff = target_pos - agent_pos
         distance = np.linalg.norm(diff)
@@ -187,14 +183,15 @@ class Get(Task):
         received_yaw = False
         while not received_yaw:
             try:
-                target_yaw += agent.mover.get_base_pos()[2]
+                target_yaw += self.agent.mover.get_base_pos()[2]
                 received_yaw = True
             except:
                 time.sleep(0.1)
         return (xz[0], xz[1], target_yaw)
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
+        agent = self.agent
         self.interrupted = False
         self.finished = False
         # move to object to be picked up
@@ -206,20 +203,20 @@ class Get(Task):
                 self.steps[1] = "finished"
                 self.steps[2] = "finished"
             else:
-                target = self.get_mv_target(agent, get_or_give="get")
-                self.add_child_task(Move(agent, {"target": target}), agent)
+                target = self.get_mv_target(get_or_give="get")
+                self.add_child_task(Move(agent, {"target": target}))
                 # TODO a loop?  otherwise check location/graspability instead of just assuming?
                 self.steps[0] = "finished"
             return
         # look at the object directly
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
             target_pos = agent.memory.get_mem_by_id(self.get_target).get_pos()
-            self.add_child_task(Look(agent, {"target": target_pos}), agent)
+            self.add_child_task(Look(agent, {"target": target_pos}))
             self.steps[1] = "finished"
             return
         # grab it
         if self.steps[1] == "finished" and self.steps[2] == "not_started":
-            self.add_child_task(AutoGrasp(agent, {"target": self.get_target}), agent)
+            self.add_child_task(AutoGrasp(agent, {"target": self.get_target}))
             self.steps[2] = "finished"
             return
         if len(self.steps) == 3:
@@ -228,13 +225,13 @@ class Get(Task):
         # go to the place where you are supposed to drop off the item
         if self.steps[3] == "not_started":
             target = self.get_mv_target(agent, get_or_give="give")
-            self.add_child_task(Move(agent, {"target": target}), agent)
+            self.add_child_task(Move(agent, {"target": target}))
             # TODO a loop?  otherwise check location/graspability instead of just assuming?
             self.steps[3] = "finished"
             return
         # drop it
         if self.steps[3] == "finished":
-            self.add_child_task(Drop(agent, {"object": self.get_target}), agent)
+            self.add_child_task(Drop(agent, {"object": self.get_target}))
             self.finished = True
             return
 
@@ -252,20 +249,20 @@ class AutoGrasp(Task):
         self.command_sent = False
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            agent.mover.grab_nearby_object()
+            self.agent.mover.grab_nearby_object()
         else:
-            self.finished = agent.mover.bot_step()
+            self.finished = self.agent.mover.bot_step()
             # TODO check that the object in the gripper is actually the object we meant to pick up
             # TODO deal with failure cases
             # TODO tag this in the grip task, not here
             if self.finished:
-                if agent.mover.is_object_in_gripper():
-                    agent.memory.tag(self.target, "_in_inventory")
+                if self.agent.mover.is_object_in_gripper():
+                    self.agent.memory.tag(self.target, "_in_inventory")
 
 
 class Drop(Task):
@@ -278,7 +275,8 @@ class Drop(Task):
         self.command_sent = False
 
     @Task.check_remove_and_running_children
-    def step(self, agent):
+    def step(self):
+        agent = self.agent
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
