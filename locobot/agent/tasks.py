@@ -15,11 +15,12 @@ import time
 # FIXME store dances, etc.
 class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
-        super(Dance, self).__init__()
+        super().__init__(agent)
         # movement should be a Movement object from dance.py
         self.movement = DanceMovement(agent, None)
         self.movement_type = task_data.get("movement_type", None)
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
 
@@ -37,13 +38,14 @@ class Dance(Task):
 #### merge Look, Point, Turn into dancemove; on mc side too
 class Look(Task):
     def __init__(self, agent, task_data):
-        super(Look, self).__init__()
+        super().__init__(agent)
         self.target = task_data.get("target")
         self.yaw = task_data.get("yaw")
         self.pitch = task_data.get("pitch")
         assert self.yaw or self.pitch or self.target
         self.command_sent = False
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.finished = False
         self.interrupted = False
@@ -70,13 +72,16 @@ class Look(Task):
 
 class Point(Task):
     def __init__(self, agent, task_data):
-        super(Point, self).__init__()
+        super().__init__(agent)
         self.target = np.array(task_data["target"])
 
     def get_pt_from_region(self, region):
-        assert len(region) == 6, "Region list has less than 6 elements (minx, miny, minz, maxx, maxy, maxz)"
-        return region[:3] # just return the min xyz for now
+        assert (
+            len(region) == 6
+        ), "Region list has less than 6 elements (minx, miny, minz, maxx, maxy, maxz)"
+        return region[:3]  # just return the min xyz for now
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
         pt = self.get_pt_from_region(self.target.tolist())
@@ -90,12 +95,13 @@ class Point(Task):
 
 class Move(Task):
     def __init__(self, agent, task_data, featurizer=None):
-        super(Move, self).__init__()
+        super().__init__(agent)
         self.target = np.array(task_data["target"])
         self.is_relative = task_data.get("is_relative", 0)
         self.path = None
         self.command_sent = False
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
         self.finished = False
@@ -120,10 +126,11 @@ class Move(Task):
 
 class Turn(Task):
     def __init__(self, agent, task_data):
-        super(Turn, self).__init__()
+        super().__init__(agent)
         self.yaw = task_data["yaw"]
         self.command_sent = False
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
         self.finished = False
@@ -140,7 +147,7 @@ class Turn(Task):
 # TODO handle case where agent already has item in inventory (pure give)
 class Get(Task):
     def __init__(self, agent, task_data):
-        super().__init__()
+        super().__init__(agent)
         # get target should be a ReferenceObjectNode memid
         self.get_target = task_data["get_target"]
         self.give_target = task_data["give_target"]
@@ -186,6 +193,7 @@ class Get(Task):
                 time.sleep(0.1)
         return (xz[0], xz[1], target_yaw)
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
         self.finished = False
@@ -238,11 +246,12 @@ class AutoGrasp(Task):
     """thin wrapper for Dhiraj' grasping routine."""
 
     def __init__(self, agent, task_data):
-        super().__init__()
+        super().__init__(agent)
         # this is a ref object memid
         self.target = task_data["target"]
         self.command_sent = False
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
         self.finished = False
@@ -263,11 +272,12 @@ class Drop(Task):
     """drop whatever is in hand."""
 
     def __init__(self, agent, task_data):
-        super().__init__()
+        super().__init__(agent)
         # currently unused, we can expand this soon?
         self.object_to_drop = task_data.get("object", None)
         self.command_sent = False
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
         self.finished = False
@@ -289,9 +299,10 @@ class Explore(Task):
     """use slam to explore environemt    """
 
     def __init__(self, agent, task_data):
-        super().__init__()
+        super().__init__(agent)
         self.command_sent = False
 
+    @Task.check_remove_and_running_children
     def step(self, agent):
         self.interrupted = False
         self.finished = False
