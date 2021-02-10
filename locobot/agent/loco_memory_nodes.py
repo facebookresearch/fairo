@@ -95,42 +95,44 @@ class DetectedObjectNode(ReferenceObjectNode):
             memory.add_triple(subj=subj_memid, pred_text=pred_text, obj_text=str(attr))
 
     @classmethod
-    def get_all(cls, memory) -> str:
+    def get_all(cls, memory) -> list:
         objs = []
         detected_objs = memory._db_read(
             "SELECT uuid, eid, x, y, z FROM ReferenceObjects WHERE ref_type=?", cls.NODE_TYPE
         )
-        for x in detected_objs:
-
-            def get_value(memid, pred_text):
-                triple = memory.get_triples(
-                    subj=memid, pred_text=pred_text, return_obj_text="if_exists"
-                )
-                if len(triple) > 0 and len(triple[0]) >= 3 and triple[0][2] != memid:
-                    return triple[0][2]
-                else:
-                    return None
-
-            label = get_value(x[0], "has_name")
-            color = get_value(x[0], "has_colour")
-            properties = get_value(x[0], "has_properties")
-
-            # get feature blob
-            feature_blob = memory._db_read(
-                "SELECT featureBlob FROM DetectedObjectFeatures WHERE uuid=?", x[0]
-            )
-            feature_repr = pickle.loads(feature_blob[0][0])
-            objs.append(
-                {
-                    "eid": x[1],
-                    "xyz": (x[2], x[3], x[4]),
-                    "label": label,
-                    "color": color,
-                    "properties": properties,
-                    "feature_repr": feature_repr,
-                }
-            )
+        for node in detected_objs:
+            objs.append(cls.from_node(memory, node))
         return objs
+
+    @classmethod
+    def from_node(cls, memory, node) -> list:
+        def get_value(memid, pred_text):
+            triple = memory.get_triples(
+                subj=memid, pred_text=pred_text, return_obj_text="if_exists"
+            )
+            if len(triple) > 0 and len(triple[0]) >= 3 and triple[0][2] != memid:
+                return triple[0][2]
+            else:
+                return None
+
+        label = get_value(node[0], "has_name")
+        color = get_value(node[0], "has_colour")
+        properties = get_value(node[0], "has_properties")
+
+        # get feature blob
+        feature_blob = memory._db_read(
+            "SELECT featureBlob FROM DetectedObjectFeatures WHERE uuid=?", node[0]
+        )
+        feature_repr = pickle.loads(feature_blob[0][0])
+
+        return {
+            "eid": node[1],
+            "xyz": (node[2], node[3], node[4]),
+            "label": label,
+            "color": color,
+            "properties": properties,
+            "feature_repr": feature_repr,
+        }
 
     def get_pos(self) -> XYZ:
         x, y, z = self.agent_memory._db_read_one(
