@@ -221,7 +221,7 @@ class NSPDialogueManager(DialogueManager):
 class DialogModel:
     def __init__(self, models_dir, data_dir):
         # Instantiate the main model
-        ttad_model_dir = models_dir + "ttad_bert_updated/"
+        ttad_model_dir = os.path.join(models_dir, "ttad_bert_updated")
         logging.info("using model_dir={}".format(ttad_model_dir))
 
         if os.path.isdir(data_dir) and os.path.isdir(ttad_model_dir):
