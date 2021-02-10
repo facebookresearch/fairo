@@ -102,7 +102,6 @@ class MuiVirtualizedTable extends React.PureComponent {
       ...tableProps
     } = this.props;
 
-    console.log("MuiVirtualizedTable", height, width);
     return (
       // <AutoSizer style={{ height: { height }, width: { width } }}>
       //   {({ height, width }) => (
@@ -187,7 +186,6 @@ export default function ReactVirtualizedTable({
       rowCount={getCount()}
       rowGetter={({ index }) => toReferencedObject(getMemoryForIndex(index))}
       onRowClick={({ event, index, rowData }) => {
-        console.log("Clicked ", event, index, rowData);
         if (rowData && rowData.uuid) {
           onShowMemeoryDetail(rowData.uuid);
         }

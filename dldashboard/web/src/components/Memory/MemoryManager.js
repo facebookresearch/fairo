@@ -3,7 +3,7 @@ export default function MemoryManager(
   filter
 ) {
   // TODO create a lookup of memory from uuid
-  const lookup = new Map(reference_objects.map((data) => [data[0], data]));
+  const lookup = new Map(reference_objects.map((data) => [data[0], { data }]));
 
   if (triples) {
     triples.forEach((triple) => {
@@ -13,7 +13,7 @@ export default function MemoryManager(
       const entry = lookup.get(subjUUID);
 
       if (!entry) {
-        console.log("missing Entry: ", subjUUID);
+        // console.log("missing Entry: ", subjUUID);
         return;
       }
 

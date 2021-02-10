@@ -8,7 +8,12 @@ import React from "react";
 
 import ReactVirtualizedTable from "./Memory/MemoryVirtualizedTable";
 import MemoryManager from "./Memory/MemoryManager";
+import MemoryDetail from "./Memory/MemoryDetail";
 import TextField from "@material-ui/core/TextField";
+import Drawer from "@material-ui/core/Drawer";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+import Divider from "@material-ui/core/Divider";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
@@ -28,6 +33,8 @@ class MemoryList extends React.Component {
       isLoaded: false,
       memory: null,
       filter: "",
+      showDetail: false,
+      detailUUID: null,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -85,30 +92,8 @@ class MemoryList extends React.Component {
     const memoryManager = new MemoryManager(memory, this.state.filter);
 
     const showMemeoryDetail = (memoryUUID) => {
-      if (this.props.stateManager && this.props.stateManager.dashboardLayout) {
-        var newItemConfig = {
-          title: "Memory Detail",
-          type: "react-component",
-          component: "MemoryDetail",
-          props: { memoryManager, uuid: memoryUUID },
-        };
-
-        const layout = this.props.stateManager.dashboardLayout;
-
-        var detailViewStack = {
-          type: "stack",
-          content: [],
-        };
-
-        if (layout.root.contentItems[0].contentItems.length < 3) {
-          layout.root.contentItems[0].addChild(detailViewStack);
-        }
-        // add detail view
-        layout.root.contentItems[0].contentItems[2].addChild(newItemConfig);
-      }
+      this.setState({ detailUUID: memoryUUID, showDetail: true });
     };
-
-    console.log(this.state.height);
 
     const paddedHeight = this.state.height - 24;
     const paddedWidth = this.state.width - 24;
@@ -139,6 +124,18 @@ class MemoryList extends React.Component {
             memoryManager={memoryManager}
             onShowMemeoryDetail={showMemeoryDetail}
           />
+          <Drawer anchor="right" open={this.state.showDetail}>
+            <div style={{ width: 450 }}>
+              <IconButton onClick={() => this.setState({ showDetail: false })}>
+                <CloseIcon />
+              </IconButton>
+              <Divider />
+              <MemoryDetail
+                memoryManager={memoryManager}
+                uuid={this.state.detailUUID}
+              />
+            </div>
+          </Drawer>
         </div>
       </ThemeProvider>
     );
