@@ -784,7 +784,7 @@ class Undo(Task):
     @Task.check_remove_and_running_children
     def step(self):
         old_task_mem = self.agent.memory.get_mem_by_id(self.to_undo_memid)
-        old_task_mem.task.undo(agent)
+        old_task_mem.task.undo(self.agent)
         self.finished = True
 
     def __repr__(self):

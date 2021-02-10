@@ -9,6 +9,7 @@ import random
 from string_lists import MAP_YES, MAP_NO
 from base_util import pos_to_np
 from enum import Enum
+from base_agent.memory_nodes import TaskNode
 
 
 class DialogueObject(object):
@@ -159,10 +160,10 @@ class BotCapabilities(Say):
     def __init__(self, **kwargs):
         response_options = [
             'Try looking at something and tell me "go there"',
-            'Try asking to get something for you',
-            'Try asking me to dance',
-            'Try asking me to point at something',
-            'Try asking me to drop whatever is in my hand'
+            "Try asking to get something for you",
+            "Try asking me to dance",
+            "Try asking me to point at something",
+            "Try asking me to drop whatever is in my hand",
         ]
         super().__init__(response_options, **kwargs)
 
@@ -347,7 +348,8 @@ class ConfirmTask(DialogueObject):
             response_str = "UNK"
         if response_str in MAP_YES:
             for task in self.tasks:
-                self.memory.task_stack_push(task)
+                mem = TaskNode(self.agent.memory, task.memid)
+                mem.get_update_status({"prio": 1, "running": 1})
         return None, None
 
 
