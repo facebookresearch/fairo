@@ -28,7 +28,7 @@ dirname = os.path.dirname(__file__)
 
 from base_util import hash_user
 
-sp = spacy.load("en_core_web_sm")
+spacy_model = spacy.load("en_core_web_sm")
 
 
 class NSPDialogueManager(DialogueManager):
@@ -96,14 +96,12 @@ class NSPDialogueManager(DialogueManager):
         else:
             self.botGreetings = {"hello": ["hi", "hello", "hey"], "goodbye": ["bye"]}
 
-        models_dir = opts.nsp_models_dir
         # Instantiate the main model
-        ttad_model_dir = models_dir + "ttad_bert_updated/"
-        logging.info("using model_dir={}".format(ttad_model_dir))
-        if os.path.isdir(opts.nsp_data_dir) and os.path.isdir(ttad_model_dir):
-            from ttad.ttad_transformer_model.query_model import TTADBertModel as Model
+        try:
+            self.model = DialogModel(opts.nsp_models_dir, opts.nsp_data_dir)
+        except NotADirectoryError:
+            pass
 
-            self.model = Model(model_dir=ttad_model_dir, data_dir=opts.nsp_data_dir)
         self.debug_mode = False
 
         self.ground_truth_actions = {}
@@ -217,19 +215,63 @@ class NSPDialogueManager(DialogueManager):
                 }]
             }
         """
-        if s in self.ground_truth_actions:
-            d = self.ground_truth_actions[s]
+        return model.get_logical_form(s, chat_as_list, self.ground_truth_actions)
+
+
+class DialogModel:
+    def __init__(self, models_dir, data_dir):
+        # Instantiate the main model
+        ttad_model_dir = models_dir + "ttad_bert_updated/"
+        logging.info("using model_dir={}".format(ttad_model_dir))
+
+        if os.path.isdir(data_dir) and os.path.isdir(ttad_model_dir):
+            from ttad.ttad_transformer_model.query_model import TTADBertModel as Model
+
+            self.model = Model(model_dir=ttad_model_dir, data_dir=data_dir)
+        else:
+            raise NotADirectoryError
+
+    def get_logical_form(self, s: str, chat_as_list=False, ground_truth_actions: dict={}) -> Dict:
+        """Get logical form output for a given chat command.
+        First check the ground truth file for the chat string. If not
+        in ground truth, query semantic parsing model to get the output.
+
+        Args:
+            s (str): Input chat provided by the user.
+            chat_as_list (bool): if True, expects `s` to be a list of strings
+            ground_truth_actions (dict): A list of ground truth actions to pre-match against
+
+        Return:
+            Dict: Logical form representation of the task. See paper for more
+                in depth explanation of logical forms:
+                https://arxiv.org/abs/1907.08584
+
+        Examples:
+            >>> get_logical_form("destroy this", model)
+            {
+                "dialogue_type": "HUMAN_GIVE_COMMAND",
+                "action_sequence": [{
+                    "action_type": "DESTROY",
+                    "reference_object": {
+                        "filters": {"contains_coreference": "yes"},
+                        "text_span": [0, [1, 1]]
+                    }
+                }]
+            }
+        """
+        if s in ground_truth_actions:
+            d = ground_truth_actions[s]
             logging.info('Found gt action for "{}"'.format(s))
         else:
             logging.info("Querying the semantic parsing model")
             if chat_as_list:
-                d = model.parse([s])
+                d = self.model.parse([s])
             else:
-                d = model.parse(chat=s)  # self.ttad_model.parse(chat=s)
+                d = self.model.parse(chat=s)
 
         # perform lemmatization on the chat
         logging.info('chat before lemmatization "{}"'.format(s))
-        lemmatized_chat = sp(s)
+        lemmatized_chat = spacy_model(s)
         chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
         logging.info('chat after lemmatization "{}"'.format(chat))
 
