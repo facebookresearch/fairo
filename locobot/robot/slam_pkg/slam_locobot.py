@@ -13,6 +13,7 @@ import time
 from math import ceil, floor
 import sys
 import json
+from pyrobot.locobot.base_control_utils import LocalActionStatus
 
 cv2 = try_cv2_import()
 
@@ -233,9 +234,10 @@ class Slam(object):
                     stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
                 )
                 - robot_state[2],
-            )
+            ),
+            wait=False,
         )
-        while self.robot.base.moving:
+        while self.robot._as.get_state() != LocalActionStatus.SUCCEEDED:
             if self.save_vis:
                 rgb, depth = self.robot.camera.get_rgb_depth()
                 pos = self.robot.base.get_state()
@@ -291,9 +293,10 @@ class Slam(object):
                         stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
                     )
                     + self.init_state[2],
-                )
+                ),
+                wait=False,
             )
-            while self.robot.base.moving:
+            while self.robot._as.get_state() != LocalActionStatus.SUCCEEDED:
                 if self.save_vis:
                     rgb, depth = self.robot.camera.get_rgb_depth()
                     pos = self.robot.base.get_state()
@@ -346,9 +349,9 @@ class Slam(object):
             np.linalg.norm(np.array(robot_state[:2]) - np.array(self.goal_loc[:2])) * 100.0
             < np.sqrt(2) * self.map_builder.resolution
         ):
-            self.robot.base.go_to_absolute(self.get_absolute_goal(self.goal_loc))
+            self.robot.base.go_to_absolute(self.get_absolute_goal(self.goal_loc), wait=False)
             print("robot has reached goal")
-            while self.robot.base.moving:
+            while self.robot._as.get_state() != LocalActionStatus.SUCCEEDED:
                 if self.save_vis:
                     rgb, depth = self.robot.camera.get_rgb_depth()
                     pos = self.robot.base.get_state()
