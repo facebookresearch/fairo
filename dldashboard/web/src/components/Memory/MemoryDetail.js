@@ -1,5 +1,4 @@
 import React from "react";
-import Paper from "@material-ui/core/Paper";
 import Grid from "@material-ui/core/Grid";
 import { Typography } from "@material-ui/core";
 
@@ -24,12 +23,8 @@ function DetailRow(props) {
 }
 
 class MemoryDetail extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
-    const [x, y, getMemoryForUUID] = this.props.memoryManager;
+    const [, , getMemoryForUUID] = this.props.memoryManager;
 
     const memory = getMemoryForUUID(this.props.uuid);
 

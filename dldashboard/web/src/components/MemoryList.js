@@ -17,13 +17,6 @@ import Divider from "@material-ui/core/Divider";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
-var hashCode = function (s) {
-  return s.split("").reduce(function (a, b) {
-    a = (a << 5) - a + b.charCodeAt(0);
-    return a & a;
-  }, 0);
-};
-
 class MemoryList extends React.Component {
   constructor(props) {
     super(props);
@@ -105,48 +98,43 @@ class MemoryList extends React.Component {
     // final render
     return (
       <ThemeProvider theme={darkTheme}>
-        <div
-          ref={this.outer_div}
-          style={{ padding: 12, height: paddedHeight, width: paddedWidth }}
+        <TextField
+          style={{
+            borderBlockColor: "white",
+          }}
+          color="primary"
+          id="outlined-uncontrolled"
+          label="Search"
+          margin="dense"
+          variant="outlined"
+          onChange={(event) => {
+            this.setState({ filter: event.target.value });
+          }}
+        />
+        <ReactVirtualizedTable
+          height={paddedHeight}
+          width={paddedWidth}
+          memoryManager={memoryManager}
+          onShowMemeoryDetail={showMemeoryDetail}
+        />
+        <Drawer
+          anchor="right"
+          open={this.state.showDetail}
+          onClose={() => {
+            closeDrawer();
+          }}
         >
-          <TextField
-            style={{
-              borderBlockColor: "white",
-            }}
-            color="primary"
-            id="outlined-uncontrolled"
-            label="Search"
-            margin="dense"
-            variant="outlined"
-            onChange={(event) => {
-              this.setState({ filter: event.target.value });
-            }}
-          />
-          <ReactVirtualizedTable
-            height={paddedHeight}
-            width={paddedWidth}
-            memoryManager={memoryManager}
-            onShowMemeoryDetail={showMemeoryDetail}
-          />
-          <Drawer
-            anchor="right"
-            open={this.state.showDetail}
-            onClose={() => {
-              closeDrawer();
-            }}
-          >
-            <div style={{ width: 450 }}>
-              <IconButton onClick={() => closeDrawer()}>
-                <CloseIcon />
-              </IconButton>
-              <Divider />
-              <MemoryDetail
-                memoryManager={memoryManager}
-                uuid={this.state.detailUUID}
-              />
-            </div>
-          </Drawer>
-        </div>
+          <div style={{ width: 450 }}>
+            <IconButton onClick={() => closeDrawer()}>
+              <CloseIcon />
+            </IconButton>
+            <Divider />
+            <MemoryDetail
+              memoryManager={memoryManager}
+              uuid={this.state.detailUUID}
+            />
+          </div>
+        </Drawer>
       </ThemeProvider>
     );
   }
