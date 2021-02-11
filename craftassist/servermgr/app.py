@@ -16,8 +16,6 @@ from datetime import datetime, timezone
 import boto3
 import botocore
 import flask
-import redis
-from rate_limiter import ratelimit
 
 
 app = flask.Flask(__name__)
@@ -42,9 +40,6 @@ with open("run.withagent.sh", "rb") as f:
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
     run_flat_sh_gz_b64 = b64encode(gzip.compress(txt_flat)).decode("utf-8")
 
-logging.info("Connecting to redis at {}".format(os.environ["REDIS_URL"]))
-rconn = redis.from_url(os.environ["REDIS_URL"])
-
 
 @app.route("/")
 @app.route("/acl2020demo")
@@ -59,12 +54,6 @@ def homepage():
 
 
 @app.route("/launch", methods=["GET", "POST"])
-# The limiter ensures that the web server will handle at most 60 requests of
-# each unique ip address or 100 requests in total per mintue to prevent
-# malicious attack. e.g. one user may make too many 'launch instances' requests
-# to flood ECS with containers
-@ratelimit(max_requests=60, seconds=60, key_func="ip")
-@ratelimit(max_requests=100, seconds=60, key_func="global")
 def launch():
     logging.info("Launching instance")
     instance_id, timestamp = launch_instance()
