@@ -36,8 +36,8 @@ class ComputeLocations:
 def compute_location_heuristic(mems, steps, reldir, agent):
     loc = mems[0].get_pos()
     self_mem = agent.memory.get_mem_by_id(agent.memory.self_memid)
+    steps = steps or DEFAULT_NUM_STEPS
     if reldir is not None:
-        steps = steps or DEFAULT_NUM_STEPS
         if reldir == "BETWEEN":
             loc = tuple((np.add(mems[0].get_pos(), mems[1].get_pos())) / 2)
         elif reldir == "INSIDE":
