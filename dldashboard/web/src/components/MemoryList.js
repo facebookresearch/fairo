@@ -98,6 +98,10 @@ class MemoryList extends React.Component {
     const paddedHeight = this.state.height - 24;
     const paddedWidth = this.state.width - 24;
 
+    const closeDrawer = () => {
+      this.setState({ showDetail: false });
+    };
+
     // final render
     return (
       <ThemeProvider theme={darkTheme}>
@@ -124,9 +128,15 @@ class MemoryList extends React.Component {
             memoryManager={memoryManager}
             onShowMemeoryDetail={showMemeoryDetail}
           />
-          <Drawer anchor="right" open={this.state.showDetail}>
+          <Drawer
+            anchor="right"
+            open={this.state.showDetail}
+            onClose={() => {
+              closeDrawer();
+            }}
+          >
             <div style={{ width: 450 }}>
-              <IconButton onClick={() => this.setState({ showDetail: false })}>
+              <IconButton onClick={() => closeDrawer()}>
                 <CloseIcon />
               </IconButton>
               <Divider />

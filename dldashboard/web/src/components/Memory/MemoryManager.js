@@ -28,11 +28,9 @@ export default function MemoryManager(
   var filtered_refrence_objects = [];
   // build out a list of filtered objects
   if (null != filter && filter.length > 0) {
-    debugger;
     reference_objects.forEach((ref_object) => {
       // Check the name
       if (JSON.stringify({ ...ref_object }).includes(filter)) {
-        debugger;
         filtered_refrence_objects.push(ref_object);
       }
     });
