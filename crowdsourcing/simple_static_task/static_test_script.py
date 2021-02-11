@@ -18,8 +18,6 @@ from dataclasses import dataclass, field
 from typing import List, Any
 
 TASK_DIRECTORY = "/Users/rebeccaqian/droidlet/crowdsourcing/simple_static_task"
-# TASK_DIRECTORY = os.path.join(get_root_dir(), "examples/simple_static_task")
-print(TASK_DIRECTORY)
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "local"},
