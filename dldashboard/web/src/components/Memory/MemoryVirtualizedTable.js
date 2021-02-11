@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import clsx from "clsx";
 import { withStyles } from "@material-ui/core/styles";
 import TableCell from "@material-ui/core/TableCell";
-import Paper from "@material-ui/core/Paper";
 import { AutoSizer, Column, Table } from "react-virtualized";
 
 const styles = (theme) => ({
@@ -25,7 +24,7 @@ const styles = (theme) => ({
   },
   tableRowHover: {
     "&:hover": {
-      backgroundColor: theme.palette.grey[200],
+      backgroundColor: theme.palette.action.hover,
     },
   },
   tableCell: {
@@ -39,7 +38,7 @@ const styles = (theme) => ({
 class MuiVirtualizedTable extends React.PureComponent {
   static defaultProps = {
     headerHeight: 48,
-    rowHeight: 48,
+    rowHeight: 36,
   };
 
   getRowClassName = ({ index }) => {
@@ -103,13 +102,6 @@ class MuiVirtualizedTable extends React.PureComponent {
     } = this.props;
 
     return (
-      // <AutoSizer style={{ height: { height }, width: { width } }}>
-      //   {({ height, width }) => (
-      //     <>
-      //       <div>
-      //         {" "}
-      //         {height}, {width}{" "}
-      //       </div>
       <Table
         height={height}
         width={width}
@@ -141,9 +133,6 @@ class MuiVirtualizedTable extends React.PureComponent {
           );
         })}
       </Table>
-      //     </>
-      //   )}
-      // </AutoSizer>
     );
   }
 }
@@ -166,7 +155,12 @@ MuiVirtualizedTable.propTypes = {
 const VirtualizedTable = withStyles(styles)(MuiVirtualizedTable);
 
 function toReferencedObject(arr) {
-  return { uuid: arr[0], id: arr[1], type: arr[9], name: arr[7] };
+  return {
+    uuid: arr.data[0],
+    id: arr.data[1],
+    type: arr.data[9],
+    name: arr.data[7],
+  };
 }
 
 export default function ReactVirtualizedTable({
@@ -178,39 +172,45 @@ export default function ReactVirtualizedTable({
   const [getCount, getMemoryForIndex] = memoryManager;
 
   return (
-    // TODO setting the heingt to 100% is not working. Will need to figure this out.
-    // <Paper style={{ height: { height }, width: { width } }}>
-    <VirtualizedTable
-      height={height}
-      width={width}
-      rowCount={getCount()}
-      rowGetter={({ index }) => toReferencedObject(getMemoryForIndex(index))}
-      onRowClick={({ event, index, rowData }) => {
-        if (rowData && rowData.uuid) {
-          onShowMemeoryDetail(rowData.uuid);
-        }
-      }}
-      columns={[
-        {
-          width: 60,
-          label: "ID",
-          dataKey: "id",
-          numeric: true,
-        },
-        {
-          width: 120,
-          label: "Type",
-          dataKey: "type",
-          numeric: false,
-        },
-        {
-          width: 120,
-          label: "Name",
-          dataKey: "name",
-          numeric: false,
-        },
-      ]}
-    />
-    // </Paper>
+    <AutoSizer>
+      {({ height, width }) => (
+        <VirtualizedTable
+          height={height}
+          width={width}
+          rowCount={getCount()}
+          rowGetter={({ index }) =>
+            toReferencedObject(getMemoryForIndex(index))
+          }
+          onRowClick={({ event, index, rowData }) => {
+            if (rowData && rowData.uuid) {
+              onShowMemeoryDetail(rowData.uuid);
+            }
+          }}
+          columns={[
+            {
+              flexGrow: 1,
+              width: 1,
+              label: "ID",
+              dataKey: "id",
+              numeric: true,
+            },
+            {
+              flexGrow: 5,
+              width: 5,
+              label: "Type",
+              dataKey: "type",
+              numeric: false,
+            },
+            {
+              flexGrow: 5,
+              width: 5,
+              label: "Name",
+              dataKey: "name",
+              numeric: false,
+            },
+          ]}
+        />
+      )}
+    </AutoSizer>
   );
 }

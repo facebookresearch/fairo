@@ -28,14 +28,14 @@ export default function MemoryManager(
   var filtered_refrence_objects = [];
   // build out a list of filtered objects
   if (null != filter && filter.length > 0) {
-    reference_objects.forEach((ref_object) => {
+    for (let value of lookup.values()) {
       // Check the name
-      if (JSON.stringify({ ...ref_object }).includes(filter)) {
-        filtered_refrence_objects.push(ref_object);
+      if (JSON.stringify(value).includes(filter)) {
+        filtered_refrence_objects.push(value);
       }
-    });
+    }
   } else {
-    filtered_refrence_objects = reference_objects;
+    filtered_refrence_objects = Array.from(lookup.values());
   }
 
   // TODO create a search lookup of memories to find by id.
