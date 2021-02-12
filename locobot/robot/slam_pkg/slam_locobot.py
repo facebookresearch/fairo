@@ -38,6 +38,7 @@ class Slam(object):
         vis=False,
         save_vis=False,
         save_folder="../slam_logs",
+        save_depth=False,
     ):
         """
 
@@ -100,6 +101,7 @@ class Slam(object):
         triangle_scale = 0.5
         self.triangle_vertex = np.array([[0.0, 0.0], [-2.0, 1.0], [-2.0, -1.0]])
         self.triangle_vertex *= triangle_scale
+        self.save_depth = save_depth
         if self.save_vis:
             self.save_folder = os.path.join(save_folder, str(int(time.time())))
             self.img_folder = os.path.join(self.save_folder, "rgb")
@@ -110,7 +112,7 @@ class Slam(object):
             if not os.path.isdir(self.img_folder):
                 os.makedirs(self.img_folder)
 
-            if not os.path.isdir(self.depth_folder):
+            if self.save_depth and not os.path.isdir(self.depth_folder):
                 os.makedirs(self.depth_folder)
         self.start_vis = False
         self.vis_count = 0
@@ -248,10 +250,11 @@ class Slam(object):
                 )
 
                 # store depth in mm
-                depth *= 1e3
-                depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-                depth = depth.astype(np.uint16)
-                np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+                if self.save_depth:
+                    depth *= 1e3
+                    depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+                    depth = depth.astype(np.uint16)
+                    np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
 
                 # store pos
                 self.pos_dic[self.img_count] = copy(pos)
@@ -307,10 +310,11 @@ class Slam(object):
                     )
 
                     # store depth in mm
-                    depth *= 1e3
-                    depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-                    depth = depth.astype(np.uint16)
-                    np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+                    if self.save_depth:
+                        depth *= 1e3
+                        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+                        depth = depth.astype(np.uint16)
+                        np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
 
                     # store pos
                     self.pos_dic[self.img_count] = copy(pos)
@@ -362,10 +366,11 @@ class Slam(object):
                     )
 
                     # store depth in mm
-                    depth *= 1e3
-                    depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-                    depth = depth.astype(np.uint16)
-                    np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+                    if self.save_depth:
+                        depth *= 1e3
+                        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+                        depth = depth.astype(np.uint16)
+                        np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
 
                     # store pos
                     self.pos_dic[self.img_count] = copy(pos)
@@ -638,6 +643,7 @@ def main(args):
         args.vis,
         args.save_vis,
         args.store_path,
+        args.save_depth,
     )
     slam.set_goal(tuple(args.goal))
     while slam.take_step(step_size=args.step_size) is None:
@@ -667,6 +673,9 @@ if __name__ == "__main__":
     parser.add_argument("--agent_max_z", help="robot max height in cm", type=int, default=70)
     parser.add_argument("--vis", help="whether to show visualization", action="store_true")
     parser.add_argument("--save_vis", help="whether to store visualization", action="store_true")
+    parser.add_argument(
+        "--save_depth", help="whether to sotr depth data as well", action="store_true"
+    )
     parser.add_argument(
         "--store_path", help="path to store visualization", type=str, default="./tmp"
     )

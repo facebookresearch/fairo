@@ -48,3 +48,19 @@ Results should look something like this
 ```
 ffmpeg -framerate 6 -f image2 -i %04d.jpg out.gif
 ```
+
+## Collect active vision data on real robot
+All the things will run on robot
+- launch the camera and robot base (make sure base is turned `on`)
+
+ ```
+roslaunch locobot_control main.launch use_base:=true use_camera:=true
+```
+
+- run the agent
+
+```
+python slam.py --robot locobot --goal 9.5 0 0 --map_size 2000 --robot_rad 25 --save_vis
+```
+
+- data will be stored under `tmp` folder 
