@@ -60,7 +60,7 @@ roslaunch locobot_control main.launch use_base:=true use_camera:=true
 - run the agent
 
 ```
-python slam.py --robot locobot --goal 9.5 0 0 --map_size 2000 --robot_rad 25 --save_vis
+python slam_locobot.py --robot locobot --goal 9.5 0 0 --map_size 2000 --robot_rad 25 --save_vis
 ```
 
 - data will be stored under `tmp` folder 
