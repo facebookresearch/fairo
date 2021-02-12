@@ -7,7 +7,7 @@ mephisto:
     extra_source_dir: ${task_dir}/server_files/extra_refs
     units_per_assignment: 1
   task:
-    task_name: html-static-task-example
+    task_name: craftassist-task
     task_title: "Craftassist Task"
     task_description: "This is a simple craftassist task."
     task_reward: 0.3

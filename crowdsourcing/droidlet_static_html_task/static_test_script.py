@@ -17,7 +17,7 @@ from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
 
-TASK_DIRECTORY = "/Users/rebeccaqian/droidlet/crowdsourcing/simple_static_task"
+TASK_DIRECTORY = "/Users/rebeccaqian/droidlet/crowdsourcing/droidlet_static_html_task"
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "local"},
