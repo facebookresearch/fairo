@@ -50,7 +50,7 @@ The following table shows the frontend components, the socket events they emit/h
 | InteractApp | setChatResponse | Get parsing status, logical form for this chat from semantic parser, history of past 5 commands | backend |
 | InteractApp | showAssistantreply | Get the agent's reply after processing the command, if any and render it.  | backend |
 | LiveImage | sensor_payload | Get rgb image stream and depth information from backend | backend |
-| LiveObjects | senor_payload | Get objects and thir rgb information from detector on backend | backend |
+| LiveObjects | senor_payload | Get objects and their rgb information from detector on backend | backend |
 | LiveHumans | sensor_payload | Get human pose estimation from backend | backend |
 | Memory2D | sensor_payload | Get objects, x, y and yaw of assistant and obstacle map from backend and render it on a 2D grid | backend |
 | History | setChatResponse | Render the past 5 commands that were sent to the assistant through the dashboard | backend |
