@@ -237,10 +237,10 @@ class Slam(object):
             ),
             wait=False,
         )
-        while self.robot._as.get_state() != LocalActionStatus.SUCCEEDED:
+        while self.robot.base._as.get_state() != LocalActionStatus.SUCCEEDED:
             if self.save_vis:
                 rgb, depth = self.robot.camera.get_rgb_depth()
-                pos = self.robot.base.get_state()
+                pos = self.robot.base.get_state(state_type="odom")
                 # store the images and depth
                 cv2.imwrite(
                     self.img_folder + "/{:05d}.jpg".format(self.img_count),
@@ -296,10 +296,10 @@ class Slam(object):
                 ),
                 wait=False,
             )
-            while self.robot._as.get_state() != LocalActionStatus.SUCCEEDED:
+            while self.robot.base._as.get_state() != LocalActionStatus.SUCCEEDED:
                 if self.save_vis:
                     rgb, depth = self.robot.camera.get_rgb_depth()
-                    pos = self.robot.base.get_state()
+                    pos = self.robot.base.get_state(state_type="odom")
                     # store the images and depth
                     cv2.imwrite(
                         self.img_folder + "/{:05d}.jpg".format(self.img_count),
@@ -351,10 +351,10 @@ class Slam(object):
         ):
             self.robot.base.go_to_absolute(self.get_absolute_goal(self.goal_loc), wait=False)
             print("robot has reached goal")
-            while self.robot._as.get_state() != LocalActionStatus.SUCCEEDED:
+            while self.robot.base._as.get_state() != LocalActionStatus.SUCCEEDED:
                 if self.save_vis:
                     rgb, depth = self.robot.camera.get_rgb_depth()
-                    pos = self.robot.base.get_state()
+                    pos = self.robot.base.get_state(state_type="odom")
                     # store the images and depth
                     cv2.imwrite(
                         self.img_folder + "/{:05d}.jpg".format(self.img_count),
