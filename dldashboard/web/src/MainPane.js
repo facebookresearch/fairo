@@ -25,6 +25,7 @@ class MainPane extends React.Component {
       <div>
         <InteractApp stateManager={stateManager} />
         <LiveImage
+          type={"rgb"}
           height={320}
           width={320}
           offsetH={320 + 80}

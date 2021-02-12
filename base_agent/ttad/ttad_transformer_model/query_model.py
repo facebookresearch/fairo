@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import json
+import os
 import math
 import pickle
 
@@ -37,7 +38,7 @@ class TTADBertModel(object):
     """
 
     def __init__(self, model_dir, data_dir, model_name="caip_test_model"):
-        model_name = model_dir + model_name
+        model_name = os.path.join(model_dir, model_name)
         args = pickle.load(open(model_name + "_args.pk", "rb"))
 
         args.data_dir = data_dir
