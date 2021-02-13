@@ -70,6 +70,7 @@ class LoCoBotMover:
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
+        self.use_dslam=use_dslam
     
     def check(self):
         """
@@ -119,13 +120,13 @@ class LoCoBotMover:
             return dl+df+dr+db, tl+tf+tr+tb
 
         # move in a square of side 0.3 starting at current base pos
-        d, t = move_in_a_square("default", side=0.3)
+        d, t = move_in_a_square("default", side=0.3, use_vslam=False, use_dslam=False)
         sq_table.add_row(["default", d, t])
 
-        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True)
+        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True, use_dslam=False)
         sq_table.add_row(["use_vslam", d, t])
 
-        d, t = move_in_a_square("use_dslam", side=0.3, use_dslam=True)
+        d, t = move_in_a_square("use_dslam", side=0.3, use_vslam=False, use_dslam=True)
         sq_table.add_row(["use_dslam", d, t])
 
         print(table)
@@ -261,20 +262,12 @@ class LoCoBotMover:
     def point_at(self, target_pos):
         """Executes pointing the arm at the specified target pos. 
 
-        The robot will try to move to within a certain distance of the target position and then point to it.
-
         Args:
             target_pos ([x,y,z]): canonical coordinates to point to.
 
         Returns:
             string "finished"
         """
-        # Part 1: move to within a certain distance of the target.
-        pos = self.get_base_pos_in_canonical_coords()
-        yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)
-        self.move_absolute([get_move_target_for_point(pos, target_pos, yaw_rad)])       
-        
-        # Part 2: point.
         pos = self.get_base_pos_in_canonical_coords()
         yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)        
         states = [

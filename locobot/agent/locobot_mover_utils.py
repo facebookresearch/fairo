@@ -63,7 +63,7 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 
-def get_move_target_for_point(base_pos, target, yaw, eps=1):
+def get_move_target_for_point(base_pos, target, eps=1):
     """
     For point, we first want to move close to the object and then point to it.
 
@@ -75,6 +75,8 @@ def get_move_target_for_point(base_pos, target, yaw, eps=1):
         move_target ([x,z,yaw]): robot base move target in canonical coords 
     """
 
+    yaw, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], target)
+    
     dx = target[0] - base_pos[0]
     signx = 1 if dx > 0 else -1 
 
