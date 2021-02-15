@@ -264,18 +264,22 @@ const Teach = ({ username, stateManager, updatedCommandList }) => {
   const [actionDictContent, setActionDictContent] = useState({});
   const classes = useStyles();
 
-  const fetchCommands = useCallback(() => {
-    const postData = {
-      query: query,
-    };
-    stateManager.socket.emit("fetchCommand", postData);
-    setCommandsList(updatedCommandList);
-  }, [query]);
+  var fetchCommands = useCallback(
+    (setCommandsList, stateManager, updatedCommandList) => {
+      const postData = {
+        query: query,
+      };
+      stateManager.socket.emit("fetchCommand", postData);
+      setCommandsList(updatedCommandList);
+    },
+    [query]
+  );
 
   // fetch existing saved commands
   useEffect(() => {
-    fetchCommands();
-  }, [fetchCommands]);
+    fetchCommands(setCommandsList, stateManager, updatedCommandList);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   // mount modal opening function to window so that Blockly can access it
   useEffect(() => {
@@ -386,7 +390,7 @@ const Teach = ({ username, stateManager, updatedCommandList }) => {
     const action_dict = generateActionDict();
     const block_assembly = generateWorkspaceBlockAssembly();
     saveBlockToDatabase(block_assembly, commandText, action_dict);
-    fetchCommands();
+    fetchCommands(setCommandsList, stateManager, updatedCommandList);
     setTagsList([]);
     setCommandText("");
   };

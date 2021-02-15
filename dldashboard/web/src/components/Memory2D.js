@@ -132,8 +132,8 @@ class Memory2D extends React.Component {
           y={y}
           fill={color}
           onMouseEnter={(e) => {
-            let label = String(obj.eid).concat(": ", obj.label);
-            let properties = obj.properties;
+            // let label = String(obj.eid).concat(": ", obj.label);
+            // let properties = obj.properties;
 
             this.setState({
               tooltip: JSON.stringify(obj, null, 4),
