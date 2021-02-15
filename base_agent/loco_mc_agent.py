@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-import os 
+import os
 import logging
 import os
 import random
@@ -140,7 +140,6 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("setChatResponse", payload)
 
-
     def init_physical_interfaces(self):
         """
         should define or otherwise set up
@@ -206,7 +205,7 @@ class LocoMCAgent(BaseAgent):
         else:
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
-            if os.getenv('DROIDLET_DEBUG_MODE'):
+            if os.getenv("DROIDLET_DEBUG_MODE"):
                 return
             else:
                 raise e
@@ -218,6 +217,7 @@ class LocoMCAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
+        # this is "select TaskNodes whose priority is >= 0 and are not paused"
         query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
         task_mems = self.memory.basic_search(query)
         for mem in task_mems:
@@ -226,7 +226,8 @@ class LocoMCAgent(BaseAgent):
                 mem.get_update_status({"prio": 1, "running": 1})
             if mem.task.stop_condition.check():
                 mem.get_update_status({"prio": 0, "running": 0})
-        query = {"base_table": "Tasks", "base_range": {"minrunning": 0.5}}
+        # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
+        query = {"base_table": "Tasks", "base_range": {"minrunning": 0.5, "maxpaused": 0.5}}
         task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)

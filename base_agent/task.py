@@ -43,7 +43,8 @@ class Task(object):
         self.child_generator = TaskGenerator()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def check_remove_and_running_children(stepfn):
+    @staticmethod
+    def step_wrapper(stepfn):
         def modified_step(self):
             if self.remove_condition.check():
                 self.finished = True
@@ -60,11 +61,12 @@ class Task(object):
             child_task_mems = self.agent.memory.basic_search(query)
             if child_task_mems:  # this task has active children, step them
                 return
-            return stepfn(self)
+            r = stepfn(self)
+            TaskNode(self.agent.memory, self.memid).update_task(task=self)
+            return
 
         return modified_step
 
-    @check_remove_and_running_children
     def step(self):
         """The actual execution of a single step of the task is defined here."""
         pass
@@ -88,8 +90,6 @@ class Task(object):
 
     def __repr__(self):
         return str(type(self))
-
-    check_remove_and_running_children = staticmethod(check_remove_and_running_children)
 
 
 # FIXME new_tasks_fn --> new_tasks
@@ -115,7 +115,7 @@ class ControlBlock(Task):
         )
         TaskNode(self.agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         try:
             t = next(self.child_generator)
@@ -135,6 +135,20 @@ class ControlBlock(Task):
 # without building this mini-stack,
 # just by using stop/remove conditions.... TODO?
 class TaskGenerator:
+    """
+    a gadget for storing child tasks.  the child tasks are stored in a 
+    list; and each entry in the list can be a Task, or a arg-less callable that outputs Task objects
+
+    Args:
+
+    Attributes:
+        tasks (list): child (generator) list
+        count (int): index into child (generator) list     
+        __next__: get the Task from tasks[self.count].  if tasks[self.count] is a Task, 
+                  return it; else if it is a callable, call it (and expect it to return 
+                  a Task object, which __next__ in turn returns
+    """
+
     def __init__(self):
         self.count = 0
 

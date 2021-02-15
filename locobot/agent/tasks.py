@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import logging
 from base_agent.task import Task
+from base_agent.memory_nodes import TaskNode
 from locobot.agent.dance import DanceMovement
 from rotation import yaw_pitch
 import time
@@ -19,8 +20,9 @@ class Dance(Task):
         # movement should be a Movement object from dance.py
         self.movement = DanceMovement(agent, None)
         self.movement_type = task_data.get("movement_type", None)
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         self.interrupted = False
 
@@ -44,8 +46,9 @@ class Look(Task):
         self.pitch = task_data.get("pitch")
         assert self.yaw or self.pitch or self.target
         self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         self.finished = False
         self.interrupted = False
@@ -81,7 +84,7 @@ class Point(Task):
         ), "Region list has less than 6 elements (minx, miny, minz, maxx, maxy, maxz)"
         return region[:3]  # just return the min xyz for now
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
         pt = self.get_pt_from_region(self.target.tolist())
@@ -100,8 +103,9 @@ class Move(Task):
         self.is_relative = task_data.get("is_relative", 0)
         self.path = None
         self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         self.interrupted = False
         self.finished = False
@@ -125,8 +129,9 @@ class Turn(Task):
         super().__init__(agent)
         self.yaw = task_data["yaw"]
         self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         self.interrupted = False
         self.finished = False
@@ -155,6 +160,7 @@ class Get(Task):
         else:
             # approach_pickup, look_at_object, grab, approach_dropoff, give/drop
             self.steps = ["not_started"] * 5
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def get_mv_target(self, get_or_give="get", end_distance=0.35):
         """figure out the location where agent should move to in order to get or give object in global frame
@@ -189,7 +195,7 @@ class Get(Task):
                 time.sleep(0.1)
         return (xz[0], xz[1], target_yaw)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         agent = self.agent
         self.interrupted = False
@@ -247,8 +253,9 @@ class AutoGrasp(Task):
         # this is a ref object memid
         self.target = task_data["target"]
         self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         self.interrupted = False
         self.finished = False
@@ -273,8 +280,9 @@ class Drop(Task):
         # currently unused, we can expand this soon?
         self.object_to_drop = task_data.get("object", None)
         self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         agent = self.agent
         self.interrupted = False
@@ -299,8 +307,9 @@ class Explore(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
         self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self, agent):
         self.interrupted = False
         self.finished = False

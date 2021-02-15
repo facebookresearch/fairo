@@ -59,7 +59,7 @@ class Dance(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         if self.finished:
@@ -102,7 +102,7 @@ class DanceMove(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
@@ -152,7 +152,7 @@ class Point(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         if self.finished:
@@ -206,7 +206,7 @@ class Move(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
@@ -362,7 +362,7 @@ class Build(Task):
 
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
@@ -660,7 +660,7 @@ class Fill(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
 
@@ -714,7 +714,7 @@ class Destroy(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
 
@@ -781,7 +781,7 @@ class Undo(Task):
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         old_task_mem = self.agent.memory.get_mem_by_id(self.to_undo_memid)
         old_task_mem.task.undo(self.agent)
@@ -834,7 +834,7 @@ class Spawn(Task):
                         near_new_mob = mob
         return mindist, near_new_mob
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
@@ -900,7 +900,7 @@ class Dig(Task):
         if self.destroy_task is not None:
             self.destroy_task.undo(agent)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
 
@@ -956,7 +956,7 @@ class Get(Task):
         self.item_count_before_get = agent.get_inventory_item_count(self.idm[0], self.idm[1])
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent
@@ -1023,7 +1023,7 @@ class Drop(Task):
 
         return mindist, near_new_item_stack
 
-    @Task.check_remove_and_running_children
+    @Task.step_wrapper
     def step(self):
         super().step()
         agent = self.agent

@@ -777,15 +777,10 @@ class TaskNode(MemoryNode):
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        try:
-            pickled, prio, running, created_at, finished_at, action_name = self.agent_memory._db_read_one(
-                "SELECT pickled, prio, running, created_at, finished_at, action_name FROM Tasks WHERE uuid=?",
-                memid,
-            )
-        except:
-            import ipdb
-
-            ipdb.set_trace()
+        pickled, prio, running, created_at, finished_at, action_name = self.agent_memory._db_read_one(
+            "SELECT pickled, prio, running, created_at, finished_at, action_name FROM Tasks WHERE uuid=?",
+            memid,
+        )
         self.prio = prio
         self.running = running
         self.task = self.agent_memory.safe_unpickle(pickled)

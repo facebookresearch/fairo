@@ -1072,12 +1072,22 @@ class AgentMemory:
             pickle.dump(dict_memory, dict_memory_file)
 
     def reinstate_attrs(self, obj):
+        """ 
+        replace non-picklable attrs on blob data, using their values
+        from the key-value store, indexed by the obj memid
+        """
         for attr in NONPICKLE_ATTRS:
             if hasattr(obj, "__had_attr_" + attr):
                 delattr(obj, "__had_attr_" + attr)
                 setattr(obj, attr, self._safe_pickle_saved_attrs[obj.memid][attr])
 
     def safe_pickle(self, obj):
+        """
+        pickles memory objects to be put in blob data in the db.  
+        some attrs are not picklable, so stores these in a separate key-value store
+        keyed by the memid
+
+        """
         # little bit scary...
         for attr in NONPICKLE_ATTRS:
             if hasattr(obj, attr):
@@ -1092,6 +1102,10 @@ class AgentMemory:
         return p
 
     def safe_unpickle(self, bs):
+        """ 
+        get non-picklable attrs from the key value store, and
+        replace them on the blob data after retrieving from db
+        """
         obj = pickle.loads(bs)
         self.reinstate_attrs(obj)
         return obj
