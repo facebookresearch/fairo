@@ -9,6 +9,7 @@ import spacy
 import ast
 from typing import Tuple, Dict, Optional
 from glob import glob
+from jsonschema import validate, exceptions, RefResolver
 
 import sentry_sdk
 
@@ -23,6 +24,7 @@ from base_agent.dialogue_objects import (
     coref_resolve,
     process_spans,
 )
+from craftassist.test.validate_json import validate_instance
 from dlevent import sio
 dirname = os.path.dirname(__file__)
 
@@ -30,7 +32,7 @@ from base_util import hash_user
 
 spacy_model = spacy.load("en_core_web_sm")
 
-
+# import ipdb; ipdb.set_trace()
 class NSPDialogueManager(DialogueManager):
     """Dialogue manager driven by neural network.
 
@@ -231,6 +233,29 @@ class DialogModel:
         else:
             raise NotADirectoryError
 
+    def validate_parse_tree(self, parse_tree: dict) -> bool:
+        """Validate the parse tree against current grammar.
+        """
+        # RefResolver initialization requires a base schema and URI
+        base_uri = "../base_agent/documents/json_schema/grammar_spec.schema.json"
+        schema_dir = "../base_agent/documents/json_schema/"
+        try:
+            base_schema = json.load(open(base_uri))
+        except Exception as e:
+            print(e)
+            return False
+            
+        re_pattern = "(.*)\/(.*).schema.json$"
+        base_schema_name = re.search(re_pattern, base_uri).group(2)
+        resolver = RefResolver(base_schema_name + ".schema.json", base_schema)
+        # Load all subschemas in schema directory
+        for schema_path in glob(schema_dir + "*.json"):
+            schema_name = re.search(re_pattern, schema_path).group(2)
+            json_schema = json.load(open(schema_path))
+            resolver.store[schema_name + ".schema.json"] = json_schema
+        is_valid_json = validate_instance(parse_tree, base_schema, resolver)
+        return is_valid_json
+
     def get_logical_form(self, s: str, chat_as_list=False, ground_truth_actions: dict={}) -> Dict:
         """Get logical form output for a given chat command.
         First check the ground truth file for the chat string. If not
@@ -268,6 +293,12 @@ class DialogModel:
                 d = self.model.parse([s])
             else:
                 d = self.model.parse(chat=s)
+            # import ipdb; ipdb.set_trace()
+
+        # Validate that this is valid JSON
+        is_valid_json = self.validate_parse_tree(d)
+        # if not is_valid_json:
+        #     import ipdb; ipdb.set_trace()
 
         # perform lemmatization on the chat
         logging.info('chat before lemmatization "{}"'.format(s))
