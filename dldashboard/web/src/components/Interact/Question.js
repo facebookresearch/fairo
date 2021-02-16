@@ -184,7 +184,8 @@ class Question extends Component {
     var chatResponses = this.props.stateManager.memory.chatResponse;
     var chatMsg = this.props.chats[this.props.failidx].msg;
 
-    this.state.action_dict = chatResponses[chatMsg];
+    this.setState({ action_dict: chatResponses[chatMsg] });
+    // this.state.action_dict = chatResponses[chatMsg];
     if (this.state.action_dict) {
       if ("dialogue_type" in this.state.action_dict) {
         var dialogue_type = this.state.action_dict.dialogue_type;
