@@ -113,9 +113,12 @@ class NSPDialogueManager(DialogueManager):
                 for dataset in files:
                     with open(dataset) as f:
                         for line in f.readlines():
-                            text, logical_form = line.strip().split("|")
-                            clean_text = text.strip('"')
-                            self.ground_truth_actions[clean_text] = ast.literal_eval(logical_form)
+                            try:
+                                text, logical_form = line.strip().split("|")
+                                clean_text = text.strip('"')
+                                self.ground_truth_actions[clean_text] = ast.literal_eval(logical_form)
+                            except:
+                                pass
 
         self.dialogue_object_parameters = {
             "agent": self.agent,

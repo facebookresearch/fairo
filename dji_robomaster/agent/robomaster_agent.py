@@ -25,7 +25,7 @@ from loco_memory import LocoAgentMemory
 from base_agent.base_util import to_player_struct, Pos, Look, Player, hash_user
 from base_agent.memory_nodes import PlayerNode
 from base_agent.loco_mc_agent import LocoMCAgent
-#from perception import Perception, SelfPerception
+from perception import Perception, SelfPerception
 from perception import SelfPerception
 from base_agent.argument_parser import ArgumentParser
 import default_behaviors
