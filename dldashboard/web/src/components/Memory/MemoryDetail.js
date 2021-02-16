@@ -2,6 +2,11 @@ import React from "react";
 import Grid from "@material-ui/core/Grid";
 import { Typography } from "@material-ui/core";
 
+/**
+ * Render a row for each memory detail entry.
+ *
+ * @param {title, value} props title -> Memory value title, value -> Memory value
+ */
 function DetailRow(props) {
   if (null === props.value || undefined === props.value) {
     return null;
@@ -22,6 +27,9 @@ function DetailRow(props) {
   );
 }
 
+/**
+ * Renders a Memory Detail view for a given memory uuid (passed in via props)
+ */
 class MemoryDetail extends React.Component {
   render() {
     const [, , getMemoryForUUID] = this.props.memoryManager;

@@ -163,11 +163,18 @@ function toReferencedObject(arr) {
   };
 }
 
+/**
+ * Creates a virualized table for the objects in Memory.
+ *
+ * See Also: https://material-ui.com/components/tables/#virtualized-table
+ *
+ * @param {memoryManager, onShowMemoryDetail } props
+ *                            memoryManager @see MemoryManager
+ *                            onShowMemoryDetail event handler for memory detail selection.
+ */
 export default function ReactVirtualizedTable({
-  height,
-  width,
   memoryManager,
-  onShowMemeoryDetail,
+  onShowMemoryDetail,
 }) {
   const [getCount, getMemoryForIndex] = memoryManager;
 
@@ -183,7 +190,7 @@ export default function ReactVirtualizedTable({
           }
           onRowClick={({ event, index, rowData }) => {
             if (rowData && rowData.uuid) {
-              onShowMemeoryDetail(rowData.uuid);
+              onShowMemoryDetail(rowData.uuid);
             }
           }}
           columns={[

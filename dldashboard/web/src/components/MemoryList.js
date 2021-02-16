@@ -17,6 +17,10 @@ import Divider from "@material-ui/core/Divider";
 
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 
+/**
+ * React Component to render agent memory sate. This consists of searchable
+ * MemoryTable (@see ReactVirtualizedTable) and a drawer for @see MemoryDetail.
+ */
 class MemoryList extends React.Component {
   constructor(props) {
     super(props);

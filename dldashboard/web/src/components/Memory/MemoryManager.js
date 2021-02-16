@@ -1,8 +1,19 @@
+/**
+ * Memory Manager simplifies the task of quering Agent's memory state.
+ * @constructor
+ *
+ * @param {reference_objects} reference_objects The reference Objects in memory
+ * @param {triples} triples All triples realted to the refrence Objects
+ * @param {string} filter A fitler to apply when retreiving memory objecst.
+ * @return {[function]} An array of functions that can be use to query Memory State
+ *              @see getCount, @see getMemoryForIndex, @see getMemoryForUUID
+ *
+ */
 export default function MemoryManager(
   { memories, named_abstractions, reference_objects, triples },
   filter
 ) {
-  // TODO create a lookup of memory from uuid
+  // reate a lookup of memory from uuid
   const lookup = new Map(reference_objects.map((data) => [data[0], { data }]));
 
   if (triples) {
@@ -13,7 +24,6 @@ export default function MemoryManager(
       const entry = lookup.get(subjUUID);
 
       if (!entry) {
-        // console.log("missing Entry: ", subjUUID);
         return;
       }
 
@@ -26,6 +36,7 @@ export default function MemoryManager(
   }
 
   var filtered_refrence_objects = [];
+
   // build out a list of filtered objects
   if (null != filter && filter.length > 0) {
     for (let value of lookup.values()) {
@@ -38,16 +49,22 @@ export default function MemoryManager(
     filtered_refrence_objects = Array.from(lookup.values());
   }
 
-  // TODO create a search lookup of memories to find by id.
-
+  /**
+   * Returns the count of entires in memory
+   */
   function getCount() {
     return filtered_refrence_objects.length;
   }
-
+  /**
+   * Returns the memory at index
+   */
   function getMemoryForIndex(index) {
     return filtered_refrence_objects[index];
   }
 
+  /**
+   * Returns the memory for a given uuid.
+   */
   function getMemoryForUUID(uuid) {
     return lookup.get(uuid);
   }
