@@ -36,27 +36,23 @@ compare_checksum() {
     then
         echo "Local $FOLDER directory is up to date."
     else
-	    maybe_download $FOLDER
+	    try_download $FOLDER
     fi
 }
 
-maybe_download() {
+try_download() {
     FOLDER=$1
-    echo "Local ${FOLDER} directory is out of sync. Would you like to download the updated files from AWS?"
-	read -p "Enter Y/N: " permission
-	echo $permission
-	if [ "$permission" == "Y" ] || [ "$permission" == "y" ] || [ "$permission" == "yes" ]; then
-		echo "Downloading ${FOLDER} directory"
-		SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_models.sh"
-        if cmp -s $FOLDER "datasets"
-        then
-            SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
-        fi
-		echo "Downloading using script " $SCRIPT_PATH
-		"$SCRIPT_PATH" "$AGENT"
-	else
-		echo "Warning: Outdated models can cause breakages in the repo."
-	fi
+    echo "*********************************************************************************************"
+    echo "Local ${FOLDER} directory is out of sync. Downloading latest. Use --dev to disable downloads."
+    echo "*********************************************************************************************"
+    echo "Downloading ${FOLDER} directory"
+    SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_models.sh"
+    if cmp -s $FOLDER "datasets"
+    then
+        SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
+    fi
+    echo "Downloading using script " $SCRIPT_PATH
+    "$SCRIPT_PATH" "$AGENT"
 }
 
 pushd $AGENT_PATH

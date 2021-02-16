@@ -4,6 +4,7 @@ Select the type of issue:
 - [ ] Bug report (to report a bug)
 - [ ] Feature request (to request an additional feature)
 - [ ] Tracker (I am just using this as a tracker)
+- [ ] Refactor request
 - [ ] Documentation Ask
 
 ## Description

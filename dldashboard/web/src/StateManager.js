@@ -238,6 +238,7 @@ class StateManager {
           isLoaded: true,
           memory: this.memory,
           bot_xyz: [res.x, res.y, res.yaw],
+          obstacle_map: res.map,
         });
       } else if (ref instanceof Settings) {
         ref.setState({ fps: fps });
