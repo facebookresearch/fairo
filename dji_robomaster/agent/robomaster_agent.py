@@ -146,7 +146,7 @@ class RoboMasterAgent(LocoMCAgent):
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
-#        self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
+        self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""

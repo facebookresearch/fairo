@@ -9,6 +9,7 @@ import math
 import copy
 import robomaster
 from robomaster import robot
+from perception import RGBDepth
 import Pyro4
 from Pyro4 import naming
 from scipy.spatial.transform import Rotation
@@ -123,6 +124,8 @@ class RoboMasterMover:
         self.pitchyaw = []
         self.position = [0,0,0]
         self.bot_flags = []
+        #FIXME: do this for now until we have get_pcd_data dealing with pitch properly:
+        self.robot.set_pitch(0)
         
         
 
@@ -241,6 +244,9 @@ class RoboMasterMover:
         """        
         return to_interpreter_xzy(self.position)
 
+    def get_base_pos_in_canonical_coords(self):
+        #alias
+        return self.get_base_pos() 
 
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.

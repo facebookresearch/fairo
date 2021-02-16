@@ -110,7 +110,7 @@ class RemoteDJI(object):
                                        [0,    0,    1]])
         self.depth_img_size = [i.height, i.width]
         align_to = rs.stream.color
-        align = rs.align(align_to)
+        self.align = rs.align(align_to)
         #FIXME (build a test connection method        
         print("connected to realsense")
 
@@ -246,7 +246,7 @@ class RemoteDJI(object):
 
     def set_pitch(self, pitch):
         x, y = self.pitch_to_xy(pitch)
-        return self.move_arm_to(self, x=x, y=y)
+        return self.move_arm_to(x=x, y=y)
 
 
     def recenter_arm(self):
@@ -284,7 +284,7 @@ class RemoteDJI(object):
         frames = None
         while not frames:
             frames = self.realsense.wait_for_frames()
-            aligned_frames = align.process(frames)
+            aligned_frames = self.align.process(frames)
 
             # Get aligned frames
             aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
