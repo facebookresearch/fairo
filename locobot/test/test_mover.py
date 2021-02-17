@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 import os
 import sys
-from .test_utils import assert_distance_moved, assert_turn_degree
+from locobot.test.test_utils import assert_distance_moved, assert_turn_degree
 from locobot.agent.locobot_mover import LoCoBotMover
 
 IP = "127.0.0.1"
