@@ -18,10 +18,10 @@ import time
 from base_agent.base_util import ErrorWithResponse
 from base_agent.argument_parser import ArgumentParser
 from prettytable import PrettyTable
-from perception import RGBDepth
-from objects import Marker, Pos
+from locobot.agent.perception import RGBDepth
+from locobot.agent.objects import Marker, Pos
 from collections.abc import Iterable
-from locobot_mover_utils import (
+from locobot.agent.locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
     MAX_PAN_RAD,

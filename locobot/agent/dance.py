@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 """This file has functions to implement different dances for the agent.
 """
-import tasks
+from locobot.agent.tasks import Move, Dance
 import time
 import math
 
@@ -54,27 +54,6 @@ head_bob = [
 ]
 
 
-def add_default_dances(memory):
-    memory.add_dance(generate_sequential_move_fn(konami_dance), name="konami_dance")
-    memory.add_dance(generate_sequential_move_fn(head_bob), name="head_bob")
-
-
-def generate_sequential_move_fn(sequence):
-    def move_fn(danceObj, agent):
-        if danceObj.tick >= len(sequence):
-            return None
-        else:
-            if danceObj.dance_location is not None and danceObj.tick == 0:
-                mv = tasks.Move(agent, {"target": danceObj.dance_location, "approx": 0})
-                danceObj.dance_location = None
-            else:
-                mv = tasks.DanceMove(agent, sequence[danceObj.tick])
-                danceObj.tick += 1
-        return mv
-
-    return move_fn
-
-
 class DanceMovement(object):
     def __init__(self, agent, move_fn, dance_location=None):
         self.agent = agent
@@ -99,6 +78,28 @@ class DanceMovement(object):
         # if None then Movement is finished
         # can output
         return self.move_fn(self, self.agent)
+
+def add_default_dances(memory):
+    memory.add_dance(generate_sequential_move_fn(konami_dance), name="konami_dance")
+    memory.add_dance(generate_sequential_move_fn(head_bob), name="head_bob")
+
+
+def generate_sequential_move_fn(sequence):
+    def move_fn(danceObj, agent):
+        if danceObj.tick >= len(sequence):
+            return None
+        else:
+            if danceObj.dance_location is not None and danceObj.tick == 0:
+                mv = Move(agent, {"target": danceObj.dance_location, "approx": 0})
+                danceObj.dance_location = None
+            else:
+                mv = Dance(agent, sequence[danceObj.tick])
+                danceObj.tick += 1
+        return mv
+
+    return move_fn
+
+
 
 
 # TODO head bob

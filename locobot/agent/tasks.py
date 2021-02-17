@@ -5,8 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import logging
 from base_agent.task import Task
-from locobot.agent.dance import DanceMovement
-from rotation import yaw_pitch
+import locobot.agent.dance as dance
+from locobot.agent.rotation import yaw_pitch
 import time
 
 # from locobot_mover_utils import CAMERA_HEIGHT
@@ -23,7 +23,7 @@ class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
         super(Dance, self).__init__()
         # movement should be a Movement object from dance.py
-        self.movement = DanceMovement(agent, None)
+        self.movement = dance.DanceMovement(agent, None)
         self.movement_type = task_data.get("movement_type", None)
 
     def step(self, agent):

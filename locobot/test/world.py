@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-from rotation import look_vec
+from locobot.agent.rotation import look_vec
 import random
 
 
