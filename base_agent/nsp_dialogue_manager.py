@@ -297,12 +297,16 @@ class DialogModel:
                 d = self.model.parse([s])
             else:
                 d = self.model.parse(chat=s)
-            # import ipdb; ipdb.set_trace()
 
-        # Validate that this is valid JSON
+        # Validate parse tree against grammar
         is_valid_json = self.validate_parse_tree(d)
-        # if not is_valid_json:
-        #     import ipdb; ipdb.set_trace()
+        if not is_valid_json:
+            # Send a NOOP
+            logging.info("Invalid parse tree for command {}\n".format(s))
+            logging.info("Parse tree failed grammar validation: \n{}\n".format(d))
+            d = {"dialogue_type": "NOOP"}
+            logging.info("Returning NOOP")
+            return d
 
         # perform lemmatization on the chat
         logging.info('chat before lemmatization "{}"'.format(s))
