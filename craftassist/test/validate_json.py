@@ -27,7 +27,16 @@ def validate_data(data_path, schema, resolver):
             except exceptions.ValidationError as e:
                 print(command)
                 pprint(parse_tree)
-                print("\n")                            
+                print("\n")
+
+
+def validate_instance(parse_tree, schema, resolver):
+    try:
+        validate(instance=parse_tree, schema=schema, resolver=resolver)
+    except exceptions.ValidationError as e:
+        print("Error validating:\n{}\n".format(parse_tree))
+        return False
+    return True                          
 
 
 if __name__ == "__main__":
