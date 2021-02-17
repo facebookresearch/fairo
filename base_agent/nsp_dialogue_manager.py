@@ -7,6 +7,7 @@ import os
 import re
 import spacy
 import ast
+import pkg_resources
 from typing import Tuple, Dict, Optional
 from glob import glob
 from jsonschema import validate, exceptions, RefResolver
@@ -230,6 +231,7 @@ class DialogModel:
             from ttad.ttad_transformer_model.query_model import TTADBertModel as Model
 
             self.model = Model(model_dir=ttad_model_dir, data_dir=data_dir)
+            # import ipdb; ipdb.set_trace()
         else:
             raise NotADirectoryError
 
@@ -237,19 +239,21 @@ class DialogModel:
         """Validate the parse tree against current grammar.
         """
         # RefResolver initialization requires a base schema and URI
-        base_uri = "../base_agent/documents/json_schema/grammar_spec.schema.json"
-        schema_dir = "../base_agent/documents/json_schema/"
+        # base_uri = "../base_agent/documents/json_schema/grammar_spec.schema.json"
+        # schema_dir = "../base_agent/documents/json_schema/"
+        base_uri = pkg_resources.resource_filename('base_agent.documents.json_schema', 'grammar_spec.schema.json')
+        schema_dir = pkg_resources.resource_filename('base_agent.documents', 'json_schema')
         try:
             base_schema = json.load(open(base_uri))
         except Exception as e:
             print(e)
             return False
-            
+
         re_pattern = "(.*)\/(.*).schema.json$"
         base_schema_name = re.search(re_pattern, base_uri).group(2)
         resolver = RefResolver(base_schema_name + ".schema.json", base_schema)
         # Load all subschemas in schema directory
-        for schema_path in glob(schema_dir + "*.json"):
+        for schema_path in glob(schema_dir + "/*.json"):
             schema_name = re.search(re_pattern, schema_path).group(2)
             json_schema = json.load(open(schema_path))
             resolver.store[schema_name + ".schema.json"] = json_schema

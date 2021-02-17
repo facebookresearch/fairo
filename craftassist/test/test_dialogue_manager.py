@@ -7,7 +7,7 @@ import logging
 
 from base_agent.nsp_dialogue_manager import NSPDialogueManager
 from base_agent.loco_mc_agent import LocoMCAgent
-from all_test_commands import *
+from base_agent.test.all_test_commands import *
 from fake_agent import MockOpt
 
 
@@ -79,6 +79,11 @@ class TestDialogueManager(unittest.TestCase):
                     command, ground_truth_parse, model_prediction
                 )
             )
+
+    def test_validate_json(self):
+        is_valid_json = self.agent.dialogue_manager.model.validate_parse_tree({})
+        self.assertFalse(is_valid_json)
+
 
 
 if __name__ == "__main__":
