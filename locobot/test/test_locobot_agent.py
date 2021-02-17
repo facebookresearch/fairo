@@ -8,7 +8,7 @@ import time
 import logging
 import sys
 from filelock import FileLock
-from utils import get_fake_detection
+from locobot.test.utils import get_fake_detection
 from locobot.agent.objects import AttributeDict
 from locobot.agent.locobot_agent import LocobotAgent
 from test_utils import assert_turn_degree
