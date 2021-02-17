@@ -11,7 +11,7 @@ from filelock import FileLock
 from utils import get_fake_detection
 from locobot.agent.objects import AttributeDict
 from locobot.agent.locobot_agent import LocobotAgent
-from test_utils import assert_turn_degree
+from .test_utils import assert_turn_degree
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 IP = "127.0.0.1"

@@ -10,7 +10,7 @@ import numpy as np
 from base_fakeagent_test_case import BaseFakeAgentTestCase
 import locobot.agent.rotation as rotation
 from base_agent.test.all_test_commands import MOVE_COMMANDS, GROUND_TRUTH_PARSES
-from test_utils import assert_turn_degree
+from .test_utils import assert_turn_degree
 
 CUBE1 = (9, 0, 4)
 CUBE2 = (9, 0, 10)
