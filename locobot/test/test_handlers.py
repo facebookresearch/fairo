@@ -24,7 +24,7 @@ from locobot.agent.locobot_mover import LoCoBotMover
 import cv2
 import torch
 from PIL import Image
-from .utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+from locobot.test.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
