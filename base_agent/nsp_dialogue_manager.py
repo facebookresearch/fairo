@@ -33,7 +33,6 @@ from base_util import hash_user
 
 spacy_model = spacy.load("en_core_web_sm")
 
-# import ipdb; ipdb.set_trace()
 class NSPDialogueManager(DialogueManager):
     """Dialogue manager driven by neural network.
 
@@ -231,7 +230,6 @@ class DialogModel:
             from ttad.ttad_transformer_model.query_model import TTADBertModel as Model
 
             self.model = Model(model_dir=ttad_model_dir, data_dir=data_dir)
-            # import ipdb; ipdb.set_trace()
         else:
             raise NotADirectoryError
 
