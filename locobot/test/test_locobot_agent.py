@@ -12,10 +12,6 @@ from utils import get_fake_detection
 from locobot.agent.objects import AttributeDict
 from locobot.agent.locobot_agent import LocobotAgent
 from test_utils import assert_turn_degree
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
-
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 IP = "127.0.0.1"

@@ -9,8 +9,6 @@ import os
 import sys
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-sys.path.append(BASE_AGENT_ROOT)
 
 import cv2
 import os

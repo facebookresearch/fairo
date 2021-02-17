@@ -7,11 +7,6 @@ import sys
 import subprocess
 import re
 import numpy as np
-
-# python/ dir, for agent.so
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-sys.path.append(BASE_AGENT_ROOT)
-
 import dldashboard
 
 if __name__ == "__main__":
@@ -38,7 +33,7 @@ import logging
 import faulthandler
 from dlevent import sio
 
-
+BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 SCHEMAS = [os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql")]
 
 faulthandler.register(signal.SIGUSR1)

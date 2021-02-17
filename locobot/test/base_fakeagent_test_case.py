@@ -1,11 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-# import sys
-# import os
-# BASE_DIR = os.path.join(os.path.dirname(__file__), "../../")
-# sys.path.append(BASE_DIR)
-
 import unittest
 from unittest.mock import Mock
 import copy
