@@ -237,8 +237,6 @@ class DialogModel:
         """Validate the parse tree against current grammar.
         """
         # RefResolver initialization requires a base schema and URI
-        # base_uri = "../base_agent/documents/json_schema/grammar_spec.schema.json"
-        # schema_dir = "../base_agent/documents/json_schema/"
         base_uri = pkg_resources.resource_filename('base_agent.documents.json_schema', 'grammar_spec.schema.json')
         schema_dir = pkg_resources.resource_filename('base_agent.documents', 'json_schema')
         try:
