@@ -205,8 +205,10 @@ def generate_actions(n, action_type=None, template_attributes={}, composite=Fals
 
     texts = []
     dicts = []
+    commands_generated = set()
+    count = 0
 
-    for _ in range(n):
+    while count < n:
         # pick an action name
         action_name = (
             random.choice(action_type)
@@ -246,8 +248,12 @@ def generate_actions(n, action_type=None, template_attributes={}, composite=Fals
             action_dict = action_1.to_dict()
             action_dict = fix_composite_in_dict(action_text, action_dict)
         # else generate composite action at random
-        texts.append(action_text)
-        dicts.append(action_dict)
+        full_command = " ".join(action_text)
+        if full_command not in commands_generated:
+            commands_generated.add(full_command)
+            texts.append(action_text)
+            dicts.append(action_dict)
+            count += 1
     return texts, dicts
 
 
