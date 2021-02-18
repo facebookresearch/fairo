@@ -3,9 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
 import sys
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
 import numpy as np
 
 from base_agent.nsp_dialogue_manager import NSPDialogueManager

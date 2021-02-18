@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import cv2
 import os
 import logging
-import loco_memory
+import locobot.agent.loco_memory as loco_memory
 import numpy as np
 from .core import AbstractHandler, WorldObject, RGBDepth
 from detectron2.config import get_cfg
