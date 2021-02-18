@@ -80,9 +80,14 @@ class TestDialogueManager(unittest.TestCase):
                 )
             )
 
-    def test_validate_json(self):
+    def test_validate_bad_json(self):
         is_valid_json = self.agent.dialogue_manager.model.validate_parse_tree({})
         self.assertFalse(is_valid_json)
+
+    def test_validate_good_json(self):
+        action_dict = {'dialogue_type': 'HUMAN_GIVE_COMMAND', 'action_sequence': [{'action_type': 'BUILD', 'schematic': {'text_span': [0, [5, 5]], 'triples': [{'pred_text': 'has_name', 'obj_text': [0, [5, 5]]}]}}]}
+        is_valid_json = self.agent.dialogue_manager.model.validate_parse_tree(action_dict)
+        self.assertTrue(is_valid_json)
 
 
 
