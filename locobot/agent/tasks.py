@@ -8,7 +8,7 @@ from base_agent.task import Task
 import locobot.agent.dance as dance
 from locobot.agent.rotation import yaw_pitch
 import time
-from locobot_mover_utils import (
+from locobot.agent.locobot_mover_utils import (
     get_move_target_for_point,
     CAMERA_HEIGHT,
     get_camera_angles
