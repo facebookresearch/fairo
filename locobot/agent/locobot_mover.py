@@ -196,18 +196,18 @@ class LoCoBotMover:
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            logging.info("Move absolute {}".format(xyt))
+            logging.info("Move absolute in canonical coordinates {}".format(xyt))
             self.bot.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt), 
                 close_loop=self.close_loop,
                 use_map=use_map,
                 use_dslam=use_dslam,
             )
-            start_base_state = self.get_base_pos()
+            start_base_state = self.get_base_pos_in_canonical_coords()
             while not self.bot.command_finished():
-                print(self.get_base_pos())
+                print(self.get_base_pos_in_canonical_coords())
 
-            end_base_state = self.get_base_pos()
+            end_base_state = self.get_base_pos_in_canonical_coords()
             logging.info(
                 "start {}, end {}, diff {}".format(
                     start_base_state,
@@ -235,7 +235,7 @@ class LoCoBotMover:
         old_pan = self.get_pan()
         old_tilt = self.get_tilt()
         pos = self.get_base_pos_in_canonical_coords()
-        logging.debug(f"Current Locobot state (x, z, yaw): {pos}")
+        logging.info(f"Current Locobot state (x, z, yaw): {pos}")
         if yaw_deg:
             pan_rad = old_pan - float(yaw_deg) * np.pi / 180
         if pitch_deg:
@@ -243,7 +243,7 @@ class LoCoBotMover:
         if obj_pos is not None:
             logging.info(f"looking at x,y,z: {obj_pos}")
             pan_rad, tilt_rad = get_camera_angles([pos[0], CAMERA_HEIGHT, pos[1]], obj_pos)
-            logging.debug(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
+            logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
 
         # FIXME!!! more async; move head and body at the same time
         head_res = angle_diff(pos[2], pan_rad)

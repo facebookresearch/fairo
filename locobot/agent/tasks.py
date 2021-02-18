@@ -8,10 +8,12 @@ from base_agent.task import Task
 from locobot.agent.dance import DanceMovement
 from rotation import yaw_pitch
 import time
-from locobot_mover_utils import get_move_target_for_point
-
-# from locobot_mover_utils import CAMERA_HEIGHT
-
+from locobot_mover_utils import (
+    get_move_target_for_point,
+    CAMERA_HEIGHT,
+    get_camera_angles
+)
+import math
 
 # tasks should be interruptible; that is, if they
 # store state, stopping the task and doing something
@@ -87,14 +89,25 @@ class Point(Task):
         self.interrupted = False
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
         pt = self.get_pt_from_region(self.target.tolist())
+        
+        # Step 1 - Move close to the object.
         if self.steps[0] == "not_started":
-            pos = agent.mover.get_base_pos_in_canonical_coords()
-            target =  get_move_target_for_point(pos, pt)
+            base_pos = agent.mover.get_base_pos_in_canonical_coords()
+            target = get_move_target_for_point(base_pos, pt)
             self.add_child_task(Move(agent, {"target": target}), agent)
             self.steps[0] = "finished"
             return
 
-        if self.steps[0] == "finished":
+        # Step 2 - Turn towards the object.
+        if self.steps[1] == "not_started":
+            base_pos = agent.mover.get_base_pos_in_canonical_coords()
+            yaw, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], pt)
+            self.add_child_task(Turn(agent, {"yaw": math.degrees(yaw)}), agent)
+            self.steps[1] = "finished"
+            return
+
+        # Step 3 - Point at the object
+        if self.steps[1] == "finished":
             status = agent.mover.point_at(pt)
             if status == "finished":
                 self.finished = True
