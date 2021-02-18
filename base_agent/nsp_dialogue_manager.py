@@ -237,7 +237,7 @@ class DialogModel:
         """
         # RefResolver initialization requires a base schema and URI
         schema_dir = "{}/".format(pkg_resources.resource_filename('base_agent.documents', 'json_schema'))
-        json_validator = JSONValidator(schema_dir, span_type="both")
+        json_validator = JSONValidator(schema_dir, span_type="all")
         is_valid_json = json_validator.validate_instance(parse_tree)
         return is_valid_json
 

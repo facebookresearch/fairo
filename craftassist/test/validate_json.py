@@ -28,15 +28,13 @@ class JSONValidator:
         base_schema_name = re.search(re_pattern, base_uri).group(2)
         resolver = RefResolver(base_schema_name + ".schema.json", base_schema)
         
-        schemas_to_exclude = []
+        span_schemas = ["string_span", "array_span", "array_and_string_span"]
         # Which type of span to load
         if span_type == "string":
-            schemas_to_include = "string_span"
-            schemas_to_exclude.append("array_span")
+            span_schema_name = "string_span"
         elif span_type == "array":
             span_schema_name = "array_span"
-            schemas_to_exclude.append("string_span")
-        elif span_type == "both":
+        elif span_type == "all":
             span_schema_name = "array_and_string_span"
         else:
             print("I don't recognize span type {}.".format(span_type))
@@ -45,12 +43,11 @@ class JSONValidator:
         # Load all subschemas in schema directory
         for schema_path in glob.glob(schema_dir + "*.json"):
             schema_name = re.search(re_pattern, schema_path).group(2)
-            print(schema_name)
             json_schema = json.load(open(schema_path))
-            if schema_name in schemas_to_exclude:
-                continue
-            elif span_schema_name in schema_path:
+            if schema_name == span_schema_name:
                 resolver.store["span" + ".schema.json"] = json_schema
+            elif schema_name in span_schemas:
+                continue
             else:
                 resolver.store[schema_name + ".schema.json"] = json_schema
         self.base_schema = base_schema
@@ -111,8 +108,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--span_type",
         type=str,
-        default="span",
-        choices=["span", "array", "all"],
+        default="array",
+        choices=["string", "array", "all"],
         help="What span types to allow",
     )
     args = parser.parse_args()
