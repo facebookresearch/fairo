@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import logging
-from rotation import yaw_pitch
+from locobot.agent.rotation import yaw_pitch
 from scipy.spatial.transform import Rotation
 
 MAX_PAN_RAD = np.pi / 4

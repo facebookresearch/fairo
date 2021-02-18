@@ -36,11 +36,11 @@ from base_agent.base_util import Pos, Look
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.memory_nodes import PlayerNode
 from base_agent.argument_parser import ArgumentParser
-from dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
-from low_level_perception import LowLevelMCPerception
-from mc_agent import Agent as MCAgent
+from craftassist.agent.dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
+from craftassist.agent.low_level_perception import LowLevelMCPerception
+from craftassist.agent.mc_agent import Agent as MCAgent
 from dlevent import sio
-from mc_util import cluster_areas, MCTime
+from craftassist.agent.mc_util import cluster_areas, MCTime
 from voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 from voxel_models.geoscorer import Geoscorer
 

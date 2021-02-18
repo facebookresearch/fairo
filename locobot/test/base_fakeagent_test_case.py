@@ -1,18 +1,13 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-# import sys
-# import os
-# BASE_DIR = os.path.join(os.path.dirname(__file__), "../../")
-# sys.path.append(BASE_DIR)
-
 import unittest
 from unittest.mock import Mock
 import copy
 
 from base_agent.dialogue_objects import AwaitResponse
-from fake_agent import FakeAgent
-from world import World, Opt, SimpleHuman, make_human_opts
+from locobot.test.fake_agent import FakeAgent
+from locobot.test.world import World, Opt, SimpleHuman, make_human_opts
 
 
 class BaseFakeAgentTestCase(unittest.TestCase):

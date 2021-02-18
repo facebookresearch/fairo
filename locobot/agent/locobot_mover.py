@@ -9,8 +9,6 @@ import os
 import sys
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-sys.path.append(BASE_AGENT_ROOT)
 
 import cv2
 import os
@@ -20,10 +18,10 @@ import time
 from base_agent.base_util import ErrorWithResponse
 from base_agent.argument_parser import ArgumentParser
 from prettytable import PrettyTable
-from perception import RGBDepth
-from objects import Marker, Pos
+from locobot.agent.perception import RGBDepth
+from locobot.agent.objects import Marker, Pos
 from collections.abc import Iterable
-from locobot_mover_utils import (
+from locobot.agent.locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
     MAX_PAN_RAD,

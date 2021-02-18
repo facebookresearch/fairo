@@ -387,7 +387,7 @@
                         "type": "string"
                     },
                     "subj_text": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "type": "string"
                             },
@@ -397,7 +397,7 @@
                         ]
                     },
                     "obj_text": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "type": "string"
                             },
@@ -407,7 +407,7 @@
                         ]
                     },
                     "subj": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "type": "string"
                             },
@@ -420,7 +420,7 @@
                         ]
                     },
                     "obj": {
-                        "oneOf": [
+                        "anyOf": [
                             {
                                 "type": "string"
                             },
