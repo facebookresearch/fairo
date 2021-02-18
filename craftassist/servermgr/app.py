@@ -42,17 +42,6 @@ with open("run.withagent.sh", "rb") as f:
 
 
 @app.route("/")
-@app.route("/acl2020demo")
-def homepage():
-    logging.info(
-        "cookie instance_id={instance_id}, timestamp={timestamp}".format(
-            instance_id=flask.request.cookies.get("instance_id", ""),
-            timestamp=flask.request.cookies.get("timestamp", ""),
-        )
-    )
-    return flask.render_template("index.html")
-
-
 @app.route("/launch", methods=["GET", "POST"])
 def launch():
     logging.info("Launching instance")
@@ -95,7 +84,6 @@ def wait():
         instance_id=instance_id,
         timestamp=timestamp,
         role=flask.request.args.get("role"),
-        hide_survey=bool(flask.request.args.get("role")),
     )
 
 
@@ -136,54 +124,6 @@ def status():
 
     logging.info("status: success")
     return json.dumps({"progress": 100, "ip": ip})
-
-
-@app.route("/matchmaker")
-def matchmaker_home():
-    return flask.render_template("matchmaker.html")
-
-
-@app.route("/matchmaker/launch", methods=["GET", "POST"])
-def matchmaker_launch():
-    SCRIPT = """
-local prefix = 'matchmaker:'
-local wait_key = redis.call('GET', prefix..'wait_key')
-if not wait_key then
-    local wait_key = prefix..math.random()
-    redis.call('SET', prefix..'wait_key', wait_key, 'EX', 600)
-    return cjson.encode({action="launch", wait_key=wait_key})
-else
-    redis.call('DEL', prefix..'wait_key')
-    return cjson.encode({action="wait", wait_key=wait_key})
-end
-    """
-    r = rconn.eval(SCRIPT, numkeys=0)
-    d = json.loads(r)
-    logging.info("matchmaker script returned {}".format(d))
-
-    if d["action"] == "launch":
-        instance_id = launch_instance("craftassist-server")
-        rconn.set(d["wait_key"], instance_id, ex=3600)
-        return flask.redirect("/wait/{}?role=manager".format(urlencode(instance_id)))
-
-    elif d["action"] == "wait":
-        while True:
-            instance_id = rconn.get(d["wait_key"])
-            if instance_id:
-                return flask.redirect("/wait/{}?role=assistant".format(urlencode(instance_id)))
-            else:
-                time.sleep(0.5)
-
-
-@app.route("/survey", methods=["POST"])
-def survey():
-    timestamp = flask.request.form["timestamp"]
-    form_data = json.dumps(flask.request.form)
-    logging.info("Uploading survey '{}' to S3".format(timestamp))
-    s3.Bucket("craftassist").put_object(
-        Key="humanbot_data/{id}/survey".format(id=timestamp), Body=form_data
-    )
-    return flask.redirect("/")
 
 
 @app.route("/clear")
