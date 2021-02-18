@@ -78,27 +78,27 @@ class LocoboMoverUtilsTest(unittest.TestCase):
         # define a dictionary that maps point target to move targets if eps is 1 (ie we want to move to with 1)
         # of the x, z and coordinates.
         target_move_dict_1 = {
-            (2, 0, 3): (1, 2, 0), # (x,y,z) : (x,z,yaw)
-            (-2, 0, 3): (-1, 2, 0),
-            (-2, 0, -3): (-1, -2, 0),
-            (2, 0, -3): (1, -2, 0),
+            (2, 0, 3): (1, 2), # (x,y,z) : (x,z)
+            (-2, 0, 3): (-1, 2),
+            (-2, 0, -3): (-1, -2),
+            (2, 0, -3): (1, -2),
         }
 
         for pt_target, mv_target in target_move_dict_1.items():
-            act_mv = get_move_target_for_point(base_pos, pt_target, 0, eps=1)
-            assert_allclose(act_mv, mv_target)
+            act_mv = get_move_target_for_point(base_pos, pt_target, eps=1)
+            assert_allclose(act_mv[:2], mv_target)
 
         # check for eps 4
         target_move_dict_4 = {
-            (2, 0, 3): (-2, -1, 0),
-            (-2, 0, 3): (2, -1, 0),
-            (-2, 0, -3): (2, 1, 0),
-            (2, 0, -3): (-2, 1, 0),
+            (2, 0, 3): (-2, -1),
+            (-2, 0, 3): (2, -1),
+            (-2, 0, -3): (2, 1),
+            (2, 0, -3): (-2, 1),
         }
 
         for pt_target, mv_target in target_move_dict_4.items():
-            act_mv = get_move_target_for_point(base_pos, pt_target, 0, eps=4)
-            assert_allclose(act_mv, mv_target)
+            act_mv = get_move_target_for_point(base_pos, pt_target, eps=4)
+            assert_allclose(act_mv[:2], mv_target)
 
 if __name__ == "__main__":
     unittest.main()
