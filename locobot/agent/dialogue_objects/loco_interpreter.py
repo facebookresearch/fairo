@@ -8,7 +8,6 @@ from base_agent.memory_nodes import PlayerNode
 from base_agent.dialogue_objects import (
     AGENTPOS,
     ConditionInterpreter,
-    interpret_point_target,
     get_repeat_num,
     Interpreter,
     AttributeInterpreter,
@@ -17,9 +16,10 @@ from base_agent.dialogue_objects import (
 from base_agent.base_util import ErrorWithResponse
 from .spatial_reasoning import ComputeLocations
 from .facing_helper import FacingInterpreter
+from .point_target import PointTargetInterpreter
 
-import dance
-import tasks
+import locobot.agent.dance as dance
+import locobot.agent.tasks as tasks
 
 
 def post_process_loc(loc, interpreter):
@@ -57,6 +57,7 @@ class LocoInterpreter(Interpreter):
         self.subinterpret["condition"] = ConditionInterpreter()
         self.subinterpret["specify_locations"] = ComputeLocations()
         self.subinterpret["facing"] = FacingInterpreter()
+        self.subinterpret["point_target"] = PointTargetInterpreter()
 
         self.action_handlers["DANCE"] = self.handle_dance
         self.action_handlers["GET"] = self.handle_get
@@ -139,7 +140,7 @@ class LocoInterpreter(Interpreter):
 
             dance_type = d.get("dance_type", {"dance_type_name": "dance"})
             if dance_type.get("point"):
-                target = interpret_point_target(self, speaker, dance_type["point"])
+                target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
                 for i in range(repeat):
                     t = self.task_objects["point"](self.agent, {"target": target})
                     tasks_to_do.append(t)

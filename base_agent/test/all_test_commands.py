@@ -4,6 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from base_agent.dialogue_objects import SPEAKERLOOK, AGENTPOS
 from copy import deepcopy
 
+def command(d):
+    if type(d) is list:
+        return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": d}
+    else:
+        return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [d]}
+
 ATTRIBUTES = {
     "x": {"attribute": "x"},
     "distance from me": {
@@ -467,6 +473,90 @@ MOVE_COMMANDS = {
             }
         ],
     },
+    "move_forward": command({"action_type": "MOVE", "location": {"relative_direction": "FRONT"}}),
+    "stop": command({"action_type": "STOP"}),
+    "move to -7 0 -8": command(
+        {
+            "action_type": "MOVE",
+            "location": {
+                "reference_object": {"special_reference": {"coordinates_span": "-7 0 -8"}},
+                "text_span": "-7 0 -8",
+            },
+        }
+    ),
+    "move to 3 0 2 then 7 0 7": command(
+        [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": {"coordinates_span": "3 0 2"}},
+                    "text_span": "3 0 2",
+                },
+            },
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": {"coordinates_span": "7 0 7"}},
+                    "text_span": "7 0 7",
+                },
+            },
+        ]
+    ),
+    "go between the cubes": command(
+        {
+            "action_type": "MOVE",
+            "location": {
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                },
+                "relative_direction": "BETWEEN",
+                "text_span": "between the cubes",
+            },
+        }
+    ),
+    "move here": command(
+        {
+            "action_type": "MOVE",
+            "location": {
+                "reference_object": {"special_reference": "SPEAKER"},
+                "text_span": "to me",
+            },
+        }
+    ),
+    "look at the cube": command(
+        {
+            "action_type": "DANCE",
+            "dance_type": {
+                "look_turn": {
+                    "location": {
+                        "reference_object": {
+                            "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                        },
+                        "text_span": "cube",
+                    }
+                }
+            },
+        }
+    ),
+    "go to the cube": command(
+        {
+            "action_type": "MOVE",
+            "location": {
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                },
+                "text_span": "cube",
+            },
+        }
+    ),
+    "get the toy": command(
+        {
+            "action_type": "GET",
+            "reference_object": {
+                "filters": {"triples": [{"pred_text": "has_name", "obj_text": "toy"}]}
+            },
+        }
+    ),
 }
 
 FILL_COMMANDS = {
@@ -912,6 +1002,20 @@ GROUND_TRUTH_PARSES = {
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go right 3 feet": {	
+        "action_sequence": [	
+            {	
+                "action_type": "MOVE",	
+                "location": {	
+                    "reference_object": {"special_reference": "AGENT"},	
+                    "relative_direction": "RIGHT",	
+                    "steps": "3",	
+                    "has_measure": "feet",	
+                },	
+            }	
+        ],	
+        "dialogue_type": "HUMAN_GIVE_COMMAND",	
     },
     "go left 3 meters": {
         "action_sequence": [

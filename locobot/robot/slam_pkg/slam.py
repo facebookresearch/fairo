@@ -11,14 +11,16 @@ from scipy import ndimage
 from copy import deepcopy as copy
 import time
 from math import ceil, floor
+import sys
 
 cv2 = try_cv2_import()
 
 # for slam modules
+sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from skimage.morphology import disk, binary_dilation
-from .utils.map_builder import MapBuilder as mb
-from .utils.fmm_planner import FMMPlanner
-from .utils import depth_util as du
+from slam_pkg.utils.map_builder import MapBuilder as mb
+from slam_pkg.utils.fmm_planner import FMMPlanner
+from slam_pkg.utils import depth_util as du
 
 
 class Slam(object):
@@ -38,7 +40,7 @@ class Slam(object):
         """
 
         :param robot: pyrobot robot object, only supports [habitat, locobot]
-        :param robot_name: name of the robot [habitat, locobot]
+        :param robot_name: name of the robot [habitat, locobot] 
         :param map_size: size of map to be build in cm, assumes square map
         :param resolution: resolution of map, 1 pix = resolution distance(in cm) in real world
         :param robot_rad: radius of the agent, used to explode the map
@@ -77,7 +79,11 @@ class Slam(object):
         self.prev_bot_state = (0, 0, 0)
         self.col_map = np.zeros((self.map_builder.map.shape[0], self.map_builder.map.shape[1]))
         self.robot_loc_list_map = np.array(
-            [self.real2map(self.get_rel_state(self.get_robot_global_state(), self.init_state)[:2])]
+            [
+                self.real2map(
+                    self.get_rel_state(self.get_robot_global_state(), self.init_state)[:2]
+                )
+            ]
         )
         self.map_builder.update_map(
             self.robot.camera.get_current_pcd(in_cam=False)[0],
@@ -101,7 +107,7 @@ class Slam(object):
 
         # for bumper check of locobot
         if self.robot_name == "locobot":
-            from .utils.locobot_bumper_checker import BumperCallbacks
+            from slam_pkg.utils.locobot_bumper_checker import BumperCallbacks
 
             self.bumper_state = BumperCallbacks()
             # for mapping refer to http://docs.ros.org/groovy/api/kobuki_msgs/html/msg/BumperEvent.html
@@ -121,23 +127,65 @@ class Slam(object):
         self.goal_loc = goal
         self.goal_loc_map = self.real2map(self.goal_loc[:2])
 
+    def set_relative_goal_in_robot_frame(self, goal):
+        """
+        goal is 3 len tuple with position in real world in robot current frmae
+        :param goal: goal to be reached in metric unit
+
+        :type goal: tuple
+
+        :return:
+        """
+        robot_pr_pose = self.get_robot_global_state()
+        # check this part
+        abs_pr_goal = list(self.get_rel_state(goal, (0.0, 0.0, -robot_pr_pose[2])))
+        abs_pr_goal[0] += robot_pr_pose[0]
+        abs_pr_goal[1] += robot_pr_pose[1]
+        abs_pr_goal[2] = goal[2] + robot_pr_pose[2]
+
+        # convert the goal in init frame
+        self.goal_loc = self.get_rel_state(abs_pr_goal, self.init_state)
+        self.goal_loc_map = self.real2map(self.goal_loc[:2])
+
+        # TODO: make it non blocking
+        while self.take_step(25) is None:
+            continue
+
+    def set_absolute_goal_in_robot_frame(self, goal):
+        """
+        goal is 3 len tuple with position in real world in robot start frmae
+        :param goal: goal to be reached in metric unit
+
+        :type goal: tuple
+
+        :return:
+        """
+        # convert the relative goal to abs goal
+        self.goal_loc = self.get_rel_state(goal, self.init_state)
+        # convert the goal in inti frame
+        self.goal_loc_map = self.real2map(self.goal_loc[:2])
+
+        # TODO make it non blocking
+        while self.take_step(25) is None:
+            continue
+
     def take_step(self, step_size):
         """
         step size in meter
         :param step_size:
         :return:
         """
-        if self.whole_area_explored:
-            return None
         # explode the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
+        """
         # add robot collision map to traversable area
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
+        """
 
         # call the planner
         self.planner = FMMPlanner(
@@ -184,10 +232,12 @@ class Slam(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
+        """
         # add robot collision map to traversable area
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
+        """
 
         # check whether goal is on collision
         if not np.logical_or.reduce(
@@ -477,17 +527,16 @@ class Slam(object):
 
 
 def main(args):
-
     if args.robot == "habitat":
         assets_path = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../test/test_assets")
+            os.path.join(os.path.dirname(__file__), "../../test/test_assets")
         )
         config = {
             "physics_config": os.path.join(assets_path, "default.phys_scene_config.json"),
             "scene_path": "/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply",
         }
         robot = Robot("habitat", common_config=config)
-        from locobot.habitat_utils import reconfigure_scene
+        from habitat_utils import reconfigure_scene
 
         class Env:
             def __init__(self, robot):

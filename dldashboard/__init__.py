@@ -4,21 +4,46 @@ from flask import Flask
 import socketio
 from flask_cors import cross_origin, CORS
 import dlevent
+import logging
+import json
+import random
+try:
+    import html
+    html_escape = html.escape
+    del html
+except ImportError:
+    import cgi
+    html_escape = cgi.escape
+    del cgi
 
 app = None
 
 
-def _dashboard_thread(web_root, ip, port):
+def _dashboard_thread(web_root, ip, port, quiet=True):
     global app
     root_dir = os.path.abspath(os.path.dirname(__file__))
     static_folder = os.path.join(root_dir, web_root, "build")
-    print("static_folder:", static_folder)
+    if not quiet:
+        print("static_folder:", static_folder)
+
     app = Flask(__name__, static_folder=static_folder, static_url_path="")
     sio = socketio.Server(async_mode="threading", cors_allowed_origins="*")
     app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
     dlevent.sio = sio
 
     CORS(app, resources={r"*": {"origins": "*"}})
+
+    if quiet:
+        log = logging.getLogger('werkzeug')
+        log.setLevel(logging.ERROR)
+        log.disabled = True
+
+        log = logging.getLogger('socketio.server')
+        log.setLevel(logging.ERROR)
+        log.disabled = True
+        app.logger.disabled = True
+
+    
 
     @app.route("/")
     @cross_origin(origin="*")
@@ -36,6 +61,10 @@ def _dashboard_thread(web_root, ip, port):
     app.run(ip, threaded=True, port=port, debug=False)
 
 
-def start(web_root="web", ip="0.0.0.0", port=8000):
-    t = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port))
+def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):
+    t = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port, quiet))
     t.start()
+    # avoid race conditions, wait for the thread to start and set the socketio object
+    # TODO: rewrite this using thread signaling instead of a dumb sleep
+    import time
+    time.sleep(3)

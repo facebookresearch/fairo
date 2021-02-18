@@ -18,6 +18,7 @@ from base_agent.memory_filters import BasicMemorySearcher
 
 from base_agent.memory_nodes import (  # noqa
     TaskNode,
+    TripleNode,
     PlayerNode,
     MemoryNode,
     ChatNode,
@@ -43,7 +44,9 @@ class AgentMemory:
         schema_path (string): Path to the file containing the database schema
         db_log_path (string): Path to where the database logs will be written
         nodelist (list[MemoryNode]): List of memory nodes
-        agent_time (int): Current time set by the agent.
+        agent_time (Time object): object with a .get_time(), get_world_hour, and add_tick()
+                                   methods
+        on_delete_callback (callable): callable to be run when a memory is deleted from Memories table
 
     Attributes:
         _db_log_file (FileHandler): File handler for writing database logs
@@ -65,6 +68,7 @@ class AgentMemory:
         db_log_path=None,
         nodelist=NODELIST,
         agent_time=None,
+        on_delete_callback=None,
     ):
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
@@ -75,6 +79,8 @@ class AgentMemory:
         self.db = sqlite3.connect(db_file, check_same_thread=False)
         self.task_db = {}
         self._safe_pickle_saved_attrs = {}
+
+        self.on_delete_callback = on_delete_callback
 
         self.init_time_interface(agent_time)
 
@@ -91,7 +97,7 @@ class AgentMemory:
 
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
-        self._db_write(
+        self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Self", 0, 0, -1, False
         )
         self.tag(self.self_memid, "_physical_object")
@@ -298,28 +304,38 @@ class AgentMemory:
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object
-    def forget(self, memid: str, hard=True):
+    def forget(self, memid: str):
         """remove a memory from the DB. Warning: some of the work is done by
            delete cascades in SQL
 
         Args:
             memid (string): Memory id
-            hard (bool): flag indicating whether it is a hard delete
-                         A 'soft' delete is just tagging the memory as _forgotten
 
         Examples::
             >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> forget(memid, hard=False)
+            >>> forget(memid)
         """
-        if not hard:
-            self.add_triple(subj=memid, pred_text="has_tag", obj_text="_forgotten")
-        else:
-            self._db_write("DELETE FROM Memories WHERE uuid=?", memid)
-            # TODO this less brutally.  might want to remember some
-            # triples where the subject or object has been removed
-            # eventually we might have second-order relations etc, this could set
-            # off a chain reaction
-            self.remove_memid_triple(memid, role="both")
+        self.db_write("DELETE FROM Memories WHERE uuid=?", memid)
+        # TRIGGERs in the db clean up triples referencing the memid.
+        # TODO this less brutally.  might want to remember some
+        # triples where the subject or object has been removed
+        # eventually we might have second-order relations etc, this could set
+        # off a chain reaction
+
+    def forget_by_query(self, query: str, hard=True):
+        """remove memories from DB that match a query
+
+        Args:
+            query (string): should be "SELECT uuid FROM ... "
+            hard (bool): flag indicating whether it is a hard delete
+                         A 'soft' delete is just tagging the memory as _forgotten
+        """
+        qsplit = query.split()
+        assert qsplit[0].lower() == "select"
+        assert qsplit[1].lower() == "uuid"
+        uuids = self._db_read(query)
+        for uuid in uuids:
+            self.forget(uuid, hard=hard)
 
     def basic_search(self, filter_dict):
         """Perform a basic search using the filter_dict
@@ -342,14 +358,13 @@ class AgentMemory:
     ###  Triples  ###
     #################
 
-    # TODO should add a MemoryNode and a .create()
     def add_triple(
         self,
-        subj: str = "",  # this is a memid if given
-        obj: str = "",  # this is a memid if given
-        subj_text: str = "",
+        subj: str = None,  # this is a memid if given
+        obj: str = None,  # this is a memid if given
+        subj_text: str = None,
         pred_text: str = "has_tag",
-        obj_text: str = "",
+        obj_text: str = None,
         confidence: float = 1.0,
     ):
         """Adds (subj, pred, obj) triple to the triplestore.
@@ -366,7 +381,7 @@ class AgentMemory:
             confidence (float): The confidence score for the triple
 
         Returns:
-            int: number of rows affected
+            memid of triple
 
         Examples::
             >>> subj = '10517cc584844659907ccfa6161e9d32'
@@ -375,30 +390,14 @@ class AgentMemory:
             >>> add_triple(subj=subj, pred_text=pred_text, obj_text=obj_text)
 
         """
-        assert subj or subj_text
-        assert obj or obj_text
-        assert not (subj and subj_text)
-        assert not (obj and obj_text)
-        memid = uuid.uuid4().hex
-        pred = NamedAbstractionNode.create(self, pred_text)
-        if not obj:
-            obj = NamedAbstractionNode.create(self, obj_text)
-        if not subj:
-            subj = NamedAbstractionNode.create(self, subj_text)
-        if not subj_text:
-            subj_text = None  # noqa T484
-        if not obj_text:
-            obj_text = None  # noqa T484
-        self._db_write(
-            "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-            memid,
-            subj,
-            subj_text,
-            pred,
-            pred_text,
-            obj,
-            obj_text,
-            confidence,
+        return TripleNode.create(
+            self,
+            subj=subj,
+            obj=obj,
+            subj_text=subj_text,
+            pred_text=pred_text,
+            obj_text=obj_text,
+            confidence=confidence,
         )
 
     def tag(self, subj_memid: str, tag_text: str):
@@ -409,15 +408,16 @@ class AgentMemory:
             tag_text (string): string representation of the tag
 
         Returns:
-            int: number of rows affected
+            memid of triple representing the tag
 
         Examples::
             >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
             >>> tag_text = "shiny"
             >>> tag(subj_memid, tag_text)
         """
-        self.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
+        return self.add_triple(subj=subj_memid, pred_text="has_tag", obj_text=tag_text)
 
+    # TODO remove_triple
     def untag(self, subj_memid: str, tag_text: str):
         """Delete tag for subject
 
@@ -425,19 +425,19 @@ class AgentMemory:
             subj_memid (string): memid of subject
             tag_text (string): string representation of the tag
 
-        Returns:
-            int: number of rows affected
-
         Examples::
             >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
             >>> tag_text = "shiny"
             >>> untag(subj_memid, tag_text)
         """
-        self._db_write(
-            'DELETE FROM Triples WHERE subj=? AND pred_text="has_tag" AND obj_text=?',
+        # FIXME replace me with a basic filters when _self handled better
+        triple_memids = self._db_read(
+            'SELECT uuid FROM Triples WHERE subj=? AND pred_text="has_tag" AND obj_text=?',
             subj_memid,
             tag_text,
         )
+        if triple_memids:
+            self.forget(triple_memids[0][0])
 
     # does not search archived mems for now
     # assumes tag is tag text
@@ -556,25 +556,6 @@ class AgentMemory:
         else:
             l = [(s, pt, o) for (s, pt, o, ot) in r]
         return cast(List[Tuple[str, str, str]], l)
-
-    def remove_memid_triple(self, memid: str, role="subj"):
-        """Delete the triple corresponding to the given memid
-
-        Args:
-            memid (string): Memid of subject or object
-            role (string): String that determines whether the memid is for subject or object
-
-        Returns:
-            int: Number of affected rows
-
-        Examples::
-            >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> remove_memid_triple(memid=memid, role="obj")
-        """
-        if role == "subj" or role == "both":
-            self._db_write("DELETE FROM Triples WHERE subj=?", memid)
-        if role == "obj" or role == "both":
-            self._db_write("DELETE FROM Triples WHERE obj=?", memid)
 
     ###############
     ###  Chats  ###
@@ -783,7 +764,7 @@ class AgentMemory:
             >>> memid = '10517cc584844659907ccfa6161e9d32'
             >>> task_stack_update_task(task, parent_memid)
         """
-        self._db_write("UPDATE Tasks SET pickled=? WHERE uuid=?", self.safe_pickle(task), memid)
+        self.db_write("UPDATE Tasks SET pickled=? WHERE uuid=?", self.safe_pickle(task), memid)
 
     def task_stack_peek(self) -> Optional["TaskNode"]:
         """Return the top of task stack
@@ -820,7 +801,7 @@ class AgentMemory:
         mem = self.task_stack_peek()
         if mem is None:
             raise ValueError("Called task_stack_pop with empty stack")
-        self._db_write("UPDATE Tasks SET finished_at=? WHERE uuid=?", self.get_time(), mem.memid)
+        self.db_write("UPDATE Tasks SET finished_at=? WHERE uuid=?", self.get_time(), mem.memid)
         return mem
 
     def task_stack_pause(self) -> bool:
@@ -829,7 +810,7 @@ class AgentMemory:
         Returns:
             int: Number of rows affected
         """
-        return self._db_write("UPDATE Tasks SET paused=1 WHERE finished_at < 0") > 0
+        return self.db_write("UPDATE Tasks SET paused=1 WHERE finished_at < 0") > 0
 
     def task_stack_clear(self):
         """Clear the task stack
@@ -837,7 +818,8 @@ class AgentMemory:
         Returns:
             int: Number of rows affected
         """
-        self._db_write("DELETE FROM Tasks WHERE finished_at < 0")
+        # FIXME use forget; fix this when tasks become MemoryNodes
+        self.db_write("DELETE FROM Tasks WHERE finished_at < 0")
 
     def task_stack_resume(self) -> bool:
         """Resume stopped tasks. Return True if there was something to resume.
@@ -845,7 +827,7 @@ class AgentMemory:
         Returns:
             int: Number of rows affected
         """
-        return self._db_write("UPDATE Tasks SET paused=0") > 0
+        return self.db_write("UPDATE Tasks SET paused=0") > 0
 
     def task_stack_find_lowest_instance(
         self, cls_names: Union[str, Sequence[str]]
@@ -1027,8 +1009,11 @@ class AgentMemory:
             logging.error("Bad read: {} : {}".format(query, args))
             raise
 
-    def _db_write(self, query: str, *args) -> int:
-        """Return the number of rows affected
+    def db_write(self, query: str, *args) -> int:
+        """Return the number of rows affected.  As a side effect,
+           sets the updated_time entry for each affected memory, 
+           and applies self.on_delete_callback to the list of deleted memids 
+           if there are any and on_delete_callback is not None
 
         Args:
             query (string): The query to be run against the database
@@ -1039,8 +1024,23 @@ class AgentMemory:
         Examples ::
             >>> query = "UPDATE Memories SET uuid=?"
             >>> args = '10517cc584844659907ccfa6161e9d32'
-            >>> _db_write(query, args)
+            >>> db_write(query, args)
         """
+        r = self._db_write(query, *args)
+        # some of this can be implemented with TRIGGERS and a python sqlite fn
+        # but its a bit of a pain bc we want the agent's time in the update
+        # not system time
+        updated_memids = self._db_read("SELECT * FROM Updates")
+        updated = [mem[0] for mem in updated_memids if mem[1] == "update"]
+        deleted = [mem[0] for mem in updated_memids if mem[1] == "delete"]
+        for u in set(updated):
+            self.set_memory_updated_time(u)
+        if self.on_delete_callback is not None and deleted:
+            self.on_delete_callback(deleted)
+        self._db_write("DELETE FROM Updates")
+        return r
+
+    def _db_write(self, query: str, *args) -> int:
         args = tuple(a.item() if isinstance(a, np.number) else a for a in args)
         try:
             c = self.db.cursor()

@@ -34,13 +34,14 @@ if __name__ == "__main__":
 from base_agent.nsp_dialogue_manager import NSPDialogueManager
 from base_agent.base_util import Pos, Look
 from base_agent.loco_mc_agent import LocoMCAgent
+from base_agent.memory_nodes import PlayerNode
 from base_agent.argument_parser import ArgumentParser
 from build_utils import npy_to_blocks_list
-from dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
-from low_level_perception import LowLevelMCPerception
-from mc_agent import Agent as MCAgent
+from craftassist.agent.dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
+from craftassist.agent.low_level_perception import LowLevelMCPerception
+from craftassist.agent.mc_agent import Agent as MCAgent
 from dlevent import sio
-from mc_util import cluster_areas, MCTime
+from craftassist.agent.mc_util import cluster_areas, MCTime
 from voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 from voxel_models.geoscorer import Geoscorer
 
@@ -68,7 +69,6 @@ class CraftAssistAgent(LocoMCAgent):
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.point_targets = []
-        self.dashboard_chat = None
         self.last_chat_time = 0
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
@@ -82,7 +82,7 @@ class CraftAssistAgent(LocoMCAgent):
             (0.001, default_behaviors.build_random_shape),
             (0.005, default_behaviors.come_to_player),
         ]
-        self.perceive_during_step = True
+        self.perceive_on_chat = True
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
@@ -120,31 +120,6 @@ class CraftAssistAgent(LocoMCAgent):
     def init_event_handlers(self):
         """Handle the socket events"""
         super().init_event_handlers()
-
-        @sio.on("sendCommandToAgent")
-        def send_text_command_to_agent(sid, command):
-            """Add the command to agent's incoming chats list and
-            send back the parse.
-            Args:
-                command: The input text command from dashboard player
-            Returns:
-                return back a socket emit with parse of command and success status
-            """
-            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
-            agent_chat = (
-                "<dashboard> " + command
-            )  # the chat is coming from a player called "dashboard"
-            self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
-            # send back the dictionary
-            try:
-                x = dialogue_manager.get_logical_form(s=command, model=dialogue_manager.model)
-                logging.info("logical form is : %r" % (x))
-                payload = {"status": "Sent successfully", "chat": command, "chatResponse": x}
-            except:
-                logging.info("error in sending chat")
-                payload = {"status": "Error in sending chat", "chat": command, "chatResponse": {}}
-            sio.emit("setChatResponse", payload)
         
         @sio.on("getVoxelWorldInitialState")
         def setup_agent_initial_state(sid):
@@ -432,18 +407,7 @@ class CraftAssistAgent(LocoMCAgent):
             p = self.get_player()
         except:  # this is for test/test_agent
             return
-        self.memory._db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, name, ref_type, x, y, z, pitch, yaw) VALUES (?,?,?,?,?,?,?,?,?)",
-            self.memory.self_memid,
-            p.entityId,
-            p.name,
-            "player",
-            p.pos.x,
-            p.pos.y,
-            p.pos.z,
-            p.look.pitch,
-            p.look.yaw,
-        )
+        PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
 
 
 if __name__ == "__main__":

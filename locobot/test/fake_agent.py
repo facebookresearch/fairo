@@ -21,10 +21,10 @@ from locobot.agent.locobot_mover_utils import (
 )
 from locobot.agent.perception import SelfPerception
 import locobot.agent.rotation as rotation
-from utils import get_fake_detection
+from locobot.test.utils import get_fake_detection
 
 # these should go in utils
-from objects import Pos
+from locobot.agent.objects import Pos
 
 # marker creation should be somewhwere else....
 from locobot.agent.dialogue_objects import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter

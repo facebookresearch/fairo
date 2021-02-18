@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 import io from "socket.io-client";
 import Memory2D from "./components/Memory2D";
+import MemoryList from "./components/MemoryList";
 import LiveImage from "./components/LiveImage";
 import Settings from "./components/Settings";
 import LiveObjects from "./components/LiveObjects";
@@ -57,6 +58,7 @@ class StateManager {
 
   constructor() {
     this.processSensorPayload = this.processSensorPayload.bind(this);
+    this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
@@ -64,6 +66,9 @@ class StateManager {
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
     this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
     this.memory = this.initialMemoryState;
+    this.processRGB = this.processRGB.bind(this);
+    this.processDepth = this.processDepth.bind(this);
+    this.processObjects = this.processObjects.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -122,9 +127,13 @@ class StateManager {
 
     socket.on("setChatResponse", this.setChatResponse);
     socket.on("sensor_payload", this.processSensorPayload);
+    socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
     socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
+    socket.on("rgb", this.processRGB);
+    socket.on("depth", this.processDepth);
+    socket.on("objects", this.processObjects);
   }
 
   updateStateManagerMemory(data) {
@@ -214,20 +223,20 @@ class StateManager {
           // Right
           commands.push("MOVE_RIGHT");
         }
-        if (k === 65) {
-          // A
+        if (k === 49) {
+          // 1
           commands.push("PAN_LEFT");
         }
-        if (k === 68) {
-          // D
+        if (k === 50) {
+          // 2
           commands.push("PAN_RIGHT");
         }
-        if (k === 87) {
-          // W
+        if (k === 51) {
+          // 3
           commands.push("TILT_UP");
         }
-        if (k === 83) {
-          // S
+        if (k === 52) {
+          // 4
           commands.push("TILT_DOWN");
         }
       }
@@ -235,6 +244,59 @@ class StateManager {
     if (commands.length > 0) {
       this.socket.emit("command", commands);
     }
+  }
+
+  processMemoryState(msg) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof MemoryList) {
+        ref.setState({ isLoaded: true, memory: msg });
+      }
+    });
+  }
+
+  processRGB(res) {
+    let rgb = new Image();
+    rgb.src = "data:image/webp;base64," + res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveImage) {
+        if (ref.props.type === "rgb") {
+          ref.setState({
+            isLoaded: true,
+            rgb: rgb,
+          });
+        }
+      }
+    });
+  }
+
+  processDepth(res) {
+    let depth = new Image();
+    depth.src = "data:image/webp;base64," + res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveImage) {
+        if (ref.props.type === "depth") {
+          ref.setState({
+            isLoaded: true,
+            depth: depth,
+          });
+        }
+      }
+    });
+  }
+
+  processObjects(res) {
+    let rgb = new Image();
+    rgb.src = "data:image/webp;base64," + res.image.rgb;
+
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          isLoaded: true,
+          objects: res.objects,
+          rgb: rgb,
+        });
+      }
+    });
   }
 
   processSensorPayload(res) {
@@ -246,7 +308,7 @@ class StateManager {
     let depth = new Image();
     depth.src = "data:image/webp;base64," + res.image.depth;
     let object_rgb = new Image();
-    if (res.object_image !== -1) {
+    if (res.object_image !== -1 && res.object_image !== undefined) {
       object_rgb.src = "data:image/webp;base64," + res.object_image.rgb;
     }
 
@@ -256,6 +318,7 @@ class StateManager {
           isLoaded: true,
           memory: this.memory,
           bot_xyz: [res.x, res.y, res.yaw],
+          obstacle_map: res.map,
         });
       } else if (ref instanceof Settings) {
         ref.setState({ fps: fps });
@@ -266,7 +329,7 @@ class StateManager {
           depth: depth,
         });
       } else if (ref instanceof LiveObjects || ref instanceof LiveHumans) {
-        if (res.object_image !== -1) {
+        if (res.object_image !== -1 && res.object_image !== undefined) {
           ref.setState({
             isLoaded: true,
             rgb: object_rgb,

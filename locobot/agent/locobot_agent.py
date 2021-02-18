@@ -7,11 +7,6 @@ import sys
 import subprocess
 import re
 import numpy as np
-
-# python/ dir, for agent.so
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-sys.path.append(BASE_AGENT_ROOT)
-
 import dldashboard
 
 if __name__ == "__main__":
@@ -38,7 +33,7 @@ import logging
 import faulthandler
 from dlevent import sio
 
-
+BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 SCHEMAS = [os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql")]
 
 faulthandler.register(signal.SIGUSR1)
@@ -71,7 +66,6 @@ class LocobotAgent(LocoMCAgent):
         logging.info("LocobotAgent.__init__ started")
         self.opts = opts
         self.entityId = 0
-        self.dashboard_chat = None
         self.no_default_behavior = opts.no_default_behavior
         self.last_chat_time = -1000000000000
         self.name = name
@@ -121,38 +115,6 @@ class LocobotAgent(LocoMCAgent):
                     )
             self.mover.move_relative([movement])
 
-        @sio.on("sendCommandToAgent")
-        def send_text_command_to_agent(sid, command):
-            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
-            agent_chat = (
-                "<dashboard> " + command
-            )  # the chat is coming from a player called "dashboard"
-            self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
-            # send back the dictionary
-            logical_form = {}
-            status = ""
-            try:
-                logical_form = dialogue_manager.get_logical_form(
-                    s=command, model=dialogue_manager.model
-                )
-                logging.info("logical form is : %r" % (logical_form))
-                status = "Sent successfully"
-            except:
-                logging.info("error in sending chat")
-                status = "Error in sending chat"
-            # update server memory
-            self.dashboard_memory["chatResponse"][command] = logical_form
-            self.dashboard_memory["chats"].pop(0)
-            self.dashboard_memory["chats"].append({"msg": command, "failed": False})
-            payload = {
-                "status": status,
-                "chat": command,
-                "chatResponse": self.dashboard_memory["chatResponse"][command],
-                "allChats": self.dashboard_memory["chats"],
-            }
-            sio.emit("setChatResponse", payload)
-
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -190,7 +152,7 @@ class LocobotAgent(LocoMCAgent):
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
+        self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend, use_dslam=self.opts.use_dslam)
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)

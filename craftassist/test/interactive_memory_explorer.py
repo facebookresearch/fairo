@@ -44,7 +44,7 @@ class MemoryExplorer(BaseCraftassistTestCase):
 
 
 if __name__ == "__main__":
-    import all_test_commands  # noqa
+    import base_agent.test.all_test_commands  # noqa
     import memory_filters as mf  # noqa
 
     M = MemoryExplorer()

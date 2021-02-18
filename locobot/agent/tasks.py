@@ -5,8 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import logging
 from base_agent.task import Task
-from locobot.agent.dance import DanceMovement
-from rotation import yaw_pitch
+import locobot.agent.dance as dance
+from locobot.agent.rotation import yaw_pitch
 import time
 
 # from locobot_mover_utils import CAMERA_HEIGHT
@@ -23,7 +23,7 @@ class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
         super(Dance, self).__init__()
         # movement should be a Movement object from dance.py
-        self.movement = DanceMovement(agent, None)
+        self.movement = dance.DanceMovement(agent, None)
         self.movement_type = task_data.get("movement_type", None)
 
     def step(self, agent):
@@ -77,15 +77,20 @@ class Point(Task):
         super(Point, self).__init__()
         self.target = np.array(task_data["target"])
 
+    def get_pt_from_region(self, region):
+        assert len(region) == 6, "Region list has less than 6 elements (minx, miny, minz, maxx, maxy, maxz)"
+        return region[:3] # just return the min xyz for now
+
     def step(self, agent):
         self.interrupted = False
         logging.info(f"calling bot to look at a point {self.target.tolist()}")
-        status = agent.mover.point_at([self.target.tolist()])
+        pt = self.get_pt_from_region(self.target.tolist())
+        status = agent.mover.point_at(pt)
         if status == "finished":
             self.finished = True
 
     def __repr__(self):
-        return "<Point at {} ±{}>".format(self.target, self.approx)
+        return "<Point at {}>".format(self.target)
 
 
 class Move(Task):

@@ -9,9 +9,10 @@ from .handlers import (
     TrackingHandler,
     MemoryHandler,
     LaserPointerHandler,
+    ObjectDeduplicationHandler,
 )
 import time
-from objects import AttributeDict
+from locobot.agent.objects import AttributeDict
 from dlevent import sio
 
 from torch import multiprocessing as mp
@@ -65,7 +66,7 @@ class SlowPerception:
         # laser_detection_obj = self.vision.laser_pointer(rgb_depth)
         # if laser_detection_obj:
         #     detections += [laser_detection_obj]
-        self.vision.tracker(rgb_depth, detections)
+        # self.vision.tracker(rgb_depth, detections)
         return rgb_depth, detections, humans
 
 
@@ -106,7 +107,7 @@ class Process(multiprocessing.Process):
         except Exception as e:
             tb = traceback.format_exc()
             self._child_conn.send((e, tb))
-            # raise e  # You can still rise this exception if you need to
+            # raise e  # You can still raise this exception if you need to
 
     @property
     def exception(self):
@@ -158,6 +159,7 @@ class Perception:
         handlers = AttributeDict(
             {
                 "input": InputHandler(self.agent, read_from_camera=True),
+                "deduplicate": ObjectDeduplicationHandler(),
                 "memory": MemoryHandler(self.agent),
             }
         )
@@ -191,7 +193,11 @@ class Perception:
             raise ChildProcessError(_traceback)
 
         if detections is not None:
-            self.vision.memory(old_image.rgb, detections + humans)
+            previous_objects = self.vision.memory.get_objects()
+            current_objects = detections + humans
+            if previous_objects is not None:
+                new_objects, updated_objects = self.vision.deduplicate(current_objects, previous_objects)
+            self.vision.memory(new_objects, updated_objects)
 
         self.log(rgb_depth, detections, humans, old_image, old_xyz)
 
@@ -233,4 +239,5 @@ class Perception:
         payload["x"] = x
         payload["y"] = y
         payload["yaw"] = yaw
+        payload["map"] = self.agent.mover.get_obstacles_in_canonical_coords()
         sio.emit("sensor_payload", payload)

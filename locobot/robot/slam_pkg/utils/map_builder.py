@@ -1,5 +1,9 @@
 import numpy as np
-from .depth_util import transform_pose, bin_points
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../"))
+from slam_pkg.utils.depth_util import transform_pose, bin_points
 
 
 class MapBuilder(object):
