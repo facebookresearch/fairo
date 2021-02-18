@@ -87,27 +87,21 @@ class Point(Task):
 
     def step(self, agent):
         self.interrupted = False
-        logging.info(f"calling bot to look at a point {self.target.tolist()}")
         pt = self.get_pt_from_region(self.target.tolist())
+        logging.info(f"Calling bot to Point at {pt}")
+        logging.info(f"base pos {agent.mover.get_base_pos_in_canonical_coords()}")
         
         # Step 1 - Move close to the object.
         if self.steps[0] == "not_started":
             base_pos = agent.mover.get_base_pos_in_canonical_coords()
             target = get_move_target_for_point(base_pos, pt)
+            logging.info(f"Move Target for point {target}")
             self.add_child_task(Move(agent, {"target": target}), agent)
             self.steps[0] = "finished"
             return
 
-        # Step 2 - Turn towards the object.
-        if self.steps[1] == "not_started":
-            base_pos = agent.mover.get_base_pos_in_canonical_coords()
-            yaw, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], pt)
-            self.add_child_task(Turn(agent, {"yaw": math.degrees(yaw)}), agent)
-            self.steps[1] = "finished"
-            return
-
-        # Step 3 - Point at the object
-        if self.steps[1] == "finished":
+        # Step 2 - Point at the object
+        if self.steps[0] == "finished":
             status = agent.mover.point_at(pt)
             if status == "finished":
                 self.finished = True

@@ -75,8 +75,6 @@ def get_move_target_for_point(base_pos, target, eps=1):
         move_target ([x,z,yaw]): robot base move target in canonical coords 
     """
 
-    yaw, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], target)
-    
     dx = target[0] - base_pos[0]
     signx = 1 if dx > 0 else -1 
 
@@ -86,6 +84,8 @@ def get_move_target_for_point(base_pos, target, eps=1):
     targetx = base_pos[0] + signx * (abs(dx) - eps)
     targetz = base_pos[2] + signz * (abs(dz) - eps) 
 
+    yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+    
     return [targetx, targetz, yaw] 
 
 
