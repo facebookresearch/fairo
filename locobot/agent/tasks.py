@@ -8,9 +8,12 @@ from base_agent.task import Task
 import locobot.agent.dance as dance
 from locobot.agent.rotation import yaw_pitch
 import time
-
-# from locobot_mover_utils import CAMERA_HEIGHT
-
+from locobot_mover_utils import (
+    get_move_target_for_point,
+    CAMERA_HEIGHT,
+    get_camera_angles
+)
+import math
 
 # tasks should be interruptible; that is, if they
 # store state, stopping the task and doing something
@@ -76,18 +79,32 @@ class Point(Task):
     def __init__(self, agent, task_data):
         super(Point, self).__init__()
         self.target = np.array(task_data["target"])
-
+        self.steps = ["not_started"] * 2
+ 
     def get_pt_from_region(self, region):
         assert len(region) == 6, "Region list has less than 6 elements (minx, miny, minz, maxx, maxy, maxz)"
         return region[:3] # just return the min xyz for now
 
     def step(self, agent):
         self.interrupted = False
-        logging.info(f"calling bot to look at a point {self.target.tolist()}")
         pt = self.get_pt_from_region(self.target.tolist())
-        status = agent.mover.point_at(pt)
-        if status == "finished":
-            self.finished = True
+        logging.info(f"Calling bot to Point at {pt}")
+        logging.info(f"base pos {agent.mover.get_base_pos_in_canonical_coords()}")
+        
+        # Step 1 - Move close to the object.
+        if self.steps[0] == "not_started":
+            base_pos = agent.mover.get_base_pos_in_canonical_coords()
+            target = get_move_target_for_point(base_pos, pt)
+            logging.info(f"Move Target for point {target}")
+            self.add_child_task(Move(agent, {"target": target}), agent)
+            self.steps[0] = "finished"
+            return
+
+        # Step 2 - Point at the object
+        if self.steps[0] == "finished":
+            status = agent.mover.point_at(pt)
+            if status == "finished":
+                self.finished = True
 
     def __repr__(self):
         return "<Point at {}>".format(self.target)
