@@ -67,6 +67,13 @@ class StateManager {
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
 
+    const queryString = require("query-string");
+    const params = queryString.parse(window.location.search);
+    if (params["url"]) {
+      this.default_url = params["url"] + ":8000";
+      this.setUrl(this.default_url);
+    }
+
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
       url = this.default_url;
