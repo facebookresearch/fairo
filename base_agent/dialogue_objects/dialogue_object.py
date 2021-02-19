@@ -189,41 +189,6 @@ class BotGreet(Say):
         super().__init__(response_options, **kwargs)
 
 
-class BotStackStatus(DialogueObject):
-    """This class represents a sub-type of the DialogueObject to answer
-    questions about the current status of the bot, to the user.
-
-    Args:
-        ing_mapping: A map from task name to present continuous tense language.
-
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.ing_mapping = {
-            "Build": "building",
-            "Destroy": "excavating",
-            "Dig": "digging",
-            "Move": "moving",
-        }
-
-    def step(self):
-        """return the current task name status."""
-        self.finished = True
-
-        task_mem = self.memory.task_stack_find_lowest_instance(list(self.ing_mapping.keys()))
-        if task_mem is None:
-            answer_options = [
-                "Idle. You can tell me what to do!",
-                "I am doing nothing.",
-                "Nothing. Waiting for your command.",
-            ]
-        else:
-            doing = self.ing_mapping[task_mem.task.__class__.__name__]
-            answer_options = ["I am " + doing, doing]
-        return random.choice(answer_options), None
-
-
 class GetReward(DialogueObject):
     """This class represents a sub-type of the DialogueObject to register feedback /
     reward given by the user in the form of chat.
@@ -264,52 +229,6 @@ class GetReward(DialogueObject):
         ]:
             self.memory.tag(chatmem.memid, "pos_reward")
         return "Thanks for letting me know.", None
-
-
-class BotLocationStatus(DialogueObject):
-    """This class represents a sub-type of the DialogueObject to answer questions
-    about the current location of the bot.
-
-    """
-
-    def step(self):
-        """Extract bot's current location."""
-        self.finished = True
-        # Get the agent's current location
-        agent_pos = pos_to_np(self.agent.get_player().pos)
-        agent_coordinates = " , ".join([str(pos) for pos in agent_pos])
-        answer_options = [
-            "I am here at location : %r" % (agent_coordinates),
-            "I am standing at : %r" % (agent_coordinates),
-            "I am at : %r" % (agent_coordinates),
-        ]
-        return random.choice(answer_options), None
-
-
-class BotMoveStatus(DialogueObject):
-    """This class represents a sub-type of the DialogueObject to answer questions
-    about where the bot is moving to.
-
-    """
-
-    def step(self):
-        """Extract bot's move target coordinates."""
-        self.finished = True
-        task = self.memory.task_stack_find_lowest_instance("Move")
-        if task is None:
-            answer_options = [
-                "I am not going anywhere",
-                "I am not heading anywhere",
-                "I am not off to anywhere",
-            ]
-        else:
-            target_coordinates = " , ".join([str(pos) for pos in task.target])
-            answer_options = [
-                "I am heading to location : %r" % (target_coordinates),
-                "I am walking over to : %r" % (target_coordinates),
-                "I am moving to : %r" % (target_coordinates),
-            ]
-        return random.choice(answer_options), None
 
 
 class ConfirmTask(DialogueObject):

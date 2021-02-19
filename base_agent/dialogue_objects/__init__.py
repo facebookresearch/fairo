@@ -7,8 +7,6 @@ from dialogue_object import (
     AwaitResponse,
     BotCapabilities,
     BotGreet,
-    BotLocationStatus,
-    BotStackStatus,
     DialogueObject,
     GetReward,
     ConfirmTask,
@@ -35,10 +33,7 @@ from reference_object_helpers import (
     filter_by_sublocation,
 )
 
-from location_helpers import (
-    ReferenceLocationInterpreter,
-    interpret_relative_direction,
-)
+from location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
 
 from interpreter import Interpreter, TaskListWrapper
 
