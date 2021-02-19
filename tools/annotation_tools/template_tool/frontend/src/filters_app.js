@@ -106,9 +106,11 @@ class FiltersAnnotator extends React.Component {
   }
 
   updateLabels(e) {
-      // Make a shallow copy of the items
+    // Make a shallow copy of the items
+    try {
       let items = {...this.state.dataset};
       items[this.state.fullText[this.state.currIndex]] = JSON.parse(this.state.value);
+
       // Set state to the data items
       this.setState({dataset: items}, function() {
         try {
@@ -121,9 +123,16 @@ class FiltersAnnotator extends React.Component {
           console.log(this.state.dataset)
           this.writeLabels(this.state.dataset)
         } catch (error) {
+          console.error(error)
+          console.log("Error parsing JSON")
           alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
         }
       });
+    } catch(error) {
+      console.error(error)
+      console.log("Error parsing JSON")
+      alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
+    }
   }
 
   logSerialized() {
