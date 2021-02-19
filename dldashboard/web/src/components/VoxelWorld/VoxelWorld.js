@@ -30,8 +30,8 @@ class VoxelWorld extends React.Component {
           id="ifr"
           src="VoxelWorld/world.html"
           title="Voxel World"
-          width="1000"
-          height="600"
+          width="900"
+          height="500"
           ref={this.worldContainerRef}
         ></iframe>
       </div>
