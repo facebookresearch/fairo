@@ -15,8 +15,8 @@ fi
 MANIFEST=$(aws ecr batch-get-image \
     --repository-name craftassist \
     --region us-west-1 \
-    --image-ids imageTag=$IMAGE_TAG \
-    --query images[].imageManifest \
+    --image-ids imageDigest=$IMAGE_TAG \
+    --query "images[].imageManifest" \
     --output text)
 
 echo $MANIFEST
