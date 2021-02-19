@@ -59,10 +59,11 @@ pushd $AGENT_PATH
 
 # Comparing hashes for local directories
 # Default models and datasets shared by all agents
-find models/semantic_parser/ -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > models/nsp_checksum.txt
+find models/semantic_parser -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > models/nsp_checksum.txt
+cat "models/nsp_checksum.txt"
 compare_checksum "models/nsp_checksum.txt" "nsp" 
 
-find datasets/ -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > datasets/checksum.txt
+find datasets -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > datasets/checksum.txt
 compare_checksum "datasets/checksum.txt" "datasets"
 
 # Agent specific models 

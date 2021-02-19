@@ -88,7 +88,7 @@ class MemoryList extends React.Component {
 
     const memoryManager = new MemoryManager(memory, this.state.filter);
 
-    const showMemeoryDetail = (memoryUUID) => {
+    const showMemoryDetail = (memoryUUID) => {
       this.setState({ detailUUID: memoryUUID, showDetail: true });
     };
 
@@ -119,7 +119,7 @@ class MemoryList extends React.Component {
           height={paddedHeight}
           width={paddedWidth}
           memoryManager={memoryManager}
-          onShowMemeoryDetail={showMemeoryDetail}
+          onShowMemoryDetail={showMemoryDetail}
         />
         <Drawer
           anchor="right"

@@ -109,14 +109,16 @@ class Memory2D extends React.Component {
     let j = 0;
 
     // Visualize map
-    obstacle_map.forEach((obj) => {
-      let color = "#827f7f";
-      let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
-      let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
-      mapBoundary.push(
-        <Circle key={j++} radius={2} x={x} y={y} fill={color} />
-      );
-    });
+    if (obstacle_map) {
+      obstacle_map.forEach((obj) => {
+        let color = "#827f7f";
+        let x = parseInt(((obj[0] - xmin) / (xmax - xmin)) * width);
+        let y = parseInt(((obj[1] - ymin) / (ymax - ymin)) * height);
+        mapBoundary.push(
+          <Circle key={j++} radius={2} x={x} y={y} fill={color} />
+        );
+      });
+    }
 
     objects.forEach((obj, key, map) => {
       let color = colorScheme[Math.abs(hashCode(obj.label)) % 10];
