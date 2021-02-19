@@ -1,7 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import autocompleteMatches from './spec/grammar_spec';
-
+// JSON Schemas to define grammar
+import baseSchema from './json_schema/grammar_spec.schema.json';
+import filtersSchema from './json_schema/filters.schema.json';
+import actionDictSchema from './json_schema/action_dict_components.schema.json';
+import otherSchema from './json_schema/other_dialogue.schema.json';
+import spanSchema from './json_schema/array_and_string_span.schema.json';
+// import Validator from 'jsonschema';
+let Validator = require('jsonschema').Validator;
+let v = new Validator();
+let instance = {"dialogue_type": "NOOP"};
+v.addSchema(filtersSchema, "/filters.schema.json");
+v.addSchema(actionDictSchema, '/action_dict_components.schema.json');
+v.addSchema(otherSchema, '/other_dialogue.schema.json');
+v.addSchema(spanSchema, '/array_and_string_span.schema.json');
 
 class FiltersAnnotator extends React.Component {
 
@@ -108,13 +121,23 @@ class FiltersAnnotator extends React.Component {
   updateLabels(e) {
     // Make a shallow copy of the items
     try {
+      // First check that the string is JSON valid
+      let JSONActionDict = JSON.parse(this.state.value)
+      // Attempt to validate action dict against grammar
+      var res = v.validate(JSONActionDict, baseSchema);
+      if (!res.valid) {
+        alert("Error: Action Dictionary fails grammar spec validation. \
+        Refer to https://github.com/facebookresearch/droidlet/tree/main/base_agent/documents/logical_form_specification for updated grammar spec.")
+        console.error("JSON failed grammar validation.")
+      } else {
+        console.log("JSON passed grammar validation!")
+      }
       let items = {...this.state.dataset};
-      items[this.state.fullText[this.state.currIndex]] = JSON.parse(this.state.value);
-
+      items[this.state.fullText[this.state.currIndex]] = JSONActionDict;
       // Set state to the data items
       this.setState({dataset: items}, function() {
         try {
-          let actionDict = JSON.parse(this.state.value)
+          let actionDict = JSONActionDict
           let JSONString = {
             "command": this.state.fullText[this.state.currIndex],
             "logical_form": actionDict
