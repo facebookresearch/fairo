@@ -7,8 +7,10 @@ import os
 import re
 import spacy
 import ast
+import pkg_resources
 from typing import Tuple, Dict, Optional
 from glob import glob
+from jsonschema import validate, exceptions, RefResolver
 
 import sentry_sdk
 
@@ -23,13 +25,12 @@ from base_agent.dialogue_objects import (
     coref_resolve,
     process_spans,
 )
+from craftassist.test.validate_json import JSONValidator
 from dlevent import sio
-dirname = os.path.dirname(__file__)
 
 from base_util import hash_user
 
 spacy_model = spacy.load("en_core_web_sm")
-
 
 class NSPDialogueManager(DialogueManager):
     """Dialogue manager driven by neural network.
@@ -231,6 +232,15 @@ class DialogModel:
         else:
             raise NotADirectoryError
 
+    def validate_parse_tree(self, parse_tree: dict) -> bool:
+        """Validate the parse tree against current grammar.
+        """
+        # RefResolver initialization requires a base schema and URI
+        schema_dir = "{}/".format(pkg_resources.resource_filename('base_agent.documents', 'json_schema'))
+        json_validator = JSONValidator(schema_dir, span_type="all")
+        is_valid_json = json_validator.validate_instance(parse_tree)
+        return is_valid_json
+
     def get_logical_form(self, s: str, chat_as_list=False, ground_truth_actions: dict={}) -> Dict:
         """Get logical form output for a given chat command.
         First check the ground truth file for the chat string. If not
@@ -268,6 +278,16 @@ class DialogModel:
                 d = self.model.parse([s])
             else:
                 d = self.model.parse(chat=s)
+
+        # Validate parse tree against grammar
+        is_valid_json = self.validate_parse_tree(d)
+        if not is_valid_json:
+            # Send a NOOP
+            logging.info("Invalid parse tree for command {}\n".format(s))
+            logging.info("Parse tree failed grammar validation: \n{}\n".format(d))
+            d = {"dialogue_type": "NOOP"}
+            logging.info("Returning NOOP")
+            return d
 
         # perform lemmatization on the chat
         logging.info('chat before lemmatization "{}"'.format(s))

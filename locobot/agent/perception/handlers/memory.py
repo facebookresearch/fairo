@@ -5,7 +5,7 @@ from .core import AbstractHandler
 import torch
 import torchvision.models as models
 import numpy as np
-import loco_memory
+import locobot.agent.loco_memory as loco_memory
 import logging
 from torchvision import transforms
 from dlevent import sio

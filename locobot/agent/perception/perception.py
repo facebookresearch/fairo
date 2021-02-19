@@ -12,7 +12,7 @@ from .handlers import (
     ObjectDeduplicationHandler,
 )
 import time
-from objects import AttributeDict
+from locobot.agent.objects import AttributeDict
 from dlevent import sio
 
 from torch import multiprocessing as mp

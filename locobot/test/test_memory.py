@@ -3,14 +3,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
 import os
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
-
 import unittest
 from locobot.agent.loco_memory import LocoAgentMemory
 from locobot.agent.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
-from utils import get_fake_detection, get_fake_humanpose
+from locobot.test.utils import get_fake_detection, get_fake_humanpose
 
 
 class MemoryTests(unittest.TestCase):

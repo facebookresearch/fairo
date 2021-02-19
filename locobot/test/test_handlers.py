@@ -3,10 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
 import os
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
-
 import unittest
 import logging
 from timeit import Timer
@@ -28,7 +24,7 @@ from locobot.agent.locobot_mover import LoCoBotMover
 import cv2
 import torch
 from PIL import Image
-from utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+from locobot.test.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -92,7 +88,7 @@ class DetectionHandlerTest(unittest.TestCase):
         detections = self.detect_handler.handle(rgb_depth_mock)
 
         # check that most of the detected objects are detected
-        self.assertGreaterEqual(len(detections), 15)  # 17 exactly
+        self.assertGreaterEqual(len(detections), 5)  # 9 exactly
 
         # check the correct type of each detected object
         self.assertEqual(type(detections[0]), Detection)
@@ -135,7 +131,7 @@ class MemoryHandlerTest(unittest.TestCase):
         detections = self.detect_handler.handle(rgbd)
 
         # check that most of the detected objects are detected
-        self.assertGreaterEqual(len(detections), 15)  # 17 exactly
+        self.assertGreaterEqual(len(detections), 5)  # 9 exactly
         # insert once to setup dedupe tests
         self.deduplicator(detections, [])
         self.memory(detections, [])
