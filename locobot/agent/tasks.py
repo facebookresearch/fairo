@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
 import logging
-from base_agent.task import Task
+from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode
 from locobot.agent.dance import DanceMovement
 from rotation import yaw_pitch
@@ -96,14 +96,17 @@ class Point(Task):
         return "<Point at {}>".format(self.target)
 
 
-class Move(Task):
+class Move(BaseMovementTask):
     def __init__(self, agent, task_data, featurizer=None):
-        super().__init__(agent)
+        super().__init__(agent, task_data)
         self.target = np.array(task_data["target"])
         self.is_relative = task_data.get("is_relative", 0)
         self.path = None
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def target_to_memory(self, target):
+        return [target[0], 0, target[1]]
 
     @Task.step_wrapper
     def step(self):

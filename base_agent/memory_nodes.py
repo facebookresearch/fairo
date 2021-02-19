@@ -280,13 +280,20 @@ class TripleNode(MemoryNode):
         assert obj or obj_text
         assert not (subj and subj_text)
         assert not (obj and obj_text)
-        # TODO check if triple exists, don't make it again
-        memid = cls.new(memory, snapshot=snapshot)
         pred = NamedAbstractionNode.create(memory, pred_text)
         if not obj:
             obj = NamedAbstractionNode.create(memory, obj_text)
         if not subj:
             subj = NamedAbstractionNode.create(memory, subj_text)
+        # check if triple exists, don't make it again:
+        old_memids = memory._db_read(
+            "SELECT uuid FROM Triples where pred=? and subj=? and obj=?", pred, subj, obj
+        )
+        if len(old_memids) > 0:
+            # TODO error if more than 1
+            return old_memids[0]
+
+        memid = cls.new(memory, snapshot=snapshot)
         memory.db_write(
             "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
@@ -810,7 +817,7 @@ class TaskNode(MemoryNode):
         memory._db_write(
             "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, created_at) VALUES (?,?,?,?,?,?)",
             memid,
-            task.__class__.__name__,
+            task.__class__.__name__.lower(),
             memory.safe_pickle(task),
             task.prio,
             task.running,

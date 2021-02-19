@@ -25,8 +25,8 @@ from mc_util import to_block_pos, manhat_dist, strip_idmeta
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
 
-from base_agent.task import Task
-from base_agent.memory_nodes import TaskNode
+from base_agent.task import Task, BaseMovementTask
+from base_agent.memory_nodes import TaskNode, TripleNode
 from mc_memory_nodes import MobNode
 
 # tasks should be interruptible; that is, if they
@@ -164,7 +164,7 @@ class Point(Task):
             self.finished = True
 
 
-class Move(Task):
+class Move(BaseMovementTask):
     """Perform a Move task.
 
     Moving is stepped one block at a time. Agent can move towards one of the six directions:
@@ -196,7 +196,7 @@ class Move(Task):
     }
 
     def __init__(self, agent, task_data):
-        super().__init__(agent)
+        super().__init__(agent, task_data)
         if self.finished:
             return
         self.target = to_block_pos(np.array(task_data["target"]))
@@ -205,6 +205,9 @@ class Move(Task):
         self.replace = set()
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def target_to_memory(self, target):
+        return to_block_pos(np.array(target))
 
     @Task.step_wrapper
     def step(self):
@@ -517,24 +520,32 @@ class Build(Task):
         xyz = block[0]
         # this should not be an empty list- it is assumed the block passed in was just placed
         try:
-            memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
-            self.blockobj_memid = memid
+            blockobj_memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
+            self.blockobj_memid = blockobj_memid
         except:
             logging.debug(
                 "Warning: place block returned true, but no block in memory after update"
             )
+        TripleNode.create(
+            agent.memory, subj=self.memid, pred_text="task_reference_object", obj=blockobj_memid
+        )
         if self.schematic_memid:
-            agent.memory.tag_block_object_from_schematic(memid, self.schematic_memid)
+            TripleNode.create(
+                agent.memory,
+                subj=blockobj_memid,
+                pred_text="has_schematic",
+                obj=self.schematic_memid,
+            )
         if self.schematic_tags:
             for pred, obj in self.schematic_tags:
-                agent.memory.add_triple(subj=memid, pred_text=pred, obj_text=obj)
+                TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
                 # sooooorrry  FIXME? when we handle triples better in interpreter_helper
                 if "has_" in pred:
                     agent.memory.tag(self.blockobj_memid, obj)
 
-        agent.memory.tag(memid, "_in_progress")
+        agent.memory.tag(blockobj_memid, "_in_progress")
         if self.dig_message:
-            agent.memory.tag(memid, "hole")
+            agent.memory.tag(blockobj_memid, "hole")
 
     def finish(self, agent):
         if self.blockobj_memid is not None:

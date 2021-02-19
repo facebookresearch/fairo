@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from condition import NeverCondition, AlwaysCondition, TaskStatusCondition
-from memory_nodes import TaskNode
+from memory_nodes import TaskNode, LocationNode, TripleNode
 
 # put a counter and a max_count so can't get stuck?
 class Task(object):
@@ -41,7 +41,14 @@ class Task(object):
         self.on_condition = AlwaysCondition(None)
         self.remove_condition = TaskStatusCondition(agent, self.memid)
         self.child_generator = TaskGenerator()
+        TripleNode.create(
+            self.agent.memory,
+            subj=self.memid,
+            pred_text="has_name",
+            obj_text=self.__class__.__name__.lower(),
+        )
         TaskNode(agent.memory, self.memid).update_task(task=self)
+        # TODO if this is a command, put a chat_effect triple
 
     @staticmethod
     def step_wrapper(stepfn):
@@ -125,6 +132,34 @@ class ControlBlock(Task):
             self.add_child_task(t)
         else:
             self.finished = True
+
+
+class BaseMovementTask(Task):
+    """ a Task that changes the location of the agent
+
+    Args:
+        agent: the agent who will perform this task
+        task_data (dict): a dictionary stores all task related data
+            task_data should have a key "target" with a target location
+
+    Attributes: 
+        target_to_memory:  method that converts the task_data target into a location to record in memory
+    
+    """
+
+    # TODO FIXME!  PoseNode instead of LocationNode
+    # TODO put ref object info here?
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        assert task_data.get("target") is not None
+        loc = self.target_to_memory(task_data["target"])
+        loc_memid = LocationNode.create(agent.memory, loc)
+        TripleNode.create(
+            agent.memory, subj=self.memid, pred_text="task_reference_object", obj=loc_memid
+        )
+
+    def target_to_memory(self, target):
+        raise NotImplementedError
 
 
 # the extra complexity here is that we are
