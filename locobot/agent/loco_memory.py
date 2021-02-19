@@ -3,10 +3,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import os
-import dance
+import locobot.agent.dance as dance
 import logging
 from typing import List
-from loco_memory_nodes import *
+from locobot.agent.loco_memory_nodes import *
 from base_agent.memory_nodes import PlayerNode
 from base_agent.sql_memory import AgentMemory
 

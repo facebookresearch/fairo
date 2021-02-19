@@ -5,19 +5,7 @@
   "type": "object",
   "definitions": {
     "span": {
-      "type": "array",
-      "items": {
-        "anyOf": [
-          {
-            "type": "number"
-          },
-          {
-            "type": "array"
-          }
-        ]
-      },
-      "minItems": 2,
-      "maxItems": 2
+      "$ref": "span.schema.json#/definitions/span"
     },
     "location": {
       "type": "object",

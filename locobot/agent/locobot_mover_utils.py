@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import logging
-from rotation import yaw_pitch
+from locobot.agent.rotation import yaw_pitch
 from scipy.spatial.transform import Rotation
 
 MAX_PAN_RAD = np.pi / 4
@@ -63,11 +63,46 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 
+def get_move_target_for_point(base_pos, target, eps=1):
+    """
+    For point, we first want to move close to the object and then point to it.
+
+    Args:
+        base_pos ([x,z,yaw]): robot base in canonical coords
+        target ([x,y,z]): point target in canonical coords
+    
+    Returns:
+        move_target ([x,z,yaw]): robot base move target in canonical coords 
+    """
+
+    dx = target[0] - base_pos[0]
+    signx = 1 if dx > 0 else -1 
+
+    dz = target[2] - base_pos[1]
+    signz = 1 if dz > 0 else -1 
+
+    targetx = base_pos[0] + signx * (abs(dx) - eps)
+    targetz = base_pos[2] + signz * (abs(dz) - eps) 
+
+    yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+    
+    return [targetx, targetz, yaw] 
+
+
+"""
+Co-ordinate transform utils. Read more at https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
+"""
+
+pyrobot_to_canonical_frame = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+
 def base_canonical_coords_to_pyrobot_coords(xyt):
     """converts the robot's base coords from canonical to pyrobot coords."""
     return [xyt[1], -xyt[0], xyt[2]]
 
-
 def xyz_pyrobot_to_canonical_coords(xyz):
     """converts 3D coords from pyrobot to canonical coords."""
-    return [-xyz[1], xyz[2], xyz[0]]
+    return xyz @ pyrobot_to_canonical_frame
+
+def xyz_canonical_coords_to_pyrobot_coords(xyz):
+    """converts 3D coords from canonical to pyrobot coords."""
+    return xyz @ np.linalg.inv(pyrobot_to_canonical_frame)
