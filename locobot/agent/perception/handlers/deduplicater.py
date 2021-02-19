@@ -102,7 +102,7 @@ class ObjectDeduplicationHandler(AbstractHandler):
 
                 logging.info(
                     f"Instance ({current_object.label}) is at location: "
-                    "({np.around(np.array(current_object.xyz), 2)}),"
+                    f"({np.around(np.array(current_object.xyz), 2)}),"
                     " Center:({current_object.center})"
                 )
             else:

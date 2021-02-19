@@ -30,6 +30,8 @@ from locobot.agent.locobot_mover_utils import (
     transform_pose,
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
+    xyz_canonical_coords_to_pyrobot_coords,
+    get_move_target_for_point,
 )
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -66,6 +68,7 @@ class LoCoBotMover:
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
+        self.use_dslam=use_dslam
     
     def check(self):
         """
@@ -115,13 +118,13 @@ class LoCoBotMover:
             return dl+df+dr+db, tl+tf+tr+tb
 
         # move in a square of side 0.3 starting at current base pos
-        d, t = move_in_a_square("default", side=0.3)
+        d, t = move_in_a_square("default", side=0.3, use_vslam=False, use_dslam=False)
         sq_table.add_row(["default", d, t])
 
-        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True)
+        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True, use_dslam=False)
         sq_table.add_row(["use_vslam", d, t])
 
-        d, t = move_in_a_square("use_dslam", side=0.3, use_dslam=True)
+        d, t = move_in_a_square("use_dslam", side=0.3, use_vslam=False, use_dslam=True)
         sq_table.add_row(["use_dslam", d, t])
 
         print(table)
@@ -191,18 +194,18 @@ class LoCoBotMover:
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            logging.info("Move absolute {}".format(xyt))
+            logging.info("Move absolute in canonical coordinates {}".format(xyt))
             self.bot.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt), 
                 close_loop=self.close_loop,
                 use_map=use_map,
                 use_dslam=use_dslam,
             )
-            start_base_state = self.get_base_pos()
+            start_base_state = self.get_base_pos_in_canonical_coords()
             while not self.bot.command_finished():
-                print(self.get_base_pos())
+                print(self.get_base_pos_in_canonical_coords())
 
-            end_base_state = self.get_base_pos()
+            end_base_state = self.get_base_pos_in_canonical_coords()
             logging.info(
                 "start {}, end {}, diff {}".format(
                     start_base_state,
@@ -230,7 +233,7 @@ class LoCoBotMover:
         old_pan = self.get_pan()
         old_tilt = self.get_tilt()
         pos = self.get_base_pos_in_canonical_coords()
-        logging.debug(f"Current Locobot state (x, z, yaw): {pos}")
+        logging.info(f"Current Locobot state (x, z, yaw): {pos}")
         if yaw_deg:
             pan_rad = old_pan - float(yaw_deg) * np.pi / 180
         if pitch_deg:
@@ -238,7 +241,7 @@ class LoCoBotMover:
         if obj_pos is not None:
             logging.info(f"looking at x,y,z: {obj_pos}")
             pan_rad, tilt_rad = get_camera_angles([pos[0], CAMERA_HEIGHT, pos[1]], obj_pos)
-            logging.debug(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
+            logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
 
         # FIXME!!! more async; move head and body at the same time
         head_res = angle_diff(pos[2], pan_rad)
@@ -255,8 +258,16 @@ class LoCoBotMover:
         return "finished"
 
     def point_at(self, target_pos):
+        """Executes pointing the arm at the specified target pos. 
+
+        Args:
+            target_pos ([x,y,z]): canonical coordinates to point to.
+
+        Returns:
+            string "finished"
+        """
         pos = self.get_base_pos_in_canonical_coords()
-        yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)
+        yaw_rad, pitch_rad = get_camera_angles([pos[0], ARM_HEIGHT, pos[1]], target_pos)        
         states = [
             [yaw_rad, 0.0, pitch_rad, 0.0, 0.0],
             [yaw_rad, 0.0, pitch_rad, -0.2, 0.0],
