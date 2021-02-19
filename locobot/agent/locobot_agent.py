@@ -7,11 +7,6 @@ import sys
 import subprocess
 import re
 import numpy as np
-
-# python/ dir, for agent.so
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-sys.path.append(BASE_AGENT_ROOT)
-
 import dldashboard
 
 if __name__ == "__main__":
@@ -38,7 +33,7 @@ import logging
 import faulthandler
 from dlevent import sio
 
-
+BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 SCHEMAS = [os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql")]
 
 faulthandler.register(signal.SIGUSR1)
@@ -91,16 +86,16 @@ class LocobotAgent(LocoMCAgent):
             movement = [0.0, 0.0, 0.0]
             for command in commands:
                 if command == "MOVE_FORWARD":
-                    movement[0] += 0.05
+                    movement[0] += 0.1
                     print("action: FORWARD")
                 elif command == "MOVE_BACKWARD":
-                    movement[0] -= 0.05
+                    movement[0] -= 0.1
                     print("action: BACKWARD")
                 elif command == "MOVE_LEFT":
-                    movement[2] += 0.1
+                    movement[2] += 0.3
                     print("action: LEFT")
                 elif command == "MOVE_RIGHT":
-                    movement[2] -= 0.1
+                    movement[2] -= 0.3
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
                     self.mover.bot.set_pan(
