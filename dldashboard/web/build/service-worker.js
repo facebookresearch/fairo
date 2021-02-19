@@ -15,10 +15,14 @@ importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox
 
 importScripts(
 <<<<<<< HEAD
+<<<<<<< HEAD
   "/precache-manifest.ad95ae58e7dce145f02f6f39be3386aa.js"
 =======
   "/precache-manifest.b75eceaeb13538603767c068fe3d10da.js"
 >>>>>>> 016fff7... Checked in yarn build files
+=======
+  "/precache-manifest.a8549702307893d035e1435a3c191ecc.js"
+>>>>>>> d8d0982... Checked in yarn build files
 );
 
 self.addEventListener('message', (event) => {
