@@ -47,8 +47,6 @@ __all__ = [
     AwaitResponse,
     BotCapabilities,
     BotGreet,
-    BotLocationStatus,
-    BotStackStatus,
     DialogueObject,
     GetReward,
     ConfirmTask,
