@@ -90,15 +90,15 @@ class RGBDepth:
         xyz_p = self.ptcloud[point[1] * self.rgb.shape[0] + point[0]]
         return xyz_pyrobot_to_canonical_coords(xyz_p)
 
-    def to_struct(self, sz=None, quality=10):
+    def to_struct(self, size=None, quality=10):
         import base64
 
         rgb = self.rgb
         depth = self.depth
 
-        if sz is not None:
-            rgb = cv2.resize(rgb, (sz, sz), interpolation=cv2.INTER_LINEAR)
-            depth = cv2.resize(depth, (sz, sz), interpolation=cv2.INTER_LINEAR)
+        if size is not None:
+            rgb = cv2.resize(rgb, (size, size), interpolation=cv2.INTER_LINEAR)
+            depth = cv2.resize(depth, (size, size), interpolation=cv2.INTER_LINEAR)
 
         depth = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
         depth = 255 - depth

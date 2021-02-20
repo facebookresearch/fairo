@@ -4,23 +4,29 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
 import logging
+
 from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode
-from locobot.agent.dance import DanceMovement
-from rotation import yaw_pitch
+from base_agent.task import Task
+import locobot.agent.dance as dance
+from locobot.agent.rotation import yaw_pitch
+
 import time
-
-# from locobot_mover_utils import CAMERA_HEIGHT
-
+from locobot.agent.locobot_mover_utils import (
+    get_move_target_for_point,
+    CAMERA_HEIGHT,
+    get_camera_angles,
+)
+import math
 
 # FIXME store dances, etc.
 class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
         super().__init__(agent)
         # movement should be a Movement object from dance.py
-        self.movement = DanceMovement(agent, None)
+        self.movement = dance.DanceMovement(self.agent, None)
         self.movement_type = task_data.get("movement_type", None)
-        TaskNode(agent.memory, self.memid).update_task(task=self)
+        TaskNode(self.agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
@@ -77,6 +83,7 @@ class Point(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
         self.target = np.array(task_data["target"])
+        self.steps = ["not_started"] * 2
 
     def get_pt_from_region(self, region):
         assert (
@@ -86,11 +93,25 @@ class Point(Task):
 
     @Task.step_wrapper
     def step(self):
-        logging.info(f"calling bot to look at a point {self.target.tolist()}")
+        self.interrupted = False
         pt = self.get_pt_from_region(self.target.tolist())
-        status = self.agent.mover.point_at(pt)
-        if status == "finished":
-            self.finished = True
+        logging.info(f"Calling bot to Point at {pt}")
+        logging.info(f"base pos {agent.mover.get_base_pos_in_canonical_coords()}")
+
+        # Step 1 - Move close to the object.
+        if self.steps[0] == "not_started":
+            base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+            target = get_move_target_for_point(base_pos, pt)
+            logging.info(f"Move Target for point {target}")
+            self.add_child_task(Move(self.agent, {"target": target}), self.agent)
+            self.steps[0] = "finished"
+            return
+
+        # Step 2 - Point at the object
+        if self.steps[0] == "finished":
+            status = self.agent.mover.point_at(pt)
+            if status == "finished":
+                self.finished = True
 
     def __repr__(self):
         return "<Point at {}>".format(self.target)

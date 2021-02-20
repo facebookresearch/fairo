@@ -25,6 +25,7 @@
     "react-rnd": "^10.1.10",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.1",
+    "react-virtualized": "^9.22.3",
     "socket.io": "^3.0.5",
     "socket.io-client": "^3.0.5",
     "source-map-explorer": "^2.5.0",

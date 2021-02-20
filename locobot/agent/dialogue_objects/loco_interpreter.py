@@ -19,8 +19,8 @@ from .spatial_reasoning import ComputeLocations
 from .facing_helper import FacingInterpreter
 from .point_target import PointTargetInterpreter
 
-import dance
-import tasks
+import locobot.agent.dance as dance
+import locobot.agent.tasks as tasks
 
 
 def post_process_loc(loc, interpreter):

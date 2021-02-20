@@ -10,6 +10,7 @@ from .handlers import (
     MemoryHandler,
     DetectionHandler,
     FaceRecognitionHandler,
+    ObjectDeduplicationHandler,
     Detection,
     WorldObject,
     RGBDepth,
@@ -37,4 +38,5 @@ __all__ = [
     DetectionHandler,
     MemoryHandler,
     FaceRecognitionHandler,
+    ObjectDeduplicationHandler,
 ]
