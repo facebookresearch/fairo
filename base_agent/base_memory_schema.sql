@@ -112,7 +112,7 @@ CREATE TABLE Tasks (
 
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
-CREATE INDEX TasksFinishedAt ON Tasks(finished_at);
+CREATE INDEX TasksFinishedAt ON Tasks(finished);
 
 CREATE TRIGGER TasksUpdate AFTER UPDATE ON Tasks
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');
