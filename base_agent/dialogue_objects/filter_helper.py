@@ -160,7 +160,7 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
         search_data["base_exact"]["paused"] = 0
     search_data["base_range"] = {}
     if "finished" in task_properties:
-        search_data["base_range"]["minfinished_at"] = 0
+        search_data["base_range"]["minfinished"] = 0
     F.append(BasicFilter(interpreter.agent.memory, search_data))
 
     # currently spec intersects all comparators TODO?

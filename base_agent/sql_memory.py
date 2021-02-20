@@ -776,8 +776,8 @@ class AgentMemory:
             """
             SELECT uuid
             FROM Tasks
-            WHERE finished_at < 0 AND paused = 0 AND prio > 0
-            ORDER BY created_at DESC
+            WHERE finished < 0 AND paused = 0 AND prio > 0
+            ORDER BY created DESC
             LIMIT 1
             """
         )
@@ -800,7 +800,7 @@ class AgentMemory:
         mem = self.task_stack_peek()
         if mem is None:
             raise ValueError("Called task_stack_pop with empty stack")
-        self.db_write("UPDATE Tasks SET finished_at=? WHERE uuid=?", self.get_time(), mem.memid)
+        self.db_write("UPDATE Tasks SET finished=? WHERE uuid=?", self.get_time(), mem.memid)
         return mem
 
     def task_stack_pause(self) -> bool:
@@ -809,7 +809,7 @@ class AgentMemory:
         Returns:
             int: Number of rows affected
         """
-        return self.db_write("UPDATE Tasks SET paused=1 WHERE finished_at < 0") > 0
+        return self.db_write("UPDATE Tasks SET paused=1 WHERE finished < 0") > 0
 
     def task_stack_clear(self):
         """Clear the task stack
@@ -818,7 +818,7 @@ class AgentMemory:
             int: Number of rows affected
         """
         # FIXME use forget; fix this when tasks become MemoryNodes
-        self.db_write("DELETE FROM Tasks WHERE finished_at < 0")
+        self.db_write("DELETE FROM Tasks WHERE finished < 0")
 
     def task_stack_resume(self) -> bool:
         """Resume stopped tasks. Return True if there was something to resume.
@@ -845,7 +845,7 @@ class AgentMemory:
         """
         names = [cls_names] if type(cls_names) == str else cls_names
         (memid,) = self._db_read_one(
-            "SELECT uuid FROM Tasks WHERE {} ORDER BY created_at LIMIT 1".format(
+            "SELECT uuid FROM Tasks WHERE {} ORDER BY created LIMIT 1".format(
                 " OR ".join(["action_name=?" for _ in names])
             ),
             *names,
@@ -873,8 +873,8 @@ class AgentMemory:
         q = """
         SELECT uuid
         FROM Tasks
-        WHERE finished_at >= ? {}
-        ORDER BY created_at DESC
+        WHERE finished >= ? {}
+        ORDER BY created DESC
         """.format(
             " AND action_name=?" if action_name else ""
         )

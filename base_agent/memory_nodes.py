@@ -754,8 +754,8 @@ class TaskNode(MemoryNode):
     
     Attributes:
         task (object): Name of the task
-        created_at (int): Time at which it was created
-        finished_at (int): Time at which it was finished
+        created (int): Time at which it was created
+        finished (int): Time at which it was finished
         action_name (string): The name of action that corresponds to this task
     
     Examples::
@@ -776,23 +776,23 @@ class TaskNode(MemoryNode):
         "prio",
         "running",
         "paused",
-        "created_at",
-        "finished_at",
+        "created",
+        "finished",
     ]
     TABLE = "Tasks"
     NODE_TYPE = "Task"
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        pickled, prio, running, created_at, finished_at, action_name = self.agent_memory._db_read_one(
-            "SELECT pickled, prio, running, created_at, finished_at, action_name FROM Tasks WHERE uuid=?",
+        pickled, prio, running, created, finished, action_name = self.agent_memory._db_read_one(
+            "SELECT pickled, prio, running, created, finished, action_name FROM Tasks WHERE uuid=?",
             memid,
         )
         self.prio = prio
         self.running = running
         self.task = self.agent_memory.safe_unpickle(pickled)
-        self.created_at = created_at
-        self.finished_at = finished_at
+        self.created = created
+        self.finished = finished
         # TODO changeme to just "name"
         self.action_name = action_name
         self.memory = agent_memory
@@ -815,7 +815,7 @@ class TaskNode(MemoryNode):
         memid = cls.new(memory)
         task.memid = memid  # FIXME: this shouldn't be necessary, merge Task and TaskNode?
         memory._db_write(
-            "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, created_at) VALUES (?,?,?,?,?,?)",
+            "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, created) VALUES (?,?,?,?,?,?)",
             memid,
             task.__class__.__name__.lower(),
             memory.safe_pickle(task),
@@ -870,10 +870,7 @@ class TaskNode(MemoryNode):
                     status_out[k] = -1
 
             if status.get(k) or force_db_update:
-                key = k
-                if k == "finished":
-                    key = "finished_at"
-                cmd = "UPDATE Tasks SET " + key + "=? WHERE uuid=?"
+                cmd = "UPDATE Tasks SET " + k + "=? WHERE uuid=?"
                 self.agent_memory.db_write(cmd, status_out[k], self.memid)
         return status_out
 
@@ -943,7 +940,7 @@ class TaskNode(MemoryNode):
             q.extend(children)
         if include_root:
             descendents.append(self)
-        return sorted(descendents, key=lambda t: t.finished_at)
+        return sorted(descendents, key=lambda t: t.finished)
 
     def __repr__(self):
         return "<TaskNode: {}>".format(self.task)

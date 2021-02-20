@@ -87,7 +87,7 @@ class TaskStatusCondition(Condition):
             # beware:
             # assumption is if we had the memid in hand, and it is no longer a task, task is finished
             # if (e.g. via a bug) a non-task memid is passed here, it will be considered a finished task.
-            if (not T) or T.finished_at > -1:
+            if (not T) or T.finished > -1:
                 return True
         elif self.status == "running":
             if T and T.running > 0:

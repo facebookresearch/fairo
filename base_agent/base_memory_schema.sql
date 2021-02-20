@@ -107,8 +107,8 @@ CREATE TABLE Tasks (
     prio        INTEGER         NOT NULL DEFAULT 1,
     running     BOOLEAN         NOT NULL DEFAULT 1,
     paused      BOOLEAN         NOT NULL DEFAULT 0,
-    created_at  INTEGER         NOT NULL,
-    finished_at INTEGER         NOT NULL DEFAULT -1,
+    created     INTEGER         NOT NULL,
+    finished    INTEGER         NOT NULL DEFAULT -1,
 
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
