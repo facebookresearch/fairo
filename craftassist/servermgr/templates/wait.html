@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% from 'survey.html' import survey %}
 
 {% block container %}
 <div class="loading">
@@ -43,8 +42,6 @@
     to change your game version to <b>1.12.x</b>
   </div>
 
-
-  {% if not hide_survey %}{{ survey(instance_id, timestamp) }}{% endif %}
 </div>
 {% endblock %}
 
@@ -62,7 +59,7 @@ $(document).ready(function() {
                 if (r.progress == 100) {
                     clearInterval(interval);
                     instance_ip_address = r.ip;
-                    finished(r.ip)
+                    window.location.replace("http://" + instance_ip_address + ":8000");
                 }
             }).fail(function(err) {
                 console.error(err)
