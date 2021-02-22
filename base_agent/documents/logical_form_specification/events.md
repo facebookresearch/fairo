@@ -63,6 +63,7 @@ if the key is not set) for remove_condition is
 ```
 THIS_SEQUENCE_FINISHED = {"condition": {
                            "comparator": {
+			     "comparison_type": "EQUAL",
                              "input_left": {
 			       "value_extractor": {
 			         "filter": {
@@ -86,6 +87,7 @@ For "repeat 10 times" the remove condition is
 ```
 {"condition": {
   "comparator": {
+    "comparison_type": "EQUAL",
     "input_left": {
       "value_extractor": {
 	"filter": {
