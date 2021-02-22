@@ -1,10 +1,10 @@
 import os
 import sys
-import ast
 import copy
 import pprint as pp
 import argparse
 import json
+import pkg_resources
 
 """Applies updates to annotated dataset following grammar changes.
 """
@@ -64,9 +64,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # load the annotated dataset
     dataset = json.load(open(args.source_path))
+    autocomplete_annotations = {}
     updated_dataset = []
+    datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/high_pri_commands.txt")
+
+    # Read the file, update  
     for command in dataset:
         action_dict = dataset[command]
         updated_tree = traverse_tree(command, action_dict)
-        updated_dataset.append("{}|{}".format(command, json.dumps(updated_tree)))
-    write_file(updated_dataset, args.dest_path)
+        autocomplete_annotations[command] = updated_tree
+    # Load all the existing action dictionaries
+    with open(datasets_read_path) as fd:
+        existing_annotations = fd.readlines()
+        for row in existing_annotations:
+            command, action_dict = row.strip().split("|")
+            if command not in autocomplete_annotations:
+                autocomplete_annotations[command] = json.loads(action_dict)
+
+    for command in autocomplete_annotations:
+        updated_dataset.append("{}|{}".format(command, json.dumps(autocomplete_annotations[command])))
+    write_file(updated_dataset, datasets_read_path)

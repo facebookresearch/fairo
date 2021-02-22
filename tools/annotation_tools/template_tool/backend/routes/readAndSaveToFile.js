@@ -102,15 +102,20 @@ router.post("/writeLabels", function (req, res, next) {
  * Write labelled pairs
  */
 router.post("/uploadDataToS3", function (req, res, next) {
-  console.log(req.body);
-  const execSync = require('child_process').execSync;
-  const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py');
-  console.log('Postprocessing Output was:\n', postprocessing_output);
+  try {
+    console.log(req.body);
+    const execSync = require('child_process').execSync;
+    const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py');
+    console.log('Postprocessing Output was:\n', postprocessing_output);
+    const s3_output = execSync('./../../../data_scripts/tar_and_hash_datasets.sh');
+    console.log('S3 Output was:\n', postprocessing_output);
+  }
+  catch (error) {
+    // next(error);
+    return res.status(500).json({ error: error.toString() });
+  }
 
-  const s3_output = execSync('aws s3 cp autocomplete_annotations.txt  s3://craftassist/pubr/high_pri_commands.txt');
-  console.log('S3 Output was:\n', postprocessing_output);
-
-  res.send("upload data is working properly");
+  res.send("Uploaded data to S3!");
 });
 
 module.exports = router;
