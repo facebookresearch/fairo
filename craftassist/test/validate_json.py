@@ -67,7 +67,7 @@ class JSONValidator:
             dataset = fd.readlines()
             for line in dataset:
                 command, action_dict = line.split("|")
-                parse_tree = ast.literal_eval(action_dict)
+                parse_tree = json.loads(action_dict)
                 try:
                     validate(instance=parse_tree, schema=self.base_schema, resolver=self.resolver)
                 except exceptions.ValidationError as e:

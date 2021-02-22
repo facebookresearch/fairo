@@ -117,7 +117,7 @@ def process_txt_data(filepath: str):
     samples = open(filepath, "r").readlines()
     split_lines = [line.split("|") for line in samples]
     # Format of each sample is [text, action_dict]
-    formatted_data = [[text, ast.literal_eval(action_dict)] for text, action_dict in split_lines]
+    formatted_data = [[text, json.loads(action_dict)] for text, action_dict in split_lines]
     return formatted_data
 
 
