@@ -60,7 +60,6 @@ if __name__ == "__main__":
     print("*** Applying grammar updates ***")
     parser = argparse.ArgumentParser()
     parser.add_argument("--source_path", default="command_dict_pairs.json")
-    parser.add_argument("--dest_path", default="autocomplete_annotations.txt")
     args = parser.parse_args()
     # load the annotated dataset
     dataset = json.load(open(args.source_path))

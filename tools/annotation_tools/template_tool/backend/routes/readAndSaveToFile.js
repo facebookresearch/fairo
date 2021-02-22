@@ -111,7 +111,6 @@ router.post("/uploadDataToS3", function (req, res, next) {
     console.log('S3 Output was:\n', postprocessing_output);
   }
   catch (error) {
-    // next(error);
     return res.status(500).json({ error: error.toString() });
   }
 
