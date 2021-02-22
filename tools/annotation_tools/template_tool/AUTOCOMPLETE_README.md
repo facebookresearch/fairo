@@ -21,7 +21,7 @@ Args:
 --commands_path: Path to file with one command per line, which we want to annotate. Defaults to commands.txt
 ```
 
-By default, the tool loads from `annotated.txt`, `locobot.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
+By default, the tool loads from `annotated.txt`, `locobot.txt`, `high_pri_commands.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
 
 Commands we want to label are in `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt`. Write one command for each line.
 
