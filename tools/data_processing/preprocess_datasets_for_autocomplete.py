@@ -26,8 +26,8 @@ def create_JSON_from_txt(annotations_dir_path):
 
         for line in data:
             if "|" in line:
-                command, action_dict = line.split("|")
-                action_dict = ast.literal_eval(action_dict)
+                command, action_dict = line.strip().split("|")
+                action_dict = json.loads(action_dict)
             else:
                 command = line
                 action_dict = {}
