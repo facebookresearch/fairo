@@ -28,7 +28,6 @@ def create_data_split(data_path, filename, output_path, split_ratios):
         num_samples = int(round(len(annotated_data) * ratio))
         end_idx = start_idx + num_samples
         chunk = annotated_data[start_idx:min(end_idx, len(annotated_data))]
-         # print(chunk[0])
         write_data_split(output_path, "{}/".format(split_name), filename, chunk)
         start_idx = end_idx
 
