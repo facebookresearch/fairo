@@ -8,7 +8,7 @@ import math
 import pickle
 import torch
 from transformers import AutoModel, AutoTokenizer, BertConfig
-from train_model import *
+from base_agent.ttad.ttad_transformer_model.train_model import *
 
 from pprint import pprint
 
