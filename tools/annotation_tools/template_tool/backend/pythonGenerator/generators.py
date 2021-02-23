@@ -135,6 +135,7 @@ def generate_template(info):
         info["code"] = {}
     dictionary = {}
     dictionary = generate_dictionary(info["code"])
+    surface_form = surface_form.strip()
     return [surface_form, dictionary]
 
 
