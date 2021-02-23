@@ -133,7 +133,12 @@ class Message extends Component {
           onClick={this.toggleListen.bind(this)}
         ></KeyboardVoiceIcon>
         <List>{this.renderChatHistory()}</List>
-        <div contentEditable="true" className="Msg single-line" id="msg">
+        <div
+          contentEditable="true"
+          className="Msg single-line"
+          id="msg"
+          suppressContentEditableWarning={true}
+        >
           {" "}
         </div>
 

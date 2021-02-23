@@ -31,10 +31,16 @@ echo "$CRAFTASSIST_PATH"
 DIRNAME="datasets"
 
 cd $CRAFTASSIST_PATH
-tar --exclude='*/\.*' --exclude='*checksum*' ${DIRNAME}/ -czvf ${DIRNAME}_folder.tar.gz
+tar -czvf ${DIRNAME}_folder.tar.gz --exclude='*/\.*' --exclude='*checksum*' ${DIRNAME}/
 
-CHECKSUM_PATH="datasets/checksum.txt"
-find ${DIRNAME}/ -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > $CHECKSUM_PATH
+CHECKSUM_PATH="${DIRNAME}/checksum.txt"
+find ${DIRNAME} -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > $CHECKSUM_PATH
 
 cat $CHECKSUM_PATH
+
+aws s3 cp ${DIRNAME}_folder.tar.gz s3://craftassist/pubr/
+
+UPLOAD_FILE="s3://craftassist/pubr/checksums/datasets_checksum.txt"
+
+aws s3 cp $CHECKSUM_PATH $UPLOAD_FILE
 

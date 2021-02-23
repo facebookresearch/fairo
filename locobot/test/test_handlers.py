@@ -3,10 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
 import os
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
-
 import unittest
 import logging
 from timeit import Timer
@@ -15,6 +11,7 @@ from locobot.agent.perception import (
     InputHandler,
     DetectionHandler,
     FaceRecognitionHandler,
+    ObjectDeduplicationHandler,
     MemoryHandler,
     SlowPerception,
     Detection,
@@ -27,7 +24,7 @@ from locobot.agent.locobot_mover import LoCoBotMover
 import cv2
 import torch
 from PIL import Image
-from utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+from locobot.test.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -91,7 +88,7 @@ class DetectionHandlerTest(unittest.TestCase):
         detections = self.detect_handler.handle(rgb_depth_mock)
 
         # check that most of the detected objects are detected
-        self.assertGreaterEqual(len(detections), 15)  # 17 exactly
+        self.assertGreaterEqual(len(detections), 5)  # 9 exactly
 
         # check the correct type of each detected object
         self.assertEqual(type(detections[0]), Detection)
@@ -102,7 +99,8 @@ class MemoryHandlerTest(unittest.TestCase):
         self.detect_handler = DetectionHandler(PERCEPTION_MODELS_DIR)
         self.agent = MagicMock()
         self.agent.memory = LocoAgentMemory()
-        self.memory_handler = MemoryHandler(self.agent)
+        self.memory = MemoryHandler(self.agent)
+        self.deduplicator = ObjectDeduplicationHandler()
 
     def test_handler_basic_insertion(self):
         # get fake detection
@@ -112,7 +110,7 @@ class MemoryHandlerTest(unittest.TestCase):
         # get fake human pose
         h = get_fake_humanpose()
         # save to memory
-        self.memory_handler(r, [d, h])
+        self.memory([d, h], [])
 
         # retrieve detected objects
         o = DetectedObjectNode.get_all(self.agent.memory)
@@ -133,34 +131,24 @@ class MemoryHandlerTest(unittest.TestCase):
         detections = self.detect_handler.handle(rgbd)
 
         # check that most of the detected objects are detected
-        self.assertGreaterEqual(len(detections), 15)  # 17 exactly
+        self.assertGreaterEqual(len(detections), 5)  # 9 exactly
         # insert once to setup dedupe tests
-        self.memory_handler(rgbd.rgb, detections, True)
+        self.deduplicator(detections, [])
+        self.memory(detections, [])
         objs_init = DetectedObjectNode.get_all(self.agent.memory)
 
         # Insert with dedupe
-        t = Timer(lambda: self.memory_handler(rgbd.rgb, detections, True))
-        dedupe_insert_time = t.timeit(number=1)
-
+        previous_objects = self.memory.get_objects()
+        if previous_objects is not None:
+            new_objects, updated_objects = self.deduplicator(detections, previous_objects)
+            self.memory(new_objects, updated_objects)
+        
         # Assert that some objects get deduped
         objs_t1 = DetectedObjectNode.get_all(self.agent.memory)
         self.assertLessEqual(len(objs_t1), len(objs_init) + len(detections))
 
-        # Insert without dedupe
-        t = Timer(lambda: self.memory_handler(rgbd.rgb, detections, False))
-        nondedupe_insert_time = t.timeit(number=1)
-
-        # Assert that nothing is deduped and we now have +len(detections) objects
-        objs_t2 = DetectedObjectNode.get_all(self.agent.memory)
-        self.assertEqual(len(objs_t2), len(objs_t1) + len(detections))
-
         logging.getLogger().disabled = False
         logging.info("Number of detections {}".format(len(detections)))
-        logging.info(
-            "Time with dedupe {} s, without dedupe {} s".format(
-                dedupe_insert_time, nondedupe_insert_time
-            )
-        )
 
 
 class TestFaceRecognition(unittest.TestCase):

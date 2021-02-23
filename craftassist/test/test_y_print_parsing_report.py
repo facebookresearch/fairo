@@ -348,7 +348,7 @@ common_functional_commands = {
             "memory_type": "REFERENCE_OBJECT",
         },
     },
-    "go to the table ": {
+    "go to the table": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
@@ -475,7 +475,7 @@ common_functional_commands = {
             }
         ],
     },
-    "where am i ": {
+    "where am i": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},

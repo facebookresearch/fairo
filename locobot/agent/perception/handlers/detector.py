@@ -6,16 +6,16 @@ import os
 import sys
 import cv2
 import numpy as np
-import loco_memory
+import locobot.agent.loco_memory as loco_memory
 import pickle
 import tempfile
 import logging
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
-from detectron.detector.utils import get_predictor
+from locobot.agent.detectron.detector.utils import get_predictor
 from detectron2.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
-from detectron.detector.visualizer import LocobotVisualizer
+from locobot.agent.detectron.detector.visualizer import LocobotVisualizer
 from .core import AbstractHandler, WorldObject, RGBDepth
 from locobot.agent.perception.perception_helpers import get_color_tag
 

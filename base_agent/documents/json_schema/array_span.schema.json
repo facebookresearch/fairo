@@ -1,0 +1,23 @@
+{
+    "$id": "span.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Span definition for array values",
+    "type": "object",
+    "definitions": {
+        "span": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "array"
+                }
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2
+        }
+    }
+}
