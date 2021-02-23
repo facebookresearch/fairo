@@ -6,7 +6,11 @@
 # ./compute_and_upload_checksum.sh craftassist datasets # uploads hash for datasets folder
 # ./compute_and_upload_checksum.sh locobot # uploads hash for locobot models
 
-ROOTDIR=$(readlink -f $(dirname "$0")/../../)
+function pyabspath() {
+    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+}
+
+ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "Rootdir $ROOTDIR"
 
 if [ -z $1 ]

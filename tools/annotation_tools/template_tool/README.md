@@ -1,3 +1,9 @@
+This project contains a suite of tools that are used to create annotated and generated labelled datasets.
+
+For more information on the Parse Tree Annotation Tool (Autocomplete Tool), see `AUTOCOMPLETE_README.md`.
+
+# Blockly Template Tool
+
 The goal of this tool is to enable users to efficiently create templates for the CraftAssist bot. A [Blockly](https://developers.google.com/blockly) interface is used. This project is in active development.
 
 # Installation

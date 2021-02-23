@@ -227,7 +227,7 @@ class ModelTrainer:
             text_span_tot_loss / tot_steps,
         )
 
-    def eval_model_on_dataset(self, encoder_decoder, dtype, full_tree_voc, tokenizer):
+    def eval_model_on_dataset(self, encoder_decoder, dtype, full_tree_voc, tokenizer, split="valid"):
         """Evaluate model on a given validation dataset
 
         Args:
@@ -238,7 +238,7 @@ class ModelTrainer:
 
         """
         valid_dataset = CAIPDataset(
-            tokenizer, self.args, prefix="valid", dtype=dtype, full_tree_voc=full_tree_voc
+            tokenizer, self.args, prefix=split, dtype=dtype, full_tree_voc=full_tree_voc
         )
         l, _, _, a, text_span_acc, text_span_loss = self.validate(
             encoder_decoder, valid_dataset, tokenizer, self.args

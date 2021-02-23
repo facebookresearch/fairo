@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autocompleteMatches from './spec/filters_spec';
+import autocompleteMatches from './spec/grammar_spec';
 
 
 class FiltersAnnotator extends React.Component {
@@ -17,6 +17,7 @@ class FiltersAnnotator extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     // this.keyPress = this.keyPress.bind(this);
     this.logSerialized = this.logSerialized.bind(this);
+    this.uploadData = this.uploadData.bind(this);
     this.incrementIndex = this.incrementIndex.bind(this);
     this.decrementIndex = this.decrementIndex.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
@@ -68,9 +69,9 @@ class FiltersAnnotator extends React.Component {
   }
 
   componentDidMount() {
-    fetch("http://localhost:9000/readAndSaveToFile/get_memory")
+    fetch("http://localhost:9000/readAndSaveToFile/get_commands")
       .then(res => res.text())
-      .then((text) => { this.setState({ fullText: text.split("\n") }) })
+      .then((text) => { this.setState({ fullText: text.split("\n").filter(r => r !== "") }) })
 
     fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
       .then(res => res.json())
@@ -85,6 +86,10 @@ class FiltersAnnotator extends React.Component {
   incrementIndex() {
     console.log("Moving to the next command")
     console.log(this.state.currIndex)
+    console.log(this.state.fullText)
+    if (this.state.currIndex + 1 >= this.state.fullText.length) {
+      alert("Congrats! You have reached the end of annotations.")
+    }
     this.setState({ currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex + 1]] ?? "")});
   }
 
@@ -105,25 +110,49 @@ class FiltersAnnotator extends React.Component {
       let items = {...this.state.dataset};
       items[this.state.fullText[this.state.currIndex]] = JSON.parse(this.state.value);
       // Set state to the data items
-      this.setState({dataset: items});
+      this.setState({dataset: items}, function() {
+        try {
+          let actionDict = JSON.parse(this.state.value)
+          let JSONString = {
+            "command": this.state.fullText[this.state.currIndex],
+            "logical_form": actionDict
+          }
+          console.log("writing dataset")
+          console.log(this.state.dataset)
+          this.writeLabels(this.state.dataset)
+        } catch (error) {
+          alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
+        }
+      });
   }
 
   logSerialized() {
     console.log("saving serialized tree")
     // First save to local storage
     this.updateLabels()
-    try {
-      let actionDict = JSON.parse(this.state.value)
-      let JSONString = {
-        "command": this.state.fullText[this.state.currIndex],
-        "logical_form": actionDict
+  }
+
+  uploadData() {
+    console.log("Uploading Data to S3")
+    // First postprocess
+    const requestOptions = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    };
+    fetch("http://localhost:9000/readAndSaveToFile/uploadDataToS3", requestOptions)
+    // .then(res => res.json())
+    .then(
+      (result) => {
+        console.log("success")
+        console.log(result)
+        this.setState({ value: "" })
+        alert("saved!")
+      },
+      (error) => {
+        console.log(error)
       }
-      console.log("writing dataset")
-      console.log(this.state.dataset)
-      this.writeLabels(this.state.dataset)
-    } catch (error) {
-      alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
-    }
+    )
   }
 
 
@@ -135,6 +164,9 @@ class FiltersAnnotator extends React.Component {
         <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
+        </div>
+        <div onClick={this.uploadData}>
+          <button>Upload to S3</button>
         </div>
       </div>
     )

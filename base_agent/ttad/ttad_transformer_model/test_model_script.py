@@ -8,9 +8,6 @@ import math
 import pickle
 import torch
 from transformers import AutoModel, AutoTokenizer, BertConfig
-
-from utils_caip import *
-from utils_parsing import *
 from train_model import *
 
 from pprint import pprint

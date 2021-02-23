@@ -233,4 +233,5 @@ class Perception:
         payload["x"] = x
         payload["y"] = y
         payload["yaw"] = yaw
+        payload["map"] = self.agent.mover.get_obstacles_in_canonical_coords()
         sio.emit("sensor_payload", payload)
