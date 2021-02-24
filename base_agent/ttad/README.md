@@ -26,14 +26,14 @@ $ python generate_dialogue.py -n 500000 > generated_dialogues.txt
 This generates a text file. We next pre-process the data into the format required by the training script,
 ```
 $ cd ../ttad_transformer_model/
-$ python data_scripts/preprocess_templated.py \
+$ python ~/droidlet/tools/nsp_scripts/data_processing_scripts/preprocess_templated.py \
 --raw_data_path ../generation_dialogues/generated_dialogues.txt \
 --output_path [OUTPUT_PATH (file must be named templated.txt)]
 ```
 
 To create train/test/valid splits of the data, run
 ```
-$ python data_scripts/create_annotated_split.py \
+$ python ~/droidlet/tools/nsp_scripts/data_processing_scripts/create_annotated_split.py \
 --raw_data_path [PATH_TO_DATA_DIR] \
 --output_path [PATH_TO_SPLIT_FOLDERS] \
 --filename "templated.txt" \
@@ -44,7 +44,7 @@ To create a split of annotated data too, simply run the above, but with filename
 
 We are now ready to train the model with:
 ```
-$ cd ~/minecraft
+$ cd ~/droidlet
 $ python base_agent/ttad/ttad_transformer_model/train_model.py \
 --data_dir craftassist/agent/models/ttad_bert_updated/annotated_data/ \
 --dtype_samples '[["templated", 0.35], ["templated_modify", 0.05], ["annotated", 0.6]]' \
