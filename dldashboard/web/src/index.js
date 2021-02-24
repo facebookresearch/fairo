@@ -15,6 +15,7 @@ import Navigator from "./components/Navigator";
 import Memory2D from "./components/Memory2D";
 import MemoryList from "./components/MemoryList";
 import QuerySemanticParser from "./components/QuerySemanticParser";
+import AgentComponent from "./components/AgentComponents";
 import History from "./components/History";
 import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
@@ -50,6 +51,12 @@ var config = {
                   title: "Memory 2D",
                   type: "react-component",
                   component: "Memory2D",
+                  props: { stateManager: stateManager },
+                },
+                {
+                  title: "View Current Status",
+                  type: "react-component",
+                  component: "AgentComponent",
                   props: { stateManager: stateManager },
                 },
                 {
@@ -128,6 +135,7 @@ dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("TeachApp", TeachApp);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
 dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
+dashboardLayout.registerComponent("AgentComponent", AgentComponent);
 
 dashboardLayout.init();
 
