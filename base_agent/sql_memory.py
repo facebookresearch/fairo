@@ -29,17 +29,20 @@ from base_agent.memory_nodes import (  # noqa
     NODELIST,
 )
 
+# FIXME set these in the Task classes
 NONPICKLE_ATTRS = [
     "agent",
     "memory",
     "agent_memory",
-    "child_generator",
-    "new_tasks_fn",
+    "tasks_fn",
+    "task_list",
     "on_condition",
     "remove_condition",
     "stop_condition",
     "movement",
+    "setup_tasks",
 ]
+
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]
 
 # TODO when a memory is removed, its last state should be snapshotted to prevent tag weirdness
@@ -1094,7 +1097,7 @@ class AgentMemory:
                 if self._safe_pickle_saved_attrs.get(obj.memid) is None:
                     self._safe_pickle_saved_attrs[obj.memid] = {}
                 val = getattr(obj, attr)
-                delattr(obj, attr)
+                setattr(obj, attr, None)
                 setattr(obj, "__had_attr_" + attr, True)
                 self._safe_pickle_saved_attrs[obj.memid][attr] = val
         p = pickle.dumps(obj)

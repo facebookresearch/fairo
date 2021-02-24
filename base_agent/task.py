@@ -27,6 +27,7 @@ class Task(object):
 
     def __init__(self, agent):
         self.agent = agent
+        self.run_count = 0
         self.interrupted = False
         self.finished = False
         self.name = None
@@ -40,7 +41,6 @@ class Task(object):
         self.stop_condition = NeverCondition(None)
         self.on_condition = AlwaysCondition(None)
         self.remove_condition = TaskStatusCondition(agent, self.memid)
-        self.child_generator = TaskGenerator()
         TripleNode.create(
             self.agent.memory,
             subj=self.memid,
@@ -99,9 +99,8 @@ class Task(object):
         return str(type(self))
 
 
-# FIXME new_tasks_fn --> new_tasks
+# if you want a list of tasks, have to enclose in a control block
 # FIXME/TODO: name any nonpicklable attributes in the object
-# should we just have this be the behavior of the step of an unsublcassed Task object?
 class ControlBlock(Task):
     """Container for task control
     
@@ -109,12 +108,21 @@ class ControlBlock(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
+            task_data["new_tasks"] is either a list of Tasks, or a callable
+                if it is a callable, when called it returns (Task, sequence_finished) or (None, True)
+                when it returns None, this ControlBlock is finished.
+                to make an infinite loop, the callable needs to keep returning Tasks; 
+                this ControlBlocks loop counter is incremented when sequence_finished is True
+                and left unchanged otherwise
+            task_data["loop"] should be set to True if a list of Tasks is input,
+                and the list should be looped.  default (unset) is False.  If the
+                new_tasks_fn is a callable, this will be ignored
     """
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        for task in task_data.get("new_tasks_fn"):
-            self.child_generator.append(task)
+        self.loop = task_data.get("loop", False)
+        self.setup_tasks(task_data.get("new_tasks"))
         self.stop_condition = task_data.get("stop_condition", NeverCondition(None))
         self.on_condition = task_data.get("on_condition", AlwaysCondition(None))
         self.remove_condition = task_data.get(
@@ -122,13 +130,39 @@ class ControlBlock(Task):
         )
         TaskNode(self.agent.memory, self.memid).update_task(task=self)
 
+    def setup_tasks(self, tasks):
+        # if tasks is a list, converts it into a callable
+        # if its a callable, just adds it
+        if callable(tasks):
+            self.tasks_fn = tasks
+        else:
+            assert type(tasks) is list
+            self.task_list = tasks
+            self.task_list_idx = 0
+
+            def fn():
+                sequence_finished = False
+                if self.task_list_idx >= len(self.task_list):
+                    if self.loop:
+                        self.task_list_idx = 0
+                        # increment loop counter
+                        sequence_finished = True
+                    else:
+                        # not supposed to be looping this:
+                        assert self.run_count <= 1
+                        return None, True
+                task = self.task_list[self.task_list_idx]
+                self.task_list_idx += 1
+                return task, sequence_finished
+
+            self.tasks_fn = fn
+
     @Task.step_wrapper
     def step(self):
-        try:
-            t = next(self.child_generator)
-        except StopIteration:
-            t = None
-        if t:
+        t, update_run_count = self.tasks_fn()
+        if update_run_count:
+            self.run_count += 1
+        if t is not None:
             self.add_child_task(t)
         else:
             self.finished = True
@@ -162,66 +196,11 @@ class BaseMovementTask(Task):
         raise NotImplementedError
 
 
-# the extra complexity here is that we are
-# allowing loops that are finite sequences, and loops
-# driven by a task generator, AND allowing child tasks to be
-# appended to a parent after the parent is placed in memory or is active
-# Probably can clean this up
-# without building this mini-stack,
-# just by using stop/remove conditions.... TODO?
-class TaskGenerator:
-    """
-    a gadget for storing child tasks.  the child tasks are stored in a 
-    list; and each entry in the list can be a Task, or a arg-less callable that outputs Task objects
-
-    Args:
-
-    Attributes:
-        tasks (list): child (generator) list
-        count (int): index into child (generator) list     
-        __next__: get the Task from tasks[self.count].  if tasks[self.count] is a Task, 
-                  return it; else if it is a callable, call it (and expect it to return 
-                  a Task object, which __next__ in turn returns
-    """
-
-    def __init__(self):
-        self.count = 0
-
-        # this one for debug purposes, counts actual tasks output
-        # not actually used for anything rn
-        self.tasks_added = 0
-
-        self.tasks = []
-
-    def append(self, tasks):
-        if type(tasks) is list:
-            self.tasks.extend(tasks)
-        else:
-            self.tasks.append(tasks)
-
-    def __len__(self):
-        return len(self.tasks) - self.count
-
-    def __iter__(self):
-        self.count = 0
-        return self
-
-    def __next__(self):
-        if self.count >= len(self.tasks):
-            raise StopIteration
-        task_gen = self.tasks[self.count]
-        task = None
-        if callable(task_gen):
-            # WARNING: getting a task from the generator does not increment count!
-            task = task_gen()
-            if task:
-                self.tasks_added += 1
-                return task
-            else:
-                self.count += 1
-                return next(self)
-        else:
-            task = self.tasks[self.count]
-            self.count += 1
-            self.tasks_added += 1
-            return task
+def maybe_task_list_to_control_block(maybe_task_list, agent):
+    # if input is a list of tasks with len > 1, outputs a ControlBlock wrapping them
+    # if it is a list of tasks with len = 1, returns that task
+    if len(maybe_task_list) == 1:
+        return maybe_task_list[0]
+    if type(maybe_task_list) is not list:
+        return maybe_task_list
+    return ControlBlock(agent, {"new_tasks": maybe_task_list})

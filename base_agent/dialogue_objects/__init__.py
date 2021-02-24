@@ -35,7 +35,7 @@ from reference_object_helpers import (
 
 from location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
 
-from interpreter import Interpreter, TaskListWrapper
+from interpreter import Interpreter
 
 from get_memory_handler import GetMemoryHandler
 
@@ -72,6 +72,5 @@ __all__ = [
     FilterInterpreter,
     AttributeInterpreter,
     GetMemoryHandler,
-    TaskListWrapper,
     Interpreter,
 ]

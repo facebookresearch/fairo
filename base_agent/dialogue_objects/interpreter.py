@@ -19,28 +19,6 @@ from base_agent.memory_nodes import TripleNode, TaskNode
 from base_agent.condition import NTimesCondition
 
 
-class TaskListWrapper:
-    """
-    takes a callable that outputs a list (of tasks) and turns it into a callable
-    that outputs one element of the list at a time, iterating through the list
-    """
-
-    def __init__(self, new_tasks_fn):
-        self.list_fn = new_tasks_fn
-        self.current_list = []
-        self.count = 0
-
-    def __call__(self):
-        if self.count >= len(self.current_list):
-            self.count = 0
-            self.current_list = self.list_fn()
-            assert (
-                type(self.current_list) is list
-            ), "don't use a TaskListWrapper for callable that outputs Tasks (instead of lists of Tasks)"
-        self.count += 1
-        return self.current_list[self.count]
-
-
 class Interpreter(DialogueObject):
     """
     | This class processes incoming chats and modifies the task stack.
@@ -92,8 +70,8 @@ class Interpreter(DialogueObject):
         }
 
         # each action handler should have signature
-        # speaker, logical_form -->  a list of Tasks, possible output utterance, possible output data.
-        #     the list of Tasks is allowed to include ControlBlocks
+        # speaker, logical_form -->  a Task, possible output utterance, possible output data.
+        #     if the action handler builds a list, it should wrap it in a ControlBlock
         self.action_handlers = {
             "MOVE": self.handle_move,
             "STOP": self.handle_stop,
@@ -125,18 +103,24 @@ class Interpreter(DialogueObject):
                 try:
                     r = self.action_handlers[action_type](self.speaker, action_def)
                     if len(r) == 3:
-                        tasks, response, dialogue_data = r
+                        task, response, dialogue_data = r
                     else:
                         # FIXME don't use this branch, uniformize the signatures
-                        tasks = []
+                        task = None
                         response, dialogue_data = r
                 except ErrorWithResponse as err:
                     return err.chat, None
-                tasks_to_push.extend(tasks)
+                if task:
+                    tasks_to_push.append(task)
             if len(tasks_to_push) == 1:
-                TaskMem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
+                try:
+                    TaskMem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
+                except:
+                    import ipdb
+
+                    ipdb.set_trace()
             elif len(tasks_to_push) > 1:
-                task_data = {"new_tasks_fn": tasks_to_push}
+                task_data = {"new_tasks": tasks_to_push}
                 c = ControlBlock(self.agent, task_data)
                 TaskMem = TaskNode(self.agent.memory, c.memid)
             else:
@@ -201,7 +185,9 @@ class Interpreter(DialogueObject):
             pos = self.post_process_loc(pos, self)
             task_data = {"target": pos, "action_dict": d}
             task = Move(self.agent, task_data)
-            return task
+            # TODO wrap this or make a class so we don't have to always add
+            sequence_finished = True
+            return task, sequence_finished
 
         if "stop_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
@@ -214,14 +200,13 @@ class Interpreter(DialogueObject):
             # FIXME grammar to handle "remove" vs "stop"
 
             loop_task_data = {
-                "new_tasks_fn": [new_tasks],
-                "on_condition": NTimesCondition(self.agent, N=1),
+                "new_tasks": new_tasks,
                 "remove_condition": condition,  #!!! semantic parser + GT need updating
                 "action_dict": d,
             }
-            return [Control(self.agent, loop_task_data)], None, None
+            return Control(self.agent, loop_task_data), None, None
         else:
-            return [new_tasks()], None, None
+            return new_tasks()[0], None, None
 
     # TODO mark in memory it was stopped by command
     def handle_stop(self, speaker, d) -> Tuple[Optional[str], Any]:
@@ -231,9 +216,9 @@ class Interpreter(DialogueObject):
             self.archived_loop_data = self.loop_data
             self.loop_data = None
         if self.memory.task_stack_pause():
-            return [], "Stopping.  What should I do next?", None
+            return None, "Stopping.  What should I do next?", None
         else:
-            return [], "I am not doing anything", None
+            return None, "I am not doing anything", None
 
     # FIXME this is needs updating...
     # TODO mark in memory it was resumed by command
@@ -244,10 +229,10 @@ class Interpreter(DialogueObject):
                 # TODO if we want to be able stop and resume old tasks, will need to store
                 self.loop_data = self.archived_loop_data
                 self.archived_loop_data = None
-            return [], "resuming", None
+            return None, "resuming", None
         else:
-            return [], "nothing to resume", None
+            return None, "nothing to resume", None
 
     def handle_otheraction(self, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
-        return [], "I don't know how to do that yet", None
+        return None, "I don't know how to do that yet", None

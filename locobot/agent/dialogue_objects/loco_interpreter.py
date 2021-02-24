@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Tuple, Dict, Any, Optional
 
 from base_agent.memory_nodes import PlayerNode
-from base_agent.task import ControlBlock
+from base_agent.task import ControlBlock, maybe_task_list_to_control_block
 from base_agent.dialogue_objects import (
     AGENTPOS,
     ConditionInterpreter,
@@ -105,7 +105,7 @@ class LocoInterpreter(Interpreter):
             task_data = {"get_target": obj.memid, "give_target": receiver, "action_dict": d}
             tasks.append(self.task_objects["get"](self.agent, task_data))
         #        logging.info("Added {} Get tasks to stack".format(len(tasks)))
-        return tasks, None, None
+        return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
     def handle_dance(self, speaker, d) -> Tuple[Optional[str], Any]:
         def new_tasks():
@@ -135,7 +135,7 @@ class LocoInterpreter(Interpreter):
                         )
                         t = self.task_objects["dance"](self.agent, {"movement": refmove})
                         tasks_to_do.append(t)
-                    return tasks_to_do
+                    return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
             dance_type = d.get("dance_type", {"dance_type_name": "dance"})
             if dance_type.get("point"):
@@ -160,7 +160,7 @@ class LocoInterpreter(Interpreter):
             else:
                 # FIXME ! merge dances, refactor.  search by name in sql
                 raise ErrorWithResponse("I don't know how to do that dance yet!")
-            return tasks_to_do
+            return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
         if "stop_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
@@ -186,4 +186,4 @@ class LocoInterpreter(Interpreter):
         Drops whatever object in hand
         """
 
-        return [self.task_objects["drop"](self.agent, {"action_dict": d})], None, None
+        return self.task_objects["drop"](self.agent, {"action_dict": d}), None, None

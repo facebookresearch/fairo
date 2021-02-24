@@ -106,6 +106,7 @@ CREATE TABLE Tasks (
     pickled     BLOB            NOT NULL,
     prio        INTEGER         NOT NULL DEFAULT 1,
     running     BOOLEAN         NOT NULL DEFAULT 1,
+    run_count   INTEGER         NOT NULL DEFAULT 0,
     paused      BOOLEAN         NOT NULL DEFAULT 0,
     created     INTEGER         NOT NULL,
     finished    INTEGER         NOT NULL DEFAULT -1,

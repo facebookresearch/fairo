@@ -784,11 +784,12 @@ class TaskNode(MemoryNode):
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        pickled, prio, running, created, finished, action_name = self.agent_memory._db_read_one(
-            "SELECT pickled, prio, running, created, finished, action_name FROM Tasks WHERE uuid=?",
+        pickled, prio, running, run_count, created, finished, action_name = self.agent_memory._db_read_one(
+            "SELECT pickled, prio, running, run_count, created, finished, action_name FROM Tasks WHERE uuid=?",
             memid,
         )
         self.prio = prio
+        self.run_count = run_count
         self.running = running
         self.task = self.agent_memory.safe_unpickle(pickled)
         self.created = created
@@ -815,12 +816,13 @@ class TaskNode(MemoryNode):
         memid = cls.new(memory)
         task.memid = memid  # FIXME: this shouldn't be necessary, merge Task and TaskNode?
         memory._db_write(
-            "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, created) VALUES (?,?,?,?,?,?)",
+            "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)",
             memid,
             task.__class__.__name__.lower(),
             memory.safe_pickle(task),
             task.prio,
             task.running,
+            task.run_count,
             memory.get_time(),
         )
         return memid
@@ -832,7 +834,10 @@ class TaskNode(MemoryNode):
     def update_task(self, task=None):
         task = task or self.task
         self.memory.db_write(
-            "UPDATE Tasks SET pickled=? WHERE uuid=?", self.memory.safe_pickle(task), self.memid
+            "UPDATE Tasks SET run_count=?, pickled=? WHERE uuid=?",
+            task.run_count,
+            self.memory.safe_pickle(task),
+            self.memid,
         )
 
     # FIXME TODO don't need paused, set prio to 0 and have a condtion for unpausing
@@ -874,6 +879,7 @@ class TaskNode(MemoryNode):
                 self.agent_memory.db_write(cmd, status_out[k], self.memid)
         return status_out
 
+    # FIXME! or torch me
     def propagate_status(self, status):
         # if the parent of a task is paused, propagate to children
         # if parent is currently paused and then unpaused, propagate to children
@@ -881,7 +887,8 @@ class TaskNode(MemoryNode):
 
     def add_child_task(self, t):
         """Add and activate a child task to the task_stack and pass along the id 
-        of the parent task (current task).  
+        of the parent task (current task).  A task can only have one direct
+        descendant any any given time.  To add a list of children use a ControlBlock
     
         Args:
             t: the task to be added.  a *Task* object, not a TaskNode
