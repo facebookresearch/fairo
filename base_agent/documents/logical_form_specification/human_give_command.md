@@ -289,7 +289,7 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
   "pitch": span,
   "relative_yaw" = {"fixed_value": -360 / -180 / -135 / -90 / -45 / 45 / 90 / 135 / 180 / 360, 
   		    "yaw_span": span},
-   "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90, 
+  "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90, 
   		    "pitch_span": span},
   "location": <LOCATION>
 }
