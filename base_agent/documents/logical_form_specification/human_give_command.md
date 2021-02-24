@@ -248,7 +248,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 "reference_object" : {
       "text_span" : span,
       <Repeat>,
-      "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK", "coordinates_span" : span},
+      "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK"} / {"coordinates_span" : span},
       "filters" : <FILTERS>
       }
   } 
@@ -287,10 +287,8 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
   "yaw_pitch": span,
   "yaw": span,
   "pitch": span,
-  "relative_yaw" = {"fixed_value": -360 / -180 / -135 / -90 / -45 / 45 / 90 / 135 / 180 / 360, 
-  		    "yaw_span": span},
-  "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90, 
-  		    "pitch_span": span},
+  "relative_yaw" = {"fixed_value": -360 / -180 / -135 / -90 / -45 / 45 / 90 / 135 / 180 / 360} / {"yaw_span": span},
+  "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90} / {"pitch_span": span},
   "location": <LOCATION>
 }
 ```

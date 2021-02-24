@@ -55,7 +55,7 @@ This is used to mean the number of steps (in "has_measure" units, default is "bl
 {"linear_extent" : {
             "relative_direction": "LEFT" / "RIGHT"/ "UP" / "DOWN"/ "FRONT" 
                                   / "BACK"/ "AWAY" / "INSIDE" / "OUTSIDE", 
-            "frame": {"fixed_value": "SPEAKER" / "AGENT" / "ABSOLUTE", "player_span": span},
+            "frame": {"fixed_value": "SPEAKER" / "AGENT" / "ABSOLUTE"} / {"player_span": span},
             "has_measure" : {"fixed_value" : text} / span,
             "source": <REFERENCE_OBJECT>,
 		        "destination": <REFERENCE_OBJECT> }
