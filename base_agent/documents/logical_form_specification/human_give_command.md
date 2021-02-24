@@ -20,11 +20,12 @@ This is the action to Build a schematic at an optional location.
 { "action_type" : BUILD,
   <Location>,
   <Schematic>,
-  <Repeat> (with repeat_key: 'FOR' and additional repeat_dir: 'SURROUND'),
+  <Repeat>,
   "replace" : True
 }
-    
 ```
+Note also that: we can have an additional spatial_control: 'SURROUND' to replace `repeat_dir` when events and conditionals spec change is in.
+
 ### Copy Action ###
 This is the action to copy a block object to an optional location. The copy action is represented as a "Build" with an optional reference_object in the tree.
 
@@ -32,7 +33,7 @@ This is the action to copy a block object to an optional location. The copy acti
 { "action_type" : 'BUILD',
   <Location>,
   <ReferenceObject>,
-  <Repeat> (repeat_key = 'FOR'),
+  <Repeat>,
   "replace" : True
 }
 ```
@@ -45,10 +46,10 @@ Spawn only has a name in the reference object.
 { "action_type" : 'SPAWN',
   "reference_object" : {
       "text_span" : span,
-      <Repeat>(repeat_key= 'FOR'),
+      <Repeat>,
       "triples": [{"pred_text": "has_name", "obj_text": {"fixed_value" : text} / span}]
     },
-    <Repeat>(repeat_key= 'FOR'),
+    <Repeat>,
     "replace": True
 }
 ```
@@ -124,7 +125,7 @@ The `Schematic` child in this only has a subset of properties.
   <Location>,
   "schematic" : {
     "text_span" : span,
-    <Repeat>(repeat_key = 'FOR'),
+    <Repeat>,
     "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
     },
   <StopCondition>,
@@ -157,10 +158,7 @@ Also has support for Point / Turn / Look.
   "stop_condition" : {
       "condition_type" : NEVER,
   },
-  "repeat" : {
-    "repeat_key" : 'FOR',
-    "repeat_count" : span, # Note no repeat_dir here.
-  },
+  <Repeat>,
   "replace": True
 }
 ```
@@ -265,20 +263,41 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 ```
 "schematic" : {
           "text_span" : span,
-          <Repeat> (with repeat_key: 'FOR' and additional 'SURROUND' repeat_dir), 
+          <Repeat>, 
           "triples" : [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
       }
 ```
 where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientation`, `has_thickness`, `has_colour`, `has_height`, `has_length`, `has_radius`, `has_slope`, `has_width`, `has_base`, `has_depth`, `has_distance` 
+`schematic` can have an additional 'SURROUND' spatial_control for when we introduce `spatial_control` once the events and conditonals spec change is in.
 
 #### Repeat ####
+Loop over until a count (previously Repeat for):
 ```
-"repeat" : {
-            "repeat_key" : 'FOR'/ 'ALL'
-            "repeat_count" : span,
-            "repeat_dir": 'LEFT' / 'RIGHT'/ 'UP'/ 'DOWN'/ 'FRONT'/ 'BACK' / 'AROUND'
+"stop_condition" : {
+  "condition_type" : "COMPARATOR",
+  "condition" : {
+    "comparison_type" : "EQUAL",
+    "input_left": {
+      "filters" : {
+        "output" : {"attribute" : "RUN_COUNT"},
+        "memory_type" : "_THIS"
       }
+    },
+    "input_right" : {
+      "value" : span
+    }
+  }
+}
 ```
+Here the `input_left` field returns the `RUN_COUNT` attribute of the task that the loop is being called on, and that is compared against the `value` field in `input_right` (which will be the loop count). Note that `"memory_type": "_THIS"` denotes the current task.
+
+Repeat `ALL` will be :
+```
+"repeat" : {"repeat_key" : 'ALL'}
+```
+for now. But this will be changed in a later iteration.
+
+Note also that: `"repeat_dir"` from before will now sit in `spatial_control` - this change should go in once the events and conditionals spec change is in.
 
 #### FACING ####
 ```
