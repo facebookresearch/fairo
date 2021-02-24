@@ -12,8 +12,6 @@ Where
 
 ```
 CONTROL = {
-      "repeat_count" : span,
-      "repeat_key" : 'FOR'/'ALL',
       "on_condition": CONDITION, 
       "stop_condition": CONDITION
       }
@@ -58,6 +56,7 @@ The "action_type" key specifies a single action and is mutually exclusive with t
 
 
 ## CONDITION ##
+
 ```
 CONDITION = {
   "condition_type" : 'MEMORY' / 'COMPARATOR' / 'NEVER' / 'TIME' / 'ACTION' /
@@ -98,3 +97,18 @@ TIME_CONDITION = {
 ```
 Note that `event` in time_condition represents when to start the timer and
 `input_left` by default in time condition marks the time since the event condition.
+
+
+Note for refactor: We can perhaps remove the "condition_type" field and have the value of "condition" start with name of condition like for example:
+```
+CONDITION = {
+  "and_condition": [CONDITION, ..., CONDITION]} 
+}
+```
+instead of 
+```
+CONDITION = {
+  "condition_type" : "AND",
+  "condition" : {"and_condition": [CONDITION, ..., CONDITION]} }
+}
+```
