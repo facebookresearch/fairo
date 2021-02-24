@@ -46,7 +46,7 @@ Spawn only has a name in the reference object.
   "reference_object" : {
       "text_span" : span,
       <Repeat>(repeat_key= 'FOR'),
-      "triples": [{"pred_text": "has_name", "obj_text": span}]
+      "triples": [{"pred_text": "has_name", "obj_text": {"fixed_value" : text} / span}]
     },
     <Repeat>(repeat_key= 'FOR'),
     "replace": True
@@ -58,7 +58,7 @@ This action indicates that the previous action should be resumed.
 
 ```
 { "action_type" : 'RESUME',
-  "target_action_type": span
+  "target_action_type": {"fixed_value" : text} / span
 }
 ```
 
@@ -67,7 +67,7 @@ This action states that a hole / negative shape needs to be filled up.
 
 ```
 { "action_type" : 'FILL',
-  "triples": [{"pred_text": "has_name", "obj_text": span}]
+  "triples": [{"pred_text": "has_block_type", "obj_text": {"fixed_value" : text} / span}]
   <ReferenceObject>,
   <Repeat>,
   "replace": True
@@ -102,7 +102,7 @@ This action states the intent to revert the specified action, if any.
 
 ```
 { "action_type" : 'UNDO',
-  "target_action_type" : span
+  "target_action_type" : {"fixed_value" : text} / span
 }
 ```
 
@@ -111,7 +111,7 @@ This action indicates stop.
 
 ```
 { "action_type" : 'STOP',
-  "target_action_type": span
+  "target_action_type": {"fixed_value" : text} / span
 }
 ```
 
@@ -125,7 +125,7 @@ The `Schematic` child in this only has a subset of properties.
   "schematic" : {
     "text_span" : span,
     <Repeat>(repeat_key = 'FOR'),
-    "triples": [{"pred_text": "has_x", "obj_text": span}]
+    "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
     },
   <StopCondition>,
   <Repeat>,
@@ -232,7 +232,7 @@ If "location" is given in RIGIDMOTION, the modify is to move the reference objec
 "location" : {
           "text_span" : span,
           "steps" : span,
-          "has_measure" : span,
+          "has_measure" : {"fixed_value" : text} / span,
           "contains_coreference" : "yes",
           "relative_direction" : 'LEFT' / 'RIGHT'/ 'UP'/ 'DOWN'/ 'FRONT'/ 'BACK'/ 'AWAY'
                                   / 'INSIDE' / 'NEAR' / 'OUTSIDE' / 'BETWEEN',
@@ -248,7 +248,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 "reference_object" : {
       "text_span" : span,
       <Repeat>,
-      "special_reference" : 'SPEAKER' / 'AGENT' / 'SPEAKER_LOOK' / {'coordinates_span' : span},
+      "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK", "coordinates_span" : span},
       "filters" : <FILTERS>
       }
   } 
@@ -266,7 +266,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 "schematic" : {
           "text_span" : span,
           <Repeat> (with repeat_key: 'FOR' and additional 'SURROUND' repeat_dir), 
-          "triples" : [{"pred_text": "has_x", "obj_text": span}]
+          "triples" : [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
       }
 ```
 where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientation`, `has_thickness`, `has_colour`, `has_height`, `has_length`, `has_radius`, `has_slope`, `has_width`, `has_base`, `has_depth`, `has_distance` 
@@ -287,9 +287,9 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
   "yaw_pitch": span,
   "yaw": span,
   "pitch": span,
-  "relative_yaw" = {"angle": -360, -180, -135, -90, -45, 45, 90, 135, 180, 360 
+  "relative_yaw" = {"fixed_value": -360 / -180 / -135 / -90 / -45 / 45 / 90 / 135 / 180 / 360, 
   		    "yaw_span": span},
-   "relative_pitch" = {"angle": -90, -45, 45, 90, 
+   "relative_pitch" = {"fixed_value": -90 / -45 / 45 / 90, 
   		    "pitch_span": span},
   "location": <LOCATION>
 }
@@ -298,7 +298,7 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
 #### DanceType ####
 ```
 "dance_type" : {
-  "dance_type_name": span,
+  "dance_type_name": {"fixed_value" : text} / span,
   "dance_type_tag": span,
   "point": <FACING>,
   "look_turn": <FACING>,
