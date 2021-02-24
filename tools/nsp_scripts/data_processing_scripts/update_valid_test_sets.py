@@ -21,40 +21,35 @@ def write_data_chunk_to_file(data, file, commands_only=False):
             else:
                 fd.write(line)
 
+def load_file_as_dictionary(data_file):
+    commands_dict = {}
+    with open(data_file, "r") as fd:
+        new_dataset = fd.readlines()
+    
+    for line in new_dataset:
+        command, action_dict = line.strip().split("|")
+        commands_dict[command] = action_dict
 
-def update_data_chunk(updated_data, commands_path, output_dir):
-    """Read the commands in file_to_update and update the commands with the updated trees
-    in updated_data.
+    return commands_dict
+    
+
+def update_file(file_to_update, updated_data):
+    """For each command in the file_to_update, apply the updated data if any.
     """
-    VALID_UPDATED_SET = []
-    TRAIN_UPDATED_SET = []
+    with open(file_to_update, "r") as fd:
+        old_dataset = fd.readlines()
 
-    with open(updated_data, "r") as fd:
-        dataset = fd.readlines()
-    for partition in ["train", "valid", "test"]:
-        chunk_commands = [r.strip() for r in open("{}/{}/{}"commands_).readlines()]
+    commands_dict = load_file_as_dictionary(updated_data)
+    updated_new_commands = []
 
-    for row in dataset:
-        command, action_dict = row.split("|")
-        if command in chunk_commands:
-            VALID_UPDATED_SET.append("{}|{}".format(command, action_dict))
-        else:
-            TRAIN_UPDATED_SET.append("{}|{}".format(command, action_dict))
-    print(len(TRAIN_UPDATED_SET))
-    # Write the updated chunk
-    write_data_chunk_to_file(TRAIN_UPDATED_SET, output_dir + "../train/")
-    write_data_chunk_to_file(VALID_UPDATED_SET, output_dir + "../valid/")
+    for line in old_dataset:
+        command, action_dict = line.strip().split("|")
+        if command in commands_dict:
+            updated_new_commands.append("{}|{}".format(command, commands_dict[command]))
 
-
-def update_data_dir(full_data_dir, commands_path):
-    """For each file in the data dir, separate the train and valid sets based on previous split.
-    """
-    for name in glob.glob("{}/*".format(full_data_dir)):
-        print(name)
-	data_type = 
-        for partition in ["valid", "test"]:
-		chunk_commands = [r.strip() for r in open("{}/{}/{}".format(commands_path, partition, data_type)).readlines()]
-        update_data_chunk(name, commands_path, full_data_dir)
+    with open(file_to_update, "w") as fd:
+        for line in updated_new_commands:
+            fd.write(str(line) + "\n")
 
 
 if __name__ == "__main__":
@@ -63,16 +58,23 @@ if __name__ == "__main__":
     parser.add_argument(
             "--full_data_dir",
             type=str,
-            help="path to dataset we want to update"
+            help="craftassist/agent/datasets/full_data/"
     )
     parser.add_argument(
             "--commands_path",
             type=str,
             help="path to commands from current split"
     )
+    parser.add_argument(
+            "--file_to_update",
+            type=str,
+            default="craftassist/agent/datasets/full_data/annotated_old.txt"
+    )
+    parser.add_argument(
+            "--updated_data",
+            type=str,
+            default="craftassist/agent/datasets/full_data/annotated.txt"
+    )
 
     args = parser.parse_args()
-    full_data_dir = args.full_data_dir
-    commands_path = args.commands_path
-    # For each split in the directory, for each data file, load the commands and update the tree 
-    update_data_dir(full_data_dir, commands_path)
+    update_file(args.file_to_update, args.updated_data)
