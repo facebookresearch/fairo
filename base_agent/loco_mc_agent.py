@@ -217,11 +217,17 @@ class LocoMCAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
+        query = {"base_table": "Tasks", "base_exact": {"prio": -1}}
+        task_mems = self.memory.basic_search(query)
+        for mem in task_mems:
+            if mem.task.init_condition.check():
+                mem.get_update_status({"prio": 0})
+
         # this is "select TaskNodes whose priority is >= 0 and are not paused"
         query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
         task_mems = self.memory.basic_search(query)
         for mem in task_mems:
-            if mem.task.on_condition.check():
+            if mem.task.run_condition.check():
                 # eventually we need to use the multiplex filter to decide what runs
                 mem.get_update_status({"prio": 1, "running": 1})
             if mem.task.stop_condition.check():

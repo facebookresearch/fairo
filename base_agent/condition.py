@@ -43,6 +43,17 @@ class NTimesCondition(Condition):
         return self.count <= self.N
 
 
+class NotCondition(Condition):
+    def __init__(self, agent, condition):
+        super().__init__(agent)
+        self.name = "not"
+        self.condition = condition
+
+    def check(self):
+        c = not self.condition.check()
+        return c
+
+
 class AndCondition(Condition):
     """ conditions should be an iterable"""
 

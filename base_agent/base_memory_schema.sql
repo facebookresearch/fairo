@@ -94,9 +94,10 @@ CREATE TABLE Programs (
 
 
 
--- prio > 0 :  run me if possible, check my stop condition
--- prio = 0 :  check my start condition, run if true
--- prio < 0 :  don't even check my start condition
+-- prio > 0  :  run me if possible, check my stop condition
+-- prio = 0  :  check my start condition, run if true
+-- prio = -1 :  don't check my start condition, but check my init_condition
+-- prio = -2 :  don't check my start condition or my init_condition, I am "removed"
 -- running means that it is to be stepped by the agent's task_step(), if it has not been paused
 -- paused means a player has explicitly paused it.  a task can be running *and* paused
 -- change "action_name" to "name"?

@@ -1,8 +1,27 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from condition import NeverCondition, AlwaysCondition, TaskStatusCondition
+from condition import NeverCondition, AlwaysCondition, TaskStatusCondition, NotCondition
 from memory_nodes import TaskNode, LocationNode, TripleNode
+
+
+def get_default_conditions(task_data, agent, task):
+    init_condition = task_data.get("init_condition", AlwaysCondition(None))
+
+    run_condition = task_data.get("run_condition")
+    stop_condition = task_data.get("stop_condition")
+    if stop_condition is None:
+        if run_condition is None:
+            stop_condition = NeverCondition(None)
+            run_condition = AlwaysCondition(None)
+        else:
+            stop_condition = NotCondition(run_condition)
+    elif run_condition is None:
+        run_condition = NotCondition(stop_condition)
+
+    remove_condition = task_data.get("remove_condition", TaskStatusCondition(agent, task.memid))
+    return init_condition, stop_condition, run_condition, remove_condition
+
 
 # put a counter and a max_count so can't get stuck?
 class Task(object):
@@ -25,7 +44,7 @@ class Task(object):
         >>> Task()
     """
 
-    def __init__(self, agent):
+    def __init__(self, agent, task_data={}):
         self.agent = agent
         self.run_count = 0
         self.interrupted = False
@@ -38,9 +57,11 @@ class Task(object):
         self.memid = TaskNode.create(self.agent.memory, self)
         # TODO put these in memory in a new table?
         # TODO methods for safely changing these
-        self.stop_condition = NeverCondition(None)
-        self.on_condition = AlwaysCondition(None)
-        self.remove_condition = TaskStatusCondition(agent, self.memid)
+        i, s, ru, re = get_default_conditions(task_data, agent, self)
+        self.init_condition = i
+        self.stop_condition = s
+        self.run_condition = ru
+        self.remove_condition = re
         TripleNode.create(
             self.agent.memory,
             subj=self.memid,
@@ -120,14 +141,9 @@ class ControlBlock(Task):
     """
 
     def __init__(self, agent, task_data):
-        super().__init__(agent)
+        super().__init__(agent, task_data=task_data)
         self.loop = task_data.get("loop", False)
         self.setup_tasks(task_data.get("new_tasks"))
-        self.stop_condition = task_data.get("stop_condition", NeverCondition(None))
-        self.on_condition = task_data.get("on_condition", AlwaysCondition(None))
-        self.remove_condition = task_data.get(
-            "remove_condition", TaskStatusCondition(agent, self.memid)
-        )
         TaskNode(self.agent.memory, self.memid).update_task(task=self)
 
     def setup_tasks(self, tasks):
