@@ -13,9 +13,9 @@ class VoxelGeometry(Attribute):
     def __call__(self, mems):
         bounds = [m.get_bounds() for m in mems]
         if self.attribute == "width":
-            return [max(b[1] - b[0], b[5] - b[4]) for b in bounds]
+            return [max(b[1] - b[0] + 1, b[5] - b[4] + 1) for b in bounds]
         else:
-            return [b[3] - b[2] for b in bounds]
+            return [b[3] - b[2] + 1 for b in bounds]
 
     def __repr__(self):
         return "VoxelGeometry " + str(self.attribute)
