@@ -7,3 +7,4 @@ This folder contains tools for the project:
 - `dashboard_web` has the frontend component and build files of the project dashboard.
 - `data_scripts` has the scripts that maintain fetching and uploading data to our S3 bucket.
 - `docker` has the docker setup for the project.
+- `nsp_scripts` has scripts used by the semantic parser and surrounding datasets.

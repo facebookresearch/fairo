@@ -15,7 +15,6 @@ class FiltersAnnotator extends React.Component {
     }
     /* Array of text commands that need labelling */
     this.handleChange = this.handleChange.bind(this);
-    // this.keyPress = this.keyPress.bind(this);
     this.logSerialized = this.logSerialized.bind(this);
     this.uploadData = this.uploadData.bind(this);
     this.incrementIndex = this.incrementIndex.bind(this);
@@ -33,10 +32,8 @@ class FiltersAnnotator extends React.Component {
       body: JSON.stringify(data)
     };
     fetch("http://localhost:9000/readAndSaveToFile/append", requestOptions)
-      // .then(res => res.json())
       .then(
         (result) => {
-          console.log("success")
           console.log(result)
           this.setState({ value: "" })
           alert("saved!")
@@ -54,7 +51,6 @@ class FiltersAnnotator extends React.Component {
       body: JSON.stringify(data)
     };
     fetch("http://localhost:9000/readAndSaveToFile/writeLabels", requestOptions)
-      // .then(res => res.json())
       .then(
         (result) => {
           console.log("success")
@@ -106,13 +102,16 @@ class FiltersAnnotator extends React.Component {
   }
 
   updateLabels(e) {
-      // Make a shallow copy of the items
+    // Make a shallow copy of the items
+    try {
+      // First check that the string is JSON valid
+      let JSONActionDict = JSON.parse(this.state.value)
       let items = {...this.state.dataset};
-      items[this.state.fullText[this.state.currIndex]] = JSON.parse(this.state.value);
+      items[this.state.fullText[this.state.currIndex]] = JSONActionDict;
       // Set state to the data items
       this.setState({dataset: items}, function() {
         try {
-          let actionDict = JSON.parse(this.state.value)
+          let actionDict = JSONActionDict
           let JSONString = {
             "command": this.state.fullText[this.state.currIndex],
             "logical_form": actionDict
@@ -121,9 +120,16 @@ class FiltersAnnotator extends React.Component {
           console.log(this.state.dataset)
           this.writeLabels(this.state.dataset)
         } catch (error) {
+          console.error(error)
+          console.log("Error parsing JSON")
           alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
         }
       });
+    } catch(error) {
+      console.error(error)
+      console.log("Error parsing JSON")
+      alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
+    }
   }
 
   logSerialized() {
@@ -141,16 +147,17 @@ class FiltersAnnotator extends React.Component {
       body: JSON.stringify({})
     };
     fetch("http://localhost:9000/readAndSaveToFile/uploadDataToS3", requestOptions)
-    // .then(res => res.json())
     .then(
       (result) => {
-        console.log("success")
-        console.log(result)
-        this.setState({ value: "" })
-        alert("saved!")
+        if (result.status == 200) {
+          this.setState({ value: "" })
+          alert("saved!")
+        } else {
+          alert("Error: could not upload data to S3: " + result.statusText + "\n Check the format of your action dictionary labels.")
+        }
       },
       (error) => {
-        console.log(error)
+        console.error(error)
       }
     )
   }
