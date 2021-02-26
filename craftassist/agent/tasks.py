@@ -234,19 +234,6 @@ class Move(BaseMovementTask):
             if len(self.replace) > 0:
                 logging.error("Move finished with non-empty replace set: {}".format(self.replace))
             self.finished = True
-            # FIXME every task has a memid, prob don't want to do this here.
-            # locmemid = agent.memory.add_location(self.target)
-            # locmem = agent.memory.get_location_by_id(locmemid)
-            # agent.memory.update_recent_entities(mems=[locmem])
-            # agent.memory.add_triple(subj=self.memid, pred_text="task_effect_", obj=locmemid)
-            # chat_mem_triples = agent.memory.get_triples(
-            #    subj=None, pred_text="chat_effect_", obj=self.memid
-            # )
-            # if len(chat_mem_triples) > 0:
-            #    chat_memid = chat_mem_triples[0][0]
-            #    agent.memory.add_triple(
-            #        subj=chat_memid, pred_text="chat_effect_", obj=locmemid
-            #    )
             return
 
         # get path

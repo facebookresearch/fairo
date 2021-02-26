@@ -113,12 +113,7 @@ class Interpreter(DialogueObject):
                 if task:
                     tasks_to_push.append(task)
             if len(tasks_to_push) == 1:
-                try:
-                    TaskMem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
-                except:
-                    import ipdb
-
-                    ipdb.set_trace()
+                TaskMem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
             elif len(tasks_to_push) > 1:
                 task_data = {"new_tasks": tasks_to_push}
                 c = ControlBlock(self.agent, task_data)
@@ -126,7 +121,7 @@ class Interpreter(DialogueObject):
             else:
                 TaskMem = None
             if TaskMem:
-                TaskMem.get_update_status({"prio": 1})
+                TaskMem.get_update_status({"prio": -1})
                 chat = self.agent.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
                     self.agent.memory, subj=chat.memid, pred_text="chat_effect_", obj=TaskMem.memid
@@ -172,6 +167,8 @@ class Interpreter(DialogueObject):
             # TODO if we do this better will be able to handle "stay between the x"
             default_loc = getattr(self, "default_loc", SPEAKERLOOK)
             location_d = d.get("location", default_loc)
+            # FIXME! this loop_data trick can now be done more properly with
+            # a fixed mem filter
             if self.loop_data and hasattr(self.loop_data, "get_pos"):
                 mems = [self.loop_data]
             else:
@@ -198,7 +195,6 @@ class Interpreter(DialogueObject):
             steps, reldir = interpret_relative_direction(self, location_d)
 
             # FIXME grammar to handle "remove" vs "stop"
-
             loop_task_data = {
                 "new_tasks": new_tasks,
                 "remove_condition": condition,  #!!! semantic parser + GT need updating

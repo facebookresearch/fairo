@@ -840,15 +840,21 @@ class TaskNode(MemoryNode):
             self.memid,
         )
 
+    def update_condition(self, conditions):
+        for k, condition in conditions:
+            setattr(self.task, k, condition)
+        self.update_task()
+
     # FIXME TODO don't need paused, set prio to 0 and have a condtion for unpausing
     # use this to update prio or running, don't do it directly on task or in db!!
     def get_update_status(self, status, force_db_update=True, force_task_update=True):
         """
         status is a dict with possible keys "prio", "running", "finished".
         
-        prio > 0 :  run me if possible, check my stop condition
-        prio = 0 :  check my start condition, run if true
-        prio < 0 :  don't even check my start condition
+        prio > 0  :  run me if possible, check my stop condition
+        prio = 0  :  check my run_condition, run if true
+        prio = -1 :  check my init_condition, set prio = 0 if True
+        prio < -1 :  don't even check init_condition or run_condition, I'm done
 
         running = 1 :  task should be stepped if possible and not explicitly paused
         running = 0 :  task should not be stepped
@@ -866,7 +872,10 @@ class TaskNode(MemoryNode):
         for k in ["prio", "running", "finished"]:
             # update the task itself, hopefully don't need to do this when task objects are re-written as MemoryNode s
             if force_task_update:
-                setattr(self.task, k, status.get(k) or getattr(self.task, k))
+                s = status.get(k)
+                if s is None:
+                    s = getattr(self.task, k)
+                setattr(self.task, k, s)
             status_out[k] = getattr(self.task, k)
             if k == "finished":
                 if self.task.finished:
@@ -885,17 +894,19 @@ class TaskNode(MemoryNode):
         # if parent is currently paused and then unpaused, propagate to children
         pass
 
-    def add_child_task(self, t):
-        """Add and activate a child task to the task_stack and pass along the id 
+    def add_child_task(self, t, prio=1):
+        """Add (and by default activate) a child task, and pass along the id 
         of the parent task (current task).  A task can only have one direct
         descendant any any given time.  To add a list of children use a ControlBlock
     
         Args:
             t: the task to be added.  a *Task* object, not a TaskNode
-            agent: the agent running this task
+               agent: the agent running this task
+            prio: default 1, set to 0 if you want the child task added but not activated
         """
         TaskMem = TaskNode(self.memory, t.memid)
-        TaskMem.get_update_status({"prio": 1})
+        # TODO mark that child task has been forcefully activated if it has non-trivial run_condition?
+        TaskMem.get_update_status({"prio": prio})
         TripleNode.create(self.memory, subj=t.memid, pred_text="_has_parent_task", obj=self.memid)
         TripleNode.create(self.memory, obj=t.memid, pred_text="_has_child_task", subj=self.memid)
 

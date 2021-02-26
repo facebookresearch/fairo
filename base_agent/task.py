@@ -1,10 +1,19 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+# the default init_condition is Never.  in current interpreter,
+# a *top-level* task from a command with a Never condition is forcibly activated
+# this is because we don't expect a top-level Event or Action command with a never condition
+# this should be revisited when we have methods for changing conditions
+# and wish to handle things like "do x; wait, don't do it yet" without giving
+# a condition for the event or action to start (but then later on explaining when the
+# event or action should occur)
 from condition import NeverCondition, AlwaysCondition, TaskStatusCondition, NotCondition
 from memory_nodes import TaskNode, LocationNode, TripleNode
 
-
+# FIXME TODO store conditions in memory (new table)
+# TaskNode method to update a tasks conditions
+# dsl/put_memory for commands to do so
 def get_default_conditions(task_data, agent, task):
     init_condition = task_data.get("init_condition", AlwaysCondition(None))
 
@@ -78,7 +87,7 @@ class Task(object):
                 self.finished = True
             if self.finished:
                 TaskNode(self.agent.memory, self.memid).get_update_status(
-                    {"prio": -1, "finished": True}
+                    {"prio": -2, "finished": True}
                 )
                 return
             query = {
@@ -154,6 +163,11 @@ class ControlBlock(Task):
         else:
             assert type(tasks) is list
             self.task_list = tasks
+            for task in self.task_list:
+                # WARNING !! the control block is going to forcibly init
+                # its children.
+                cdict = {"init_condition": NeverCondition(None)}
+                TaskNode(self.agent.memory, task.memid).update_condition(cdict)
             self.task_list_idx = 0
 
             def fn():
@@ -176,6 +190,9 @@ class ControlBlock(Task):
     @Task.step_wrapper
     def step(self):
         t, update_run_count = self.tasks_fn()
+        import ipdb
+
+        ipdb.set_trace()
         if update_run_count:
             self.run_count += 1
         if t is not None:
