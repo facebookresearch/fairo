@@ -143,5 +143,5 @@ jobs:
 workflows:
   build:
     jobs:
-      - build
+      - minecraft_tests
       - locobot_tests
