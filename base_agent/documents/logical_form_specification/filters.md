@@ -140,7 +140,7 @@ Note:
 ```
 {
   "pred_text": "has_tag", 
-  "obj_text": "_SELF"}
+  "obj_text": {"fixed_value" : "SELF"} }
 ```
 and `'memory_type': 'REFERENCE_OBJECT'` 
 
@@ -148,25 +148,25 @@ and `'memory_type': 'REFERENCE_OBJECT'`
 ```
 {
   "pred_text": "has_tag", 
-  "obj_text": "_SPEAKER"}
+  "obj_text": {"fixed_value" : "SPEAKER"}}
 ```
 and `'memory_type': 'REFERENCE_OBJECT'` 
 
 - Current task is : `'memory_type': 'TASKS'` and 
 ```
 {"pred_text": "has_tag", 
- "obj_text": "_CURRENTLY_RUNNING"}
+ "obj_text": {"fixed_value" : "CURRENTLY_RUNNING"}}
 ``` 
 - A completed task by: `'memory_type': 'TASKS'` and 
 ```
 {"pred_text": "has_tag", 
- "obj_text": "_FINISHED"}
+ "obj_text": {"fixed_value" : "FINISHED"}}
 ``` 
 
 - Task name is represented using :
 ```
 {"pred_text": "has_name", 
- "obj_text": "_BUILD" / "_DIG" / "_FILL" / _(name of any other action in capital letters)
+ "obj_text": {"fixed_value": "BUILD" / "DIG" / "FILL" / (name of any other action in capital letters)}
 }
 ```
 
