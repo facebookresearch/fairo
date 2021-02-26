@@ -4,11 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from base_agent.dialogue_objects import SPEAKERLOOK, AGENTPOS
 from copy import deepcopy
 
+
 def command(d):
     if type(d) is list:
         return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": d}
     else:
         return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [d]}
+
 
 ATTRIBUTES = {
     "x": {"attribute": "x"},
@@ -16,7 +18,7 @@ ATTRIBUTES = {
         "attribute": {
             "linear_extent": {
                 "relative_direction": "AWAY",
-                "source": {"reference_object": {"special_reference": "SPEAKER"}},
+                "source": {"reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}},
             }
         }
     },
@@ -59,7 +61,7 @@ REFERENCE_OBJECTS = {
     "a cow": {"filters": FILTERS["a cow"]},
     "that cube": {"filters": FILTERS["that cube"]},
     "a cube": {"filters": FILTERS["a cube"]},
-    "me": {"special_reference": "AGENT"},
+    "me": {"special_reference": {"fixed_value": "AGENT"}},
 }
 
 ATTRIBUTES["distance from that cube"] = {
@@ -73,27 +75,47 @@ ATTRIBUTES["distance from that cube"] = {
 
 # FIXME "built" should check for player made or agent made
 FILTERS["the first thing that was built"] = {
-    "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "argval": {
+        "polarity": "MIN",
+        "ordinal": {"fixed_value": "FIRST"},
+        "quantity": ATTRIBUTES["create time"],
+    },
+    "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "VOXEL_OBJECT"}}],
 }
 FILTERS["the last thing that was built"] = {
-    "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "argval": {
+        "polarity": "MAX",
+        "ordinal": {"fixed_value": "FIRST"},
+        "quantity": ATTRIBUTES["create time"],
+    },
+    "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "VOXEL_OBJECT"}}],
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "argval": {
+        "polarity": "MIN",
+        "ordinal": {"fixed_value": "FIRST"},
+        "quantity": ATTRIBUTES["create time"],
+    },
+    "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "VOXEL_OBJECT"}}],
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argval": {"polarity": "MIN", "ordinal": "SECOND", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "argval": {
+        "polarity": "MIN",
+        "ordinal": {"fixed_value": "SECOND"},
+        "quantity": ATTRIBUTES["create time"],
+    },
+    "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "VOXEL_OBJECT"}}],
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "argval": {
+        "polarity": "MAX",
+        "ordinal": {"fixed_value": "FIRST"},
+        "quantity": ATTRIBUTES["create time"],
+    },
+    "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "VOXEL_OBJECT"}}],
 }
 
 
@@ -120,7 +142,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
             "text_span": "where I'm looking",
         },
         "location": {
-            "reference_object": {"special_reference": "AGENT"},
+            "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
             "text_span": "where I am",
         },
     },
@@ -146,7 +168,10 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "move_speaker_pos": {
         "action_type": "MOVE",
-        "location": {"reference_object": {"special_reference": "SPEAKER"}, "text_span": "to me"},
+        "location": {
+            "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}},
+            "text_span": "to me",
+        },
     },
     "build_diamond": {
         "action_type": "BUILD",
@@ -167,7 +192,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "build_red_cube": {
         "action_type": "BUILD",
-        "location": {"reference_object": {"special_reference": "SPEAKER_LOOK"}},
+        "location": {"reference_object": {"special_reference": {"fixed_value": "SPEAKER_LOOK"}}},
         "schematic": {
             "triples": [
                 {"pred_text": "has_colour", "obj_text": "red"},
@@ -335,7 +360,7 @@ BUILD_COMMANDS = {
             {
                 "action_type": "BUILD",
                 "schematic": {"triples": [{"pred_text": "has_name", "obj_text": "fluffy"}]},
-                "location": {"reference_object": {"special_reference": "AGENT"}},
+                "location": {"reference_object": {"special_reference": {"fixed_value": "AGENT"}}},
             }
         ],
     },
@@ -518,7 +543,7 @@ MOVE_COMMANDS = {
         {
             "action_type": "MOVE",
             "location": {
-                "reference_object": {"special_reference": "SPEAKER"},
+                "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}},
                 "text_span": "to me",
             },
         }
@@ -630,7 +655,9 @@ GET_MEMORY_COMMANDS = {
     "what are you doing": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "triples": [{"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"}],
+            "triples": [
+                {"pred_text": "has_tag", "obj_text": {"fixed_value": "CURRENTLY_RUNNING"}}
+            ],
             "memory_type": "TASKS",
             "output": {"attribute": "NAME"},
         },
@@ -639,8 +666,8 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "triples": [
-                {"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"},
-                {"pred_text": "has_name", "obj_text": "_BUILD"},
+                {"pred_text": "has_tag", "obj_text": {"fixed_value": "CURRENTLY_RUNNING"}},
+                {"pred_text": "has_name", "obj_text": {"fixed_value": "BUILD"}},
             ],
             "memory_type": "TASKS",
             "output": {"attribute": {"task_info": {"reference_object": {"attribute": "NAME"}}}},
@@ -654,8 +681,8 @@ GET_MEMORY_COMMANDS = {
             },
             "memory_type": "TASKS",
             "triples": [
-                {"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"},
-                {"pred_text": "has_name", "obj_text": "_MOVE"},
+                {"pred_text": "has_tag", "obj_text": {"fixed_value": "CURRENTLY_RUNNING"}},
+                {"pred_text": "has_name", "obj_text": {"fixed_value": "MOVE"}},
             ],
         },
     },
@@ -664,7 +691,7 @@ GET_MEMORY_COMMANDS = {
         "filters": {
             "output": {"attribute": "LOCATION"},
             "memory_type": "REFERENCE_OBJECT",
-            "triples": [{"pred_text": "has_tag", "obj_text": "_SELF"}],
+            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SELF"}}],
         },
     },
     "what is to the left of the cube?": {
@@ -711,12 +738,14 @@ GET_MEMORY_COMMANDS = {
         "filters": {
             "output": {"attribute": "name"},
             "argval": {
-                "ordinal": "FIRST",
+                "ordinal": {"fixed_value": "FIRST"},
                 "polarity": "MIN",
                 "quantity": {
-                    "attribute" : {
+                    "attribute": {
                         "linear_extent": {
-                            "source": {"reference_object": {"special_reference": "AGENT"}}
+                            "source": {
+                                "reference_object": {"special_reference": {"fixed_value": "AGENT"}}
+                            }
                         }
                     }
                 },
@@ -726,14 +755,18 @@ GET_MEMORY_COMMANDS = {
     "what is the thing closest to me?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute" : "name"},
+            "output": {"attribute": "name"},
             "argval": {
-                "ordinal": "FIRST",
+                "ordinal": {"fixed_value": "FIRST"},
                 "polarity": "MIN",
                 "quantity": {
-                    "attribute" : {
+                    "attribute": {
                         "linear_extent": {
-                            "source": {"reference_object": {"special_reference": "SPEAKER"}}
+                            "source": {
+                                "reference_object": {
+                                    "special_reference": {"fixed_value": "SPEAKER"}
+                                }
+                            }
                         }
                     }
                 },
@@ -853,7 +886,7 @@ STOP_CONDITION_COMMANDS = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "LEFT",
                 },
                 "stop_condition": CONDITIONS["that cow is closer than 2 steps to me"],
@@ -966,7 +999,7 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "FRONT",
                     "steps": "0.2",
                     "has_measure": "meters",
@@ -980,7 +1013,7 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "FRONT",
                     "steps": "one",
                     "has_measure": "meter",
@@ -994,7 +1027,7 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "LEFT",
                     "steps": "3",
                     "has_measure": "feet",
@@ -1003,26 +1036,26 @@ GROUND_TRUTH_PARSES = {
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
-    "go right 3 feet": {	
-        "action_sequence": [	
-            {	
-                "action_type": "MOVE",	
-                "location": {	
-                    "reference_object": {"special_reference": "AGENT"},	
-                    "relative_direction": "RIGHT",	
-                    "steps": "3",	
-                    "has_measure": "feet",	
-                },	
-            }	
-        ],	
-        "dialogue_type": "HUMAN_GIVE_COMMAND",	
+    "go right 3 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
+                    "relative_direction": "RIGHT",
+                    "steps": "3",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go left 3 meters": {
         "action_sequence": [
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "LEFT",
                     "steps": "3",
                     "has_measure": "meters",
@@ -1036,7 +1069,7 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "FRONT",
                     "steps": "1",
                     "has_measure": "feet",
@@ -1050,7 +1083,7 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "MOVE",
                 "location": {
-                    "reference_object": {"special_reference": "AGENT"},
+                    "reference_object": {"special_reference": {"fixed_value": "AGENT"}},
                     "relative_direction": "BACK",
                     "steps": "1",
                     "has_measure": "feet",
@@ -1063,7 +1096,7 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "-90"}}},
+                "dance_type": {"body_turn": {"relative_yaw": {"fixed_value": "-90"}}},
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1072,7 +1105,7 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "90"}}},
+                "dance_type": {"body_turn": {"relative_yaw": {"fixed_value": "90"}}},
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1081,7 +1114,7 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "-180"}}},
+                "dance_type": {"body_turn": {"relative_yaw": {"fixed_value": "-180"}}},
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1090,7 +1123,7 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "-90"}}},
+                "dance_type": {"body_turn": {"relative_yaw": {"fixed_value": "-90"}}},
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1101,7 +1134,11 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "DANCE",
                 "dance_type": {
                     "look_turn": {
-                        "location": {"reference_object": {"special_reference": "SPEAKER_LOOK"}}
+                        "location": {
+                            "reference_object": {
+                                "special_reference": {"fixed_value": "SPEAKER_LOOK"}
+                            }
+                        }
                     }
                 },
             }
@@ -1157,7 +1194,9 @@ GROUND_TRUTH_PARSES = {
         "action_sequence": [
             {
                 "action_type": "GET",
-                "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
+                "receiver": {
+                    "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}
+                },
                 "reference_object": {
                     "filters": {"triples": [{"pred_text": "has_name", "obj_text": "lunch"}]}
                 },
