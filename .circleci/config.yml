@@ -136,7 +136,7 @@ jobs:
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           docker cp loco-img:/shared shared
           pip install codecov
-          CODECOV_TOKEN="318c7f7e-54eb-4692-8651-8ea48857c3a7"
+          CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
           bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
 
 
