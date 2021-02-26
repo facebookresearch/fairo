@@ -169,7 +169,6 @@ class GetMemoryHandler(DialogueObject):
             else:
                 raise ValueError("Bad answer_type={}".format(output_type))
         except Exception as e:
-            logging.exception(e)
             raise ErrorWithResponse("I don't understand what you're asking")
 
     def handle_exists(self, mems: Sequence[MemoryNode]) -> Tuple[Optional[str], Any]:
