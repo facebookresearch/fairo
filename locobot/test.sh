@@ -1,11 +1,13 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-
-
+start=`date +%s`
+echo "Ensure Habitat is running and LOCOBOT_IP is set."
 cd $(dirname $0)
-coverage run --source . -m unittest discover
+coverage run --source . -m unittest discover -p 'test*.py'
 status=$?
 coverage report
-# coverage xml -o /shared/test_MC.xml
+end=`date +%s`
+runtime=$((end-start))
+echo "Runtime $runtime seconds"
 exit $status

@@ -32,7 +32,11 @@ IP = "127.0.0.1"
 if os.getenv("LOCOBOT_IP"):
     IP = os.getenv("LOCOBOT_IP")
 
-PERCEPTION_MODELS_DIR = "locobot/agent/models/perception"
+PERCEPTION_MODELS_DIR = os.path.join(
+    os.path.abspath(os.path.dirname(__file__)),
+    "../agent/models/perception",
+)
+
 OFFICE_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
     "test_assets/perception_handlers",
