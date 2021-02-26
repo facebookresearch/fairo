@@ -104,8 +104,8 @@ class AgentMemory:
         self.tag(self.self_memid, "_animate")
         # this is a hack until memory_filters does "not"
         self.tag(self.self_memid, "_not_location")
-        self.tag(self.self_memid, "_agent")
-        self.tag(self.self_memid, "_self")
+        self.tag(self.self_memid, "AGENT")
+        self.tag(self.self_memid, "SELF")
 
         self.basic_searcher = BasicMemorySearcher(self_memid=self.self_memid)
 
@@ -648,7 +648,7 @@ class AgentMemory:
         Args:
             tags (list): list of tags
         """
-        tags += ("_player",)
+        tags += ("PLAYER",)
         memids = set.intersection(*[set(self.get_memids_by_tag(t)) for t in tags])
         return [self.get_player_by_id(memid) for memid in memids]
 
