@@ -46,6 +46,8 @@ def update_file(file_to_update, updated_data):
         command, action_dict = line.strip().split("|")
         if command in commands_dict:
             updated_new_commands.append("{}|{}".format(command, commands_dict[command]))
+        else:
+            updated_new_commands.append("{}|{}".format(command, action_dict))
 
     with open(file_to_update, "w") as fd:
         for line in updated_new_commands:
