@@ -44,10 +44,7 @@ class FacingInterpreter:
             return {"head_yaw_pitch": (current_yaw, word_to_num(w))}
         elif d.get("relative_yaw"):
             # TODO in the task use turn angle
-            if d["relative_yaw"].get("angle"):
-                return {"relative_yaw": int(d["relative_yaw"]["angle"])}
-            elif d["relative_yaw"].get("yaw_span"):
-                span = d["relative_yaw"].get("yaw_span")
+            if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
                 left = "left" in span or "leave" in span  # lemmatizer :)
                 degrees = number_from_span(span) or 90
                 if degrees > 0 and left:
@@ -55,21 +52,26 @@ class FacingInterpreter:
                 else:
                     return {"relative_yaw": degrees}
             else:
-                pass
+                try:
+                    deg = int(d["relative_yaw"])
+                    return {"relative_yaw": deg}
+                except:
+                    pass
         elif d.get("relative_pitch"):
-            if d["relative_pitch"].get("angle"):
-                # TODO in the task make this relative!
-                return {"relative_pitch": int(d["relative_pitch"]["angle"])}
-            elif d["relative_pitch"].get("pitch_span"):
-                span = d["relative_pitch"].get("pitch_span")
-                down = "down" in span
-                degrees = number_from_span(span) or 90
+            if "down" in d["relative_pitch"] or "up" in d["relative_pitch"]:
+                down = "down" in d["relative_pitch"]
+                degrees = number_from_span(d["relative_pitch"]) or 90
                 if degrees > 0 and down:
                     return {"relative_pitch": -degrees}
                 else:
                     return {"relative_pitch": degrees}
             else:
-                pass
+                # TODO in the task make this relative!
+                try:
+                    deg = int(d["relative_pitch"]["angle"])
+                    return {"relative_pitch": deg}
+                except:
+                    pass
         elif d.get("location"):
             mems = interpreter.subinterpret["reference_locations"](
                 interpreter, speaker, d["location"]
