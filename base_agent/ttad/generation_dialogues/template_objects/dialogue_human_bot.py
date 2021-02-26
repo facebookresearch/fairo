@@ -8,18 +8,18 @@ from tree_components import *
 from .template_object import *
 
 action_reference_object_map = {
-    "_BUILD": "building",
-    "_DESTROY": "destroying",
-    "_SPAWN": "spawning",
-    "_MOVE": "following",
-    "_DIG": "digging",
-    "_FILL": "filling",
+    "BUILD": "building",
+    "DESTROY": "destroying",
+    "SPAWN": "spawning",
+    "MOVE": "following",
+    "DIG": "digging",
+    "FILL": "filling",
 }
 
 
 class QueryBotCurrentAction(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["has_tag"] = "_CURRENTLY_RUNNING"
+        self.node._filters_args["has_tag"] = "CURRENTLY_RUNNING"
         self.node._filters_args["mem_type"] = "TASKS"
         self.node.answer_type = "TAG"
         self.node.tag_name = "NAME"
@@ -70,7 +70,7 @@ class QueryBot(TemplateObject):
 
 class CurrentLocation(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["has_tag"] = "_SELF"
+        self.node._filters_args["has_tag"] = "SELF"
         self.node._filters_args["mem_type"] = "REFERENCE_OBJECT"
         self.node.answer_type = "TAG"
         self.node.tag_name = "LOCATION"
@@ -78,7 +78,7 @@ class CurrentLocation(TemplateObject):
 
 class ActionReferenceObjectName(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["has_tag"] = "_CURRENTLY_RUNNING"
+        self.node._filters_args["has_tag"] = "CURRENTLY_RUNNING"
         self.node._filters_args["mem_type"] = "TASKS"
         self.node._filters_args["has_name"] = random.choice(
             list(action_reference_object_map.keys())
@@ -94,9 +94,9 @@ class ActionReferenceObjectName(TemplateObject):
 
 class MoveTarget(TemplateObject):
     def add_generate_args(self, index=0, templ_index=0):
-        self.node._filters_args["has_tag"] = "_CURRENTLY_RUNNING"
+        self.node._filters_args["has_tag"] = "CURRENTLY_RUNNING"
         self.node._filters_args["mem_type"] = "TASKS"
-        self.node._filters_args["has_name"] = "_MOVE"
+        self.node._filters_args["has_name"] = "MOVE"
         self.node.answer_type = "TAG"
         self.node.tag_name = "move_target"
 

@@ -712,7 +712,7 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_tag", "obj_text": "_SELF"}],
+            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SELF"}}],
             "memory_type": "REFERENCE_OBJECT",
         },
     },
