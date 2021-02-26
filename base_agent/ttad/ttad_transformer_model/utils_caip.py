@@ -471,7 +471,7 @@ class CAIPDataset(Dataset):
             full_tree, tr_i2w = full_tree_voc
             self.full_tree = full_tree
         spec_tokens = ["[PAD]", "unused", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "<S>", "</S>"]
-        self.tree_voc = spec_tokens[:] + tr_i2w
+        self.tree_voc = spec_tokens[:] + tr_i2w + fixed_span_values
         self.tree_idxs = dict([(w, i) for i, w in enumerate(self.tree_voc)])
 
         self.dataset_length = max([len(v) for v in self.data.values()])
@@ -503,7 +503,7 @@ class CAIPDataset(Dataset):
         )
         text_idx_ls = [self.tokenizer._convert_token_to_id(w) for w in text.split()]
         tree_idx_ls = [
-            [self.tree_idxs[w], bi, ei, text_span_start, text_span_end, (fixed_span_values[fixed_span_val] if type(fixed_span_val) == str else fixed_span_val)]
+            [self.tree_idxs[w], bi, ei, text_span_start, text_span_end, (self.tree_idxs[fixed_span_val] if type(fixed_span_val) == str else fixed_span_val)]
             for w, bi, ei, text_span_start, text_span_end, fixed_span_val in [("<S>", -1, -1, -1, -1, -1)]
             + tree
             + [("</S>", -1, -1, -1, -1, -1)]
