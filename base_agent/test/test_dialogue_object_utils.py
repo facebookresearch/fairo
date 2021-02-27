@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
 
-print(sys.path)
 import unittest
 from copy import deepcopy
 from base_agent.dialogue_objects.dialogue_object_utils import process_spans
@@ -48,7 +47,9 @@ class TestProcessSpans(unittest.TestCase):
     def test_process_spans(self):
         for k, v in logical_form_before_processing.items():
             processed = deepcopy(v)
-            process_spans(processed, k, k)
+            process_spans(
+                processed, k, k
+            )  # process spans and fixed_values. Implemented in: dialogue_object_utils.
             assert compare_full_dictionaries(processed, logical_form_post_processing[k])
 
 
