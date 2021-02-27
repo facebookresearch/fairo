@@ -166,7 +166,10 @@ and `'memory_type': 'REFERENCE_OBJECT'`
 - Task name is represented using :
 ```
 {"pred_text": "has_name", 
- "obj_text": {"fixed_value": "BUILD" / "DIG" / "FILL" / (name of any other action in capital letters)}
+ "obj_text": {"fixed_value": "BUILD" / "DIG" / "FILL" / "SPAWN" / 
+                             "RESUME" / "FILL" / "DESTROY" / "MOVE" / 
+                             "DIG" / "GET" / "DANCE" / "FREEBUILD" /
+                             "STOP" / "UNDO"}
 }
 ```
 
