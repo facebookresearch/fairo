@@ -7,6 +7,17 @@
     "span": {
       "$ref": "span.schema.json#/definitions/span"
     },
+    "fixed_value": {
+      "type": "object",
+      "properties": {
+        "fixed_value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "fixed_value"
+      ]
+    },
     "location": {
       "type": "object",
       "properties": {
@@ -53,12 +64,7 @@
         "special_reference": {
           "oneOf": [
             {
-              "type": "string",
-              "enum": [
-                "SPEAKER",
-                "AGENT",
-                "SPEAKER_LOOK"
-              ]
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
             },
             {
               "type": "object",
@@ -80,8 +86,7 @@
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
         }
-      },
-      "additionalProperties": false
+      }
     },
     "stop_condition": {
       "type": "object",
@@ -172,44 +177,24 @@
           "$ref": "#/definitions/span"
         },
         "relative_yaw": {
-          "type": "object",
-          "properties": {
-            "angle": {
-              "enum": [
-                "-360",
-                "-180",
-                "-135",
-                "-90",
-                "-45",
-                "0",
-                "45",
-                "90",
-                "135",
-                "180",
-                "360"
-              ]
-            },
-            "yaw_span": {
+          "oneOf": [
+            {
               "$ref": "#/definitions/span"
+            },
+            {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
             }
-          }
+          ]
         },
         "relative_pitch": {
-          "type": "object",
-          "properties": {
-            "angle": {
-              "enum": [
-                "-90",
-                "-45",
-                "0",
-                "45",
-                "90"
-              ]
-            },
-            "pitch_span": {
+          "oneOf": [
+            {
               "$ref": "#/definitions/span"
+            },
+            {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
             }
-          }
+          ]
         },
         "location": {
           "$ref": "#/definitions/location"
