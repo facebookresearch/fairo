@@ -15,9 +15,7 @@
                 "ordinal": {
                     "anyOf": [
                         {
-                            "enum": [
-                                "FIRST"
-                            ]
+                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
                         },
                         {
                             "$ref": "action_dict_components.schema.json#/definitions/span"
@@ -59,7 +57,8 @@
                         "COLOUR",
                         "LOCATION",
                         "TAG",
-                        "BLOCK_TYPE"
+                        "BLOCK_TYPE",
+                        "CURRENT_TIME"
                     ]
                 },
                 {
@@ -249,10 +248,7 @@
                 "author": {
                     "oneOf": [
                         {
-                            "enum": [
-                                "AGENT",
-                                "SPEAKER"
-                            ]
+                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
                         },
                         {
                             "$ref": "action_dict_components.schema.json#/definitions/span"
@@ -299,8 +295,7 @@
                 "destination": {
                     "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
                 }
-            },
-            "additionalProperties": false
+            }
         },
         "mod_close": {
             "type": "object",
@@ -403,6 +398,9 @@
                             },
                             {
                                 "$ref": "action_dict_components.schema.json#/definitions/span"
+                            },
+                            {
+                                "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
                             }
                         ]
                     },
