@@ -11,6 +11,24 @@ import copy
 from os import walk
 
 
+def check_yaw_pitch_span(d):
+    for key, value in d.items():
+        if key == "relative_yaw":
+            if type(value) == dict and "yaw_span" in value:
+                return True
+        elif key == "relative_pitch":
+            if type(value) == dict and "pitch_span" in value:
+                return True
+        elif key == "triples":
+            for entry in value:
+                if check_yaw_pitch_span(entry):
+                    return True
+        elif type(value) == dict:
+            if check_yaw_pitch_span(value):
+                return True
+    return False
+
+
 def check_fixed_value(d):
     for key, value in d.items():
         if key in [
@@ -70,6 +88,26 @@ def updated_fixed_value(d):
     return new_d
 
 
+def update_yaw_pitch_span(d):
+    new_d = copy.deepcopy(d)
+    for key, value in d.items():
+        if key == "relative_yaw":
+            if type(value) == dict and "yaw_span" in value:
+                new_d[key] = value["yaw_span"]
+        elif key == "relative_pitch":
+            if type(value) == dict and "pitch_span" in value:
+                new_d[key] = value["pitch_span"]
+        elif key == "triples":
+            new_value = []
+            for entry in value:
+                new_val = update_yaw_pitch_span(entry)
+                new_value.append(new_val)
+            new_d[key] = new_value
+        elif type(value) == dict:
+            new_d[key] = update_yaw_pitch_span(value)
+    return new_d
+
+
 def update_data(folder):
     """This function walks through the folder and for each file,
     performs update on the dataset and writes output to a new
@@ -98,6 +136,7 @@ def update_data(folder):
                             if check_fixed_value(action):
                                 flag = True
                                 updated_dict = updated_fixed_value(action)
+                                updated_dict = update_yaw_pitch_span(updated_dict)
                                 new_actions.append(updated_dict)
                             else:
                                 new_actions.append(action)
@@ -110,6 +149,7 @@ def update_data(folder):
                         if check_fixed_value(action_dict):
                             flag = True
                             new_ad = updated_fixed_value(action_dict)
+                            new_ad = update_yaw_pitch_span(new_ad)
                             new_data.append([chat, new_ad])
                         else:
                             new_data.append([chat, action_dict])
@@ -158,4 +198,3 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     update_data(args.input_folder)
-
