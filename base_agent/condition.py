@@ -13,6 +13,19 @@ class Condition:
         raise NotImplementedError("Implemented by subclass")
 
 
+class SwitchCondition(Condition):
+    def __init__(self, agent):
+        super().__init__(agent)
+        self.name = "switch"
+        self.status = True
+
+    def set_status(self, status):
+        self.status = status
+
+    def check(self):
+        return self.status
+
+
 class NeverCondition(Condition):
     def __init__(self, agent):
         super().__init__(agent)

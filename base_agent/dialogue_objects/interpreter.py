@@ -14,7 +14,7 @@ from location_helpers import ReferenceLocationInterpreter, interpret_relative_di
 from filter_helper import FilterInterpreter
 
 from base_agent.base_util import ErrorWithResponse, NextDialogueStep
-from base_agent.task import ControlBlock
+from base_agent.task import ControlBlock, maybe_task_list_to_control_block
 from base_agent.memory_nodes import TripleNode, TaskNode
 from base_agent.condition import NTimesCondition
 
@@ -112,19 +112,17 @@ class Interpreter(DialogueObject):
                     return err.chat, None
                 if task:
                     tasks_to_push.append(task)
-            if len(tasks_to_push) == 1:
-                TaskMem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
-            elif len(tasks_to_push) > 1:
-                task_data = {"new_tasks": tasks_to_push}
-                c = ControlBlock(self.agent, task_data)
-                TaskMem = TaskNode(self.agent.memory, c.memid)
-            else:
-                TaskMem = None
-            if TaskMem:
-                TaskMem.get_update_status({"prio": -1})
+            task_mem = None
+            if tasks_to_push:
+                T = maybe_task_list_to_control_block(tasks_to_push, self.agent)
+                task_mem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
+            if task_mem:
                 chat = self.agent.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
-                    self.agent.memory, subj=chat.memid, pred_text="chat_effect_", obj=TaskMem.memid
+                    self.agent.memory,
+                    subj=chat.memid,
+                    pred_text="chat_effect_",
+                    obj=task_mem.memid,
                 )
             self.finished = True
             return response, dialogue_data
@@ -182,9 +180,7 @@ class Interpreter(DialogueObject):
             pos = self.post_process_loc(pos, self)
             task_data = {"target": pos, "action_dict": d}
             task = Move(self.agent, task_data)
-            # TODO wrap this or make a class so we don't have to always add
-            sequence_finished = True
-            return task, sequence_finished
+            return task
 
         if "stop_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
@@ -202,7 +198,7 @@ class Interpreter(DialogueObject):
             }
             return Control(self.agent, loop_task_data), None, None
         else:
-            return new_tasks()[0], None, None
+            return new_tasks(), None, None
 
     # TODO mark in memory it was stopped by command
     def handle_stop(self, speaker, d) -> Tuple[Optional[str], Any]:

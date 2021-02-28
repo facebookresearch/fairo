@@ -35,12 +35,11 @@ NONPICKLE_ATTRS = [
     "memory",
     "agent_memory",
     "tasks_fn",
-    "task_list",
-    "on_condition",
+    "run_condition",
+    "init_condition",
     "remove_condition",
     "stop_condition",
     "movement",
-    "setup_tasks",
 ]
 
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]

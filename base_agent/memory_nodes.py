@@ -841,7 +841,12 @@ class TaskNode(MemoryNode):
         )
 
     def update_condition(self, conditions):
-        for k, condition in conditions:
+        """ 
+        conditions is a dict with keys in
+        "init_condition", "run_condition", "stop_condition", "remove_condition"
+        and values being Condition objects
+        """
+        for k, condition in conditions.items():
             setattr(self.task, k, condition)
         self.update_task()
 
@@ -902,11 +907,13 @@ class TaskNode(MemoryNode):
         Args:
             t: the task to be added.  a *Task* object, not a TaskNode
                agent: the agent running this task
-            prio: default 1, set to 0 if you want the child task added but not activated
+            prio: default 1, set to 0 if you want the child task added but not activated, 
+                  None if you want it added but its conditions left in charge
         """
         TaskMem = TaskNode(self.memory, t.memid)
-        # TODO mark that child task has been forcefully activated if it has non-trivial run_condition?
-        TaskMem.get_update_status({"prio": prio})
+        if prio is not None:
+            # TODO mark that child task has been forcefully activated if it has non-trivial run_condition?
+            TaskMem.get_update_status({"prio": prio})
         TripleNode.create(self.memory, subj=t.memid, pred_text="_has_parent_task", obj=self.memid)
         TripleNode.create(self.memory, obj=t.memid, pred_text="_has_child_task", subj=self.memid)
 

@@ -1,14 +1,14 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-# the default init_condition is Never.  in current interpreter,
-# a *top-level* task from a command with a Never condition is forcibly activated
-# this is because we don't expect a top-level Event or Action command with a never condition
-# this should be revisited when we have methods for changing conditions
-# and wish to handle things like "do x; wait, don't do it yet" without giving
-# a condition for the event or action to start (but then later on explaining when the
-# event or action should occur)
-from condition import NeverCondition, AlwaysCondition, TaskStatusCondition, NotCondition
+from condition import (
+    NeverCondition,
+    AlwaysCondition,
+    TaskStatusCondition,
+    NotCondition,
+    SwitchCondition,
+    AndCondition,
+)
 from memory_nodes import TaskNode, LocationNode, TripleNode
 
 # FIXME TODO store conditions in memory (new table)
@@ -122,81 +122,73 @@ class Task(object):
         if self.finished:
             return self.finished
 
-    def add_child_task(self, t):
-        TaskNode(self.agent.memory, self.memid).add_child_task(t)
+    def add_child_task(self, t, prio=1):
+        TaskNode(self.agent.memory, self.memid).add_child_task(t, prio=prio)
 
     def __repr__(self):
         return str(type(self))
 
 
-# if you want a list of tasks, have to enclose in a control block
+class TaskListWrapper:
+    def __init__(self, agent):
+        self.task_list = []
+        self.task_list_idx = 0
+        self.prev = None
+        self.agent = agent
+
+    def append(self, task):
+        if self.prev is not None:
+            prev_finished = TaskStatusCondition(self.agent, self.prev.memid, status="finished")
+            cdict = {
+                "init_condition": AndCondition(self.agent, [task.init_condition, prev_finished])
+            }
+            TaskNode(self.agent.memory, task.memid).update_condition(cdict)
+        else:
+            self.fuse = SwitchCondition(self.agent)
+            cdict = {"init_condition": AndCondition(self.agent, [task.init_condition, self.fuse])}
+            TaskNode(self.agent.memory, task.memid).update_condition(cdict)
+            self.fuse.set_status(False)
+        self.prev = task
+        self.task_list.append(task)
+
+    def __call__(self):
+        if self.task_list_idx >= len(self.task_list):
+            return None
+        task = self.task_list[self.task_list_idx]
+        self.task_list_idx += 1
+        return task
+
+
+# if you want a list of tasks, have to enclose in a ControlBlock
+# if you want to loop over a list of tasks, you need a tasks_fn that
+# generates a ControlBlock C = tasks_fn() wrapping the (newly_generated) list,
+# and another D that encloses C, that checkes the remove and stop conditions.
+#
 # FIXME/TODO: name any nonpicklable attributes in the object
 class ControlBlock(Task):
-    """Container for task control
-    
+    """Container for task control    
 
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-            task_data["new_tasks"] is either a list of Tasks, or a callable
-                if it is a callable, when called it returns (Task, sequence_finished) or (None, True)
-                when it returns None, this ControlBlock is finished.
-                to make an infinite loop, the callable needs to keep returning Tasks; 
-                this ControlBlocks loop counter is incremented when sequence_finished is True
-                and left unchanged otherwise
-            task_data["loop"] should be set to True if a list of Tasks is input,
-                and the list should be looped.  default (unset) is False.  If the
-                new_tasks_fn is a callable, this will be ignored
+            task_data["new_tasks"] is a callable, when called it returns a Task or None
+            when it returns None, this ControlBlock is finished.
+            to make an infinite loop, the callable needs to keep returning Tasks; 
     """
 
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data=task_data)
-        self.loop = task_data.get("loop", False)
-        self.setup_tasks(task_data.get("new_tasks"))
+        self.tasks_fn = task_data.get("new_tasks")
+        if hasattr(self.tasks_fn, "fuse"):
+            self.tasks_fn.fuse.set_status(True)
         TaskNode(self.agent.memory, self.memid).update_task(task=self)
-
-    def setup_tasks(self, tasks):
-        # if tasks is a list, converts it into a callable
-        # if its a callable, just adds it
-        if callable(tasks):
-            self.tasks_fn = tasks
-        else:
-            assert type(tasks) is list
-            self.task_list = tasks
-            for task in self.task_list:
-                # WARNING !! the control block is going to forcibly init
-                # its children.
-                cdict = {"init_condition": NeverCondition(None)}
-                TaskNode(self.agent.memory, task.memid).update_condition(cdict)
-            self.task_list_idx = 0
-
-            def fn():
-                sequence_finished = False
-                if self.task_list_idx >= len(self.task_list):
-                    if self.loop:
-                        self.task_list_idx = 0
-                        # increment loop counter
-                        sequence_finished = True
-                    else:
-                        # not supposed to be looping this:
-                        assert self.run_count <= 1
-                        return None, True
-                task = self.task_list[self.task_list_idx]
-                self.task_list_idx += 1
-                return task, sequence_finished
-
-            self.tasks_fn = fn
 
     @Task.step_wrapper
     def step(self):
-        t, update_run_count = self.tasks_fn()
-        import ipdb
-
-        ipdb.set_trace()
-        if update_run_count:
-            self.run_count += 1
+        t = self.tasks_fn()
         if t is not None:
-            self.add_child_task(t)
+            self.add_child_task(t, prio=None)
+            self.run_count += 1
         else:
             self.finished = True
 
@@ -236,4 +228,7 @@ def maybe_task_list_to_control_block(maybe_task_list, agent):
         return maybe_task_list[0]
     if type(maybe_task_list) is not list:
         return maybe_task_list
-    return ControlBlock(agent, {"new_tasks": maybe_task_list})
+    W = TaskListWrapper(agent)
+    for t in maybe_task_list:
+        W.append(t)
+    return ControlBlock(agent, {"new_tasks": W})

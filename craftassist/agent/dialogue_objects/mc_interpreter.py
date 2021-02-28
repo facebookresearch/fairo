@@ -93,7 +93,7 @@ class MCInterpreter(Interpreter):
             "control": ControlBlock,
         }
 
-    def handle_modify(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_modify(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and handles a 'modify' command by either replying back or pushing 
         appropriate tasks to the task stack. 
@@ -141,7 +141,7 @@ class MCInterpreter(Interpreter):
 
         return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
-    def handle_spawn(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_spawn(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and handles a 'spawn' command by either replying back or 
         pushing a Spawn task to the task stack. 
@@ -175,7 +175,7 @@ class MCInterpreter(Interpreter):
             tasks.append(self.task_objects["spawn"](self.agent, task_data))
         return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
-    def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_build(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'build' command by either pushing a dialogue object
         or pushing a Build task to the task stack. 
@@ -251,7 +251,7 @@ class MCInterpreter(Interpreter):
         logging.info("Adding {} Build tasks to stack".format(len(tasks)))
         return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
-    def handle_fill(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_fill(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'fill' command by either pushing a dialogue object
         or pushing a Fill task to the task stack. 
@@ -308,7 +308,7 @@ class MCInterpreter(Interpreter):
 
         return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
-    def handle_destroy(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_destroy(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'destroy' command by either pushing a dialogue object
         or pushing a Destroy task to the task stack. 
@@ -340,7 +340,7 @@ class MCInterpreter(Interpreter):
         logging.info("Added {} Destroy tasks to stack".format(len(tasks)))
         return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
-    def handle_dig(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_dig(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'dig' command by either pushing a dialogue object
         or pushing a Dig task to the task stack. 
@@ -406,7 +406,7 @@ class MCInterpreter(Interpreter):
         else:
             return new_tasks(), None, None
 
-    def handle_dance(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_dance(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'dance' command by either pushing a dialogue object
         or pushing a Dance task to the task stack. 
@@ -514,7 +514,7 @@ class MCInterpreter(Interpreter):
             return new_tasks(), None, None
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
-    def handle_get(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_get(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
         or pushing a Get task to the task stack. 
@@ -539,7 +539,7 @@ class MCInterpreter(Interpreter):
         return self.task_objects["get"](self.agent, task_data), None, None
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
-    def handle_drop(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_drop(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'drop' command by either pushing a dialogue object
         or pushing a Drop task to the task stack. 
