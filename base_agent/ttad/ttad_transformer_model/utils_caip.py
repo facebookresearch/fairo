@@ -143,7 +143,7 @@ def tree_to_seq(full_tree, tree, idx_map=None):
     try:
         for k in sorted_keys:
             if k == "fixed_value":
-                res += [("FS:" + k, -1, -1, -1, -1, tree[k])]
+                res += [("FS:" + k, -1, -1, -1, -1, fixed_span_values[tree[k]])]
             elif is_cat(tree[k]):
                 res += [("C:" + k + "|" + str(tree[k]), -1, -1, -1, -1, -1)]
             elif is_span(tree[k]):
@@ -183,7 +183,7 @@ def select_spans(seq):
     spans = [-1 for _ in seq]
     active = {}
     unopened = False
-    for i, (w, b_id, e_id, text_span_b_id, text_span_e_id) in enumerate(seq):
+    for i, (w, b_id, e_id, text_span_b_id, text_span_e_id, fixed_val) in enumerate(seq):
         if w.startswith("IB:") or w.startswith("ILB:"):
             active[w] = active.get(w, {})
             active[w][i] = 0
@@ -471,7 +471,8 @@ class CAIPDataset(Dataset):
             full_tree, tr_i2w = full_tree_voc
             self.full_tree = full_tree
         spec_tokens = ["[PAD]", "unused", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "<S>", "</S>"]
-        self.tree_voc = spec_tokens[:] + tr_i2w + fixed_span_values
+        # import ipdb; ipdb.set_trace()
+        self.tree_voc = spec_tokens[:] + tr_i2w + list(fixed_span_values)
         self.tree_idxs = dict([(w, i) for i, w in enumerate(self.tree_voc)])
 
         self.dataset_length = max([len(v) for v in self.data.values()])
