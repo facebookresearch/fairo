@@ -15,6 +15,16 @@ from memory_nodes import TaskNode, LocationNode, TripleNode
 # TaskNode method to update a tasks conditions
 # dsl/put_memory for commands to do so
 def get_default_conditions(task_data, agent, task):
+    """
+    takes a task_data dict and fills in missing conditions with defaults
+
+    Args:
+        task_data (dict):  this function willtry to use the values of "init_condition", 
+                           "stop_condition", "run_condition", and "remove_condition"
+        agent (Droidlet Agent): the agent that is going to be doing the Task controlled by 
+                                condition
+        task (Task):  the task to be controlled by the conditions 
+    """
     init_condition = task_data.get("init_condition", AlwaysCondition(None))
 
     run_condition = task_data.get("run_condition")
@@ -46,7 +56,6 @@ class Task(object):
         name (string): Name of the task
         undone (bool): A flag indicating whether the task was undone / reverted
         last_stepped_time (int): Timestamp of last step through the task
-        throttling_tick (int): The threshold beyond which the task will be throttled
         stop_condition (Condition): The condition on which the task will be stopped (by default,
                         this is NeverCondition)
     Examples::
@@ -130,6 +139,21 @@ class Task(object):
 
 
 class TaskListWrapper:
+    """ gadget for converting a list of tasks into a callable that serves as a new_tasks 
+        callable for a ControlBlock.  
+
+    Args:
+        agent: the agent who will perform the task list
+
+    Attributes:
+        append:  append a task to the list; set the init_condition of the task to be
+                 appended to be its current init_condition and that the previous task
+                 in the list is completed (assuming there is a previous task).  if this
+                 the first task to be appended to the list, instead is ANDed with a
+                 SwitchCondition to be triggered by the ControlBlock enclosing this
+        __call__: the call outputs the next Task in the list
+    """
+
     def __init__(self, agent):
         self.task_list = []
         self.task_list_idx = 0
@@ -222,8 +246,18 @@ class BaseMovementTask(Task):
 
 
 def maybe_task_list_to_control_block(maybe_task_list, agent):
-    # if input is a list of tasks with len > 1, outputs a ControlBlock wrapping them
-    # if it is a list of tasks with len = 1, returns that task
+    """
+    if input is a list of tasks with len > 1, outputs a ControlBlock wrapping them
+    if it is a list of tasks with len = 1, returns that task
+
+    Args:
+        maybe_task_list:  could be a list of Task objects or a Task object
+        agent: the agent that will carry out the tasks
+
+    Returns: a Task.  either the single input Task or a ControlBlock wrapping them if
+             there are more than one
+    """
+
     if len(maybe_task_list) == 1:
         return maybe_task_list[0]
     if type(maybe_task_list) is not list:
