@@ -57,8 +57,8 @@ python locobot_agent.py
         </td>      
     </tr>
     <tr valign="top">
-        <td colspan=3> 4. Open the dashboard to interact with the assistant on `localhost:8000`. 
-          (Please note that the dashboard is currently supported only on Google Chrome.)
+        <td colspan=3> 4. Open the dashboard to interact with the assistant on `localhost:8000` 
+          (only currently supported on Google Chrome.)
         </td>      
     </tr>    
   </table>
