@@ -168,8 +168,10 @@ class GetMemoryHandler(DialogueObject):
                 return self.handle_exists(mems)
             else:
                 raise ValueError("Bad answer_type={}".format(output_type))
-        except Exception as e:
+        except IndexError: # index error indicates no answer available
             raise ErrorWithResponse("I don't understand what you're asking")
+        except Exception as e:
+            logging.exception(e)
 
     def handle_exists(self, mems: Sequence[MemoryNode]) -> Tuple[Optional[str], Any]:
         """Check if a memory exists.
