@@ -1,6 +1,6 @@
 version: 2.1
 jobs:
-  build:
+  minecraft:
     docker:
       - image: ubuntu:18.04
     steps:
@@ -69,7 +69,7 @@ jobs:
             tools/docker/login.sh
             make -C tools/docker push-versioned
 
-  locobot_tests:
+  locobot:
     machine:
       image: ubuntu-1604:201903-01
     resource_class: gpu.small
@@ -143,5 +143,5 @@ jobs:
 workflows:
   build:
     jobs:
-      - build
-      - locobot_tests
+      - minecraft
+      - locobot
