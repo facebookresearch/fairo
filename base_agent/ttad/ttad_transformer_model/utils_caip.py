@@ -475,7 +475,6 @@ class CAIPDataset(Dataset):
             full_tree, tr_i2w = full_tree_voc
             self.full_tree = full_tree
         spec_tokens = ["[PAD]", "unused", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "<S>", "</S>"]
-        # import ipdb; ipdb.set_trace()
         self.tree_voc = spec_tokens[:] + tr_i2w + list(fixed_span_values)
         self.tree_idxs = dict([(w, i) for i, w in enumerate(self.tree_voc)])
 

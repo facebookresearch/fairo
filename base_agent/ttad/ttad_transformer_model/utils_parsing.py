@@ -491,10 +491,6 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         fixed_value_beam_ids = fixed_value_ids // fixed_value_scores.shape[-1]
         # map back to which word in sequence, since
         fixed_value_word_ids = fixed_value_ids % fixed_value_scores.shape[-1]
-        # fixed_value_lin_scores = fixed_value_scores.view(fixed_value_scores.shape[0], -1)
-        # _, fixed_value_ids = fixed_value_lin_scores.sort(dim=-1, descending=True)
-        # fixed_value_ids = fixed_value_ids[:, 0] // fixed_value_scores.shape[-1]
-        # fixed_value_beam_ids = [bb_id.item() for bb_id in fixed_value_ids
         # re-order and add next token
         fixed_value_beam_scores = fixed_value_ranked_scores[:beam_size]
         fixed_value_beam_ids = fixed_value_beam_ids[:beam_size]
