@@ -169,6 +169,7 @@ class GetMemoryHandler(DialogueObject):
             else:
                 raise ValueError("Bad answer_type={}".format(output_type))
         except IndexError: # index error indicates no answer available
+            logging.error("No answer available from do_answer")
             raise ErrorWithResponse("I don't understand what you're asking")
         except Exception as e:
             logging.exception(e)
