@@ -52,34 +52,35 @@ class FacingInterpreter:
             w = float(word_to_num(d["pitch"].strip(" degrees").strip(" degree")))
             return {"yaw": current_pitch - w}
         elif d.get("relative_yaw"):
-            if d["relative_yaw"].get("angle"):
-                return {"yaw": float(d["relative_yaw"]["angle"])}
-            elif d["relative_yaw"].get("yaw_span"):
-                span = d["relative_yaw"].get("yaw_span")
+            if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
                 left = "left" in span or "leave" in span  # lemmatizer :)
                 degrees = number_from_span(span) or 90
+                # these are different than mc for no reason...? mc uses relative_yaw, these use yaw
                 if degrees > 0 and left:
-                    print(degrees)
-                    return {"yaw": degrees}
-                else:
-                    print(-degrees)
                     return {"yaw": -degrees}
-            else:
-                pass
-        elif d.get("relative_pitch"):
-            if d["relative_pitch"].get("angle"):
-                # TODO in the task make this relative!
-                return {"pitch": int(d["relative_pitch"]["angle"])}
-            elif d["relative_pitch"].get("pitch_span"):
-                span = d["relative_pitch"].get("pitch_span")
-                down = "down" in span
-                degrees = number_from_span(span) or 90
-                if degrees > 0 and down:
-                    return {"pitch": -degrees}
                 else:
-                    return {"pitch": degrees}
+                    return {"yaw": degrees}
             else:
-                pass
+                try:
+                    deg = int(d["relative_yaw"])
+                    return {"yaw": deg}
+                except:
+                    pass
+        elif d.get("relative_pitch"):
+            if "down" in d["relative_pitch"] or "up" in d["relative_pitch"]:
+                down = "down" in d["relative_pitch"]
+                degrees = number_from_span(d["relative_pitch"]) or 90
+                if degrees > 0 and down:
+                    return {"relative_pitch": -degrees}
+                else:
+                    return {"relative_pitch": degrees}
+            else:
+                # TODO in the task make this relative!
+                try:
+                    deg = int(d["relative_pitch"]["angle"])
+                    return {"relative_pitch": deg}
+                except:
+                    pass
         elif d.get("location"):
             loc_mems = interpreter.subinterpret["reference_locations"](
                 interpreter, speaker, d["location"]

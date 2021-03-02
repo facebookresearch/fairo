@@ -47,7 +47,10 @@ def process_spans(d, original_words, lemmatized_words):
         return
     for k, v in d.items():
         if type(v) == dict:
-            process_spans(v, original_words, lemmatized_words)
+            if "fixed_value" in v.keys():
+                d[k] = v["fixed_value"]
+            else:
+                process_spans(v, original_words, lemmatized_words)
         elif type(v) == list and type(v[0]) == dict:
             for a in v:
                 process_spans(a, original_words, lemmatized_words)
@@ -56,14 +59,12 @@ def process_spans(d, original_words, lemmatized_words):
                 sentence, (L, R) = v
                 if sentence != 0:
                     raise NotImplementedError("Must update process_spans for multi-string inputs")
-                # FIXME this is a hack for dec 2020
                 if L > R:
                     L = R
                 if L < 0:
                     L = 0
                 if R > (len(lemmatized_words) - 1):
                     R = len(lemmatized_words) - 1
-                # assert 0 <= L <= R <= (len(lemmatized_words) - 1)
             except ValueError:
                 continue
             except TypeError:

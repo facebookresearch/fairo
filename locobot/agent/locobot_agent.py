@@ -15,16 +15,16 @@ if __name__ == "__main__":
     dldashboard.start()
 
 from base_agent.nsp_dialogue_manager import NSPDialogueManager
-from loco_memory import LocoAgentMemory
+from locobot.agent.loco_memory import LocoAgentMemory
 from base_agent.base_util import to_player_struct, Pos, Look, Player, hash_user
 from base_agent.memory_nodes import PlayerNode
 from base_agent.loco_mc_agent import LocoMCAgent
-from perception import Perception, SelfPerception
+from locobot.agent.perception import Perception, SelfPerception
 from base_agent.argument_parser import ArgumentParser
-import default_behaviors
+import locobot.agent.default_behaviors as default_behaviors
 from locobot.agent.dialogue_objects import LocoBotCapabilities, LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
-import rotation
-from locobot_mover import LoCoBotMover
+import locobot.agent.rotation as rotation
+from locobot.agent.locobot_mover import LoCoBotMover
 from multiprocessing import set_start_method
 import time
 import signal

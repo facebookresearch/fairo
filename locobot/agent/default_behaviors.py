@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-import tasks
+import locobot.agent.tasks as tasks
 
 
 def explore(agent):

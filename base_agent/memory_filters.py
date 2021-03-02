@@ -241,9 +241,9 @@ class BasicMemorySearcher:
         self.search_data = search_data
         if search_data.get("special"):
             return self.handle_special(agent_memory, search_data)
-        # FIXME more careful handling of "_self",
+        # FIXME more careful handling of "SELF",
         # rn you can only get it if you ask for it specfically
-        ignore_self = "_self" not in [t.get("obj_text", "") for t in search_data.get("triples")]
+        ignore_self = "SELF" not in [t.get("obj_text", "") for t in search_data.get("triples")]
         query, args = self.get_query(search_data, ignore_self=ignore_self)
 
         # for debug:
