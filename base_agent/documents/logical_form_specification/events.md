@@ -3,21 +3,23 @@ Note: Classes used in the dict using `<>` are defined as subsections and their c
 # EVENT draft #
 ``` 
 COMMAND = {"action_sequence" : [ACTION/COMMAND, ...., ACTION/COMMAND],
-           "control": {"init_condition": CONDITION,
-	   	       "run_condition": CONDITION,
-		       "stop_condition": CONDITION,
-		       "remove_condition": CONDITION},
+           "init_condition": CONDITION,
+	   "run_condition": CONDITION,
+           "stop_condition": CONDITION,
+           "remove_condition": CONDITION,
            "spatial_control": {"direction_information": 'LEFT' / 'RIGHT'/ 'UP'/ 'DOWN'/ 'FRONT'/ 'BACK' / 
                              'AROUND' / 'CLOCKWISE' / 'ANTICLOCKWISE'}
 	   }
 ```
 
-In the sub dict opened by the "control" key, the "init_condition" specifies when the command should be
+The "init_condition" specifies when the command should be
 considered for running.  That is, until the init_condition is satisfied, the "run_condition" is not checked.
 the "remove_condition" being satisfied removes the command from consideration permanently; if the remove_condition is
-satisfied the run_condition will never be checked again.  The run_condition is checked every agent step after
-the init_condition has been satisfied if the task is not running; if it is satisfied, the next step in the action_sequence
-is set to priority > 0 (asks to be run by the agent).  The stop_condition is checked every agent step where the
+satisfied the run_condition will never be checked again.  Thus init_condition and remove_condition are the window in which the event
+can occur
+
+The run_condition is checked every agent step after the init_condition has been satisfied if the task is not running; if it is satisfied, 
+the next step in the action_sequence is set to priority > 0 (asks to be run by the agent).  The stop_condition is checked every agent step where the
 current step of the action_sequence is set to priority > 0; if it is satisfied, the priority is set to 0
 (tells agent to not run but check conditions).  The stop_condition takes precedence over the run_condition.  So in short:
 Once the init_condition has been satisfied, the action_sequence is stepped when the run_condition is satisfied,
@@ -43,7 +45,7 @@ while True: #agent loop:
         finished = True
 ```
 
-The "control" block and the "spatial_control" blocks are optional.  Within the control block, each key is optional.
+Each condition key and the "spatial_control" blocks are optional. 
 The defaults (if a key is not set) are "init_condition": ALWAYS, "run_condition": ALWAYS, "stop_condition": NEVER.
 
 The default for "remove_condition" is a bit more involved. Note that conditions are checked at each agent.step(),
@@ -60,7 +62,7 @@ THIS_ACTION_SEQUENCE = {"memory_type": "TASKS",
 number of times it has run; and so have the attribute "RUN_COUNT".  The default (that is, what would be interpreted
 if the key is not set) for remove_condition is 
 ```
-THIS_SEQUENCE_FINISHED = {"condition": {
+THIS_SEQUENCE_FINISHED = {
                            "comparator": {
 			     "comparison_type": "EQUAL",
                              "input_left": {
@@ -84,7 +86,7 @@ THIS_SEQUENCE_FINISHED = {"condition": {
 
 For "repeat 10 times" the remove condition is
 ```
-{"condition": {
+{
   "comparator": {
     "comparison_type": "EQUAL",
     "input_left": {
@@ -101,13 +103,13 @@ For "repeat 10 times" the remove condition is
 	"span": [0, [1,1]]
       }
     }
-   }
   }
- }
+}
+
 ```
 
-We don't need 4 conditions; and indeed we could easily merge run_condition and stop_conditions, but separating allows each of
-the conditions to be simpler.
+We don't _really_ need 4 conditions; and could probably merge run_condition and stop_conditions, but separating allows each of
+the conditions to be simpler (for example when the condition for running is different from the condition for stopping).
 
 
 TODO modifiers (faster/slower, happily, etc...) 
