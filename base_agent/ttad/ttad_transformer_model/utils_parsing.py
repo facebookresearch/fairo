@@ -66,7 +66,7 @@ class DecoderWithLoss(nn.Module):
         print("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
-        self.fixed_span_head = nn.Linear(config.hidden_size, config.hidden_size)
+        self.fixed_span_head = nn.Linear(config.hidden_size, 3)
         self.span_b_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         self.span_e_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         # predict text span beginning and end
@@ -146,15 +146,7 @@ class DecoderWithLoss(nn.Module):
             text_span_end_scores
             + (1 - y_mask_target.type_as(text_span_end_scores))[:, :, None] * 1e9
         )
-        # fixed values
-        fixed_value_out = self.fixed_span_head(y_rep)
-        fixed_value_scores = (x_reps[:, None, :, :] * fixed_value_out[:, :, None, :]).sum(
-            dim=-1
-        )
-        fixed_value_scores = (
-            fixed_value_scores
-            + (1 - y_mask_target.type_as(fixed_value_scores))[:, :, None] * 1e9
-        )
+        fixed_value_scores = self.fixed_span_head(y_rep)
         res = {
             "lm_scores": torch.log_softmax(lm_scores, dim=-1).detach(),
             "span_b_scores": torch.log_softmax(span_b_scores, dim=-1).detach(),
@@ -205,18 +197,21 @@ class DecoderWithLoss(nn.Module):
             lm_loss = lm_lin_loss.sum() / lm_lin_mask.sum()
             # fixed span value output head
             fixed_span_hidden_states = y_rep
-            self.fixed_span_out = self.fixed_span_head(fixed_span_hidden_states)
-            fixed_span_scores = (
-                x_reps[:, None, :, :] * self.fixed_span_out[:, :, None, :]
-            ).sum(dim=-1)
-            fixed_span_lin_scores = fixed_span_scores.view(
-                -1, fixed_span_scores.shape[-1]
-            )
-            fixed_span_targets = y[:, 1:, 5].contiguous().view(-1)
-            # import ipdb; ipdb.set_trace()
-            fixed_span_lin_loss = self.fixed_span_loss(
-                fixed_span_lin_scores, fixed_span_targets
-            )
+            fixed_span_scores = self.fixed_span_head(fixed_span_hidden_states)
+            fixed_span_lin_scores = fixed_span_scores.view(-1, fixed_span_scores.shape[-1])
+            fixed_span_lin_targets = y[:, 1:, 5].contiguous().view(-1)
+            fixed_span_lin_loss = self.fixed_span_loss(fixed_span_lin_scores, fixed_span_lin_targets)
+            # self.fixed_span_out = self.fixed_span_head(fixed_span_hidden_states)
+            # fixed_span_scores = (
+            #     x_reps[:, None, :, :] * self.fixed_span_out[:, :, None, :]
+            # ).sum(dim=-1)
+            # fixed_span_lin_scores = fixed_span_scores.view(
+            #     -1, fixed_span_scores.shape[-1]
+            # )
+            # fixed_span_targets = y[:, 1:, 5].contiguous().view(-1)
+            # fixed_span_lin_loss = self.fixed_span_loss(
+            #     fixed_span_lin_scores, fixed_span_targets
+            # )
             fixed_span_loss = fixed_span_lin_loss.sum() / (y[:, :, 5] >= 0).sum()
             print(fixed_span_loss)
             # span prediction
@@ -270,7 +265,6 @@ class DecoderWithLoss(nn.Module):
             text_span_start_lin_loss = self.text_span_loss(
                 text_span_start_lin_scores, text_span_start_targets
             )
-            # import ipdb; ipdb.set_trace()
             text_span_start_loss = text_span_start_lin_loss.sum() / (y[:, :, 3] >= 0).sum()
             # text span end prediction
             text_span_end_out = self.text_span_end_head(self.text_span_end_hidden_z)
@@ -437,18 +431,19 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     beam_scores[0] = 0
     beam_seqs = [[("<S>", -1, -1, -1, -1, -1)] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
-    pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - 2)).to(model_device)
+    pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - 3)).to(model_device)
     pad_scores[dataset.tree_idxs["[PAD]"]] = 0
     for i in range(100):
         outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
-        # next word
+        # next word, grab the final token
         lm_scores = outputs["lm_scores"][:, -1, :]  # B x V
         for i, fshed in enumerate(finished):
             if fshed:
-                import ipdb; ipdb.set_trace()
+                # set predictions to padding tokens
                 lm_scores[i] = pad_scores
         beam_lm_scores = lm_scores + beam_scores[:, None]  # B x V
         beam_lm_lin = beam_lm_scores.view(-1)
+        # get the highest probability tokens
         s_scores, s_ids = beam_lm_lin.sort(dim=-1, descending=True)
         s_beam_ids = s_ids // beam_lm_scores.shape[-1]
         s_word_ids = s_ids % beam_lm_scores.shape[-1]
@@ -456,6 +451,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         beam_scores = s_scores[:beam_size]
         n_beam_ids = s_beam_ids[:beam_size]
         n_word_ids = s_word_ids[:beam_size]
+        # convert tokens to words
         n_words = [dataset.tree_voc[nw_id.item()] for nw_id in n_word_ids]
         y = torch.cat([y[n_beam_ids], n_word_ids[:, None]], dim=1)
         # find out which of the beams are finished
@@ -468,10 +464,16 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         span_b_scores = outputs["span_b_scores"][:, -1, :][n_beam_ids]  # B x T
         span_e_scores = outputs["span_e_scores"][:, -1, :][n_beam_ids]  # B x T
         span_be_scores = span_b_scores[:, :, None] + span_e_scores[:, None, :]
+        # scores are invalid if beginning > end
+        # Create triangular matrix with negative infinity for invalid combos
         invalid_scores = torch.tril(torch.ones(span_be_scores.shape), diagonal=-1) * -1e9
+        # Make invalid scores very small
         span_be_scores += invalid_scores.type_as(span_be_scores)
+        # Create linearized view
         span_be_lin = span_be_scores.view(span_be_scores.shape[0], -1)
+        # Sort linearized scores by descending order
         _, s_sbe_ids = span_be_lin.sort(dim=-1, descending=True)
+        # Grab token IDs for top scores
         s_sb_ids = s_sbe_ids[:, 0] // span_b_scores.shape[-1]
         s_se_ids = s_sbe_ids[:, 0] % span_b_scores.shape[-1]
         beam_b_ids = [bb_id.item() for bb_id in s_sb_ids]
@@ -491,6 +493,20 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         text_span_end_ids = text_span_ids[:, 0] % text_span_start_scores.shape[-1]
         text_span_beam_start_ids = [bb_id.item() for bb_id in text_span_start_ids]
         text_span_beam_end_ids = [be_id.item() for be_id in text_span_end_ids]
+
+        # predict fixed values
+        fixed_value_scores = outputs["fixed_value_scores"][:, -1, :][n_beam_ids]  # B x T
+        fixed_value_lin_scores = fixed_value_scores.view(-1)
+        # get the highest probability tokens
+        fixed_value_ranked_scores, fixed_value_ids = fixed_value_lin_scores.sort(dim=-1, descending=True)
+        fixed_value_beam_ids = fixed_value_ids // fixed_value_scores.shape[-1]
+        # map back to which word in sequence, since
+        fixed_value_word_ids = fixed_value_ids % fixed_value_scores.shape[-1]
+        # fixed_value_lin_scores = fixed_value_scores.view(fixed_value_scores.shape[0], -1)
+        # _, fixed_value_ids = fixed_value_lin_scores.sort(dim=-1, descending=True)
+        # fixed_value_ids = fixed_value_ids[:, 0] // fixed_value_scores.shape[-1]
+        # fixed_value_beam_ids = [bb_id.item() for bb_id in fixed_value_ids]
+
         # update beam_seq
         beam_seqs = [
             beam_seqs[n_beam_ids[i].item()]
@@ -514,7 +530,6 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
                     beam_scores[i] -= well_formed_pen
         # check whether all beams have reached EOS
         if all(finished):
-            import ipdb; ipdb.set_trace()
             break
     # only keep span predictions for span nodes, then map back to tree
     beam_seqs = [
@@ -527,7 +542,6 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         ]
         for res in beam_seqs
     ]
-    # import ipdb; ipdb.set_trace()
     beam_seqs = [
         [
             (w, -1, -1, text_span_start, text_span_end, -1)
