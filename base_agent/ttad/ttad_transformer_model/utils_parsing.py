@@ -10,6 +10,7 @@ from torch.optim import Adam, Adagrad
 from transformers.modeling_bert import BertModel, BertOnlyMLMHead
 
 from utils_caip import *
+from tokenization_utils import fixed_span_values_voc
 
 
 def my_xavier_init(m, gain=1):
@@ -66,7 +67,7 @@ class DecoderWithLoss(nn.Module):
         print("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
-        self.fixed_span_head = nn.Linear(config.hidden_size, 3)
+        self.fixed_span_head = nn.Linear(config.hidden_size, 34)
         self.span_b_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         self.span_e_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         # predict text span beginning and end
@@ -242,7 +243,7 @@ class DecoderWithLoss(nn.Module):
             # combine
             span_lin_loss = span_b_lin_loss + span_e_lin_loss
             span_loss = span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
-            tot_loss = (1 - self.span_loss_lb) * lm_loss + self.span_loss_lb * span_loss #+ 0.2 * fixed_span_loss
+            tot_loss = (1 - self.span_loss_lb) * lm_loss + self.span_loss_lb * span_loss + 0.2 * fixed_span_loss
             # text span prediction
             # detach head
             if not is_eval:
@@ -431,7 +432,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     beam_scores[0] = 0
     beam_seqs = [[("<S>", -1, -1, -1, -1, -1)] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
-    pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - 3)).to(model_device)
+    pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - 34)).to(model_device)
     pad_scores[dataset.tree_idxs["[PAD]"]] = 0
     for i in range(100):
         outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
@@ -505,7 +506,13 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         # fixed_value_lin_scores = fixed_value_scores.view(fixed_value_scores.shape[0], -1)
         # _, fixed_value_ids = fixed_value_lin_scores.sort(dim=-1, descending=True)
         # fixed_value_ids = fixed_value_ids[:, 0] // fixed_value_scores.shape[-1]
-        # fixed_value_beam_ids = [bb_id.item() for bb_id in fixed_value_ids]
+        # fixed_value_beam_ids = [bb_id.item() for bb_id in fixed_value_ids
+        # re-order and add next token
+        fixed_value_beam_scores = fixed_value_ranked_scores[:beam_size]
+        fixed_value_beam_ids = fixed_value_beam_ids[:beam_size]
+        fixed_value_word_ids = fixed_value_word_ids[:beam_size]
+        # convert tokens to words
+        fixed_value_words = [fixed_span_values_voc[nw_id.item()] for nw_id in fixed_value_word_ids]
 
         # update beam_seq
         beam_seqs = [
@@ -517,7 +524,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
                     beam_e_ids[i],
                     text_span_beam_start_ids[i],
                     text_span_beam_end_ids[i],  
-                    text_span_beam_end_ids[i]
+                    fixed_value_words[i]
                 )
             ]
             for i in range(beam_size)
@@ -536,7 +543,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         [
             (w, b, e, -1, -1, -1)
             if w.startswith("BE:")
-            else (w, -1, -1, text_span_start, text_span_end, -1)
+            else (w, -1, -1, text_span_start, text_span_end, fixed_val)
             for w, b, e, text_span_start, text_span_end, fixed_val in res
             if w != "[PAD]"
         ]
@@ -546,7 +553,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         [
             (w, -1, -1, text_span_start, text_span_end, -1)
             if w.startswith("TBE:")
-            else (w, b, e, -1, -1, -1)
+            else (w, b, e, -1, -1, fixed_val)
             for w, b, e, text_span_start, text_span_end, fixed_val in res
             if w != "[PAD]"
         ]

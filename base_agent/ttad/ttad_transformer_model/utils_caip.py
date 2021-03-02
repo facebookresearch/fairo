@@ -238,6 +238,10 @@ def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
             cat, val = w.split("|")
             res[cat] = val
             idx += 1
+        elif t == "FS":
+            # import ipdb; ipdb.set_trace()
+            res["fixed_value"] = seq[idx][-1]
+            idx += 1
         # span node
         elif t == "S":
             if idx + 1 < len(seq):
