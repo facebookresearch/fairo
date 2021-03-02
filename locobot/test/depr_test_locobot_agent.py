@@ -29,13 +29,16 @@ opts = AttributeDict(
         "ip": IP,
         "backend": "habitat",
         "no_default_behavior": True,
+        "use_dslam": True,
     }
 )
 
-
 def get_locobot_agent():
     def fix_path(opts):
-        agent_path = os.path.join(BASE_AGENT_ROOT, "locobot/agent")
+        agent_path = os.path.join(
+            os.path.abspath(os.path.dirname(__file__)),
+            "../agent",
+        )
         for optname, optval in opts.items():
             if "path" in optname or "dir" in optname:
                 if optval:
