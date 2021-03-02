@@ -559,7 +559,7 @@ def caip_collate(batch, tokenizer, tree_to_text=False):
         ]  # 0 as padding idx
     else:
         batch_y_pad_ls = [
-            y + [[0, -1, -1, -1, -1]] * (y_len - len(y)) for y in batch_y_ls
+            y + [[0, -1, -1, -1, -1, -1]] * (y_len - len(y)) for y in batch_y_ls
         ]  # 0 as padding idx
     # tensorize
     x = torch.tensor(batch_x_pad_ls)
