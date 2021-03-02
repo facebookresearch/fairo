@@ -106,7 +106,7 @@ class MCInterpreter(Interpreter):
         ref_d = d.get("reference_object", default_ref_d)
         # only modify blockobjects...
         objs = self.subinterpret["reference_objects"](
-            self, speaker, ref_d, extra_tags=["_physical_object", "_voxel_object"]
+            self, speaker, ref_d, extra_tags=["_physical_object", "VOXEL_OBJECT"]
         )
         if len(objs) == 0:
             raise ErrorWithResponse("I don't understand what you want me to modify.")
@@ -193,7 +193,7 @@ class MCInterpreter(Interpreter):
                 speaker,
                 d["reference_object"],
                 limit=repeat,
-                extra_tags=["_voxel_object"],
+                extra_tags=["VOXEL_OBJECT"],
                 loose_speakerlook=True,
             )
             if len(objs) == 0:
