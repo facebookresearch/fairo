@@ -19,7 +19,7 @@ from locobot.agent.locobot_mover_utils import transform_pose
 
 
 root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data"
-image_range = [6500, 7900]  # images in which we can see the object
+image_range = [6500, 7500]  # images in which we can see the object
 with open(os.path.join(root_path, "data.json"), "r") as f:
     base_pose_data = json.load(f)
 
@@ -33,7 +33,11 @@ src_label = [
     cv2.imread(os.path.join(root_path, "label/{:05d}.png".format(i))) for i in src_img_indx
 ]
 
-# color for each index
+# TODO: make prediction directory
+if not os.path.isdir(os.path.join(root_path, "pred_label")):
+    os.makedirs(os.path.join(root_path, "pred_label"))
+
+# TODO: color for each index
 
 # TODO: proper entries
 intrinsic_mat = np.array([[256, 0, 256], [0, 256, 256], [0, 0, 1]])
@@ -83,6 +87,7 @@ for img_indx in range(image_range[0], image_range[1]):
     cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
 
     for i, req_pts_in_world in enumerate(req_pts_in_world_list):
+        annot_img = np.zeros_like(cur_img)
         # convert point cloud from world pose to base pose
         pts_in_cur_base = copy(req_pts_in_world)
         pts_in_cur_base = transform_pose(pts_in_cur_base, (-base_pose[0], -base_pose[1], 0))
@@ -185,10 +190,11 @@ for img_indx in range(image_range[0], image_range[1]):
             255,
         )
         """
-        cur_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0], pts_in_cur_img.shape[0] * [i]] = 255
+        if len(pts_in_cur_img):
+            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0],: ] = 255
 
-    # store the image
-    cv2.imwrite(os.path.join(root_path, "pred_label/{:05d}.jpg".format(img_indx)), cur_img)
+            # store the image
+            cv2.imwrite(os.path.join(root_path, "pred_label/{:05d}_{}.png".format(img_indx, i)), annot_img)
 
     """
     cv2.imwrite("test_{}.jpg".format(count), cur_img)
