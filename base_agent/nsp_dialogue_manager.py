@@ -295,7 +295,7 @@ class DialogModel:
         chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
         logging.info('chat after lemmatization "{}"'.format(chat))
 
-        # Get the words from indices in spans
+        # Get the words from indices in spans and substitute fixed_values
         process_spans_and_remove_fixed_value(d, re.split(r" +", s), re.split(r" +", chat))
         logging.info("process")
         logging.info('ttad pre-coref "{}" -> {}'.format(chat, d))
