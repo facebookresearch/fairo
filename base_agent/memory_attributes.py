@@ -15,6 +15,16 @@ class Attribute:
 
 
 class TableColumn(Attribute):
+    """
+    for each input memory, the call returns a column value or a triple obj_text via
+    get_property_value
+
+    Args:
+         agent (droidlet agent):  the agen whose memory will be queried
+         attribute (str): the name of the column or triple predicate whose value is
+                          to be returned
+    """
+
     def __init__(self, agent, attribute, get_all=False):
         super().__init__(agent)
         self.attribute = attribute
@@ -30,6 +40,62 @@ class TableColumn(Attribute):
 
     def __repr__(self):
         return "Attribute: " + self.attribute
+
+
+class TripleWalk(Attribute):
+    """ 
+    for each input memory, takes a specified path along the triples graph
+    and returns a MemoryNode corresponding to where the walk ends
+
+    Args:
+        agent (droidlet agent):  the agen whose memory will be queried
+        path list(tuple(str, str)): a list of tuples where the first entry in the 
+                                    tuples is the pred_text and the second is either 
+                                    "subj_variable" or "obj_variable"
+    """
+
+    def __init__(self, agent, path, get_all=False):
+        super().__init__(agent)
+        self.path = path
+
+    def __call__(self, mems):
+        step = mems
+        for p in self.path:
+            next_step = []
+            for mem in step:
+                n = None
+                if mem is not None:
+                    if p[1] == "subj_variable":
+                        n = self.agent.memory.get_triples(pred_text=p[0], obj=mem.memid)
+                        if len(n) > 0:
+                            # TODO don't just pick the first?
+                            next_step.append(self.agent.memory.get_mem_by_id(n[0][0]))
+                    else:
+                        n = self.agent.memory.get_triples(
+                            pred_text=p[0], subj=mem.memid, return_obj_text="never"
+                        )
+                        if len(n) > 0:
+                            next_step.append(self.agent.memory.get_mem_by_id(n[0][2]))
+                if len(n) == 0:
+                    next_step.append(None)
+        return next_step
+
+    def __repr__(self):
+        return "triple path: " + str(self.path)
+
+
+class AttributeSequence(Attribute):
+    def __init__(self, agent, attributes):
+        self.attributes = attributes
+
+    def __call__(self, mems):
+        out = mems
+        for a in self.attributes:
+            out = a(out)
+        return out
+
+    def __repr__(self):
+        return "sequence attribute " + str(self.attributes)
 
 
 class ListAttribute(Attribute):
