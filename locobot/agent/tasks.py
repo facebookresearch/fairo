@@ -11,7 +11,8 @@ import time
 from locobot.agent.locobot_mover_utils import (
     get_move_target_for_point,
     CAMERA_HEIGHT,
-    get_camera_angles
+    ARM_HEIGHT,
+    get_camera_angles,
 )
 import math
 
@@ -99,9 +100,17 @@ class Point(Task):
             self.add_child_task(Move(agent, {"target": target}), agent)
             self.steps[0] = "finished"
             return
+        
+        # Step 2 - Turn so that the object is in FOV 
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
+            base_pos = agent.mover.get_base_pos_in_canonical_coords()
+            yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], pt)
+            self.add_child_task(Turn(agent, {"yaw": yaw_rad}), agent)
+            self.steps[1] = "finished"
+            return
 
-        # Step 2 - Point at the object
-        if self.steps[0] == "finished":
+        # Step 3 - Point at the object
+        if self.steps[0] == "finished" and self.steps[1] == "finished":
             status = agent.mover.point_at(pt)
             if status == "finished":
                 self.finished = True
