@@ -12,6 +12,7 @@ from os.path import join as pjoin
 
 import torch
 from torch.utils.data import Dataset
+from tokenization_utils import fixed_span_values
 
 #########
 # Node typing: checking the type of a specific sub-tree (dict value)
@@ -60,7 +61,11 @@ def add_tree(full_tree, new_tree, vocounts, nw=1):
         if k not in full_tree:
             full_tree[k] = {"name": k, "children": {}, "values": {}, "count": 0}
         full_tree[k]["count"] += nw
-        if is_cat(v):
+        if k == "fixed_value":
+            encoding = "FS:" + k
+            full_tree[k]["values"][v] = full_tree[k]["values"].get(v, 0) + nw
+            vocounts[encoding] = vocounts.get(encoding, 0) + nw
+        elif is_cat(v):
             full_tree[k]["values"][v] = full_tree[k]["values"].get(v, 0) + nw
             w = "C:" + k + "|" + str(v)
             vocounts[w] = vocounts.get(w, 0) + nw
@@ -86,10 +91,11 @@ def add_tree(full_tree, new_tree, vocounts, nw=1):
                 ws = "TBE:" + k
                 vocounts[w] = vocounts.get(w, 0) + nw
                 vocounts[ws] = vocounts.get(ws, 0) + nw
-            w = "S:" + k
-            ws = "BE:" + k
-            vocounts[w] = vocounts.get(w, 0) + nw
-            vocounts[ws] = vocounts.get(ws, 0) + nw
+            else:
+                w = "S:" + k
+                ws = "BE:" + k
+                vocounts[w] = vocounts.get(w, 0) + nw
+                vocounts[ws] = vocounts.get(ws, 0) + nw
 
 
 def make_full_tree(trees_weight_ls):
@@ -124,7 +130,7 @@ def process_txt_data(filepath: str):
 def tree_to_seq(full_tree, tree, idx_map=None):
     """Linearize and de-linearize trees.
 
-    Transforms tree into sequence of (token, span_start, span_end, text_span_start, text_span_end)
+    Transforms tree into sequence of (token, span_start, span_end, text_span_start, text_span_end, fixed_span_values)
     idx_map maps the span ids before and after tokenization
 
     """
@@ -136,30 +142,32 @@ def tree_to_seq(full_tree, tree, idx_map=None):
     ) + sorted([k for k, v in tree.items() if k not in full_tree])
     try:
         for k in sorted_keys:
-            if is_cat(tree[k]):
-                res += [("C:" + k + "|" + str(tree[k]), -1, -1, -1, -1)]
+            if k == "fixed_value":
+                res += [("FS:" + k, -1, -1, -1, -1, fixed_span_values[tree[k]])]
+            elif is_cat(tree[k]):
+                res += [("C:" + k + "|" + str(tree[k]), -1, -1, -1, -1, -1)]
             elif is_span(tree[k]):
                 if k == "text_span":
                     a, (b, c) = tree[k]
-                    res += [("TS:" + k, -1, -1, -1, -1)]
-                    res += [("TBE:" + k, -1, -1, idx_map[a][b][0], idx_map[a][c][1])]
+                    res += [("TS:" + k, -1, -1, -1, -1, -1)]
+                    res += [("TBE:" + k, -1, -1, idx_map[a][b][0], idx_map[a][c][1], -1)]
                 else:
                     a, (b, c) = tree[k]
-                    res += [("S:" + k, -1, -1, -1, -1)]
-                    res += [("BE:" + k, idx_map[a][b][0], idx_map[a][c][1], -1, -1)]
+                    res += [("S:" + k, -1, -1, -1, -1, -1)]
+                    res += [("BE:" + k, idx_map[a][b][0], idx_map[a][c][1], -1, -1, -1)]
             elif is_int(tree[k]):
                 res += (
-                    [("IB:" + k, -1, -1, -1, -1)]
+                    [("IB:" + k, -1, -1, -1, -1, -1)]
                     + tree_to_seq(full_tree.get(k, {"children": {}})["children"], tree[k], idx_map)
-                    + [("IE:" + k, -1, -1, -1, -1)]
+                    + [("IE:" + k, -1, -1, -1, -1, -1)]
                 )
             elif is_int_list(tree[k]):
-                res += [("ILB:" + k, -1, -1, -1, -1)]
+                res += [("ILB:" + k, -1, -1, -1, -1, -1)]
                 for c in tree[k]:
                     res += tree_to_seq(full_tree.get(k, {"children": {}})["children"], c, idx_map) + [
-                        ("IL&:" + k, -1, -1, -1, -1)
+                        ("IL&:" + k, -1, -1, -1, -1, -1)
                     ]
-                res = res[:-1] + [("ILE:" + k, -1, -1, -1, -1)]
+                res = res[:-1] + [("ILE:" + k, -1, -1, -1, -1, -1)]
             else:
                 print(tree)
                 print(k)
@@ -175,7 +183,7 @@ def select_spans(seq):
     spans = [-1 for _ in seq]
     active = {}
     unopened = False
-    for i, (w, b_id, e_id, text_span_b_id, text_span_e_id) in enumerate(seq):
+    for i, (w, b_id, e_id, text_span_b_id, text_span_e_id, fixed_val) in enumerate(seq):
         if w.startswith("IB:") or w.startswith("ILB:"):
             active[w] = active.get(w, {})
             active[w][i] = 0
@@ -229,6 +237,10 @@ def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
         if t == "C":
             cat, val = w.split("|")
             res[cat] = val
+            idx += 1
+        elif t == "FS":
+            # import ipdb; ipdb.set_trace()
+            res["fixed_value"] = seq[idx][-1]
             idx += 1
         # span node
         elif t == "S":
@@ -463,7 +475,7 @@ class CAIPDataset(Dataset):
             full_tree, tr_i2w = full_tree_voc
             self.full_tree = full_tree
         spec_tokens = ["[PAD]", "unused", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "<S>", "</S>"]
-        self.tree_voc = spec_tokens[:] + tr_i2w
+        self.tree_voc = spec_tokens[:] + tr_i2w + list(fixed_span_values)
         self.tree_idxs = dict([(w, i) for i, w in enumerate(self.tree_voc)])
 
         self.dataset_length = max([len(v) for v in self.data.values()])
@@ -495,10 +507,10 @@ class CAIPDataset(Dataset):
         )
         text_idx_ls = [self.tokenizer._convert_token_to_id(w) for w in text.split()]
         tree_idx_ls = [
-            [self.tree_idxs[w], bi, ei, text_span_start, text_span_end]
-            for w, bi, ei, text_span_start, text_span_end in [("<S>", -1, -1, -1, -1)]
+            [self.tree_idxs[w], bi, ei, text_span_start, text_span_end, (self.tree_idxs[fixed_span_val] if type(fixed_span_val) == str else fixed_span_val)]
+            for w, bi, ei, text_span_start, text_span_end, fixed_span_val in [("<S>", -1, -1, -1, -1, -1)]
             + tree
-            + [("</S>", -1, -1, -1, -1)]
+            + [("</S>", -1, -1, -1, -1, -1)]
         ]
         if self.tree_to_text:
             stripped_tree_tokens = []
@@ -550,7 +562,7 @@ def caip_collate(batch, tokenizer, tree_to_text=False):
         ]  # 0 as padding idx
     else:
         batch_y_pad_ls = [
-            y + [[0, -1, -1, -1, -1]] * (y_len - len(y)) for y in batch_y_ls
+            y + [[0, -1, -1, -1, -1, -1]] * (y_len - len(y)) for y in batch_y_ls
         ]  # 0 as padding idx
     # tensorize
     x = torch.tensor(batch_x_pad_ls)
