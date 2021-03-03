@@ -22,7 +22,7 @@ class FakeAgent(LocoMCAgent):
         self.opts = opts
 
     def init_memory(self):
-        self.memory = "MEMORY"
+        self.memory = "memory"
 
     def init_physical_interfaces(self):
         pass
@@ -887,11 +887,7 @@ class TestDialogueManager(unittest.TestCase):
                     fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
             # compute model correctness status
-            model_output = remove_text_span(
-                self.agent.dialogue_manager.get_logical_form(
-                    command, self.agent.dialogue_manager.model
-                )
-            )
+            model_output = remove_text_span(self.agent.dialogue_manager.model.model.parse(chat=command))
             parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:
                 model_pass_cnt += 1
@@ -899,7 +895,7 @@ class TestDialogueManager(unittest.TestCase):
             else:
                 model_fail_cnt += 1
                 record += [fontcolors.FAIL + "FAIL" + fontcolors.ENDC]
-
+            
             records.append(record)
 
         for record in records:
