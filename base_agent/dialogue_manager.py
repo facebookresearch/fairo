@@ -2,13 +2,15 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
+import csv
 from typing import Tuple, Optional
 
 from dialogue_stack import DialogueStack
 from .dialogue_objects import DialogueObject, Say
+from abc import ABC, abstractmethod
 
 
-class DialogueManager(object):
+class DialogueManager(ABC):
     """
     | The current control flow of dialogue is:
     | 1.  A chat comes in and Dialogue manager reads it or the bot triggers a
@@ -41,6 +43,29 @@ class DialogueManager(object):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.model = model
+
+    @abstractmethod
+    def init_dialogue_logs(self, filepath, headers):
+        """Set up dialogue output logs, eg. write headers.
+
+        args:
+            filepath (str): Where to log data.
+            headers (list): List of string headers to be used in data store.
+
+        NOTE: TBD on whether to require all child classes to log dialogue outputs,
+        and therefore whether to initialize the logs in the parent class.
+        """
+        pass
+
+    @abstractmethod
+    def log_dialogue_outputs(self, filepath, data):
+        """Log dialogue data.
+
+        args:
+            filepath (str): Where to log data.
+            data (list): List of values to write to file.
+        """
+        pass
 
     def get_safety_words(self, safety_words_path):
         """Read a list of safety words to prevent abuse.
