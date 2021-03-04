@@ -62,6 +62,7 @@ jobs:
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
               bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
+          no_output_timeout: 20m
 
       - run:
           name: Push versioned docker containers
