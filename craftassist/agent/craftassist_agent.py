@@ -50,7 +50,7 @@ random.seed(0)
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
 )
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 logging.getLogger().handlers.clear()
 
 sentry_sdk.init()  # enabled if SENTRY_DSN set in env
@@ -318,9 +318,9 @@ if __name__ == "__main__":
     sh = logging.StreamHandler()
     sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
     sh.setFormatter(log_formatter)
-    logging.getLogger().addHandler(sh)
-    logging.info("Info logging")
-    logging.debug("Debug logging")
+    logger = logging.getLogger()
+    logger.addHandler(sh)
+    logging.info("LOG LEVEL: {}".format(logger.level))
 
     # Check that models and datasets are up to date
     if not opts.dev:
