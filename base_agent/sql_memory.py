@@ -29,6 +29,18 @@ from base_agent.memory_nodes import (  # noqa
     NODELIST,
 )
 
+# FIXME set these in the Task classes
+NONPICKLE_ATTRS = [
+    "agent",
+    "memory",
+    "agent_memory",
+    "tasks_fn",
+    "run_condition",
+    "init_condition",
+    "remove_condition",
+    "stop_condition",
+    "movement",
+]
 
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "base_memory_schema.sql")]
 
@@ -269,23 +281,7 @@ class AgentMemory:
 
         return self.nodes.get(node_type, MemoryNode)(self, memid)
 
-    # does not search archived mems for now
-    def get_all_tagged_mems(self, tag: str) -> List["MemoryNode"]:
-        """Return a list of memory nodes that have the given tag
-
-        Args:
-            tag (string): A string representing the tag or description assigned to a memory
-
-        Returns:
-            list[MemoryNode]: List of MemoryNode objects
-
-        Examples::
-            >>> tag = 'bright'
-            >>> get_all_tagged_mems(tag)
-        """
-        memids = self.get_memids_by_tag(tag)
-        return [self.get_mem_by_id(memid) for memid in memids]
-
+    # FIXME! make table optional
     def check_memid_exists(self, memid: str, table: str) -> bool:
         """Given the table and memid, check if an entry exists
 
@@ -334,8 +330,8 @@ class AgentMemory:
         assert qsplit[0].lower() == "select"
         assert qsplit[1].lower() == "uuid"
         uuids = self._db_read(query)
-        for uuid in uuids:
-            self.forget(uuid, hard=hard)
+        for u in uuids:
+            self.forget(u[0])
 
     def basic_search(self, filter_dict):
         """Perform a basic search using the filter_dict
@@ -717,6 +713,7 @@ class AgentMemory:
     ###  Tasks  ###
     ###############
 
+    # TORCH this
     def task_stack_push(
         self, task: Task, parent_memid: str = None, chat_effect: bool = False
     ) -> "TaskNode":
@@ -749,6 +746,7 @@ class AgentMemory:
         # Return newly created object
         return TaskNode(self, memid)
 
+    # TORCH this
     def task_stack_update_task(self, memid: str, task: Task):
         """Update task in memory
 
@@ -762,10 +760,11 @@ class AgentMemory:
         Examples ::
             >>> task = Move(agent, {"target": pos_to_np([0, 12, 0]), "approx" : 3})
             >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> task_stack_update_task(task, parent_memid)
+            >>> task_stack_update_task(task, memid)
         """
         self.db_write("UPDATE Tasks SET pickled=? WHERE uuid=?", self.safe_pickle(task), memid)
 
+    # TORCH this
     def task_stack_peek(self) -> Optional["TaskNode"]:
         """Return the top of task stack
 
@@ -779,8 +778,8 @@ class AgentMemory:
             """
             SELECT uuid
             FROM Tasks
-            WHERE finished_at < 0 AND paused = 0
-            ORDER BY created_at DESC
+            WHERE finished < 0 AND paused = 0 AND prio > 0
+            ORDER BY created DESC
             LIMIT 1
             """
         )
@@ -789,6 +788,8 @@ class AgentMemory:
         else:
             return None
 
+    # TORCH this
+    # TODO fold this into basic_search
     def task_stack_pop(self) -> Optional["TaskNode"]:
         """Return the 'TaskNode' of the stack head and mark finished
 
@@ -801,7 +802,7 @@ class AgentMemory:
         mem = self.task_stack_peek()
         if mem is None:
             raise ValueError("Called task_stack_pop with empty stack")
-        self.db_write("UPDATE Tasks SET finished_at=? WHERE uuid=?", self.get_time(), mem.memid)
+        self.db_write("UPDATE Tasks SET finished=? WHERE uuid=?", self.get_time(), mem.memid)
         return mem
 
     def task_stack_pause(self) -> bool:
@@ -810,7 +811,7 @@ class AgentMemory:
         Returns:
             int: Number of rows affected
         """
-        return self.db_write("UPDATE Tasks SET paused=1 WHERE finished_at < 0") > 0
+        return self.db_write("UPDATE Tasks SET paused=1 WHERE finished < 0") > 0
 
     def task_stack_clear(self):
         """Clear the task stack
@@ -819,7 +820,7 @@ class AgentMemory:
             int: Number of rows affected
         """
         # FIXME use forget; fix this when tasks become MemoryNodes
-        self.db_write("DELETE FROM Tasks WHERE finished_at < 0")
+        self.db_write("DELETE FROM Tasks WHERE finished < 0")
 
     def task_stack_resume(self) -> bool:
         """Resume stopped tasks. Return True if there was something to resume.
@@ -846,7 +847,7 @@ class AgentMemory:
         """
         names = [cls_names] if type(cls_names) == str else cls_names
         (memid,) = self._db_read_one(
-            "SELECT uuid FROM Tasks WHERE {} ORDER BY created_at LIMIT 1".format(
+            "SELECT uuid FROM Tasks WHERE {} ORDER BY created LIMIT 1".format(
                 " OR ".join(["action_name=?" for _ in names])
             ),
             *names,
@@ -856,22 +857,6 @@ class AgentMemory:
             return TaskNode(self, memid)
         else:
             return None
-
-    def task_stack_get_all(self) -> List["TaskNode"]:
-        """Get all tasks from the stack
-
-        Returns:
-            list[TaskNode]: List of TaskNode objects
-        """
-        r = self._db_read(
-            """
-            SELECT uuid
-            FROM Tasks
-            WHERE paused=0 AND finished_at<0
-            ORDER BY created_at
-            """
-        )
-        return [TaskNode(self, memid) for memid, in r]
 
     def get_last_finished_root_task(self, action_name: str = None, recency: int = None):
         """Get last task that was marked as finished
@@ -890,8 +875,8 @@ class AgentMemory:
         q = """
         SELECT uuid
         FROM Tasks
-        WHERE finished_at >= ? {}
-        ORDER BY created_at DESC
+        WHERE finished >= ? {}
+        ORDER BY created DESC
         """.format(
             " AND action_name=?" if action_name else ""
         )
@@ -909,43 +894,6 @@ class AgentMemory:
                 continue
 
             return TaskNode(self, memid)
-
-    #        raise ValueError("Called get_last_finished_root_task with no finished root tasks")
-
-    def get_task_by_id(self, memid: str) -> "TaskNode":
-        """Given the memid, retrieve the TaskNode
-
-        Args:
-            memid (string): Memory ID
-
-        Returns:
-            TaskNode: A TaskNode object
-
-        Examples ::
-            >>> memid = '10517cc584844659907ccfa6161e9d32'
-            >>> get_task_by_id(memid = memid)
-        """
-        return TaskNode(self, memid)
-
-    #################
-    ###   Time    ###
-    #################
-
-    def hurry_up(self):
-        """Speed up a task"""
-        if self.task_stack_peek() is None:
-            return  # send chat?
-        task_mem = self.task_stack_peek()
-        task_mem.task.hurry_up()
-        self.task_stack_update_task(task_mem.memid, task_mem.task)
-
-    def slow_down(self):
-        """Slow down the execution of a task"""
-        if self.task_stack_peek() is None:
-            return  # send chat?
-        task_mem = self.task_stack_peek()
-        task_mem.task.slow_down()
-        self.task_stack_update_task(task_mem.memid, task_mem.task)
 
     #########################
     ###  Database Access  ###
@@ -1120,37 +1068,46 @@ class AgentMemory:
         sql_file.write("\n".join(self.db.iterdump()))
         if dict_memory_file is not None:
             import io
-            import pickle
 
             assert type(dict_memory_file) == io.BufferedWriter
             dict_memory = {"task_db": self.task_db}
             pickle.dump(dict_memory, dict_memory_file)
 
+    def reinstate_attrs(self, obj):
+        """ 
+        replace non-picklable attrs on blob data, using their values
+        from the key-value store, indexed by the obj memid
+        """
+        for attr in NONPICKLE_ATTRS:
+            if hasattr(obj, "__had_attr_" + attr):
+                delattr(obj, "__had_attr_" + attr)
+                setattr(obj, attr, self._safe_pickle_saved_attrs[obj.memid][attr])
+
     def safe_pickle(self, obj):
+        """
+        pickles memory objects to be put in blob data in the db.  
+        some attrs are not picklable, so stores these in a separate key-value store
+        keyed by the memid
+
+        """
         # little bit scary...
-        if not hasattr(obj, "pickled_attrs_id"):
-            if hasattr(obj, "memid"):
-                obj.pickled_attrs_id = obj.memid
-            else:
-                try:
-                    obj.pickled_attrs_id = uuid.uuid4().hex
-                except:
-                    pass
-        for attr in ["memory", "agent_memory", "new_tasks_fn", "stop_condition", "movement"]:
+        for attr in NONPICKLE_ATTRS:
             if hasattr(obj, attr):
-                if self._safe_pickle_saved_attrs.get(obj.pickled_attrs_id) is None:
-                    self._safe_pickle_saved_attrs[obj.pickled_attrs_id] = {}
+                if self._safe_pickle_saved_attrs.get(obj.memid) is None:
+                    self._safe_pickle_saved_attrs[obj.memid] = {}
                 val = getattr(obj, attr)
-                delattr(obj, attr)
+                setattr(obj, attr, None)
                 setattr(obj, "__had_attr_" + attr, True)
-                self._safe_pickle_saved_attrs[obj.pickled_attrs_id][attr] = val
-        return pickle.dumps(obj)
+                self._safe_pickle_saved_attrs[obj.memid][attr] = val
+        p = pickle.dumps(obj)
+        self.reinstate_attrs(obj)
+        return p
 
     def safe_unpickle(self, bs):
+        """ 
+        get non-picklable attrs from the key value store, and
+        replace them on the blob data after retrieving from db
+        """
         obj = pickle.loads(bs)
-        if hasattr(obj, "pickled_attrs_id"):
-            for attr in ["memory", "agent_memory", "new_tasks_fn", "stop_condition", "movement"]:
-                if hasattr(obj, "__had_attr_" + attr):
-                    delattr(obj, "__had_attr_" + attr)
-                    setattr(obj, attr, self._safe_pickle_saved_attrs[obj.pickled_attrs_id][attr])
+        self.reinstate_attrs(obj)
         return obj

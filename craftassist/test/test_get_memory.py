@@ -17,7 +17,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
             shapes.sphere(radius=1), (11, 64, 2), relations=sphere_triples
         )
         triangle_triples = {"has_name": "triangle", "has_shape": "triangle"}
-        self.sphere = self.add_object(shapes.triangle(), (6, 64, -5), relations=triangle_triples)
+        self.triangle = self.add_object(shapes.triangle(), (6, 64, -5), relations=triangle_triples)
         self.set_looking_at(list(self.cube.blocks.keys())[0])
 
     def test_get_name_and_left_of(self):
@@ -53,19 +53,19 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def test_what_are_you_doing(self):
         # start building a cube
         d = BUILD_COMMANDS["build a small cube"]
-        self.handle_logical_form(d, max_steps=5)
+        self.handle_logical_form(d, max_steps=9)
 
         # what are you doing?
         d = GET_MEMORY_COMMANDS["what are you doing"]
         self.handle_logical_form(d, stop_on_chat=True)
 
         # check that proper chat was sent
-        self.assertIn("building", self.last_outgoing_chat())
+        self.assertIn("build", self.last_outgoing_chat())
 
     def test_what_are_you_building(self):
         # start building a cube
         d = BUILD_COMMANDS["build a small cube"]
-        self.handle_logical_form(d, max_steps=5)
+        self.handle_logical_form(d, max_steps=12)
 
         # what are you building
         d = GET_MEMORY_COMMANDS["what are you building"]
@@ -84,7 +84,8 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         self.handle_logical_form(d, stop_on_chat=True)
 
         # check that proper chat was sent
-        self.assertIn("(42, 65, 0)", self.last_outgoing_chat())
+        self.assertIn("42", self.last_outgoing_chat())
+        self.assertIn("65", self.last_outgoing_chat())
 
     def test_where_are_you(self):
         # move to origin

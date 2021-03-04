@@ -93,17 +93,28 @@ CREATE TABLE Programs (
 );
 
 
+
+-- prio > 0  :  run me if possible, check my stop condition
+-- prio = 0  :  check my start condition, run if true
+-- prio = -1 :  don't check my start condition, but check my init_condition
+-- prio = -2 :  don't check my start condition or my init_condition, I am "removed"
+-- running means that it is to be stepped by the agent's task_step(), if it has not been paused
+-- paused means a player has explicitly paused it.  a task can be running *and* paused
+-- change "action_name" to "name"?
 CREATE TABLE Tasks (
     uuid        NCHAR(36)       PRIMARY KEY,
     action_name VARCHAR(32)     NOT NULL,
     pickled     BLOB            NOT NULL,
+    prio        INTEGER         NOT NULL DEFAULT 1,
+    running     BOOLEAN         NOT NULL DEFAULT 1,
+    run_count   INTEGER         NOT NULL DEFAULT 0,
     paused      BOOLEAN         NOT NULL DEFAULT 0,
-    created_at  INTEGER         NOT NULL,
-    finished_at INTEGER         NOT NULL DEFAULT -1,
+    created     INTEGER         NOT NULL,
+    finished    INTEGER         NOT NULL DEFAULT -1,
 
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
-CREATE INDEX TasksFinishedAt ON Tasks(finished_at);
+CREATE INDEX TasksFinishedAt ON Tasks(finished);
 
 CREATE TRIGGER TasksUpdate AFTER UPDATE ON Tasks
     BEGIN INSERT INTO Updates(uuid, update_type) VALUES (OLD.uuid, 'update');

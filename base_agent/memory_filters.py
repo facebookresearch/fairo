@@ -215,7 +215,7 @@ class BasicMemorySearcher:
         return []
 
     def search(self, agent_memory, search_data=None) -> List["MemoryNode"]:  # noqa T484
-        """Find ref_objs matching the given filters
+        """Find memories matching the given filters
         search_data has children:
             "base_table", value is a string with a table name.  if not specified, the
                   base table is ReferenceObjects
@@ -241,9 +241,10 @@ class BasicMemorySearcher:
         self.search_data = search_data
         if search_data.get("special"):
             return self.handle_special(agent_memory, search_data)
+
         # FIXME more careful handling of "SELF",
         # rn you can only get it if you ask for it specfically
-        ignore_self = "SELF" not in [t.get("obj_text", "") for t in search_data.get("triples")]
+        ignore_self = "SELF" not in [t.get("obj_text", "") for t in search_data.get("triples", [])]
         query, args = self.get_query(search_data, ignore_self=ignore_self)
 
         # for debug:
