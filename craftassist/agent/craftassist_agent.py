@@ -50,7 +50,6 @@ random.seed(0)
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
 )
-logging.getLogger().setLevel(logging.INFO)
 logging.getLogger().handlers.clear()
 
 sentry_sdk.init()  # enabled if SENTRY_DSN set in env
