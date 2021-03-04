@@ -860,18 +860,14 @@ class TestDialogueManager(unittest.TestCase):
         records = []
         parsing_model_status = False
         pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
-
         for command in common_functional_commands.keys():
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
             else:
                 # else query the model and remove the value for key "text_span"
-                model_prediction = remove_text_span(
-                    self.agent.dialogue_manager.get_logical_form(
-                        command, self.agent.dialogue_manager.model
-                    )
-                )
+                model_prediction = remove_text_span(self.agent.dialogue_manager.model.model.parse(chat=command))
+            
             # compute parsing pipeline accuracy
             status = compare_full_dictionaries(ground_truth_parse, model_prediction)
             if status:
@@ -931,6 +927,7 @@ class TestDialogueManager(unittest.TestCase):
         print(print_model_str.format(model_pass_cnt, model_fail_cnt, model_accuracy))
         # check that parsing pipeline is at a 100% accuracy
         self.assertTrue(accuracy == 100.0)
+        print(count)
 
 
 if __name__ == "__main__":
