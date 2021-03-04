@@ -57,7 +57,8 @@ jobs:
       - run:
           name: CraftAssist Python unit tests
           command: |
-              docker run --env PYTHONUNBUFFERED=1 --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
+              export PYTHONUNBUFFERED=1
+              docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
               docker cp mc-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
