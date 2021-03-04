@@ -314,9 +314,11 @@ if __name__ == "__main__":
     parser = ArgumentParser("Minecraft", base_path)
     opts = parser.parse()
 
+    logging.basicConfig(level=opts.log_level)
+
     # set up stdout logging
     sh = logging.StreamHandler()
-    sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
+    # sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
     sh.setFormatter(log_formatter)
     logger = logging.getLogger()
     logger.addHandler(sh)
