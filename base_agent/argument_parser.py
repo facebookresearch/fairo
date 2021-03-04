@@ -20,8 +20,8 @@ class ArgumentParser:
         self.parser.add_argument(
             "--log_level", 
             "-log", 
-            default="INFO", 
-            choices=["INFO", "DEBUG", "WARN", "ERROR"], 
+            default="info", 
+            choices=["info", "debug", "warn", "error"], 
             help="Logging tier to specify verbosity level, eg. DEBUG."
         )
         self.parser.add_argument(
