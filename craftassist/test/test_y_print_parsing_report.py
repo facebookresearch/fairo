@@ -927,7 +927,6 @@ class TestDialogueManager(unittest.TestCase):
         print(print_model_str.format(model_pass_cnt, model_fail_cnt, model_accuracy))
         # check that parsing pipeline is at a 100% accuracy
         self.assertTrue(accuracy == 100.0)
-        print(count)
 
 
 if __name__ == "__main__":
