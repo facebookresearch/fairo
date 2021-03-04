@@ -124,10 +124,10 @@ class NSPDialogueManager(DialogueManager):
 
         @sio.on("queryParser")
         def query_parser(sid, data):
-            logging.info("inside query parser.....")
-            logging.info(data)
+            logging.debug("inside query parser.....")
+            logging.debug(data)
             x = self.get_logical_form(s=data["chat"], model=self.model)
-            logging.info(x)
+            logging.debug(x)
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
@@ -181,7 +181,7 @@ class NSPDialogueManager(DialogueManager):
                 speaker, d, **self.dialogue_object_parameters
             )
         elif d["dialogue_type"] == "GET_MEMORY":
-            logging.info("this model out: %r" % (d))
+            logging.debug("this model out: %r" % (d))
             return self.dialogue_objects["get_memory"](
                 speaker, d, **self.dialogue_object_parameters
             )
@@ -271,7 +271,7 @@ class DialogModel:
         """
         if s in ground_truth_actions:
             d = ground_truth_actions[s]
-            logging.info('Found gt action for "{}"'.format(s))
+            logging.info('Found ground truth action for "{}"'.format(s))
         else:
             logging.info("Querying the semantic parsing model")
             if chat_as_list:
@@ -283,21 +283,21 @@ class DialogModel:
         is_valid_json = self.validate_parse_tree(d)
         if not is_valid_json:
             # Send a NOOP
-            logging.info("Invalid parse tree for command {}\n".format(s))
-            logging.info("Parse tree failed grammar validation: \n{}\n".format(d))
+            logging.error("Invalid parse tree for command {}\n".format(s))
+            logging.error("Parse tree failed grammar validation: \n{}\n".format(d))
             d = {"dialogue_type": "NOOP"}
-            logging.info("Returning NOOP")
+            logging.error("Returning NOOP")
             return d
 
         # perform lemmatization on the chat
-        logging.info('chat before lemmatization "{}"'.format(s))
+        logging.debug('chat before lemmatization "{}"'.format(s))
         lemmatized_chat = spacy_model(s)
         chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
-        logging.info('chat after lemmatization "{}"'.format(chat))
+        logging.debug('chat after lemmatization "{}"'.format(chat))
 
         # Get the words from indices in spans
         process_spans(d, re.split(r" +", s), re.split(r" +", chat))
-        logging.info('ttad pre-coref "{}" -> {}'.format(chat, d))
+        logging.debug('ttad pre-coref "{}" -> {}'.format(chat, d))
 
         # log to sentry
         sentry_sdk.capture_message(
@@ -307,7 +307,7 @@ class DialogModel:
             json.dumps({"type": "ttad_pre_coref", "in_lemmatized": chat, "out": d})
         )
 
-        logging.info('logical form before grammar update "{}'.format(d))
-        logging.info('logical form after grammar fix "{}"'.format(d))
+        logging.debug('logical form before grammar update "{}'.format(d))
+        logging.debug('logical form after grammar fix "{}"'.format(d))
 
         return d

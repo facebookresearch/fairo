@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import logging
 
 from torch.optim import Adam, Adagrad
 
@@ -64,7 +65,7 @@ class DecoderWithLoss(nn.Module):
     def __init__(self, config, args, tokenizer):
         super(DecoderWithLoss, self).__init__()
         # model components
-        print("initializing decoder with params {}".format(args))
+        logging.debug("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
         self.fixed_span_head = nn.Linear(config.hidden_size, 34)
