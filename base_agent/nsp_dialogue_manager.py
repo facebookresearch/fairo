@@ -23,7 +23,7 @@ from base_agent.dialogue_objects import (
     DialogueObject,
     Say,
     coref_resolve,
-    process_spans,
+    process_spans_and_remove_fixed_value,
 )
 from craftassist.test.validate_json import JSONValidator
 from dlevent import sio
@@ -162,7 +162,7 @@ class NSPDialogueManager(DialogueManager):
 
     def handle_logical_form(self, speaker: str, d: Dict, chatstr: str) -> Optional[DialogueObject]:
         """Return the appropriate DialogueObject to handle an action dict d
-        d should have spans filled (via process_spans).
+        d should have spans filled (via process_spans_and_remove_fixed_value).
         """
         coref_resolve(self.agent.memory, d, chatstr)
         logging.info('logical form post-coref "{}" -> {}'.format(hash_user(speaker), d))
@@ -271,7 +271,7 @@ class DialogModel:
         """
         if s in ground_truth_actions:
             d = ground_truth_actions[s]
-            logging.info('Found gt action for "{}"'.format(s))
+            logging.info('Found gt action for "{}" , dictionary: {}'.format(s, d))
         else:
             logging.info("Querying the semantic parsing model")
             if chat_as_list:
@@ -295,8 +295,9 @@ class DialogModel:
         chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
         logging.info('chat after lemmatization "{}"'.format(chat))
 
-        # Get the words from indices in spans
-        process_spans(d, re.split(r" +", s), re.split(r" +", chat))
+        # Get the words from indices in spans and substitute fixed_values
+        process_spans_and_remove_fixed_value(d, re.split(r" +", s), re.split(r" +", chat))
+        logging.info("process")
         logging.info('ttad pre-coref "{}" -> {}'.format(chat, d))
 
         # log to sentry

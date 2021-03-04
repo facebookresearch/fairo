@@ -5,7 +5,7 @@ import sys
 
 import unittest
 from copy import deepcopy
-from base_agent.dialogue_objects.dialogue_object_utils import process_spans
+from base_agent.dialogue_objects.dialogue_object_utils import process_spans_and_remove_fixed_value
 from test_y_print_parsing_report import common_functional_commands, compare_full_dictionaries
 
 logical_form_before_processing = {
@@ -47,7 +47,7 @@ class TestProcessSpans(unittest.TestCase):
     def test_process_spans(self):
         for k, v in logical_form_before_processing.items():
             processed = deepcopy(v)
-            process_spans(
+            process_spans_and_remove_fixed_value(
                 processed, k, k
             )  # process spans and fixed_values. Implemented in: dialogue_object_utils.
             assert compare_full_dictionaries(processed, logical_form_post_processing[k])
