@@ -10,6 +10,7 @@ import ast
 import pkg_resources
 from typing import Tuple, Dict, Optional
 from glob import glob
+import csv
 from jsonschema import validate, exceptions, RefResolver
 
 import sentry_sdk
@@ -83,6 +84,8 @@ class NSPDialogueManager(DialogueManager):
 
     def __init__(self, agent, dialogue_object_classes, opts):
         super(NSPDialogueManager, self).__init__(agent, None)
+        # Write file headers to the NSP outputs log
+        self.init_dialogue_logs("nsp_outputs.csv", ["command", "action_dict"])
         self.dialogue_objects = dialogue_object_classes
         safety_words_path = opts.ground_truth_data_dir + "safety.txt"
         if os.path.isfile(safety_words_path):
@@ -131,6 +134,32 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
+    def init_dialogue_logs(self, filepath, headers):
+        """Set up dialogue output logs, eg. write headers.
+
+        args:
+            filepath (str): Where to log data.
+            headers (list): List of string headers to be used in data store.
+        
+        Implements :init_dialogue_logs:`~DialogueManager`
+        """
+        with open(filepath, "w") as fd:
+            csv_writer = csv.writer(fd, delimiter="|")
+            csv_writer.writerow(headers)
+
+    def log_dialogue_outputs(self, filepath, data):
+        """Log dialogue data.
+
+        args:
+            filepath (str): Where to log data.
+            data (list): List of values to write to file.
+
+        Implements :log_dialogue_outputs:`~DialogueManager`
+        """
+        with open(filepath, "a") as fd:
+            csv_writer = csv.writer(fd, delimiter="|")
+            csv_writer.writerow(data)
+
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
 
@@ -158,6 +187,7 @@ class NSPDialogueManager(DialogueManager):
 
         # NOTE: preprocessing in model code is different, this shouldn't break anything
         logical_form = self.get_logical_form(s=preprocessed_chatstrs[0], model=self.model)
+        self.log_dialogue_outputs("nsp_outputs.csv", [preprocessed_chatstrs[0], logical_form])
         return self.handle_logical_form(speaker, logical_form, preprocessed_chatstrs[0])
 
     def handle_logical_form(self, speaker: str, d: Dict, chatstr: str) -> Optional[DialogueObject]:
