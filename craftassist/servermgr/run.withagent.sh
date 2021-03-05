@@ -3,7 +3,7 @@
 
 
 
-S3_DEST=s3://craftassist/humanbot_data/$TIMESTAMP
+S3_DEST=s3://craftassist/turk_interactions_with_agent/$TIMESTAMP
 
 function background_agent() (
     python3 /droidlet/craftassist/wait_for_cuberite.py --host localhost --port 25565
