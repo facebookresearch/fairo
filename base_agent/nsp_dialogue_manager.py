@@ -12,7 +12,7 @@ from typing import Tuple, Dict, Optional
 from glob import glob
 import csv
 from jsonschema import validate, exceptions, RefResolver
-
+from time import time
 import sentry_sdk
 
 import preprocess
@@ -85,7 +85,6 @@ class NSPDialogueManager(DialogueManager):
     def __init__(self, agent, dialogue_object_classes, opts):
         super(NSPDialogueManager, self).__init__(agent, None)
         # Write file headers to the NSP outputs log
-        self.init_dialogue_logs("nsp_outputs.csv", ["command", "action_dict"])
         self.dialogue_objects = dialogue_object_classes
         safety_words_path = opts.ground_truth_data_dir + "safety.txt"
         if os.path.isfile(safety_words_path):
@@ -134,31 +133,6 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
-    def init_dialogue_logs(self, filepath, headers):
-        """Set up dialogue output logs, eg. write headers.
-
-        args:
-            filepath (str): Where to log data.
-            headers (list): List of string headers to be used in data store.
-        
-        Implements :init_dialogue_logs:`~DialogueManager`
-        """
-        with open(filepath, "w") as fd:
-            csv_writer = csv.writer(fd, delimiter="|")
-            csv_writer.writerow(headers)
-
-    def log_dialogue_outputs(self, filepath, data):
-        """Log dialogue data.
-
-        args:
-            filepath (str): Where to log data.
-            data (list): List of values to write to file.
-
-        Implements :log_dialogue_outputs:`~DialogueManager`
-        """
-        with open(filepath, "a") as fd:
-            csv_writer = csv.writer(fd, delimiter="|")
-            csv_writer.writerow(data)
 
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
@@ -187,7 +161,6 @@ class NSPDialogueManager(DialogueManager):
 
         # NOTE: preprocessing in model code is different, this shouldn't break anything
         logical_form = self.get_logical_form(s=preprocessed_chatstrs[0], model=self.model)
-        self.log_dialogue_outputs("nsp_outputs.csv", [preprocessed_chatstrs[0], logical_form])
         return self.handle_logical_form(speaker, logical_form, preprocessed_chatstrs[0])
 
     def handle_logical_form(self, speaker: str, d: Dict, chatstr: str) -> Optional[DialogueObject]:
@@ -249,8 +222,57 @@ class NSPDialogueManager(DialogueManager):
         return model.get_logical_form(s, chat_as_list, self.ground_truth_actions)
 
 
+class NSPLogger():
+    def __init__(self, filepath, headers):
+        """Logger class for the NSP component.
+
+        args:
+            filepath (str): Where to log data.
+            headers (list): List of string headers to be used in data store.
+        """
+        self.log_filepath = filepath
+        self.init_file_headers(filepath, headers)
+
+    def init_file_headers(self, filepath, headers):
+        """Write headers to log file.
+
+        args:
+            filepath (str): Where to log data.
+            headers (list): List of string headers to be used in data store.
+        """
+        with open(filepath, "w") as fd:
+            csv_writer = csv.writer(fd, delimiter="|")
+            csv_writer.writerow(headers)
+
+    def log_dialogue_outputs(self, data):
+        """Log dialogue data.
+
+        args:
+            filepath (str): Where to log data.
+            data (list): List of values to write to file.
+        """
+        with open(self.log_filepath, "a") as fd:
+            csv_writer = csv.writer(fd, delimiter="|")
+            csv_writer.writerow(data)
+
 class DialogModel:
     def __init__(self, models_dir, data_dir):
+        """The DialogModel converts natural language commands to logical forms.
+        
+        Instantiates the ML model used for semantic parsing, ground truth data
+        directory and sets up the NSP logger to save dialogue outputs.
+
+        NSP logger schema:
+        - command (str): chat command received by agent
+        - action_dict (dict): logical form output
+        - source (str): the source of the logical form, eg. model or ground truth
+        - agent (str): the agent that processed the command
+        - time (int): current time in UTC
+
+        args:
+            models_dir (str): path to semantic parsing models
+            data_dir (str): path to ground truth data directory
+        """
         # Instantiate the main model
         ttad_model_dir = os.path.join(models_dir, "ttad_bert_updated")
         logging.info("using model_dir={}".format(ttad_model_dir))
@@ -261,6 +283,7 @@ class DialogModel:
             self.model = Model(model_dir=ttad_model_dir, data_dir=data_dir)
         else:
             raise NotADirectoryError
+        self.NSPLogger = NSPLogger("nsp_outputs.csv", ["command", "action_dict", "source", "agent", "time"])
 
     def validate_parse_tree(self, parse_tree: dict) -> bool:
         """Validate the parse tree against current grammar.
@@ -302,12 +325,18 @@ class DialogModel:
         if s in ground_truth_actions:
             d = ground_truth_actions[s]
             logging.info('Found ground truth action for "{}"'.format(s))
+            # log the current UTC time
+            time_now = time()
+            self.NSPLogger.log_dialogue_outputs([s, d, "ground_truth", "craftassist", time_now])
         else:
             logging.info("Querying the semantic parsing model")
             if chat_as_list:
                 d = self.model.parse([s])
             else:
                 d = self.model.parse(chat=s)
+            # log the current UTC time
+            time_now = time()
+            self.NSPLogger.log_dialogue_outputs([s, d, "semantic_parser", "craftassist", time_now])
 
         # Validate parse tree against grammar
         is_valid_json = self.validate_parse_tree(d)
