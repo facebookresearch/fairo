@@ -7,10 +7,9 @@ from typing import Tuple, Optional
 
 from dialogue_stack import DialogueStack
 from .dialogue_objects import DialogueObject, Say
-from abc import ABC, abstractmethod
 
 
-class DialogueManager(ABC):
+class DialogueManager(object):
     """
     | The current control flow of dialogue is:
     | 1.  A chat comes in and Dialogue manager reads it or the bot triggers a
