@@ -158,7 +158,6 @@ class NSPDialogueManager(DialogueManager):
         with open(filepath, "a") as fd:
             csv_writer = csv.writer(fd, delimiter="|")
             csv_writer.writerow(data)
->>>>>>> 3a4e21a (Implement NSP logging methods in NSP dialogue manager class)
 
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
@@ -187,7 +186,6 @@ class NSPDialogueManager(DialogueManager):
 
         # NOTE: preprocessing in model code is different, this shouldn't break anything
         logical_form = self.get_logical_form(s=preprocessed_chatstrs[0], model=self.model)
-        self.log_dialogue_outputs("nsp_outputs.csv", [preprocessed_chatstrs[0], logical_form])
         return self.handle_logical_form(speaker, logical_form, preprocessed_chatstrs[0])
 
     def handle_logical_form(self, speaker: str, d: Dict, chatstr: str) -> Optional[DialogueObject]:
