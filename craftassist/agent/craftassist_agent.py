@@ -119,33 +119,6 @@ class CraftAssistAgent(LocoMCAgent):
         """Handle the socket events"""
         super().init_event_handlers()
 
-<<<<<<< HEAD
-=======
-        @sio.on("sendCommandToAgent")
-        def send_text_command_to_agent(sid, command):
-            """Add the command to agent's incoming chats list and
-            send back the parse.
-            Args:
-                command: The input text command from dashboard player
-            Returns:
-                return back a socket emit with parse of command and success status
-            """
-            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
-            agent_chat = (
-                "<dashboard> " + command
-            )  # the chat is coming from a player called "dashboard"
-            self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
-            # send back the dictionary
-            try:
-                x = dialogue_manager.get_logical_form(s=command, model=dialogue_manager.model)
-                logging.info("logical form is : %r" % (x))
-                payload = {"status": "Sent successfully", "chat": command, "chatResponse": x}
-            except:
-                logging.info("error in sending chat")
-                payload = {"status": "Error in sending chat", "chat": command, "chatResponse": {}}
-            sio.emit("setChatResponse", payload)
-        
         @sio.on("getVoxelWorldInitialState")
         def setup_agent_initial_state(sid):
             MAX_RADIUS = 50
@@ -170,7 +143,6 @@ class CraftAssistAgent(LocoMCAgent):
             }
             sio.emit("setVoxelWorldInitialState", payload)
 
->>>>>>> 15da213... Added backend changes
     def init_inventory(self):
         """Initialize the agent's inventory"""
         self.inventory = inventory.Inventory()
