@@ -12,3 +12,7 @@ scipy==1.5.4
 scikit-fmm
 scikit-image
 tenacity
+wordcloud
+nltk
+fuzzywuzzy
+krovetz
