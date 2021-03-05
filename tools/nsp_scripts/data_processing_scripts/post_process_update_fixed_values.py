@@ -34,6 +34,7 @@ def check_fixed_value(d):
         if key in [
             "author",
             "obj_text",
+            "subj_text",
             "frame",
             "ordinal",
             "close_tolerance",
@@ -62,6 +63,7 @@ def updated_fixed_value(d):
         if key in [
             "author",
             "obj_text",
+            "subj_text",
             "frame",
             "ordinal",
             "close_tolerance",

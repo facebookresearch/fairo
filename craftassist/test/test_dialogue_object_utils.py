@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-
+import re
 import unittest
 from copy import deepcopy
 from base_agent.dialogue_objects.dialogue_object_utils import process_spans_and_remove_fixed_value
@@ -47,8 +47,10 @@ class TestProcessSpans(unittest.TestCase):
     def test_process_spans(self):
         for k, v in logical_form_before_processing.items():
             processed = deepcopy(v)
+            original_words = re.split(r" +", k)
+            lemmatized_words = original_words
             process_spans_and_remove_fixed_value(
-                processed, k, k
+                processed, original_words, lemmatized_words
             )  # process spans and fixed_values. Implemented in: dialogue_object_utils.
             assert compare_full_dictionaries(processed, logical_form_post_processing[k])
 
