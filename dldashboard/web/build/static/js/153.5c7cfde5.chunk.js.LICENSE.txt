@@ -45,18 +45,6 @@ object-assign
 /*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
 
 /**
-   * @license
-   * Copyright 2019 Google LLC
-   * SPDX-License-Identifier: Apache-2.0
-   */
-
-/**
-   * @license
-   * Copyright 2020 Google LLC
-   * SPDX-License-Identifier: Apache-2.0
-   */
-
-/**
  * A better abstraction over CSS.
  *
  * @copyright Oleg Isonen (Slobodskoi) / Isonen 2014-present
