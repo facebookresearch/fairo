@@ -44,29 +44,6 @@ class DialogueManager(ABC):
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.model = model
 
-    @abstractmethod
-    def init_dialogue_logs(self, filepath, headers):
-        """Set up dialogue output logs, eg. write headers.
-
-        args:
-            filepath (str): Where to log data.
-            headers (list): List of string headers to be used in data store.
-
-        NOTE: TBD on whether to require all child classes to log dialogue outputs,
-        and therefore whether to initialize the logs in the parent class.
-        """
-        pass
-
-    @abstractmethod
-    def log_dialogue_outputs(self, filepath, data):
-        """Log dialogue data.
-
-        args:
-            filepath (str): Where to log data.
-            data (list): List of values to write to file.
-        """
-        pass
-
     def get_safety_words(self, safety_words_path):
         """Read a list of safety words to prevent abuse.
         """
