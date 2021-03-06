@@ -133,12 +133,9 @@ class StateManager {
     socket.on("sensor_payload", this.processSensorPayload);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
-<<<<<<< HEAD
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("objects", this.processObjects);
-=======
->>>>>>> 1ba23ec... Added VoxelJS dashboard renderer
     socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
   }
