@@ -144,54 +144,6 @@ class CraftAssistAgent(LocoMCAgent):
             }
             sio.emit("setVoxelWorldInitialState", payload)
 
-        @sio.on("getVoxelWorldInitialState")
-        def setup_agent_initial_state(sid):
-            MAX_RADIUS = 50
-            logging.info("in setup_world_initial_state")
-            agent_pos = self.get_player().pos
-            x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
-            origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
-            yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
-            blocks = npy_to_blocks_list(yzxb, origin=origin)
-            blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
-            payload = {
-                "status": "setupWorldInitialState",
-                "world_state": {
-                    "agent": {
-                        "name": "agent",
-                        "x": float(agent_pos.x),
-                        "y": float(agent_pos.y),
-                        "z": float(agent_pos.z),
-                    },
-                    "block": blocks
-                },
-            }
-            sio.emit("setVoxelWorldInitialState", payload)
-
-        @sio.on("getVoxelWorldInitialState")
-        def setup_agent_initial_state(sid):
-            MAX_RADIUS = 50
-            logging.info("in setup_world_initial_state")
-            agent_pos = self.get_player().pos
-            x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
-            origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
-            yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
-            blocks = npy_to_blocks_list(yzxb, origin=origin)
-            blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
-            payload = {
-                "status": "setupWorldInitialState",
-                "world_state": {
-                    "agent": {
-                        "name": "agent",
-                        "x": float(agent_pos.x),
-                        "y": float(agent_pos.y),
-                        "z": float(agent_pos.z),
-                    },
-                    "block": blocks
-                },
-            }
-            sio.emit("setVoxelWorldInitialState", payload)
-
     def init_inventory(self):
         """Initialize the agent's inventory"""
         self.inventory = inventory.Inventory()

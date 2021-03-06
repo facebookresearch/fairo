@@ -138,11 +138,6 @@ class StateManager {
     socket.on("objects", this.processObjects);
     socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
-    socket.on("rgb", this.processRGB);
-    socket.on("depth", this.processDepth);
-    socket.on("objects", this.processObjects);
-    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
-    socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
   }
 
   updateStateManagerMemory(data) {
