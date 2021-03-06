@@ -685,7 +685,7 @@ GET_MEMORY_COMMANDS = {
     "how many cubes are there?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "count",
+            "output": "COUNT",
             "memory_type": "REFERENCE_OBJECT",
             "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
         },
@@ -694,7 +694,7 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "triples": [{"pred_text": "has_colour", "obj_text": "blue"}],
-            "output": "count",
+            "output": "COUNT",
         },
     },
     "how many blocks are in the blue cube?": {

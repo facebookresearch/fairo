@@ -42,18 +42,23 @@ def is_loc_speakerlook(d):
     return False
 
 
-def process_spans(d, original_words, lemmatized_words):
+def process_spans_and_remove_fixed_value(d, original_words, lemmatized_words):
+    """This function fetches the words corresponding to indices in the logical form
+    and fetches the values of "fixed_value" key in the dictionary in place.
+    """
     if type(d) is not dict:
         return
     for k, v in d.items():
         if type(v) == dict:
+            # substitute the value of "fixed_value" in place in the dictionary
             if "fixed_value" in v.keys():
                 d[k] = v["fixed_value"]
             else:
-                process_spans(v, original_words, lemmatized_words)
+                process_spans_and_remove_fixed_value(v, original_words, lemmatized_words)
         elif type(v) == list and type(v[0]) == dict:
+            # triples
             for a in v:
-                process_spans(a, original_words, lemmatized_words)
+                process_spans_and_remove_fixed_value(a, original_words, lemmatized_words)
         else:
             try:
                 sentence, (L, R) = v
