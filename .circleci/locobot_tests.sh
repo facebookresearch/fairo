@@ -2,7 +2,7 @@
 set -ex
 
 echo "Downloading datasets, models ..."
-yes | tools/data_scripts/compare_directory_hash.sh locobot &
+yes | tools/data_scripts/try_download.sh locobot &
 wait
 echo "Done!"
 
