@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
+import csv
 from typing import Tuple, Optional
 
 from dialogue_stack import DialogueStack

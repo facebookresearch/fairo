@@ -317,7 +317,6 @@ if __name__ == "__main__":
 
     # set up stdout logging
     sh = logging.StreamHandler()
-    # sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
     sh.setFormatter(log_formatter)
     logger = logging.getLogger()
     logger.addHandler(sh)
