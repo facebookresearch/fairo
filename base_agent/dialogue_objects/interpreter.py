@@ -148,7 +148,7 @@ class Interpreter(DialogueObject):
         #        ]
         undo_command = old_task.get_chat().chat_text
 
-        logging.info("Pushing ConfirmTask tasks={}".format(undo_tasks))
+        logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
         self.dialogue_stack.append_new(
             ConfirmTask,
             'Do you want me to undo the command: "{}" ?'.format(undo_command),

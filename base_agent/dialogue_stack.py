@@ -57,7 +57,7 @@ class DialogueStack(object):
 
                 # Update progeny_data of the current DialogueObject
                 if len(self.stack) > 1 and step_data is not None:
-                    logging.info("Update progeny_data={} stack={}".format(step_data, self.stack))
+                    logging.debug("Update progeny_data={} stack={}".format(step_data, self.stack))
                     self.stack[-2].update_progeny_data(step_data)
 
             except NextDialogueStep:

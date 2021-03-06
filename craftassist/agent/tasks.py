@@ -222,12 +222,12 @@ class Move(BaseMovementTask):
         for (pos, idm) in R:
             agent.set_held_item(idm)
             if agent.place_block(*pos):
-                logging.info("Move: replaced {}".format((pos, idm)))
+                logging.debug("Move: replaced {}".format((pos, idm)))
             else:
                 # try again later
                 self.replace.add((pos, idm))
         if len(self.replace) > 0:
-            logging.info("Replace remaining: {}".format(self.replace))
+            logging.debug("Replace remaining: {}".format(self.replace))
 
         # check if finished
         if manhat_dist(tuple(agent.pos), self.target) <= self.approx:
@@ -324,7 +324,7 @@ class Build(Task):
                     self.destroyed_block_object_triples.extend(
                         agent.memory.get_triples(subj=mem.memid, pred_text=pred)
                     )
-                logging.info(
+                logging.debug(
                     "Destroying block object {} tags={}".format(
                         mem.memid, self.destroyed_block_object_triples
                     )
@@ -401,10 +401,10 @@ class Build(Task):
             ]
         )
         if len(xyzs) != 0:
-            logging.info("Excavating {} blocks first".format(len(xyzs)))
+            logging.debug("Excavating {} blocks first".format(len(xyzs)))
             target = self.get_next_destroy_target(agent, xyzs)
             if target is None:
-                logging.info("No path from {} to {}".format(agent.pos, xyzs))
+                logging.debug("No path from {} to {}".format(agent.pos, xyzs))
                 agent.send_chat("There's no path, so I'm giving up")
                 self.finished = True
                 return

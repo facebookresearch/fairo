@@ -17,7 +17,13 @@ class ArgumentParser:
         # Agent specific args
         self.agent_parsers[agent_type]()
 
-        self.parser.add_argument("--verbose", "-v", action="store_true", help="Debug logging")
+        self.parser.add_argument(
+            "--log_level", 
+            "-log", 
+            default="info", 
+            choices=["info", "debug", "warn", "error"], 
+            help="Logging tier to specify verbosity level, eg. DEBUG."
+        )
         self.parser.add_argument(
             "--no_default_behavior",
             action="store_true",
