@@ -53,6 +53,125 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
     return selector
 
 
+def get_val_map(interpreter, speaker, filters_d, get_all=False):
+    output = filters_d.get("output")
+    val_map = None
+    if output and type(output) is dict:
+        attr_d = output.get("attribute")
+        get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
+        a = get_attribute(interpreter, speaker, attr_d, get_all=get_all)
+        val_map = ApplyAttribute(interpreter.agent.memory, a)
+    elif output and output == "COUNT":
+        val_map = CountTransform(interpreter.agent.memory)
+    return val_map
+
+
+def maybe_append_left(F, to_append=None):
+    if to_append is not None:
+        to_append.append(F)
+        return to_append
+    else:
+        return F
+
+
+def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
+    # is this a specific memory?
+    # ... then return
+    mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
+    if mem:
+        return maybe_append_left(
+            FixedMemFilter(interpreter.agent.memory, mem.memid), to_append=val_map
+        )
+    else:
+        return None
+
+
+def interpret_ref_obj_filter(interpreter, speaker, filters_d):
+    F = MemoryFilter(interpreter.agent.memory)
+
+    # currently spec intersects all comparators TODO?
+    comparator_specs = filters_d.get("comparator")
+    if comparator_specs:
+        for s in comparator_specs:
+            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
+
+    # FIXME!!! AUTHOR
+    # FIXME!!! has_x=FILTERS
+    # currently spec intersects all has_x, TODO?
+    # FIXME!!! tags_from_dict is crude, use tags/relations appropriately
+    #        triples = []
+    tags = tags_from_dict(filters_d)
+    triples = [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]
+    #        for k, v in filters_d.items():
+    #            if type(k) is str and "has" in k:
+    #                if type(v) is str:
+    #                    triples.append({"pred_text": k, "obj_text": v})
+    # Warning: BasicFilters will filter out agent's self
+    # FIXME !! finer control over this ^
+    if triples:
+        F.append(BasicFilter(interpreter.agent.memory, {"triples": triples}))
+
+    return F
+
+
+def maybe_apply_selector(interpreter, speaker, filters_d, F):
+    selector = None
+    location_d = filters_d.get("location")
+    if location_d:
+        selector = build_linear_extent_selector(interpreter, speaker, location_d)
+    else:
+        argval_d = filters_d.get("argval")
+        if argval_d:
+            polarity = "arg" + argval_d.get("polarity").lower()
+            attribute_d = argval_d.get("quantity").get("attribute")
+            get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
+            selector_attribute = get_attribute(interpreter, speaker, attribute_d)
+            # FIXME
+            ordinal = {"first": 1, "second": 2, "third": 3}.get(
+                argval_d.get("ordinal", "first").lower(), 1
+            )
+            sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
+            selector = ExtremeValueMemorySelector(
+                interpreter.agent.memory, polarity=polarity, ordinal=ordinal
+            )
+            selector.append(sa)
+    if selector is not None:
+        selector.append(F)
+        return selector
+    else:
+        return F
+
+
+def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
+    F = MemoryFilter(interpreter.agent.memory)
+
+    T = filters_d.get("triples")
+    task_properties = [
+        a.get("obj_text")[1:].lower() for a in T if a.get("obj_text", "").startswith("_")
+    ]
+    search_data = {}
+    search_data["base_table"] = "Tasks"
+    search_data["base_exact"] = {}
+    if "currently_running" in task_properties:
+        search_data["base_exact"]["running"] = 1
+    if "paused" in task_properties:
+        search_data["base_exact"]["paused"] = 1
+    else:
+        search_data["base_exact"]["paused"] = 0
+    search_data["base_range"] = {}
+    if "finished" in task_properties:
+        search_data["base_range"]["minfinished"] = 0
+    F.append(BasicFilter(interpreter.agent.memory, search_data))
+
+    # currently spec intersects all comparators TODO?
+    comparator_specs = filters_d.get("comparator")
+    if comparator_specs:
+        for s in comparator_specs:
+            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
+
+    return F
+
+
 class FilterInterpreter:
     def __call__(self, interpreter, speaker, filters_d, get_all=False):
         """
@@ -67,81 +186,21 @@ class FilterInterpreter:
 
         Outputs a (chain) of MemoryFilter objects
         """
-        agent_memory = interpreter.agent.memory
-        self.get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
-        output = filters_d.get("output")
-        val_map = None
-        if output and type(output) is dict:
-            attr_d = output.get("attribute")
-            a = self.get_attribute(interpreter, speaker, attr_d, get_all=get_all)
-            val_map = ApplyAttribute(agent_memory, a)
-        elif output and output == "count":
-            val_map = CountTransform(agent_memory)
+        val_map = get_val_map(interpreter, speaker, filters_d, get_all=get_all)
         # NB (kavyasrinet) output can be string and have value "memory" too here
 
         # is this a specific memory?
         # ... then return
-        mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
-        if mem:
-            if val_map:
-                val_map.append(FixedMemFilter(agent_memory, mem.memid))
-                return val_map
-            else:
-                return FixedMemFilter(agent_memory, mem.memid)
+        specific_mem = maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map)
+        if specific_mem is not None:
+            return specific_mem
 
-        F = MemoryFilter(agent_memory)
-
-        # currently spec intersects all comparators TODO?
-        comparator_specs = filters_d.get("comparator")
-        if comparator_specs:
-            for s in comparator_specs:
-                F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
-
-        # FIXME!!! AUTHOR
-        # FIXME!!! has_x=FILTERS
-        # currently spec intersects all has_x, TODO?
-        # FIXME!!! tags_from_dict is crude, use tags/relations appropriately
-        #        triples = []
-        tags = tags_from_dict(filters_d)
-        triples = [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]
-        #        for k, v in filters_d.items():
-        #            if type(k) is str and "has" in k:
-        #                if type(v) is str:
-        #                    triples.append({"pred_text": k, "obj_text": v})
-        # Warning: BasicFilters will filter out agent's self
-        # FIXME !! finer control over this ^
-        if triples:
-            F.append(BasicFilter(agent_memory, {"triples": triples}))
-
-        selector = None
-        location_d = filters_d.get("location")
-        if location_d:
-            selector = build_linear_extent_selector(interpreter, speaker, location_d)
+        memtype = filters_d.get("memory_type", "REFERENCE_OBJECT")
+        if memtype == "REFERENCE_OBJECT":
+            F = interpret_ref_obj_filter(interpreter, speaker, filters_d)
+        elif memtype == "TASKS":
+            F = interpret_task_filter(interpreter, speaker, filters_d)
         else:
-            argval_d = filters_d.get("argval")
-            if argval_d:
-                polarity = "arg" + argval_d.get("polarity").lower()
-                attribute_d = argval_d.get("quantity").get("attribute")
-                selector_attribute = self.get_attribute(interpreter, speaker, attribute_d)
-                # FIXME
-                ordinal = {"first": 1, "second": 2, "third": 3}.get(
-                    argval_d.get("ordinal", "first").lower(), 1
-                )
-                sa = ApplyAttribute(agent_memory, selector_attribute)
-                selector = ExtremeValueMemorySelector(
-                    agent_memory, polarity=polarity, ordinal=ordinal
-                )
-                selector.append(sa)
-
-        if val_map:
-            if selector:
-                selector.append(F)
-                val_map.append(selector)
-            else:
-                val_map.append(F)
-            return val_map
-        else:
-            if selector:
-                selector.append(F)
-                return selector
-            return F
+            raise NotImplementedError
+        F = maybe_apply_selector(interpreter, speaker, filters_d, F)
+        return maybe_append_left(F, to_append=val_map)

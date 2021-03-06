@@ -11,6 +11,7 @@ from string_lists import ACTION_ING_MAPPING
 from copy import deepcopy
 import logging
 
+
 class GetMemoryHandler(DialogueObject):
     """This class handles logical forms that ask questions about the environment or 
     the assistant's current state. This requires querying the assistant's memory.
@@ -89,53 +90,10 @@ class GetMemoryHandler(DialogueObject):
         """
         # no clarifications etc?  FIXME:
         self.finished = True  # noqa
-
-        # FIXME!!!! use filters properly.
-        # currently the relevant information is not being stored in tags
-        # some code is in the task queue branch.
-
-        # get current action
-        triples = self.action_dict["filters"].get("triples", [])
-        task_names = [
-            t.get("obj_text").strip("_") for t in triples if t.get("pred_text", "") == "has_name"
-        ]
-        target_action_type = task_names[0] if any(task_names) else "NULL"
-        if target_action_type != "NULL":
-            target_action_type = target_action_type[0].upper() + target_action_type[1:].lower()
-            task = self.memory.task_stack_find_lowest_instance(target_action_type)
-        else:
-            task = self.memory.task_stack_peek()
-            if task is not None:
-                task = task.get_root_task()
-        if task is None:
-            return "I am not doing anything right now", None
-
-        output_type = self.action_dict["filters"].get("output")
-        if type(output_type) is dict and output_type.get("attribute"):
-            attribute = output_type["attribute"]
-            if type(attribute) is dict:
-                refobj_attr = (
-                    attribute.get("task_info", {}).get("reference_object", {}).get("attribute")
-                )
-                # FIXME generalize...
-                if type(refobj_attr) is str:
-                    return self.handle_task_refobj_string(task, refobj_attr.lower())
-                else:
-                    raise ErrorWithResponse(
-                        "trying get attribute {} from action".format(attribute)
-                    )
-            else:
-                attribute = attribute.lower()
-                if attribute == "name":
-                    return "I am {}".format(ACTION_ING_MAPPING[task.action_name.lower()]), None
-                else:
-                    raise ErrorWithResponse(
-                        "trying get attribute {} from action".format(attribute)
-                    )
-        return None, None
-
-    def handle_task_refobj_string(self, task, refobj_attr):
-        raise NotImplementedError
+        f = self.action_dict["filters"]
+        F = self.subinterpret["filters"](self, self.speaker_name, f, get_all=True)
+        mems, vals = F()
+        return str(vals), None
 
     def do_answer(self, mems: Sequence[Any], vals: Sequence[Any]) -> Tuple[Optional[str], Any]:
         """This function uses the action dictionary and memory state to return an answer. 
@@ -168,9 +126,11 @@ class GetMemoryHandler(DialogueObject):
                 return self.handle_exists(mems)
             else:
                 raise ValueError("Bad answer_type={}".format(output_type))
+        except IndexError: # index error indicates no answer available
+            logging.error("No answer available from do_answer")
+            raise ErrorWithResponse("I don't understand what you're asking")
         except Exception as e:
             logging.exception(e)
-            raise ErrorWithResponse("I don't understand what you're asking")
 
     def handle_exists(self, mems: Sequence[MemoryNode]) -> Tuple[Optional[str], Any]:
         """Check if a memory exists.

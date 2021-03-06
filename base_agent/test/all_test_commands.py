@@ -4,11 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from base_agent.dialogue_objects import SPEAKERLOOK, AGENTPOS
 from copy import deepcopy
 
+
 def command(d):
     if type(d) is list:
         return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": d}
     else:
         return {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [d]}
+
 
 ATTRIBUTES = {
     "x": {"attribute": "x"},
@@ -74,26 +76,26 @@ ATTRIBUTES["distance from that cube"] = {
 # FIXME "built" should check for player made or agent made
 FILTERS["the first thing that was built"] = {
     "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["the last thing that was built"] = {
     "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
     "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
     "argval": {"polarity": "MIN", "ordinal": "SECOND", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
     "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
-    "triples": [{"pred_text": "has_tag", "obj_text": "_voxel_object"}],
+    "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 
 
@@ -630,7 +632,7 @@ GET_MEMORY_COMMANDS = {
     "what are you doing": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "triples": [{"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"}],
+            "triples": [{"pred_text": "has_tag", "obj_text": "CURRENTLY_RUNNING"}],
             "memory_type": "TASKS",
             "output": {"attribute": "NAME"},
         },
@@ -639,8 +641,8 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "triples": [
-                {"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"},
-                {"pred_text": "has_name", "obj_text": "_BUILD"},
+                {"pred_text": "has_tag", "obj_text": "CURRENTLY_RUNNING"},
+                {"pred_text": "has_name", "obj_text": "BUILD"},
             ],
             "memory_type": "TASKS",
             "output": {"attribute": {"task_info": {"reference_object": {"attribute": "NAME"}}}},
@@ -654,8 +656,8 @@ GET_MEMORY_COMMANDS = {
             },
             "memory_type": "TASKS",
             "triples": [
-                {"pred_text": "has_tag", "obj_text": "_CURRENTLY_RUNNING"},
-                {"pred_text": "has_name", "obj_text": "_MOVE"},
+                {"pred_text": "has_tag", "obj_text": "CURRENTLY_RUNNING"},
+                {"pred_text": "has_name", "obj_text": "MOVE"},
             ],
         },
     },
@@ -664,7 +666,7 @@ GET_MEMORY_COMMANDS = {
         "filters": {
             "output": {"attribute": "LOCATION"},
             "memory_type": "REFERENCE_OBJECT",
-            "triples": [{"pred_text": "has_tag", "obj_text": "_SELF"}],
+            "triples": [{"pred_text": "has_tag", "obj_text": "SELF"}],
         },
     },
     "what is to the left of the cube?": {
@@ -683,7 +685,7 @@ GET_MEMORY_COMMANDS = {
     "how many cubes are there?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "count",
+            "output": "COUNT",
             "memory_type": "REFERENCE_OBJECT",
             "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
         },
@@ -692,7 +694,7 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "triples": [{"pred_text": "has_colour", "obj_text": "blue"}],
-            "output": "count",
+            "output": "COUNT",
         },
     },
     "how many blocks are in the blue cube?": {
@@ -714,7 +716,7 @@ GET_MEMORY_COMMANDS = {
                 "ordinal": "FIRST",
                 "polarity": "MIN",
                 "quantity": {
-                    "attribute" : {
+                    "attribute": {
                         "linear_extent": {
                             "source": {"reference_object": {"special_reference": "AGENT"}}
                         }
@@ -726,12 +728,12 @@ GET_MEMORY_COMMANDS = {
     "what is the thing closest to me?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute" : "name"},
+            "output": {"attribute": "name"},
             "argval": {
                 "ordinal": "FIRST",
                 "polarity": "MIN",
                 "quantity": {
-                    "attribute" : {
+                    "attribute": {
                         "linear_extent": {
                             "source": {"reference_object": {"special_reference": "SPEAKER"}}
                         }
@@ -1003,19 +1005,19 @@ GROUND_TRUTH_PARSES = {
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
-    "go right 3 feet": {	
-        "action_sequence": [	
-            {	
-                "action_type": "MOVE",	
-                "location": {	
-                    "reference_object": {"special_reference": "AGENT"},	
-                    "relative_direction": "RIGHT",	
-                    "steps": "3",	
-                    "has_measure": "feet",	
-                },	
-            }	
-        ],	
-        "dialogue_type": "HUMAN_GIVE_COMMAND",	
+    "go right 3 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "RIGHT",
+                    "steps": "3",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "go left 3 meters": {
         "action_sequence": [
@@ -1061,37 +1063,25 @@ GROUND_TRUTH_PARSES = {
     },
     "turn right 90 degrees": {
         "action_sequence": [
-            {
-                "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "-90"}}},
-            }
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}},}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn left 90 degrees": {
         "action_sequence": [
-            {
-                "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "90"}}},
-            }
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}},}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right 180 degrees": {
         "action_sequence": [
-            {
-                "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "-180"}}},
-            }
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}},}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right": {
         "action_sequence": [
-            {
-                "action_type": "DANCE",
-                "dance_type": {"body_turn": {"relative_yaw": {"angle": "-90"}}},
-            }
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}},}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },

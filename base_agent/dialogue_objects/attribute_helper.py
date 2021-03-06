@@ -2,7 +2,13 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from copy import deepcopy
-from memory_attributes import LinearExtentAttribute, TableColumn, ListAttribute
+from memory_attributes import (
+    LinearExtentAttribute,
+    TableColumn,
+    ListAttribute,
+    TripleWalk,
+    AttributeSequence,
+)
 from memory_values import LinearExtentValue, FixedValue, convert_comparison_value
 from base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import ReferenceObjectNode
@@ -138,6 +144,26 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     return L
 
 
+def interpret_task_info(interpreter, speaker, d):
+    # name already handled, currently only other possibility is
+    # "task_info": {"reference_object": ATTRIBUTE}
+    task_info = d.get("task_info")
+    if not task_info:
+        raise ValueError("task info malformed: {}".format(task_info))
+    ref_obj_attr_d = task_info.get("reference_object")
+    if not ref_obj_attr_d:
+        raise ValueError("task info malformed: {}".format(task_info))
+    if not ref_obj_attr_d.get("attribute"):
+        raise ValueError("task info malformed: {}".format(task_info))
+
+    # we probably should rearrange FILTERS spec so that the task ref obj is the returned memory, not the task...
+    get_refobj = TripleWalk(interpreter.agent, [("task_reference_object", "obj_variable")])
+    refobj_attr = interpreter.subinterpret["attribute"](
+        interpreter, speaker, ref_obj_attr_d["attribute"]
+    )
+    return AttributeSequence(interpreter.agent, [get_refobj, refobj_attr])
+
+
 class AttributeInterpreter:
     def __call__(self, interpreter, speaker, d_attribute, get_all=False):
         if type(d_attribute) is str:
@@ -147,9 +173,10 @@ class AttributeInterpreter:
             elif d_attribute and type(d_attribute) is list:
                 alist = [self.__call__(interpreter, speaker, a) for a in d_attribute]
                 return ListAttribute(interpreter.agent, alist)
+        elif d_attribute.get("task_info"):
+            return interpret_task_info(interpreter, speaker, d_attribute)
         elif d_attribute.get("linear_extent"):
             return interpret_linear_extent(interpreter, speaker, d_attribute["linear_extent"])
-        # NB (kavyasrinet) : "num_blocks", "task_info"... are missing here
 
 
 CANONICALIZE_ATTRIBUTES = {

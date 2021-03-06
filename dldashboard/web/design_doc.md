@@ -6,9 +6,9 @@ A high level design diagram of the current architecture of the dashboard is :
 ![dashboard architecture diagram](https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_architecture.png)
 
 In the diagram above:
-- `**frontend**`: The React based frontend that hosts other React subcomponents in a given layout. All the components are expected to reflect the most up-to-date state whenever there is a state change communicated from backend. 
-- `**StateManager**`: The module that manages messaging between `frontend` and `backend`. Through the StateManager : we set the state of the React components with the data communicated from backend, and the components can explicitly request information / set the state of backend. The `StateManager` and the `backend` communicate wiht each other using `socket.io` connections. The goal is to have `StateManager` be completely in sync with the backend but we aren't there yet.
-- `**backend**` : This is the agent process that sends and receives data from the `frontend` through the `StateManager` component. The agent process and its modules (perception, memory, mover, controller etc) can communicate with `StateManager` using `socket.io` connections. 
+- **`frontend`**: The React based frontend that hosts other React subcomponents in a given layout. All the components are expected to reflect the most up-to-date state whenever there is a state change communicated from backend. 
+- **`StateManager`**: The module that manages messaging between `frontend` and `backend`. Through the `StateManager`, we set the state of the React components with the data communicated from backend, and the components can explicitly request information / set the state of backend. The `StateManager` and the `backend` communicate with each other using `socket.io` connections. The goal is to have `StateManager` be completely in sync with the backend but we aren't there yet.
+- **`backend`** : This is the agent process that sends and receives data from the `frontend` through the `StateManager`. The agent process and its modules (perception, memory, mover, controller etc) can also communicate with `StateManager` using `socket.io` connections. 
 
 
 ## Snapshot 

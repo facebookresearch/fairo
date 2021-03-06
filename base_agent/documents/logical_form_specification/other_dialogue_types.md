@@ -17,13 +17,12 @@ Note: Classes used in the dict using `<>` are defined as subsections and their c
 ## Put Memory Dialogue Type ##
 ```
 {
-  "dialogue_type": "PUT_MEMORY",
   "filters": <FILTERS>,
   "upsert" : {
       "memory_data": {
         "memory_type": "REWARD" / "TRIPLE",
         "reward_value": "POSITIVE" / "NEGATIVE",
-        "triples": [{"pred_text": "has_x", "obj_text": span}]
+        "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
       } }
 }
 ```

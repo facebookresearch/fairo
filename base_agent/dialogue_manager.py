@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
+import csv
 from typing import Tuple, Optional
 
 from dialogue_stack import DialogueStack
@@ -84,7 +85,7 @@ class DialogueManager(object):
             return
 
         if chat[1]:
-            logging.info("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
+            logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
             # NOTE: the model is responsible for not putting a new
             # object on the stack if it sees that whatever is on

@@ -22,7 +22,7 @@ FILTERS = {
       "argval" : <ARGMAX> / <ARGMIN> ,
       "comparator": [<COMPARATOR> , ...],
       "triples": <TRIPLES>,
-      "author":  "AGENT" / "SPEAKER" / span,
+      "author":  {"fixed_value" : "AGENT" / "SPEAKER"} / span,
       "location": <LOCATION> }
 ```
 
@@ -55,8 +55,8 @@ This is used to mean the number of steps (in "has_measure" units, default is "bl
 {"linear_extent" : {
             "relative_direction": "LEFT" / "RIGHT"/ "UP" / "DOWN"/ "FRONT" 
                                   / "BACK"/ "AWAY" / "INSIDE" / "OUTSIDE", 
-            "frame": "SPEAKER" / "AGENT" / "ABSOLUTE" / {"player_span": span},
-            "has_measure" : span,
+            "frame": {"fixed_value": "SPEAKER" / "AGENT" / "ABSOLUTE"} / {"player_span": span},
+            "has_measure" : {"fixed_value" : text} / span,
             "source": <REFERENCE_OBJECT>,
 		        "destination": <REFERENCE_OBJECT> }
             }
@@ -67,7 +67,7 @@ This is used to mean the number of steps (in "has_measure" units, default is "bl
 This defines the polarity of maximum, so ranking from max to min on the quantity: 
 ```
 { "polarity" : "MAX", 
-  "ordinal": 'FIRST' / <span>, 
+  "ordinal": {"fixed_value" : "FIRST"} / <span>, 
   "quantity": <ATTRIBUTE>
 }
 ```
@@ -76,7 +76,7 @@ This defines the polarity of maximum, so ranking from max to min on the quantity
 This defines the polarity of minimum, so ranking from min to max on the quantity :
 ```
 { "polarity" : "MIN", 
-  "ordinal": 'FIRST' / <span>, 
+  "ordinal": {"fixed_value" : "FIRST"} / <span>, 
   "quantity": <ATTRIBUTE>
 }
 ```
@@ -91,11 +91,11 @@ Comparator compares two values on the left and right based on the comparison typ
 		
 ```
 {
-  "input_left" : {"value_extractor" : <FILTERS> / <ATTRIBUTE> / span }
+  "input_left" : {"value_extractor" : <FILTERS> / <ATTRIBUTE> / {"fixed_value" : text} / span }
   "comparison_type" : "GREATER_THAN" / "LESS_THAN" / "GREATER_THAN_EQUAL" / 
                       "LESS_THAN_EQUAL" / "NOT_EQUAL" / "EQUAL" / <CLOSE_TO> / <MOD_EQUAL> / <MOD_CLOSE>,
-  "input_right" : {"value_extractor" : <FILTERS> / <ATTRIBUTE> / span }
-  "comparison_measure" : span,
+  "input_right" : {"value_extractor" : <FILTERS> / <ATTRIBUTE> / {"fixed_value" : text} /span }
+  "comparison_measure" : {"fixed_value" : text} / span,
   "set_comparison": "ANY"/ "ALL"
 }
 ```
@@ -103,20 +103,20 @@ Comparator compares two values on the left and right based on the comparison typ
 #### CLOSE_TO ####
 This defines a tolerance of proximity :
 ```
-{"close_tolerance": "DEFAULT" / span}
+{"close_tolerance": {"fixed_value" : "DEFAULT"} / span}
 ```
 
 #### MOD_CLOSE ####
 This defines a modulus with a `close_tolerance`:
 ```
-{ "modulus": "DEFAULT"/span, 
-  "close_tolerance": "DEFAULT" / span}
+{ "modulus": {"fixed_value" : "DEFAULT"} / span, 
+  "close_tolerance": {"fixed_value" : "DEFAULT"} / span}
 ```
 
 #### MOD_EQUAL ####
 `MOD_EQUAL` in COMPARATOR is for e.g. handling time conditions like 'every 5 seconds' :
 ```
-{ "modulus": "DEFAULT" / span}
+{ "modulus": {"fixed_value" : "DEFAULT"} / span}
 ```
 
 
@@ -130,8 +130,8 @@ Each of these keys can be one of:
 ```
 [
   {"pred_text" / "pred": "has_x", 
-  "obj_text" / "obj" : text / span / <FILTERS>, 
-  "subj_text" / "subj" : text / span / <FILTERS>},
+  "obj_text" / "obj" : {"fixed_value" : text} / span / <FILTERS>, 
+  "subj_text" / "subj" : {"fixed_value" : text} / span / <FILTERS>},
   ....
 ]
 ```
@@ -140,7 +140,7 @@ Note:
 ```
 {
   "pred_text": "has_tag", 
-  "obj_text": "_SELF"}
+  "obj_text": {"fixed_value" : "SELF"} }
 ```
 and `'memory_type': 'REFERENCE_OBJECT'` 
 
@@ -148,25 +148,28 @@ and `'memory_type': 'REFERENCE_OBJECT'`
 ```
 {
   "pred_text": "has_tag", 
-  "obj_text": "_SPEAKER"}
+  "obj_text": {"fixed_value" : "SPEAKER"}}
 ```
 and `'memory_type': 'REFERENCE_OBJECT'` 
 
 - Current task is : `'memory_type': 'TASKS'` and 
 ```
 {"pred_text": "has_tag", 
- "obj_text": "_CURRENTLY_RUNNING"}
+ "obj_text": {"fixed_value" : "CURRENTLY_RUNNING"}}
 ``` 
 - A completed task by: `'memory_type': 'TASKS'` and 
 ```
 {"pred_text": "has_tag", 
- "obj_text": "_FINISHED"}
+ "obj_text": {"fixed_value" : "FINISHED"}}
 ``` 
 
 - Task name is represented using :
 ```
 {"pred_text": "has_name", 
- "obj_text": "_BUILD" / "_DIG" / "_FILL" / _(name of any other action in capital letters)
+ "obj_text": {"fixed_value": "BUILD" / "DIG" / "FILL" / "SPAWN" / 
+                             "RESUME" / "FILL" / "DESTROY" / "MOVE" / 
+                             "DIG" / "GET" / "DANCE" / "FREEBUILD" /
+                             "STOP" / "UNDO"}
 }
 ```
 

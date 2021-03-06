@@ -70,15 +70,16 @@ class ObjectDeduplicationHandler(AbstractHandler):
         for previous_object in previous_objects:
             if isinstance(previous_object, dict):
                 previous_object = AttributeDict(previous_object)
-            score = cos(previous_object.feature_repr.unsqueeze(0), current_object.feature_repr.unsqueeze(0))
-            dist = np.linalg.norm(np.asarray(current_object.xyz[:2]) - np.asarray(previous_object.xyz[:2]))
-            logging.debug(
-                "Similarity {}.{} = {}, {}".format(current_object.label, previous_object.label, score.item(), dist)
-            )
-            # FIXME pick best match?
-            if self.is_match(score.item(), dist):
-                is_novel = False
-                current_object.eid = previous_object.eid
+            if previous_object.feature_repr is not None and current_object.feature_repr is not None:
+                score = cos(previous_object.feature_repr.unsqueeze(0), current_object.feature_repr.unsqueeze(0))
+                dist = np.linalg.norm(np.asarray(current_object.xyz[:2]) - np.asarray(previous_object.xyz[:2]))
+                logging.debug(
+                    "Similarity {}.{} = {}, {}".format(current_object.label, previous_object.label, score.item(), dist)
+                )
+                # FIXME pick best match?
+                if self.is_match(score.item(), dist):
+                    is_novel = False
+                    current_object.eid = previous_object.eid
         logging.info("world object {}, is_novel {}".format(current_object.label, is_novel))
         return is_novel
 
