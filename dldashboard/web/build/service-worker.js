@@ -14,39 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "/precache-manifest.ad95ae58e7dce145f02f6f39be3386aa.js"
-=======
-  "/precache-manifest.b75eceaeb13538603767c068fe3d10da.js"
->>>>>>> 016fff7... Checked in yarn build files
-=======
-  "/precache-manifest.a8549702307893d035e1435a3c191ecc.js"
->>>>>>> d8d0982... Checked in yarn build files
-=======
-  "/precache-manifest.d86fb27cb2ab11add239b7190cae9253.js"
->>>>>>> 6582f6f... Checked in yarn build files
-=======
-  "/precache-manifest.ad95ae58e7dce145f02f6f39be3386aa.js"
->>>>>>> 5187e34... Checked in yarn build files
-=======
-  "/precache-manifest.b75eceaeb13538603767c068fe3d10da.js"
->>>>>>> 016fff7... Checked in yarn build files
-=======
-  "/precache-manifest.a8549702307893d035e1435a3c191ecc.js"
->>>>>>> d8d0982... Checked in yarn build files
-=======
-  "/precache-manifest.d087a328aa312ac17f87f794695d4f7d.js"
->>>>>>> 627e4a9... Overwrite and checkin all build files
-=======
-  "/precache-manifest.d087a328aa312ac17f87f794695d4f7d.js"
->>>>>>> 6f40374d7e35e87fa04db2334a0be425301a73f5
+  "/precache-manifest.6cd5b3e7de7977d32ea4ff181f6b1820.js"
 );
 
 self.addEventListener('message', (event) => {
