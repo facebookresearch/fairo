@@ -36,6 +36,7 @@ from base_agent.base_util import Pos, Look
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.memory_nodes import PlayerNode
 from base_agent.argument_parser import ArgumentParser
+from build_utils import npy_to_blocks_list
 from craftassist.agent.dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
@@ -118,6 +119,54 @@ class CraftAssistAgent(LocoMCAgent):
     def init_event_handlers(self):
         """Handle the socket events"""
         super().init_event_handlers()
+        
+        @sio.on("getVoxelWorldInitialState")
+        def setup_agent_initial_state(sid):
+            MAX_RADIUS = 50
+            logging.info("in setup_world_initial_state")
+            agent_pos = self.get_player().pos
+            x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
+            origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
+            yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
+            blocks = npy_to_blocks_list(yzxb, origin=origin)
+            blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
+            payload = {
+                "status": "setupWorldInitialState",
+                "world_state": {
+                    "agent": {
+                        "name": "agent",
+                        "x": float(agent_pos.x),
+                        "y": float(agent_pos.y),
+                        "z": float(agent_pos.z),
+                    },
+                    "block": blocks
+                },
+            }
+            sio.emit("setVoxelWorldInitialState", payload)
+
+        @sio.on("getVoxelWorldInitialState")
+        def setup_agent_initial_state(sid):
+            MAX_RADIUS = 50
+            logging.info("in setup_world_initial_state")
+            agent_pos = self.get_player().pos
+            x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
+            origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
+            yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
+            blocks = npy_to_blocks_list(yzxb, origin=origin)
+            blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
+            payload = {
+                "status": "setupWorldInitialState",
+                "world_state": {
+                    "agent": {
+                        "name": "agent",
+                        "x": float(agent_pos.x),
+                        "y": float(agent_pos.y),
+                        "z": float(agent_pos.z),
+                    },
+                    "block": blocks
+                },
+            }
+            sio.emit("setVoxelWorldInitialState", payload)
 
         @sio.on("getVoxelWorldInitialState")
         def setup_agent_initial_state(sid):

@@ -3,6 +3,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     "main.css": "/static/css/main.f62cf940.chunk.css",
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -231,10 +232,24 @@
 >>>>>>> d8d0982... Checked in yarn build files
 =======
 >>>>>>> 627e4a9... Overwrite and checkin all build files
+=======
+    "main.css": "/static/css/main.b0183ecc.chunk.css",
+    "main.js": "/static/js/main.ca0e6858.chunk.js",
+    "runtime-main.js": "/static/js/runtime-main.2c219ed3.js",
+    "static/css/2.66fa5a56.chunk.css": "/static/css/2.66fa5a56.chunk.css",
+    "static/js/2.6772dc02.chunk.js": "/static/js/2.6772dc02.chunk.js",
+    "index.html": "/index.html",
+    "precache-manifest.d087a328aa312ac17f87f794695d4f7d.js": "/precache-manifest.d087a328aa312ac17f87f794695d4f7d.js",
+    "service-worker.js": "/service-worker.js",
+    "static/js/2.6772dc02.chunk.js.LICENSE.txt": "/static/js/2.6772dc02.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+>>>>>>> 6f40374d7e35e87fa04db2334a0be425301a73f5
     "static/js/runtime-main.2c219ed3.js",
     "static/css/2.66fa5a56.chunk.css",
     "static/js/2.6772dc02.chunk.js",
     "static/css/main.b0183ecc.chunk.css",
+<<<<<<< HEAD
 <<<<<<< HEAD
     "static/js/main.dda7eefb.chunk.js"
 <<<<<<< HEAD
@@ -434,5 +449,8 @@
 =======
     "static/js/main.ca0e6858.chunk.js"
 >>>>>>> 627e4a9... Overwrite and checkin all build files
+=======
+    "static/js/main.ca0e6858.chunk.js"
+>>>>>>> 6f40374d7e35e87fa04db2334a0be425301a73f5
   ]
 }
