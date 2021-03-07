@@ -125,9 +125,6 @@ class LocobotAgent(LocoMCAgent):
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
         )
-        file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
-        file_log_handler.setFormatter(log_formatter)
-        logging.getLogger().addHandler(file_log_handler)
         logging.info("Initialized agent memory")
 
     def init_perception(self):
@@ -199,14 +196,13 @@ if __name__ == "__main__":
     parser = ArgumentParser("Locobot", base_path)
     opts = parser.parse()
 
+    logging.basicConfig(level=opts.log_level.upper())
     # set up stdout logging
     sh = logging.StreamHandler()
-    sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
     sh.setFormatter(log_formatter)
     logging.getLogger().addHandler(sh)
-    logging.info("Info logging")
-    logging.debug("Debug logging")
-
+    logging.info("LOG LEVEL: {}".format(logger.level))
+    
     # Check that models and datasets are up to date
     if not opts.dev:
         rc = subprocess.call([opts.verify_hash_script_path, "locobot"])
