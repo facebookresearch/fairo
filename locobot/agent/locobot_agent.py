@@ -123,7 +123,7 @@ class LocobotAgent(LocoMCAgent):
         """
         self.memory = LocoAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
-            db_log_path="agent_memory.{}.log".format(self.name),
+            db_log_path=None,
         )
         logging.info("Initialized agent memory")
 
