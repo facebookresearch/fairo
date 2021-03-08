@@ -100,16 +100,13 @@ class Interpreter(DialogueObject):
             tasks_to_push = []
             for action_def in actions:
                 action_type = action_def["action_type"]
-                try:
-                    r = self.action_handlers[action_type](self.speaker, action_def)
-                    if len(r) == 3:
-                        task, response, dialogue_data = r
-                    else:
-                        # FIXME don't use this branch, uniformize the signatures
-                        task = None
-                        response, dialogue_data = r
-                except ErrorWithResponse as err:
-                    return err.chat, None
+                r = self.action_handlers[action_type](self.speaker, action_def)
+                if len(r) == 3:
+                    task, response, dialogue_data = r
+                else:
+                    # FIXME don't use this branch, uniformize the signatures
+                    task = None
+                    response, dialogue_data = r
                 if task:
                     tasks_to_push.append(task)
             task_mem = None
