@@ -133,33 +133,6 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
-<<<<<<< HEAD
-    def init_dialogue_logs(self, filepath, headers):
-        """Set up dialogue output logs, eg. write headers.
-
-        args:
-            filepath (str): Where to log data.
-            headers (list): List of string headers to be used in data store.
-        
-        Implements :init_dialogue_logs:`~DialogueManager`
-        """
-        with open(filepath, "w") as fd:
-            csv_writer = csv.writer(fd, delimiter="|")
-            csv_writer.writerow(headers)
-
-    def log_dialogue_outputs(self, filepath, data):
-        """Log dialogue data.
-
-        args:
-            filepath (str): Where to log data.
-            data (list): List of values to write to file.
-
-        Implements :log_dialogue_outputs:`~DialogueManager`
-        """
-        with open(filepath, "a") as fd:
-            csv_writer = csv.writer(fd, delimiter="|")
-            csv_writer.writerow(data)
-
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
 
