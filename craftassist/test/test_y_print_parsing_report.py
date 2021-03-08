@@ -309,7 +309,7 @@ common_functional_commands = {
     "how many red things are there": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "count",
+            "output": "COUNT",
             "triples": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}],
         },
     },
@@ -487,7 +487,7 @@ common_functional_commands = {
     "how many pencils are there": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "count",
+            "output": "COUNT",
             "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
         },
     },
@@ -581,14 +581,14 @@ common_functional_commands = {
     "how many cubes are there": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "count",
+            "output": "COUNT",
             "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
         },
     },
     "is there anything big": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "memory",
+            "output": "MEMORY",
             "triples": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}],
         },
     },
@@ -655,7 +655,7 @@ common_functional_commands = {
     "is there anything small": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "memory",
+            "output": "MEMORY",
             "triples": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}],
         },
     },
@@ -681,14 +681,14 @@ common_functional_commands = {
     "how many yellow things do you see": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "count",
+            "output": "COUNT",
             "triples": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}],
         },
     },
     "is there anything red": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": "memory",
+            "output": "MEMORY",
             "triples": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}],
         },
     },
@@ -803,16 +803,20 @@ def compare_dicts(dict1, dict2):
     for k, v in dict1.items():
         if k not in dict2:
             return False
+        if type(v) == str and dict2[k] != v:
+            return False
         if type(v) == list:
             if type(dict2[k]) != list:
                 return False
             for val in v:
-                if val not in dict2[k]:
+                # for triples
+                if not (val in dict2[k]):
                     return False
         if type(v) == dict:
             if type(dict2[k]) != dict:
                 return False
-            return compare_dicts(v, dict2[k])
+            if not compare_dicts(v, dict2[k]):
+                return False
     return True
 
 
@@ -856,20 +860,16 @@ class TestDialogueManager(unittest.TestCase):
         records = []
         parsing_model_status = False
         pass_cnt, fail_cnt, model_pass_cnt, model_fail_cnt = 0, 0, 0, 0
-
         for command in common_functional_commands.keys():
             ground_truth_parse = common_functional_commands[command]
             if command in self.ground_truth_actions:
                 model_prediction = self.ground_truth_actions[command]
             else:
                 # else query the model and remove the value for key "text_span"
-                model_prediction = remove_text_span(
-                    self.agent.dialogue_manager.get_logical_form(
-                        command, self.agent.dialogue_manager.model
-                    )
-                )
+                model_prediction = remove_text_span(self.agent.dialogue_manager.model.model.parse(chat=command))
+            
             # compute parsing pipeline accuracy
-            status = compare_full_dictionaries(model_prediction, ground_truth_parse)
+            status = compare_full_dictionaries(ground_truth_parse, model_prediction)
             if status:
                 pass_cnt += 1
                 record = [
@@ -883,19 +883,15 @@ class TestDialogueManager(unittest.TestCase):
                     fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
             # compute model correctness status
-            model_output = remove_text_span(
-                self.agent.dialogue_manager.get_logical_form(
-                    command, self.agent.dialogue_manager.model
-                )
-            )
-            parsing_model_status = compare_full_dictionaries(model_output, ground_truth_parse)
+            model_output = remove_text_span(self.agent.dialogue_manager.model.model.parse(chat=command))
+            parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:
                 model_pass_cnt += 1
                 record += [fontcolors.OKGREEN + "PASS" + fontcolors.ENDC]
             else:
                 model_fail_cnt += 1
                 record += [fontcolors.FAIL + "FAIL" + fontcolors.ENDC]
-
+            
             records.append(record)
 
         for record in records:

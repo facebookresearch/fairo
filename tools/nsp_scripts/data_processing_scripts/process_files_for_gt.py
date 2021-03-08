@@ -1,5 +1,5 @@
 """
-This script processes large files eg. templated generations to 
+This script processes large files eg. templated generations to
 create ground truth annotations that are efficient to look up.
 """
 import argparse
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output_path",
         type=str,
-        help="Where to write groound truth annotations to.",
+        help="Where to write ground truth annotations to.",
         default="craftassist/agent/datasets/ground_truth/datasets/templated.txt",
     )
     parser.add_argument(
