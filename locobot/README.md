@@ -41,7 +41,7 @@ chmod +x launch_pyro.sh
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
-docker run --gpus all -it --rm --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:5.0 bash
+docker run --gpus all -it --rm --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:segm bash
 roscore &
 load_pyrobot_env
 cd locobot/robot

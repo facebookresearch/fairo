@@ -122,7 +122,7 @@ jobs:
         name: Pull docker image
         command: |
           set -ex
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:5.0
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:segm
           echo Pulling docker image $DOCKER_IMAGE
           docker pull $DOCKER_IMAGE >/dev/null
 
