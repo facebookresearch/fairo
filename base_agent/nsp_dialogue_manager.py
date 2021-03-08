@@ -133,6 +133,7 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
+
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
 
