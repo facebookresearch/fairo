@@ -10,9 +10,6 @@ function background_agent() (
     python3 /droidlet/craftassist/agent/craftassist_agent.py 1>agent.log 2>agent.log
 )
 
-background_agent &
-
-
 python3 /droidlet/craftassist/cuberite_process.py \
     --mode creative \
     --workdir . \
@@ -22,7 +19,10 @@ python3 /droidlet/craftassist/cuberite_process.py \
     --add-plugin shutdown_on_leave \
     --add-plugin shutdown_if_no_player_join \
     1>cuberite_process.log \
-    2>cuberite_process.log
+    2>cuberite_process.log \
+    &
+
+background_agent
 
 
 TARBALL=logs.tar.gz
