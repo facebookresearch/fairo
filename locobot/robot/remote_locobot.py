@@ -56,6 +56,7 @@ class RemoteLocobot(object):
                 backend_config["physics_config"] = os.path.join(
                     assets_path, "default.phys_scene_config.json"
                 )
+            print("backend_config", backend_config)
             self.backend_config = backend_config
             # we do it this way to have the ability to restart from the client at arbitrary times
             self.restart_habitat()
@@ -431,6 +432,17 @@ class RemoteLocobot(object):
         rgb = self._robot.camera.get_rgb()
         if rgb is not None:
             return rgb
+        return None
+    
+    def get_rgbd_segm(self):
+        """Returns the RGB image, depth, segm map.
+
+        :return: image in the RGB, [h,w,c] format, dtype->uint8
+        :rtype: np.ndarray or None
+        """
+        rgb, d, segm = self._robot.camera.get_rgb_depth_segm()
+        if rgb is not None:
+            return rgb, d, segm
         return None
 
     def get_rgb_bytes(self):
