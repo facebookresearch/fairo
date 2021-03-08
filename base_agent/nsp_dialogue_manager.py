@@ -133,6 +133,7 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
+<<<<<<< HEAD
     def init_dialogue_logs(self, filepath, headers):
         """Set up dialogue output logs, eg. write headers.
 
