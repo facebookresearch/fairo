@@ -41,15 +41,12 @@ SHELL ["/bin/bash", "-c"]
 # Environment 
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
 
-# RUN git clone git@github.com:fairinternal/minecraft.git
-
 RUN conda create -n minecraft_env python==3.7.4 pip numpy scikit-learn==0.19.1 pytorch==1.4.0 torchvision -c conda-forge -c pytorch && \
-    # cd minecraft && \
     conda init bash && \
     source ~/.bashrc && \
     source activate /root/miniconda3/envs/minecraft_env && \
-    curl https://raw.githubusercontent.com/fairinternal/minecraft/master/requirements.txt?token=ACU673CWOQIHUSRDZKKPHBC7VRQCW -o requirements_1.txt && \
-    curl https://raw.githubusercontent.com/fairinternal/minecraft/master/locobot/requirements.txt?token=ACU673GXV3LDEPHQ2CSWQEC7WWJG4 -o requirements_2.txt && \
+    curl https://raw.githubusercontent.com/facebookresearch/droidlet/main/requirements.txt -o requirements_1.txt && \
+    curl https://raw.githubusercontent.com/facebookresearch/droidlet/main/locobot/requirements.txt -o requirements_2.txt && \
     echo -en '\n' >> requirements_1.txt && \
     tail --lines=+2  requirements_2.txt >> requirements_1.txt && \
     pip install -r requirements_1.txt
