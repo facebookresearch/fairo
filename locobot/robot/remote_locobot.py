@@ -435,10 +435,7 @@ class RemoteLocobot(object):
         return None
     
     def get_rgbd_segm(self):
-        """Returns the RGB image, depth, segm map.
-
-        :return: image in the RGB, [h,w,c] format, dtype->uint8
-        :rtype: np.ndarray or None
+        """Returns the RGB image, depth, instance segmentation map.
         """
         rgb, d, segm = self._robot.camera.get_rgb_depth_segm()
         if rgb is not None:
