@@ -226,9 +226,9 @@ for img_indx in range(image_range[0], image_range[1]):
                 os.path.join(root_path, "pred_label/{:05d}_{}.png".format(img_indx, i)), annot_img
             )
 
+
     """
     cv2.imwrite("test_{}.jpg".format(count), cur_img)
     count += 1
     if count == 10:
         break
-    """
