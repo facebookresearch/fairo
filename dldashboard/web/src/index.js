@@ -12,6 +12,7 @@ import MainPane from "./MainPane";
 import Settings from "./components/Settings";
 import History from "./components/History";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
+import TurkInfo from "./components/Turk/TurkInfo";
 import stateManager from "./StateManager";
 
 import "./index.css";
@@ -51,9 +52,9 @@ var config = {
               type: "stack",
               content: [
                 {
-                  title: "Settings",
+                  title: "Info",
                   type: "react-component",
-                  component: "Settings",
+                  component: "TurkInfo",
                   props: { stateManager: stateManager },
                 },
               ],
@@ -69,6 +70,7 @@ var dashboardLayout = new GoldenLayout(config);
 
 dashboardLayout.registerComponent("MainPane", MainPane);
 dashboardLayout.registerComponent("Settings", Settings);
+dashboardLayout.registerComponent("TurkInfo", TurkInfo);
 dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("VoxelWorld", VoxelWorld);
 
