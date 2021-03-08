@@ -142,7 +142,7 @@ class LocoMCAgent(BaseAgent):
         
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
-            exit(0)
+            os._exit(0)
 
 
     def init_physical_interfaces(self):
