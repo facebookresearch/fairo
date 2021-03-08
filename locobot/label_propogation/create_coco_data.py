@@ -7,56 +7,58 @@ import cv2
 from IPython import embed
 import json
 
-INFO = {
+# Input ##
+img_root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg/rgb"
+img_annot_root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg/seg"
+habitat_semantic_json = "info_semantic.json"
+img_range = [6500, 6600]
+###
+
+with open(habitat_semantic_json, "r") as f:
+    habitat_semantic_data = json.load(f)
+
+INFO = {}
+
+LICENSES = [{}]
+
+# create categories out of it
+CATEGORIES = []
+for obj_cls in habitat_semantic_data["classes"]:
+    CATEGORIES.append({"id": obj_cls["id"], "name": obj_cls["name"], "supercategory": "shape"})
+
+coco_output = {
+    "info": INFO,
+    "licenses": LICENSES,
+    "categories": CATEGORIES,
+    "images": [],
+    "annotations": [],
 }
-
-LICENSES = [
-    {
-    }
-]
-
-CATEGORIES = [
-    {
-        'id': 0,
-        'name': 'sofa',
-        'supercategory': 'shape',
-    },
-    {
-        'id': 1,
-        'name': 'armchair',
-        'supercategory': 'shape',
-    },
-]
-
-img_root_path = '/checkpoint/dhirajgandhi/active_vision/habitat_data/rgb'
-img_annot_root_path = '/checkpoint/dhirajgandhi/active_vision/habitat_data/pred_label'
-img_range = [6500, 7500]
-coco_output = {"info": INFO, "licenses": LICENSES, "categories": CATEGORIES, "images":[], "annotations":[]}
 
 count = 0
 for image_id, img_indx in enumerate(range(img_range[0], img_range[1])):
-    img_filename = '{:05d}.jpg'.format(img_indx)
+    img_filename = "{:05d}.jpg".format(img_indx)
     img = Image.open(os.path.join(img_root_path, img_filename))
     image_info = pycococreatortools.create_image_info(
-            image_id, os.path.basename(img_filename), img.size)
+        image_id, os.path.basename(img_filename), img.size
+    )
     coco_output["images"].append(image_info)
     print("image_indx = {}".format(img_indx))
-    # for this file search for each annotation
-    annotation_files = {}
-    # check for id 1,2
-    for i in range(2):
-        tmp_file = os.path.join(img_annot_root_path, '{:05d}_{}.png'.format(img_indx, i))
-        print("tmp_file = {}".format(tmp_file))
-        if os.path.isfile(tmp_file):
-            annotation_files[i] = tmp_file
-            category_info = {'id': i, 'is_crowd': False}
-            binary_mask = cv2.imread(tmp_file)
-            binary_mask = (binary_mask[:,:,0] == 255).astype(np.uint8)
 
-            annotation_info = pycococreatortools.create_annotation_info(count, image_id, category_info, binary_mask,img.size, tolerance=2)
-            if annotation_info is not None:
-                coco_output["annotations"].append(annotation_info)
-                count += 1
+    # load the annotation file
+    annot = np.load(os.path.join(img_annot_root_path, "{:05d}.npy".format(img_indx)))
 
-with open("habitat_annot_coco.json", "w") as output_json:
+    # for each annotation add to coco format
+    for i in np.unique(annot.reshape(-1), axis=0):
+
+        category_info = {"id": habitat_semantic_data["id_to_label"][i], "is_crowd": False}
+        binary_mask = (annot == i).astype(np.uint8)
+
+        annotation_info = pycococreatortools.create_annotation_info(
+            count, image_id, category_info, binary_mask, img.size, tolerance=2
+        )
+        if annotation_info is not None:
+            coco_output["annotations"].append(annotation_info)
+            count += 1
+
+with open("habitat_sem_annot.json", "w") as output_json:
     json.dump(coco_output, output_json)

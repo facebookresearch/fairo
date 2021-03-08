@@ -17,8 +17,6 @@ import time
 import ray
 from scipy.spatial.transform import Rotation
 from pycocotools.coco import COCO
-import pycococreatortools
-from PIL import Image
 
 """
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
@@ -44,7 +42,7 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 
-@ray.remote
+# @ray.remote
 def propogate_label(
     root_path: str,
     src_img_indx: int,
@@ -52,7 +50,6 @@ def propogate_label(
     propogation_step: int,
     base_pose_data: np.ndarray,
     out_dir: str,
-    mask_cat_id: dict,
 ):
     """Take the label for src_img_indx and propogate it to [src_img_indx - propogation_step, src_img_indx + propogation_step]
     Args:
@@ -101,7 +98,7 @@ def propogate_label(
     # get the selcectd points out of it based on image region
     # refer this https://www.codepile.net/pile/bZqJbyNz
     # TODO: Make it work with labels containing multiple label
-    unique_pix_value = np.unique(src_label.reshape(-1, src_label.shape[2]), axis=0)
+    unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
     unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
 
     indx = [zip(*np.where(src_label == i)) for i in unique_pix_value]
@@ -110,24 +107,12 @@ def propogate_label(
     # not sure if this will work
     req_pts_in_world_list = [pts_in_world[indx[i]] for i in range(len(indx))]
 
-    count = 0
     kernal_size = 3
-    coco_output = {"images": [], "annotations": []}
     for img_indx in range(image_range[0], image_range[1]):
         print("img_index = {}".format(img_indx))
 
-        img_filename = "{:05d}.jpg".format(img_indx)
-        img = Image.open(os.path.join(root_path, img_filename))
-
-        # create image info
-        image_info = pycococreatortools.create_image_info(
-            img_indx, os.path.basename(img_filename), img.size
-        )
-        coco_output["images"].append(image_info)
-
         # convert the point from world to image frmae
         base_pose = base_pose_data[str(img_indx)]
-        cur_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(img_indx)))
         cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
 
         cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
@@ -140,10 +125,11 @@ def propogate_label(
         cur_pts_in_base = cur_pts_in_base + trans.reshape(-1)
         cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
 
+        annot_img = np.zeros_like((height, width))
+
         for i, (req_pts_in_world, pix_color) in enumerate(
             zip(req_pts_in_world_list, unique_pix_value)
         ):
-            annot_img = np.zeros_like((height, width))
             # convert point cloud from world pose to base pose
             pts_in_cur_base = copy(req_pts_in_world)
             pts_in_cur_base = transform_pose(pts_in_cur_base, (-base_pose[0], -base_pose[1], 0))
@@ -240,28 +226,14 @@ def propogate_label(
             # print("pts in cam = {}".format(len(pts_in_cur_cam)))
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = list(pix_color)
 
-            # convert into annotation
-            annotation_info = pycococreatortools.create_annotation_info(
-                int(str(img_indx) + str(i)),
-                img_indx,
-                mask_cat_id[pix_color],
-                annot_img,
-                img.size,
-                tolerance=2,
-            )
-            ## add
-            coco_output["annotations"].append(annotation_info)
-        return coco_output
+        # store the value
+        np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)))
 
 
 if __name__ == "__main__":
     start = time.time()
-    root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data"
-    annotation_file = (
-        "/checkpoint/dhirajgandhi/active_vision/habitat_data/turk_annotation/habitat_train.json"
-    )
-    coco = COCO(annotation_file)
-
+    # load the file for train images to be used for label propogation
+    root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg"
     out_dir = os.path.join(root_path, "pred_label")
 
     ray.init(num_cpus=2)
@@ -272,36 +244,29 @@ if __name__ == "__main__":
     with open(os.path.join(root_path, "data.json"), "r") as f:
         base_pose_data = json.load(f)
 
-    for src_img_indx in coco.getImgIds():
-        # create label image
-        imgs = coco.loadImgs(src_img_indx)
+    for src_img_indx in range(0, 60, 60):
+        src_label = np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx)))
 
-        # load annotation
-        annIds = coco.getAnnIds(imgIds=imgs[0]["id"])
-        anns = coco.loadAnns(annIds)
-
-        # now convert each and every anns into mask
-        mask = None
-        mask_cat_id = {}
-        for id, ann in enumerate(anns):
-            if mask is None:
-                mask = coco.annToMask(ann)
-            else:
-                mask += (id + 1) * coco.annToMask(ann)
-            mask_cat_id[id + 1] = {"id": ann["category_id"], "is_crowd": ann["iscrowd"]}
-
+        """
         result_ids.append(
             propogate_label.remote(
                 root_path=root_path,
                 src_img_indx=src_img_indx,
-                src_label=mask,
+                src_label=src_label,
                 propogation_step=30,
                 base_pose_data=base_pose_data,
                 out_dir=out_dir,
-                mask_cat_id=mask_cat_id,
             )
         )
-    results = ray.get(result_ids)
-    embed()
+        """
+        propogate_label(
+            root_path=root_path,
+            src_img_indx=src_img_indx,
+            src_label=src_label,
+            propogation_step=30,
+            base_pose_data=base_pose_data,
+            out_dir=out_dir,
+        )
+    ray.get(result_ids)
     print("duration =", time.time() - start)
 

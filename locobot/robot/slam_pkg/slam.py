@@ -103,6 +103,7 @@ class Slam(object):
             self.save_folder = os.path.join(save_folder, str(int(time.time())))
             self.img_folder = os.path.join(self.save_folder, "rgb")
             self.depth_folder = os.path.join(self.save_folder, "depth")
+            self.seg_folder = os.path.join(self.save_folder, "seg")
             if not os.path.isdir(self.save_folder):
                 os.makedirs(self.save_folder)
 
@@ -111,6 +112,10 @@ class Slam(object):
 
             if not os.path.isdir(self.depth_folder):
                 os.makedirs(self.depth_folder)
+
+            if not os.path.isdir(self.seg_folder):
+                os.makedirs(self.seg_folder)
+
         self.start_vis = False
         self.vis_count = 0
 
@@ -237,7 +242,7 @@ class Slam(object):
         )
         while self.robot.base.moving:
             if self.save_vis:
-                rgb, depth = self.robot.camera.get_rgb_depth()
+                rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
                 pos = self.robot.base.get_state()
                 # store the images and depth
                 cv2.imwrite(
@@ -250,6 +255,9 @@ class Slam(object):
                 depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
                 depth = depth.astype(np.uint16)
                 np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+                # store seg
+                np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
 
                 # store pos
                 self.pos_dic[self.img_count] = copy(pos)
@@ -295,7 +303,7 @@ class Slam(object):
             )
             while self.robot.base.moving:
                 if self.save_vis:
-                    rgb, depth = self.robot.camera.get_rgb_depth()
+                    rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
                     pos = self.robot.base.get_state()
                     # store the images and depth
                     cv2.imwrite(
@@ -308,6 +316,9 @@ class Slam(object):
                     depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
                     depth = depth.astype(np.uint16)
                     np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+                    # store seg
+                    np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
 
                     # store pos
                     self.pos_dic[self.img_count] = copy(pos)
@@ -350,7 +361,7 @@ class Slam(object):
             print("robot has reached goal")
             while self.robot.base.moving:
                 if self.save_vis:
-                    rgb, depth = self.robot.camera.get_rgb_depth()
+                    rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
                     pos = self.robot.base.get_state()
                     # store the images and depth
                     cv2.imwrite(
@@ -363,6 +374,9 @@ class Slam(object):
                     depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
                     depth = depth.astype(np.uint16)
                     np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+                    # store seg
+                    np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
 
                     # store pos
                     self.pos_dic[self.img_count] = copy(pos)
@@ -623,7 +637,6 @@ def main(args):
 
     elif args.robot == "locobot":
         robot = Robot("locobot")
-
     slam = Slam(
         robot,
         args.robot,
