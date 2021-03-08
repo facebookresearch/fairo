@@ -12,6 +12,7 @@ import json
 from copy import deepcopy as copy
 from IPython import embed
 import sys
+import time
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 sys.path.append(BASE_AGENT_ROOT)
@@ -69,6 +70,7 @@ indx = [[i[0] * width + i[1] for i in j] for j in indx]
 # not sure if this will work
 req_pts_in_world_list = [pts_in_world[i][indx[i]] for i in range(len(indx))]
 count = 0
+kernal_size = 3
 for img_indx in range(image_range[0], image_range[1]):
     print("img_index = {}".format(img_indx))
     # convert the point from world to image frmae
@@ -107,8 +109,10 @@ for img_indx in range(image_range[0], image_range[1]):
             np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
         )
 
+        start_time = time.time()
         # TODO: make this part fast, its very slow currently
         dist_thr = 5e-2  # this is in meter
+        """
         for pixel_index in range(len(filtered_img_indx)):
             if filtered_img_indx[pixel_index]:
                 # search in the region,
@@ -132,7 +136,32 @@ for img_indx in range(image_range[0], image_range[1]):
 
                 if min(dist) > dist_thr:
                     filtered_img_indx[pixel_index] = False
-
+        print("time taken without optimization = {}".format(time.time() - start_time))
+        """
+        ## optimize part
+        start_time = time.time()
+        for pixel_index in range(len(filtered_img_indx)):
+            if filtered_img_indx[pixel_index]:
+                # search in the region
+                gt_pix_depth_in_world = req_pts_in_world[pixel_index]
+                p, q = np.meshgrid(
+                    range(
+                        int(pts_in_cur_img[pixel_index][1] - kernal_size),
+                        int(pts_in_cur_img[pixel_index][1] + kernal_size),
+                    ),
+                    range(
+                        int(pts_in_cur_img[pixel_index][0] - kernal_size),
+                        int(pts_in_cur_img[pixel_index][0] + kernal_size),
+                    ),
+                )
+                loc = p * width + q
+                loc = loc.reshape(-1).astype(np.int)
+                if (
+                    min(np.linalg.norm(cur_pts_in_world[loc] - gt_pix_depth_in_world, axis=1))
+                    > dist_thr
+                ):
+                    filtered_img_indx[pixel_index] = False
+        print("time taken = {}".format(time.time() - start_time))
         # take out the points
         pts_in_cur_img = pts_in_cur_img[filtered_img_indx]
         ##### trying to replace this things
@@ -179,7 +208,6 @@ for img_indx in range(image_range[0], image_range[1]):
                 np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
             )
         ]
-
         print("pts in cam = {}".format(len(pts_in_cur_cam)))
         # visualize 2D points on image
         # TODO: make sure of the index
@@ -191,10 +219,12 @@ for img_indx in range(image_range[0], image_range[1]):
         )
         """
         if len(pts_in_cur_img):
-            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0],: ] = 255
+            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0], :] = 255
 
             # store the image
-            cv2.imwrite(os.path.join(root_path, "pred_label/{:05d}_{}.png".format(img_indx, i)), annot_img)
+            cv2.imwrite(
+                os.path.join(root_path, "pred_label/{:05d}_{}.png".format(img_indx, i)), annot_img
+            )
 
     """
     cv2.imwrite("test_{}.jpg".format(count), cur_img)

@@ -1,0 +1,307 @@
+# used for visualizing how well the label propogation will work
+# currenlty will use robot trajectory to realize
+# will rely on habitat dat to work on it
+# steps we wil perform
+# 1. Get point cloud
+# 2. Transpose the point cloud based on robot location
+# 3. Project the point cloud back the images
+from tokenize import String
+import numpy as np
+import os
+import cv2
+import json
+from copy import deepcopy as copy
+from IPython import embed
+import sys
+import time
+import ray
+from scipy.spatial.transform import Rotation
+from pycocotools.coco import COCO
+import pycococreatortools
+from PIL import Image
+
+"""
+BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
+sys.path.append(BASE_AGENT_ROOT)
+from locobot.agent.locobot_mover_utils import transform_pose
+"""
+
+
+def transform_pose(XYZ, current_pose):
+    """
+    Transforms the point cloud into geocentric frame to account for
+    camera position
+    Input:
+        XYZ                     : ...x3
+    current_pose            : camera position (x, y, theta (radians))
+    Output:
+        XYZ : ...x3
+    """
+    R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
+    XYZ = np.matmul(XYZ.reshape(-1, 3), R.T).reshape((-1, 3))
+    XYZ[:, 0] = XYZ[:, 0] + current_pose[0]
+    XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
+    return XYZ
+
+
+@ray.remote
+def propogate_label(
+    root_path: str,
+    src_img_indx: int,
+    src_label: np.ndarray,
+    propogation_step: int,
+    base_pose_data: np.ndarray,
+    out_dir: str,
+    mask_cat_id: dict,
+):
+    """Take the label for src_img_indx and propogate it to [src_img_indx - propogation_step, src_img_indx + propogation_step]
+    Args:
+        root_path (str): root path where images are stored
+        src_img_indx (int): source image index
+        src_label (np.ndarray): array with labeled images are stored (hwc format)
+        propogation_step (int): number of steps to progate the label
+        base_pose_data(np.ndarray): (x,y,theta)
+        out_dir (str): path to store labeled propogation image
+    """
+
+    # images in which we can see the object
+    image_range = [max(src_img_indx - propogation_step, 0), src_img_indx + propogation_step]
+
+    with open(os.path.join(root_path, "data.json"), "r") as f:
+        base_pose_data = json.load(f)
+
+    src_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)))
+    src_depth = np.load(
+        os.path.join(root_path, "depth/{:05d}.npy".format(src_img_indx))
+    )  # depth is in mm
+    src_pose = base_pose_data["{}".format(src_img_indx)]
+
+    # TODO: proper entries
+    intrinsic_mat = np.array([[256, 0, 256], [0, 256, 256], [0, 0, 1]])
+    rot = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
+    trans = np.array([0, 0, 0.6])
+
+    intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+    height, width, channels = src_img.shape
+    img_resolution = (height, width)
+    img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+    img_pixs = img_pixs.reshape(2, -1)
+    img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+    uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+    uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+
+    depth = (src_depth.astype(np.float32) / 1000.0).reshape(-1)
+    pts_in_cam = np.multiply(uv_one_in_cam, depth)
+    pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
+    pts_in_base = pts_in_cam[:3, :].T
+    pts_in_base = np.dot(pts_in_base, rot.T)
+    pts_in_base = pts_in_base + trans.reshape(-1)
+    pts_in_world = transform_pose(pts_in_base, src_pose)
+
+    # get the selcectd points out of it based on image region
+    # refer this https://www.codepile.net/pile/bZqJbyNz
+    # TODO: Make it work with labels containing multiple label
+    unique_pix_value = np.unique(src_label.reshape(-1, src_label.shape[2]), axis=0)
+    unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
+
+    indx = [zip(*np.where(src_label == i)) for i in unique_pix_value]
+    indx = [[i[0] * width + i[1] for i in j] for j in indx]
+
+    # not sure if this will work
+    req_pts_in_world_list = [pts_in_world[indx[i]] for i in range(len(indx))]
+
+    count = 0
+    kernal_size = 3
+    coco_output = {"images": [], "annotations": []}
+    for img_indx in range(image_range[0], image_range[1]):
+        print("img_index = {}".format(img_indx))
+
+        img_filename = "{:05d}.jpg".format(img_indx)
+        img = Image.open(os.path.join(root_path, img_filename))
+
+        # create image info
+        image_info = pycococreatortools.create_image_info(
+            img_indx, os.path.basename(img_filename), img.size
+        )
+        coco_output["images"].append(image_info)
+
+        # convert the point from world to image frmae
+        base_pose = base_pose_data[str(img_indx)]
+        cur_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(img_indx)))
+        cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
+
+        cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
+        cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)
+        cur_pts_in_cam = np.concatenate(
+            (cur_pts_in_cam, np.ones((1, cur_pts_in_cam.shape[1]))), axis=0
+        )
+        cur_pts_in_base = cur_pts_in_cam[:3, :].T
+        cur_pts_in_base = np.dot(cur_pts_in_base, rot.T)
+        cur_pts_in_base = cur_pts_in_base + trans.reshape(-1)
+        cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
+
+        for i, (req_pts_in_world, pix_color) in enumerate(
+            zip(req_pts_in_world_list, unique_pix_value)
+        ):
+            annot_img = np.zeros_like((height, width))
+            # convert point cloud from world pose to base pose
+            pts_in_cur_base = copy(req_pts_in_world)
+            pts_in_cur_base = transform_pose(pts_in_cur_base, (-base_pose[0], -base_pose[1], 0))
+            pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -base_pose[2]))
+
+            # conver point from base to camera frame
+            pts_in_cur_cam = pts_in_cur_base - trans.reshape(-1)
+            pts_in_cur_cam = np.dot(pts_in_cur_cam, rot)
+
+            # conver pts from 3D to 2D
+            pts_in_cur_img = np.matmul(intrinsic_mat, pts_in_cur_cam.T).T
+            pts_in_cur_img /= pts_in_cur_img[:, 2].reshape([-1, 1])
+
+            # only consider depth matching for these points
+            filtered_img_indx = np.logical_and(
+                np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
+                np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
+            )
+
+            start_time = time.time()
+            # TODO: make this part fast, its very slow currently
+            dist_thr = 5e-2  # this is in meter
+            ## optimize part
+            start_time = time.time()
+            ## need to optimize this part
+            for pixel_index in range(len(filtered_img_indx)):
+                if filtered_img_indx[pixel_index]:
+                    # search in the region
+                    gt_pix_depth_in_world = req_pts_in_world[pixel_index]
+                    p, q = np.meshgrid(
+                        range(
+                            int(pts_in_cur_img[pixel_index][1] - kernal_size),
+                            int(pts_in_cur_img[pixel_index][1] + kernal_size),
+                        ),
+                        range(
+                            int(pts_in_cur_img[pixel_index][0] - kernal_size),
+                            int(pts_in_cur_img[pixel_index][0] + kernal_size),
+                        ),
+                    )
+                    loc = p * width + q
+                    loc = loc.reshape(-1).astype(np.int)
+                    if (
+                        min(np.linalg.norm(cur_pts_in_world[loc] - gt_pix_depth_in_world, axis=1))
+                        > dist_thr
+                    ):
+                        filtered_img_indx[pixel_index] = False
+
+            # take out the points
+            pts_in_cur_img = pts_in_cur_img[filtered_img_indx]
+            ##### trying to replace this things
+            pts_in_cur_img = np.concatenate(
+                (
+                    np.concatenate(
+                        (
+                            np.ceil(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                            np.ceil(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                        ),
+                        axis=1,
+                    ),
+                    np.concatenate(
+                        (
+                            np.floor(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                            np.floor(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                        ),
+                        axis=1,
+                    ),
+                    np.concatenate(
+                        (
+                            np.ceil(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                            np.floor(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                        ),
+                        axis=1,
+                    ),
+                    np.concatenate(
+                        (
+                            np.floor(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                            np.ceil(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                        ),
+                        axis=1,
+                    ),
+                )
+            )
+            # this was the original part
+            pts_in_cur_img = pts_in_cur_img[:, :2].astype(int)
+
+            ########
+            # TODO: handle the cases where index goes out of the image
+            pts_in_cur_img = pts_in_cur_img[
+                np.logical_and(
+                    np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
+                    np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
+                )
+            ]
+            # print("pts in cam = {}".format(len(pts_in_cur_cam)))
+            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = list(pix_color)
+
+            # convert into annotation
+            annotation_info = pycococreatortools.create_annotation_info(
+                int(str(img_indx) + str(i)),
+                img_indx,
+                mask_cat_id[pix_color],
+                annot_img,
+                img.size,
+                tolerance=2,
+            )
+            ## add
+            coco_output["annotations"].append(annotation_info)
+        return coco_output
+
+
+if __name__ == "__main__":
+    start = time.time()
+    root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data"
+    annotation_file = (
+        "/checkpoint/dhirajgandhi/active_vision/habitat_data/turk_annotation/habitat_train.json"
+    )
+    coco = COCO(annotation_file)
+
+    out_dir = os.path.join(root_path, "pred_label")
+
+    ray.init(num_cpus=2)
+    result_ids = []
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_dir)
+
+    with open(os.path.join(root_path, "data.json"), "r") as f:
+        base_pose_data = json.load(f)
+
+    for src_img_indx in coco.getImgIds():
+        # create label image
+        imgs = coco.loadImgs(src_img_indx)
+
+        # load annotation
+        annIds = coco.getAnnIds(imgIds=imgs[0]["id"])
+        anns = coco.loadAnns(annIds)
+
+        # now convert each and every anns into mask
+        mask = None
+        mask_cat_id = {}
+        for id, ann in enumerate(anns):
+            if mask is None:
+                mask = coco.annToMask(ann)
+            else:
+                mask += (id + 1) * coco.annToMask(ann)
+            mask_cat_id[id + 1] = {"id": ann["category_id"], "is_crowd": ann["iscrowd"]}
+
+        result_ids.append(
+            propogate_label.remote(
+                root_path=root_path,
+                src_img_indx=src_img_indx,
+                src_label=mask,
+                propogation_step=30,
+                base_pose_data=base_pose_data,
+                out_dir=out_dir,
+                mask_cat_id=mask_cat_id,
+            )
+        )
+    results = ray.get(result_ids)
+    embed()
+    print("duration =", time.time() - start)
+
