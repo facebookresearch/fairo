@@ -42,7 +42,7 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 
-# @ray.remote
+@ray.remote
 def propogate_label(
     root_path: str,
     src_img_indx: int,
@@ -113,7 +113,10 @@ def propogate_label(
 
         # convert the point from world to image frmae
         base_pose = base_pose_data[str(img_indx)]
-        cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
+        try:
+            cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
+        except:
+            return
 
         cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
         cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)
@@ -125,7 +128,7 @@ def propogate_label(
         cur_pts_in_base = cur_pts_in_base + trans.reshape(-1)
         cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
 
-        annot_img = np.zeros_like((height, width))
+        annot_img = np.zeros((height, width))
 
         for i, (req_pts_in_world, pix_color) in enumerate(
             zip(req_pts_in_world_list, unique_pix_value)
@@ -171,6 +174,8 @@ def propogate_label(
                     )
                     loc = p * width + q
                     loc = loc.reshape(-1).astype(np.int)
+                    loc = np.clip(loc, 0, width * height - 1).astype(np.int)
+
                     if (
                         min(np.linalg.norm(cur_pts_in_world[loc] - gt_pix_depth_in_world, axis=1))
                         > dist_thr
@@ -223,11 +228,11 @@ def propogate_label(
                     np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
                 )
             ]
-            # print("pts in cam = {}".format(len(pts_in_cur_cam)))
-            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = list(pix_color)
+            print("pts in cam = {}".format(len(pts_in_cur_cam)))
+            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
         # store the value
-        np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)))
+        np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)), annot_img.astype(np.uint32))
 
 
 if __name__ == "__main__":
@@ -236,7 +241,7 @@ if __name__ == "__main__":
     root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg"
     out_dir = os.path.join(root_path, "pred_label")
 
-    ray.init(num_cpus=2)
+    ray.init(num_cpus=79)
     result_ids = []
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
@@ -244,10 +249,10 @@ if __name__ == "__main__":
     with open(os.path.join(root_path, "data.json"), "r") as f:
         base_pose_data = json.load(f)
 
-    for src_img_indx in range(0, 60, 60):
+    """
+    for src_img_indx in range(0, 60, 8940):
         src_label = np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx)))
 
-        """
         result_ids.append(
             propogate_label.remote(
                 root_path=root_path,
@@ -258,7 +263,6 @@ if __name__ == "__main__":
                 out_dir=out_dir,
             )
         )
-        """
         propogate_label(
             root_path=root_path,
             src_img_indx=src_img_indx,
@@ -267,6 +271,17 @@ if __name__ == "__main__":
             base_pose_data=base_pose_data,
             out_dir=out_dir,
         )
-    ray.get(result_ids)
+        """
+    result = [
+        propogate_label.remote(
+            root_path=root_path,
+            src_img_indx=src_img_indx,
+            src_label=np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))),
+            propogation_step=30,
+            base_pose_data=base_pose_data,
+            out_dir=out_dir,
+        )
+        for src_img_indx in range(0, 8940, 60)
+    ]
+    ray.get(result)
     print("duration =", time.time() - start)
-

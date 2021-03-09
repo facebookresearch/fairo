@@ -9,9 +9,9 @@ import json
 
 # Input ##
 img_root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg/rgb"
-img_annot_root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg/seg"
+img_annot_root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg/pred_label"
 habitat_semantic_json = "info_semantic.json"
-img_range = [6500, 6600]
+img_range = [0, 30]
 ###
 
 with open(habitat_semantic_json, "r") as f:
@@ -36,6 +36,12 @@ coco_output = {
 
 count = 0
 for image_id, img_indx in enumerate(range(img_range[0], img_range[1])):
+    # load the annotation file
+    try:
+        annot = np.load(os.path.join(img_annot_root_path, "{:05d}.npy".format(img_indx)))
+    except:
+        continue
+
     img_filename = "{:05d}.jpg".format(img_indx)
     img = Image.open(os.path.join(img_root_path, img_filename))
     image_info = pycococreatortools.create_image_info(
@@ -44,13 +50,13 @@ for image_id, img_indx in enumerate(range(img_range[0], img_range[1])):
     coco_output["images"].append(image_info)
     print("image_indx = {}".format(img_indx))
 
-    # load the annotation file
-    annot = np.load(os.path.join(img_annot_root_path, "{:05d}.npy".format(img_indx)))
-
     # for each annotation add to coco format
     for i in np.unique(annot.reshape(-1), axis=0):
-
-        category_info = {"id": habitat_semantic_data["id_to_label"][i], "is_crowd": False}
+        try:
+            category_info = {"id": habitat_semantic_data["id_to_label"][i], "is_crowd": False}
+        except:
+            print("label value doesnt exist")
+            continue
         binary_mask = (annot == i).astype(np.uint8)
 
         annotation_info = pycococreatortools.create_annotation_info(
