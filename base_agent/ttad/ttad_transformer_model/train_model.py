@@ -62,7 +62,14 @@ class ModelTrainer:
             ],
             lr=0.001,
         )
+        fixed_span_optimizer = Adam(
+            [
+                {"params": model.decoder.fixed_span_head.parameters()},
+            ],
+            lr=0.001,
+        )
         text_span_loss_attenuation_factor = self.args.alpha
+        fixed_value_loss_attenuation_factor = self.args.fixed_value_weight
         # training loop
         for e in range(self.args.num_epochs):
             logging.info("Epoch: {}".format(e))
@@ -91,12 +98,17 @@ class ModelTrainer:
                     outputs = model(x, x_mask, y, y_mask)
                 loss = outputs["loss"]
                 text_span_loss = outputs["text_span_loss"]
+                fixed_span_loss = outputs["fixed_span_loss"]
                 model.zero_grad()
                 # backprop
+                # Use separate optimizers for text span and fixed span heads
                 text_span_loss.backward(retain_graph=True)
                 text_span_optimizer.step()
+                fixed_span_loss.backward(retain_graph=True)
+                fixed_span_optimizer.step()
 
                 loss.backward()
+                # Add text span loss gradients
                 model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
                     text_span_loss_attenuation_factor
                     * (
@@ -104,9 +116,15 @@ class ModelTrainer:
                         + model.decoder.text_span_end_hidden_z.grad
                     )
                 )
+                # Add fixed value loss gradients
+                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
+                    fixed_value_loss_attenuation_factor
+                    * (
+                        model.decoder.fixed_span_hidden_z.grad
+                    )
+                )
                 if step % self.args.param_update_freq == 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                    # text_span_optimizer.step()
                     optimizer.step()
                 # compute accuracy and add hard examples
                 if self.args.tree_to_text:
@@ -418,6 +436,12 @@ def main():
         default=0.8,
         type=float,
         help="Attenuation factor for text span loss gradient affecting shared layers for tree structure prediction",
+    )
+    parser.add_argument(
+        "--fixed_value_weight",
+        default=0.8,
+        type=float,
+        help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
     args = parser.parse_args()
     # HACK: allows us to give rephrase proba only instead of full dictionary
