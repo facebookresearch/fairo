@@ -201,7 +201,6 @@ class DecoderWithLoss(nn.Module):
             self.fixed_span_hidden_z = y_rep.detach()
             self.fixed_span_hidden_z.requires_grad = True
             self.fixed_span_hidden_z.retain_grad()
-            # fixed_span_hidden_states = y_rep
             fixed_span_scores = self.fixed_span_head(self.fixed_span_hidden_z)
             fixed_span_lin_scores = fixed_span_scores.view(-1, fixed_span_scores.shape[-1])
             fixed_span_lin_targets = y[:, 1:, 5].contiguous().view(-1)

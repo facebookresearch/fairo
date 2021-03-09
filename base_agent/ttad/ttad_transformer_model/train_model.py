@@ -299,6 +299,8 @@ def generate_model_name(args, optional_identifier=""):
         "param_update_freq": "upd_frq",
         "word_dropout": "word_drp",
         "alpha": "a",
+        "train_encoder": "tr",
+        "fixed_value_weight": "fv"
     }
     for k, v in vars(args).items():
         if k in args_keys:
@@ -365,7 +367,7 @@ def main():
         "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
     )
     parser.add_argument(
-        "--train_encoder", action="store_true", help="Whether to finetune the encoder"
+        "--train_encoder", default=True, type=bool, help="Whether to finetune the encoder"
     )
     parser.add_argument(
         "--encoder_warmup_steps",
@@ -427,8 +429,8 @@ def main():
     )
     parser.add_argument(
         "--hard",
-        default=False,
-        action="store_true",
+        default=True,
+        type=bool,
         help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
@@ -439,7 +441,7 @@ def main():
     )
     parser.add_argument(
         "--fixed_value_weight",
-        default=0.8,
+        default=0.1,
         type=float,
         help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
