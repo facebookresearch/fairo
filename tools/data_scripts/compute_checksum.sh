@@ -2,9 +2,11 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 # This script computes hashes for local directories and saves them to data_scripts/default_checksums/
-# ./compute_and_upload_checksum.sh craftassist # hash for semantic parser models
-# ./compute_and_upload_checksum.sh craftassist datasets # hash for datasets folder
-# ./compute_and_upload_checksum.sh locobot # hash for locobot models
+# ./compute_checksum.sh craftassist # hash for semantic parser models
+# ./compute_checksum.sh craftassist datasets # hash for datasets folder
+# ./compute_checksum.sh locobot # hash for locobot models
+
+. ./checksum_fn.sh --source-only # import checksum function
 
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
@@ -32,24 +34,14 @@ fi
 echo $HASH_PATH
 cd ${ROOTDIR}/$AGENT/agent/
 
-# saves sha1sum for CHECKSUM_FOLDER at SAVE_TO_PATH 
-save_checksum() {
-    SAVE_TO_PATH=$1
-    CHECKSUM_FOLDER=$2
-    echo "Before " $(cat $SAVE_TO_PATH)
-    find $CHECKSUM_FOLDER -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum | tr -d '-' | xargs > $SAVE_TO_PATH
-    echo "After " $(cat $SAVE_TO_PATH)
-}
-
 echo "Computing hashes ..."
 if [ "$HASH_PATH" = "models" ]
 then
     if [ $AGENT == "locobot" ]; then
-        save_checksum "${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt" "models/perception" 
-    else # craftassist
-        save_checksum "${ROOTDIR}/tools/data_scripts/default_checksums/nsp.txt" "models/semantic_parser"
-    fi
+        calculate_sha1sum  "${ROOTDIR}/$AGENT/agent/models/perception" "${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt" 
+    fi # craftassist
+    calculate_sha1sum "${ROOTDIR}/$AGENT/agent/models/semantic_parser" "${ROOTDIR}/tools/data_scripts/default_checksums/nsp.txt" 
 else # datasets
-    save_checksum "${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt" $HASH_PATH/ 
+    calculate_sha1sum "${ROOTDIR}/$AGENT/agent/datasets/" "${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
 fi
 

@@ -10,6 +10,8 @@
 # https://s3.console.aws.amazon.com/s3/buckets/craftassist?region=us-west-2&prefix=pubr/&showversions=false 
 # and upload both ``datasets_folder.tar.gz`` and ``checksum.txt``.
 
+. ./checksum_fn.sh --source-only
+
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
@@ -25,15 +27,14 @@ else
 	AGENT=$1
 fi
 
-CRAFTASSIST_PATH="${ROOTDIR}/${AGENT}/agent/"
-echo "$CRAFTASSIST_PATH"
+AGENT_PATH="${ROOTDIR}/${AGENT}/agent/"
+echo "$AGENT_PATH"
 
 DIRNAME="datasets"
 
-cd $CRAFTASSIST_PATH
-
+cd $AGENT_PATH
 CHECKSUM_PATH="${DIRNAME}/checksum.txt"
-find ${DIRNAME} -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum | tr -d '-' | xargs > $CHECKSUM_PATH
+calculate_sha1sum "${AGENT_PATH}${DIRNAME}" "${AGENT_PATH}${CHECKSUM_PATH}"
 
 CHKSUM=$(cat $CHECKSUM_PATH)
 echo "CHECKSUM" $CHKSUM
