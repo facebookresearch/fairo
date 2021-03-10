@@ -22,8 +22,8 @@ DATA_DIRNAME=datasets_folder
 
 cd $ROOTDIR
 
-echo "====== Downloading datasets to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
-curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/$DATA_DIRNAME_$CHKSUM.tar.gz -o $DATA_DIRNAME.tar.gz
+echo "====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHKSUM}.tar.gz to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
+curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHKSUM}.tar.gz -o $DATA_DIRNAME.tar.gz
 
 if [ -d "${AGENT}/agent/datasets" ]
 then
