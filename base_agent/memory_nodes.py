@@ -62,7 +62,7 @@ class MemoryNode:
         return []
 
     # TODO/FIXME: remove snapshots with some probability when they haven't been accessed for a while?
-    def snapshot(self, agent_memory):
+    def snapshot(self, agent_memory, keep_forever=False):
         """Override in subclasses if necessary to properly snapshot."""
 
         read_cmd = "SELECT "
@@ -90,14 +90,17 @@ class MemoryNode:
         write_cmd = write_cmd.strip(", ")
         write_cmd += ") VALUES (" + qs.strip(", ") + ")"
         agent_memory.db_write(write_cmd, *new_data)
-        link_archive_to_mem(agent_memory, self.memid, archive_memid)
-        time_memid = TimeNode.create()
-        agent_memory.add_triple(subj=archive_memid, pred_text="_achived_at", obj=time_memid)
+        self._finish_snapshot(agent_memory, archive_memid, keep_forever=keep_forever)
 
-
-def link_archive_to_mem(agent_memory, memid, archive_memid):
-    agent_memory.add_triple(subj=archive_memid, pred_text="_archive_of", obj=memid)
-    agent_memory.add_triple(subj=memid, pred_text="_has_archive", obj=archive_memid)
+    def _finish_snapshot(self, agent_memory, archive_memid, keep_forever=False):
+        agent_memory.add_triple(subj=archive_memid, pred_text="_archive_of", obj=self.memid)
+        agent_memory.add_triple(subj=self.memid, pred_text="_has_archive", obj=archive_memid)
+        time_memid = TimeNode.create(agent_memory, agent_memory.get_time())
+        agent_memory.add_triple(subj=archive_memid, pred_text="_archived_at", obj=time_memid)
+        if not keep_forever:
+            agent_memory.add_triple(
+                subj=archive_memid, pred_text="_volatile_archive", obj=time_memid
+            )
 
 
 class ProgramNode(MemoryNode):

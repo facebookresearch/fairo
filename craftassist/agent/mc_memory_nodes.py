@@ -17,7 +17,7 @@ from entities import MOBS_BY_ID
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
 
-from base_agent.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
+from base_agent.memory_nodes import ReferenceObjectNode, MemoryNode, NODELIST
 
 
 class VoxelObjectNode(ReferenceObjectNode):
@@ -86,7 +86,7 @@ class VoxelObjectNode(ReferenceObjectNode):
         m = np.min(self.locs, axis=0)
         return m[0], M[0], m[1], M[1], m[2], M[2]
 
-    def snapshot(self, agent_memory):
+    def snapshot(self, agent_memory, keep_forever=False):
         archive_memid = self.new(agent_memory, snapshot=True)
         for loc in self.locs:
             cmd = "INSERT INTO ArchivedVoxelObjects (uuid, x, y, z, bid, meta, agent_placed, player_placed, updated, ref_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -109,7 +109,7 @@ class VoxelObjectNode(ReferenceObjectNode):
         info = list(self.ref_info)
         info[0] = archive_memid
         agent_memory.db_write(cmd, *info)
-        link_archive_to_mem(agent_memory, self.memid, archive_memid)
+        self._finish_snapshot(agent_memory, archive_memid, keep_forever=keep_forever)
         return archive_memid
 
 
