@@ -61,6 +61,7 @@ class MemoryNode:
         """Override in subclasses to add additional keys to the properties blacklist"""
         return []
 
+    # TODO/FIXME: remove snapshots with some probability when they haven't been accessed for a while?
     def snapshot(self, agent_memory):
         """Override in subclasses if necessary to properly snapshot."""
 
@@ -90,6 +91,8 @@ class MemoryNode:
         write_cmd += ") VALUES (" + qs.strip(", ") + ")"
         agent_memory.db_write(write_cmd, *new_data)
         link_archive_to_mem(agent_memory, self.memid, archive_memid)
+        time_memid = TimeNode.create()
+        agent_memory.add_triple(subj=archive_memid, pred_text="_achived_at", obj=time_memid)
 
 
 def link_archive_to_mem(agent_memory, memid, archive_memid):
