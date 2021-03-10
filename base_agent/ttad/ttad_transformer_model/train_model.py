@@ -466,7 +466,8 @@ def main():
     logging.info("model identifier: {}".format(model_identifier))
     if isfile(args.tree_voc_file):
         logging.info("====== Loading Grammar ======")
-        full_tree, tree_i2w = json.load(open(args.tree_voc_file))
+        with open(args.tree_voc_file) as fd:
+            full_tree, tree_i2w = json.load(fd)
     else:
         logging.info("====== Making Grammar ======")
         data = {"train": {}, "valid": {}, "test": {}}
