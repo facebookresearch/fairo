@@ -98,9 +98,7 @@ class MemoryNode:
         time_memid = TimeNode.create(agent_memory, agent_memory.get_time())
         agent_memory.add_triple(subj=archive_memid, pred_text="_archived_at", obj=time_memid)
         if not keep_forever:
-            agent_memory.add_triple(
-                subj=archive_memid, pred_text="_volatile_archive", obj=time_memid
-            )
+            agent_memory.tag(archive_memid, "_volatile_archive")
 
 
 class ProgramNode(MemoryNode):
