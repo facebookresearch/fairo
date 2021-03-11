@@ -265,6 +265,7 @@ class CraftAssistAgent(LocoMCAgent):
     def send_chat(self, chat):
         """Send chat from agent to player"""
         logging.info("Sending chat: {}".format(chat))
+        sio.emit("showAssistantReply", {'agent_reply' : "Agent: {}".format(chat)})
         self.memory.add_chat(self.memory.self_memid, chat)
         return self.cagent.send_chat(chat)
 
