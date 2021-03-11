@@ -1,16 +1,10 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# This script creates a tar and hash of the datasets directory used in craftassist.
-# This is an alternative to ``compute_and_upload_checksum.sh`` that does not require awscli setup.
-# The resulting tar and checksum would be in
-# python/craftassist/datasets_folder.tar.gz
-# python/craftassist/datasets/checksum.txt
+# This script creates a tar and hash of the datasets directory.
 # If uploading files to S3 through console UI, go to the web interface at: 
 # https://s3.console.aws.amazon.com/s3/buckets/craftassist?region=us-west-2&prefix=pubr/&showversions=false 
-# and upload both ``datasets_folder.tar.gz`` and ``checksum.txt``.
-
-. ./checksum_fn.sh --source-only
+# and upload ``datasets_folder_<sha1sum>.tar.gz``.
 
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
@@ -18,6 +12,7 @@ function pyabspath() {
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
+. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only
 
 if [ -z $1 ]
 then

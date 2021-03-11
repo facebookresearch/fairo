@@ -4,14 +4,14 @@
 # This script checks if models and datasets are up to date, and downloads default 
 # assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
 
-. ./checksum_fn.sh --source-only # import checksum function
-
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "Rootdir ${ROOTDIR}"
+
+. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
 if [ -z $1 ]
 then

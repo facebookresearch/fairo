@@ -6,14 +6,14 @@
 # ./compute_checksum.sh craftassist datasets # hash for datasets folder
 # ./compute_checksum.sh locobot # hash for locobot models
 
-. ./checksum_fn.sh --source-only # import checksum function
-
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "Rootdir $ROOTDIR"
+
+. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
 if [ -z $1 ]
 then
