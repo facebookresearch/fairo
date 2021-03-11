@@ -35,7 +35,9 @@ def interpret_shape_schematic(
                      {"pred_text": "has_colour", "obj_text": "blue"}]
     will currently just pick red.   Same for other properties encoded in triples
     """
-    triples = d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
+    # FIXME this is not compositional, and does not properly use FILTERS
+    filters_d = d.get("filters", {})
+    triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
     if shapename is not None:
         shape = shapename
     else:
@@ -123,7 +125,9 @@ def interpret_named_schematic(
                      {"pred_text": "has_colour", "obj_text": "blue"}]
     will currently just pick red.   Same for other properties encoded in triples
     """
-    triples = d.get("triples", [])
+    # FIXME! this is not compositional, and is not using full FILTERS handlers
+    filters_d = d.get("filters", {})
+    triples = filters_d.get("triples", [])
     names = get_properties_from_triples(triples, "has_name")
     if not any(names):
         raise ErrorWithResponse("I don't know what you want me to build.")
@@ -175,7 +179,9 @@ def interpret_schematic(
         repeat = cast(int, get_repeat_num(d))
     assert type(repeat) == int, "bad repeat={}".format(repeat)
 
-    triples = d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
+    # FIXME! this is not compositional, and is not using full FILTERS handlers
+    filters_d = d.get("filters", {})
+    triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
     shapes = get_properties_from_triples(triples, "has_shape")
     if any(shapes):
         blocks, tags = interpret_shape_schematic(interpreter, speaker, d)
