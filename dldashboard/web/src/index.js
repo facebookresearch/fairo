@@ -57,6 +57,12 @@ var config = {
                   component: "TurkInfo",
                   props: { stateManager: stateManager },
                 },
+                {
+                  title: "Settings",
+                  type: "react-component",
+                  component: "Settings",
+                  props: { stateManager: stateManager },
+                },
               ],
             },
           ],
