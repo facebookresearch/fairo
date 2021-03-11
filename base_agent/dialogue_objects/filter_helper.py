@@ -145,9 +145,11 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
 def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
     F = MemoryFilter(interpreter.agent.memory)
 
+    task_tags = ["currently_running", "running", "paused", "finished"]
+
     T = filters_d.get("triples")
     task_properties = [
-        a.get("obj_text")[1:].lower() for a in T if a.get("obj_text", "").startswith("_")
+        a.get("obj_text")[1:].lower() for a in T if a.get("obj_text", "").lower() in task_tags
     ]
     search_data = {}
     search_data["base_table"] = "Tasks"
