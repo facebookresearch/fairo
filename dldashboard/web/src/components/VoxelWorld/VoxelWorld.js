@@ -25,15 +25,18 @@ class VoxelWorld extends React.Component {
 
   render() {
     return (
-      <div id="world-container">
-        <iframe
-          id="ifr"
-          src="VoxelWorld/world.html"
-          title="Voxel World"
-          width="900"
-          height="500"
-          ref={this.worldContainerRef}
-        ></iframe>
+      <div>
+        <div id="world-container">
+          <iframe
+            id="ifr"
+            src="VoxelWorld/world.html"
+            title="Voxel World"
+            width="900"
+            height="500"
+            ref={this.worldContainerRef}
+          ></iframe>
+        </div>
+        <p>Tip: press 'esc' to leave the voxel world</p>
       </div>
     );
   }

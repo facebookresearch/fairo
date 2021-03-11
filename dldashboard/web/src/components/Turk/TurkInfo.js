@@ -52,14 +52,22 @@ class TurkInfo extends Component {
               </p>
             ) : (
               <div>
-                <div className="App-title" style={{ fontSize: 40 }}>
+                <div className="App-title" style={{ fontSize: 35 }}>
                   Interact with the agent
                 </div>
-                <p>Please click on the button to start the session. </p>
                 <p>
-                  When you finished, click on the button to end the session and
-                  proceed to next steps.
+                  In this task, you will interact with a bot that is there to
+                  help you, You can use the chatbox on the top-left pane to talk
+                  to the bot. You can also control you own avatar by clicking on
+                  the bottom-left pane and entering the voxel world
                 </p>
+                <div style={{ fontSize: 30 }}>How to control your avatar?</div>
+                <p>
+                  Press 'w/a/s/d' to move forward/left/backward/right, 'space'
+                  to jump and 'esc' to leave the voxel world and back to the
+                  website
+                </p>
+
                 <br />
                 <br />
                 <div style={{ fontSize: 40 }}>
@@ -74,6 +82,12 @@ class TurkInfo extends Component {
                 >
                   {this.state.isTimerOn ? "End" : "Start"}
                 </Button>
+                <br />
+                <p>Please click on the button to start the session. </p>
+                <p>
+                  When you finished, click on the button to end the session and
+                  proceed to next steps.
+                </p>
               </div>
             )}
           </div>
