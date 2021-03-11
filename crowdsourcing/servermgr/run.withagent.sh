@@ -3,11 +3,11 @@
 
 
 
-S3_DEST=s3://craftassist/humanbot_data/$TIMESTAMP
+S3_DEST=s3://craftassist/turk_interactions_with_agent/$TIMESTAMP
 
 function background_agent() (
     python3 /droidlet/craftassist/wait_for_cuberite.py --host localhost --port 25565
-    python3 /droidlet/craftassist/agent/craftassist_agent.py 1>agent.log 2>agent.log
+    python3 /droidlet/craftassist/agent/craftassist_agent.py --no_default_behavior --dev 1>agent.log 2>agent.log
 )
 
 python3 /droidlet/craftassist/cuberite_process.py \
@@ -26,7 +26,8 @@ background_agent
 
 
 TARBALL=logs.tar.gz
-tar czf $TARBALL . --force-local
+# Only upload the logs and CSV files
+find -name "*.log" -name -o -name "*.csv" | tar czf $TARBALL --force-local
 
 if [ -z "$CRAFTASSIST_NO_UPLOAD" ]; then
     # expects $AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY to exist
