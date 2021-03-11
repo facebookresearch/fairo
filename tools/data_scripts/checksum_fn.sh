@@ -7,7 +7,7 @@ calculate_sha1sum() {
     echo $'\nCalculating checksum for' ${CHECKSUM_FOLDER}
     echo "Saving to ${SAVE_TO_PATH}"
     find $CHECKSUM_FOLDER -type f ! -name '*checksum*' ! -name '*MD*' \
-       -not -path '*/\.*' -printf "%P\n" | sort -z | sha1sum | tr -d '-' \
+       -not -path '*/\.*' -printf "%P\n" | sort -z | shasum | tr -d '-' \
        | xargs > $SAVE_TO_PATH
     echo "Saved checksum " $(cat $SAVE_TO_PATH) $'\n'
 }
