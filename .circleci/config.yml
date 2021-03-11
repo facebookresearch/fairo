@@ -39,32 +39,6 @@ jobs:
           command: make -C tools/docker build
 
       - run:
-          name: Python style checks (black and awscli)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
-
-      - run:
-          name: Base Agent Python unit tests
-          command: |
-              mkdir shared
-              docker run --name base-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/base_agent/test.sh craftassist
-              docker cp base-tests:/shared shared
-              pip3 install codecov
-              CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "base_agent tests"|| echo "Codecov did not collect coverage reports"
-
-      - run:
-          name: CraftAssist Python unit tests
-          command: |
-              docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
-              docker cp mc-tests:/shared shared
-              pip3 install codecov
-              CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
-          no_output_timeout: 20m
-
-      - run:
           name: Push versioned docker containers
           command: |
             tools/docker/login.sh
