@@ -69,6 +69,7 @@ class StateManager {
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
+    this.showAssistantReply = this.showAssistantReply.bind(this);
 
     // set default url to actual ip:port
     this.default_url = window.location.href;
@@ -138,6 +139,7 @@ class StateManager {
     socket.on("objects", this.processObjects);
     socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
+    socket.on("showAssistantReply", this.showAssistantReply);
   }
 
   updateStateManagerMemory(data) {
@@ -200,6 +202,17 @@ class StateManager {
         ref.setState({
           world_state: res.world_state,
           status: res.status,
+        });
+      }
+    });
+  }
+
+  showAssistantReply(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof InteractApp) {
+        console.log("set assistant reply");
+        ref.setState({
+          agent_reply: res.agent_reply,
         });
       }
     });

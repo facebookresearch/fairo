@@ -153,7 +153,7 @@ class Message extends Component {
         </Button>
 
         <p id="callbackMsg">{this.props.status}</p>
-        <p id="assistantReply">[Agent reply]: {this.props.agent_reply} </p>
+        <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
         <br />
         <br />
       </div>
