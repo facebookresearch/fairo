@@ -30,7 +30,8 @@ def main():
     args = pickle.load(open(args_path, "rb"))
 
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
-    full_tree, tree_i2w = json.load(open(args.tree_voc_file))
+    with open(args.tree_voc_file) as fd:
+        full_tree, tree_i2w = json.load(fd)
     full_tree_voc = (full_tree, tree_i2w)
     dataset = CAIPDataset(tokenizer, args, prefix="", full_tree_voc=(full_tree, tree_i2w))
 

@@ -14,6 +14,9 @@ from location_helpers import ReferenceLocationInterpreter, interpret_relative_di
 from filter_helper import FilterInterpreter
 
 from base_agent.base_util import ErrorWithResponse, NextDialogueStep
+from base_agent.task import ControlBlock, maybe_task_list_to_control_block
+from base_agent.memory_nodes import TripleNode, TaskNode
+from base_agent.condition import NTimesCondition
 
 
 class Interpreter(DialogueObject):
@@ -65,7 +68,10 @@ class Interpreter(DialogueObject):
             # "specify_locations": ComputeLocations(),
             # "facing": FacingInterpreter(),
         }
-        # logical_form --> possible task placed on stack + side effects
+
+        # each action handler should have signature
+        # speaker, logical_form -->  a Task, possible output utterance, possible output data.
+        #     if the action handler builds a list, it should wrap it in a ControlBlock
         self.action_handlers = {
             "MOVE": self.handle_move,
             "STOP": self.handle_stop,
@@ -85,17 +91,38 @@ class Interpreter(DialogueObject):
                 actions.append(self.action_dict["action"])
             elif "action_sequence" in self.action_dict:
                 actions = self.action_dict["action_sequence"]
-                actions.reverse()
 
             if len(actions) == 0:
                 # The action dict is in an unexpected state
                 raise ErrorWithResponse(
                     "I thought you wanted me to do something, but now I don't know what"
                 )
+            tasks_to_push = []
             for action_def in actions:
                 action_type = action_def["action_type"]
-                response = self.action_handlers[action_type](self.speaker, action_def)
-            return response
+                r = self.action_handlers[action_type](self.speaker, action_def)
+                if len(r) == 3:
+                    task, response, dialogue_data = r
+                else:
+                    # FIXME don't use this branch, uniformize the signatures
+                    task = None
+                    response, dialogue_data = r
+                if task:
+                    tasks_to_push.append(task)
+            task_mem = None
+            if tasks_to_push:
+                T = maybe_task_list_to_control_block(tasks_to_push, self.agent)
+                task_mem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
+            if task_mem:
+                chat = self.agent.memory.get_most_recent_incoming_chat()
+                TripleNode.create(
+                    self.agent.memory,
+                    subj=chat.memid,
+                    pred_text="chat_effect_",
+                    obj=task_mem.memid,
+                )
+            self.finished = True
+            return response, dialogue_data
         except NextDialogueStep:
             return None, None
         except ErrorWithResponse as err:
@@ -118,7 +145,7 @@ class Interpreter(DialogueObject):
         #        ]
         undo_command = old_task.get_chat().chat_text
 
-        logging.info("Pushing ConfirmTask tasks={}".format(undo_tasks))
+        logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
         self.dialogue_stack.append_new(
             ConfirmTask,
             'Do you want me to undo the command: "{}" ?'.format(undo_command),
@@ -129,12 +156,14 @@ class Interpreter(DialogueObject):
 
     def handle_move(self, speaker, d) -> Tuple[Optional[str], Any]:
         Move = self.task_objects["move"]
-        Loop = self.task_objects["loop"]
+        Control = self.task_objects["control"]
 
         def new_tasks():
             # TODO if we do this better will be able to handle "stay between the x"
             default_loc = getattr(self, "default_loc", SPEAKERLOOK)
             location_d = d.get("location", default_loc)
+            # FIXME! this loop_data trick can now be done more properly with
+            # a fixed mem filter
             if self.loop_data and hasattr(self.loop_data, "get_pos"):
                 mems = [self.loop_data]
             else:
@@ -148,7 +177,7 @@ class Interpreter(DialogueObject):
             pos = self.post_process_loc(pos, self)
             task_data = {"target": pos, "action_dict": d}
             task = Move(self.agent, task_data)
-            return [task]
+            return task
 
         if "stop_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
@@ -158,18 +187,15 @@ class Interpreter(DialogueObject):
                 self.loop_data = mems[0]
             steps, reldir = interpret_relative_direction(self, location_d)
 
+            # FIXME grammar to handle "remove" vs "stop"
             loop_task_data = {
-                "new_tasks_fn": new_tasks,
-                "stop_condition": condition,
+                "new_tasks": new_tasks,
+                "remove_condition": condition,  #!!! semantic parser + GT need updating
                 "action_dict": d,
             }
-            self.append_new_task(Loop, loop_task_data)
+            return Control(self.agent, loop_task_data), None, None
         else:
-            for t in new_tasks():
-                self.append_new_task(t)
-
-        self.finished = True
-        return None, None
+            return new_tasks(), None, None
 
     # TODO mark in memory it was stopped by command
     def handle_stop(self, speaker, d) -> Tuple[Optional[str], Any]:
@@ -179,10 +205,11 @@ class Interpreter(DialogueObject):
             self.archived_loop_data = self.loop_data
             self.loop_data = None
         if self.memory.task_stack_pause():
-            return "Stopping.  What should I do next?", None
+            return None, "Stopping.  What should I do next?", None
         else:
-            return "I am not doing anything", None
+            return None, "I am not doing anything", None
 
+    # FIXME this is needs updating...
     # TODO mark in memory it was resumed by command
     def handle_resume(self, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
@@ -191,10 +218,10 @@ class Interpreter(DialogueObject):
                 # TODO if we want to be able stop and resume old tasks, will need to store
                 self.loop_data = self.archived_loop_data
                 self.archived_loop_data = None
-            return "resuming", None
+            return None, "resuming", None
         else:
-            return "nothing to resume", None
+            return None, "nothing to resume", None
 
     def handle_otheraction(self, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
-        return "I don't know how to do that yet", None
+        return None, "I don't know how to do that yet", None

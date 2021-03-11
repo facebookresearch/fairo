@@ -13,6 +13,19 @@ class Condition:
         raise NotImplementedError("Implemented by subclass")
 
 
+class SwitchCondition(Condition):
+    def __init__(self, agent):
+        super().__init__(agent)
+        self.name = "switch"
+        self.status = True
+
+    def set_status(self, status):
+        self.status = status
+
+    def check(self):
+        return self.status
+
+
 class NeverCondition(Condition):
     def __init__(self, agent):
         super().__init__(agent)
@@ -20,6 +33,38 @@ class NeverCondition(Condition):
 
     def check(self):
         return False
+
+
+class AlwaysCondition(Condition):
+    def __init__(self, agent):
+        super().__init__(agent)
+        self.name = "always"
+
+    def check(self):
+        return True
+
+
+class NTimesCondition(Condition):
+    def __init__(self, agent, N=1):
+        super().__init__(agent)
+        self.N = N
+        self.count = 0
+        self.name = str(self.N) + "times"
+
+    def check(self):
+        self.count += 1
+        return self.count <= self.N
+
+
+class NotCondition(Condition):
+    def __init__(self, agent, condition):
+        super().__init__(agent)
+        self.name = "not"
+        self.condition = condition
+
+    def check(self):
+        c = not self.condition.check()
+        return c
 
 
 class AndCondition(Condition):
@@ -49,6 +94,33 @@ class OrCondition(Condition):
         for c in self.conditions:
             if c.check():
                 return True
+        return False
+
+
+class TaskStatusCondition(Condition):
+    def __init__(self, agent, task_memid, status="finished"):
+        super().__init__(agent)
+        self.status = status
+        self.task_memid = task_memid
+
+    def check(self):
+        T = None
+        if self.agent.memory.check_memid_exists(self.task_memid, "Tasks"):
+            T = self.agent.memory.get_mem_by_id(self.task_memid)
+        if self.status == "finished":
+            # beware:
+            # assumption is if we had the memid in hand, and it is no longer a task, task is finished
+            # if (e.g. via a bug) a non-task memid is passed here, it will be considered a finished task.
+            if (not T) or T.finished > -1:
+                return True
+        elif self.status == "running":
+            if T and T.running > 0:
+                return True
+        elif self.status == "paused":
+            if T and T.paused > 0:
+                return True
+        else:
+            raise AssertionError("TaskStatusCondition has unkwon status {}".format(self.status))
         return False
 
 

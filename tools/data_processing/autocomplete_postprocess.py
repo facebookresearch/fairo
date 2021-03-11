@@ -62,7 +62,8 @@ if __name__ == "__main__":
     parser.add_argument("--source_path", default="command_dict_pairs.json")
     args = parser.parse_args()
     # load the annotated dataset
-    dataset = json.load(open(args.source_path))
+    with open(args.source_path) as fd:
+        dataset = json.load(fd)
     autocomplete_annotations = {}
     updated_dataset = []
     datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/high_pri_commands.txt")

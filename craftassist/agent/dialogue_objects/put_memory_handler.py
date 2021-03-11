@@ -115,7 +115,7 @@ class PutMemoryHandler(DialogueObject):
 
         for t in self.action_dict["upsert"]["memory_data"].get("triples", []):
             if t.get("pred_text") and t.get("obj_text"):
-                logging.info("Tagging {} {} {}".format(mem.memid, t["pred_text"], t["obj_text"]))
+                logging.debug("Tagging {} {} {}".format(mem.memid, t["pred_text"], t["obj_text"]))
                 self.memory.add_triple(
                     subj=mem.memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
                 )

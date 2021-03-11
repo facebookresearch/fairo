@@ -7,8 +7,6 @@ from dialogue_object import (
     AwaitResponse,
     BotCapabilities,
     BotGreet,
-    BotLocationStatus,
-    BotStackStatus,
     DialogueObject,
     GetReward,
     ConfirmTask,
@@ -21,7 +19,7 @@ from dialogue_object_utils import (
     SPEAKERPOS,
     AGENTPOS,
     is_loc_speakerlook,
-    process_spans,
+    process_spans_and_remove_fixed_value,
     coref_resolve,
     tags_from_dict,
     strip_prefix,
@@ -35,10 +33,7 @@ from reference_object_helpers import (
     filter_by_sublocation,
 )
 
-from location_helpers import (
-    ReferenceLocationInterpreter,
-    interpret_relative_direction,
-)
+from location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
 
 from interpreter import Interpreter
 
@@ -52,8 +47,6 @@ __all__ = [
     AwaitResponse,
     BotCapabilities,
     BotGreet,
-    BotLocationStatus,
-    BotStackStatus,
     DialogueObject,
     GetReward,
     ConfirmTask,
@@ -64,7 +57,7 @@ __all__ = [
     AGENTPOS,
     is_loc_speakerlook,
     coref_resolve,
-    process_spans,
+    process_spans_and_remove_fixed_value,
     tags_from_dict,
     strip_prefix,
     special_reference_search_data,

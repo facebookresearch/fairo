@@ -25,7 +25,8 @@ from mc_util import to_block_pos, manhat_dist, strip_idmeta
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
 
-from base_agent.task import Task
+from base_agent.task import Task, BaseMovementTask
+from base_agent.memory_nodes import TaskNode, TripleNode
 from mc_memory_nodes import MobNode
 
 # tasks should be interruptible; that is, if they
@@ -52,24 +53,23 @@ class Dance(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Dance, self).__init__()
+        super().__init__(agent)
         # movement should be a Movement object from dance.py
         self.movement = task_data.get("movement")
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
+    @Task.step_wrapper
+    def step(self):
+        super().step()
         if self.finished:
             return
         self.interrupted = False
-        # wait certain amount of ticks until issuing next step
-        #        while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #            pass
         mv = self.movement.get_move()
         if mv is None:
             self.finished = True
             return
-        self.add_child_task(mv, agent)
+        self.add_child_task(mv)
 
 
 class DanceMove(Task):
@@ -90,7 +90,7 @@ class DanceMove(Task):
     }
 
     def __init__(self, agent, task_data):
-        super(DanceMove, self).__init__()
+        super(DanceMove, self).__init__(agent)
         self.relative_yaw = task_data.get("relative_yaw")
         self.relative_pitch = task_data.get("relative_pitch")
 
@@ -100,14 +100,14 @@ class DanceMove(Task):
 
         self.translate = task_data.get("translate")
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        agent = self.agent
         if self.finished:
             return
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
         if self.relative_yaw:
             agent.turn_angle(self.relative_yaw)
         if self.relative_pitch:
@@ -146,26 +146,25 @@ class Point(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Point, self).__init__()
+        super(Point, self).__init__(agent)
         self.target = task_data.get("target")
         self.start_time = agent.memory.get_time()
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
+    @Task.step_wrapper
+    def step(self):
+        super().step()
         if self.finished:
             return
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
         if self.target is not None:
-            agent.point_at(self.target)
+            self.agent.point_at(self.target)
             self.target = None
-        if agent.memory.get_time() > self.start_time + 200:
+        if self.agent.memory.get_time() > self.start_time + 200:
             self.finished = True
 
 
-class Move(Task):
+class Move(BaseMovementTask):
     """Perform a Move task.
 
     Moving is stepped one block at a time. Agent can move towards one of the six directions:
@@ -197,7 +196,7 @@ class Move(Task):
     }
 
     def __init__(self, agent, task_data):
-        super(Move, self).__init__()
+        super().__init__(agent, task_data)
         if self.finished:
             return
         self.target = to_block_pos(np.array(task_data["target"]))
@@ -205,47 +204,36 @@ class Move(Task):
         self.path = None
         self.replace = set()
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
+    def target_to_memory(self, target):
+        return to_block_pos(np.array(target))
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        agent = self.agent
         if self.finished:
             return
         self.interrupted = False
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
-
         # replace blocks if possible
         R = self.replace.copy()
         self.replace.clear()
         for (pos, idm) in R:
             agent.set_held_item(idm)
             if agent.place_block(*pos):
-                logging.info("Move: replaced {}".format((pos, idm)))
+                logging.debug("Move: replaced {}".format((pos, idm)))
             else:
                 # try again later
                 self.replace.add((pos, idm))
         if len(self.replace) > 0:
-            logging.info("Replace remaining: {}".format(self.replace))
+            logging.debug("Replace remaining: {}".format(self.replace))
 
         # check if finished
         if manhat_dist(tuple(agent.pos), self.target) <= self.approx:
             if len(self.replace) > 0:
                 logging.error("Move finished with non-empty replace set: {}".format(self.replace))
             self.finished = True
-            if self.memid is not None:
-                locmemid = agent.memory.add_location(self.target)
-                locmem = agent.memory.get_location_by_id(locmemid)
-                agent.memory.update_recent_entities(mems=[locmem])
-                agent.memory.add_triple(subj=self.memid, pred_text="task_effect_", obj=locmemid)
-                chat_mem_triples = agent.memory.get_triples(
-                    subj=None, pred_text="chat_effect_", obj=self.memid
-                )
-                if len(chat_mem_triples) > 0:
-                    chat_memid = chat_mem_triples[0][0]
-                    agent.memory.add_triple(
-                        subj=chat_memid, pred_text="chat_effect_", obj=locmemid
-                    )
             return
 
         # get path
@@ -299,7 +287,7 @@ class Build(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Build, self).__init__()
+        super().__init__(agent)
         self.task_data = task_data
         self.embed = task_data.get("embed", False)
         self.schematic, _ = blocks_list_to_npy(task_data["blocks_list"])
@@ -336,7 +324,7 @@ class Build(Task):
                     self.destroyed_block_object_triples.extend(
                         agent.memory.get_triples(subj=mem.memid, pred_text=pred)
                     )
-                logging.info(
+                logging.debug(
                     "Destroying block object {} tags={}".format(
                         mem.memid, self.destroyed_block_object_triples
                     )
@@ -362,16 +350,15 @@ class Build(Task):
         if len(self.old_blocks_list) > 0:
             self.old_origin = np.min(strip_idmeta(self.old_blocks_list), axis=0)
 
-    def step(self, agent):
-        super().step(agent)
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        agent = self.agent
         if self.finished:
             return
         self.interrupted = False
-
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
-
         # get blocks occupying build area
         ox, oy, oz = self.origin
         sy, sz, sx, _ = self.schematic.shape
@@ -414,10 +401,10 @@ class Build(Task):
             ]
         )
         if len(xyzs) != 0:
-            logging.info("Excavating {} blocks first".format(len(xyzs)))
+            logging.debug("Excavating {} blocks first".format(len(xyzs)))
             target = self.get_next_destroy_target(agent, xyzs)
             if target is None:
-                logging.info("No path from {} to {}".format(agent.pos, xyzs))
+                logging.debug("No path from {} to {}".format(agent.pos, xyzs))
                 agent.send_chat("There's no path, so I'm giving up")
                 self.finished = True
                 return
@@ -438,7 +425,7 @@ class Build(Task):
                     agent.get_changed_blocks()
             else:
                 mv = Move(agent, {"target": target, "approx": self.DIG_REACH})
-                self.add_child_task(mv, agent)
+                self.add_child_task(mv)
 
             return
 
@@ -513,31 +500,39 @@ class Build(Task):
             # too far to place; move first
             task = Move(agent, {"target": target, "approx": self.PLACE_REACH})
 
-            self.add_child_task(task, agent)
+            self.add_child_task(task)
 
     def add_tags(self, agent, block):
         # xyz, _ = npy_to_blocks_list(self.schematic, self.origin)[0]
         xyz = block[0]
         # this should not be an empty list- it is assumed the block passed in was just placed
         try:
-            memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
-            self.blockobj_memid = memid
+            blockobj_memid = agent.memory.get_block_object_ids_by_xyz(xyz)[0]
+            self.blockobj_memid = blockobj_memid
         except:
             logging.debug(
                 "Warning: place block returned true, but no block in memory after update"
             )
+        TripleNode.create(
+            agent.memory, subj=self.memid, pred_text="task_reference_object", obj=blockobj_memid
+        )
         if self.schematic_memid:
-            agent.memory.tag_block_object_from_schematic(memid, self.schematic_memid)
+            TripleNode.create(
+                agent.memory,
+                subj=blockobj_memid,
+                pred_text="has_schematic",
+                obj=self.schematic_memid,
+            )
         if self.schematic_tags:
             for pred, obj in self.schematic_tags:
-                agent.memory.add_triple(subj=memid, pred_text=pred, obj_text=obj)
+                TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
                 # sooooorrry  FIXME? when we handle triples better in interpreter_helper
                 if "has_" in pred:
                     agent.memory.tag(self.blockobj_memid, obj)
 
-        agent.memory.tag(memid, "_in_progress")
+        agent.memory.tag(blockobj_memid, "_in_progress")
         if self.dig_message:
-            agent.memory.tag(memid, "hole")
+            agent.memory.tag(blockobj_memid, "hole")
 
     def finish(self, agent):
         if self.blockobj_memid is not None:
@@ -630,14 +625,10 @@ class Build(Task):
                         "embed": self.embed,
                         "schematic_tags": schematic_tags,
                     },
-                ),
-                agent,
-                pass_stop_condition=False,
+                )
             )
         if len(self.new_blocks) > 0:
-            self.add_child_task(
-                Destroy(agent, {"schematic": self.new_blocks}), agent, pass_child_task=False
-            )
+            self.add_child_task(Destroy(agent, {"schematic": self.new_blocks}))
 
     def __repr__(self):
         return "<Build {} @ {}>".format(len(self.schematic), self.origin)
@@ -660,25 +651,22 @@ class Fill(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Fill, self).__init__()
+        super().__init__(agent)
         self.schematic = task_data["schematic"]  # a list of xyz tuples
         self.block_idm = task_data.get("block_idm", (2, 0))  # default 2: grass
         self.build_task = None
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
-        if self.finished:
-            return
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
+    @Task.step_wrapper
+    def step(self):
+        super().step()
 
         origin = np.min(self.schematic, axis=0)
         blocks_list = np.array([((x, y, z), self.block_idm) for (x, y, z) in self.schematic])
 
-        self.build_task = Build(
-            agent,
+        build_task = Build(
+            self.agent,
             {
                 "blocks_list": blocks_list,
                 "origin": origin,
@@ -688,12 +676,14 @@ class Fill(Task):
                 "fill_message": True,
             },
         )
-        self.add_child_task(self.build_task, agent)
+        self.add_child_task(build_task)
         self.finished = True
 
     def undo(self, agent):
-        if self.build_task is not None:
-            self.build_task.undo(agent)
+        triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]
+        build_mems = self.agent.memory.basic_search({"base_table": "tasks", "triples": triples})
+        if build_mems:
+            build_mems[0].task.undo(agent)
 
 
 class Destroy(Task):
@@ -714,20 +704,17 @@ class Destroy(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Destroy, self).__init__()
+        super().__init__(agent)
         self.schematic = task_data["schematic"]  # list[(xyz, idm)]
         self.dig_message = True if "dig_message" in task_data else False
         self.build_task = None
         self.DIG_REACH = task_data.get("DIG_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
-        if self.finished:
-            return
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
+    @Task.step_wrapper
+    def step(self):
+        super().step()
 
         origin = np.min([(x, y, z) for ((x, y, z), (b, m)) in self.schematic], axis=0)
 
@@ -748,8 +735,8 @@ class Destroy(Task):
             return destroy_schm
 
         destroy_schm = to_destroy_schm(self.schematic)
-        self.build_task = Build(
-            agent,
+        build_task = Build(
+            self.agent,
             {
                 "blocks_list": destroy_schm,
                 "origin": origin,
@@ -761,12 +748,14 @@ class Destroy(Task):
                 "DIG_REACH": self.DIG_REACH,
             },
         )
-        self.add_child_task(self.build_task, agent)
+        self.add_child_task(build_task)
         self.finished = True
 
     def undo(self, agent):
-        if self.build_task is not None:
-            self.build_task.undo(agent)
+        triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]
+        build_mems = self.agent.memory.basic_search({"base_table": "tasks", "triples": triples})
+        if build_mems:
+            build_mems[0].task.undo(agent)
 
 
 class Undo(Task):
@@ -785,17 +774,15 @@ class Undo(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Undo, self).__init__()
+        super().__init__(agent)
         self.to_undo_memid = task_data["memid"]
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
-
-        old_task_mem = agent.memory.get_task_by_id(self.to_undo_memid)
-        old_task_mem.task.undo(agent)
+    @Task.step_wrapper
+    def step(self):
+        old_task_mem = self.agent.memory.get_mem_by_id(self.to_undo_memid)
+        old_task_mem.task.undo(self.agent)
         self.finished = True
 
     def __repr__(self):
@@ -821,12 +808,13 @@ class Spawn(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Spawn, self).__init__()
+        super().__init__(agent)
         self.object_idm = task_data["object_idm"]
         self.mobtype = MOBS_BY_ID[self.object_idm[1]]
         self.pos = task_data["pos"]
         self.PLACE_REACH = task_data.get("PLACE_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def find_nearby_new_mob(self, agent):
         mindist = 1000000
@@ -844,18 +832,13 @@ class Spawn(Task):
                         near_new_mob = mob
         return mindist, near_new_mob
 
-    def step(self, agent):
-        super().step(agent)
-        if self.finished:
-            return
-
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
-
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        agent = self.agent
         if manhat_dist(agent.pos, self.pos) > self.PLACE_REACH:
             task = Move(agent, {"target": self.pos, "approx": self.PLACE_REACH})
-            self.add_child_task(task, agent)
+            self.add_child_task(task)
         else:
             agent.set_held_item(self.object_idm)
             if np.equal(self.pos, agent.pos).all():
@@ -902,33 +885,29 @@ class Dig(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Dig, self).__init__()
+        super().__init__(agent)
         self.origin = task_data["origin"]
         self.length = task_data["length"]
         self.width = task_data["width"]
         self.depth = task_data["depth"]
         self.destroy_task = None
         self.last_stepped_time = agent.memory.get_time()
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def undo(self, agent):
         if self.destroy_task is not None:
             self.destroy_task.undo(agent)
 
-    def step(self, agent):
-        super().step(agent)
-        if self.finished:
-            return
-
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
+    @Task.step_wrapper
+    def step(self):
+        super().step()
 
         mx, My, mz = self.origin
         Mx = mx + (self.width - 1)
         my = My - (self.depth - 1)
         Mz = mz + (self.length - 1)
 
-        blocks = agent.get_blocks(mx, Mx, my, My, mz, Mz)
+        blocks = self.agent.get_blocks(mx, Mx, my, My, mz, Mz)
 
         # if top row is above ground, make sure you are digging into the ground
         if np.isin(blocks[-1, :, :, 0], PASSABLE_BLOCKS).all():
@@ -942,8 +921,8 @@ class Dig(Task):
         ]
         #        TODO ADS unwind this
         #        schematic = fill_idmeta(agent, poss)
-        self.destroy_task = Destroy(agent, {"schematic": schematic, "dig_message": True})
-        self.add_child_task(self.destroy_task, agent)
+        self.destroy_task = Destroy(self.agent, {"schematic": schematic, "dig_message": True})
+        self.add_child_task(self.destroy_task)
 
         self.finished = True
 
@@ -965,7 +944,7 @@ class Get(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Get, self).__init__()
+        super().__init__(agent)
         self.idm = task_data["idm"]
         self.pos = task_data["pos"]
         self.eid = task_data["eid"]
@@ -973,15 +952,12 @@ class Get(Task):
         self.approx = 1
         self.attempts = 10
         self.item_count_before_get = agent.get_inventory_item_count(self.idm[0], self.idm[1])
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
-    def step(self, agent):
-        super().step(agent)
-        if self.finished:
-            return
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
-
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        agent = self.agent
         delta = (
             agent.get_inventory_item_count(self.idm[0], self.idm[1]) - self.item_count_before_get
         )
@@ -1002,7 +978,7 @@ class Get(Task):
         # walk through the area
         target = (self.pos[0] + randint(-1, 1), self.pos[1], self.pos[2] + randint(-1, 1))
         self.move_task = Move(agent, {"target": target, "approx": self.approx})
-        self.add_child_task(self.move_task, agent)
+        self.add_child_task(self.move_task)
         return
 
 
@@ -1023,10 +999,11 @@ class Drop(Task):
     """
 
     def __init__(self, agent, task_data):
-        super(Drop, self).__init__()
+        super().__init__(agent)
         self.eid = task_data["eid"]
         self.idm = task_data["idm"]
         self.memid = task_data["memid"]
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def find_nearby_new_item_stack(self, agent, id, meta):
         mindist = 3
@@ -1044,13 +1021,12 @@ class Drop(Task):
 
         return mindist, near_new_item_stack
 
-    def step(self, agent):
-        super().step(agent)
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        agent = self.agent
         if self.finished:
             return
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
         if not agent.inventory.contains(self.eid):
             agent.send_chat("I can't find it in my inventory!")
             self.finished = False
@@ -1069,34 +1045,6 @@ class Drop(Task):
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)
         self.move_task = Move(agent, {"target": target, "approx": 1})
-        self.add_child_task(self.move_task, agent)
+        self.add_child_task(self.move_task)
 
         self.finished = True
-
-
-class Loop(Task):
-    """Perform a Loop task.
-
-    It simply adds new tasks to the stack until stop condition is met.
-
-    Args:
-        agent: the agent who will perform this task
-        task_data (dict): a dictionary stores all task related data
-    """
-
-    def __init__(self, agent, task_data):
-        super(Loop, self).__init__()
-        self.new_tasks_fn = task_data["new_tasks_fn"]
-        self.stop_condition = task_data["stop_condition"]
-        self.last_stepped_time = agent.memory.get_time()
-
-    def step(self, agent):
-        # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
-        if self.stop_condition.check():
-            self.finished = True
-            return
-        else:
-            for t in self.new_tasks_fn():
-                self.add_child_task(t, agent)

@@ -1,0 +1,6 @@
+flask
+flask_limiter
+gunicorn
+boto3
+redis
+gevent-websocket
