@@ -9,7 +9,7 @@ ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
 
 CRAFTASSIST_PATH="${ROOTDIR}/craftassist/agent/"
-DATA_SCRIPTS_PATH="tools/data_scripts/compute_and_upload_checksum.sh"
+DATA_SCRIPTS_PATH="tools/data_scripts/compute_checksum.sh"
 echo "$CRAFTASSIST_PATH"
 echo "$DATA_SCRIPTS_PATH"
 

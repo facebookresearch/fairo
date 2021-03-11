@@ -7,7 +7,7 @@ The Autocomplete Data Annotator provides an easy way to create parse trees for n
 Make sure that you have the latest datasets downloaded from S3.
 ```
 cd droidlet
-./tools/data_scripts/compare_directory_hash.sh
+./tools/data_scripts/try_download.sh
 ```
 
 ## Preprocessing

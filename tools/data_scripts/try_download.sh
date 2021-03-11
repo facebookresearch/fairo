@@ -1,13 +1,17 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-# This script checks if models and datasets are up to date, and either triggers a download or gives the user a warning to update local files.
+# This script checks if models and datasets are up to date, and downloads default 
+# assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
+
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
-echo "$ROOTDIR"
+echo "Rootdir ${ROOTDIR}"
+
+. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
 if [ -z $1 ]
 then
@@ -18,7 +22,7 @@ else
 fi
 
 AGENT_PATH="${ROOTDIR}/${AGENT}/agent/"
-echo "$AGENT_PATH"
+echo "agent path ${AGENT_PATH}"
 
 # in case directories don't even exist, create them
 mkdir -p $AGENT_PATH/datasets
@@ -26,22 +30,23 @@ mkdir -p $AGENT_PATH/models
 mkdir -p $AGENT_PATH/models/semantic_parser
 mkdir -p $AGENT_PATH/models/perception
 
-
-compare_checksum() {
-    LOCAL_CHKSM=$1
+compare_checksum_try_download() {
+    LOCAL_CHKSM=$(cat $1)
     FOLDER=$2
-    echo "Comparing $FOLDER checksums - Local " $(cat $LOCAL_CHKSM) "AWS " $(cat ${FOLDER}_checksum.txt)
-    curl "http://craftassist.s3-us-west-2.amazonaws.com/pubr/checksums/${FOLDER}_checksum.txt" -o ${FOLDER}_checksum.txt
-    if cmp -s $LOCAL_CHKSM ${FOLDER}_checksum.txt
-    then
+    LATEST_CHKSM=$(cat ${ROOTDIR}/tools/data_scripts/default_checksums/${FOLDER}.txt)
+    echo "Comparing $FOLDER checksums" 
+    echo "Local " $LOCAL_CHKSM
+    echo "Latest " $LATEST_CHKSM
+    if [[ "$LOCAL_CHKSM" == "$LATEST_CHKSM" ]]; then
         echo "Local $FOLDER directory is up to date."
     else
-	    try_download $FOLDER
+	    try_download $FOLDER $LATEST_CHKSM
     fi
 }
 
 try_download() {
     FOLDER=$1
+    CHKSUM=$2
     echo "*********************************************************************************************"
     echo "Local ${FOLDER} directory is out of sync. Downloading latest. Use --dev to disable downloads."
     echo "*********************************************************************************************"
@@ -52,22 +57,21 @@ try_download() {
         SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
     fi
     echo "Downloading using script " $SCRIPT_PATH
-    "$SCRIPT_PATH" "$AGENT"
+    "$SCRIPT_PATH" "$AGENT" "$CHKSUM"
 }
 
 pushd $AGENT_PATH
 
 # Comparing hashes for local directories
 # Default models and datasets shared by all agents
-find models/semantic_parser -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > models/nsp_checksum.txt
-cat "models/nsp_checksum.txt"
-compare_checksum "models/nsp_checksum.txt" "nsp" 
+calculate_sha1sum "${AGENT_PATH}models/semantic_parser" "${AGENT_PATH}models/nsp_checksum.txt"
+compare_checksum_try_download "models/nsp_checksum.txt" "nsp" 
 
-find datasets -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > datasets/checksum.txt
-compare_checksum "datasets/checksum.txt" "datasets"
+calculate_sha1sum "${AGENT_PATH}datasets" "${AGENT_PATH}datasets/checksum.txt"
+compare_checksum_try_download "${AGENT_PATH}datasets/checksum.txt" "datasets"
 
 # Agent specific models 
 if [ $AGENT == "locobot" ]; then
-    find models/perception -type f ! -name '*checksum*' -not -path '*/\.*' -print0 | sort -z | xargs -0 sha1sum | sha1sum > models/locobot_checksum.txt
-    compare_checksum "models/locobot_checksum.txt" "locobot"
+    calculate_sha1sum "${AGENT_PATH}models/perception" "${AGENT_PATH}models/locobot_checksum.txt"
+    compare_checksum_try_download "${AGENT_PATH}models/locobot_checksum.txt" "locobot"
 fi
