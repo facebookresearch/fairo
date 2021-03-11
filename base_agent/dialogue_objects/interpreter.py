@@ -100,16 +100,13 @@ class Interpreter(DialogueObject):
             tasks_to_push = []
             for action_def in actions:
                 action_type = action_def["action_type"]
-                try:
-                    r = self.action_handlers[action_type](self.speaker, action_def)
-                    if len(r) == 3:
-                        task, response, dialogue_data = r
-                    else:
-                        # FIXME don't use this branch, uniformize the signatures
-                        task = None
-                        response, dialogue_data = r
-                except ErrorWithResponse as err:
-                    return err.chat, None
+                r = self.action_handlers[action_type](self.speaker, action_def)
+                if len(r) == 3:
+                    task, response, dialogue_data = r
+                else:
+                    # FIXME don't use this branch, uniformize the signatures
+                    task = None
+                    response, dialogue_data = r
                 if task:
                     tasks_to_push.append(task)
             task_mem = None
@@ -148,7 +145,7 @@ class Interpreter(DialogueObject):
         #        ]
         undo_command = old_task.get_chat().chat_text
 
-        logging.info("Pushing ConfirmTask tasks={}".format(undo_tasks))
+        logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
         self.dialogue_stack.append_new(
             ConfirmTask,
             'Do you want me to undo the command: "{}" ?'.format(undo_command),

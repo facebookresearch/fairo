@@ -87,19 +87,19 @@ class LocoMCAgent(BaseAgent):
 
         @sio.on("saveErrorDetailsToDb")
         def save_error_details_to_db(sid, postData):
-            logging.info("in save_error_details_to_db, got PostData: %r" % (postData))
+            logging.debug("in save_error_details_to_db, got PostData: %r" % (postData))
             # save the details to table
             saveAnnotatedErrorToDb(self.conn, postData)
 
         @sio.on("saveSurveyInfo")
         def save_survey_info_to_db(sid, postData):
-            logging.info("in save_survey_info_to_db, got PostData: %r" % (postData))
+            logging.debug("in save_survey_info_to_db, got PostData: %r" % (postData))
             # save details to survey table
             saveSurveyResultsToDb(self.conn, postData)
 
         @sio.on("saveObjectAnnotation")
         def save_object_annotation_to_db(sid, postData):
-            logging.info("in save_object_annotation_to_db, got postData: %r" % (postData))
+            logging.debug("in save_object_annotation_to_db, got postData: %r" % (postData))
             saveObjectAnnotationsToDb(self.conn, postData)
 
         @sio.on("sendCommandToAgent")
@@ -111,7 +111,7 @@ class LocoMCAgent(BaseAgent):
             Returns:
                 return back a socket emit with parse of command and success status
             """
-            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
+            logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
@@ -123,10 +123,10 @@ class LocoMCAgent(BaseAgent):
                 logical_form = dialogue_manager.get_logical_form(
                     s=command, model=dialogue_manager.model
                 )
-                logging.info("logical form is : %r" % (logical_form))
+                logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
             except:
-                logging.info("error in sending chat")
+                logging.error("error in sending chat")
                 status = "Error in sending chat"
             # update server memory
             self.dashboard_memory["chatResponse"][command] = logical_form
@@ -212,7 +212,7 @@ class LocoMCAgent(BaseAgent):
 
     def step(self):
         if self.count == 0:
-            logging.info("First top-level step()")
+            logging.debug("First top-level step()")
         super().step()
         self.maybe_dump_memory_to_dashboard()
 
@@ -261,12 +261,12 @@ class LocoMCAgent(BaseAgent):
         for raw_chat in raw_incoming_chats:
             match = re.search("^<([^>]+)> (.*)", raw_chat)
             if match is None:
-                logging.info("Ignoring chat: {}".format(raw_chat))
+                logging.debug("Ignoring chat: {}".format(raw_chat))
                 continue
 
             speaker, chat = match.group(1), match.group(2)
             speaker_hash = hash_user(speaker)
-            logging.info("Incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
+            logging.debug("Incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
             if chat.startswith("/"):
                 continue
             incoming_chats.append((speaker, chat))
@@ -312,7 +312,7 @@ class LocoMCAgent(BaseAgent):
         p, fns = zip(*defaults)
         fn = np.random.choice(fns, p=p)
         if fn != noop:
-            logging.info("Default behavior: {}".format(fn))
+            logging.debug("Default behavior: {}".format(fn))
         fn(self)
 
     def maybe_dump_memory_to_dashboard(self):

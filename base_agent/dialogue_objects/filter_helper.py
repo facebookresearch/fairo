@@ -61,7 +61,7 @@ def get_val_map(interpreter, speaker, filters_d, get_all=False):
         get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
         a = get_attribute(interpreter, speaker, attr_d, get_all=get_all)
         val_map = ApplyAttribute(interpreter.agent.memory, a)
-    elif output and output == "count":
+    elif output and output == "COUNT":
         val_map = CountTransform(interpreter.agent.memory)
     return val_map
 

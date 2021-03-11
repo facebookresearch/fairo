@@ -26,6 +26,7 @@ background_agent
 
 
 TARBALL=logs.tar.gz
+
 # Only upload the logs and CSV files
 find -name "*.log" -name -o -name "*.csv" | tar czf $TARBALL --force-local
 

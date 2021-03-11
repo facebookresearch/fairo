@@ -7,7 +7,6 @@ function pyabspath() {
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "$ROOTDIR"
-DATA_DIRNAME=datasets_folder
 
 if [ -z $1 ]
 then
@@ -15,16 +14,21 @@ then
 else
 	AGENT=$1
 fi
+CHKSUM=$2
+
+echo "Checksum" $CHKSUM
+
+DATA_DIRNAME=datasets_folder
 
 cd $ROOTDIR
 
-echo "====== Downloading datasets to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
-curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/$DATA_DIRNAME.tar.gz -o $DATA_DIRNAME.tar.gz
+echo "====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHKSUM}.tar.gz to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
+curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHKSUM}.tar.gz -o $DATA_DIRNAME.tar.gz
 
 if [ -d "${AGENT}/agent/datasets" ]
 then
 	echo "Overwriting datasets directory"
-	rm -r $AGENT/agent/datasets/
+	rm -rf $AGENT/agent/datasets/
 fi
 mkdir -p $AGENT/agent/datasets/
 
