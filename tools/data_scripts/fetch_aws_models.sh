@@ -1,6 +1,7 @@
 #!/bin/bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 
+
 function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
@@ -15,11 +16,16 @@ then
 else
 	AGENT=$1
 fi
+CHKSUM=$2
 
-pushd $ROOTDIR
+echo "Checksum" $CHKSUM
 
-echo "====== Downloading models to $ROOTDIR/$MODELS_DIRNAME.tar.gz ======"
-curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/$MODELS_DIRNAME.tar.gz -o $MODELS_DIRNAME.tar.gz
+MODELS_DIRNAME=models_folder
+
+cd $ROOTDIR
+
+echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHKSUM}.tar.gz ======"
+curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz
 
 if [ -d "${AGENT}/agent/models" ]
 then
@@ -36,5 +42,3 @@ if [ $AGENT == "locobot" ]; then
     tar -xzvf locobot_models.tar.gz -C $AGENT/agent/models/
 	curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz | tar -xzv -C $AGENT/test/test_assets/
 fi
-
-popd
