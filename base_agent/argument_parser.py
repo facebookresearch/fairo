@@ -31,8 +31,8 @@ class ArgumentParser:
         )
         self.parser.add_argument(
             "--verify_hash_script_path",
-            default="../../tools/data_scripts/compare_directory_hash.sh",
-            help="path to script that checks hash against latest models",
+            default="../../tools/data_scripts/try_download.sh",
+            help="path to script that checks hash against latest models and tries download",
         )
 
     def add_nsp_parser(self):

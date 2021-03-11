@@ -17,7 +17,8 @@ args_path = "craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_tes
 args = pickle.load(open(args_path, "rb"))
 
 tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
-full_tree, tree_i2w = json.load(open(args.tree_voc_file))
+with open(args.tree_voc_file) as fd:
+    full_tree, tree_i2w = json.load(fd)
 dataset = CAIPDataset(tokenizer, args, prefix="", full_tree_voc=(full_tree, tree_i2w))
 
 enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)

@@ -44,7 +44,8 @@ class TTADBertModel(object):
         args.data_dir = data_dir
 
         self.tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
-        full_tree, tree_i2w = json.load(open(model_name + "_tree.json"))
+        with open(model_name + "_tree.json") as fd:
+            full_tree, tree_i2w = json.load(fd)
         self.dataset = CAIPDataset(
             self.tokenizer, args, prefix="", full_tree_voc=(full_tree, tree_i2w)
         )

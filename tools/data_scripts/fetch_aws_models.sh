@@ -24,7 +24,7 @@ curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/$MODELS_DIRNAME.tar.gz -
 if [ -d "${AGENT}/agent/models" ]
 then
 	echo "Overwriting models directory"
-	rm -r $AGENT/agent/models/
+	rm -rf $AGENT/agent/models/
 fi
 
 mkdir -p $AGENT/agent/models/

@@ -19,7 +19,8 @@ class JSONValidator:
         # RefResolver initialization requires a base schema and URI
         base_uri = schema_dir + "grammar_spec.schema.json"
         try:
-            base_schema = json.load(open(base_uri))
+            with open(base_uri) as fd:
+                base_schema = json.load(fd)
         except Exception as e:
             print(e)
             raise e
@@ -43,7 +44,8 @@ class JSONValidator:
         # Load all subschemas in schema directory
         for schema_path in glob.glob(schema_dir + "*.json"):
             schema_name = re.search(re_pattern, schema_path).group(2)
-            json_schema = json.load(open(schema_path))
+            with open(schema_path) as fd:
+                json_schema = json.load(fd)
             if schema_name == span_schema_name:
                 resolver.store["span" + ".schema.json"] = json_schema
             elif schema_name in span_schemas:
