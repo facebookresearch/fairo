@@ -198,8 +198,10 @@ class DecoderWithLoss(nn.Module):
             lm_lin_mask = y_mask_target.view(-1)
             lm_loss = lm_lin_loss.sum() / lm_lin_mask.sum()
             # fixed span value output head
-            fixed_span_hidden_states = y_rep
-            fixed_span_scores = self.fixed_span_head(fixed_span_hidden_states)
+            self.fixed_span_hidden_z = y_rep.detach()
+            self.fixed_span_hidden_z.requires_grad = True
+            self.fixed_span_hidden_z.retain_grad()
+            fixed_span_scores = self.fixed_span_head(self.fixed_span_hidden_z)
             fixed_span_lin_scores = fixed_span_scores.view(-1, fixed_span_scores.shape[-1])
             fixed_span_lin_targets = y[:, 1:, 5].contiguous().view(-1)
             fixed_span_lin_loss = self.fixed_span_loss(fixed_span_lin_scores, fixed_span_lin_targets)
@@ -232,7 +234,7 @@ class DecoderWithLoss(nn.Module):
             # combine
             span_lin_loss = span_b_lin_loss + span_e_lin_loss
             span_loss = span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
-            tot_loss = (1 - self.span_loss_lb) * lm_loss + self.span_loss_lb * span_loss + 0.05 * fixed_span_loss
+            tot_loss = (1 - self.span_loss_lb) * lm_loss + self.span_loss_lb * span_loss
             # text span prediction
             # detach head
             if not is_eval:
