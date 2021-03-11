@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import sys
-import os 
+import os
 import logging
 import os
 import random
@@ -87,19 +87,19 @@ class LocoMCAgent(BaseAgent):
 
         @sio.on("saveErrorDetailsToDb")
         def save_error_details_to_db(sid, postData):
-            logging.info("in save_error_details_to_db, got PostData: %r" % (postData))
+            logging.debug("in save_error_details_to_db, got PostData: %r" % (postData))
             # save the details to table
             saveAnnotatedErrorToDb(self.conn, postData)
 
         @sio.on("saveSurveyInfo")
         def save_survey_info_to_db(sid, postData):
-            logging.info("in save_survey_info_to_db, got PostData: %r" % (postData))
+            logging.debug("in save_survey_info_to_db, got PostData: %r" % (postData))
             # save details to survey table
             saveSurveyResultsToDb(self.conn, postData)
 
         @sio.on("saveObjectAnnotation")
         def save_object_annotation_to_db(sid, postData):
-            logging.info("in save_object_annotation_to_db, got postData: %r" % (postData))
+            logging.debug("in save_object_annotation_to_db, got postData: %r" % (postData))
             saveObjectAnnotationsToDb(self.conn, postData)
 
         @sio.on("sendCommandToAgent")
@@ -111,7 +111,7 @@ class LocoMCAgent(BaseAgent):
             Returns:
                 return back a socket emit with parse of command and success status
             """
-            logging.info("in send_text_command_to_agent, got the command: %r" % (command))
+            logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
@@ -123,10 +123,10 @@ class LocoMCAgent(BaseAgent):
                 logical_form = dialogue_manager.get_logical_form(
                     s=command, model=dialogue_manager.model
                 )
-                logging.info("logical form is : %r" % (logical_form))
+                logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
             except:
-                logging.info("error in sending chat")
+                logging.error("error in sending chat")
                 status = "Error in sending chat"
             # update server memory
             self.dashboard_memory["chatResponse"][command] = logical_form
@@ -139,7 +139,6 @@ class LocoMCAgent(BaseAgent):
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
-
 
     def init_physical_interfaces(self):
         """
@@ -206,36 +205,43 @@ class LocoMCAgent(BaseAgent):
         else:
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
-            if os.getenv('DROIDLET_DEBUG_MODE'):
+            if os.getenv("DROIDLET_DEBUG_MODE"):
                 return
             else:
                 raise e
 
     def step(self):
         if self.count == 0:
-            logging.info("First top-level step()")
+            logging.debug("First top-level step()")
         super().step()
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        # Clean finished tasks
-        while (
-            self.memory.task_stack_peek() and self.memory.task_stack_peek().task.check_finished()
-        ):
-            self.memory.task_stack_pop()
+        query = {"base_table": "Tasks", "base_exact": {"prio": -1}}
+        task_mems = self.memory.basic_search(query)
+        for mem in task_mems:
+            if mem.task.init_condition.check():
+                mem.get_update_status({"prio": 0})
 
-        # If nothing to do, wait a moment
-        if self.memory.task_stack_peek() is None:
+        # this is "select TaskNodes whose priority is >= 0 and are not paused"
+        query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
+        task_mems = self.memory.basic_search(query)
+        for mem in task_mems:
+            if mem.task.run_condition.check():
+                # eventually we need to use the multiplex filter to decide what runs
+                mem.get_update_status({"prio": 1, "running": 1})
+            if mem.task.stop_condition.check():
+                mem.get_update_status({"prio": 0, "running": 0})
+        # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
+        query = {"base_table": "Tasks", "base_range": {"minrunning": 0.5, "maxpaused": 0.5}}
+        task_mems = self.memory.basic_search(query)
+        if not task_mems:
             time.sleep(sleep_time)
             return
-
-        # If something to do, step the topmost task
-        task_mem = self.memory.task_stack_peek()
-        if task_mem.memid != self.last_task_memid:
-            logging.info("Starting task {}".format(task_mem.task))
-            self.last_task_memid = task_mem.memid
-        task_mem.task.step(self)
-        self.memory.task_stack_update_task(task_mem.memid, task_mem.task)
+        for mem in task_mems:
+            mem.task.step()
+            if mem.task.finished:
+                mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
@@ -255,12 +261,12 @@ class LocoMCAgent(BaseAgent):
         for raw_chat in raw_incoming_chats:
             match = re.search("^<([^>]+)> (.*)", raw_chat)
             if match is None:
-                logging.info("Ignoring chat: {}".format(raw_chat))
+                logging.debug("Ignoring chat: {}".format(raw_chat))
                 continue
 
             speaker, chat = match.group(1), match.group(2)
             speaker_hash = hash_user(speaker)
-            logging.info("Incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
+            logging.debug("Incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
             if chat.startswith("/"):
                 continue
             incoming_chats.append((speaker, chat))
@@ -306,7 +312,7 @@ class LocoMCAgent(BaseAgent):
         p, fns = zip(*defaults)
         fn = np.random.choice(fns, p=p)
         if fn != noop:
-            logging.info("Default behavior: {}".format(fn))
+            logging.debug("Default behavior: {}".format(fn))
         fn(self)
 
     def maybe_dump_memory_to_dashboard(self):

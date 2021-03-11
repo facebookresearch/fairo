@@ -175,7 +175,7 @@ class BlockObjectNode(VoxelObjectNode):
         memory.tag(memid, "_destructible")
         # this is a hack until memory_filters does "not"
         memory.tag(memid, "_not_location")
-        logging.info(
+        logging.debug(
             "Added block object {} with {} blocks, {}".format(
                 memid, len(blocks), Counter([idm for _, idm in blocks])
             )

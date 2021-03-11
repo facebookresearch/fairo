@@ -5,7 +5,6 @@ import uuid
 import ast
 from typing import Optional, List, Dict, cast
 from base_util import XYZ, POINT_AT_TARGET, to_player_struct
-from task import Task
 
 
 class MemoryNode:
@@ -281,13 +280,20 @@ class TripleNode(MemoryNode):
         assert obj or obj_text
         assert not (subj and subj_text)
         assert not (obj and obj_text)
-        # TODO check if triple exists, don't make it again
-        memid = cls.new(memory, snapshot=snapshot)
         pred = NamedAbstractionNode.create(memory, pred_text)
         if not obj:
             obj = NamedAbstractionNode.create(memory, obj_text)
         if not subj:
             subj = NamedAbstractionNode.create(memory, subj_text)
+        # check if triple exists, don't make it again:
+        old_memids = memory._db_read(
+            "SELECT uuid FROM Triples where pred=? and subj=? and obj=?", pred, subj, obj
+        )
+        if len(old_memids) > 0:
+            # TODO error if more than 1
+            return old_memids[0]
+
+        memid = cls.new(memory, snapshot=snapshot)
         memory.db_write(
             "INSERT INTO Triples VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
@@ -748,8 +754,8 @@ class TaskNode(MemoryNode):
     
     Attributes:
         task (object): Name of the task
-        created_at (int): Time at which it was created
-        finished_at (int): Time at which it was finished
+        created (int): Time at which it was created
+        finished (int): Time at which it was finished
         action_name (string): The name of action that corresponds to this task
     
     Examples::
@@ -763,22 +769,37 @@ class TaskNode(MemoryNode):
         >>> TaskNode(agent_memory=agent_memory, memid=memid)
     """
 
-    TABLE_COLUMNS = ["uuid", "action_name", "pickled", "paused", "created_at", "finished_at"]
+    TABLE_COLUMNS = [
+        "uuid",
+        "action_name",
+        "pickled",
+        "prio",
+        "running",
+        "paused",
+        "created",
+        "finished",
+    ]
     TABLE = "Tasks"
     NODE_TYPE = "Task"
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        pickled, created_at, finished_at, action_name = self.agent_memory._db_read_one(
-            "SELECT pickled, created_at, finished_at, action_name FROM Tasks WHERE uuid=?", memid
+        pickled, prio, running, run_count, created, finished, action_name = self.agent_memory._db_read_one(
+            "SELECT pickled, prio, running, run_count, created, finished, action_name FROM Tasks WHERE uuid=?",
+            memid,
         )
+        self.prio = prio
+        self.run_count = run_count
+        self.running = running
         self.task = self.agent_memory.safe_unpickle(pickled)
-        self.created_at = created_at
-        self.finished_at = finished_at
+        self.created = created
+        self.finished = finished
+        # TODO changeme to just "name"
         self.action_name = action_name
+        self.memory = agent_memory
 
     @classmethod
-    def create(cls, memory, task: Task) -> str:
+    def create(cls, memory, task) -> str:
         """Creates a new entry into the Tasks table
         
         Returns:
@@ -789,16 +810,112 @@ class TaskNode(MemoryNode):
             >>> task = Task()
             >>> create(memory, task)
         """
+        old_memid = getattr(task, "memid", None)
+        if old_memid:
+            return old_memid
         memid = cls.new(memory)
         task.memid = memid  # FIXME: this shouldn't be necessary, merge Task and TaskNode?
-        memory.db_write(
-            "INSERT INTO Tasks (uuid, action_name, pickled, created_at) VALUES (?,?,?,?)",
+        memory._db_write(
+            "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)",
             memid,
-            task.__class__.__name__,
+            task.__class__.__name__.lower(),
             memory.safe_pickle(task),
+            task.prio,
+            task.running,
+            task.run_count,
             memory.get_time(),
         )
         return memid
+
+    def step(self, agent):
+        self.task.step(agent)
+        self.update_task()
+
+    def update_task(self, task=None):
+        task = task or self.task
+        self.memory.db_write(
+            "UPDATE Tasks SET run_count=?, pickled=? WHERE uuid=?",
+            task.run_count,
+            self.memory.safe_pickle(task),
+            self.memid,
+        )
+
+    def update_condition(self, conditions):
+        """ 
+        conditions is a dict with keys in
+        "init_condition", "run_condition", "stop_condition", "remove_condition"
+        and values being Condition objects
+        """
+        for k, condition in conditions.items():
+            setattr(self.task, k, condition)
+        self.update_task()
+
+    # FIXME TODO don't need paused, set prio to 0 and have a condtion for unpausing
+    # use this to update prio or running, don't do it directly on task or in db!!
+    def get_update_status(self, status, force_db_update=True, force_task_update=True):
+        """
+        status is a dict with possible keys "prio", "running", "finished".
+        
+        prio > 0  :  run me if possible, check my stop condition
+        prio = 0  :  check my run_condition, run if true
+        prio = -1 :  check my init_condition, set prio = 0 if True
+        prio < -1 :  don't even check init_condition or run_condition, I'm done
+
+        running = 1 :  task should be stepped if possible and not explicitly paused
+        running = 0 :  task should not be stepped
+
+        finished >  0 :  task has run and is complete, completed at the time indicated
+        finished = -1 :  task has not completed
+        
+        this method updates these columns of the DB for each of the keys if have values
+        if force_db_update is set, these will be updated with the relevant attr from self.task
+        even if it is not in the status dict.  
+        if force_task_update is set, the information will go the other way,
+        and whatever is in the dict will be put on the task.
+        """
+        status_out = {}
+        for k in ["prio", "running", "finished"]:
+            # update the task itself, hopefully don't need to do this when task objects are re-written as MemoryNode s
+            if force_task_update:
+                s = status.get(k)
+                if s is None:
+                    s = getattr(self.task, k)
+                setattr(self.task, k, s)
+            status_out[k] = getattr(self.task, k)
+            if k == "finished":
+                if self.task.finished:
+                    status_out[k] = self.agent_memory.get_time()
+                else:
+                    status_out[k] = -1
+
+            if status.get(k) or force_db_update:
+                cmd = "UPDATE Tasks SET " + k + "=? WHERE uuid=?"
+                self.agent_memory.db_write(cmd, status_out[k], self.memid)
+        return status_out
+
+    # FIXME! or torch me
+    def propagate_status(self, status):
+        # if the parent of a task is paused, propagate to children
+        # if parent is currently paused and then unpaused, propagate to children
+        pass
+
+    def add_child_task(self, t, prio=1):
+        """Add (and by default activate) a child task, and pass along the id 
+        of the parent task (current task).  A task can only have one direct
+        descendant any any given time.  To add a list of children use a ControlBlock
+    
+        Args:
+            t: the task to be added.  a *Task* object, not a TaskNode
+               agent: the agent running this task
+            prio: default 1, set to 0 if you want the child task added but not activated, 
+                  None if you want it added but its conditions left in charge
+        """
+        TaskMem = TaskNode(self.memory, t.memid)
+        if prio is not None:
+            # TODO mark that child task has been forcefully activated if it has non-trivial run_condition?
+            TaskMem.get_update_status({"prio": prio})
+        TripleNode.create(self.memory, subj=t.memid, pred_text="_has_parent_task", obj=self.memid)
+        TripleNode.create(self.memory, obj=t.memid, pred_text="_has_child_task", subj=self.memid)
 
     def get_chat(self) -> Optional[ChatNode]:
         """Return the memory of the chat that caused this task's creation, or None"""
@@ -848,7 +965,7 @@ class TaskNode(MemoryNode):
             q.extend(children)
         if include_root:
             descendents.append(self)
-        return sorted(descendents, key=lambda t: t.finished_at)
+        return sorted(descendents, key=lambda t: t.finished)
 
     def __repr__(self):
         return "<TaskNode: {}>".format(self.task)

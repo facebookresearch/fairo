@@ -43,7 +43,7 @@ def build_random_shape(agent, rand_range=(10, 0, 10), no_chat=False):
         "schematic_tags": relations,
         "default_behavior": "build_random_shape",  # must == function name. Hacky and I hate it.
     }
-    logging.info("Default behavior: building {}".format(shape))
+    logging.debug("Default behavior: building {}".format(shape))
     agent.memory.task_stack_push(tasks.Build(agent, task_data))
 
     if not no_chat:
