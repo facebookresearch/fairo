@@ -149,7 +149,7 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
 
     T = filters_d.get("triples")
     task_properties = [
-        a.get("obj_text")[1:].lower() for a in T if a.get("obj_text", "").lower() in task_tags
+        a.get("obj_text").lower() for a in T if a.get("obj_text", "").lower() in task_tags
     ]
     search_data = {}
     search_data["base_table"] = "Tasks"

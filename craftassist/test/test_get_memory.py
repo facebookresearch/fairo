@@ -51,6 +51,9 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         self.assertIn("SPEAKER", self.last_outgoing_chat())
 
     def test_what_are_you_doing(self):
+        d = DANCE_COMMANDS["dance"]
+        self.handle_logical_form(d)
+
         # start building a cube
         d = BUILD_COMMANDS["build a small cube"]
         self.handle_logical_form(d, max_steps=9)
@@ -61,6 +64,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
 
         # check that proper chat was sent
         self.assertIn("build", self.last_outgoing_chat())
+        assert not "dance" in self.last_outgoing_chat()
 
     def test_what_are_you_building(self):
         # start building a cube
