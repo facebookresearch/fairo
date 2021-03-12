@@ -18,6 +18,7 @@ export PYRO_SERIALIZERS_ACCEPTED='pickle'
 
 LOCOBOT_IP=127.0.0.1 
 CODECOV_PATH=/codecov
+mkdir CODECOV_PATH
 
 python -m Pyro4.naming -n $LOCOBOT_IP &
 sleep 10
