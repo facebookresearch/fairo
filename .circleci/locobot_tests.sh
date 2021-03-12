@@ -17,7 +17,7 @@ export PYRO_SERIALIZER='pickle'
 export PYRO_SERIALIZERS_ACCEPTED='pickle'
 
 LOCOBOT_IP=127.0.0.1 
-SHARED_PATH=/shared
+CODECOV_PATH=/codecov
 
 python -m Pyro4.naming -n $LOCOBOT_IP &
 sleep 10
@@ -47,7 +47,7 @@ source activate /root/miniconda3/envs/minecraft_env
 pip install -r locobot/requirements.txt
 python setup.py develop
 
-pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=$COV_RELATIVE locobot/test/test_mover.py --disable-pytest-warnings
+pytest --cov-report=xml:$CODECOV_PATH/test_mover.xml --cov=$COV_RELATIVE locobot/test/test_mover.py --disable-pytest-warnings
 kill -9 $BGPID
 sleep 5
 
@@ -59,10 +59,10 @@ sleep 30
 deactivate
 source activate /root/miniconda3/envs/minecraft_env
 
-# pytest --cov-report=xml:$SHARED_PATH/test_locobot_agent.xml --cov=$COV_RELATIVE locobot/test/test_locobot_agent.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
+# pytest --cov-report=xml:$CODECOV_PATH/test_locobot_agent.xml --cov=$COV_RELATIVE locobot/test/test_locobot_agent.py --disable-pytest-warnings
+pytest --cov-report=xml:$CODECOV_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
 
 kill -9 $BGPID
-pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE locobot/test/test_memory.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=$COV_RELATIVE locobot/test/test_interpreter_mock.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=$COV_RELATIVE locobot/test/test_utils.py --disable-pytest-warnings
+pytest --cov-report=xml:$CODECOV_PATH/test_memory.xml --cov=$COV_RELATIVE locobot/test/test_memory.py --disable-pytest-warnings
+pytest --cov-report=xml:$CODECOV_PATH/test_interpreter_mock.xml --cov=$COV_RELATIVE locobot/test/test_interpreter_mock.py --disable-pytest-warnings
+pytest --cov-report=xml:$CODECOV_PATH/test_utils.xml --cov=$COV_RELATIVE locobot/test/test_utils.py --disable-pytest-warnings
