@@ -58,7 +58,7 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
         ip = os.getenv("MCDASHBOARD_IP")
         print("setting MC dashboard ip from env variable MCDASHBOARD_IP={}".format(ip))
 
-    app.run(ip, threaded=True, port=port, debug=False)
+    app.run(ip, threaded=True, port=port, ssl_context='adhoc', debug=False)
 
 
 def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):
