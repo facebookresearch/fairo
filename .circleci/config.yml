@@ -133,6 +133,7 @@ jobs:
 
           cd ${HOME}/project/
           export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:segm
+          mkdir codecov
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           docker cp loco-img:/shared/codecov .
           pip install codecov
