@@ -198,11 +198,18 @@ class FilterInterpreter:
             return specific_mem
 
         memtype = filters_d.get("memory_type", "REFERENCE_OBJECT")
+        # FIXME/TODO: these share lots of code, refactor
         if memtype == "REFERENCE_OBJECT":
             F = interpret_ref_obj_filter(interpreter, speaker, filters_d)
         elif memtype == "TASKS":
             F = interpret_task_filter(interpreter, speaker, filters_d)
         else:
-            raise NotImplementedError
+            memtype_key = memtype.lower() + "_filters"
+            try:
+                F = interpreter.subinterpret[memtype_key](interpreter, speaker, filters_d)
+            except:
+                raise ErrorWithResponse(
+                    "failed at interpreting filters of type {}".format(memtype)
+                )
         F = maybe_apply_selector(interpreter, speaker, filters_d, F)
         return maybe_append_left(F, to_append=val_map)
