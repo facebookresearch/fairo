@@ -49,7 +49,7 @@ jobs:
           command: |
               mkdir shared
               docker run --name base-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/base_agent/test.sh craftassist
-              docker cp base-tests:/shared shared
+              docker cp base-tests:/shared/ shared/
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
               bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "base_agent tests"|| echo "Codecov did not collect coverage reports"
@@ -58,7 +58,7 @@ jobs:
           name: CraftAssist Python unit tests
           command: |
               docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
-              docker cp mc-tests:/shared shared
+              docker cp mc-tests:/shared/ shared/
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
               bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
@@ -135,7 +135,7 @@ jobs:
           export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:segm
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
-          docker cp loco-img:/shared shared
+          docker cp loco-img:/shared/ shared/
           pip install codecov
           CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
           bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
