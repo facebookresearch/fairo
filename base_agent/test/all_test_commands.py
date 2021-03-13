@@ -692,6 +692,16 @@ GET_MEMORY_COMMANDS = {
             "output": {"attribute": "HEIGHT"},
         },
     },
+    "how wide is the red cube?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "triples": [
+                {"pred_text": "has_colour", "obj_text": "red"},
+                {"pred_text": "has_name", "obj_text": "cube"},
+            ],
+            "output": {"attribute": "HEIGHT"},
+        },
+    },
     "how many cubes are there?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {

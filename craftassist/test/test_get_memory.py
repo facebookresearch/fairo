@@ -115,7 +115,7 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
             shapes.cube(bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
         )
         self.cube2 = self.add_object(
-            shapes.cube(bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
+            shapes.cube(size=2, bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
         )
         self.cube3 = self.add_object(
             shapes.cube(size=3, bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
@@ -153,6 +153,12 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
 
         # check that proper chat was sent
         self.assertIn("3", self.last_outgoing_chat())
+
+        d = GET_MEMORY_COMMANDS["how wide is the red cube?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+
+        # check that proper chat was sent
+        self.assertIn("2", self.last_outgoing_chat())
 
 
 if __name__ == "__main__":
