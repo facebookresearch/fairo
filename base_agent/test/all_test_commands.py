@@ -699,7 +699,7 @@ GET_MEMORY_COMMANDS = {
                 {"pred_text": "has_colour", "obj_text": "red"},
                 {"pred_text": "has_name", "obj_text": "cube"},
             ],
-            "output": {"attribute": "HEIGHT"},
+            "output": {"attribute": "WIDTH"},
         },
     },
     "how many cubes are there?": {

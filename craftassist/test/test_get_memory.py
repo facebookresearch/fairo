@@ -112,7 +112,7 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
         red_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "red"}
         blue_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "blue"}
         self.cube1 = self.add_object(
-            shapes.cube(bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
+            shapes.cube(size=2, bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
         )
         self.cube2 = self.add_object(
             shapes.cube(size=2, bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
