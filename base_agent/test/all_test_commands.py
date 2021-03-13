@@ -682,6 +682,16 @@ GET_MEMORY_COMMANDS = {
             },
         },
     },
+    "how tall is the blue cube?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "triples": [
+                {"pred_text": "has_colour", "obj_text": "blue"},
+                {"pred_text": "has_name", "obj_text": "cube"},
+            ],
+            "output": {"attribute": "HEIGHT"},
+        },
+    },
     "how many cubes are there?": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
@@ -1063,25 +1073,25 @@ GROUND_TRUTH_PARSES = {
     },
     "turn right 90 degrees": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn left 90 degrees": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right 180 degrees": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },

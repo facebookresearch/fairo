@@ -104,7 +104,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
         assert loc_in_chat
 
 
-class GetMemoryCountTest(BaseCraftassistTestCase):
+class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         red_cube_triples = {"has_name": "cube", "has_shape": "cube", "has_colour": "red"}
@@ -118,7 +118,7 @@ class GetMemoryCountTest(BaseCraftassistTestCase):
             shapes.cube(bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
         )
         self.cube3 = self.add_object(
-            shapes.cube(bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
+            shapes.cube(size=3, bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
         )
         self.sphere1 = self.add_object(
             shapes.sphere(bid=(35, 14), radius=2), (14, 63, 8), relations=red_sphere_triples
@@ -128,7 +128,7 @@ class GetMemoryCountTest(BaseCraftassistTestCase):
         )
         self.set_looking_at(list(self.cube1.blocks.keys())[0])
 
-    def test_get_name_and_left_of(self):
+    def test_counts_and_size(self):
         d = GET_MEMORY_COMMANDS["how many cubes are there?"]
         self.handle_logical_form(d, stop_on_chat=True)
 
@@ -147,6 +147,12 @@ class GetMemoryCountTest(BaseCraftassistTestCase):
 
         # check that proper chat was sent
         self.assertIn("27", self.last_outgoing_chat())
+
+        d = GET_MEMORY_COMMANDS["how tall is the blue cube?"]
+        self.handle_logical_form(d, stop_on_chat=True)
+
+        # check that proper chat was sent
+        self.assertIn("3", self.last_outgoing_chat())
 
 
 if __name__ == "__main__":
