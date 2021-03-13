@@ -2,16 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import json
-import numpy as np
 import random
-import re
-import ast
-
-from os.path import isfile, isdir
-from os.path import join as pjoin
-
 import torch
-from torch.utils.data import Dataset
 from tokenization_utils import fixed_span_values
 
 #########

@@ -2,73 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import logging
-
-from torch.optim import Adam, Adagrad
-
-from transformers.modeling_bert import BertModel, BertOnlyMLMHead
-
 from utils_caip import *
 from tokenization_utils import fixed_span_values_voc
-
-
-def predict_tree(txt, model, tokenizer, dataset, ban_noop=False, noop_threshold=0.0):
-    """DEPRECATED: tree prediction. Use beam search.
-    """
-    model_device = model.decoder.lm_head.predictions.decoder.weight.device
-    # prepare batch
-    text, idx_maps = tokenize_mapidx(txt, tokenizer)
-    tree = [("<S>", -1, -1)]
-    text_idx_ls = [dataset.tokenizer._convert_token_to_id(w) for w in text.split()]
-    tree_idx_ls = [[dataset.tree_idxs[w], bi, ei] for w, bi, ei in tree]
-    pre_batch = [(text_idx_ls, tree_idx_ls, (text, txt, {}))]
-    batch = caip_collate(pre_batch, tokenizer)
-    batch = [t.to(model_device) for t in batch[:4]]
-    x, x_mask, y, y_mask = batch
-    y = y[:, :, 0]
-    x_reps = model.encoder(input_ids=x, attention_mask=x_mask)[0].detach()
-    res = [("<S>", -1, -1)]
-    next_id = -1
-    noop_predicted = False
-    for i in range(100):
-        if i > 0:
-            y = torch.cat([y, torch.LongTensor([[next_id]]).to(model_device)], dim=1)
-            y_mask = torch.cat(
-                [y_mask, torch.LongTensor([1]).unsqueeze(dim=0).to(model_device)], dim=1
-            )
-        outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
-        # next word
-        lm_scores = outputs["lm_scores"]
-        s_lm_scores, s_lm_ids = lm_scores[0, -1].sort(dim=-1, descending=True)
-        next_id = s_lm_ids[0].item()
-        if "NOOP" in dataset.tree_voc[next_id]:
-            if ban_noop or s_lm_scores[0].item() < noop_threshold:
-                next_id = s_lm_ids[1].item()
-                noop_predicted = True
-                print("---- replacing NOOP with", dataset.tree_voc[next_id])
-        next_w = dataset.tree_voc[next_id]
-        # predicted span
-        span_b_scores = outputs["span_b_scores"]
-        span_e_scores = outputs["span_e_scores"]
-        _, s_sb_ids = span_b_scores[0, -1].sort(dim=-1, descending=True)
-        _, s_se_ids = span_e_scores[0, -1].sort(dim=-1, descending=True)
-        b_id = s_sb_ids[0].item()
-        e_id = s_se_ids[0].item()
-        res += [(next_w, b_id, e_id)]
-        if next_w == "</S>":
-            break
-    # only keep span predictions for span nodes, then map back to tree
-    res = [(w, b, e) if w.startswith("BE:") else (w, -1, -1) for w, b, e in res]
-    idx_rev_map = [(0, 0)] * len(text.split())
-    for line_id, idx_map in enumerate(idx_maps):
-        for pre_id, (a, b) in enumerate(idx_map):
-            idx_rev_map[a] = (line_id, pre_id)
-            idx_rev_map[b] = (line_id, pre_id)
-    idx_rev_map[-1] = idx_rev_map[-2]
-    res_tree, _ = seq_to_tree(dataset.full_tree, res[1:-1], idx_rev_map)
-    return (res_tree, noop_predicted, (text, res))
 
 
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
