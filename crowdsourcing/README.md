@@ -22,6 +22,8 @@ You need to have a Heroku account and valid Heroku credentials. To install Herok
 
 You also need an AWS IAM account with MTurk permissions. You also need AWS access keys with permissions to spin up ECS containers, which will be used to communicate with AWS in the flask app. These may or may not be the same access keys; contact your AWS system administrator if you do not have these credentials. 
 
+During the Mephisto onboarding tutorial, you would've configured Mephisto with your AWS credentials. Our Heroku architect pipeline also accesses environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`; ensure that these are set.
+
 ### Running tasks
 Run the following command to start a `droidlet_static_html_task` with `heroku` architect and `flask` server type
 
