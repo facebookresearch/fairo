@@ -7,7 +7,6 @@ import argparse
 Create static validation set, defaults to 2% of each data type
 """
 
-# FULL_DATA_DIR = "craftassist/agent/datasets/full_data/"
 DATA_CHECKPOINT = ""
 COMMANDS_CHECKPOINT = ""
 TRAIN_VALID_DATA_CHECKPOINT = ""
