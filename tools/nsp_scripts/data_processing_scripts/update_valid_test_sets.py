@@ -7,7 +7,7 @@ import argparse
 Create static validation set, defaults to 2% of each data type
 """
 
-FULL_DATA_DIR = "craftassist/agent/datasets/full_data/"
+# FULL_DATA_DIR = "craftassist/agent/datasets/full_data/"
 DATA_CHECKPOINT = ""
 COMMANDS_CHECKPOINT = ""
 TRAIN_VALID_DATA_CHECKPOINT = ""
@@ -70,12 +70,15 @@ if __name__ == "__main__":
     parser.add_argument(
             "--file_to_update",
             type=str,
-            default="craftassist/agent/datasets/full_data/annotated_old.txt"
+            default="craftassist/agent/datasets/full_data/annotated_old.txt",
+            help="path to file in current data split, eg. train/annotated.txt. \
+            This is also the file that will have updated parse trees applied."
     )
     parser.add_argument(
             "--updated_data",
             type=str,
-            default="craftassist/agent/datasets/full_data/annotated.txt"
+            default="craftassist/agent/datasets/full_data/annotated.txt",
+            help="path to file containing updated parse trees, i.e. in craftassist/agent/full_data"
     )
 
     args = parser.parse_args()
