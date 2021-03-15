@@ -145,9 +145,11 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
 def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
     F = MemoryFilter(interpreter.agent.memory)
 
+    task_tags = ["currently_running", "running", "paused", "finished"]
+
     T = filters_d.get("triples")
     task_properties = [
-        a.get("obj_text")[1:].lower() for a in T if a.get("obj_text", "").startswith("_")
+        a.get("obj_text").lower() for a in T if a.get("obj_text", "").lower() in task_tags
     ]
     search_data = {}
     search_data["base_table"] = "Tasks"
@@ -196,11 +198,18 @@ class FilterInterpreter:
             return specific_mem
 
         memtype = filters_d.get("memory_type", "REFERENCE_OBJECT")
+        # FIXME/TODO: these share lots of code, refactor
         if memtype == "REFERENCE_OBJECT":
             F = interpret_ref_obj_filter(interpreter, speaker, filters_d)
         elif memtype == "TASKS":
             F = interpret_task_filter(interpreter, speaker, filters_d)
         else:
-            raise NotImplementedError
+            memtype_key = memtype.lower() + "_filters"
+            try:
+                F = interpreter.subinterpret[memtype_key](interpreter, speaker, filters_d)
+            except:
+                raise ErrorWithResponse(
+                    "failed at interpreting filters of type {}".format(memtype)
+                )
         F = maybe_apply_selector(interpreter, speaker, filters_d, F)
         return maybe_append_left(F, to_append=val_map)

@@ -34,3 +34,16 @@ python droidlet_static_html_task/static_test_script.py mephisto.architect.server
 ```
 
 You can replace `droidlet_static_html_task/static_test_script.py` with any mephisto task you would like to run and replace `<path_to_server>` with any heroku server setup you would like to use. For `servermgr` which serves our craftassist.io backend, the code is in `~/droidlet/crowdsourcing/servermgr`.
+## Extra configs for using servermgr
+
+Since we are requesting ECS instance in servermgr flask app. It's required to set up aws-specific information as environment variable passed to heroku. Make sure the following hydra variables are set in your mephisto config file in `conf/example.yaml`:
+
+```
+mephisto:
+  architect:
+    heroku_app_name: YOUR_HEROKU_APP_NAME
+    heroku_config_args:
+      AWS_ACCESS_KEY_ID: XXX
+      AWS_SECRET_ACCESS_KEY: XXX
+      AWS_DEFAULT_REGION: XXX (should be "us-west-1")
+```

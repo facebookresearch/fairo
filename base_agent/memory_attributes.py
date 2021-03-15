@@ -110,6 +110,48 @@ class ListAttribute(Attribute):
         return "List Attribute: " + self.attributes.format()
 
 
+class BBoxSize(Attribute):
+    """
+    computes the size(s) of the bounding box of a ReferenceObject. if the 
+    input MemoryNode is not a ReferenceObject returns None.  
+
+    Attributes:
+        attribute (str): either height, width, min_width, or size.  if is "size",
+           will return a tuple of (depth, height, width) where the ordering
+           of "width" and "depth" is undefined
+           if "width" will return the larger of the non-height dims
+           if "min_width" will return the smaller of the non-height dims
+    """
+
+    def __init__(self, agent, attribute="height"):
+        super().__init__(agent)
+        self.attribute = attribute
+
+    # FIXME in non-MC settings, need to not do +1
+    def __call__(self, mems):
+        bounds = [m.get_bounds() if hasattr(m, "get_bounds") else None for m in mems]
+        if self.attribute == "width":
+            return [
+                max(b[1] - b[0] + 1, b[5] - b[4] + 1) if b is not None else None for b in bounds
+            ]
+        elif self.attribute == "min_width":
+            return [
+                min(b[1] - b[0] + 1, b[5] - b[4] + 1) if b is not None else None for b in bounds
+            ]
+        elif self.attribute == "height":
+            return [b[3] - b[2] + 1 if b is not None else None for b in bounds]
+        elif self.attribute == "size":
+            return [
+                (b[1] - b[0] + 1, b[3] - b[2] + 1, b[5] - b[4] + 1) if b is not None else None
+                for b in bounds
+            ]
+        else:
+            raise ValueError("tried to get size attribute {}".format(self.attribute))
+
+    def __repr__(self):
+        return "BBoxSize " + str(self.attribute)
+
+
 class LinearExtentAttribute(Attribute):
     """ 
     computes the (perhaps signed) length between two points in space. 
