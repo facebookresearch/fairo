@@ -129,20 +129,24 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "build_small_sphere": {
         "action_type": "BUILD",
         "schematic": {
-            "triples": [
-                {"pred_text": "has_name", "obj_text": "sphere"},
-                {"pred_text": "has_size", "obj_text": "small"},
-            ],
+            "filters": {
+                "triples": [
+                    {"pred_text": "has_name", "obj_text": "sphere"},
+                    {"pred_text": "has_size", "obj_text": "small"},
+                ],
+            },
             "text_span": "small sphere",
         },
     },
     "build_1x1x1_cube": {
         "action_type": "BUILD",
         "schematic": {
-            "triples": [
-                {"pred_text": "has_name", "obj_text": "cube"},
-                {"pred_text": "has_size", "obj_text": "1 x 1 x 1"},
-            ],
+            "filters": {
+                "triples": [
+                    {"pred_text": "has_name", "obj_text": "cube"},
+                    {"pred_text": "has_size", "obj_text": "1 x 1 x 1"},
+                ],
+            },
             "text_span": "1 x 1 x 1 cube",
         },
     },
@@ -153,17 +157,19 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "build_diamond": {
         "action_type": "BUILD",
         "schematic": {
-            "triples": [{"pred_text": "has_name", "obj_text": "diamond"}],
+            "filters": {"triples": [{"pred_text": "has_name", "obj_text": "diamond"}],},
             "text_span": "diamond",
         },
     },
     "build_gold_cube": {
         "action_type": "BUILD",
         "schematic": {
-            "triples": [
-                {"pred_text": "has_block_type", "obj_text": "gold"},
-                {"pred_text": "has_name", "obj_text": "cube"},
-            ],
+            "filters": {
+                "triples": [
+                    {"pred_text": "has_block_type", "obj_text": "gold"},
+                    {"pred_text": "has_name", "obj_text": "cube"},
+                ],
+            },
             "text_span": "gold cube",
         },
     },
@@ -171,10 +177,12 @@ INTERPRETER_POSSIBLE_ACTIONS = {
         "action_type": "BUILD",
         "location": {"reference_object": {"special_reference": "SPEAKER_LOOK"}},
         "schematic": {
-            "triples": [
-                {"pred_text": "has_colour", "obj_text": "red"},
-                {"pred_text": "has_name", "obj_text": "cube"},
-            ],
+            "filters": {
+                "triples": [
+                    {"pred_text": "has_colour", "obj_text": "red"},
+                    {"pred_text": "has_name", "obj_text": "cube"},
+                ],
+            },
             "text_span": "red cube",
         },
     },
@@ -210,10 +218,12 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "build_square_height_1": {
         "action_type": "BUILD",
         "schematic": {
-            "triples": [
-                {"pred_text": "has_name", "obj_text": "square"},
-                {"pred_text": "has_height", "obj_text": "1"},
-            ],
+            "filters": {
+                "triples": [
+                    {"pred_text": "has_name", "obj_text": "square"},
+                    {"pred_text": "has_height", "obj_text": "1"},
+                ],
+            },
             "text_span": "square height 1",
         },
     },
@@ -242,10 +252,12 @@ BUILD_COMMANDS = {
             {
                 "action_type": "BUILD",
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_name", "obj_text": "cube"},
-                        {"pred_text": "has_block_type", "obj_text": "gold"},
-                    ]
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_name", "obj_text": "cube"},
+                            {"pred_text": "has_block_type", "obj_text": "gold"},
+                        ]
+                    },
                 },
                 "location": {
                     "reference_object": {"special_reference": {"coordinates_span": "0 66 0"}}
@@ -259,10 +271,12 @@ BUILD_COMMANDS = {
             {
                 "action_type": "BUILD",
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_name", "obj_text": "cube"},
-                        {"pred_text": "has_size", "obj_text": "small"},
-                    ]
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_name", "obj_text": "cube"},
+                            {"pred_text": "has_size", "obj_text": "small"},
+                        ]
+                    }
                 },
             }
         ],
@@ -280,7 +294,7 @@ BUILD_COMMANDS = {
                     "text_span": "to the left of the circle",
                 },
                 "schematic": {
-                    "triples": [{"pred_text": "has_name", "obj_text": "circle"}],
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "circle"}],},
                     "text_span": "circle",
                 },
             }
@@ -312,12 +326,14 @@ BUILD_COMMANDS = {
             {
                 "action_type": "BUILD",
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_block_type", "obj_text": "stone"},
-                        {"pred_text": "has_name", "obj_text": "rectangle"},
-                        {"pred_text": "has_height", "obj_text": "9"},
-                        {"pred_text": "has_base", "obj_text": "9"},
-                    ],  # has_base doesn't belong in "rectangle"
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_block_type", "obj_text": "stone"},
+                            {"pred_text": "has_name", "obj_text": "rectangle"},
+                            {"pred_text": "has_height", "obj_text": "9"},
+                            {"pred_text": "has_base", "obj_text": "9"},
+                        ],
+                    },  # has_base doesn't belong in "rectangle"
                     "text_span": "9 x 9 stone rectangle",
                 },
             }
@@ -336,7 +352,9 @@ BUILD_COMMANDS = {
         "action_sequence": [
             {
                 "action_type": "BUILD",
-                "schematic": {"triples": [{"pred_text": "has_name", "obj_text": "fluffy"}]},
+                "schematic": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "fluffy"}]}
+                },
                 "location": {"reference_object": {"special_reference": "AGENT"}},
             }
         ],
@@ -680,6 +698,26 @@ GET_MEMORY_COMMANDS = {
                 },
                 "relative_direction": "LEFT",
             },
+        },
+    },
+    "how tall is the blue cube?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "triples": [
+                {"pred_text": "has_colour", "obj_text": "blue"},
+                {"pred_text": "has_name", "obj_text": "cube"},
+            ],
+            "output": {"attribute": "HEIGHT"},
+        },
+    },
+    "how wide is the red cube?": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "triples": [
+                {"pred_text": "has_colour", "obj_text": "red"},
+                {"pred_text": "has_name", "obj_text": "cube"},
+            ],
+            "output": {"attribute": "WIDTH"},
         },
     },
     "how many cubes are there?": {
@@ -1063,25 +1101,25 @@ GROUND_TRUTH_PARSES = {
     },
     "turn right 90 degrees": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn left 90 degrees": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right 180 degrees": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "turn right": {
         "action_sequence": [
-            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}},}
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },

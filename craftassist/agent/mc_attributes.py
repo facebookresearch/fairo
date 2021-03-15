@@ -3,24 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from base_agent.memory_attributes import Attribute
 
-
-class VoxelGeometry(Attribute):
-    def __init__(self, agent, attribute="height"):
-        """height, max_width"""
-        super().__init__(agent)
-        self.attribute = attribute
-
-    def __call__(self, mems):
-        bounds = [m.get_bounds() for m in mems]
-        if self.attribute == "width":
-            return [max(b[1] - b[0] + 1, b[5] - b[4] + 1) for b in bounds]
-        else:
-            return [b[3] - b[2] + 1 for b in bounds]
-
-    def __repr__(self):
-        return "VoxelGeometry " + str(self.attribute)
-
-
 # TODO sqlize these?
 # FIXME!!!!! rn this will not accurately count voxels in
 # InstSeg objects with given properties;

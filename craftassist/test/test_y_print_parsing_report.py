@@ -99,10 +99,12 @@ common_functional_commands = {
                 "location": {"contains_coreference": "yes"},
                 "action_type": "DIG",
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                        {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
-                    ]
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                            {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
+                        ]
+                    }
                 },
             }
         ],
@@ -164,10 +166,12 @@ common_functional_commands = {
             {
                 "repeat": {"repeat_count": [0, [1, 1]], "repeat_key": "FOR"},
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                        {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
-                    ]
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                            {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
+                        ]
+                    }
                 },
                 "action_type": "BUILD",
                 "location": {"contains_coreference": "yes"},
@@ -289,10 +293,12 @@ common_functional_commands = {
         "action_sequence": [
             {
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                        {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
-                    ]
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                            {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
+                        ]
+                    }
                 },
                 "action_type": "BUILD",
                 "location": {
@@ -424,11 +430,13 @@ common_functional_commands = {
         "action_sequence": [
             {
                 "schematic": {
-                    "triples": [
-                        {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
-                        {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
-                        {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
-                    ]
+                    "filters": {
+                        "triples": [
+                            {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
+                            {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
+                            {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
+                        ]
+                    }
                 },
                 "action_type": "BUILD",
                 "location": {
@@ -516,7 +524,9 @@ common_functional_commands = {
                 "repeat": {"repeat_count": [0, [1, 1]], "repeat_key": "FOR"},
                 "location": {"contains_coreference": "yes"},
                 "action_type": "BUILD",
-                "schematic": {"triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
+                "schematic": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]}
+                },
             }
         ],
     },
@@ -866,8 +876,10 @@ class TestDialogueManager(unittest.TestCase):
                 model_prediction = self.ground_truth_actions[command]
             else:
                 # else query the model and remove the value for key "text_span"
-                model_prediction = remove_text_span(self.agent.dialogue_manager.model.model.parse(chat=command))
-            
+                model_prediction = remove_text_span(
+                    self.agent.dialogue_manager.model.model.parse(chat=command)
+                )
+
             # compute parsing pipeline accuracy
             status = compare_full_dictionaries(ground_truth_parse, model_prediction)
             if status:
@@ -883,7 +895,9 @@ class TestDialogueManager(unittest.TestCase):
                     fontcolors.FAIL + "FAIL" + fontcolors.ENDC,
                 ]
             # compute model correctness status
-            model_output = remove_text_span(self.agent.dialogue_manager.model.model.parse(chat=command))
+            model_output = remove_text_span(
+                self.agent.dialogue_manager.model.model.parse(chat=command)
+            )
             parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:
                 model_pass_cnt += 1
@@ -891,7 +905,7 @@ class TestDialogueManager(unittest.TestCase):
             else:
                 model_fail_cnt += 1
                 record += [fontcolors.FAIL + "FAIL" + fontcolors.ENDC]
-            
+
             records.append(record)
 
         for record in records:

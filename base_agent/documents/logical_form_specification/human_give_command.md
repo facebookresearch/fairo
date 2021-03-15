@@ -266,7 +266,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 "schematic" : {
           "text_span" : span,
           <Repeat> (with repeat_key: 'FOR' and additional 'SURROUND' repeat_dir), 
-          "triples" : [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
+          "filters" : <FILTERS>
       }
 ```
 where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientation`, `has_thickness`, `has_colour`, `has_height`, `has_length`, `has_radius`, `has_slope`, `has_width`, `has_base`, `has_depth`, `has_distance` 

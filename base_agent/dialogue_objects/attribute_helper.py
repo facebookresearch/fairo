@@ -8,6 +8,7 @@ from memory_attributes import (
     ListAttribute,
     TripleWalk,
     AttributeSequence,
+    BBoxSize,
 )
 from memory_values import LinearExtentValue, FixedValue, convert_comparison_value
 from base_util import ErrorWithResponse, number_from_span
@@ -167,6 +168,13 @@ def interpret_task_info(interpreter, speaker, d):
 class AttributeInterpreter:
     def __call__(self, interpreter, speaker, d_attribute, get_all=False):
         if type(d_attribute) is str:
+            if (
+                d_attribute.lower() == "height"
+                or d_attribute.lower() == "width"
+                or d_attribute.lower() == "height"
+                or d_attribute.lower() == "size"
+            ):
+                return BBoxSize(interpreter.agent, d_attribute.lower())
             d_attribute = CANONICALIZE_ATTRIBUTES.get(d_attribute.lower())
             if d_attribute and type(d_attribute) is str:
                 return TableColumn(interpreter.agent, d_attribute, get_all=get_all)
