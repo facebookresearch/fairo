@@ -12,3 +12,9 @@ mephisto:
     task_description: "This is a simple craftassist task."
     task_reward: 0.3
     task_tags: "static,task,testing"
+  architect:
+    heroku_config_args:
+      AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: "us-west-1"
+    heroku_app_name: craftassist
