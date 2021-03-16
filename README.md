@@ -8,6 +8,8 @@
 
 `droidlet` is in active development and is fairly unstable in design, API, performance and correctness. It is not meant for any production use.
 
+*Reach out to us at droidlet@fb.com, to discuss your use case or just share your thoughts!*
+
 <p align="center">
    <img src="https://locobot-bucket.s3-us-west-2.amazonaws.com/documentation/droidlet.gif" />
 </p>
