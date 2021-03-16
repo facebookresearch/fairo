@@ -647,18 +647,22 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "argval": {
-                "ordinal": {"fixed_value": "FIRST"},
-                "polarity": "MIN",
-                "quantity": {
-                    "attribute": {
-                        "linear_extent": {
-                            "source": {
-                                "reference_object": {"special_reference": {"fixed_value": "AGENT"}}
+            "selector": {
+                "argval": {
+                    "ordinal": {"fixed_value": "FIRST"},
+                    "polarity": "MIN",
+                    "quantity": {
+                        "attribute": {
+                            "linear_extent": {
+                                "source": {
+                                    "reference_object": {
+                                        "special_reference": {"fixed_value": "AGENT"}
+                                    }
+                                }
                             }
                         }
-                    }
-                },
+                    },
+                }
             },
         },
     },
@@ -740,20 +744,22 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "argval": {
-                "ordinal": {"fixed_value": "FIRST"},
-                "polarity": "MIN",
-                "quantity": {
-                    "attribute": {
-                        "linear_extent": {
-                            "source": {
-                                "reference_object": {
-                                    "special_reference": {"fixed_value": "SPEAKER"}
+            "selector": {
+                "argval": {
+                    "ordinal": {"fixed_value": "FIRST"},
+                    "polarity": "MIN",
+                    "quantity": {
+                        "attribute": {
+                            "linear_extent": {
+                                "source": {
+                                    "reference_object": {
+                                        "special_reference": {"fixed_value": "SPEAKER"}
+                                    }
                                 }
                             }
                         }
-                    }
-                },
+                    },
+                }
             },
         },
     },
