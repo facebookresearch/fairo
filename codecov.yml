@@ -14,14 +14,14 @@ coverage:
         Locobot:
             target: 0%
             paths:
-                - python/locobot/*
+                - locobot/*
             if_not_found: success
             if_ci_failed: success
                 
         Mincraft:
             target: 0%
             paths:
-                - python/craftassist/*
+                - craftassist/*
             if_not_found: success
             if_ci_failed: success
 
