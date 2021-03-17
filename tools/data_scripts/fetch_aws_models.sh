@@ -20,7 +20,7 @@ fi
 
 if [ -z $2 ]
 then
-	CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
+	CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/nsp.txt"
 	CHECKSUM=`cat $CHECKSUM_FILE`  
 	echo "Downloading model folder with default checksum from file: '$CHECKSUM_FILE'"
 else
