@@ -1,5 +1,5 @@
 fixes:
-    - "/shared::"
+    - "/shared/::"
 ignore:
       - "test_*.py" 
 codecov:
