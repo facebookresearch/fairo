@@ -1,3 +1,5 @@
+fixes:
+    - "/home/circleci/::"
 ignore:
       - "test_*.py" 
 codecov:
