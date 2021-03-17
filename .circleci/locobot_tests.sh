@@ -24,7 +24,7 @@ export PYRO_SERIALIZERS_ACCEPTED='pickle'
 
 LOCOBOT_IP=127.0.0.1 
 SHARED_PATH=/shared
-COV_RELATIVE=locobot
+COV_RELATIVE=locobot/agent
 
 python -m Pyro4.naming -n $LOCOBOT_IP &
 sleep 10
@@ -40,7 +40,7 @@ python locobot/robot/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
 pushd locobot/test
-pytest --cov-report=xml:$SHARED_PATH/test_habitat.xml --cov=../ test_habitat.py --disable-pytest-warnings
+pytest test_habitat.py --disable-pytest-warnings
 popd
 kill -9 $BGPID
 sleep 5
