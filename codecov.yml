@@ -1,5 +1,5 @@
 fixes:
-    - "/home/circleci/::"
+    - "/shared::"
 ignore:
       - "test_*.py" 
 codecov:
