@@ -1,7 +1,6 @@
 ignore:
       - "test_*.py" 
 codecov:
-  branch: anurag/yml
   notify:
     require_ci_to_pass: no
 
@@ -29,5 +28,4 @@ coverage:
     patch: off
     changes: off
 
-comment: false
-
+comment: true
