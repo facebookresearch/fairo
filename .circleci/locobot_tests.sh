@@ -6,6 +6,12 @@ yes | tools/data_scripts/try_download.sh locobot &
 wait
 echo "Done!"
 
+# Setup locobot_env
+source activate /root/miniconda3/envs/minecraft_env
+pip install -r locobot/requirements.txt
+python setup.py develop
+deactivate
+
 source /opt/ros/melodic/setup.bash
 export ORBSLAM2_LIBRARY_PATH=/root/low_cost_ws/src/pyrobot/robots/LoCoBot/install/../thirdparty/ORB_SLAM2
 source /root/low_cost_ws/devel/setup.bash
@@ -18,6 +24,7 @@ export PYRO_SERIALIZERS_ACCEPTED='pickle'
 
 LOCOBOT_IP=127.0.0.1 
 SHARED_PATH=/shared
+COV_RELATIVE=locobot
 
 python -m Pyro4.naming -n $LOCOBOT_IP &
 sleep 10
@@ -38,15 +45,12 @@ popd
 kill -9 $BGPID
 sleep 5
 
-COV_RELATIVE=locobot
 python locobot/robot/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
 deactivate
-source activate /root/miniconda3/envs/minecraft_env
-pip install -r locobot/requirements.txt
-python setup.py develop
 
+source activate /root/miniconda3/envs/minecraft_env
 pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=$COV_RELATIVE locobot/test/test_mover.py --disable-pytest-warnings
 kill -9 $BGPID
 sleep 5
