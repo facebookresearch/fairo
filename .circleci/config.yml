@@ -133,7 +133,7 @@ jobs:
 
           cd ${HOME}/project/
           export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:segm
-          docker run --gpus all --name loco-img --ipc=host -v "$PWD:/shared" -w "/shared" ${DOCKER_IMAGE} .circleci/locobot_tests.sh
+          docker run --gpus all --ipc=host -v "$PWD:/shared" -w "/shared" ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           pip install codecov
           bash <(curl -s https://codecov.io/bash) -f "test_*.xml" -F "locobot"|| echo "Codecov did not collect coverage reports"
 
