@@ -1,5 +1,5 @@
 fixes:
-    - "/shared/::"
+    - "/shared/locobot::locobot"
 ignore:
       - "*.pkl"
       - "*.npy"
