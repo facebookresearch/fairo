@@ -20,7 +20,7 @@ fi
 
 if [ -z $2 ]
 then
-	CHECKSUM_FILE="tools/data_scripts/default_checksums/nsp.txt"
+	CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
 	CHECKSUM=`cat $CHECKSUM_FILE`  
 	echo "Downloading model folder with default checksum from file: '$CHECKSUM_FILE'"
 else
@@ -34,7 +34,7 @@ MODELS_DIRNAME=models_folder
 cd $ROOTDIR
 
 echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz ======"
-curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz
+curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz 
 
 if [ -d "${AGENT}/agent/models" ]
 then
@@ -44,7 +44,7 @@ fi
 
 mkdir -p $AGENT/agent/models/
 
-tar -xzvf $MODELS_DIRNAME.tar.gz -C $AGENT/agent/models/ --strip-components 1
+tar -xzvf $MODELS_DIRNAME.tar.gz -C $AGENT/agent/models/ --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
 
 if [ $AGENT == "locobot" ]; then
     curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models.tar.gz -o locobot_models.tar.gz

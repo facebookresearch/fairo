@@ -18,7 +18,7 @@ fi
 
 if [ -z $2 ]
 then
-	CHECKSUM_FILE="tools/data_scripts/default_checksums/datasets.txt"
+	CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
 	CHECKSUM=`cat $CHECKSUM_FILE`  
 	echo "Downloading datasets folder with default checksum from file: '$CHECKSUM_FILE'"
 else
@@ -41,4 +41,4 @@ then
 fi
 mkdir -p $AGENT/agent/datasets/
 
-tar -xzvf $DATA_DIRNAME.tar.gz -C $AGENT/agent/datasets/ --strip-components 1
+tar -xzvf $DATA_DIRNAME.tar.gz -C $AGENT/agent/datasets/ --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${DATA_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
