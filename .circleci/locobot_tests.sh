@@ -70,4 +70,3 @@ kill -9 $BGPID
 pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE locobot/test/test_memory.py --disable-pytest-warnings
 pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=$COV_RELATIVE locobot/test/test_interpreter_mock.py --disable-pytest-warnings
 pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=$COV_RELATIVE locobot/test/test_utils.py --disable-pytest-warnings
-coverage xml

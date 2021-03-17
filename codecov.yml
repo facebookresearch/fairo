@@ -1,33 +1,43 @@
 fixes:
     - "/shared/::"
 ignore:
-      - "test_*.py" 
+      - "*.pkl"
+      - "*.npy"
+      - "*.ini"
+      - "*.js"
 codecov:
+  token: "6cff57e1-08ce-4d98-8f28-63797d90107f"
+  bot: "codecov-io"
   notify:
     require_ci_to_pass: no
 
 coverage:
   status:
     project:
-        default:
-            target: 0%
-            if_not_found: success
-            if_ci_failed: success
-        Locobot:
-            target: 0%
-            paths:
-                - locobot/*
-            if_not_found: success
-            if_ci_failed: success
-                
-        Craftassist:
-            target: 0%
-            paths:
-                - craftassist/*
-            if_not_found: success
-            if_ci_failed: success
+      default: off
+      locobot:
+        flags: 
+          - locobot
+      craftassist:
+        flags: 
+          - craftassist
+      dashboard:
+        flags: 
+          - dashboard
 
-    patch: off
-    changes: off
+flags:
+  # filter the folder(s) you wish to measure by that flag
+  locobot:
+    paths:
+      - locobot/agent/
+  craftassist:
+    paths:
+      - craftassist/agent/
+  dashboard:
+    paths:
+      - dldashboard/web
 
-comment: true
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: no
