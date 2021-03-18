@@ -59,12 +59,12 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
         ip = os.getenv("MCDASHBOARD_IP")
         print("setting MC dashboard ip from env variable MCDASHBOARD_IP={}".format(ip))
 
-    ssl_cert_file = os.getenv("SSL_CERT_FILE") 
-    ssl_pkey_file = os.getenv("SSL_PKEY_FILE")
+    mcdashboard_ssl_cert = os.getenv("MCDASHBOARD_SSL_CERT") 
+    mcdashboard_ssl_pkey = os.getenv("MCDASHBOARD_SSL_PKEY")
     ssl_context = None
-    if ssl_cert_file and ssl_pkey_file and os.path.isfile(ssl_cert_file) and os.path.isfile(ssl_pkey_file):
+    if mcdashboard_ssl_cert and mcdashboard_ssl_pkey and os.path.isfile(mcdashboard_ssl_cert) and os.path.isfile(mcdashboard_ssl_pkey):
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-        ssl_context.load_cert_chain(ssl_cert_file, ssl_pkey_file)
+        ssl_context.load_cert_chain(mcdashboard_ssl_cert, mcdashboard_ssl_pkey)
         print("SSL certificate found, enabling https")
 
     app.run(ip, threaded=True, port=port, ssl_context=ssl_context, debug=False)
