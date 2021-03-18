@@ -599,11 +599,9 @@ def main(args):
             }
             args.store_path = "./tmp/{}".format(scene)
             robot = Robot("habitat", common_config=config)
-            """
             agent_state = robot.base.agent.get_state()
             # place the robot at place where it can move
-            for _ in range(5):
-                p = robot.base.sim.pathfinder.get_random_navigable_point()
+            p = robot.base.sim.pathfinder.get_random_navigable_point()
 
             agent_state.position = copy(p)
             agent_state.sensor_states["rgb"].position = copy(p + np.array([0.0, 0.6, 0.0]))
@@ -611,7 +609,7 @@ def main(args):
             agent_state.sensor_states["semantic"].position = copy(p + np.array([0.0, 0.6, 0.0]))
             robot.base.agent.set_state(agent_state)
             print("trying scene = {}".format(scene))
-            """
+
             slam = Slam(
                 robot,
                 args.robot,
@@ -634,16 +632,6 @@ def main(args):
             slam.visualize()
         except:
             print("not able to open the scene = {}".format(scene))
-        """
-        from habitat_utils import reconfigure_scene
-
-        class Env:
-            def __init__(self, robot):
-                self._robot = robot
-
-        env = Env(robot)
-        reconfigure_scene(env, config["scene_path"])
-        """
 
     elif args.robot == "locobot":
         robot = Robot("locobot")

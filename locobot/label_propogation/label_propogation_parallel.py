@@ -290,6 +290,7 @@ if __name__ == "__main__":
         root_path = os.path.join(scene_stored_path, scene)
         out_dir = os.path.join(root_path, args.out_dir)
         ray.shutdown()
+        # hardcoded 79 value as devfair had 80 cpus
         ray.init(num_cpus=79)
         result_ids = []
         if not os.path.isdir(out_dir):
