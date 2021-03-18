@@ -17,8 +17,6 @@ except ImportError:
     html_escape = cgi.escape
     del cgi
 
-
-
 app = None
 
 
