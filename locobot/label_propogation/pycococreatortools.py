@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+# code is taken from https://github.com/waspinator/pycococreator/blob/master/pycococreatortools/pycococreatortools.py
 import os
 import re
 import datetime

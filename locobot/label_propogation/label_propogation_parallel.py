@@ -1,7 +1,8 @@
 # used for visualizing how well the label propogation will work
 # currenlty will use robot trajectory to realize
 # will rely on habitat dat to work on it
-# steps we wil perform
+
+# steps we will perform for label propogation
 # 1. Get point cloud
 # 2. Transpose the point cloud based on robot location
 # 3. Project the point cloud back the images
@@ -18,14 +19,11 @@ import ray
 from scipy.spatial.transform import Rotation
 from pycocotools.coco import COCO
 import glob
-
-"""
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-sys.path.append(BASE_AGENT_ROOT)
-from locobot.agent.locobot_mover_utils import transform_pose
-"""
+import argparse
 
 
+# this function is implemented at 'from locobot.agent.locobot_mover_utils import transform_pose'
+# however ray was having toruble finding the function
 def transform_pose(XYZ, current_pose):
     """
     Transforms the point cloud into geocentric frame to account for
@@ -237,12 +235,60 @@ def propogate_label(
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Args for testing simple SLAM algorithm")
+    parser.add_argument(
+        "--scene_path",
+        help="path where scene data is being stored",
+        type=str,
+        default="/checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data",
+    )
+    parser.add_argument("--freq", help="freq to use ground truth seg label", type=int, default=30)
+    parser.add_argument(
+        "--propogation_step",
+        help="number of steps till porpgate label (both +ve and -ve side)",
+        type=int,
+        default=30,
+    )
+    parser.add_argument(
+        "--out_dir",
+        help="path where to store label propogation data inside scene folder",
+        type=str,
+        default="pred_label_using_traj",
+    )
+    args = parser.parse_args()
+    # code assumes the following structure of data
+    """
+    ├── scene_path
+    │   ├── apartment_0
+    │   │   ├── rgb
+    |   │   │   ├── 00000.jpg
+    |   │   │   ├── 00001.jpg
+                .
+                .
+    │   │   ├── seg
+    |   │   │   ├── 00000.npy
+    |   │   │   ├── 00001.npy
+                .
+                .
+    │   │   ├── out_dir
+    |   │   │   ├── 00000.npy
+    |   │   │   ├── 00001.npy
+                .
+                .
+    │   │   ├── data.json (robot state information with corresponding image id)
+        .
+        .
+    │   ├── apartment_1 
+        .
+        .     
+    """
+
     start = time.time()
     # load the file for train images to be used for label propogation
-    scene_stored_path = "/checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data"
+    scene_stored_path = args.scene_path
     for scene in os.listdir(scene_stored_path):
         root_path = os.path.join(scene_stored_path, scene)
-        out_dir = os.path.join(root_path, "pred_label_using_traj")
+        out_dir = os.path.join(root_path, args.out_dir)
         ray.shutdown()
         ray.init(num_cpus=79)
         result_ids = []
@@ -252,31 +298,8 @@ if __name__ == "__main__":
         with open(os.path.join(root_path, "data.json"), "r") as f:
             base_pose_data = json.load(f)
 
-        """
-        for src_img_indx in range(0, 60, 8940):
-            src_label = np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx)))
-
-            result_ids.append(
-                propogate_label.remote(
-                    root_path=root_path,
-                    src_img_indx=src_img_indx,
-                    src_label=src_label,
-                    propogation_step=30,
-                    base_pose_data=base_pose_data,
-                    out_dir=out_dir,
-                )
-            )
-            propogate_label(
-                root_path=root_path,
-                src_img_indx=src_img_indx,
-                src_label=src_label,
-                propogation_step=30,
-                base_pose_data=base_pose_data,
-                out_dir=out_dir,
-            )
-            """
         num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
-        propogation_step = 30
+        propogation_step = args.propogation_step
         result = [
             propogate_label.remote(
                 root_path=root_path,
@@ -286,7 +309,7 @@ if __name__ == "__main__":
                 base_pose_data=base_pose_data,
                 out_dir=out_dir,
             )
-            for src_img_indx in range(0, num_imgs - propogation_step, 2 * propogation_step)
+            for src_img_indx in range(0, num_imgs - propogation_step, args.freq)
         ]
         ray.get(result)
     print("duration =", time.time() - start)
