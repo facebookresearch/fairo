@@ -189,12 +189,17 @@ class Slam(object):
         while self.take_step(25) is None:
             continue
 
-    def take_step(self, step_size):
+    def update_map(self):
+        """Updtes map , explode it by the radius of robot, add collison map to it and return the traversible area
+
+        Returns:
+            [np.ndarray]: [traversible space]
         """
-        step size in meter
-        :param step_size:
-        :return:
-        """
+        robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
+        self.map_builder.update_map(
+            self.robot.camera.get_current_pcd(in_cam=False)[0], robot_state
+        )
+
         # explode the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
@@ -204,6 +209,16 @@ class Slam(object):
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
+        return traversable
+
+    def take_step(self, step_size):
+        """
+        step size in meter
+        :param step_size:
+        :return:
+        """
+        # update map
+        traversable = self.update_map()
 
         # call the planner
         self.planner = FMMPlanner(
@@ -224,7 +239,7 @@ class Slam(object):
         print("stg = {}".format(self.stg))
         print("stg real = {}".format(stg_real))
 
-        # convert stg real from init frame to global frame#
+        # convert stg real from init frame to global frame of pyrobot
         stg_real_g = self.get_absolute_goal((stg_real[0], stg_real[1], 0))
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         print("bot_state before executing action = {}".format(robot_state))
@@ -248,17 +263,11 @@ class Slam(object):
                 pass
 
         # update map
-        robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
-        self.map_builder.update_map(
-            self.robot.camera.get_current_pcd(in_cam=False)[0], robot_state
-        )
-        obstacle = self.map_builder.map[:, :, 1] >= 1.0
-        selem = disk(self.robot_rad / self.map_builder.resolution)
-        traversable = binary_dilation(obstacle, selem) != True
+        traversable = self.update_map()
 
         """
         # add robot collision map to traversable area
-        # on real roboto this gives issue sometime
+        # ocommented it as on real robot this gives issue sometime
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
@@ -632,6 +641,9 @@ def main(args):
                 json.dump(slam.pos_dic, fp)
             slam.visualize()
 
+            """
+            # helpful visualizing the exploration
+            #TODO: to make it work need to install ffmpeg to cker image
             # generate gif out of plt images
             os.system(
                 "ffmpeg -framerate 6 -f image2 -i {}/%04d.jpg {}/exploration.gif".format(
@@ -641,7 +653,7 @@ def main(args):
 
             # rm plt images
             os.system("rm {}/*.jpg".format(slam.save_folder))
-
+            """
         except:
             print("not able to open the scene = {}".format(scene))
 
