@@ -17,6 +17,7 @@ import time
 import ray
 from scipy.spatial.transform import Rotation
 from pycocotools.coco import COCO
+import glob
 
 """
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
@@ -238,23 +239,34 @@ def propogate_label(
 if __name__ == "__main__":
     start = time.time()
     # load the file for train images to be used for label propogation
-    root_path = "/checkpoint/dhirajgandhi/active_vision/habitat_data_with_seg"
-    out_dir = os.path.join(root_path, "pred_label")
+    scene_stored_path = "/checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data"
+    for scene in os.listdir(scene_stored_path):
+        root_path = os.path.join(scene_stored_path, scene)
+        out_dir = os.path.join(root_path, "pred_label_using_traj")
+        ray.shutdown()
+        ray.init(num_cpus=79)
+        result_ids = []
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir)
 
-    ray.init(num_cpus=79)
-    result_ids = []
-    if not os.path.isdir(out_dir):
-        os.makedirs(out_dir)
+        with open(os.path.join(root_path, "data.json"), "r") as f:
+            base_pose_data = json.load(f)
 
-    with open(os.path.join(root_path, "data.json"), "r") as f:
-        base_pose_data = json.load(f)
+        """
+        for src_img_indx in range(0, 60, 8940):
+            src_label = np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx)))
 
-    """
-    for src_img_indx in range(0, 60, 8940):
-        src_label = np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx)))
-
-        result_ids.append(
-            propogate_label.remote(
+            result_ids.append(
+                propogate_label.remote(
+                    root_path=root_path,
+                    src_img_indx=src_img_indx,
+                    src_label=src_label,
+                    propogation_step=30,
+                    base_pose_data=base_pose_data,
+                    out_dir=out_dir,
+                )
+            )
+            propogate_label(
                 root_path=root_path,
                 src_img_indx=src_img_indx,
                 src_label=src_label,
@@ -262,26 +274,19 @@ if __name__ == "__main__":
                 base_pose_data=base_pose_data,
                 out_dir=out_dir,
             )
-        )
-        propogate_label(
-            root_path=root_path,
-            src_img_indx=src_img_indx,
-            src_label=src_label,
-            propogation_step=30,
-            base_pose_data=base_pose_data,
-            out_dir=out_dir,
-        )
-        """
-    result = [
-        propogate_label.remote(
-            root_path=root_path,
-            src_img_indx=src_img_indx,
-            src_label=np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))),
-            propogation_step=30,
-            base_pose_data=base_pose_data,
-            out_dir=out_dir,
-        )
-        for src_img_indx in range(0, 8940, 60)
-    ]
-    ray.get(result)
+            """
+        num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
+        propogation_step = 30
+        result = [
+            propogate_label.remote(
+                root_path=root_path,
+                src_img_indx=src_img_indx,
+                src_label=np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))),
+                propogation_step=propogation_step,
+                base_pose_data=base_pose_data,
+                out_dir=out_dir,
+            )
+            for src_img_indx in range(0, num_imgs - propogation_step, 2 * propogation_step)
+        ]
+        ray.get(result)
     print("duration =", time.time() - start)

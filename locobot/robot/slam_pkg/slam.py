@@ -13,6 +13,7 @@ import time
 from math import ceil, floor
 import sys
 import json
+from pyrobot.locobot.base_control_utils import LocalActionStatus
 
 cv2 = try_cv2_import()
 
@@ -100,7 +101,7 @@ class Slam(object):
         self.triangle_vertex = np.array([[0.0, 0.0], [-2.0, 1.0], [-2.0, -1.0]])
         self.triangle_vertex *= triangle_scale
         if self.save_vis:
-            self.save_folder = os.path.join(save_folder, str(int(time.time())))
+            self.save_folder = save_folder
             self.img_folder = os.path.join(self.save_folder, "rgb")
             self.depth_folder = os.path.join(self.save_folder, "depth")
             self.seg_folder = os.path.join(self.save_folder, "seg")
@@ -132,6 +133,7 @@ class Slam(object):
         # for storing data
         self.img_count = 0
         self.pos_dic = {}
+        self.exec_wait = not (self.save_vis)
 
     def set_goal(self, goal):
         """
@@ -198,12 +200,10 @@ class Slam(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
-        """
         # add robot collision map to traversable area
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
-        """
 
         # call the planner
         self.planner = FMMPlanner(
@@ -238,30 +238,12 @@ class Slam(object):
                     stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
                 )
                 - robot_state[2],
-            )
+            ),
+            wait=self.exec_wait,
         )
-        while self.robot.base.moving:
+        while self.robot.base._as.get_state() != LocalActionStatus.SUCCEEDED:
             if self.save_vis:
-                rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
-                pos = self.robot.base.get_state()
-                # store the images and depth
-                cv2.imwrite(
-                    self.img_folder + "/{:05d}.jpg".format(self.img_count),
-                    cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
-                )
-
-                # store depth in mm
-                depth *= 1e3
-                depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-                depth = depth.astype(np.uint16)
-                np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
-
-                # store seg
-                np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
-
-                # store pos
-                self.pos_dic[self.img_count] = copy(pos)
-                self.img_count += 1
+                self.save_rgb_depth_seg()
             else:
                 pass
 
@@ -299,30 +281,12 @@ class Slam(object):
                         stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
                     )
                     + self.init_state[2],
-                )
+                ),
+                wait=self.exec_wait,
             )
-            while self.robot.base.moving:
+            while self.robot.base._as.get_state() != LocalActionStatus.SUCCEEDED:
                 if self.save_vis:
-                    rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
-                    pos = self.robot.base.get_state()
-                    # store the images and depth
-                    cv2.imwrite(
-                        self.img_folder + "/{:05d}.jpg".format(self.img_count),
-                        cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
-                    )
-
-                    # store depth in mm
-                    depth *= 1e3
-                    depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-                    depth = depth.astype(np.uint16)
-                    np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
-
-                    # store seg
-                    np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
-
-                    # store pos
-                    self.pos_dic[self.img_count] = copy(pos)
-                    self.img_count += 1
+                    self.save_rgb_depth_seg()
                 else:
                     pass
 
@@ -357,30 +321,13 @@ class Slam(object):
             np.linalg.norm(np.array(robot_state[:2]) - np.array(self.goal_loc[:2])) * 100.0
             < np.sqrt(2) * self.map_builder.resolution
         ):
-            self.robot.base.go_to_absolute(self.get_absolute_goal(self.goal_loc))
+            self.robot.base.go_to_absolute(
+                self.get_absolute_goal(self.goal_loc), wait=self.exec_wait
+            )
             print("robot has reached goal")
-            while self.robot.base.moving:
+            while self.robot.base._as.get_state() != LocalActionStatus.SUCCEEDED:
                 if self.save_vis:
-                    rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
-                    pos = self.robot.base.get_state()
-                    # store the images and depth
-                    cv2.imwrite(
-                        self.img_folder + "/{:05d}.jpg".format(self.img_count),
-                        cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
-                    )
-
-                    # store depth in mm
-                    depth *= 1e3
-                    depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-                    depth = depth.astype(np.uint16)
-                    np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
-
-                    # store seg
-                    np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
-
-                    # store pos
-                    self.pos_dic[self.img_count] = copy(pos)
-                    self.img_count += 1
+                    self.save_rgb_depth_seg()
                 else:
                     pass
             return True
@@ -397,6 +344,28 @@ class Slam(object):
             self.whole_area_explored = True
             return False
         return None
+
+    def save_rgb_depth_seg(self):
+        rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
+        pos = self.robot.base.get_state()
+        # store the images and depth
+        cv2.imwrite(
+            self.img_folder + "/{:05d}.jpg".format(self.img_count),
+            cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
+        )
+
+        # store depth in mm
+        depth *= 1e3
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+        # store seg
+        np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+
+        # store pos
+        self.pos_dic[self.img_count] = copy(pos)
+        self.img_count += 1
 
     def get_absolute_goal(self, loc):
         """
@@ -621,11 +590,51 @@ def main(args):
         assets_path = os.path.abspath(
             os.path.join(os.path.dirname(__file__), "../../test/test_assets")
         )
-        config = {
-            "physics_config": os.path.join(assets_path, "default.phys_scene_config.json"),
-            "scene_path": "/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply",
-        }
-        robot = Robot("habitat", common_config=config)
+        scene = args.scene
+        time.sleep(10.0)
+        try:
+            config = {
+                "physics_config": os.path.join(assets_path, "default.phys_scene_config.json"),
+                "scene_path": "{}/{}/habitat/mesh_semantic.ply".format(args.dataset_path, scene),
+            }
+            args.store_path = "./tmp/{}".format(scene)
+            robot = Robot("habitat", common_config=config)
+            """
+            agent_state = robot.base.agent.get_state()
+            # place the robot at place where it can move
+            for _ in range(5):
+                p = robot.base.sim.pathfinder.get_random_navigable_point()
+
+            agent_state.position = copy(p)
+            agent_state.sensor_states["rgb"].position = copy(p + np.array([0.0, 0.6, 0.0]))
+            agent_state.sensor_states["depth"].position = copy(p + np.array([0.0, 0.6, 0.0]))
+            agent_state.sensor_states["semantic"].position = copy(p + np.array([0.0, 0.6, 0.0]))
+            robot.base.agent.set_state(agent_state)
+            print("trying scene = {}".format(scene))
+            """
+            slam = Slam(
+                robot,
+                args.robot,
+                args.map_size,
+                args.resolution,
+                args.robot_rad,
+                args.agent_min_z,
+                args.agent_max_z,
+                args.vis,
+                args.save_vis,
+                args.store_path,
+            )
+            slam.set_goal(tuple(args.goal))
+            while slam.take_step(step_size=args.step_size) is None:
+                slam.visualize()
+
+            # save pos dic
+            with open(os.path.join(slam.save_folder, "data.json"), "w") as fp:
+                json.dump(slam.pos_dic, fp)
+            slam.visualize()
+        except:
+            print("not able to open the scene = {}".format(scene))
+        """
         from habitat_utils import reconfigure_scene
 
         class Env:
@@ -634,29 +643,30 @@ def main(args):
 
         env = Env(robot)
         reconfigure_scene(env, config["scene_path"])
+        """
 
     elif args.robot == "locobot":
         robot = Robot("locobot")
-    slam = Slam(
-        robot,
-        args.robot,
-        args.map_size,
-        args.resolution,
-        args.robot_rad,
-        args.agent_min_z,
-        args.agent_max_z,
-        args.vis,
-        args.save_vis,
-        args.store_path,
-    )
-    slam.set_goal(tuple(args.goal))
-    while slam.take_step(step_size=args.step_size) is None:
-        slam.visualize()
+        slam = Slam(
+            robot,
+            args.robot,
+            args.map_size,
+            args.resolution,
+            args.robot_rad,
+            args.agent_min_z,
+            args.agent_max_z,
+            args.vis,
+            args.save_vis,
+            args.store_path,
+        )
+        slam.set_goal(tuple(args.goal))
+        while slam.take_step(step_size=args.step_size) is None:
+            slam.visualize()
 
-    # save pos dic
-    with open(os.path.join(slam.save_folder, "data.json"), "w") as fp:
-        json.dump(slam.pos_dic, fp)
-    slam.visualize()
+        # save pos dic
+        with open(os.path.join(slam.save_folder, "data.json"), "w") as fp:
+            json.dump(slam.pos_dic, fp)
+        slam.visualize()
 
 
 if __name__ == "__main__":
@@ -680,6 +690,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--store_path", help="path to store visualization", type=str, default="./tmp"
     )
-
+    parser.add_argument(
+        "--dataset_path",
+        help="path where Replica dataset is stored",
+        type=str,
+        default="/Replica-Dataset",
+    )
+    parser.add_argument(
+        "--scene", help="scence name for data collection", type=str, default="apartment_0"
+    )
     args = parser.parse_args()
     main(args)

@@ -56,8 +56,7 @@ RUN patchelf --set-rpath '$ORIGIN' /root/pyenv_pyrobot_python3/lib/python3.6/sit
 
 # tested pyrobot commit that works with Habitat
 RUN cd ~/low_cost_ws/src/pyrobot && git checkout Develop && \
-    git pull https://github.com/facebookresearch/pyrobot Develop && \
-    git checkout de3e54ea9e1196ea96caf8672646d5dfd63a3731 && \
+    git pull https://github.com/Dhiraj100892/pyrobot.git cont_move_habitat && \
     . /root/pyenv_pyrobot_python3/bin/activate && . /root/pyrobot_catkin_ws/devel/setup.bash && \
     pip install -e . && \
     pip install -e . && \

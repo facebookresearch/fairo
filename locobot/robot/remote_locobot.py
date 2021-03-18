@@ -141,12 +141,8 @@ class RemoteLocobot(object):
                 self._robot.base.go_to_absolute([0, 0, 0])
             self._done = True
 
-    def go_to_absolute(self, 
-        xyt_position, 
-        use_map=False, 
-        close_loop=True, 
-        smooth=False,
-        use_dslam=False,
+    def go_to_absolute(
+        self, xyt_position, use_map=False, close_loop=True, smooth=False, use_dslam=False
     ):
         """Moves the robot base to given goal state in the world frame.
 
@@ -172,15 +168,11 @@ class RemoteLocobot(object):
             else:
                 self._robot.base.go_to_absolute(
                     xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-                    )
+                )
             self._done = True
 
-    def go_to_relative(self, 
-        xyt_position, 
-        use_map=False, 
-        close_loop=True, 
-        smooth=False,
-        use_dslam=False,
+    def go_to_relative(
+        self, xyt_position, use_map=False, close_loop=True, smooth=False, use_dslam=False
     ):
         """Moves the robot base to the given goal state relative to its current
         pose.
@@ -206,7 +198,7 @@ class RemoteLocobot(object):
             else:
                 self._robot.base.go_to_relative(
                     xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-                    )
+                )
             self._done = True
 
     @Pyro4.oneway
@@ -433,7 +425,7 @@ class RemoteLocobot(object):
         if rgb is not None:
             return rgb
         return None
-    
+
     def get_rgbd_segm(self):
         """Returns the RGB image, depth, instance segmentation map.
         """
@@ -684,6 +676,7 @@ class RemoteLocobot(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
+
 
 if __name__ == "__main__":
     import argparse
