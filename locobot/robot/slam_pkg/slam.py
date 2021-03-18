@@ -258,6 +258,7 @@ class Slam(object):
 
         """
         # add robot collision map to traversable area
+        # on real roboto this gives issue sometime
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
@@ -630,6 +631,17 @@ def main(args):
             with open(os.path.join(slam.save_folder, "data.json"), "w") as fp:
                 json.dump(slam.pos_dic, fp)
             slam.visualize()
+
+            # generate gif out of plt images
+            os.system(
+                "ffmpeg -framerate 6 -f image2 -i {}/%04d.jpg {}/exploration.gif".format(
+                    slam.save_folder, slam.save_folder
+                )
+            )
+
+            # rm plt images
+            os.system("rm {}/*.jpg".format(slam.save_folder))
+
         except:
             print("not able to open the scene = {}".format(scene))
 
