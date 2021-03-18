@@ -59,24 +59,23 @@ def propogate_label(
         base_pose_data(np.ndarray): (x,y,theta)
         out_dir (str): path to store labeled propogation image
     """
-
-    # images in which we can see the object
-    image_range = [max(src_img_indx - propogation_step, 0), src_img_indx + propogation_step]
-
+    ### load the inputs ###
+    # load robot trajecotry data which has pose information coreesponding to each img observation taken
     with open(os.path.join(root_path, "data.json"), "r") as f:
         base_pose_data = json.load(f)
-
+    # load img
     src_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)))
-    src_depth = np.load(
-        os.path.join(root_path, "depth/{:05d}.npy".format(src_img_indx))
-    )  # depth is in mm
+    # load depth in mm
+    src_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(src_img_indx)))
+    # load robot pose for img index
     src_pose = base_pose_data["{}".format(src_img_indx)]
 
-    # TODO: proper entries
+    ### data needed to convert depth img to pointcloud ###
+    # values extracted from pyrobot habitat agent
     intrinsic_mat = np.array([[256, 0, 256], [0, 256, 256], [0, 0, 1]])
     rot = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
     trans = np.array([0, 0, 0.6])
-
+    # precompute some values necessary to depth to point cloud
     intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
     height, width, channels = src_img.shape
     img_resolution = (height, width)
@@ -86,77 +85,89 @@ def propogate_label(
     uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
     uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
+    ### calculate point cloud in different frmaes ###
+    # point cloud in camera frmae
     depth = (src_depth.astype(np.float32) / 1000.0).reshape(-1)
     pts_in_cam = np.multiply(uv_one_in_cam, depth)
     pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
+    # point cloud in robot base frame
     pts_in_base = pts_in_cam[:3, :].T
     pts_in_base = np.dot(pts_in_base, rot.T)
     pts_in_base = pts_in_base + trans.reshape(-1)
+    # point cloud in world frame (pyrobot)
     pts_in_world = transform_pose(pts_in_base, src_pose)
 
-    # get the selcectd points out of it based on image region
-    # refer this https://www.codepile.net/pile/bZqJbyNz
-    # TODO: Make it work with labels containing multiple label
+    ### figure out unique label values in provided gt label which is greater than 0 ###
     unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
     unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
 
+    ### for each unique label, figure out points in wolrd frmae ###
+    # first figure out pixel index
     indx = [zip(*np.where(src_label == i)) for i in unique_pix_value]
+    # convert pix index to index in point cloud
+    # refer this https://www.codepile.net/pile/bZqJbyNz
     indx = [[i[0] * width + i[1] for i in j] for j in indx]
-
-    # not sure if this will work
+    # take out points in world space correspoinding to each unique label
     req_pts_in_world_list = [pts_in_world[indx[i]] for i in range(len(indx))]
 
+    # images in which in which we want to label propogation based on the provided gt seg label
+    image_range = [max(src_img_indx - propogation_step, 0), src_img_indx + propogation_step]
+    # param usful to search nearest point cloud in a region
     kernal_size = 3
+
     for img_indx in range(image_range[0], image_range[1]):
         print("img_index = {}".format(img_indx))
 
-        # convert the point from world to image frmae
+        ### create point cloud in wolrd frame for img_indx ###
+        # get the robot pose value
         base_pose = base_pose_data[str(img_indx)]
+        # get the depth
         try:
             cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
         except:
             return
-
+        # convert depth to point cloud in camera frmae
         cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
         cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)
         cur_pts_in_cam = np.concatenate(
             (cur_pts_in_cam, np.ones((1, cur_pts_in_cam.shape[1]))), axis=0
         )
+        # convert point cloud in camera fromae to base frame
         cur_pts_in_base = cur_pts_in_cam[:3, :].T
         cur_pts_in_base = np.dot(cur_pts_in_base, rot.T)
         cur_pts_in_base = cur_pts_in_base + trans.reshape(-1)
+        # convert point cloud from base frame to world frmae
         cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
 
+        ### generate label for new img indx ###
+        # crete annotation files with all zeros
         annot_img = np.zeros((height, width))
-
+        # do label prpogation for each unique label in provided gt seg label
         for i, (req_pts_in_world, pix_color) in enumerate(
             zip(req_pts_in_world_list, unique_pix_value)
         ):
-            # convert point cloud from world pose to base pose
+            # convert point cloud for label from world pose to current (img_indx) base pose
             pts_in_cur_base = copy(req_pts_in_world)
             pts_in_cur_base = transform_pose(pts_in_cur_base, (-base_pose[0], -base_pose[1], 0))
             pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -base_pose[2]))
 
-            # conver point from base to camera frame
+            # conver point from current base to current camera frame
             pts_in_cur_cam = pts_in_cur_base - trans.reshape(-1)
             pts_in_cur_cam = np.dot(pts_in_cur_cam, rot)
 
-            # conver pts from 3D to 2D
+            # conver pts in current camera frame into 2D pix values
             pts_in_cur_img = np.matmul(intrinsic_mat, pts_in_cur_cam.T).T
             pts_in_cur_img /= pts_in_cur_img[:, 2].reshape([-1, 1])
 
-            # only consider depth matching for these points
+            # filter out index which fall beyond the shape of img size
             filtered_img_indx = np.logical_and(
                 np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
                 np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
             )
 
-            start_time = time.time()
-            # TODO: make this part fast, its very slow currently
+            # only consider depth matching for these points
+            # filter out point based on projected depth value wold frmae, this helps us get rid of pixels for which view to the object is blocked by any other object, as in that was projected 3D point in wolrd frmae for the current pix wont match with 3D point in the gt provide label
             dist_thr = 5e-2  # this is in meter
-            ## optimize part
-            start_time = time.time()
-            ## need to optimize this part
             for pixel_index in range(len(filtered_img_indx)):
                 if filtered_img_indx[pixel_index]:
                     # search in the region
@@ -181,9 +192,10 @@ def propogate_label(
                     ):
                         filtered_img_indx[pixel_index] = False
 
-            # take out the points
+            # take out filtered pix values
             pts_in_cur_img = pts_in_cur_img[filtered_img_indx]
-            ##### trying to replace this things
+
+            # step to take care of quantization erros
             pts_in_cur_img = np.concatenate(
                 (
                     np.concatenate(
@@ -216,21 +228,23 @@ def propogate_label(
                     ),
                 )
             )
-            # this was the original part
             pts_in_cur_img = pts_in_cur_img[:, :2].astype(int)
 
-            ########
-            # TODO: handle the cases where index goes out of the image
+            # filter out index which fall beyonf the shape of img size, had to perform this step again to take care if any out of the image size point is introduced by the above quantization step
             pts_in_cur_img = pts_in_cur_img[
                 np.logical_and(
                     np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
                     np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
                 )
             ]
+
+            # number of pointf for the label found in cur img
             print("pts in cam = {}".format(len(pts_in_cur_cam)))
+
+            # assign label to correspoinding pix values
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
-        # store the value
+        # store the annotation file
         np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)), annot_img.astype(np.uint32))
 
 
@@ -242,10 +256,10 @@ if __name__ == "__main__":
         type=str,
         default="/checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data",
     )
-    parser.add_argument("--freq", help="freq to use ground truth seg label", type=int, default=30)
+    parser.add_argument("--freq", help="freq to use ground truth seg label", type=int, default=60)
     parser.add_argument(
         "--propogation_step",
-        help="number of steps till porpgate label (both +ve and -ve side)",
+        help="number of steps till porpgated label (both +ve and -ve side)",
         type=int,
         default=30,
     )
@@ -270,12 +284,14 @@ if __name__ == "__main__":
     |   │   │   ├── 00001.npy
                 .
                 .
-    │   │   ├── out_dir
+    │   │   ├── out_dir (will be genrated after running the code)
     |   │   │   ├── 00000.npy
     |   │   │   ├── 00001.npy
                 .
                 .
     │   │   ├── data.json (robot state information with corresponding image id)
+    │   │   ├── train_img_id.json (will be genrated after running the code
+
         .
         .
     │   ├── apartment_1 
@@ -290,8 +306,8 @@ if __name__ == "__main__":
         root_path = os.path.join(scene_stored_path, scene)
         out_dir = os.path.join(root_path, args.out_dir)
         ray.shutdown()
-        # hardcoded 79 value as devfair had 80 cpus
-        ray.init(num_cpus=79)
+        # use all avialeble cpus -1
+        ray.init(num_cpus=os.cpu_count() - 1)
         result_ids = []
         if not os.path.isdir(out_dir):
             os.makedirs(out_dir)
@@ -301,16 +317,25 @@ if __name__ == "__main__":
 
         num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
         propogation_step = args.propogation_step
-        result = [
-            propogate_label.remote(
-                root_path=root_path,
-                src_img_indx=src_img_indx,
-                src_label=np.load(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))),
-                propogation_step=propogation_step,
-                base_pose_data=base_pose_data,
-                out_dir=out_dir,
+
+        result = []
+        train_img_id = {"img_id": []}
+        for src_img_indx in range(0, num_imgs - propogation_step, args.freq):
+            result.append(
+                propogate_label.remote(
+                    root_path=root_path,
+                    src_img_indx=src_img_indx,
+                    src_label=np.load(
+                        os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
+                    ),
+                    propogation_step=propogation_step,
+                    base_pose_data=base_pose_data,
+                    out_dir=out_dir,
+                )
             )
-            for src_img_indx in range(0, num_imgs - propogation_step, args.freq)
-        ]
+            train_img_id["img_id"].append(src_img_indx)
+
+        with open(os.path.join(root_path, "train_img_id.json"), "w") as fp:
+            json.dump(train_img_id, fp)
         ray.get(result)
     print("duration =", time.time() - start)
