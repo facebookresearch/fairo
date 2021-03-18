@@ -164,7 +164,11 @@ def status():
 
     logging.info("status: success")
     # register subdomain to proxy instance IP
-    cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=os.getenv("CLOUDFLARE_TOKEN"))
+    if os.getenv("CLOUDFLARE_TOKEN"):
+        cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
+    else:
+        cloudflare_token = ""
+    cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
     zone_id = 'd2d53d14fffaecbfeb92e3e62f01607f'
     dns_records = cf.zones.dns_records.get(zone_id)
     register_dashboard_subdomain(cf, zone_id, ip)
