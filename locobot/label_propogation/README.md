@@ -29,7 +29,7 @@ Note: Assumed data storage format
     .
     .     
 ```
-To run the label prpogation might need to install
+To run the label propogation, intall [ray](https://pypi.org/project/ray/)
 ```
 python label_propogation_parallel.py --scene_path /checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data --freq 60 --propogation_step 30 --out_dir pred_label_using_traj 
 ```
