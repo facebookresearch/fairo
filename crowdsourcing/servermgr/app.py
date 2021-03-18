@@ -73,6 +73,11 @@ with open("run.withagent.sh", "rb") as f:
 def register_dashboard_subdomain(cf, zone_id, ip):
     """Registers a unique subdomain for craftassist.io
     that serves proxied HTTP content using cloudflare.
+
+    Args:
+    cf -- CloudFlare context with R/W permissions.
+    zone_id -- zone ID used to locate DNS records.
+    ip -- IP of the ECS container that runs dashboard.
     """
     subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
     dns_record = {'name': subdomain_name, 'type':'A', 'content': ip, 'proxied': True}
@@ -168,6 +173,7 @@ def status():
         logging.info("registering subdomain on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
         cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
+        # TODO: zone ID is hard coded, should probably set in env var or get by zone name
         zone_id = 'd2d53d14fffaecbfeb92e3e62f01607f'
         dns_records = cf.zones.dns_records.get(zone_id)
         register_dashboard_subdomain(cf, zone_id, ip)
