@@ -165,13 +165,12 @@ def status():
     logging.info("status: success")
     # register subdomain to proxy instance IP
     if os.getenv("CLOUDFLARE_TOKEN"):
+        logging.info("registering subdomain on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
-    else:
-        cloudflare_token = ""
-    cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
-    zone_id = 'd2d53d14fffaecbfeb92e3e62f01607f'
-    dns_records = cf.zones.dns_records.get(zone_id)
-    register_dashboard_subdomain(cf, zone_id, ip)
+        cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
+        zone_id = 'd2d53d14fffaecbfeb92e3e62f01607f'
+        dns_records = cf.zones.dns_records.get(zone_id)
+        register_dashboard_subdomain(cf, zone_id, ip)
 
     return json.dumps({"progress": 100, "ip": ip})
 
