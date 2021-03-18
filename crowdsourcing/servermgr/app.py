@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from gevent import monkey
+import CloudFlare
 
 monkey.patch_all()
 
@@ -69,6 +70,13 @@ with open("run.withagent.sh", "rb") as f:
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
     run_flat_sh_gz_b64 = b64encode(gzip.compress(txt_flat)).decode("utf-8")
 
+def register_dashboard_subdomain(cf, zone_id, ip):
+    """Registers a unique subdomain for craftassist.io
+    that serves proxied HTTP content using cloudflare.
+    """
+    subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
+    dns_record = {'name': subdomain_name, 'type':'A', 'content': ip, 'proxied': True}
+    r = cf.zones.dns_records.post(zone_id, data=dns_record)
 
 @app.route("/test")
 def test():
@@ -155,6 +163,12 @@ def status():
         return json.dumps({"progress": 90, "ip": ip})
 
     logging.info("status: success")
+    # register subdomain to proxy instance IP
+    cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=os.getenv("CLOUDFLARE_TOKEN"))
+    zone_id = 'd2d53d14fffaecbfeb92e3e62f01607f'
+    dns_records = cf.zones.dns_records.get(zone_id)
+    register_dashboard_subdomain(cf, zone_id, ip)
+
     return json.dumps({"progress": 100, "ip": ip})
 
 
