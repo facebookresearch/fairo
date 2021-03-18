@@ -232,6 +232,10 @@ def launch_instance(task="craftassist", config="random", debug=False):
                             "name": "SENTRY_DSN",
                             "value": os.environ.get("CRAFTASSIST_SENTRY_DSN", ""),
                         },
+                        {
+                            "name": "CLOUDFLARE_TOKEN",
+                            "value": os.getenv("CLOUDFLARE_TOKEN")
+                        }
                     ],
                 }
             ]
