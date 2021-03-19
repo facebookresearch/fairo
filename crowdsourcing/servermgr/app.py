@@ -41,7 +41,7 @@ AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
 
-port = int(os.environ.get("PORT", 3000))
+port = int(os.environ.get("PORT", 80))
 
 app = Flask(__name__)
 app.register_blueprint(mephisto_router, url_prefix=r"/")
