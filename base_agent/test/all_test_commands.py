@@ -247,7 +247,9 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "fill_speaker_look_gold": {
         "action_type": "FILL",
-        "triples": [{"pred_text": "has_block_type", "obj_text": "gold"}],
+        "schematic": {
+            "filters": {"triples": [{"pred_text": "has_block_type", "obj_text": "gold"}]}
+        },
         "reference_object": {
             "filters": {"location": SPEAKERLOOK},
             "text_span": "where I'm looking",
