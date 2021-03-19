@@ -79,7 +79,12 @@ def register_dashboard_subdomain(cf, zone_id, ip):
     zone_id -- zone ID used to locate DNS records.
     ip -- IP of the ECS container that runs dashboard.
     """
-    subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
+    # NOTE: chances of collision are slim, this is just a safeguard
+    dns_record_exists = True
+    # Check that DNS record does not already exist
+    while dns_record_exists:
+        subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
+        dns_record_exists = cf.zones.dns_records.get(zone_id, params={'name': '{}.craftassist.io'.format(subdomain_name)})
     dns_record = {'name': subdomain_name, 'type':'A', 'content': ip, 'proxied': True}
     r = cf.zones.dns_records.post(zone_id, data=dns_record)
 
@@ -169,12 +174,11 @@ def status():
 
     logging.info("status: success")
     # register subdomain to proxy instance IP
-    if os.getenv("CLOUDFLARE_TOKEN"):
+    if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
         logging.info("registering subdomain on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
+        zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
         cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
-        # TODO: zone ID is hard coded, should probably set in env var or get by zone name
-        zone_id = 'd2d53d14fffaecbfeb92e3e62f01607f'
         dns_records = cf.zones.dns_records.get(zone_id)
         register_dashboard_subdomain(cf, zone_id, ip)
 
@@ -235,6 +239,10 @@ def launch_instance(task="craftassist", config="random", debug=False):
                         {
                             "name": "CLOUDFLARE_TOKEN",
                             "value": os.getenv("CLOUDFLARE_TOKEN")
+                        },
+                        {
+                            "name": "CLOUDFLARE_ZONE_ID",
+                            "value": os.getenv("CLOUDFLARE_ZONE_ID")
                         }
                     ],
                 }
