@@ -25,7 +25,12 @@ from base_agent.dialogue_objects import (
     interpret_dance_filter,
 )
 
-from .schematic_helper import get_repeat_dir, interpret_schematic, interpret_size
+from .schematic_helper import (
+    get_repeat_dir,
+    interpret_schematic,
+    interpret_size,
+    interpret_fill_schematic,
+)
 
 from .facing_helper import FacingInterpreter
 
@@ -287,21 +292,25 @@ class MCInterpreter(Interpreter):
                 Say, "I don't understand what holes you want me to fill."
             )
             return None, None, None
+        tasks = []
         for hole in holes:
             _, hole_info = hole
             poss, hole_idm = hole_info
-            # FIXME use filters properly...
-            triples = d.get("triples", [])
-            block_types = [
-                t.get("obj_text") for t in triples if t.get("pred_text", "") == "has_block_type"
-            ]
-            try:
-                fill_idm = get_block_type(block_types[0])
-            except:
-                fill_idm = hole_idm
-            task_data = {"action_dict": d, "schematic": poss, "block_idm": fill_idm}
+            schematic, tags = interpret_fill_schematic(
+                self, speaker, d.get("schematic", {}), poss, hole_idm
+            )
+            origin = np.min([xyz for (xyz, bid) in schematic], axis=0)
+            task_data = {
+                "blocks_list": schematic,
+                "force": True,
+                "origin": origin,
+                "verbose": False,
+                "embed": True,
+                "fill_message": True,
+                "schematic_tags": tags,
+            }
 
-            tasks.append(self.task_objects["fill"](self.agent, task_data))
+            tasks.append(self.task_objects["build"](self.agent, task_data))
 
         if len(holes) > 1:
             self.dialogue_stack.append_new(Say, "Ok. I'll fill up the holes.")
