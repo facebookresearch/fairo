@@ -36,7 +36,10 @@ class VoxelWorld extends React.Component {
             ref={this.worldContainerRef}
           ></iframe>
         </div>
-        <p>Tip: press 'esc' to leave the voxel world</p>
+        <p>
+          Tip: press 'esc' to leave the voxel world, w/a/s/d to move, space to
+          jump
+        </p>
       </div>
     );
   }

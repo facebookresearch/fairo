@@ -52,24 +52,6 @@ class TurkInfo extends Component {
               </p>
             ) : (
               <div>
-                <div className="App-title" style={{ fontSize: 35 }}>
-                  Interact with the agent
-                </div>
-                <p>
-                  In this task, you will interact with a bot that is there to
-                  help you, You can use the chatbox on the top-left pane to talk
-                  to the bot. You can also control you own avatar by clicking on
-                  the bottom-left pane and entering the voxel world
-                </p>
-                <div style={{ fontSize: 30 }}>How to control your avatar?</div>
-                <p>
-                  Press 'w/a/s/d' to move forward/left/backward/right, 'space'
-                  to jump and 'esc' to leave the voxel world and back to the
-                  website
-                </p>
-
-                <br />
-                <br />
                 <div style={{ fontSize: 40 }}>
                   {minutes} : {seconds}
                 </div>

@@ -14,6 +14,7 @@ import History from "./components/History";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import TurkInfo from "./components/Turk/TurkInfo";
 import stateManager from "./StateManager";
+import InteractApp from "./components/Interact/InteractApp";
 
 import "./index.css";
 
@@ -29,14 +30,19 @@ var config = {
       type: "row",
       content: [
         {
-          title: "Live Viewer",
-          type: "react-component",
-          component: "MainPane",
-          props: { stateManager: stateManager },
-        },
-        {
           type: "column",
           content: [
+            {
+              type: "stack",
+              content: [
+                {
+                  title: "Interact",
+                  type: "react-component",
+                  component: "InteractApp",
+                  props: { stateManager: stateManager },
+                },
+              ],
+            },
             {
               type: "stack",
               content: [
@@ -47,6 +53,23 @@ var config = {
                   props: { stateManager: stateManager },
                 },
               ],
+            },
+          ],
+        },
+        {
+          type: "column",
+          content: [
+            {
+              type: "stack",
+              content: [
+                {
+                  title: "VoxelWorld",
+                  type: "react-component",
+                  component: "VoxelWorld",
+                  props: { stateManager: stateManager },
+                },
+              ],
+              height: 60,
             },
             {
               type: "stack",
@@ -73,6 +96,7 @@ dashboardLayout.registerComponent("Settings", Settings);
 dashboardLayout.registerComponent("TurkInfo", TurkInfo);
 dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("VoxelWorld", VoxelWorld);
+dashboardLayout.registerComponent("InteractApp", InteractApp);
 
 dashboardLayout.init();
 
