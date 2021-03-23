@@ -67,7 +67,7 @@ This action states that a hole / negative shape needs to be filled up.
 
 ```
 { "action_type" : 'FILL',
-  "triples": [{"pred_text": "has_block_type", "obj_text": {"fixed_value" : text} / span}]
+  <Schematic>,
   <ReferenceObject>,
   <Repeat>,
   "replace": True
