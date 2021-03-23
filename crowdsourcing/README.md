@@ -18,13 +18,27 @@ This opens up a task in your browser on localhost, and allows you to view your t
 ## Running Static HTML Tasks with Heroku
 
 ### Pre-reqs
-You need to have a Heroku account and valid Heroku credentials. To install Heroku CLI on Mac OSX, run `brew tap heroku/brew && brew install heroku`. Then log in with `heroku login`.
+You need to have a Heroku account and valid Heroku credentials. To install Heroku CLI on Mac OSX, run `brew tap heroku/brew && brew install heroku`. Then log in with `heroku login` (pass the `-i` flag for validation without browser).
 
 For other installation methods, see https://devcenter.heroku.com/articles/heroku-cli.
 
 You also need an AWS IAM account with MTurk permissions. You also need AWS access keys with permissions to spin up ECS containers, which will be used to communicate with AWS in the flask app. These may or may not be the same access keys; contact your AWS system administrator if you do not have these credentials. 
 
 During the Mephisto onboarding tutorial, you would've configured Mephisto with your AWS credentials. Our Heroku architect pipeline also accesses environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`; ensure that these are set.
+
+### Configuring Job Parameters
+To configure job parameters, create a file `data.csv` in `droidlet_static_html_task/data.csv`. The header row contains the names of variables, and each row specifies parameters for a single Turk job.
+
+In the Droidlet static task, each turker is given a unique instance of the Voxel world. Currently we pre-launch ECS instances, and set up HTTP/HTTPS proxies for each instance via Cloudflare. Each row in `data.csv` specifies a unique IP. The format of `data.csv` is as follows:
+
+```
+subdomain
+<IP1>
+<IP2>
+...
+```
+
+We can access these template variables directly in the HTML tasks.
 
 ### Running tasks
 Run the following command to start a `droidlet_static_html_task` with `heroku` architect and `flask` server type
