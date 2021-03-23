@@ -70,7 +70,7 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
     app.run(ip, threaded=True, port=port, ssl_context=ssl_context, debug=False)
 
 
-def start(web_root="web", ip="0.0.0.0", port=80, quiet=True):
+def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):
     t = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port, quiet))
     t.start()
     # avoid race conditions, wait for the thread to start and set the socketio object
