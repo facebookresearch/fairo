@@ -68,6 +68,6 @@ git remote add servermgr <Heroku Git URL>
 Check that your remotes were configured properly with `git remote -v`.
 
 To deploy a new servermgr app:
-1. Make changes to the code inside [`~/droidlet/craftassist/servermgr/`](/).
+1. Make changes to the code inside [`~/droidlet/craftassist/servermgr/`]().
 2. Commit and push to your feature branch
 3. Run [deploy.sh](deploy.sh). By default this deploys your working `servermgr` directory to Heroku. (Note: this script needs to be run from within the `servermgr` directory.)
