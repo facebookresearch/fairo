@@ -59,7 +59,7 @@ $(document).ready(function() {
                 if (r.progress == 100) {
                     clearInterval(interval);
                     instance_ip_address = r.ip;
-                    window.location.replace("http://" + instance_ip_address + ":8000");
+                    window.location.replace("http://" + instance_ip_address);
                 }
             }).fail(function(err) {
                 console.error(err)
