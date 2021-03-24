@@ -123,7 +123,7 @@ Two papers cover the design of droidlet:
 
 ## Citation
 
-Please cite our [arXiv paper](https://arxiv.org/abs/2101.10384) if you use droidlet in your work:
+If you use droidlet in your work, please cite our [arXiv paper](https://arxiv.org/abs/2101.10384):
 
 ```
 @misc{pratik2021droidlet,
