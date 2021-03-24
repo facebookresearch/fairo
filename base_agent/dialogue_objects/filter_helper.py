@@ -119,9 +119,12 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
     selector = None
     location_d = filters_d.get("location")
     if location_d:
+        # FIXME!!!! this is not fixed in grammar
+        # should not have selector for location
         selector = build_linear_extent_selector(interpreter, speaker, location_d)
     else:
-        argval_d = filters_d.get("argval")
+        selector_d = filters_d.get("selector", {})
+        argval_d = selector_d.get("argval")
         if argval_d:
             polarity = "arg" + argval_d.get("polarity").lower()
             attribute_d = argval_d.get("quantity").get("attribute")

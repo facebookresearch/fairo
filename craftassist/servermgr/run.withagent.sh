@@ -27,7 +27,7 @@ python3 /droidlet/craftassist/cuberite_process.py \
 
 TARBALL=logs.tar.gz
 # Only upload the logs and CSV files
-find -name "*.log" -name -o -name "*.csv" | tar czf $TARBALL --force-local
+find -name "*.log" -o -name "*.csv"|tar czf $TARBALL --force-local -T -
 
 if [ -z "$CRAFTASSIST_NO_UPLOAD" ]; then
     # expects $AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY to exist

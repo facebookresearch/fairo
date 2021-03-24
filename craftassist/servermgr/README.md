@@ -45,11 +45,29 @@ Replacing the <DIGEST from above> with whatever digest you'd like to promote
 
 ## How to deploy a new servermgr
 
-0. Do once ever: run `heroku login` and enter the credentials
-and then run: 
+These are instructions for updating `craftassist.io`.
+
+### Set Up
+
+Ensure that you have the Heroku credentials for `servermgr`, and Heroku CLI installed. To set up Heroku CLI, run `heroku login -i` and enter your Heroku credentials. You should be able to see the Heroku apps under your account, including `servermgr` which runs on `craftassist.io`.
+
+### Deploy to craftassist.io
+
+To get the Heroku Git URL, run
 ```
-git remote add <name of heorku git> <link to heroku git>
+heroku info servermgr
 ```
-1. Make changes to the code at [app.py](app.py)
-2. Commit and push to master
-3. Run [deploy.sh](deploy.sh)
+
+In addition to the Git URL this will show you information about the servermgr app, such as link to the web console.
+
+You want to register this Heroku Git URL as a remote for the Droidlet repo. Inside the Droidlet repo, run 
+```
+git remote add servermgr <Heroku Git URL>
+```
+
+Check that your remotes were configured properly with `git remote -v`.
+
+To deploy a new servermgr app:
+1. Make changes to the code inside [`~/droidlet/craftassist/servermgr/`]().
+2. Commit and push to your feature branch
+3. Run [deploy.sh](deploy.sh). By default this deploys your working `servermgr` directory to Heroku. (Note: this script needs to be run from within the `servermgr` directory.)

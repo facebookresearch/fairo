@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 from gevent import monkey
+import CloudFlare
 
 monkey.patch_all()
 
@@ -69,6 +70,23 @@ with open("run.withagent.sh", "rb") as f:
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
     run_flat_sh_gz_b64 = b64encode(gzip.compress(txt_flat)).decode("utf-8")
 
+def register_dashboard_subdomain(cf, zone_id, ip):
+    """Registers a unique subdomain for craftassist.io
+    that serves proxied HTTP content using cloudflare.
+
+    Args:
+    cf -- CloudFlare context with R/W permissions.
+    zone_id -- zone ID used to locate DNS records.
+    ip -- IP of the ECS container that runs dashboard.
+    """
+    # NOTE: chances of collision are slim, this is just a safeguard
+    dns_record_exists = True
+    # Check that DNS record does not already exist
+    while dns_record_exists:
+        subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
+        dns_record_exists = cf.zones.dns_records.get(zone_id, params={'name': '{}.craftassist.io'.format(subdomain_name)})
+    dns_record = {'name': subdomain_name, 'type':'A', 'content': ip, 'proxied': True}
+    r = cf.zones.dns_records.post(zone_id, data=dns_record)
 
 @app.route("/test")
 def test():
@@ -155,6 +173,15 @@ def status():
         return json.dumps({"progress": 90, "ip": ip})
 
     logging.info("status: success")
+    # register subdomain to proxy instance IP
+    if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
+        logging.info("registering subdomain on craftassist.io")
+        cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
+        zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
+        cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
+        dns_records = cf.zones.dns_records.get(zone_id)
+        register_dashboard_subdomain(cf, zone_id, ip)
+
     return json.dumps({"progress": 100, "ip": ip})
 
 
@@ -209,6 +236,14 @@ def launch_instance(task="craftassist", config="random", debug=False):
                             "name": "SENTRY_DSN",
                             "value": os.environ.get("CRAFTASSIST_SENTRY_DSN", ""),
                         },
+                        {
+                            "name": "CLOUDFLARE_TOKEN",
+                            "value": os.getenv("CLOUDFLARE_TOKEN")
+                        },
+                        {
+                            "name": "CLOUDFLARE_ZONE_ID",
+                            "value": os.getenv("CLOUDFLARE_ZONE_ID")
+                        }
                     ],
                 }
             ]

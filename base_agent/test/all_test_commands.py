@@ -75,26 +75,36 @@ ATTRIBUTES["distance from that cube"] = {
 
 # FIXME "built" should check for player made or agent made
 FILTERS["the first thing that was built"] = {
-    "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "selector": {
+        "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]}
+    },
     "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["the last thing that was built"] = {
-    "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "selector": {
+        "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]}
+    },
     "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "selector": {
+        "argval": {"polarity": "MIN", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]}
+    },
     "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argval": {"polarity": "MIN", "ordinal": "SECOND", "quantity": ATTRIBUTES["create time"]},
+    "selector": {
+        "argval": {"polarity": "MIN", "ordinal": "SECOND", "quantity": ATTRIBUTES["create time"]}
+    },
     "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
-    "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]},
+    "selector": {
+        "argval": {"polarity": "MAX", "ordinal": "FIRST", "quantity": ATTRIBUTES["create time"]}
+    },
     "triples": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}],
 }
 
@@ -757,16 +767,18 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "name"},
-            "argval": {
-                "ordinal": "FIRST",
-                "polarity": "MIN",
-                "quantity": {
-                    "attribute": {
-                        "linear_extent": {
-                            "source": {"reference_object": {"special_reference": "AGENT"}}
+            "selector": {
+                "argval": {
+                    "ordinal": "FIRST",
+                    "polarity": "MIN",
+                    "quantity": {
+                        "attribute": {
+                            "linear_extent": {
+                                "source": {"reference_object": {"special_reference": "AGENT"}}
+                            }
                         }
-                    }
-                },
+                    },
+                }
             },
         },
     },
@@ -774,16 +786,18 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "name"},
-            "argval": {
-                "ordinal": "FIRST",
-                "polarity": "MIN",
-                "quantity": {
-                    "attribute": {
-                        "linear_extent": {
-                            "source": {"reference_object": {"special_reference": "SPEAKER"}}
+            "selector": {
+                "argval": {
+                    "ordinal": "FIRST",
+                    "polarity": "MIN",
+                    "quantity": {
+                        "attribute": {
+                            "linear_extent": {
+                                "source": {"reference_object": {"special_reference": "SPEAKER"}}
+                            }
                         }
-                    }
-                },
+                    },
+                }
             },
         },
     },
