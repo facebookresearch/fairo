@@ -607,7 +607,14 @@ FILL_COMMANDS = {
 DANCE_COMMANDS = {
     "dance": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [{"action_type": "DANCE", "dance_type": {"dance_type_span": "dance"}}],
+        "action_sequence": [
+            {
+                "action_type": "DANCE",
+                "dance_type": {
+                    "filters": {"triples": [{"pred_text": "has_tag", "obj_text": "dance"}]}
+                },
+            }
+        ],
     }
 }
 
@@ -1151,7 +1158,14 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "wave": {
-        "action_sequence": [{"action_type": "DANCE", "dance_type": {"dance_type_name": "wave"}}],
+        "action_sequence": [
+            {
+                "action_type": "DANCE",
+                "dance_type": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "wave"}]}
+                },
+            }
+        ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the chair": {

@@ -296,8 +296,7 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
 #### DanceType ####
 ```
 "dance_type" : {
-  "dance_type_name": {"fixed_value" : text} / span,
-  "dance_type_tag": span,
+  "filters": <FILTERS>,
   "point": <FACING>,
   "look_turn": <FACING>,
   "body_turn": <FACING>

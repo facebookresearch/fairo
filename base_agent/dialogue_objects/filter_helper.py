@@ -13,6 +13,7 @@ from memory_filters import (
     CountTransform,
     ExtremeValueMemorySelector,
 )
+from base_agent.base_util import ErrorWithResponse
 from location_helpers import interpret_relative_direction
 from comparator_helper import interpret_comparator
 from dialogue_object_utils import tags_from_dict
@@ -174,6 +175,23 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
         for s in comparator_specs:
             F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
 
+    return F
+
+
+def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
+    F = MemoryFilter(interpreter.agent.memory)
+    search_data = {}
+    triples = []
+    for t in filters_d.get("triples"):
+        triples.append(t)
+    search_data["base_table"] = "Dances"
+    search_data["triples"] = triples
+    F.append(BasicFilter(interpreter.agent.memory, search_data))
+    # currently spec intersects all comparators TODO?
+    comparator_specs = filters_d.get("comparator")
+    if comparator_specs:
+        for s in comparator_specs:
+            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
     return F
 
 

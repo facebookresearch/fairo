@@ -247,7 +247,7 @@ class DanceNode(MemoryNode):
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
         # TODO put in DB/pickle like tasks?
-        self.dance_fn = self.agent_memory[memid]
+        self.dance_fn = self.agent_memory.dances[memid]
 
     @classmethod
     def create(cls, memory, dance_fn, name=None, tags=[]) -> str:
