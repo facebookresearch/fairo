@@ -25,7 +25,7 @@ RUN pip3 install torch
 
 # Clone/make repo
 ADD . /minecraft
-WORKDIR /minecraft
+WORKDIR /minecraft/craftassist
 
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
 RUN mkdir -p python/craftassist/models/
