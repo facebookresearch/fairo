@@ -101,10 +101,11 @@ Note that `event` in time_condition represents when to start the timer and
 
 
 ## RemoveCondition ##
-
+```
 "remove_condition": {"condition": {"comparison_type": "EQUAL",
                                     "input_left": {
                                       "filters": {"output": {"attribute": "RUN_COUNT"},
                                                   "special": {"fixed_value": "THIS"}}},
                                     "input_right": {"value": span}},
                       "condition_type": "COMPARATOR"}
+```		      
