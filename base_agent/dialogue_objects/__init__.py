@@ -40,7 +40,7 @@ from interpreter import Interpreter
 from get_memory_handler import GetMemoryHandler
 
 from condition_helper import ConditionInterpreter, get_repeat_num
-from filter_helper import FilterInterpreter
+from filter_helper import FilterInterpreter, interpret_dance_filter
 from attribute_helper import AttributeInterpreter
 
 __all__ = [
@@ -62,6 +62,7 @@ __all__ = [
     strip_prefix,
     special_reference_search_data,
     get_eid_from_special,
+    interpret_dance_filter,
     ReferenceObjectInterpreter,
     interpret_reference_object,
     filter_by_sublocation,

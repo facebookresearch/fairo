@@ -247,7 +247,11 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "triples": [{"pred_text": "has_block_type", "obj_text": [0, [5, 5]]}],
+                "schematic": {
+                    "filters": {
+                        "triples": [{"pred_text": "has_block_type", "obj_text": [0, [5, 5]]}]
+                    }
+                },
                 "action_type": "FILL",
                 "reference_object": {
                     "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},

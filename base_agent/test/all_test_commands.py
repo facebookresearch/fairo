@@ -247,7 +247,9 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     },
     "fill_speaker_look_gold": {
         "action_type": "FILL",
-        "triples": [{"pred_text": "has_block_type", "obj_text": "gold"}],
+        "schematic": {
+            "filters": {"triples": [{"pred_text": "has_block_type", "obj_text": "gold"}]}
+        },
         "reference_object": {
             "filters": {"location": SPEAKERLOOK},
             "text_span": "where I'm looking",
@@ -607,7 +609,14 @@ FILL_COMMANDS = {
 DANCE_COMMANDS = {
     "dance": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
-        "action_sequence": [{"action_type": "DANCE", "dance_type": {"dance_type_span": "dance"}}],
+        "action_sequence": [
+            {
+                "action_type": "DANCE",
+                "dance_type": {
+                    "filters": {"triples": [{"pred_text": "has_tag", "obj_text": "dance"}]}
+                },
+            }
+        ],
     }
 }
 
@@ -1151,7 +1160,14 @@ GROUND_TRUTH_PARSES = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "wave": {
-        "action_sequence": [{"action_type": "DANCE", "dance_type": {"dance_type_name": "wave"}}],
+        "action_sequence": [
+            {
+                "action_type": "DANCE",
+                "dance_type": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "wave"}]}
+                },
+            }
+        ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "follow the chair": {

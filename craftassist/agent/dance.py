@@ -60,13 +60,9 @@ def add_default_dances(memory):
     """Add dances to agent's memory"""
     memory.add_dance(generate_sequential_move_fn(jump), name="jump")
     memory.add_dance(
-        generate_sequential_move_fn(konami_dance),
-        name="konami dance",
-        tags=["ornamental_dance", "konami"],
+        generate_sequential_move_fn(konami_dance), name="konami dance", tags=["dance", "konami"]
     )
-    memory.add_dance(
-        generate_sequential_move_fn(head_bob), name="head bob", tags=["ornamental_dance"]
-    )
+    memory.add_dance(generate_sequential_move_fn(head_bob), name="head bob", tags=["dance"])
 
 
 def generate_sequential_move_fn(sequence):

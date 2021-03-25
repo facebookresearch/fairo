@@ -4,4 +4,4 @@
 
 
 cd $(dirname $0)/../../
-git push heroku_servermgr $(git subtree split --prefix craftassist/servermgr):master --force
+git push servermgr $(git subtree split --prefix craftassist/servermgr):master --force
