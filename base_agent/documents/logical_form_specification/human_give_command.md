@@ -92,7 +92,7 @@ This action states that the agent should move to the specified location.
 { "action_type" : 'MOVE',
   <Location>,
   <StopCondition>,
-  <Repeat>,
+  <RemoveCondition>,
   "replace": True
 }
 ```
@@ -157,10 +157,7 @@ Also has support for Point / Turn / Look.
   "stop_condition" : {
       "condition_type" : NEVER,
   },
-  "repeat" : {
-    "repeat_key" : 'FOR',
-    "repeat_count" : span, # Note no repeat_dir here.
-  },
+  <RemoveCondition>,
   "replace": True
 }
 ```
