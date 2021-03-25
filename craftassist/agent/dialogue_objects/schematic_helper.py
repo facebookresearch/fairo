@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import random
 import re
+import numpy as np
 from typing import cast, List, Tuple, Union, Optional
 
 # TODO with subinterpret
@@ -22,31 +23,7 @@ def get_properties_from_triples(triples_list, p):
     return [x.get("obj_text") for x in triples_list if p in x.values()]
 
 
-def interpret_shape_schematic(
-    interpreter, speaker, d, shapename=None
-) -> Tuple[List[Block], List[Tuple[str, str]]]:
-    """Return a tuple of 2 values:
-    - the schematic blocks, list[(xyz, idm)]
-    - a list of (pred, val) tags
-
-    warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is 
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
-                     {"pred_text": "has_colour", "obj_text": "blue"}]
-    will currently just pick red.   Same for other properties encoded in triples
-    """
-    # FIXME this is not compositional, and does not properly use FILTERS
-    filters_d = d.get("filters", {})
-    triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
-    if shapename is not None:
-        shape = shapename
-    else:
-        # For sentences like "Stack" and "Place" that have the shapename in dict
-        shapes = get_properties_from_triples(triples, "has_shape")
-        if any(shapes):
-            # see warning above w.r.t. 0
-            shape = shapes[0]
-
+def get_attrs_from_triples(triples, interpreter):
     numeric_keys = {
         "has_thickness": get_properties_from_triples(triples, "has_thickness"),
         "has_radius": get_properties_from_triples(triples, "has_radius"),
@@ -81,6 +58,72 @@ def interpret_shape_schematic(
         c = block_data.COLOR_BID_MAP.get(text_keys["has_colour"][0])
         if c is not None:
             attrs["bid"] = random.choice(c)
+
+    return attrs
+
+
+# FIXME merge with shape_schematic
+# FIXME we should be able to do fancy stuff here, like fill the x with (copies of) schematic y
+def interpret_fill_schematic(
+    interpreter, speaker, d, hole_locs, hole_idm
+) -> Tuple[List[Block], List[Tuple[str, str]]]:
+    """Return a tuple of 2 values:
+    - the schematic blocks, list[(xyz, idm)]
+    - a list of (pred, val) tags
+
+    the "hole" input is a list of xyz coordinates giving a "mold" to be filled.
+    """
+
+    filters_d = d.get("filters", {})
+    triples = filters_d.get("triples", [])
+    attrs = get_attrs_from_triples(triples, interpreter)
+
+    h = attrs.get("height") or attrs.get("depth") or attrs.get("thickness")
+    bid = attrs.get("bid") or hole_idm or (1, 0)
+    origin = np.min(hole_locs, axis=0)
+    ymin = origin[1]
+    if h:
+        blocks_list = [((x, y, z), bid) for (x, y, z) in hole_locs if y - ymin < h]
+    else:
+        blocks_list = [((x, y, z), bid) for (x, y, z) in hole_locs]
+    tags = []
+    for t in triples:
+        key = t.get("pred_text", "")
+        if key.startswith("has_"):
+            val = t.get("obj_text", "")
+            stemmed_val = val
+            if val:
+                tags.append((key, stemmed_val))
+
+    return blocks_list, tags
+
+
+def interpret_shape_schematic(
+    interpreter, speaker, d, shapename=None
+) -> Tuple[List[Block], List[Tuple[str, str]]]:
+    """Return a tuple of 2 values:
+    - the schematic blocks, list[(xyz, idm)]
+    - a list of (pred, val) tags
+
+    warning:  if multiple possibilities are given for the same tag, current
+    heursitic just picks one.  e.g. if the lf is 
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+                     {"pred_text": "has_colour", "obj_text": "blue"}]
+    will currently just pick red.   Same for other properties encoded in triples
+    """
+    # FIXME this is not compositional, and does not properly use FILTERS
+    filters_d = d.get("filters", {})
+    triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
+    if shapename is not None:
+        shape = shapename
+    else:
+        # For sentences like "Stack" and "Place" that have the shapename in dict
+        shapes = get_properties_from_triples(triples, "has_shape")
+        if any(shapes):
+            # see warning above w.r.t. 0
+            shape = shapes[0]
+
+    attrs = get_attrs_from_triples(triples, interpreter)
 
     tags = []
     for t in triples:
