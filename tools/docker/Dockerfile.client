@@ -36,6 +36,7 @@ RUN tar -xzvf datasets_folder.tar.gz -C python/craftassist/datasets/ --strip-com
 RUN make clean
 RUN make
 
+# Your spacy install might fail. If so, you'll need to comment this out and resolve.
 RUN pip3 install -r requirements.txt
 
 RUN echo "alias python=python3" >> ~/.bashrc
