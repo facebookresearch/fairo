@@ -63,7 +63,6 @@ class AgentMemory:
     Attributes:
         _db_log_file (FileHandler): File handler for writing database logs
         _db_log_idx (int): Database log index
-        sql_queries (list) : List of sql queries issued for the memory
         db (object): connection object to the database file
         _safe_pickle_saved_attrs (dict): Dictionary for pickled attributes
         all_tables (list): List of all table names
@@ -85,7 +84,6 @@ class AgentMemory:
         if db_log_path:
             self._db_log_file = gzip.open(db_log_path + ".gz", "w")
             self._db_log_idx = 0
-        self.sql_queries = []
         if os.path.isfile(db_file):
             os.remove(db_file)
         self.db = sqlite3.connect(db_file, check_same_thread=False)
@@ -918,9 +916,6 @@ class AgentMemory:
         try:
             c = self.db.cursor()
             c.execute(query, args)
-            query = query.replace("?", "{}").format(*args)
-            if query not in self.sql_queries:
-                self.sql_queries.append(query)
             r = c.fetchall()
             c.close()
             return r
@@ -947,9 +942,6 @@ class AgentMemory:
         try:
             c = self.db.cursor()
             c.execute(query, args)
-            query = query.replace("?", "{}").format(*args)
-            if query not in self.sql_queries:
-                self.sql_queries.append(query)
             r = c.fetchone()
             c.close()
             return r
@@ -993,9 +985,6 @@ class AgentMemory:
         try:
             c = self.db.cursor()
             c.execute(query, args)
-            query = query.replace("?", "{}").format(*args)
-            if query not in self.sql_queries:
-                self.sql_queries.append(query)
             self.db.commit()
             c.close()
             self._write_to_db_log(query, *args)
