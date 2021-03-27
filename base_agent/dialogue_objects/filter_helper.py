@@ -124,21 +124,29 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
         selector = build_linear_extent_selector(interpreter, speaker, location_d)
     else:
         selector_d = filters_d.get("selector", {})
-        argval_d = selector_d.get("argval")
-        if argval_d:
-            polarity = "arg" + argval_d.get("polarity").lower()
-            attribute_d = argval_d.get("quantity").get("attribute")
-            get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
-            selector_attribute = get_attribute(interpreter, speaker, attribute_d)
-            # FIXME
-            ordinal = {"first": 1, "second": 2, "third": 3}.get(
-                argval_d.get("ordinal", "first").lower(), 1
-            )
-            sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-            selector = ExtremeValueMemorySelector(
-                interpreter.agent.memory, polarity=polarity, ordinal=ordinal
-            )
-            selector.append(sa)
+        return_d = selector_d.get("return_quantity", "ALL")
+        if type(return_d) is str:
+            if return_d == "ALL":
+                # no selector, just return everything
+                pass
+            else:
+                raise Exception("malformed selector dict {}".format(selector_d))
+        else:
+            argval_d = return_d.get("argval")
+            if argval_d:
+                polarity = "arg" + argval_d.get("polarity").lower()
+                attribute_d = argval_d.get("quantity").get("attribute")
+                get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
+                selector_attribute = get_attribute(interpreter, speaker, attribute_d)
+                # FIXME
+                ordinal = {"first": 1, "second": 2, "third": 3}.get(
+                    argval_d.get("ordinal", "first").lower(), 1
+                )
+                sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
+                selector = ExtremeValueMemorySelector(
+                    interpreter.agent.memory, polarity=polarity, ordinal=ordinal
+                )
+                selector.append(sa)
     if selector is not None:
         selector.append(F)
         return selector
