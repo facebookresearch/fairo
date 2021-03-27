@@ -75,6 +75,7 @@ class JSONValidator:
                 except exceptions.ValidationError as e:
                     print(command)
                     pprint(parse_tree)
+                    print(e)
                     print("\n")
 
     def validate_instance(self, parse_tree):
