@@ -6,18 +6,17 @@ import os
 import unittest
 
 from base_craftassist_test_case import BaseCraftassistTestCase
-from fake_agent import MockOpt
 from validate_json import JSONValidator
 
 FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/full_data/")
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/datasets/")
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../base_agent/documents/json_schema/")
-
-"""This class tests safety checks using a preset list of blacklisted words.
-"""
 
 
 class DataValidationTest(BaseCraftassistTestCase):
+    """This class validates parse trees associated with commonly used commands in ground truth and unit tests. 
+    
+    Note that ground truth files are symlinked to files in the full data directory.
+    """
     def setUp(self):
         # accept all spans
         self.json_validator_all = JSONValidator(SCHEMA_DIR, "all")
