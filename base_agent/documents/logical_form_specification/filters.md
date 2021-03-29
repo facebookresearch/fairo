@@ -19,7 +19,7 @@ FILTERS = {
       "output" : "MEMORY" / "COUNT" / <ATTRIBUTE>,
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
-      "selector: {"argval" : <ARGMAX> / <ARGMIN> },
+      "selector: {"return_quantity": {"argval" : <ARGMAX> / <ARGMIN> }},
       "comparator": [<COMPARATOR> , ...],
       "triples": <TRIPLES>,
       "author":  {"fixed_value" : "AGENT" / "SPEAKER"} / span,
