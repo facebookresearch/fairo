@@ -39,8 +39,9 @@ class TTADBertModel(object):
 
     def __init__(self, model_dir, data_dir, model_name="caip_test_model"):
         model_name = os.path.join(model_dir, model_name)
-        args = pickle.load(open(model_name + "_args.pk", "rb"))
-
+        with open(model_name + "_args.pk", "rb") as fd:
+            args = pickle.load(fd)
+        
         args.data_dir = data_dir
 
         self.tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)

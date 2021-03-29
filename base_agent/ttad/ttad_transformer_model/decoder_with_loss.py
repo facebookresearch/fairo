@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import logging
 from transformers.modeling_bert import BertModel, BertOnlyMLMHead
+from tokenization_utils import fixed_span_values_voc
 
 
 def my_xavier_init(m, gain=1):
@@ -58,7 +59,7 @@ class DecoderWithLoss(nn.Module):
         logging.debug("initializing decoder with params {}".format(args))
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
-        self.fixed_span_head = nn.Linear(config.hidden_size, 34)
+        self.fixed_span_head = nn.Linear(config.hidden_size, len(fixed_span_values_voc))
         self.span_b_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         self.span_e_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
         # predict text span beginning and end
