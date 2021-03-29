@@ -139,6 +139,11 @@ class LocoMCAgent(BaseAgent):
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
+        
+        @sio.on("terminateAgent")
+        def terminate_agent(sid, msg):
+            os._exit(0)
+
 
     def init_physical_interfaces(self):
         """

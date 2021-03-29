@@ -29,6 +29,8 @@ RUN cd /droidlet/dldashboard/web && yarn install
 RUN mkdir workdir
 WORKDIR workdir
 
+ENV MCDASHBOARD_PORT 80
+
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 

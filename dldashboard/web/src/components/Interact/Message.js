@@ -118,20 +118,7 @@ class Message extends Component {
     return (
       <div className="Chat">
         {/* <p>Press spacebar to start/stop recording.</p> */}
-        <p>
-          Enter the command to the bot in the input box below, or click the mic
-          button to start/stop voice input.
-        </p>
-        <p>
-          Click the x next to the message if the outcome wasn't as expected.
-        </p>
-        <KeyboardVoiceIcon
-          className="ASRButton"
-          variant="contained"
-          color={this.state.recognizing ? "default" : "secondary"}
-          fontSize="large"
-          onClick={this.toggleListen.bind(this)}
-        ></KeyboardVoiceIcon>
+        <p>Enter the command to the bot in the input box below</p>
         <List>{this.renderChatHistory()}</List>
         <div
           contentEditable="true"
@@ -153,7 +140,9 @@ class Message extends Component {
         </Button>
 
         <p id="callbackMsg">{this.props.status}</p>
-        <p id="assistantReply">{this.props.agent_reply} </p>
+        <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
+        <br />
+        <br />
       </div>
     );
   }
