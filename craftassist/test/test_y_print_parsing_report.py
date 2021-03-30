@@ -104,7 +104,7 @@ common_functional_commands = {
                             {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
                         ],
                         "selector": {
-                            "random_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
                         },
                     }
@@ -174,7 +174,7 @@ common_functional_commands = {
                             {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
                         ],
                         "selector": {
-                            "random_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
                         },
                     }
@@ -339,7 +339,7 @@ common_functional_commands = {
                     "filters": {
                         "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
                         "selector": {
-                            "random_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
                         },
                     }
@@ -542,7 +542,7 @@ common_functional_commands = {
                     "filters": {
                         "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
                         "selector": {
-                            "random_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
                         },
                     }

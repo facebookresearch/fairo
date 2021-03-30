@@ -153,7 +153,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
             "filters": {
                 "triples": [{"pred_text": "has_name", "obj_text": "sheep"}],
                 "selector": {
-                    "random_quantity": {"random": "5"},
+                    "return_quantity": {"random": "5"},
                     "same": "ALLOWED",
                 },
             },
