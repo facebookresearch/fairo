@@ -652,20 +652,22 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "NAME"},
             "selector": {
-                "argval": {
-                    "ordinal": {"fixed_value": "FIRST"},
-                    "polarity": "MIN",
-                    "quantity": {
-                        "attribute": {
-                            "linear_extent": {
-                                "source": {
-                                    "reference_object": {
-                                        "special_reference": {"fixed_value": "AGENT"}
+                "return_quantity": {
+                    "argval": {
+                        "ordinal": {"fixed_value": "FIRST"},
+                        "polarity": "MIN",
+                        "quantity": {
+                            "attribute": {
+                                "linear_extent": {
+                                    "source": {
+                                        "reference_object": {
+                                            "special_reference": {"fixed_value": "AGENT"}
+                                        }
                                     }
                                 }
                             }
-                        }
-                    },
+                        },
+                    }
                 }
             },
         },
@@ -749,20 +751,22 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "NAME"},
             "selector": {
-                "argval": {
-                    "ordinal": {"fixed_value": "FIRST"},
-                    "polarity": "MIN",
-                    "quantity": {
-                        "attribute": {
-                            "linear_extent": {
-                                "source": {
-                                    "reference_object": {
-                                        "special_reference": {"fixed_value": "SPEAKER"}
+                "return_quantity": {
+                    "argval": {
+                        "ordinal": {"fixed_value": "FIRST"},
+                        "polarity": "MIN",
+                        "quantity": {
+                            "attribute": {
+                                "linear_extent": {
+                                    "source": {
+                                        "reference_object": {
+                                            "special_reference": {"fixed_value": "SPEAKER"}
+                                        }
                                     }
                                 }
                             }
-                        }
-                    },
+                        },
+                    }
                 }
             },
         },

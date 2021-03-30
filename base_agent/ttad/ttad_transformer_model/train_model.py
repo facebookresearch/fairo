@@ -366,12 +366,12 @@ def main():
     )
     parser.add_argument("--batch_size", default=56, type=int, help="Batch size")
     parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
-    parser.add_argument("--num_epochs", default=8, type=int, help="Number of training epochs")
+    parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
     parser.add_argument(
         "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
     )
     parser.add_argument(
-        "--train_encoder", default=True, type=bool, help="Whether to finetune the encoder"
+        "--train_encoder", default=1, type=int, help="Whether to finetune the encoder"
     )
     parser.add_argument(
         "--encoder_warmup_steps",
@@ -433,8 +433,8 @@ def main():
     )
     parser.add_argument(
         "--hard",
-        default=True,
-        type=bool,
+        default=1,
+        type=int,
         help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
