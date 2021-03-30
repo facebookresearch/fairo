@@ -7,7 +7,7 @@ The supported fields are :
 - `output` : This field specifies the expected output type. In the `output` field we can either have a `"memory"` value which means return the entire memory node (for eg: "is that red"), or `"count"` that represents the equivalent of `count(*)` (for eg: "how many houses on your left") or `attribute` representing the column name of that memory node (equivalent to `Select <attribute> from memory_node`) (for example: "what colour is the cube in front of me"). 
 - `contains coreference` : This field specifies whether the memory node has a coreference that needs to be resolved based on dialogue context.
 - `memory_type` : Specifies the type of memory is the name of memory node. The default value for this is : `"REFERENCE_OBJECT"`.
-- `argval` : This field specifies that is there is some form of ranking.
+- `selector` : This field specifies the selection criteria if any.
 - `comparator`: This field specifies some form of comparison between two values.
 - `triples` : This is a list of triple dictionaries that have a subject, predicate and object.
 - `author` : Specifies the author of the change. For eg in "go to the house I made last", author is "SPEAKER" here.
@@ -19,7 +19,7 @@ FILTERS = {
       "output" : "MEMORY" / "COUNT" / <ATTRIBUTE>,
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
-      "argval" : <ARGMAX> / <ARGMIN> ,
+      "selector: {"return_quantity": {"argval" : <ARGMAX> / <ARGMIN> }},
       "comparator": [<COMPARATOR> , ...],
       "triples": <TRIPLES>,
       "author":  {"fixed_value" : "AGENT" / "SPEAKER"} / span,

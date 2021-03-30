@@ -19,6 +19,10 @@ from transformers import AutoModel, AutoTokenizer, BertConfig
 
 from utils_parsing import *
 from utils_caip import *
+from decoder_with_loss import *
+from encoder_decoder import *
+from optimizer_warmup import *
+from caip_dataset import *
 
 class ModelTrainer:
     """Wrapper Class around training model and data loader
@@ -362,12 +366,12 @@ def main():
     )
     parser.add_argument("--batch_size", default=56, type=int, help="Batch size")
     parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
-    parser.add_argument("--num_epochs", default=8, type=int, help="Number of training epochs")
+    parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
     parser.add_argument(
         "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
     )
     parser.add_argument(
-        "--train_encoder", default=True, type=bool, help="Whether to finetune the encoder"
+        "--train_encoder", default=1, type=int, help="Whether to finetune the encoder"
     )
     parser.add_argument(
         "--encoder_warmup_steps",
@@ -429,8 +433,8 @@ def main():
     )
     parser.add_argument(
         "--hard",
-        default=True,
-        type=bool,
+        default=1,
+        type=int,
         help="Whether to feed in failed examples during training"
     )
     parser.add_argument(

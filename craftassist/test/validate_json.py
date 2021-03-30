@@ -55,15 +55,14 @@ class JSONValidator:
         self.base_schema = base_schema
         self.resolver = resolver
 
-    def validate_data(self, data_path):
+    def validate_data(self, data_path, test_mode=False):
         """
         Validates JSON style parse trees from a dataset, where each row has the format
         [command] | [parse_tree]
 
         Args:
         data_path (str) -- Path to plaintext file, eg. annotated.txt
-        schema (jsonschema) -- JSON schema we are validating against
-        resolver (RefResolver) -- A store of subschemas referenced in the main action dict spec.
+        test_mode (bool) -- Whether we are running data validation as a unit test.
         """
         with open(data_path) as fd:
             dataset = fd.readlines()
@@ -75,7 +74,14 @@ class JSONValidator:
                 except exceptions.ValidationError as e:
                     print(command)
                     pprint(parse_tree)
+                    print(e)
                     print("\n")
+                    # If we're running data validation as a unit test, return False immediately on validation error.
+                    if test_mode:
+                        return False
+        # Return True if we're running data validation as a unit test.
+        if test_mode:
+            return True
 
     def validate_instance(self, parse_tree):
         """
@@ -98,7 +104,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_path",
         type=str,
-        default="craftassist/agent/datasets/full_data/templated_filters.txt",
+        default="craftassist/agent/datasets/full_data/locobot.txt",
         help="path to dataset with examples we want to validate, where each row contains a command and parse tree separated by |.",
     )
     parser.add_argument(

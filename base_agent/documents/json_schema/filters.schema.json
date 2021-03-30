@@ -236,9 +236,6 @@
                         "ALL"
                     ]
                 },
-                "argval": {
-                    "$ref": "#/definitions/argval"
-                },
                 "comparator": {
                     "$ref": "#/definitions/comparator"
                 },
@@ -260,6 +257,9 @@
                 },
                 "repeat": {
                     "$ref": "grammar_spec.schema.json#/definitions/repeat"
+                },
+                "selector": {
+                    "$ref": "#/definitions/selector" 
                 }
             },
             "additionalProperties": false
@@ -356,6 +356,17 @@
                 }
             }
         },
+        "selector": {
+            "type": "object",
+            "properties": {
+                "argval": {
+                    "$ref": "#/definitions/argval"
+                },
+                "location": {
+                    "$ref": "action_dict_components.schema.json#/definitions/location"
+                }
+            }
+        },
         "triples": {
             "type": "array",
             "description": "A list of filters",
@@ -388,6 +399,9 @@
                             },
                             {
                                 "$ref": "action_dict_components.schema.json#/definitions/span"
+                            },
+                            {
+                                "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
                             }
                         ]
                     },

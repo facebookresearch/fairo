@@ -12,6 +12,7 @@ from base_agent.dialogue_objects import (
     get_repeat_num,
     Interpreter,
     AttributeInterpreter,
+    interpret_dance_filter,
 )
 
 from base_agent.base_util import ErrorWithResponse
@@ -58,6 +59,7 @@ class LocoInterpreter(Interpreter):
         self.subinterpret["condition"] = ConditionInterpreter()
         self.subinterpret["specify_locations"] = ComputeLocations()
         self.subinterpret["facing"] = FacingInterpreter()
+        self.subinterpret["dances_filters"] = interpret_dance_filter
         self.subinterpret["point_target"] = PointTargetInterpreter()
 
         self.action_handlers["DANCE"] = self.handle_dance
@@ -137,7 +139,8 @@ class LocoInterpreter(Interpreter):
                         tasks_to_do.append(t)
                     return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
-            dance_type = d.get("dance_type", {"dance_type_name": "dance"})
+            dance_type = d.get("dance_type", {})
+            dance_filters_d = dance_type.get("filters", {})
             if dance_type.get("point"):
                 target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
                 for i in range(repeat):
@@ -154,12 +157,14 @@ class LocoInterpreter(Interpreter):
                     T = self.task_objects["turn"]
                 for i in range(repeat):
                     tasks_to_do.append(T(self.agent, f))
-            elif dance_type["dance_type_name"] == "wave":
-                new_task = self.task_objects["dance"](self.agent, {"movement_type": "wave"})
-                tasks_to_do.append(new_task)
             else:
-                # FIXME ! merge dances, refactor.  search by name in sql
-                raise ErrorWithResponse("I don't know how to do that dance yet!")
+                dance_triples = dance_filters_d.get("triples", [])
+                if any([t.get("obj_text") == "wave" for t in dance_triples]):
+                    new_task = self.task_objects["dance"](self.agent, {"movement_type": "wave"})
+                    tasks_to_do.append(new_task)
+                    # FIXME ! merge dances, refactor.  search by name
+                else:
+                    raise ErrorWithResponse("I don't know how to do that dance yet!")
             return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
         if "stop_condition" in d:

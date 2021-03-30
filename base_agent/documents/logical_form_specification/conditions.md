@@ -98,3 +98,14 @@ TIME_CONDITION = {
 ```
 Note that `event` in time_condition represents when to start the timer and
 `input_left` by default in time condition marks the time since the event condition.
+
+
+## RemoveCondition ##
+```
+"remove_condition": {"condition": {"comparison_type": "EQUAL",
+                                    "input_left": {
+                                      "filters": {"output": {"attribute": "RUN_COUNT"},
+                                                  "special": {"fixed_value": "THIS"}}},
+                                    "input_right": {"value": span}},
+                      "condition_type": "COMPARATOR"}
+```		      

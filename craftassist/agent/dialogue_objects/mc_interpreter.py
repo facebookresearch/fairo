@@ -22,9 +22,15 @@ from base_agent.dialogue_objects import (
     interpret_relative_direction,
     get_repeat_num,
     filter_by_sublocation,
+    interpret_dance_filter,
 )
 
-from .schematic_helper import get_repeat_dir, interpret_schematic, interpret_size
+from .schematic_helper import (
+    get_repeat_dir,
+    interpret_schematic,
+    interpret_size,
+    interpret_fill_schematic,
+)
 
 from .facing_helper import FacingInterpreter
 
@@ -63,6 +69,7 @@ class MCInterpreter(Interpreter):
         self.subinterpret["condition"] = MCConditionInterpreter()
         self.subinterpret["specify_locations"] = ComputeLocations()
         self.subinterpret["facing"] = FacingInterpreter()
+        self.subinterpret["dances_filters"] = interpret_dance_filter
         self.subinterpret["point_target"] = PointTargetInterpreter()
 
         # logical_form --> possible task placed on stack + side effects
@@ -285,21 +292,25 @@ class MCInterpreter(Interpreter):
                 Say, "I don't understand what holes you want me to fill."
             )
             return None, None, None
+        tasks = []
         for hole in holes:
             _, hole_info = hole
             poss, hole_idm = hole_info
-            # FIXME use filters properly...
-            triples = d.get("triples", [])
-            block_types = [
-                t.get("obj_text") for t in triples if t.get("pred_text", "") == "has_block_type"
-            ]
-            try:
-                fill_idm = get_block_type(block_types[0])
-            except:
-                fill_idm = hole_idm
-            task_data = {"action_dict": d, "schematic": poss, "block_idm": fill_idm}
+            schematic, tags = interpret_fill_schematic(
+                self, speaker, d.get("schematic", {}), poss, hole_idm
+            )
+            origin = np.min([xyz for (xyz, bid) in schematic], axis=0)
+            task_data = {
+                "blocks_list": schematic,
+                "force": True,
+                "origin": origin,
+                "verbose": False,
+                "embed": True,
+                "fill_message": True,
+                "schematic_tags": tags,
+            }
 
-            tasks.append(self.task_objects["fill"](self.agent, task_data))
+            tasks.append(self.task_objects["build"](self.agent, task_data))
 
         if len(holes) > 1:
             self.dialogue_stack.append_new(Say, "Ok. I'll fill up the holes.")
@@ -445,10 +456,7 @@ class MCInterpreter(Interpreter):
                         tasks_to_do.append(t)
                     return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
-            dance_type = d.get("dance_type", {"dance_type_name": "dance"})
-            # FIXME holdover from old dict format
-            if type(dance_type) is str:
-                dance_type = dance_type = {"dance_type_name": "dance"}
+            dance_type = d.get("dance_type", {})
             if dance_type.get("point"):
                 target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
                 for i in range(repeat):
@@ -470,25 +478,16 @@ class MCInterpreter(Interpreter):
                     dance_location, _ = self.subinterpret["specify_locations"](
                         self, speaker, mems, steps, reldir
                     )
-                # TODO use name!
-                if dance_type.get("dance_type_span") is not None:
-                    dance_name = dance_type["dance_type_span"]
-                    if dance_name == "dance":
-                        dance_name = "ornamental_dance"
-                    dance_memids = self.memory._db_read(
-                        "SELECT DISTINCT(Dances.uuid) FROM Dances INNER JOIN Triples on Dances.uuid=Triples.subj WHERE Triples.obj_text=?",
-                        dance_name,
-                    )
-                else:
-                    dance_memids = self.memory._db_read(
-                        "SELECT DISTINCT(Dances.uuid) FROM Dances INNER JOIN Triples on Dances.uuid=Triples.subj WHERE Triples.obj_text=?",
-                        "ornamental_dance",
-                    )
-                dance_memid = random.choice(dance_memids)[0]
-                dance_fn = self.memory.dances[dance_memid]
+                filters_d = dance_type.get("filters", {})
+                filters_d["memory_type"] = "DANCES"
+                F = self.subinterpret["filters"](self, speaker, dance_type.get("filters", {}))
+                dance_memids, _ = F()
+                # TODO correct selector in filters
+                dance_memid = random.choice(dance_memids)
+                dance_mem = self.memory.get_mem_by_id(dance_memid)
                 for i in range(repeat):
                     dance_obj = dance.Movement(
-                        agent=self.agent, move_fn=dance_fn, dance_location=dance_location
+                        agent=self.agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
                     )
                     t = self.task_objects["dance"](self.agent, {"movement": dance_obj})
                     tasks_to_do.append(t)

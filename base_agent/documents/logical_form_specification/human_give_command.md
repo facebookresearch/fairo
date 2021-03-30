@@ -67,7 +67,7 @@ This action states that a hole / negative shape needs to be filled up.
 
 ```
 { "action_type" : 'FILL',
-  "triples": [{"pred_text": "has_block_type", "obj_text": {"fixed_value" : text} / span}]
+  <Schematic>,
   <ReferenceObject>,
   <Repeat>,
   "replace": True
@@ -92,7 +92,7 @@ This action states that the agent should move to the specified location.
 { "action_type" : 'MOVE',
   <Location>,
   <StopCondition>,
-  <Repeat>,
+  <RemoveCondition>,
   "replace": True
 }
 ```
@@ -157,10 +157,7 @@ Also has support for Point / Turn / Look.
   "stop_condition" : {
       "condition_type" : NEVER,
   },
-  "repeat" : {
-    "repeat_key" : 'FOR',
-    "repeat_count" : span, # Note no repeat_dir here.
-  },
+  <RemoveCondition>,
   "replace": True
 }
 ```
@@ -266,7 +263,7 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 "schematic" : {
           "text_span" : span,
           <Repeat> (with repeat_key: 'FOR' and additional 'SURROUND' repeat_dir), 
-          "triples" : [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
+          "filters" : <FILTERS>
       }
 ```
 where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientation`, `has_thickness`, `has_colour`, `has_height`, `has_length`, `has_radius`, `has_slope`, `has_width`, `has_base`, `has_depth`, `has_distance` 
@@ -296,8 +293,7 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
 #### DanceType ####
 ```
 "dance_type" : {
-  "dance_type_name": {"fixed_value" : text} / span,
-  "dance_type_tag": span,
+  "filters": <FILTERS>,
   "point": <FACING>,
   "look_turn": <FACING>,
   "body_turn": <FACING>
