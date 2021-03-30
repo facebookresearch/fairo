@@ -106,8 +106,8 @@
     "schematic": {
       "type": "object",
       "properties": {
-        "triples": {
-          "$ref": "filters.schema.json#/definitions/triples"
+        "filters": {
+          "$ref": "filters.schema.json#/definitions/filters"
         },
         "repeat": {
           "$ref": "#/definitions/repeat"
@@ -117,7 +117,7 @@
         }
       },
       "required": [
-        "triples"
+        "filters"
       ]
     },
     "repeat": {
@@ -204,20 +204,8 @@
     "dance_type": {
       "type": "object",
       "properties": {
-        "dance_type_name": {
-          "$ref": "#/definitions/span"
-        },
-        "dance_type_tag": {
-          "$ref": "#/definitions/span"
-        },
-        "point": {
-          "$ref": "#/definitions/facing"
-        },
-        "look_turn": {
-          "$ref": "#/definitions/facing"
-        },
-        "body_turn": {
-          "$ref": "#/definitions/facing"
+        "filters": {
+          "$ref": "filters.schema.json#/definitions/filters"
         }
       }
     }

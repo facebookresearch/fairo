@@ -11,19 +11,28 @@ echo "$ROOTDIR"
 if [ -z $1 ]
 then
 	AGENT="craftassist"
+	echo "Defaulting to default agent: '$AGENT'"
 else
 	AGENT=$1
 fi
-CHKSUM=$2
 
-echo "Checksum" $CHKSUM
+if [ -z $2 ]
+then
+	CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
+	CHECKSUM=`cat $CHECKSUM_FILE`  
+	echo "Downloading datasets folder with default checksum from file: '$CHECKSUM_FILE'"
+else
+	CHECKSUM=$2
+fi
+
+echo "Checksum" $CHECKSUM
 
 DATA_DIRNAME=datasets_folder
 
 cd $ROOTDIR
 
-echo "====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHKSUM}.tar.gz to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
-curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHKSUM}.tar.gz -o $DATA_DIRNAME.tar.gz
+echo "====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
+curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHECKSUM}.tar.gz -o $DATA_DIRNAME.tar.gz
 
 if [ -d "${AGENT}/agent/datasets" ]
 then
@@ -32,4 +41,4 @@ then
 fi
 mkdir -p $AGENT/agent/datasets/
 
-tar -xzvf $DATA_DIRNAME.tar.gz -C $AGENT/agent/datasets/ --strip-components 1
+tar -xzvf $DATA_DIRNAME.tar.gz -C $AGENT/agent/datasets/ --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${DATA_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
