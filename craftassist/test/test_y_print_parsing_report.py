@@ -340,7 +340,7 @@ common_functional_commands = {
                         "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
                         "selector": {
                             "return_quantity": {"random": [0, [1, 1]]},
-                            "same": "ALLOWED",
+                            "same": "DISALLOWED",
                         },
                     }
                 },
