@@ -150,10 +150,15 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "spawn_5_sheep": {
         "action_type": "SPAWN",
         "reference_object": {
-            "filters": {"triples": [{"pred_text": "has_name", "obj_text": "sheep"}]},
+            "filters": {
+                "triples": [{"pred_text": "has_name", "obj_text": "sheep"}],
+                "selector": {
+                    "return_quantity": {"random": "5"},
+                    "same": "ALLOWED",
+                },
+            },
             "text_span": "sheep",
         },
-        "repeat": {"repeat_key": "FOR", "repeat_count": "5"},
     },
     "copy_speaker_look_to_agent_pos": {
         "action_type": "BUILD",
