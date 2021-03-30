@@ -400,10 +400,14 @@ class RandomMemorySelector(MemoryFilter):
 
     def search(self):
         all_memids = self.all_table_memids()
+        if len(all_memids) == 0:
+            return [], []
         i = torch.randint(len(all_memids), (1,)).item()
         return [all_memids[i]], [None]
 
     def filter(self, memids, vals):
+        if len(memids) == 0:
+            return [], []
         i = torch.randint(len(memids), (1,)).item()
         return [memids[i]], [vals[i]]
 

@@ -13,6 +13,7 @@ from memory_filters import (
     CountTransform,
     ExtremeValueMemorySelector,
 )
+from base_agent.base_util import ErrorWithResponse
 from location_helpers import interpret_relative_direction
 from comparator_helper import interpret_comparator
 from dialogue_object_utils import tags_from_dict
@@ -118,23 +119,34 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
     selector = None
     location_d = filters_d.get("location")
     if location_d:
+        # FIXME!!!! this is not fixed in grammar
+        # should not have selector for location
         selector = build_linear_extent_selector(interpreter, speaker, location_d)
     else:
-        argval_d = filters_d.get("argval")
-        if argval_d:
-            polarity = "arg" + argval_d.get("polarity").lower()
-            attribute_d = argval_d.get("quantity").get("attribute")
-            get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
-            selector_attribute = get_attribute(interpreter, speaker, attribute_d)
-            # FIXME
-            ordinal = {"first": 1, "second": 2, "third": 3}.get(
-                argval_d.get("ordinal", "first").lower(), 1
-            )
-            sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-            selector = ExtremeValueMemorySelector(
-                interpreter.agent.memory, polarity=polarity, ordinal=ordinal
-            )
-            selector.append(sa)
+        selector_d = filters_d.get("selector", {})
+        return_d = selector_d.get("return_quantity", "ALL")
+        if type(return_d) is str:
+            if return_d == "ALL":
+                # no selector, just return everything
+                pass
+            else:
+                raise Exception("malformed selector dict {}".format(selector_d))
+        else:
+            argval_d = return_d.get("argval")
+            if argval_d:
+                polarity = "arg" + argval_d.get("polarity").lower()
+                attribute_d = argval_d.get("quantity").get("attribute")
+                get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
+                selector_attribute = get_attribute(interpreter, speaker, attribute_d)
+                # FIXME
+                ordinal = {"first": 1, "second": 2, "third": 3}.get(
+                    argval_d.get("ordinal", "first").lower(), 1
+                )
+                sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
+                selector = ExtremeValueMemorySelector(
+                    interpreter.agent.memory, polarity=polarity, ordinal=ordinal
+                )
+                selector.append(sa)
     if selector is not None:
         selector.append(F)
         return selector
@@ -145,9 +157,11 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
 def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
     F = MemoryFilter(interpreter.agent.memory)
 
+    task_tags = ["currently_running", "running", "paused", "finished"]
+
     T = filters_d.get("triples")
     task_properties = [
-        a.get("obj_text")[1:].lower() for a in T if a.get("obj_text", "").startswith("_")
+        a.get("obj_text").lower() for a in T if a.get("obj_text", "").lower() in task_tags
     ]
     search_data = {}
     search_data["base_table"] = "Tasks"
@@ -169,6 +183,23 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
         for s in comparator_specs:
             F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
 
+    return F
+
+
+def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
+    F = MemoryFilter(interpreter.agent.memory)
+    search_data = {}
+    triples = []
+    for t in filters_d.get("triples"):
+        triples.append(t)
+    search_data["base_table"] = "Dances"
+    search_data["triples"] = triples
+    F.append(BasicFilter(interpreter.agent.memory, search_data))
+    # currently spec intersects all comparators TODO?
+    comparator_specs = filters_d.get("comparator")
+    if comparator_specs:
+        for s in comparator_specs:
+            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
     return F
 
 
@@ -196,11 +227,18 @@ class FilterInterpreter:
             return specific_mem
 
         memtype = filters_d.get("memory_type", "REFERENCE_OBJECT")
+        # FIXME/TODO: these share lots of code, refactor
         if memtype == "REFERENCE_OBJECT":
             F = interpret_ref_obj_filter(interpreter, speaker, filters_d)
         elif memtype == "TASKS":
             F = interpret_task_filter(interpreter, speaker, filters_d)
         else:
-            raise NotImplementedError
+            memtype_key = memtype.lower() + "_filters"
+            try:
+                F = interpreter.subinterpret[memtype_key](interpreter, speaker, filters_d)
+            except:
+                raise ErrorWithResponse(
+                    "failed at interpreting filters of type {}".format(memtype)
+                )
         F = maybe_apply_selector(interpreter, speaker, filters_d, F)
         return maybe_append_left(F, to_append=val_map)

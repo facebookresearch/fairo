@@ -79,9 +79,12 @@ class DanceMovement(object):
         # can output
         return self.move_fn(self, self.agent)
 
+
 def add_default_dances(memory):
-    memory.add_dance(generate_sequential_move_fn(konami_dance), name="konami_dance")
-    memory.add_dance(generate_sequential_move_fn(head_bob), name="head_bob")
+    memory.add_dance(
+        generate_sequential_move_fn(konami_dance), name="konami_dance", tags=["dance"]
+    )
+    memory.add_dance(generate_sequential_move_fn(head_bob), name="head_bob", tags=["dance"])
 
 
 def generate_sequential_move_fn(sequence):
@@ -98,8 +101,6 @@ def generate_sequential_move_fn(sequence):
         return mv
 
     return move_fn
-
-
 
 
 # TODO head bob

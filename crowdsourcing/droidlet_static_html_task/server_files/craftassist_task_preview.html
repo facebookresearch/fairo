@@ -57,29 +57,70 @@
       <div class="panel-heading">
         <strong> Instructions </strong>
       </div>
-
       <div class="panel-body" id="instructions">
         <p>
-          Here is a sample craftassist task.
+            <h1><strong>Interact with an assistant in a 3-D world creative game.</strong></h1>
+            
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_world_agent.png" width="320" height="240"></iframe>
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_2.png" width="320" height="240"></iframe>
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_3.png" width="320" height="240"></iframe>
+            
+            <p><b>Imagine you are playing a creative game in a 3-D voxel world and you have access to an assistant (as shown in some screenshots above) that can help you get things done.</b><br />
+            <b>Use your imagination and creativity to interact with the assistant. In the setup here, you will be logged in to the voxel world along with the assistant.</b> You can control your position in the 3-D world by clicking on the bottom-left pane and then using the navigation buttons.<br />
+            </p>
+            <h3>How to enter voxel world and control</h3>
+            <p>Please click on the bottom-left pane to enter the 3-D voxel world.<br />
+            <b>Please use ‘w/a/s/d’ to move ‘forward/left/back/right’ , ‘space’ to jump and ‘esc’ to leave the world and back to the website.</b><br /></p>
+            
+            
+            <h3>Interacting with the assistant</h3>
+            <p>Please use the <b>chat box in the top left pane</b> to speak with and instruct the assistant. <br />
+            <b>Press “submit” when you are ready to send the command to the assistant</b>. Once you send the command, you should be able to see the assistant execute the command in the 3-D world on bottom-left. The <b>assistant might also send you replies once in a while and you can see that below the “Submit” button</b>. <br />
+            <b>Important: The bot might be slow to respond due to network lag. You may expect a few seconds between sending a command and getting responses from the agent (we are improving it!).Please be patient and do not send multiple commands at a time</b>
+            
+            <b>On the top right you will be able to see a history of the last 5 commands</b> you’ve sent to the assistant in the game.<b r/>
+            <b>Keep in mind that the bot is non-violent. </b></p>
+            <p>&nbsp;</p>
+            
+            <b>You can assume that the bot has the following capabilities:</b>
+            <ul>
+                <li><b>Move</b> (the bot can be told to move around to places, objects, things etc)</li>
+                <li><b>Build</b> (the bot can be told to build things)</li>
+                <li><b>Destroy</b> (the bot can be told to destroy things)</li>
+                <li><b>Dance</b> (the bot can be told to do a movement of some kind)</li>
+                <li><b>Get</b> (the bot can be told to get things from one place to another)</li>
+                <li><b>Tag</b> (the bot can be told to tag things)</li>
+                <li><b>Dig</b> (the bot can be told to dig up things)</li>
+                <li><b>Copy</b> (the bot can be told to make a copy of things)</li>
+                <li><b>Undo</b> (the bot can be told to revert things)</li>
+                <li><b>Fill</b> (the bot can be told to fill up structures)</li>
+                <li><b>Spawn</b> (the bot can be told to spawn objects)</li>
+                <li><b>Answer</b> (the bot can be told to answer your questions)</li>
+                <li><b>Stop</b> (the bot can be told to stop)</li>
+                <li><b>Resume</b> (the bot can be told to resume an earlier action)</li>
+            </ul>
+            <br />
+            <p><b>You can talk to the bot as you would to another human player to instruct it to perform actions mentioned above, ask it questions, or to give it information.</b></p><br />
+            
+            
+            <b>Please use your imagination to come up with things you'd like to say to the bot to make the interaction rich, given the bot’s capabilities. Be as creative as you can.</b> </br>
+            <b>The instructions should be related to the bot's capabilities, please give us as much variety as you can.</b><br />
+            <b>Remember that the bot is non-violent. Please click on the start button when you are ready and once finished, click on the “end” button to proceed to next steps.</b>
+            <p><strong><span style="color:#FF0000;">Rejection policy: You HIT will be rejected if any of these are violated</span></strong></p>
+            
+            <ul>
+              <li>The submitted instructions should be valid English sentences.</li>
+              <li>The submitted instructions should only be about the bot's capabilities.</li>
+              <li>Please be as creative as you can.</li>
+              <li>Do not leave an instruction blank.</li>
+              <li>All three instructions should be unique.</li>
+              <li>Do not use the exact same strategies across HITs.</li>
+            </ul>            
         </p>
       </div>
     </div>
     <!-- End Instructions -->
     <!-- Content Body -->
-
-    <section>
-      <fieldset>
-        <div class="input-group">
-          <label>Rate your experience with playing with the bot</label>
-          <select class="form-control" name="rating">
-            <option selected="selected" value="">(select one)</option>
-            <option value="good">Good</option>
-            <option value="passable">Passable</option>
-            <option value="bad">Bad</option>
-          </select>
-        </div>
-      </fieldset>
-    </section>
     <!-- End Content Body -->
   </div>
 </section>
@@ -95,7 +136,7 @@
     height: 1000px;
   "
 >
-<iframe style="width:100%; height:100%;" src="https://craftassist.io/"></iframe>
+<iframe style="width:100%; height:100%;" src="https://${subdomain}.craftassist.io/"></iframe>
 </section>
 
 

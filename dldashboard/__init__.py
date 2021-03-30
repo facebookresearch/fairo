@@ -7,6 +7,7 @@ import dlevent
 import logging
 import json
 import random
+import ssl
 try:
     import html
     html_escape = html.escape
@@ -58,7 +59,15 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
         ip = os.getenv("MCDASHBOARD_IP")
         print("setting MC dashboard ip from env variable MCDASHBOARD_IP={}".format(ip))
 
-    app.run(ip, threaded=True, port=port, debug=False)
+    mcdashboard_ssl_cert = os.getenv("MCDASHBOARD_SSL_CERT") 
+    mcdashboard_ssl_pkey = os.getenv("MCDASHBOARD_SSL_PKEY")
+    ssl_context = None
+    if mcdashboard_ssl_cert and mcdashboard_ssl_pkey and os.path.isfile(mcdashboard_ssl_cert) and os.path.isfile(mcdashboard_ssl_pkey):
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        ssl_context.load_cert_chain(mcdashboard_ssl_cert, mcdashboard_ssl_pkey)
+        print("SSL certificate found, enabling https")
+
+    app.run(ip, threaded=True, port=port, ssl_context=ssl_context, debug=False)
 
 
 def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):

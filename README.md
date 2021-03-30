@@ -8,6 +8,8 @@
 
 `droidlet` is in active development and is fairly unstable in design, API, performance and correctness. It is not meant for any production use.
 
+*Reach out to us at droidlet@fb.com, to discuss your use case or just share your thoughts!*
+
 <p align="center">
    <img src="https://locobot-bucket.s3-us-west-2.amazonaws.com/documentation/droidlet.gif" />
 </p>
@@ -118,6 +120,21 @@ pip install -r requirements.txt
 Two papers cover the design of droidlet:
 1. [droidlet: modular, heterogenous, multi-modal agents](https://arxiv.org/abs/2101.10384) covers the overall design of `droidlet` as an embodied AI platform that is extensible to physical robots and simulators.
 2. [CraftAssist: A Framework for Dialogue-enabled Interactive Agents](https://arxiv.org/abs/1907.08584) covers the design of the dialogue parser and the task system of an earlier version of `droidlet` that is specific to the game [Minecraft](https://www.minecraft.net/en-us)
+
+## Citation
+
+If you use droidlet in your work, please cite our [arXiv paper](https://arxiv.org/abs/2101.10384):
+
+```
+@misc{pratik2021droidlet,
+      title={droidlet: modular, heterogenous, multi-modal agents}, 
+      author={Anurag Pratik and Soumith Chintala and Kavya Srinet and Dhiraj Gandhi and Rebecca Qian and Yuxuan Sun and Ryan Drew and Sara Elkafrawy and Anoushka Tiwari and Tucker Hart and Mary Williamson and Abhinav Gupta and Arthur Szlam},
+      year={2021},
+      eprint={2101.10384},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
 
 ## License
 
