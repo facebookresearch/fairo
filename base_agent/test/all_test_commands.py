@@ -154,7 +154,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
                 "triples": [{"pred_text": "has_name", "obj_text": "sheep"}],
                 "selector": {
                     "return_quantity": {"random": "5"},
-                    "same": "ALLOWED",
+                    "same": "DISALLOWED",
                 },
             },
             "text_span": "sheep",
