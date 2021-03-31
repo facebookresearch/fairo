@@ -65,7 +65,6 @@ This action states that a hole / negative shape needs to be filled up.
 { "action_type" : 'FILL',
   <Schematic>,
   <ReferenceObject>,
-  <Repeat>,
   "replace": True
 }
 ```
@@ -76,7 +75,6 @@ This action indicates the intent to destroy a block object.
 ```
 { "action_type" : 'DESTROY',
   <ReferenceObject>,
-  <Repeat>,
   "replace": True
 }
 ```
@@ -123,7 +121,6 @@ The `Schematic` child in this only has a subset of properties.
     "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
     },
   <StopCondition>,
-  <Repeat>,
   "replace": True  
 }
 ```
@@ -136,7 +133,6 @@ This action represents that the agent should complete an already existing half-f
 { "action_type" : 'FREEBUILD',
   <ReferenceObject>,
   <Location>,
-  <Repeat>,
   "replace": True
 }
 ```
@@ -168,7 +164,6 @@ The Bring intent represents bringing a reference_object to the speaker or to a s
 {
     "action_type" : 'GET',
     <ReferenceObject>,
-    <Repeat>,
     "receiver" : <ReferenceObject> / <Location>
 }
 ```
@@ -239,7 +234,6 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 ```
 "reference_object" : {
       "text_span" : span,
-      <Repeat>,
       "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK"} / {"coordinates_span" : span},
       "filters" : <FILTERS>
       }
