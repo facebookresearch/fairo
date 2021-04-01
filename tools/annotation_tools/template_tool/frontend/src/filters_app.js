@@ -73,6 +73,11 @@ class FiltersAnnotator extends React.Component {
       .then(res => res.json())
       .then((data) => { this.setState({ dataset: data})})
       .then(() => console.log(this.state.dataset))
+
+    fetch("http://localhost:9000/readAndSaveToFile/get_schema")
+      .then(res => res.json())
+      .then((data) => { this.setState({ schema: data})})
+      .then(() => console.log(this.state.schema))
   }
 
   handleChange(e) {
@@ -168,7 +173,7 @@ class FiltersAnnotator extends React.Component {
       <div>
         <b> Command </b>
         <TextCommand fullText={this.state.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} />
+        <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} schema={this.state.schema}/>
         <div onClick={this.logSerialized}>
           <button>Save</button>
         </div>
@@ -192,11 +197,26 @@ class LogicalForm extends React.Component {
     if (e.keyCode == 13) {
       let autocompletedResult = e.target.value
       // Apply replacements
-      autocompleteMatches.forEach(replacer => {
-        autocompletedResult = autocompletedResult.replace(replacer.match, replacer.replacement)
-      })
-
-      console.log(autocompletedResult)
+      // autocompleteMatches.forEach(replacer => {
+      //   autocompletedResult = autocompletedResult.replace(replacer.match, replacer.replacement)
+      // })
+      let definitions = Object.keys(this.props.schema.definitions)
+      console.log(definitions)
+      definitions.forEach(node => {
+        console.log(node)
+        let node_properties = Object.keys(this.props.schema.definitions[node]["properties"])
+        let properties_subtree = {}
+        node_properties.forEach(key => {
+          properties_subtree[key] = ""
+        }
+        )
+        console.log(properties_subtree)
+        autocompletedResult = autocompletedResult.replace(node, JSON.stringify(properties_subtree))
+      }
+      )
+      // Apply replacements  
+      console.log("hiiii")      
+      console.log(JSON.stringify(autocompletedResult))
       var obj = JSON.parse(autocompletedResult);
       var pretty = JSON.stringify(obj, undefined, 4);
       console.log(pretty)

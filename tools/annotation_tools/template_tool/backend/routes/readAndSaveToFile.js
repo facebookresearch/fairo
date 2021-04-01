@@ -61,6 +61,22 @@ router.get("/get_labels_progress", function (req, res, next) {
   }
 });
 
+/***
+ * Fetch progress on labels
+ */
+ router.get("/get_schema", function (req, res, next) {
+  if (fs.existsSync("schema.json")) {
+    // the file exists
+    fs.readFile("schema.json", function (err, data) {
+      if (err) throw err;
+      console.log(data.toString())
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write(data);
+      return res.end();
+    });
+  }
+});
+
 router.post("/", function (req, res, next) {
   console.log(req.body);
 

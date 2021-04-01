@@ -1,0 +1,15 @@
+{
+    "definitions": {
+        "schematic": {
+            "type": "object",
+            "properties": {
+              "filters": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "filters"
+            ]
+        }
+    }
+}
