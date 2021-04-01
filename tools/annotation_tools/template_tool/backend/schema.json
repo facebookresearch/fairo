@@ -10,6 +10,113 @@
             "required": [
               "filters"
             ]
+        },
+        "argval": {
+          "properties": {
+              "polarity": {
+                  "enum": [
+                      "MAX",
+                      "MIN"
+                  ]
+              },
+              "ordinal": {
+                  "anyOf": [
+                      {
+                          "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                      },
+                      {
+                          "$ref": "action_dict_components.schema.json#/definitions/span"
+                      }
+                  ]
+              },
+              "quantity": {
+                  "type": "object",
+                  "properties": {
+                      "attribute": {
+                          "$ref": "#/definitions/attribute"
+                      }
+                  },
+                  "additionalProperties": false
+              }
+          }
+      },
+      "close_to": {
+        "type": "object",
+        "properties": {
+            "close_tolerance": {
+                "oneOf": [
+                    {
+                        "enum": [
+                            "DEFAULT"
+                        ]
+                    },
+                    {
+                        "$ref": "action_dict_components.schema.json#/definitions/span"
+                    }
+                ]
+            }
         }
+    },
+    "filters": {
+      "type": "object",
+      "properties": {
+          "output": {
+              "oneOf": [
+                  {
+                      "enum": [
+                          "MEMORY",
+                          "COUNT"
+                      ]
+                  },
+                  {
+                      "type": "object",
+                      "properties": {
+                          "attribute": {
+                              "$ref": "#/definitions/attribute"
+                          }
+                      }
+                  }
+              ]
+          },
+          "contains_coreference": {
+              "const": "yes"
+          },
+          "memory_type": {
+              "enum": [
+                  "TASKS",
+                  "REFERENCE_OBJECT",
+                  "CHAT",
+                  "PROGRAM",
+                  "ALL"
+              ]
+          },
+          "comparator": {
+              "$ref": "#/definitions/comparator"
+          },
+          "triples": {
+              "$ref": "#/definitions/triples"
+          },
+          "author": {
+              "oneOf": [
+                  {
+                      "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                  },
+                  {
+                      "$ref": "action_dict_components.schema.json#/definitions/span"
+                  }
+              ]
+          },
+          "location": {
+              "$ref": "action_dict_components.schema.json#/definitions/location"
+          },
+          "repeat": {
+              "$ref": "grammar_spec.schema.json#/definitions/repeat"
+          },
+          "selector": {
+              "$ref": "#/definitions/selector" 
+          }
+      },
+      "additionalProperties": false
+  }
     }
 }
