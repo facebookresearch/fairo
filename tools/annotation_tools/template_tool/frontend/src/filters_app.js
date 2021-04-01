@@ -200,13 +200,25 @@ class LogicalForm extends React.Component {
       let definitions = Object.keys(this.props.schema.definitions)
       console.log(definitions)
       definitions.forEach(node => {
-        console.log(node)
-        let node_properties = Object.keys(this.props.schema.definitions[node]["properties"])
+        let node_def = this.props.schema.definitions[node]
         let properties_subtree = {}
-        node_properties.forEach(key => {
-          properties_subtree[key] = ""
+        if (Object.keys(node_def).includes("properties")) {
+          let node_properties = Object.keys(node_def["properties"])
+          node_properties.forEach(key => {
+            properties_subtree[key] = ""
+          })
+        } else if (Object.keys(node_def).includes("oneOf") || Object.keys(node_def).includes("anyOf") || Object.keys(node_def).includes("allOf")) {
+          let node_properties = node_def["oneOf"].map(
+            child_def => { 
+              return ("properties" in child_def ? Object.keys(child_def.properties) : []);
+            }
+          ).reduce(
+            (x, y) => x.concat(y)
+          )
+          node_properties.forEach(key => {
+            properties_subtree[key] = ""
+          })
         }
-        )
         console.log(node + ": " + JSON.stringify(properties_subtree))
         autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
       }
