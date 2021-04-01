@@ -53,23 +53,6 @@ router.get("/get_labels_progress", function (req, res, next) {
     // the file exists
     fs.readFile("command_dict_pairs.json", function (err, data) {
       if (err) throw err;
-      console.log(data.toString())
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.write(data);
-      return res.end();
-    });
-  }
-});
-
-/***
- * Fetch progress on labels
- */
- router.get("/get_schema", function (req, res, next) {
-  if (fs.existsSync("schema.json")) {
-    // the file exists
-    fs.readFile("schema.json", function (err, data) {
-      if (err) throw err;
-      console.log(data.toString())
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(data);
       return res.end();
