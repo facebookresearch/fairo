@@ -197,9 +197,6 @@ class LogicalForm extends React.Component {
     if (e.keyCode == 13) {
       let autocompletedResult = e.target.value
       // Apply replacements
-      // autocompleteMatches.forEach(replacer => {
-      //   autocompletedResult = autocompletedResult.replace(replacer.match, replacer.replacement)
-      // })
       let definitions = Object.keys(this.props.schema.definitions)
       console.log(definitions)
       definitions.forEach(node => {
@@ -210,12 +207,11 @@ class LogicalForm extends React.Component {
           properties_subtree[key] = ""
         }
         )
-        console.log(properties_subtree)
-        autocompletedResult = autocompletedResult.replace(node, JSON.stringify(properties_subtree))
+        console.log(node + ": " + JSON.stringify(properties_subtree))
+        autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
       }
       )
-      // Apply replacements  
-      console.log("hiiii")      
+      // Apply replacements        
       console.log(JSON.stringify(autocompletedResult))
       var obj = JSON.parse(autocompletedResult);
       var pretty = JSON.stringify(obj, undefined, 4);
