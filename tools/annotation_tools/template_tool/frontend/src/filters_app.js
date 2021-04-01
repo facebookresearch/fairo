@@ -208,7 +208,15 @@ class LogicalForm extends React.Component {
             properties_subtree[key] = ""
           })
         } else if (Object.keys(node_def).includes("oneOf") || Object.keys(node_def).includes("anyOf") || Object.keys(node_def).includes("allOf")) {
-          let node_properties = node_def["oneOf"].map(
+          var child_options;
+          if (Object.keys(node_def).includes("oneOf")) {
+            child_options = node_def["oneOf"]
+          } else if (Object.keys(node_def).includes("anyOf")) {
+            child_options = node_def["anyOf"]
+          } else if (Object.keys(node_def).includes("allOf")) {
+            child_options = node_def["allOf"]
+          }
+          let node_properties = child_options.map(
             child_def => { 
               return ("properties" in child_def ? Object.keys(child_def.properties) : []);
             }
