@@ -10,7 +10,6 @@ import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
 import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
-import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 
 /**
  * The main state manager for the dashboard.
@@ -63,17 +62,10 @@ class StateManager {
     this.setConnected = this.setConnected.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
-    this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
-    this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
     this.memory = this.initialMemoryState;
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
-    this.showAssistantReply = this.showAssistantReply.bind(this);
-
-    // set default url to actual ip:port
-    this.default_url = window.location.href;
-    this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -137,9 +129,6 @@ class StateManager {
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("objects", this.processObjects);
-    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
-    socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
-    socket.on("showAssistantReply", this.showAssistantReply);
   }
 
   updateStateManagerMemory(data) {
@@ -179,41 +168,6 @@ class StateManager {
       }
       if (ref instanceof History) {
         ref.forceUpdate();
-      }
-    });
-  }
-
-  updateVoxelWorld(res) {
-    this.refs.forEach((ref) => {
-      if (ref instanceof VoxelWorld) {
-        console.log("update Voxel World with " + res.world_state);
-        ref.setState({
-          world_state: res.world_state,
-          status: res.status,
-        });
-      }
-    });
-  }
-
-  setVoxelWorldInitialState(res) {
-    this.refs.forEach((ref) => {
-      if (ref instanceof VoxelWorld) {
-        console.log("set Voxel World Initial state: " + res.world_state);
-        ref.setState({
-          world_state: res.world_state,
-          status: res.status,
-        });
-      }
-    });
-  }
-
-  showAssistantReply(res) {
-    this.refs.forEach((ref) => {
-      if (ref instanceof InteractApp) {
-        console.log("set assistant reply");
-        ref.setState({
-          agent_reply: res.agent_reply,
-        });
       }
     });
   }
