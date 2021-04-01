@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autocompleteMatches from './spec/grammar_spec';
+var baseSchema = require('./spec/grammar_spec.schema.json');
+var filtersSchema = require('./spec/filters.schema.json');
+var otherDialogueSchema = require('./spec/other_dialogue.schema.json');
+var actionDictSchema = require('./spec/action_dict_components.schema.json');
 
 
 class FiltersAnnotator extends React.Component {
@@ -74,10 +77,9 @@ class FiltersAnnotator extends React.Component {
       .then((data) => { this.setState({ dataset: data})})
       .then(() => console.log(this.state.dataset))
 
-    fetch("http://localhost:9000/readAndSaveToFile/get_schema")
-      .then(res => res.json())
-      .then((data) => { this.setState({ schema: data})})
-      .then(() => console.log(this.state.schema))
+    // Combine JSON schemas to use in autocomplete pattern patching
+    var combinedSchema = Object.assign({}, baseSchema.definitions, filtersSchema.definitions, actionDictSchema.definitions, otherDialogueSchema.definitions)
+    this.setState({ schema: combinedSchema })
   }
 
   handleChange(e) {
@@ -86,8 +88,6 @@ class FiltersAnnotator extends React.Component {
 
   incrementIndex() {
     console.log("Moving to the next command")
-    console.log(this.state.currIndex)
-    console.log(this.state.fullText)
     if (this.state.currIndex + 1 >= this.state.fullText.length) {
       alert("Congrats! You have reached the end of annotations.")
     }
@@ -197,10 +197,10 @@ class LogicalForm extends React.Component {
     if (e.keyCode == 13) {
       let autocompletedResult = e.target.value
       // Apply replacements
-      let definitions = Object.keys(this.props.schema.definitions)
+      let definitions = Object.keys(this.props.schema)
       console.log(definitions)
       definitions.forEach(node => {
-        let node_def = this.props.schema.definitions[node]
+        let node_def = this.props.schema[node]
         let properties_subtree = {}
         if (Object.keys(node_def).includes("properties")) {
           let node_properties = Object.keys(node_def["properties"])
