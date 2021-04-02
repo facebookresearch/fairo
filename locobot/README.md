@@ -29,7 +29,7 @@ This folder introduces the Locobot Assistant, which is a droidlet agent embodied
         </pre></sub></td>
         <td>We provide a docker image for habitat that comes bundled with PyRobot.
         <sub><pre lang="bash">
-docker pull theh1ghwayman/locobot-assistant:5.0
+docker pull theh1ghwayman/locobot-assistant:segm
         </pre></sub></td>
     </tr>
     <tr valign="top">        
