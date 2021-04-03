@@ -1,19 +1,62 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+var commandDictPairs = require('./command_dict_pairs.json');
 var baseSchema = require('./spec/grammar_spec.schema.json');
 var filtersSchema = require('./spec/filters.schema.json');
 var otherDialogueSchema = require('./spec/other_dialogue.schema.json');
 var actionDictSchema = require('./spec/action_dict_components.schema.json');
 
-
 class FiltersAnnotator extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      fullText: [],
+      fragmentsText: [],
+      dataset: {},
+    }
+  }
+
+  componentDidMount() {
+    fetch("http://localhost:9000/readAndSaveToFile/get_commands")
+      .then(res => res.text())
+      .then((text) => { this.setState({ fullText: text.split("\n").filter(r => r !== "") }) })
+
+    fetch("http://localhost:9000/readAndSaveToFile/get_fragments")
+      .then(res => res.text())
+      .then((text) => { this.setState({ fragmentsText: text.split("\n").filter(r => r !== "") }) })
+
+    // fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
+    //   .then(res => res.json())
+    //   .then((data) => { this.setState({ dataset: data }) })
+    //   .then(() => console.log(this.state.dataset))
+    // console.log(this.state.fragmentsText)
+    // this.setState({ dataset: commandDictPairs })
+    // Combine JSON schemas to use in autocomplete pattern patching
+    var combinedSchema = Object.assign({}, baseSchema.definitions, filtersSchema.definitions, actionDictSchema.definitions, otherDialogueSchema.definitions)
+    this.setState({ schema: combinedSchema })
+  }
+
+  render() {
+    return (
+      <div>
+        <div style={{ float: 'left', width: '45%', padding: 5}}>
+          <ParseTreeAnnotator title="Command" fullText={this.state.fullText} schema={this.state.schema} />
+        </div>
+        <div style={{ float: 'left', width: '45%', padding: 5}}>
+          <ParseTreeAnnotator title="Fragments" fullText={this.state.fragmentsText} schema={this.state.schema} />
+        </div>
+      </div>
+    )
+  }
+}
+
+class ParseTreeAnnotator extends React.Component {
 
   constructor(props) {
     super(props);
     this.state = {
       value: '',
       currIndex: -1,
-      fullText: [],
       dataset: {},
     }
     /* Array of text commands that need labelling */
@@ -26,6 +69,10 @@ class FiltersAnnotator extends React.Component {
     this.callAPI = this.callAPI.bind(this);
     this.goToIndex = this.goToIndex.bind(this);
     this.updateLabels = this.updateLabels.bind(this);
+  }
+
+  componentDidMount() {
+    this.setState({ dataset: commandDictPairs })
   }
 
   callAPI(data) {
@@ -67,42 +114,27 @@ class FiltersAnnotator extends React.Component {
       )
   }
 
-  componentDidMount() {
-    fetch("http://localhost:9000/readAndSaveToFile/get_commands")
-      .then(res => res.text())
-      .then((text) => { this.setState({ fullText: text.split("\n").filter(r => r !== "") }) })
-
-    fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
-      .then(res => res.json())
-      .then((data) => { this.setState({ dataset: data }) })
-      .then(() => console.log(this.state.dataset))
-
-    // Combine JSON schemas to use in autocomplete pattern patching
-    var combinedSchema = Object.assign({}, baseSchema.definitions, filtersSchema.definitions, actionDictSchema.definitions, otherDialogueSchema.definitions)
-    this.setState({ schema: combinedSchema })
-  }
-
   handleChange(e) {
     this.setState({ value: e.target.value });
   }
 
   incrementIndex() {
     console.log("Moving to the next command")
-    if (this.state.currIndex + 1 >= this.state.fullText.length) {
+    if (this.state.currIndex + 1 >= this.props.fullText.length) {
       alert("Congrats! You have reached the end of annotations.")
     }
-    this.setState({ currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex + 1]] ?? "") });
+    this.setState({ currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.props.fullText[this.state.currIndex + 1]] ?? {}) });
   }
 
   decrementIndex() {
     console.log("Moving to the next command")
     console.log(this.state.currIndex)
-    this.setState({ currIndex: this.state.currIndex - 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex - 1]] ?? "") });
+    this.setState({ currIndex: this.state.currIndex - 1, value: JSON.stringify(this.state.dataset[this.props.fullText[this.state.currIndex - 1]] ?? {}) });
   }
 
   goToIndex(i) {
     console.log("Fetching index " + i)
-    this.setState({ currIndex: Number(i), value: JSON.stringify(this.state.dataset[this.state.fullText[i]] ?? "") });
+    this.setState({ currIndex: Number(i), value: JSON.stringify(this.state.dataset[this.props.fullText[i]] ?? {}) });
     console.log(this.state.dataset)
   }
 
@@ -112,13 +144,13 @@ class FiltersAnnotator extends React.Component {
       // First check that the string is JSON valid
       let JSONActionDict = JSON.parse(this.state.value)
       let items = { ...this.state.dataset };
-      items[this.state.fullText[this.state.currIndex]] = JSONActionDict;
+      items[this.props.fullText[this.state.currIndex]] = JSONActionDict;
       // Set state to the data items
       this.setState({ dataset: items }, function () {
         try {
           let actionDict = JSONActionDict
           let JSONString = {
-            "command": this.state.fullText[this.state.currIndex],
+            "command": this.props.fullText[this.state.currIndex],
             "logical_form": actionDict
           }
           console.log("writing dataset")
@@ -170,10 +202,10 @@ class FiltersAnnotator extends React.Component {
 
   render() {
     return (
-      <div>
-        <b> Command </b>
-        <TextCommand fullText={this.state.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} schema={this.state.schema} />
+      <div style={{ padding: 10 }}>
+        <b> {this.props.title} </b>
+        <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
+        <LogicalForm currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} schema={this.props.schema} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
         </div>
@@ -231,6 +263,12 @@ class LogicalForm extends React.Component {
         autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
       }
       )
+      // Insert fragments
+      let commands = Object.keys(commandDictPairs)
+      console.log(commands)
+      commands.forEach(text => {
+        autocompletedResult = autocompletedResult.replace(text, JSON.stringify(commandDictPairs[text]))
+      })
       // Apply replacements        
       console.log(JSON.stringify(autocompletedResult))
       var obj = JSON.parse(autocompletedResult);
@@ -257,7 +295,7 @@ class TextCommand extends React.Component {
     super(props)
     this.fullText = props.fullText
     this.state = {
-      value: "",
+      value: {},
       currIndex: 0,
       indexValue: 0,
     }

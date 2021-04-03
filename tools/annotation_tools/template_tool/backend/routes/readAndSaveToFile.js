@@ -46,6 +46,21 @@ router.get("/get_commands", function (req, res, next) {
 });
 
 /***
+ * Fetch the commands we want to label
+ */
+ router.get("/get_fragments", function (req, res, next) {
+  if (fs.existsSync("fragments.txt")) {
+    // the file exists
+    fs.readFile("fragments.txt", function (err, data) {
+      if (err) throw err;
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.write(data.toString());
+      return res.end();
+    });
+  }
+});
+
+/***
  * Fetch progress on labels
  */
 router.get("/get_labels_progress", function (req, res, next) {
