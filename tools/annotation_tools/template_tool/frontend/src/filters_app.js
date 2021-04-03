@@ -310,13 +310,11 @@ class TextCommand extends React.Component {
   render() {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 5, marginTop: 5 }}>
-        <div onClick={this.props.decrementIndex}>
-          <button>Prev</button>
-        </div>
-        <div onClick={this.props.incrementIndex}>
-          <button>Next</button>
-        </div>
         <div>
+          <button style={{ marginBottom: 5, marginRight: 5, marginTop: 5 }} onClick={this.props.decrementIndex}>Prev</button>
+          <button style={{ marginBottom: 5, marginRight: 5, marginTop: 5 }} onClick={this.props.incrementIndex}>Next</button>
+        </div>
+        <div style={{ marginBottom: 20, marginTop: 5 }}>
           <span>Index: <input onChange={this.handleChange} value={this.props.currIndex} type="number"></input></span>
           <button onClick={(param) => this.props.goToIndex(this.state.indexValue)}> Go! </button>
         </div>
