@@ -64,9 +64,9 @@ router.get("/get_commands", function (req, res, next) {
  * Fetch progress on labels
  */
 router.get("/get_labels_progress", function (req, res, next) {
-  if (fs.existsSync("command_dict_pairs.json")) {
+  if (fs.existsSync("../frontend/src/command_dict_pairs.json")) {
     // the file exists
-    fs.readFile("command_dict_pairs.json", function (err, data) {
+    fs.readFile("../frontend/src/command_dict_pairs.json", function (err, data) {
       if (err) throw err;
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(data);
@@ -103,7 +103,7 @@ router.post("/append", function (req, res, next) {
  */
 router.post("/writeLabels", function (req, res, next) {
   console.log(req.body);
-  fs.writeFile("command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
+  fs.writeFile("../frontend/src/command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;

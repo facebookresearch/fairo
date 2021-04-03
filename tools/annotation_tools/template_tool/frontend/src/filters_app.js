@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-var commandDictPairs = require('./command_dict_pairs.json');
+// var commandDictPairs = require('./command_dict_pairs.json');
 var baseSchema = require('./spec/grammar_spec.schema.json');
 var filtersSchema = require('./spec/filters.schema.json');
 var otherDialogueSchema = require('./spec/other_dialogue.schema.json');
@@ -72,7 +72,11 @@ class ParseTreeAnnotator extends React.Component {
   }
 
   componentDidMount() {
-    this.setState({ dataset: commandDictPairs })
+    // this.setState({ dataset: commandDictPairs })
+    fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
+      .then(res => res.json())
+      .then((data) => { this.setState({ dataset: data }) })
+      .then(() => console.log(this.state.dataset))
   }
 
   callAPI(data) {
@@ -205,7 +209,7 @@ class ParseTreeAnnotator extends React.Component {
       <div style={{ padding: 10 }}>
         <b> {this.props.title} </b>
         <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} schema={this.props.schema} />
+        <LogicalForm currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} schema={this.props.schema} dataset={this.state.dataset} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
         </div>
@@ -264,10 +268,10 @@ class LogicalForm extends React.Component {
       }
       )
       // Insert fragments
-      let commands = Object.keys(commandDictPairs)
+      let commands = Object.keys(this.props.dataset)
       console.log(commands)
       commands.forEach(text => {
-        autocompletedResult = autocompletedResult.replace(text, JSON.stringify(commandDictPairs[text]))
+        autocompletedResult = autocompletedResult.replace(text, JSON.stringify(this.props.dataset[text]))
       })
       // Apply replacements        
       console.log(JSON.stringify(autocompletedResult))
