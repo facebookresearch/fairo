@@ -340,14 +340,15 @@ class Explore(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
         self.command_sent = False
+        self.agent = agent
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
-    def step(self, agent):
+    def step(self):
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            agent.mover.explore()
+            self.agent.mover.explore()
         else:
-            self.finished = agent.mover.bot_step()
+            self.finished = self.agent.mover.bot_step()
