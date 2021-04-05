@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-// var commandDictPairs = require('./command_dict_pairs.json');
 var baseSchema = require('./spec/grammar_spec.schema.json');
 var filtersSchema = require('./spec/filters.schema.json');
 var otherDialogueSchema = require('./spec/other_dialogue.schema.json');
@@ -29,8 +28,6 @@ class FiltersAnnotator extends React.Component {
     //   .then(res => res.json())
     //   .then((data) => { this.setState({ dataset: data }) })
     //   .then(() => console.log(this.state.dataset))
-    // console.log(this.state.fragmentsText)
-    // this.setState({ dataset: commandDictPairs })
     // Combine JSON schemas to use in autocomplete pattern patching
     var combinedSchema = Object.assign({}, baseSchema.definitions, filtersSchema.definitions, actionDictSchema.definitions, otherDialogueSchema.definitions)
     this.setState({ schema: combinedSchema })
@@ -72,7 +69,6 @@ class ParseTreeAnnotator extends React.Component {
   }
 
   componentDidMount() {
-    // this.setState({ dataset: commandDictPairs })
     fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
       .then(res => res.json())
       .then((data) => { this.setState({ dataset: data }) })
