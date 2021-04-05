@@ -1,6 +1,13 @@
 package com.epson.moverio.sample.moveriosdksample;
 
+import android.content.Context;
 import android.graphics.Color;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -25,6 +32,9 @@ import com.epson.moverio.hardware.camera.CameraManager;
 import com.epson.moverio.hardware.camera.CameraProperty;
 import com.epson.moverio.hardware.camera.CaptureDataCallback;
 import com.epson.moverio.hardware.camera.CaptureStateCallback;
+import com.epson.moverio.hardware.sensor.SensorData;
+import com.epson.moverio.hardware.sensor.SensorDataListener;
+import com.epson.moverio.hardware.sensor.SensorManager;
 import com.epson.moverio.util.PermissionHelper;
 
 import java.io.File;
@@ -33,11 +43,110 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
+import fi.iki.elonen.NanoHTTPD;
+
+class WebServer extends NanoHTTPD {
+
+	private Bitmap img = null;
+	private float[] acc = null;
+	private float[] mag = null;
+	private float[] gyro = null;
+	private float[] light = null;
+	private float[] la = null;
+	private float[] grav = null;
+	private float[] rv = null;
+	public WebServer() {
+		super(8080);
+	}
+
+	public void setImage(Bitmap img_) {
+		img = img_;
+	}
+	public void setAcc(float[] acc_) {acc = acc_;}
+	public void setMag(float[] mag_) {mag = mag_;}
+	public void setGyro(float[] gyro_) {gyro = gyro_;}
+	public void setLight(float[] light_) {light = light_;}
+	public void setLa(float[] la_) {la = la_;}
+	public void setGrav(float[] grav_) {grav = grav_;}
+	public void setRv(float[] rv_) {rv = rv_;}
+
+	@Override
+	public Response serve(IHTTPSession session) {
+		String uri = session.getUri();
+		Log.w("Httpd", "|" + uri + "|");
+		if (uri.equals("/sensors")) {
+			String answer="";
+			if (acc != null) {
+				float[] data = acc;
+				answer += "accelerometer," + String.format("%.4f", data[0]) + "," + String.format("%.4f", data[1]) + "," + String.format("%.4f", data[2]) + "\n";
+			}
+			if (mag != null) {
+				float[] data = mag;
+				answer += "magnetic_field," + String.format("%.4f", data[0]) + "," + String.format("%.4f", data[1]) + "," + String.format("%.4f", data[2]) + "\n";
+			}
+			if (gyro != null) {
+				float[] data = gyro;
+				answer += "gyro," + String.format("%.4f", data[0]) + "," + String.format("%.4f", data[1]) + "," + String.format("%.4f", data[2]) + "\n";
+			}
+			if (light != null) {
+				float[] data = light;
+				answer += "light," + String.format("%.4f", data[0]) + "\n";
+			}
+			if (la != null) {
+				float[] data = la;
+				answer += "linear_acceleration," + String.format("%.4f", data[0]) + "," + String.format("%.4f", data[1]) + "," + String.format("%.4f", data[2]) + "\n";
+			}
+			if (grav != null) {
+				float[] data = grav;
+				answer += "gravity," + String.format("%.4f", data[0]) + "," + String.format("%.4f", data[1]) + "," + String.format("%.4f", data[2]) + "\n";
+			}
+			if (rv != null) {
+				float[] data = rv;
+				answer += "rotation_vector," + String.format("%.4f", data[0]) + "," + String.format("%.4f", data[1]) + "," + String.format("%.4f", data[2]) + "\n";
+			}
+			return newFixedLengthResponse(answer);
+		}
+
+		if (uri.equals("/camera")) {
+			if (img != null) {
+				try {
+					ByteArrayOutputStream stream = new ByteArrayOutputStream();
+					if (img.compress(Bitmap.CompressFormat.JPEG, 50, stream)) {
+						long cb = stream.size();
+						InputStream is = new ByteArrayInputStream(stream.toByteArray());
+						return newFixedLengthResponse(Response.Status.OK, "image/jpeg", is, is.available());
+					}
+				} catch (IOException exp) {
+					String answer = "error!";
+					return newFixedLengthResponse(answer);
+				}
+
+			}
+		}
+		String answer = "hi!";
+		return newFixedLengthResponse(answer);
+	}
+
+}
+
 
 public class MoverioCameraSampleActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
 	private final String TAG = this.getClass().getSimpleName();
 
 	private SurfaceView mSurfaceView = null;
+	private WebServer server;
+
+	private Context mContext = null;
+
+	private SensorManager mSensorManager = null;
+	private SensorDataListener mSensorDataListener_acc = null;
+	private SensorDataListener mSensorDataListener_mag = null;
+	private SensorDataListener mSensorDataListener_gyro = null;
+	private SensorDataListener mSensorDataListener_light = null;
+	private SensorDataListener mSensorDataListener_la = null;
+	private SensorDataListener mSensorDataListener_grav = null;
+	private SensorDataListener mSensorDataListener_rv = null;
+
 
 	private CameraManager mCameraManager = null;
 	private CameraDevice mCameraDevice = null;
@@ -71,6 +180,17 @@ public class MoverioCameraSampleActivity extends AppCompatActivity implements Ac
 
 		mPermissionHelper = new PermissionHelper(this);
 		mCameraManager = new CameraManager(this);
+		mContext = this;
+		mSensorManager = new SensorManager(mContext);
+
+
+		server = new WebServer();
+		try {
+			server.start();
+		} catch(IOException ioe) {
+			Log.w("Httpd", "The server could not start.");
+		}
+		Log.w("Httpd", "Web server initialized.");
 	}
 
 	private CaptureStateCallback mCaptureStateCallback = null;
@@ -96,6 +216,86 @@ public class MoverioCameraSampleActivity extends AppCompatActivity implements Ac
 	@Override
 	protected void onStart() {
 		super.onStart();
+
+		mSensorDataListener_acc = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setAcc(data.values); //0-2
+			}
+		};
+		try {
+			mSensorManager.open(SensorManager.TYPE_ACCELEROMETER, mSensorDataListener_acc);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		mSensorDataListener_mag = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setMag(data.values); //0-2
+			}
+		};
+		try{
+			mSensorManager.open(SensorManager.TYPE_MAGNETIC_FIELD, mSensorDataListener_mag);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		mSensorDataListener_gyro = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setGyro(data.values); //0-2
+			}
+		};
+		try {
+			mSensorManager.open(SensorManager.TYPE_GYROSCOPE, mSensorDataListener_gyro);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		mSensorDataListener_light = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setLight(data.values); //0
+			}
+		};
+		try {
+			mSensorManager.open(SensorManager.TYPE_LIGHT, mSensorDataListener_light);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		mSensorDataListener_la = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setLa(data.values); //0-2
+			}
+		};
+		try {
+			mSensorManager.open(SensorManager.TYPE_LINEAR_ACCELERATION, mSensorDataListener_la);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		mSensorDataListener_grav = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setGrav(data.values); //0-2
+			}
+		};
+		try{
+			mSensorManager.open(SensorManager.TYPE_GRAVITY, mSensorDataListener_grav);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		mSensorDataListener_rv = new SensorDataListener() {
+			@Override
+			public void onSensorDataChanged(final SensorData data) {
+				server.setRv(data.values); //0-2
+			}
+		};
+		try {
+			mSensorManager.open(SensorManager.TYPE_ROTATION_VECTOR, mSensorDataListener_rv);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		mSurfaceView = (SurfaceView) findViewById(R.id.surfaceView_preview);
 		mTextView_camApiResult = (TextView) findViewById(R.id.textView_camApiResult);
@@ -197,12 +397,24 @@ public class MoverioCameraSampleActivity extends AppCompatActivity implements Ac
 								}
 								else ;
 
+								Bitmap bitmap = Bitmap.createBitmap(640, 480, Bitmap.Config.RGB_565);
+								ByteBuffer buffer = ByteBuffer.wrap(data);
+								bitmap.copyPixelsFromBuffer(buffer);
+								server.setImage(bitmap);
 							}
 						};
 
 						mCameraDevice = mCameraManager.open(mCaptureStateCallback, mCaptureDataCallback, mSurfaceView.getHolder());
 						if(null != mCameraDevice) {
 							mTextView_camApiResult.setText("open");
+							int width = 640;
+							int height = 480;
+							int fps = 15;
+							CameraProperty property = mCameraDevice.getProperty();
+							property.setCaptureSize(width, height);
+							property.setCaptureFps(fps);
+							int ret = mCameraDevice.setProperty(property);
+							mTextView_camApiResult.setText("setProperty : "+ret);
 						}
 						else ;
 					} catch (IOException e) {
@@ -508,6 +720,9 @@ public class MoverioCameraSampleActivity extends AppCompatActivity implements Ac
 			mCameraManager.close(mCameraDevice);
 		} else;
 
+		if (server != null)
+			server.stop();
+
 		mTimer.cancel();
 		mTimer = null;
 	}
@@ -526,41 +741,9 @@ public class MoverioCameraSampleActivity extends AppCompatActivity implements Ac
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		int width = 0, height = 0, fps = 0;
-		switch (item.getItemId()) {
-			case R.id.menu_640_480_60fps:
-				width = 640; height = 480; fps = 60;
-				break;
-			case R.id.menu_640_480_30fps:
-				width = 640; height = 480; fps = 30;
-				break;
-			case R.id.menu_640_480_15fps:
-				width = 640; height = 480; fps = 15;
-				break;
-			case R.id.menu_1280_720_60fps:
-				width = 1280; height = 720; fps = 60;
-				break;
-			case R.id.menu_1280_720_30fps:
-				width = 1280; height = 720; fps = 30;
-				break;
-			case R.id.menu_1280_720_15fps:
-				width = 1280; height = 720; fps = 15;
-				break;
-			case R.id.menu_1920_1080_30fps:
-				width = 1920; height = 1080; fps = 30;
-				break;
-			case R.id.menu_1920_1080_15fps:
-				width = 1920; height = 1080; fps = 15;
-				break;
-			case R.id.menu_2592_1944_15fps:
-				width = 2592; height = 1944; fps = 15;
-				break;
-			default:
-				Log.w(TAG, "Unknown menu.");
-				return false;
-		}
-//		mUvcControl.setCaptureSize(width, height);
-//		mUvcControl.setCaptureFps(fps);
+		int width = 640;
+		int height = 480;
+		int fps = 15;
 		if(null != mCameraDevice) {
 			CameraProperty property = mCameraDevice.getProperty();
 			property.setCaptureSize(width, height);
