@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textView_displayTest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Display api test" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_deviceOpenClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ToggleButton"
+        android:textOff="Display close"
+        android:textOn="Display open" />
+
+    <TextView
+        android:id="@+id/textView_displayBrightness"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Brightness" />
+
+    <SeekBar
+        android:id="@+id/seekBar_displayBrightness"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="20"
+        android:min="0" />
+
+    <Switch
+        android:id="@+id/switch_brightnessMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:showText="true"
+        android:text="Brightness mode"
+        android:textOff="MANUAL"
+        android:textOn="AUTO" />
+
+    <Switch
+        android:id="@+id/switch_displayMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:showText="true"
+        android:text="Display mode (2D / 3D)"
+        android:textOff="2D"
+        android:textOn="3D" />
+</LinearLayout>

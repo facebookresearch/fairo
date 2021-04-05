@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textView_audioTest"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Audio api test" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_audioOpenClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ToggleButton"
+        android:textOff="Audio close"
+        android:textOn="Audio open" />
+
+    <TextView
+        android:id="@+id/textView_audioVolume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Volume" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="35dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/button_volumeDown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Down" />
+
+        <Button
+            android:id="@+id/button_volumeUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Up" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView_volume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="vol=" />
+
+    <TextView
+        android:id="@+id/textView_audioVolumeLimit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Volume Limit" />
+
+    <ToggleButton
+        android:id="@+id/toggleButton_volumeLimitOnOff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Volume "
+        android:textOff="Volume Limit Off"
+        android:textOn="Volume Limit On" />
+</LinearLayout>

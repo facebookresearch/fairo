@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <SurfaceView
+        android:id="@+id/surfaceView_preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
+
+    <LinearLayout
+        android:layout_width="400dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/textView_rate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Framerate"
+            android:textColor="@android:color/white"
+            tools:layout_editor_absoluteX="16dp"
+            tools:layout_editor_absoluteY="0dp" />
+
+        <View
+            android:id="@+id/divider6"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <TextView
+            android:id="@+id/textView_propertyInfo"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:text="propertyInfo"
+            android:textColor="@android:color/white" />
+
+        <View
+            android:id="@+id/divider7"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <TextView
+            android:id="@+id/textView_camApiResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="result"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="right"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="450dp"
+            android:layout_height="match_parent"
+            android:background="#88008899"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ToggleButton
+                    android:id="@+id/toggleButton_cameraOpenClose"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="cameraOpenClose"
+                    android:textOff="close\ncamera"
+                    android:textOn="open\ncamera"
+                    tools:layout_editor_absoluteX="16dp"
+                    tools:layout_editor_absoluteY="229dp" />
+
+                <ToggleButton
+                    android:id="@+id/toggleButton_cameraStartStop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="cameraOpenClose"
+                    android:textOff="stop\ncapture"
+                    android:textOn="start\ncapture"
+                    tools:layout_editor_absoluteX="16dp"
+                    tools:layout_editor_absoluteY="167dp" />
+
+                <ToggleButton
+                    android:id="@+id/toggleButton_previewStartStop"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="previewOpenClose"
+                    android:textOff="stop\npreview"
+                    android:textOn="start\npreview"
+                    tools:layout_editor_absoluteX="16dp"
+                    tools:layout_editor_absoluteY="167dp" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/divider13"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <Button
+                android:id="@+id/button_getProperty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="GetProperty" />
+
+            <View
+                android:id="@+id/divider14"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="?android:attr/listDivider" />
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="left"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:layout_editor_absoluteX="677dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textView_exposure"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Exposure property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <Switch
+                        android:id="@+id/switch_autoExposure"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="AutoExposure"
+                        android:textOff="MANUAL"
+                        android:textOn="AUTO" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_exposure"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider4"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <TextView
+                        android:id="@+id/textView_brightness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Brightness property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_brightness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider5"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <!--                    <TextView
+                        android:id="@+id/textView_contrast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Contrast property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_contrast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider6"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <TextView
+                        android:id="@+id/textView_gain"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Gain property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_gain"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider7"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <TextView
+                        android:id="@+id/textView_hue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Hue property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_hue"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider8"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <TextView
+                        android:id="@+id/textView_saturation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Saturation property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_saturation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider9"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />-->
+
+                    <TextView
+                        android:id="@+id/textView_sharpness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Sharpness property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_sharpness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider10"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <!--                    <TextView
+                        android:id="@+id/textView_gamma"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Gamma property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <SeekBar
+                        android:id="@+id/seekBar_gamma"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:id="@+id/divider11"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />-->
+
+                    <TextView
+                        android:id="@+id/textView_whitebalance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="WhiteBalance property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <RadioGroup
+                        android:id="@+id/radioGroup_wb"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/radioButton_auto"
+                            android:layout_width="130dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="auto" />
+
+                        <RadioButton
+                            android:id="@+id/radioButton_cloudyDaylight"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="CloudyDaylight(6000K)" />
+
+                        <RadioButton
+                            android:id="@+id/radioButton_daylight"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Daylight(5500K)" />
+
+                        <RadioButton
+                            android:id="@+id/radioButton_fluorescent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Fluorescent(4200K)" />
+
+                        <RadioButton
+                            android:id="@+id/radioButton_incandescent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Incandescent(3200K)" />
+
+                        <RadioButton
+                            android:id="@+id/radioButton_twilight"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Twilight(3500K)" />
+                    </RadioGroup>
+
+                    <View
+                        android:id="@+id/divider12"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />
+
+                    <!--                    <TextView
+                        android:id="@+id/textView_powerLineFrequency"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Power line frequency property"
+                        tools:layout_editor_absoluteX="741dp"
+                        tools:layout_editor_absoluteY="0dp" />
+
+                    <Switch
+                        android:id="@+id/switch_powerLineFrequency"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="powerLineFrequency"
+                        android:textOff="50Hz"
+                        android:textOn="60Hz" />
+
+                    <View
+                        android:id="@+id/divider15"
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="?android:attr/listDivider" />-->
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/button_takePicture"
+                            android:layout_width="108dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="picture" />
+
+                        <ToggleButton
+                            android:id="@+id/toggleButton_redording"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="ToggleButton"
+                            android:textOff="stopRec"
+                            android:textOn="Rec" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/textView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Power Line Frequency" />
+
+                    <RadioGroup
+                        android:id="@+id/radioGroup_powerLineFrequency"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/radioButton_50Hz"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="50Hz" />
+
+                        <RadioButton
+                            android:id="@+id/radioButton_60Hz"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="60Hz" />
+                    </RadioGroup>
+
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</android.support.constraint.ConstraintLayout>

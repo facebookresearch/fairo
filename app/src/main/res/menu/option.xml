@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="CaptureInfo" >
+        <menu>
+            <group>
+<!--                <item android:id="@+id/menu_640_480_0_5fps" android:title="640x480,0.5fps" />-
+                <item android:id="@+id/menu_640_480_1fps" android:title="640x480,1fps" />-->
+                <item android:id="@+id/menu_640_480_15fps" android:title="640x480,15fps" />
+                <item android:id="@+id/menu_640_480_30fps" android:title="640x480,30fps" />
+                <item android:id="@+id/menu_640_480_60fps" android:title="640x480,60fps" />
+<!--                <item android:id="@+id/menu_1280_720_0_5fps" android:title="1280x720,0.5fps" />
+                <item android:id="@+id/menu_1280_720_1fps" android:title="1280x720,1fps" />-->
+                <item android:id="@+id/menu_1280_720_15fps" android:title="1280x720,15fps" />
+                <item android:id="@+id/menu_1280_720_30fps" android:title="1280x720,30fps" />
+                <item android:id="@+id/menu_1280_720_60fps" android:title="1280x720,60fps" />
+<!--                <item android:id="@+id/menu_1920_1080_0_5fps" android:title="1920x1080,0.5fps" />
+                <item android:id="@+id/menu_1920_1080_1fps" android:title="1920x1080,1fps" />-->
+                <item android:id="@+id/menu_1920_1080_15fps" android:title="1920x1080,15fps" />
+                <item android:id="@+id/menu_1920_1080_30fps" android:title="1920x1080,30fps" />
+<!--                <item android:id="@+id/menu_2592_1944_0_5fps" android:title="2592x1944,0.5fps" />
+                <item android:id="@+id/menu_2592_1944_1fps" android:title="2592x1944,1fps" />-->
+                <item android:id="@+id/menu_2592_1944_15fps" android:title="2592x1944,15fps" />
+<!--                <item android:id="@+id/menu_2592_1944_30fps" android:title="2592x1944,30fps" />-->
+            </group>
+        </menu>
+    </item>
+</menu>
