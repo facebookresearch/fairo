@@ -200,7 +200,8 @@ if __name__ == "__main__":
     # set up stdout logging
     sh = logging.StreamHandler()
     sh.setFormatter(log_formatter)
-    logging.getLogger().addHandler(sh)
+    logger = logging.getLogger()
+    logger.addHandler(sh)
     logging.info("LOG LEVEL: {}".format(logger.level))
     
     # Check that models and datasets are up to date
