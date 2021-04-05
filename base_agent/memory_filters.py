@@ -395,21 +395,37 @@ class ApplyAttribute(MemoryFilter):
 
 
 class RandomMemorySelector(MemoryFilter):
-    def __init__(self, agent_memory):
+    def __init__(self, agent_memory, same="ALLOWED", n=1):
         super().__init__(agent_memory)
+        self.n = n
+        self.same = same
+
+    def get_idxs(self, memids):
+        m = len(self.memids)
+        if m == 0:
+            return []
+        if self.same == "REQUIRED":
+            return [torch.randint(len(all_memids), (1,)).item()] * m
+        replace = True
+        if self.same == "DISALLOWED":
+            replace = False
+            if self.n > m:
+                raise Exception(
+                    "RandomMemorySelector supposed to return {} memories withour replacement but only got {}".format(
+                        self.n, m
+                    )
+                )
+
+        return torch.multinomial(torch.ones(m), self.n, replacement=replace).tolist()
 
     def search(self):
         all_memids = self.all_table_memids()
-        if len(all_memids) == 0:
-            return [], []
-        i = torch.randint(len(all_memids), (1,)).item()
-        return [all_memids[i]], [None]
+        idxs = self.get_idxs(all_memids)
+        return [all_memids[i] for i in idxs], [None for i in idxs]
 
     def filter(self, memids, vals):
-        if len(memids) == 0:
-            return [], []
-        i = torch.randint(len(memids), (1,)).item()
-        return [memids[i]], [vals[i]]
+        idxs = self.get_idxs(memids)
+        return [all_memids[i] for i in idxs], [vals[i] for i in idxs]
 
 
 class ExtremeValueMemorySelector(MemoryFilter):
