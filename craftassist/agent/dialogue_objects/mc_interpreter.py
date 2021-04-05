@@ -46,7 +46,7 @@ from .block_helpers import get_block_type
 from .condition_helper import MCConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from base_agent.base_util import ErrorWithResponse
+from base_agent.base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import PlayerNode
 from mc_memory_nodes import MobNode, ItemStackNode
 import dance
@@ -158,7 +158,8 @@ class MCInterpreter(Interpreter):
             d: the complete action dictionary
         """
         # FIXME! use filters appropriately, don't search by hand
-        spawn_triples = d.get("reference_object", {}).get("filters", {}).get("triples", [])
+        filters_d = d.get("reference_object", {}).get("filters", {})
+        spawn_triples = filters_d.get("triples", [])
         if not spawn_triples:
             raise ErrorWithResponse("I don't understand what you want me to spawn.")
         names = [t.get("obj_text") for t in spawn_triples if t.get("pred_text", "") == "has_name"]
@@ -166,7 +167,10 @@ class MCInterpreter(Interpreter):
             raise ErrorWithResponse("I don't understand what you want me to spawn.")
         # if multiple possible has_name triples, just pick the first:
         object_name = names[0]
-        # FIXME! use filters
+        #############################################################
+        # FIXME! use FILTERS handle this properly...!
+        # repeats are hacky (and wrong) too because not using FILTERS
+        #############################################################
         schematic = self.memory.get_mob_schematic_by_name(object_name)
         if not schematic:
             raise ErrorWithResponse("I don't know how to spawn: %r." % (object_name))
@@ -176,7 +180,9 @@ class MCInterpreter(Interpreter):
         mems = self.subinterpret["reference_locations"](self, speaker, location_d)
         steps, reldir = interpret_relative_direction(self, location_d)
         pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
-        repeat_times = get_repeat_num(d)
+        # FIXME, not using selector properly (but need to use FILTERS first)
+        repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
+        repeat_times = int(number_from_span(repeat))
         tasks = []
         for i in range(repeat_times):
             task_data = {"object_idm": object_idm, "pos": pos, "action_dict": d}
@@ -274,7 +280,6 @@ class MCInterpreter(Interpreter):
         # Get nearby holes
         holes = heuristic_perception.get_all_nearby_holes(self.agent, location)
         # Choose the best ones to fill
-        repeat = get_repeat_num(d)
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
         if holes is None:
             self.dialogue_stack.append_new(
@@ -289,7 +294,7 @@ class MCInterpreter(Interpreter):
                     subj=hole.memid, pred_text="has_fill_type"
                 )[0][2]
                 fill_block_mem = self.agent.memory.get_mem_by_id(fill_memid)
-                fill_idm = (fill_block_mem.m, fill_block_mem.b)
+                fill_idm = (fill_block_mem.b, fill_block_mem.m)
             except:
                 # FIXME use a constant name
                 fill_idm = (3, 0)
