@@ -14,6 +14,7 @@ class AutocompleteAnnotator extends React.Component {
       fragmentsText: [],
       dataset: {},
     }
+    this.updateFullText = this.updateFullText.bind(this)
   }
 
   componentDidMount() {
@@ -25,20 +26,24 @@ class AutocompleteAnnotator extends React.Component {
       .then(res => res.text())
       .then((text) => { this.setState({ fragmentsText: text.split("\n").filter(r => r !== "") }) })
 
-    // fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
-    //   .then(res => res.json())
-    //   .then((data) => { this.setState({ dataset: data }) })
-    //   .then(() => console.log(this.state.dataset))
     // Combine JSON schemas to use in autocomplete pattern patching
     var combinedSchema = Object.assign({}, baseSchema.definitions, filtersSchema.definitions, actionDictSchema.definitions, otherDialogueSchema.definitions)
     this.setState({ schema: combinedSchema })
+  }
+
+  updateFullText(text, index) {
+    let items = { ...this.state.fullText };
+    items[index] = items[index].replace("<t1>", text);
+    this.setState({ fullText: items }, function () {
+      console.log("Updated list of commands")
+    })
   }
 
   render() {
     return (
       <div>
         <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <ParseTreeAnnotator title="Command" fullText={this.state.fullText} schema={this.state.schema} />
+          <ParseTreeAnnotator title="Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
         </div>
         <div style={{ float: 'left', width: '45%', padding: 5}}>
           <ParseTreeAnnotator title="Fragments" fullText={this.state.fragmentsText} schema={this.state.schema} />
@@ -57,6 +62,7 @@ class ParseTreeAnnotator extends React.Component {
       value: '',
       currIndex: -1,
       dataset: {},
+      fragment: ""
     }
     /* Array of text commands that need labelling */
     this.handleChange = this.handleChange.bind(this);
@@ -68,6 +74,7 @@ class ParseTreeAnnotator extends React.Component {
     this.callAPI = this.callAPI.bind(this);
     this.goToIndex = this.goToIndex.bind(this);
     this.updateLabels = this.updateLabels.bind(this);
+    this.updateCommand = this.updateCommand.bind(this);
   }
 
   componentDidMount() {
@@ -118,6 +125,12 @@ class ParseTreeAnnotator extends React.Component {
 
   handleChange(e) {
     this.setState({ value: e.target.value });
+  }
+
+  updateCommand(text) {
+    console.log(text)
+    // possibly do more to update commands
+    // this.setState({fragment: text})
   }
 
   incrementIndex() {
@@ -207,7 +220,7 @@ class ParseTreeAnnotator extends React.Component {
       <div style={{ padding: 10 }}>
         <b> {this.props.title} </b>
         <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} schema={this.props.schema} dataset={this.state.dataset} />
+        <LogicalForm currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
         </div>
@@ -224,6 +237,9 @@ class LogicalForm extends React.Component {
   constructor(props) {
     super(props)
     this.keyPress = this.keyPress.bind(this)
+    this.state = {
+      fragment: ""
+    }
   }
 
   keyPress(e) {
@@ -269,6 +285,7 @@ class LogicalForm extends React.Component {
       let commands = Object.keys(this.props.dataset)
       console.log(commands)
       commands.forEach(text => {
+        // this.props.updateCommand(text)
         autocompletedResult = autocompletedResult.replace(text, JSON.stringify(this.props.dataset[text]))
       })
       // Apply replacements        
@@ -300,6 +317,7 @@ class TextCommand extends React.Component {
       value: {},
       currIndex: 0,
       indexValue: 0,
+      fragment: ""
     }
     this.incrementIndex = props.incrementIndex
     this.handleChange = this.handleChange.bind(this)
@@ -320,7 +338,9 @@ class TextCommand extends React.Component {
           <span>Index: <input onChange={this.handleChange} value={this.props.currIndex} type="number"></input></span>
           <button onClick={(param) => this.props.goToIndex(this.state.indexValue)}> Go! </button>
         </div>
+        <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 5, marginTop: 5 }}>
         <textarea rows="2" cols="10" value={this.props.fullText[this.props.currIndex]} fullWidth={false} />
+        </div>
       </div>
     )
   }
