@@ -20,7 +20,7 @@ class Task(object):
         else:
             return "empty"
 
-    def step(self, agent):
+    def step(self):
         return
 
     def interrupt(self):

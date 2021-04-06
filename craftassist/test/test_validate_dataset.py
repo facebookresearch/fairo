@@ -23,10 +23,6 @@ class DataValidationTest(BaseCraftassistTestCase):
         # accept only array spans
         self.json_validator_array = JSONValidator(SCHEMA_DIR, "array")
 
-    def test_locobot(self):
-        res = self.json_validator_all.validate_data(FULL_DATA_DIR + "locobot.txt", test_mode=True)
-        self.assertTrue(res)
-
     def test_high_pri_commands(self):
         res = self.json_validator_all.validate_data(FULL_DATA_DIR + "high_pri_commands.txt", test_mode=True)
         self.assertTrue(res)
