@@ -91,7 +91,13 @@ class ReferenceObjectInterpreter:
 
 
 def interpret_reference_object(
-    interpreter, speaker, d, extra_tags=[], loose_speakerlook=False, allow_clarification=True
+    interpreter,
+    speaker,
+    d,
+    extra_tags=[],
+    loose_speakerlook=False,
+    allow_clarification=True,
+    all_proximity=10,
 ) -> List[ReferenceObjectNode]:
     """this tries to find a ref obj memory matching the criteria from the
     ref_obj_dict
@@ -140,7 +146,12 @@ def interpret_reference_object(
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
         if len(candidate_mems) > 0:
             return filter_by_sublocation(
-                interpreter, speaker, candidate_mems, d, loose=loose_speakerlook
+                interpreter,
+                speaker,
+                candidate_mems,
+                d,
+                loose=loose_speakerlook,
+                all_proximity=all_proximity,
             )
 
         elif allow_clarification:
@@ -191,6 +202,12 @@ def filter_by_sublocation(
     filters_d = d.get("filters")
     assert filters_d is not None, "no filters: {}".format(d)
     default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
+
+    # FIXME! remove this when DSL gets rid of location as selector:
+    get_nearest = False
+    if filters_d.get("location") and not filters_d["location"].get("relative_direction"):
+        get_nearest = True
+
     location = filters_d.get("location", default_loc)
     reldir = location.get("relative_direction")
     distance_sorted = False
@@ -223,25 +240,31 @@ def filter_by_sublocation(
                 interpreter, speaker, mems, steps, reldir
             )
             distance_sorted = True
-            candidates.sort(key=lambda c: euclid_dist(c[0], ref_loc))
             location_filtered_candidates = candidates
+            location_filtered_candidates.sort(key=lambda c: euclid_dist(c.get_pos(), ref_loc))
+
         else:
-            # FIXME need some tests here
             # reference object location, i.e. the "X" in "left of X"
             mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location)
+            if not mems:
+                raise ErrorWithResponse("I don't know which object you mean")
 
             # FIXME!!! handle frame better, might want agent's frame instead
+            # FIXME use the subinterpreter, don't directly call the attribute
             eid = interpreter.agent.memory.get_player_by_name(speaker).eid
             self_mem = interpreter.agent.memory.get_mem_by_id(interpreter.agent.memory.self_memid)
             L = LinearExtentAttribute(
                 interpreter.agent, {"frame": eid, "relative_direction": reldir}, mem=self_mem
             )
-            proj = L(candidates)
+            c_proj = L(candidates)
+            m_proj = L(mems)
+            # FIXME don't just take the first...
+            m_proj = m_proj[0]
 
             # filter by relative dir, e.g. "left of Y"
-            location_filtered_candidates = [c for (p, c) in zip(proj, candidates) if p > 0]
+            location_filtered_candidates = [c for (p, c) in zip(c_proj, candidates) if p > m_proj]
             # "the X left of Y" = the right-most X that is left of Y
-            location_filtered_candidates.sort(key=lambda p: p[0])
+            location_filtered_candidates.sort(key=lambda p: p.get_pos())
             distance_sorted = True
     else:
         # no reference direction: choose the closest
@@ -253,9 +276,13 @@ def filter_by_sublocation(
         location_filtered_candidates = [
             c for c in candidates if euclid_dist(c.get_pos(), ref_loc) <= all_proximity
         ]
+        location_filtered_candidates.sort(key=lambda c: euclid_dist(c.get_pos(), ref_loc))
         distance_sorted = True
+        # FIXME! remove this when DSL gets rid of location as selector:
+        if get_nearest:  # this happens if a location was given in input, but no reldir
+            location_filtered_candidates = location_filtered_candidates[:1]
 
-        # FIXME lots of copied code between here and interpret_selector
+    # FIXME lots of copied code between here and interpret_selector
     mems = location_filtered_candidates
     if location_filtered_candidates:  # could be [], if so will return []
         selector_d = filters_d.get("selector", {})
