@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import json
 import logging
 import os
+import copy
 import re
 import spacy
 import ast
@@ -323,7 +324,7 @@ class DialogModel:
             }
         """
         if s in ground_truth_actions:
-            d = ground_truth_actions[s]
+            d = copy.deepcopy(ground_truth_actions[s])
             logging.info('Found ground truth action for "{}"'.format(s))
             # log the current UTC time
             time_now = time()
