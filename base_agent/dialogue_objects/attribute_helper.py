@@ -127,8 +127,12 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
         f = deepcopy(rd.get("filters", {}))
         default_frame = getattr(interpreter.agent, "default_frame", "AGENT")
         # should we do this?
-        if not f.get("location"):
-            f["location"] = SPEAKERLOOK if default_frame == "SPEAKER" else AGENTPOS
+        if not f.get("selector"):
+            f["selector"] = (
+                ref_obj_lf_to_selector(SPEAKERLOOK)
+                if default_frame == "SPEAKER"
+                else ref_obj_lf_to_selector(AGENTPOS)
+            )
         F = interpreter.subinterpret["filters"](interpreter, speaker, f)
         location_data["filter"] = F
     L = LinearExtentAttribute(interpreter.agent, location_data, mem=mem, fixed_role=fixed_role)

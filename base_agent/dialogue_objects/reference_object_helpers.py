@@ -77,9 +77,8 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
 
 ###########################################################################
 # FIXME!!!!! rewrite interpret_reference_object, filter_by_sublocation,
-#            ReferenceLocationInterpreter to
-#            to use FILTERS cleanly
-#            current system is not just ungainly, its wrong...
+#            ReferenceLocationInterpreter to use FILTERS cleanly
+#            current system is ungainly and wrong...
 #            interpretation of selector and filtering by location
 #            is spread over the above objects and functions in filter_helper
 ###########################################################################
@@ -291,7 +290,7 @@ def filter_by_sublocation(
                     + location_filtered_candidates[0] * repeat_num
                 )
         else:
-            S = interpret_selector(interpreter, speaker, filters_d)
+            S = interpret_selector(interpreter, speaker, selector_d)
             if S:
                 memids, _ = S(
                     [c.memid for c in location_filtered_candidates],

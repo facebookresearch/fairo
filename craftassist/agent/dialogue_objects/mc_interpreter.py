@@ -7,6 +7,7 @@ import numpy as np
 import random
 import heuristic_perception
 from typing import Tuple, Dict, Any, Optional, List
+from copy import deepcopy
 from word2number.w2n import word_to_num
 
 import sys
@@ -23,6 +24,7 @@ from base_agent.dialogue_objects import (
     get_repeat_num,
     filter_by_sublocation,
     interpret_dance_filter,
+    convert_location_to_selector,
 )
 
 from .schematic_helper import (
@@ -201,10 +203,13 @@ class MCInterpreter(Interpreter):
         # Get the segment to build
         if "reference_object" in d:
             # handle copy
+            ##########FIXME remove this when DSL updated!!!
+            md = deepcopy(d)
+            convert_location_to_selector(md["reference_object"])
             objs = self.subinterpret["reference_objects"](
                 self,
                 speaker,
-                d["reference_object"],
+                md["reference_object"],
                 extra_tags=["VOXEL_OBJECT"],
                 loose_speakerlook=True,
             )
