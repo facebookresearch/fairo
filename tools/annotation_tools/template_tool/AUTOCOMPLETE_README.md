@@ -11,6 +11,8 @@ cd droidlet
 ```
 
 ## Preprocessing
+First, create a file `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt` and write commands we want to annotate, one on each line.
+
 To prepopulate the tool with annotated data, run the preprocessing script from the `backend` folder:
 ```
 cd ~/droidlet/tools/annotation_tools/template_tool/backend/
