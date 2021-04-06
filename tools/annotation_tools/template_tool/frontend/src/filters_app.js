@@ -1,6 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import autocompleteMatches from './spec/grammar_spec';
+var baseSchema = require('./spec/grammar_spec.schema.json');
+var filtersSchema = require('./spec/filters.schema.json');
+var otherDialogueSchema = require('./spec/other_dialogue.schema.json');
+var actionDictSchema = require('./spec/action_dict_components.schema.json');
 
 
 class FiltersAnnotator extends React.Component {
@@ -71,8 +74,12 @@ class FiltersAnnotator extends React.Component {
 
     fetch("http://localhost:9000/readAndSaveToFile/get_labels_progress")
       .then(res => res.json())
-      .then((data) => { this.setState({ dataset: data})})
+      .then((data) => { this.setState({ dataset: data }) })
       .then(() => console.log(this.state.dataset))
+
+    // Combine JSON schemas to use in autocomplete pattern patching
+    var combinedSchema = Object.assign({}, baseSchema.definitions, filtersSchema.definitions, actionDictSchema.definitions, otherDialogueSchema.definitions)
+    this.setState({ schema: combinedSchema })
   }
 
   handleChange(e) {
@@ -81,23 +88,21 @@ class FiltersAnnotator extends React.Component {
 
   incrementIndex() {
     console.log("Moving to the next command")
-    console.log(this.state.currIndex)
-    console.log(this.state.fullText)
     if (this.state.currIndex + 1 >= this.state.fullText.length) {
       alert("Congrats! You have reached the end of annotations.")
     }
-    this.setState({ currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex + 1]] ?? "")});
+    this.setState({ currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex + 1]] ?? "") });
   }
 
   decrementIndex() {
     console.log("Moving to the next command")
     console.log(this.state.currIndex)
-    this.setState({ currIndex: this.state.currIndex - 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex - 1]] ?? "")});
+    this.setState({ currIndex: this.state.currIndex - 1, value: JSON.stringify(this.state.dataset[this.state.fullText[this.state.currIndex - 1]] ?? "") });
   }
 
   goToIndex(i) {
     console.log("Fetching index " + i)
-    this.setState({ currIndex: Number(i), value: JSON.stringify(this.state.dataset[this.state.fullText[i]] ?? "")});
+    this.setState({ currIndex: Number(i), value: JSON.stringify(this.state.dataset[this.state.fullText[i]] ?? "") });
     console.log(this.state.dataset)
   }
 
@@ -106,10 +111,10 @@ class FiltersAnnotator extends React.Component {
     try {
       // First check that the string is JSON valid
       let JSONActionDict = JSON.parse(this.state.value)
-      let items = {...this.state.dataset};
+      let items = { ...this.state.dataset };
       items[this.state.fullText[this.state.currIndex]] = JSONActionDict;
       // Set state to the data items
-      this.setState({dataset: items}, function() {
+      this.setState({ dataset: items }, function () {
         try {
           let actionDict = JSONActionDict
           let JSONString = {
@@ -125,7 +130,7 @@ class FiltersAnnotator extends React.Component {
           alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
         }
       });
-    } catch(error) {
+    } catch (error) {
       console.error(error)
       console.log("Error parsing JSON")
       alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
@@ -147,19 +152,19 @@ class FiltersAnnotator extends React.Component {
       body: JSON.stringify({})
     };
     fetch("http://localhost:9000/readAndSaveToFile/uploadDataToS3", requestOptions)
-    .then(
-      (result) => {
-        if (result.status == 200) {
-          this.setState({ value: "" })
-          alert("saved!")
-        } else {
-          alert("Error: could not upload data to S3: " + result.statusText + "\n Check the format of your action dictionary labels.")
+      .then(
+        (result) => {
+          if (result.status == 200) {
+            this.setState({ value: "" })
+            alert("saved!")
+          } else {
+            alert("Error: could not upload data to S3: " + result.statusText + "\n Check the format of your action dictionary labels.")
+          }
+        },
+        (error) => {
+          console.error(error)
         }
-      },
-      (error) => {
-        console.error(error)
-      }
-    )
+      )
   }
 
 
@@ -168,7 +173,7 @@ class FiltersAnnotator extends React.Component {
       <div>
         <b> Command </b>
         <TextCommand fullText={this.state.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} />
+        <LogicalForm currIndex={this.state.currIndex} value={this.state.value} onChange={this.handleChange} schema={this.state.schema} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
         </div>
@@ -192,11 +197,42 @@ class LogicalForm extends React.Component {
     if (e.keyCode == 13) {
       let autocompletedResult = e.target.value
       // Apply replacements
-      autocompleteMatches.forEach(replacer => {
-        autocompletedResult = autocompletedResult.replace(replacer.match, replacer.replacement)
-      })
-
-      console.log(autocompletedResult)
+      let definitions = Object.keys(this.props.schema)
+      console.log(definitions)
+      definitions.forEach(node => {
+        let node_def = this.props.schema[node]
+        let properties_subtree = {}
+        if (Object.keys(node_def).includes("properties")) {
+          let node_properties = Object.keys(node_def["properties"])
+          node_properties.forEach(key => {
+            properties_subtree[key] = ""
+          })
+        } else if (Object.keys(node_def).includes("oneOf") || Object.keys(node_def).includes("anyOf") || Object.keys(node_def).includes("allOf")) {
+          var child_options;
+          if (Object.keys(node_def).includes("oneOf")) {
+            child_options = node_def["oneOf"]
+          } else if (Object.keys(node_def).includes("anyOf")) {
+            child_options = node_def["anyOf"]
+          } else if (Object.keys(node_def).includes("allOf")) {
+            child_options = node_def["allOf"]
+          }
+          let node_properties = child_options.map(
+            child_def => {
+              return ("properties" in child_def ? Object.keys(child_def.properties) : []);
+            }
+          ).reduce(
+            (x, y) => x.concat(y)
+          )
+          node_properties.forEach(key => {
+            properties_subtree[key] = ""
+          })
+        }
+        console.log(node + ": " + JSON.stringify(properties_subtree))
+        autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
+      }
+      )
+      // Apply replacements        
+      console.log(JSON.stringify(autocompletedResult))
       var obj = JSON.parse(autocompletedResult);
       var pretty = JSON.stringify(obj, undefined, 4);
       console.log(pretty)

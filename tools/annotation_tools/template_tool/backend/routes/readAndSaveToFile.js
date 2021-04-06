@@ -53,7 +53,6 @@ router.get("/get_labels_progress", function (req, res, next) {
     // the file exists
     fs.readFile("command_dict_pairs.json", function (err, data) {
       if (err) throw err;
-      console.log(data.toString())
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(data);
       return res.end();
