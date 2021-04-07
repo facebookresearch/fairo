@@ -73,6 +73,10 @@ class StateManager {
 
     // set default url to actual ip:port
     this.default_url = window.location.href;
+    const urlParams = new URLSearchParams(window.location.search);
+    const turkId = urlParams.get("turk_id");
+    this.setTurkId(turkId);
+
     this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");
@@ -85,7 +89,8 @@ class StateManager {
   }
 
   setDefaultUrl() {
-    localStorage.clear();
+    // localStorage.clear();
+    localStorage.removeItem("server_url");
     this.setUrl(this.default_url);
   }
 
@@ -93,6 +98,14 @@ class StateManager {
     this.url = url;
     localStorage.setItem("server_url", url);
     this.restart(this.url);
+  }
+
+  setTurkId(turkId) {
+    localStorage.setItem("turk_id", turkId);
+  }
+
+  getTurkId() {
+    return localStorage.getItem("turk_id");
   }
 
   restart(url) {

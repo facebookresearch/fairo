@@ -24,7 +24,9 @@ class TurkInfo extends Component {
         isTimerOn: false,
         isSessionEnd: true,
       });
-      this.props.stateManager.socket.emit("terminateAgent", "");
+      this.props.stateManager.socket.emit("terminateAgent", {
+        turk_id: this.props.stateManager.getTurkId(),
+      });
     } else {
       this.setState({
         isTimerOn: true,
