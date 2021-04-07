@@ -707,7 +707,7 @@ class Destroy(Task):
         super().__init__(agent)
         self.schematic = task_data["schematic"]  # list[(xyz, idm)]
         self.dig_message = True if "dig_message" in task_data else False
-        self.build_task = None
+        self.submitted_build_task = False
         self.DIG_REACH = task_data.get("DIG_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -735,21 +735,24 @@ class Destroy(Task):
             return destroy_schm
 
         destroy_schm = to_destroy_schm(self.schematic)
-        build_task = Build(
-            self.agent,
-            {
-                "blocks_list": destroy_schm,
-                "origin": origin,
-                "force": True,
-                "verbose": False,
-                "embed": True,
-                "dig_message": self.dig_message,
-                "is_destroy_schm": not self.dig_message,
-                "DIG_REACH": self.DIG_REACH,
-            },
-        )
-        self.add_child_task(build_task)
-        self.finished = True
+        if self.submitted_build_task:
+            self.finished = True
+        else:
+            build_task = Build(
+                self.agent,
+                {
+                    "blocks_list": destroy_schm,
+                    "origin": origin,
+                    "force": True,
+                    "verbose": False,
+                    "embed": True,
+                    "dig_message": self.dig_message,
+                    "is_destroy_schm": not self.dig_message,
+                    "DIG_REACH": self.DIG_REACH,
+                },
+            )
+            self.add_child_task(build_task)
+            self.submitted_build_task = True
 
     def undo(self, agent):
         triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]

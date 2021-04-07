@@ -95,7 +95,6 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "repeat": {"repeat_count": [0, [1, 1]], "repeat_key": "FOR"},
                 "location": {"contains_coreference": "yes"},
                 "action_type": "DIG",
                 "schematic": {
@@ -103,7 +102,11 @@ common_functional_commands = {
                         "triples": [
                             {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
                             {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
-                        ]
+                        ],
+                        "selector": {
+                            "return_quantity": {"random": [0, [1, 1]]},
+                            "same": "ALLOWED",
+                        },
                     }
                 },
             }
@@ -164,13 +167,16 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "repeat": {"repeat_count": [0, [1, 1]], "repeat_key": "FOR"},
                 "schematic": {
                     "filters": {
                         "triples": [
                             {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
                             {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
-                        ]
+                        ],
+                        "selector": {
+                            "return_quantity": {"random": [0, [1, 1]]},
+                            "same": "ALLOWED",
+                        },
                     }
                 },
                 "action_type": "BUILD",
@@ -328,10 +334,15 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "repeat": {"repeat_count": [0, [1, 1]], "repeat_key": "FOR"},
                 "action_type": "SPAWN",
                 "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]}
+                    "filters": {
+                        "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+                        "selector": {
+                            "return_quantity": {"random": [0, [1, 1]]},
+                            "same": "DISALLOWED",
+                        },
+                    }
                 },
             }
         ],
@@ -525,11 +536,16 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "repeat": {"repeat_count": [0, [1, 1]], "repeat_key": "FOR"},
                 "location": {"contains_coreference": "yes"},
                 "action_type": "BUILD",
                 "schematic": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]}
+                    "filters": {
+                        "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+                        "selector": {
+                            "return_quantity": {"random": [0, [1, 1]]},
+                            "same": "ALLOWED",
+                        },
+                    }
                 },
             }
         ],

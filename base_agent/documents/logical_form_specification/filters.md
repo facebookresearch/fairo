@@ -7,7 +7,7 @@ The supported fields are :
 - `output` : This field specifies the expected output type. In the `output` field we can either have a `"memory"` value which means return the entire memory node (for eg: "is that red"), or `"count"` that represents the equivalent of `count(*)` (for eg: "how many houses on your left") or `attribute` representing the column name of that memory node (equivalent to `Select <attribute> from memory_node`) (for example: "what colour is the cube in front of me"). 
 - `contains coreference` : This field specifies whether the memory node has a coreference that needs to be resolved based on dialogue context.
 - `memory_type` : Specifies the type of memory is the name of memory node. The default value for this is : `"REFERENCE_OBJECT"`.
-- `selector` : This field specifies the selection criteria if any.
+- `selector` : This field specifies how the selection is done. It has a `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects. `selector` also has a field called `same` that specifies whether or not we are allowed to return the exact copies of an object. 
 - `comparator`: This field specifies some form of comparison between two values.
 - `triples` : This is a list of triple dictionaries that have a subject, predicate and object.
 - `author` : Specifies the author of the change. For eg in "go to the house I made last", author is "SPEAKER" here.
@@ -19,7 +19,10 @@ FILTERS = {
       "output" : "MEMORY" / "COUNT" / <ATTRIBUTE>,
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
-      "selector: {"return_quantity": {"argval" : <ARGMAX> / <ARGMIN> }},
+      "selector": {
+        "return_quantity": <ARGMAX> / <ARGMIN> / <RANDOM>,
+        "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
+      },
       "comparator": [<COMPARATOR> , ...],
       "triples": <TRIPLES>,
       "author":  {"fixed_value" : "AGENT" / "SPEAKER"} / span,
@@ -59,28 +62,32 @@ This is used to mean the number of steps (in "has_measure" units, default is "bl
             "has_measure" : {"fixed_value" : text} / span,
             "source": <REFERENCE_OBJECT>,
 		        "destination": <REFERENCE_OBJECT> }
-            }
+            }ss
 }
 ```
 
-### ARGMAX ###
-This defines the polarity of maximum, so ranking from max to min on the quantity: 
+### ARGVAL ###
+This defines either: 
+- the polarity of maximum, so ranking from max to min on the quantity or
+- the polarity of minimum, so ranking from min to max on the quantity
 ```
-{ "polarity" : "MAX", 
-  "ordinal": {"fixed_value" : "FIRST"} / <span>, 
-  "quantity": <ATTRIBUTE>
+{"argval" : { 
+    "polarity" : "MAX" / "MIN", 
+    "ordinal": {"fixed_value" : "FIRST"} / <span>, 
+    "quantity": <ATTRIBUTE>
+    }
 }
 ```
 
-### ARGMIN ###
-This defines the polarity of minimum, so ranking from min to max on the quantity :
+### RANDOM ###
+This defines how many objects to return:
 ```
-{ "polarity" : "MIN", 
-  "ordinal": {"fixed_value" : "FIRST"} / <span>, 
-  "quantity": <ATTRIBUTE>
+{
+  "random":{"fixed_value" : "1"} /span
 }
 ```
- 
+
+
 ### COMPARATOR ###
 Comparator compares two values on the left and right based on the comparison type.
 - `comparison_type` represents the kind of comparison (>, <, >=, != , =)

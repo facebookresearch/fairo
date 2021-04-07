@@ -4,6 +4,51 @@
   "title": "Subcomponents of action dictionaries",
   "type": "object",
   "definitions": {
+    "condition": {
+      "description": "currently subdict of remove condition. WIP.",
+      "type": "object",
+      "properties": {
+        "comparison_type": {
+          "enum": [
+            "EQUAL"
+          ]
+        },
+        "input_left": {
+          "type": "object",
+          "properties": {
+            "filters": {
+              "type": "object",
+              "properties": {
+                "output": {
+                  "type": "object",
+                  "properties": {
+                    "attribute": {
+                      "enum": ["RUN_COUNT"]
+                    }
+                  }
+                },
+                "special": {
+                  "type": "object",
+                  "properties": {
+                    "fixed_value": {
+                      "enum": ["THIS"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "input_right": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "$ref": "#/definitions/span"
+            }
+          }
+        }
+      }
+    },
     "span": {
       "$ref": "span.schema.json#/definitions/span"
     },
@@ -28,7 +73,15 @@
           "$ref": "#/definitions/span"
         },
         "has_measure": {
-          "$ref": "#/definitions/span"
+          "oneOf": [
+            {"$ref": "#/definitions/span"},
+            {
+              "type": "object",
+              "properties": {
+                "fixed_value": {"$ref": "#/definitions/fixed_value"}
+              }
+            }
+          ]
         },
         "contains_coreference": {
           "enum": [
@@ -80,11 +133,22 @@
         "text_span": {
           "$ref": "#/definitions/span"
         },
-        "repeat": {
-          "$ref": "grammar_spec.schema.json#/definitions/repeat"
-        },
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
+        }
+      }
+    },
+    "remove_condition": {
+      "type": "object",
+      "description": "Condition for removing an event",
+      "properties": {
+        "condition_type": {
+          "enum": [
+            "COMPARATOR"
+          ]
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
         }
       }
     },
@@ -109,9 +173,6 @@
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
         },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
-        },
         "text_span": {
           "$ref": "#/definitions/span"
         }
@@ -125,7 +186,6 @@
       "properties": {
         "repeat_key": {
           "enum": [
-            "FOR",
             "ALL"
           ]
         },
@@ -140,25 +200,7 @@
             "AROUND",
             "SURROUND"
           ]
-        },
-        "repeat_count": {
-          "$ref": "#/definitions/span"
         }
-      },
-      "if": {
-        "properties": {
-          "repeat_key": {
-            "const": "FOR"
-          }
-        },
-        "required": [
-          "repeat_key"
-        ]
-      },
-      "then": {
-        "required": [
-          "repeat_count"
-        ]
       }
     },
     "facing": {
