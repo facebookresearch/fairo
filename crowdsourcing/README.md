@@ -32,9 +32,9 @@ To configure job parameters, create a file `data.csv` in `droidlet_static_html_t
 In the Droidlet static task, each turker is given a unique instance of the Voxel world. Currently we pre-launch ECS instances, and set up HTTP/HTTPS proxies for each instance via Cloudflare. Each row in `data.csv` specifies a unique IP. The format of `data.csv` is as follows:
 
 ```
-subdomain
-<IP1>
-<IP2>
+subdomain,batch
+<IP1>,<batch_id>
+<IP2>,<batch_id>
 ...
 ```
 
