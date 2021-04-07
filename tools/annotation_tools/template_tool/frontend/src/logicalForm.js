@@ -49,12 +49,19 @@ class LogicalForm extends React.Component {
           autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
         }
         )
-        // Insert fragments
+        // Insert fragments and lists
         let commands = Object.keys(this.props.dataset)
-        console.log(commands)
-        commands.forEach(text => {
-          autocompletedResult = autocompletedResult.replace(text, JSON.stringify(this.props.dataset[text]))
-        })
+        for (var i = 0; i < commands.length; i++) {
+            let actionDictObj = this.props.dataset[commands[i]]
+            let actionDict;
+            // If the substitution is a list of subtrees, pick a random one
+            if (Array.isArray(actionDictObj)) {
+                actionDict = actionDictObj[Math.floor(Math.random() * actionDictObj.length)]
+            } else {
+                actionDict = actionDictObj
+            }
+            autocompletedResult = autocompletedResult.replace(commands[i], JSON.stringify(actionDict))
+        }
         // Apply replacements        
         console.log(JSON.stringify(autocompletedResult))
         var obj = JSON.parse(autocompletedResult);
