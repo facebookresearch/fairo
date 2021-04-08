@@ -119,16 +119,14 @@ router.post("/uploadDataToS3", function (req, res, next) {
   try {
     console.log(req.body);
     const execSync = require('child_process').execSync;
-    const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py');
+    const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py --source_path ../frontend/src/command_dict_pairs.json');
     console.log('Postprocessing Output was:\n', postprocessing_output);
-    const s3_output = execSync('./../../../data_scripts/upload_datasets_to_aws.sh');
-    console.log('S3 Output was:\n', postprocessing_output);
   }
   catch (error) {
     return res.status(500).json({ error: error.toString() });
   }
 
-  res.send("Uploaded data to S3!");
+  res.send("Saved processed dataset to ~/droidlet/craftassist/agent/datasets/full_data/");
 });
 
 module.exports = router;
