@@ -4,60 +4,43 @@
     "title": "Other dialogue types, such as get or put memory, NOOPs and get capability.",
     "type": "object",
     "definitions": {
-        "get_memory": {
+        "memory_data": {
             "type": "object",
-            "anyOf": [
-                {
-                    "filters": {
-                        "$ref": "filters.schema.json#/definitions/filters"
-                    }
+            "properties": {
+                "memory_type": {
+                    "enum": [
+                        "REWARD",
+                        "TRIPLE"
+                    ]
                 },
-                {
-                    "replace": {
-                        "$ref": "grammar_spec.schema.json#/definitions/replace"
-                    }
+                "reward_value": {
+                    "enum": [
+                        "POSITIVE",
+                        "NEGATIVE"
+                    ]
+                },
+                "triples": {
+                    "$ref": "filters.schema.json#/definitions/triples"
                 }
-            ]
+            }
         },
         "upsert": {
             "type": "object",
             "properties": {
                 "memory_data": {
-                    "type": "object",
-                    "properties": {
-                        "memory_type": {
-                            "enum": [
-                                "REWARD",
-                                "TRIPLE"
-                            ]
-                        },
-                        "reward_value": {
-                            "enum": [
-                                "POSITIVE",
-                                "NEGATIVE"
-                            ]
-                        },
-                        "triples": {
-                            "$ref": "filters.schema.json#/definitions/triples"
-                        }
-                    }
+                    "$ref": "#/definitions/memory_data"
                 }
             }
         },
-        "put_memory": {
-            "type": "object",
-            "anyOf": [
-                {
-                    "filters": {
-                        "$ref": "filters.schema.json#/definitions/filters"
-                    }
-                },
-                {
-                    "replace": {
-                        "$ref": "#/definitions/upsert"
-                    }
-                }
-            ]
+        "noop": {
+            "properties": {
+              "dialogue_type": {
+                "enum": [
+                  "NOOP",
+                  "BOT_CAPABILITIES"
+                ]
+              }
+            }
         },
         "otheraction": {
             "type": "object",

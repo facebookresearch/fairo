@@ -14,30 +14,7 @@
           ]
         },
         "input_left": {
-          "type": "object",
-          "properties": {
-            "filters": {
-              "type": "object",
-              "properties": {
-                "output": {
-                  "type": "object",
-                  "properties": {
-                    "attribute": {
-                      "enum": ["RUN_COUNT"]
-                    }
-                  }
-                },
-                "special": {
-                  "type": "object",
-                  "properties": {
-                    "fixed_value": {
-                      "enum": ["THIS"]
-                    }
-                  }
-                }
-              }
-            }
-          }
+          "$ref": "#/definitions/input_left"
         },
         "input_right": {
           "type": "object",
@@ -49,8 +26,37 @@
         }
       }
     },
+    "input_left": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "type": "object",
+          "properties": {
+            "output": {
+              "type": "object",
+              "properties": {
+                "attribute": {
+                  "enum": ["RUN_COUNT"]
+                }
+              }
+            },
+            "special": {
+              "$ref": "#/definitions/special"
+            }
+          }
+        }
+      }
+    },
     "span": {
       "$ref": "span.schema.json#/definitions/span"
+    },
+    "special": {
+      "type": "object",
+      "properties": {
+        "fixed_value": {
+          "enum": ["THIS"]
+        }
+      }
     },
     "fixed_value": {
       "type": "object",
@@ -63,6 +69,17 @@
         "fixed_value"
       ]
     },
+    "has_measure": {
+      "oneOf": [
+        {"$ref": "#/definitions/span"},
+        {
+          "type": "object",
+          "properties": {
+            "fixed_value": {"$ref": "#/definitions/fixed_value"}
+          }
+        }
+      ]
+    },
     "location": {
       "type": "object",
       "properties": {
@@ -73,15 +90,7 @@
           "$ref": "#/definitions/span"
         },
         "has_measure": {
-          "oneOf": [
-            {"$ref": "#/definitions/span"},
-            {
-              "type": "object",
-              "properties": {
-                "fixed_value": {"$ref": "#/definitions/fixed_value"}
-              }
-            }
-          ]
+          "$ref": "#/definitions/has_measure"
         },
         "contains_coreference": {
           "enum": [
@@ -115,20 +124,7 @@
       "type": "object",
       "properties": {
         "special_reference": {
-          "oneOf": [
-            {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "coordinates_span": {
-                  "$ref": "#/definitions/span"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
+          "$ref": "#/definitions/special_reference"
         },
         "text_span": {
           "$ref": "#/definitions/span"
@@ -151,6 +147,22 @@
           "$ref": "#/definitions/condition"
         }
       }
+    },
+    "special_reference": {
+      "oneOf": [
+        {
+          "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "coordinates_span": {
+              "$ref": "#/definitions/span"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "stop_condition": {
       "type": "object",
@@ -248,6 +260,32 @@
       "properties": {
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
+        }
+      }
+    },
+    "get_memory": {
+      "properties": {
+        "dialogue_type": {
+          "const": "GET_MEMORY"
+        },
+        "filters": {
+          "$ref": "#/definitions/filters"
+        },
+        "replace": {
+          "$ref": "#/definitions/replace"
+        }
+      }
+    },
+    "put_memory": {
+      "properties": {
+        "dialogue_type": {
+          "const": "PUT_MEMORY"
+        },
+        "filters": {
+          "$ref": "#/definitions/filters"
+        },
+        "upsert": {
+          "$ref": "#/definitions/upsert"
         }
       }
     }
