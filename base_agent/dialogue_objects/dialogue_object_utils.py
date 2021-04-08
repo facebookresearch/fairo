@@ -8,6 +8,40 @@ SPEAKERPOS = {"reference_object": {"special_reference": "SPEAKER"}}
 AGENTPOS = {"reference_object": {"special_reference": "AGENT"}}
 
 
+def ref_obj_lf_to_selector(ref_obj_dict):
+    """ ref_obj_dict should be {"reference_object ": ...}"""
+    s = {
+        "return_quantity": {
+            "argval": {
+                "ordinal": "FIRST",
+                "polarity": "MIN",
+                "quantity": {"attribute": {"linear_extent": {"source": ref_obj_dict}}},
+            }
+        }
+    }
+    return s
+
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# FIXME temporary torch this, should not be here after june 2021
+# will not do anything if a selector is already in place
+# also doesn't convert locations properly, as LinearExtent is not nesting
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+def convert_location_to_selector(lf):
+    if type(lf) is not dict:
+        return
+    for k, v in lf.items():
+        if k == "filters":
+            if not v.get("selector"):
+                if v.get("location", {}).get("reference_object"):
+                    r = v["location"]["reference_object"]
+                    selector_d = ref_obj_lf_to_selector({"reference_object": r})
+                    del v["location"]
+                    v["selector"] = selector_d
+        else:
+            convert_location_to_selector(v)
+
+
 def maybe_listify_tags(t):
     return [t] if type(t) is str else t
 

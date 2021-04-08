@@ -4,16 +4,18 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import re
 import numpy as np
+from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 
 from dialogue_object_utils import SPEAKERLOOK
 from dialogue_object import ConfirmReferenceObject
 from location_helpers import interpret_relative_direction
-from base_agent.base_util import euclid_dist
+from base_agent.base_util import euclid_dist, number_from_span
 from base_agent.memory_attributes import LookRayDistance, LinearExtentAttribute
 from base_agent.memory_nodes import ReferenceObjectNode
 from base_agent.base_util import T, XYZ, ErrorWithResponse, NextDialogueStep
+from base_agent.dialogue_objects.filter_helper import interpret_selector
 
 
 def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
@@ -73,9 +75,13 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
     return mems[0]
 
 
-# TODO rewrite functions in intepreter and helpers as classes
-# finer granularity of (code) objects
-# interpreter is an input to interpret ref object, maybe clean that up?
+###########################################################################
+# FIXME!!!!! rewrite interpret_reference_object, filter_by_sublocation,
+#            ReferenceLocationInterpreter to use FILTERS cleanly
+#            current system is ungainly and wrong...
+#            interpretation of selector and filtering by location
+#            is spread over the above objects and functions in filter_helper
+###########################################################################
 class ReferenceObjectInterpreter:
     def __init__(self, interpret_reference_object):
         self.interpret_reference_object = interpret_reference_object
@@ -89,9 +95,9 @@ def interpret_reference_object(
     speaker,
     d,
     extra_tags=[],
-    limit=1,
     loose_speakerlook=False,
     allow_clarification=True,
+    all_proximity=100,
 ) -> List[ReferenceObjectNode]:
     """this tries to find a ref obj memory matching the criteria from the
     ref_obj_dict
@@ -103,19 +109,20 @@ def interpret_reference_object(
     d: logical form from semantic parser
 
     extra_tags (list of strings): tags added by parent to narrow the search
-    limit (natural number): maximum number of reference objects to return
     allow_clarification (bool): should a Clarification object be put on the DialogueStack    
     """
-    F = d.get("filters")
+    filters_d = d.get("filters")
     special = d.get("special_reference")
-    # F can be empty...
-    assert (F is not None) or special, "no filters or special_reference sub-dicts {}".format(d)
+    # filters_d can be empty...
+    assert (
+        filters_d is not None
+    ) or special, "no filters or special_reference sub-dicts {}".format(d)
     if special:
         mem = get_special_reference_object(interpreter, speaker, special)
         return [mem]
 
-    if F.get("contains_coreference", "NULL") != "NULL":
-        mem = F["contains_coreference"]
+    if filters_d.get("contains_coreference", "NULL") != "NULL":
+        mem = filters_d["contains_coreference"]
         if isinstance(mem, ReferenceObjectNode):
             return [mem]
         elif mem == "resolved":
@@ -125,30 +132,39 @@ def interpret_reference_object(
 
     if len(interpreter.progeny_data) == 0:
         if any(extra_tags):
-            if not F.get("triples"):
-                F["triples"] = []
+            if not filters_d.get("triples"):
+                filters_d["triples"] = []
             for tag in extra_tags:
-                F["triples"].append({"pred_text": "has_tag", "obj_text": tag})
+                filters_d["triples"].append({"pred_text": "has_tag", "obj_text": tag})
         # TODO Add ignore_player maybe?
-        candidate_mems = apply_memory_filters(interpreter, speaker, F)
+
+        # FIXME! see above.  currently removing selector to get candidates, and filtering after
+        # instead of letting filter interpreters handle.
+        filters_no_select = deepcopy(filters_d)
+        filters_no_select.pop("selector", None)
+        #        filters_no_select.pop("location", None)
+        candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
         if len(candidate_mems) > 0:
-            # FIXME?
-            candidates = [(c.get_pos(), c) for c in candidate_mems]
-            r = filter_by_sublocation(
-                interpreter, speaker, candidates, d, limit=limit, loose=loose_speakerlook
+            return filter_by_sublocation(
+                interpreter,
+                speaker,
+                candidate_mems,
+                d,
+                loose=loose_speakerlook,
+                all_proximity=all_proximity,
             )
-            return [mem for _, mem in r]
+
         elif allow_clarification:
             # no candidates found; ask Clarification
             # TODO: move ttad call to dialogue manager and remove this logic
             interpreter.action_dict_frozen = True
-            confirm_candidates = apply_memory_filters(interpreter, speaker, F)
+            confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
             objects = object_looked_at(interpreter.agent, confirm_candidates, speaker=speaker)
             if len(objects) == 0:
                 raise ErrorWithResponse("I don't know what you're referring to")
             _, mem = objects[0]
             interpreter.provisional["object_mem"] = mem
-            interpreter.provisional["F"] = F
+            interpreter.provisional["filters_d"] = filters_d
             interpreter.dialogue_stack.append_new(ConfirmReferenceObject, mem)
             raise NextDialogueStep()
         else:
@@ -159,7 +175,7 @@ def interpret_reference_object(
         r = interpreter.progeny_data[-1].get("response")
         if r == "yes":
             # TODO: learn from the tag!  put it in memory!
-            return [interpreter.provisional.get("object_mem")] * limit
+            return [interpreter.provisional.get("object_mem")]
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 
@@ -177,28 +193,25 @@ def apply_memory_filters(interpreter, speaker, filters_d) -> List[ReferenceObjec
 # FIXME make me a proper filters object
 # TODO filter by INSIDE/AWAY/NEAR
 def filter_by_sublocation(
-    interpreter,
-    speaker,
-    candidates: List[Tuple[XYZ, T]],
-    d: Dict,
-    limit=1,
-    all_proximity=10,
-    loose=False,
-) -> List[Tuple[XYZ, T]]:
-    """Select from a list of candidate (xyz, object) tuples given a sublocation
-
-    If limit == 'ALL', return all matching candidates
-
-    Returns a list of (xyz, mem) tuples
+    interpreter, speaker, candidates: List[T], d: Dict, all_proximity=10, loose=False
+) -> List[T]:
+    """Select from a list of candidate reference_object mems given a sublocation
+    also handles random sampling
+    Returns a list of mems
     """
-    F = d.get("filters")
-    assert F is not None, "no filters: {}".format(d)
+    filters_d = d.get("filters")
+    assert filters_d is not None, "no filters: {}".format(d)
     default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
-    location = F.get("location", default_loc)
-    #    if limit == 1:
-    #        limit = get_repeat_num(d)
 
+    # FIXME! remove this when DSL gets rid of location as selector:
+    get_nearest = False
+    if filters_d.get("location") and not filters_d["location"].get("relative_direction"):
+        get_nearest = True
+
+    location = filters_d.get("location", default_loc)
     reldir = location.get("relative_direction")
+    distance_sorted = False
+    location_filtered_candidates = []
     if reldir:
         if reldir == "INSIDE":
             # FIXME formalize this better, make extensible
@@ -207,14 +220,15 @@ def filter_by_sublocation(
                 ref_mems = interpret_reference_object(
                     interpreter, speaker, location["reference_object"]
                 )
-                for l, candidate_mem in candidates:
-                    I = interpreter.agent.on_demand_perception.get["check_inside"]
-                    if I:
+                I = interpreter.agent.on_demand_perception.get["check_inside"]
+                if I:
+                    for candidate_mem in candidates:
                         if I([candidate_mem, ref_mems[0]]):
-                            return [(l, candidate_mem)]
-                    else:
-                        raise ErrorWithResponse("I don't know how to check inside")
-            raise ErrorWithResponse("I can't find something inside that")
+                            location_filtered_candidates.append(candidate_mem)
+                else:
+                    raise ErrorWithResponse("I don't know how to check inside")
+            if not location_filtered_candidates:
+                raise ErrorWithResponse("I can't find something inside that")
         elif reldir == "AWAY":
             raise ErrorWithResponse("I don't know which object you mean")
         elif reldir == "NEAR":
@@ -225,28 +239,33 @@ def filter_by_sublocation(
             ref_loc, _ = interpreter.subinterpret["specify_locations"](
                 interpreter, speaker, mems, steps, reldir
             )
-            candidates.sort(key=lambda c: euclid_dist(c[0], ref_loc))
-            return candidates[:limit]
+            distance_sorted = True
+            location_filtered_candidates = candidates
+            location_filtered_candidates.sort(key=lambda c: euclid_dist(c.get_pos(), ref_loc))
+
         else:
-            # FIXME need some tests here
             # reference object location, i.e. the "X" in "left of X"
             mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location)
+            if not mems:
+                raise ErrorWithResponse("I don't know which object you mean")
 
             # FIXME!!! handle frame better, might want agent's frame instead
+            # FIXME use the subinterpreter, don't directly call the attribute
             eid = interpreter.agent.memory.get_player_by_name(speaker).eid
             self_mem = interpreter.agent.memory.get_mem_by_id(interpreter.agent.memory.self_memid)
             L = LinearExtentAttribute(
                 interpreter.agent, {"frame": eid, "relative_direction": reldir}, mem=self_mem
             )
-            proj = L([c[1] for c in candidates])
+            c_proj = L(candidates)
+            m_proj = L(mems)
+            # FIXME don't just take the first...
+            m_proj = m_proj[0]
 
             # filter by relative dir, e.g. "left of Y"
-            proj_cands = [(p, c) for (p, c) in zip(proj, candidates) if p > 0]
-
+            location_filtered_candidates = [c for (p, c) in zip(c_proj, candidates) if p > m_proj]
             # "the X left of Y" = the right-most X that is left of Y
-            if limit == "ALL":
-                limit = len(proj_cands)
-            return [c for (_, c) in sorted(proj_cands, key=lambda p: p[0])][:limit]
+            location_filtered_candidates.sort(key=lambda p: p.get_pos())
+            distance_sorted = True
     else:
         # no reference direction: choose the closest
         mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location)
@@ -254,12 +273,58 @@ def filter_by_sublocation(
         ref_loc, _ = interpreter.subinterpret["specify_locations"](
             interpreter, speaker, mems, steps, reldir
         )
-        if limit == "ALL":
-            return list(filter(lambda c: euclid_dist(c[0], ref_loc) <= all_proximity, candidates))
+        location_filtered_candidates = [
+            c for c in candidates if euclid_dist(c.get_pos(), ref_loc) <= all_proximity
+        ]
+        location_filtered_candidates.sort(key=lambda c: euclid_dist(c.get_pos(), ref_loc))
+        distance_sorted = True
+        # FIXME! remove this when DSL gets rid of location as selector:
+        if get_nearest:  # this happens if a location was given in input, but no reldir
+            location_filtered_candidates = location_filtered_candidates[:1]
+
+    # FIXME lots of copied code between here and interpret_selector
+    mems = location_filtered_candidates
+    if location_filtered_candidates:  # could be [], if so will return []
+        selector_d = filters_d.get("selector", {})
+        return_d = selector_d.get("return_quantity", "ALL")
+        if type(return_d) is dict and return_d.get("random") and distance_sorted:
+            # FIXME? not going to follow spec here, grabbing by the sort...
+            try:
+                return_num = int(number_from_span(return_d["random"]))
+            except:
+                raise Exception(
+                    "malformed selector dict {}, tried to get number from return dict".format(
+                        return_d
+                    )
+                )
+            same = selector_d.get("same", "ALLOWED")
+            if same == "REQUIRED":
+                mems = [location_filtered_candidates[0]] * return_num
+            elif same == "DISALLOWED":
+                if return_num > len(location_filtered_candidates):
+                    raise ErrorWithResponse(
+                        "tried to get {} objects when I only can think of {}".format(
+                            return_num, len(location_filtered_candidates)
+                        )
+                    )
+                else:
+                    mems = location_filtered_candidates[:return_num]
+            else:
+                repeat_num = max(return_num - len(location_filtered_candidates), 0)
+                return_num = min(return_num, len(location_filtered_candidates))
+                mems = (
+                    location_filtered_candidates[:return_num]
+                    + location_filtered_candidates[0] * repeat_num
+                )
         else:
-            candidates.sort(key=lambda c: euclid_dist(c[0], ref_loc))
-            return candidates[:limit]
-    return []  # this fixes flake but seems awful?
+            S = interpret_selector(interpreter, speaker, selector_d)
+            if S:
+                memids, _ = S(
+                    [c.memid for c in location_filtered_candidates],
+                    [None] * len(location_filtered_candidates),
+                )
+                mems = [interpreter.agent.memory.get_mem_by_id(m) for m in memids]
+    return mems
 
 
 def object_looked_at(

@@ -4,12 +4,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 from typing import Dict, Tuple, Any, Optional, Sequence
 
-from base_agent.dialogue_objects import DialogueObject
+from base_agent.dialogue_objects import DialogueObject, convert_location_to_selector
 from base_agent.base_util import ErrorWithResponse
 from base_agent.memory_nodes import MemoryNode
 from string_lists import ACTION_ING_MAPPING
 from copy import deepcopy
 import logging
+from base_agent.dialogue_objects.filter_helper import get_val_map
+
+ALL_PROXIMITY = 1000
 
 
 class GetMemoryHandler(DialogueObject):
@@ -63,21 +66,26 @@ class GetMemoryHandler(DialogueObject):
         """
         ####TODO handle location mems too
         f = self.action_dict["filters"]
-        if f.get("triples") is None:
-            f["triples"] = []
-        f["triples"].append({"pred_text": "has_tag", "obj_text": "_not_location"})
+
         # we should just lowercase specials in spec
-        for t in f["triples"]:
+        for t in f.get("triples", []):
             if t.get("obj_text") and t["obj_text"].startswith("_"):
                 t["obj_text"] = t["obj_text"].lower()
-        F = self.subinterpret["filters"](self, self.speaker_name, f, get_all=True)
-        mems, vals = F()
+        ref_obj_mems = self.subinterpret["reference_objects"](
+            self,
+            self.speaker_name,
+            {"filters": f},
+            extra_tags=["_not_location"],
+            all_proximity=ALL_PROXIMITY,
+        )
+        val_map = get_val_map(self, self.speaker_name, f, get_all=True)
+        mems, vals = val_map([m.memid for m in ref_obj_mems], [] * len(ref_obj_mems))
         # back off to tags if nothing else, FIXME do this better!
         if vals:
             if vals[0] is None:
                 f["output"] = {"attribute": "tag"}
-                F = self.subinterpret["filters"](self, self.speaker_name, f, get_all=True)
-                mems, vals = F()
+                val_map = get_val_map(self, self.speaker_name, f, get_all=True)
+                mems, vals = val_map([m.memid for m in ref_obj_mems], [] * len(ref_obj_mems))
         return self.do_answer(mems, vals)
 
     def handle_action(self) -> Tuple[Optional[str], Any]:
@@ -126,7 +134,7 @@ class GetMemoryHandler(DialogueObject):
                 return self.handle_exists(mems)
             else:
                 raise ValueError("Bad answer_type={}".format(output_type))
-        except IndexError: # index error indicates no answer available
+        except IndexError:  # index error indicates no answer available
             logging.error("No answer available from do_answer")
             raise ErrorWithResponse("I don't understand what you're asking")
         except Exception as e:
