@@ -1,5 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import TemplateAnnotator from './templateObject.js'
+import LogicalForm from './logicalForm.js'
+import TextCommand from './textCommand.js'
+
 var baseSchema = require('./spec/grammar_spec.schema.json');
 var filtersSchema = require('./spec/filters.schema.json');
 var otherDialogueSchema = require('./spec/other_dialogue.schema.json');
@@ -46,7 +50,7 @@ class AutocompleteAnnotator extends React.Component {
           <ParseTreeAnnotator title="Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
         </div>
         <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <ParseTreeAnnotator title="Fragments" fullText={this.state.fragmentsText} schema={this.state.schema} />
+          <TemplateAnnotator title="Create List" fullText={this.state.fragmentsText} schema={this.state.schema} />
         </div>
       </div>
     )
@@ -220,7 +224,7 @@ class ParseTreeAnnotator extends React.Component {
       <div style={{ padding: 10 }}>
         <b> {this.props.title} </b>
         <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
+        <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
         <div onClick={this.logSerialized}>
           <button>Save</button>
         </div>
@@ -231,6 +235,7 @@ class ParseTreeAnnotator extends React.Component {
     )
   }
 }
+
 
 // Represents a Text Input node
 class LogicalForm extends React.Component {
