@@ -13,7 +13,7 @@ from memory_attributes import (
 from memory_values import LinearExtentValue, FixedValue, convert_comparison_value
 from base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import ReferenceObjectNode
-from dialogue_object_utils import tags_from_dict, SPEAKERLOOK, AGENTPOS
+from dialogue_object_utils import tags_from_dict, ref_obj_lf_to_selector, SPEAKERLOOK, AGENTPOS
 
 
 """
@@ -122,15 +122,21 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     rd = rd["reference_object"]
 
     mem, _ = maybe_specific_mem(interpreter, speaker, rd)
+    # FIXME this does not allow searching at run time, only at build time!
     if not mem:
-        # FIXME better defaults?
-        f = deepcopy(rd.get("filters", {}))
-        default_frame = getattr(interpreter.agent, "default_frame", "AGENT")
-        # should we do this?
-        if not f.get("location"):
-            f["location"] = SPEAKERLOOK if default_frame == "SPEAKER" else AGENTPOS
-        F = interpreter.subinterpret["filters"](interpreter, speaker, f)
-        location_data["filter"] = F
+        mems = interpreter.subinterpret["reference_objects"](interpreter, speaker, rd)
+        if not mems:
+            raise ErrorWithResponse("I don't know what you're referring to")
+        mem = mems[0]
+    #        # should we do this?
+    #        if not f.get("selector"):
+    #            f["selector"] = (
+    #                ref_obj_lf_to_selector(SPEAKERLOOK)
+    #                if default_frame == "SPEAKER"
+    #                else ref_obj_lf_to_selector(AGENTPOS)
+    #            )
+    #        F = interpreter.subinterpret["filters"](interpreter, speaker, f)
+    #        location_data["filter"] = F
     L = LinearExtentAttribute(interpreter.agent, location_data, mem=mem, fixed_role=fixed_role)
 
     # TODO some sort of sanity check here, these should be rare:

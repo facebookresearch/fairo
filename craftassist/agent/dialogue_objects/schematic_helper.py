@@ -12,7 +12,7 @@ from base_agent.dialogue_objects import get_repeat_num
 import block_data
 import size_words
 from .block_helpers import get_block_type
-from base_agent.base_util import ErrorWithResponse
+from base_agent.base_util import ErrorWithResponse, number_from_span
 from mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
@@ -208,24 +208,21 @@ def interpret_named_schematic(
 
 
 def interpret_schematic(
-    interpreter, speaker, d, repeat_dict=None
+    interpreter, speaker, d
 ) -> List[Tuple[List[Block], Optional[str], List[Tuple[str, str]]]]:
     """Return a list of 3-tuples, each with values:
     - the schematic blocks, list[(xyz, idm)]
     - a SchematicNode memid, or None
     - a list of (pred, val) tags
     """
-    # hack, fixme in grammar/standardize.  sometimes the repeat is a sibling of action
-    if repeat_dict is not None:
-        repeat = cast(int, get_repeat_num(repeat_dict))
-    else:
-        repeat = cast(int, get_repeat_num(d))
-    assert type(repeat) == int, "bad repeat={}".format(repeat)
 
     # FIXME! this is not compositional, and is not using full FILTERS handlers
     filters_d = d.get("filters", {})
     triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
     shapes = get_properties_from_triples(triples, "has_shape")
+    # AND this FIXME, not using selector properly
+    repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
+    repeat = int(number_from_span(repeat))
     if any(shapes):
         blocks, tags = interpret_shape_schematic(interpreter, speaker, d)
         return [(blocks, None, tags)] * repeat

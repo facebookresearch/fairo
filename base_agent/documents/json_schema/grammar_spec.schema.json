@@ -58,9 +58,6 @@
         "location": {
           "$ref": "#/definitions/location"
         },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
-        },
         "replace": {
           "type": "boolean"
         },
@@ -91,9 +88,6 @@
         "location": {
           "$ref": "#/definitions/location"
         },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
-        },
         "replace": {
           "type": "boolean"
         },
@@ -104,34 +98,11 @@
         },
         "stop_condition": {
           "$ref": "#/definitions/stop_condition"
+        },
+        "remove_condition": {
+          "$ref": "#/definitions/stop_condition"
         }
-      },
-      "anyOf": [
-        {
-          "required": [
-            "action_type",
-            "repeat",
-            "stop_condition"
-          ]
-        },
-        {
-          "required": [
-            "action_type",
-            "location"
-          ]
-        },
-        {
-          "required": [
-            "action_type"
-          ]
-        },
-        {
-          "required": [
-            "action_type",
-            "reference_object"
-          ]
-        }
-      ]
+      }
     },
     "spawn": {
       "type": "object",
@@ -141,9 +112,6 @@
         },
         "reference_object": {
           "$ref": "#/definitions/reference_object"
-        },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
         },
         "replace": {
           "$ref": "#/definitions/replace"
@@ -177,8 +145,8 @@
             "FILL"
           ]
         },
-        "triples": {
-          "$ref": "#/definitions/triples"
+        "schematic": {
+          "$ref": "action_dict_components.schema.json#/definitions/schematic"
         },
         "reference_object": {
           "$ref": "#/definitions/reference_object"
@@ -223,7 +191,15 @@
           "const": "UNDO"
         },
         "target_action_type": {
-          "$ref": "#/definitions/span"
+          "oneOf": [
+            {"$ref": "#/definitions/span"},
+            {
+              "type": "object",
+              "properties": {
+                "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
+              }
+            }
+          ]
         }
       },
       "required": [
@@ -237,7 +213,15 @@
           "const": "STOP"
         },
         "target_action_type": {
-          "$ref": "#/definitions/span"
+          "oneOf": [
+            {"$ref": "#/definitions/span"},
+            {
+              "type": "object",
+              "properties": {
+                "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
+              }
+            }
+          ]
         }
       },
       "required": [
@@ -308,14 +292,14 @@
         "stop_condition": {
           "$ref": "#/definitions/stop_condition"
         },
+        "remove_condition": {
+          "$ref": "#/definitions/stop_condition"
+        },
         "location": {
           "$ref": "#/definitions/location"
         },
         "dance_type": {
           "$ref": "#/definitions/dance_type"
-        },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
         },
         "replace": {
           "$ref": "#/definitions/replace"

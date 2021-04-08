@@ -20,7 +20,6 @@ This is the action to Build a schematic at an optional location.
 { "action_type" : BUILD,
   <Location>,
   <Schematic>,
-  <Repeat> (with repeat_key: 'FOR' and additional repeat_dir: 'SURROUND'),
   "replace" : True
 }
     
@@ -32,7 +31,6 @@ This is the action to copy a block object to an optional location. The copy acti
 { "action_type" : 'BUILD',
   <Location>,
   <ReferenceObject>,
-  <Repeat> (repeat_key = 'FOR'),
   "replace" : True
 }
 ```
@@ -45,10 +43,8 @@ Spawn only has a name in the reference object.
 { "action_type" : 'SPAWN',
   "reference_object" : {
       "text_span" : span,
-      <Repeat>(repeat_key= 'FOR'),
       "triples": [{"pred_text": "has_name", "obj_text": {"fixed_value" : text} / span}]
     },
-    <Repeat>(repeat_key= 'FOR'),
     "replace": True
 }
 ```
@@ -69,7 +65,6 @@ This action states that a hole / negative shape needs to be filled up.
 { "action_type" : 'FILL',
   <Schematic>,
   <ReferenceObject>,
-  <Repeat>,
   "replace": True
 }
 ```
@@ -80,7 +75,6 @@ This action indicates the intent to destroy a block object.
 ```
 { "action_type" : 'DESTROY',
   <ReferenceObject>,
-  <Repeat>,
   "replace": True
 }
 ```
@@ -124,11 +118,9 @@ The `Schematic` child in this only has a subset of properties.
   <Location>,
   "schematic" : {
     "text_span" : span,
-    <Repeat>(repeat_key = 'FOR'),
     "triples": [{"pred_text": "has_x", "obj_text": {"fixed_value" : text} / span}]
     },
   <StopCondition>,
-  <Repeat>,
   "replace": True  
 }
 ```
@@ -141,7 +133,6 @@ This action represents that the agent should complete an already existing half-f
 { "action_type" : 'FREEBUILD',
   <ReferenceObject>,
   <Location>,
-  <Repeat>,
   "replace": True
 }
 ```
@@ -173,7 +164,6 @@ The Bring intent represents bringing a reference_object to the speaker or to a s
 {
     "action_type" : 'GET',
     <ReferenceObject>,
-    <Repeat>,
     "receiver" : <ReferenceObject> / <Location>
 }
 ```
@@ -244,7 +234,6 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 ```
 "reference_object" : {
       "text_span" : span,
-      <Repeat>,
       "special_reference" : {"fixed_value" : "SPEAKER" / "AGENT" / "SPEAKER_LOOK"} / {"coordinates_span" : span},
       "filters" : <FILTERS>
       }
@@ -262,7 +251,6 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
 ```
 "schematic" : {
           "text_span" : span,
-          <Repeat> (with repeat_key: 'FOR' and additional 'SURROUND' repeat_dir), 
           "filters" : <FILTERS>
       }
 ```
@@ -271,10 +259,8 @@ where `has_x` can be : `has_block_type`, `has_name`, `has_size`, `has_orientatio
 #### Repeat ####
 ```
 "repeat" : {
-            "repeat_key" : 'FOR'/ 'ALL'
-            "repeat_count" : span,
-            "repeat_dir": 'LEFT' / 'RIGHT'/ 'UP'/ 'DOWN'/ 'FRONT'/ 'BACK' / 'AROUND'
-      }
+    "repeat_key" : 'ALL'
+    }
 ```
 
 #### FACING ####

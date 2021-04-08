@@ -356,6 +356,14 @@
                 }
             }
         },
+        "return_quantity": {
+            "type": "object",
+            "properties": {
+                "random": {
+                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                }
+            }
+        },
         "selector": {
             "type": "object",
             "properties": {
@@ -364,6 +372,16 @@
                 },
                 "location": {
                     "$ref": "action_dict_components.schema.json#/definitions/location"
+                },
+                "return_quantity": {
+                    "$ref": "#/definitions/return_quantity"
+                },
+                "same": {
+                    "enum": [
+                        "ALLOWED",
+                        "DISALLOWED",
+                        "REQUIRED"
+                    ]
                 }
             }
         },
