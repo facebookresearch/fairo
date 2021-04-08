@@ -436,19 +436,68 @@
   },
   "oneOf": [
     {
-      "$ref": "#/definitions/human_give_command"
+      "properties": {
+        "dialogue_type": {
+          "const": "HUMAN_GIVE_COMMAND"
+        },
+        "action_sequence": {
+          "$ref": "#/definitions/action_sequence"
+        }
+      }
     },
     {
-      "$ref": "#/definitions/noop"
+      "properties": {
+        "dialogue_type": {
+          "enum": [
+            "NOOP",
+            "BOT_CAPABILITIES"
+          ]
+        }
+      }
     },
     {
-      "$ref": "#/definitions/get_capabilities"
+      "properties": {
+        "dialogue_type": {
+          "enum": [
+            "GET_CAPABILITIES"
+          ]
+        },
+        "action_type": {
+          "enum": [
+            "UNKNOWN",
+            "ANY",
+            "BUILD",
+            "PUT_MEMORY",
+            "GET_MEMORY"
+          ]
+        }
+      }
     },
     {
-      "$ref": "other_dialogue.schema.json#/definitions/get_memory"
+      "properties": {
+        "dialogue_type": {
+          "const": "GET_MEMORY"
+        },
+        "filters": {
+          "$ref": "#/definitions/filters"
+        },
+        "replace": {
+          "$ref": "#/definitions/replace"
+        }
+      }
     },
     {
-      "$ref": "other_dialogue.schema.json#/definitions/put_memory"
+      "properties": {
+        "dialogue_type": {
+          "const": "PUT_MEMORY"
+        },
+        "filters": {
+          "$ref": "#/definitions/filters"
+        },
+        "upsert": {
+          "$ref": "#/definitions/upsert"
+        }
+      }
     }
   ]
 }

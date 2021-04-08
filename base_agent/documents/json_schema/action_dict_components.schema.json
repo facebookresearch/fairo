@@ -29,21 +29,8 @@
     "input_left": {
       "type": "object",
       "properties": {
-        "filters": {
-          "type": "object",
-          "properties": {
-            "output": {
-              "type": "object",
-              "properties": {
-                "attribute": {
-                  "enum": ["RUN_COUNT"]
-                }
-              }
-            },
-            "special": {
-              "$ref": "#/definitions/special"
-            }
-          }
+        "value_extractor": {
+          "$ref": "#/definitions/value_extractor"
         }
       }
     },
@@ -59,15 +46,7 @@
       }
     },
     "fixed_value": {
-      "type": "object",
-      "properties": {
-        "fixed_value": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "fixed_value"
-      ]
+      "type": "string"
     },
     "has_measure": {
       "oneOf": [
@@ -151,7 +130,12 @@
     "special_reference": {
       "oneOf": [
         {
-          "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+          "properties": {
+            "fixed_value": {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+            }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -236,7 +220,11 @@
               "$ref": "#/definitions/span"
             },
             {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
             }
           ]
         },
@@ -246,7 +234,11 @@
               "$ref": "#/definitions/span"
             },
             {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
             }
           ]
         },
@@ -260,32 +252,6 @@
       "properties": {
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
-        }
-      }
-    },
-    "get_memory": {
-      "properties": {
-        "dialogue_type": {
-          "const": "GET_MEMORY"
-        },
-        "filters": {
-          "$ref": "#/definitions/filters"
-        },
-        "replace": {
-          "$ref": "#/definitions/replace"
-        }
-      }
-    },
-    "put_memory": {
-      "properties": {
-        "dialogue_type": {
-          "const": "PUT_MEMORY"
-        },
-        "filters": {
-          "$ref": "#/definitions/filters"
-        },
-        "upsert": {
-          "$ref": "#/definitions/upsert"
         }
       }
     }

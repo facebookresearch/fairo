@@ -90,6 +90,13 @@
                 }
             ]
         },
+        "block_filters": {
+            "properties": {
+                "triples": {
+                    "$ref": "#/definitions/triples"
+                }
+            }
+        },
         "close_to": {
             "type": "object",
             "properties": {
@@ -149,6 +156,11 @@
                 }
             }
         },
+        "destination": {
+            "properties": {
+                "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+            }
+        },
         "filters": {
             "type": "object",
             "properties": {
@@ -176,7 +188,11 @@
                 "author": {
                     "oneOf": [
                         {
-                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                            "properties": {
+                                "fixed_value": {
+                                    "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                }
+                            }
                         },
                         {
                             "$ref": "action_dict_components.schema.json#/definitions/span"
@@ -205,17 +221,7 @@
         "input_right": {
             "properties": {
                 "value_extractor": {
-                    "oneOf": [
-                        {
-                            "$ref": "#/definitions/filters"
-                        },
-                        {
-                            "$ref": "#/definitions/attribute"
-                        },
-                        {
-                            "$ref": "action_dict_components.schema.json#/definitions/span"
-                        }
-                    ]
+                    "$ref": "#/definitions/value_extractor"
                 }
             }
         },
@@ -245,10 +251,10 @@
                     "$ref": "action_dict_components.schema.json#/definitions/span"
                 },
                 "source": {
-                    "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                    "$ref": "#/definitions/source"
                 },
                 "destination": {
-                    "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                    "$ref": "#/definitions/destination"
                 }
             }
         },
@@ -303,11 +309,7 @@
             "description": "This represents number of blocks and hence a filter over those. For example: go to the house with most red blocks.",
             "properties": {
                 "block_filters": {
-                    "properties": {
-                        "triples": {
-                            "$ref": "#/definitions/triples"
-                        }
-                    }
+                    "$ref": "#/definitions/block_filters"
                 }
             }
         },
@@ -367,6 +369,11 @@
                 }
             }
         },
+        "source": {
+            "properties": {
+                "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+            }
+        },
         "task_info": {
             "properties": {
                 "reference_object": {
@@ -408,7 +415,11 @@
                                 "$ref": "action_dict_components.schema.json#/definitions/span"
                             },
                             {
-                                "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                "properties": {
+                                    "fixed_value": {
+                                        "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                    }
+                                }
                             }
                         ]
                     },
@@ -421,7 +432,11 @@
                                 "$ref": "action_dict_components.schema.json#/definitions/span"
                             },
                             {
-                                "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                "properties": {
+                                    "fixed_value": {
+                                        "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                    }
+                                }
                             }
                         ]
                     },
@@ -465,6 +480,17 @@
                     },
                     "required": [
                         "filters"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "fixed_value": {
+                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                        }
+                    },
+                    "required": [
+                        "fixed_value"
                     ]
                 },
                 {
