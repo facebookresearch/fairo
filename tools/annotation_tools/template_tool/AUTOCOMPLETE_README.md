@@ -52,28 +52,26 @@ The tool autocompletes children for tree nodes based on matches in the filters s
 
 Some examples of find and replace:
 Input:
-`"GET_MEMORY": \n"`
+`"get_memory":  \n"`
 Match:
 `{ "dialogue_type": "GET_MEMORY", "filters": "", "replace": "" }`
 
 Input:
-`{ "dialogue_type": "GET_MEMORY", "filters": \n, "replace": "" }`
+`{ "dialogue_type": "GET_MEMORY", "filters":  \n, "replace": "" }`
 
 Match:
 `{ "dialogue_type": "GET_MEMORY", "filters": { "triples": "", "output": "", "contains_coreference": "", "memory_type": "", "argval": "", "comparator": "", "author": "", "location": "" }, "replace": "" }`
 
-The tool also populates new triples, on `}, [space] [space] [Enter]`.
+The tool also populates triples with the first array item's keys pre-filled.
 
 `"triples": [ { "pred_text": "", "obj_text": "", "subj_text": "" }, \n`
-becomes
-`"triples": [ { "pred_text": "", "obj_text": "", "subj_text": "" }, { "pred_text": "", "obj_text": "", "subj_text": "" } ]`
 
 To pretty print a JSON valid dictionary, press Enter in the text box.
 
 ## Save and Upload
 On `Save`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/backend/`.
 
-On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components, and written to `~/droidlet/tools/annotation_tools/template_tool/backend/autocomplete_annotations.txt`. This is in the format
+On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. The results are then written to `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. This is in the format
 
 ```
 [command]|[action_dict]\n
@@ -81,5 +79,5 @@ On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/temp
 ...
 ```
 
-Then, this file is uploaded to the S3 URI `s3://craftassist/pubr/high_pri_commands.txt`. It is now ready to be used in training, validation or ground truth actions!
+Then, you may upload this file to the S3 URI `s3://craftassist/pubr/`. It is now ready to be used in training, validation or ground truth actions!
 
