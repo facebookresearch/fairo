@@ -50,6 +50,24 @@ def traverse_subtree(command, action_dict):
                     traverse_subtree(command, ad)
         if value == "":
             del action_dict[key]
+        # Check if the value is a substring of the command
+        # hacky way to map spans
+        elif type(value) == str and value in command:
+            # Get the span ranges
+            command_word_tokens = command.split(" ")
+            span_tokens = value.split(" ")
+            for i in range(len(command_word_tokens)):
+                if command_word_tokens[i] == span_tokens[0]:
+                    span_start = i
+                    span_end = i
+                    # begin checking for equality
+                    for j in range(1, len(span_tokens)):
+                        if command_word_tokens[i + j] != span_tokens[j]:
+                            break
+                        else:
+                            span_end += 1
+            span_idxs = [0, [span_start, span_end]]
+            action_dict[key] = span_idxs   
     return action_dict
 
 def write_file(dataset, file_path):
