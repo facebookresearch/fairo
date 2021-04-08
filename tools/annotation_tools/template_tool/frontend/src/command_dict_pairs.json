@@ -1,0 +1,131 @@
+{
+    "find": {
+        "dialogue_type": "NOOP"
+    },
+    "box": {
+        "filters": {
+            "output": "",
+            "contains_coreference": "",
+            "memory_type": "",
+            "comparator": "",
+            "triples": "",
+            "author": "",
+            "location": "",
+            "repeat": "",
+            "selector": ""
+        }
+    },
+    "build a <t1>": {
+        "build": {
+            "location": "",
+            "repeat": "",
+            "replace": "",
+            "action_type": "",
+            "schematic": {
+                "filters": {
+                    "output": "",
+                    "contains_coreference": "",
+                    "memory_type": "",
+                    "comparator": "",
+                    "triples": "",
+                    "author": "",
+                    "location": "",
+                    "repeat": "",
+                    "selector": ""
+                }
+            }
+        }
+    },
+    "over there": {
+        "location": {
+            "text_span": "there",
+            "steps": "",
+            "has_measure": "",
+            "contains_coreference": "yes",
+            "relative_direction": "",
+            "reference_object": {
+                "special_reference": "",
+                "text_span": "",
+                "filters": ""
+            }
+        }
+    },
+    "go to the": {
+        "move": {
+            "location": {
+                "text_span": "",
+                "steps": "",
+                "has_measure": "",
+                "contains_coreference": "",
+                "relative_direction": "",
+                "reference_object": ""
+            },
+            "replace": "",
+            "action_type": "",
+            "stop_condition": "",
+            "remove_condition": {
+                "condition_type": "",
+                "condition": ""
+            }
+        }
+    },
+    "go to the box the big box": {
+        "move": {
+            "location": {
+                "text_span": "",
+                "steps": "",
+                "has_measure": "",
+                "contains_coreference": "",
+                "relative_direction": "",
+                "reference_object": {
+                    "special_reference": "",
+                    "text_span": "big box",
+                    "filters": {
+                        "output": "",
+                        "contains_coreference": "",
+                        "memory_type": "",
+                        "comparator": "",
+                        "triples": [
+                            {
+                                "pred_text": "has_size",
+                                "obj_text": "big"
+                            },
+                            {
+                                "pred_text": "has_name",
+                                "obj_text": "box"
+                            }
+                        ],
+                        "author": "",
+                        "location": "",
+                        "repeat": "",
+                        "selector": ""
+                    }
+                }
+            },
+            "replace": "",
+            "action_type": "",
+            "stop_condition": "",
+            "remove_condition": ""
+        }
+    },
+    "find the mooshroom there park": {
+        "dialogue_type": "GET_MEMORY",
+        "filters": {
+            "output": "",
+            "contains_coreference": "",
+            "memory_type": "",
+            "comparator": "",
+            "triples": [
+                {
+                    "pred_text": "has_name",
+                    "obj_text": "mooshroom"
+                }
+            ],
+            "author": "",
+            "location": "",
+            "repeat": "",
+            "selector": ""
+        },
+        "replace": ""
+    }
+}

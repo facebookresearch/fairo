@@ -50,7 +50,7 @@ class AutocompleteAnnotator extends React.Component {
           <ParseTreeAnnotator title="Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
         </div>
         <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <TemplateAnnotator title="Create List" fullText={this.state.fragmentsText} schema={this.state.schema} />
+          <TemplateAnnotator title="Add New Command" fullText={this.state.fragmentsText} schema={this.state.schema} />
         </div>
       </div>
     )
@@ -225,11 +225,11 @@ class ParseTreeAnnotator extends React.Component {
         <b> {this.props.title} </b>
         <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
         <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
-        <div onClick={this.logSerialized}>
-          <button>Save</button>
+        <div style={{ padding: 10 }} onClick={this.logSerialized}>
+          <button>Save Annotations</button>
         </div>
-        <div onClick={this.uploadData}>
-          <button>Upload to S3</button>
+        <div style={{ padding: 10 }} onClick={this.uploadData}>
+          <button>Process and Save Dataset</button>
         </div>
       </div>
     )
