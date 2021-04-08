@@ -45,8 +45,14 @@ class LogicalForm extends React.Component {
               properties_subtree[key] = ""
             })
           }
+          // if the keys include dialogue type, replace the whole path and insert dialogue type
           console.log(node + ": " + JSON.stringify(properties_subtree))
-          autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
+          if ("dialogue_type" in properties_subtree) {
+            properties_subtree["dialogue_type"] = node.toUpperCase()
+            autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", JSON.stringify(properties_subtree))
+          } else {
+            autocompletedResult = autocompletedResult.replace('"' + node + '"' + ":  ", '"' + node + '"' + ": " + JSON.stringify(properties_subtree))
+          }
         }
         )
         // Insert fragments and lists
