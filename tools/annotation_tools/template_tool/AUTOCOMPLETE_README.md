@@ -9,6 +9,12 @@ Make sure that you have the latest datasets downloaded from S3.
 cd droidlet
 ./tools/data_scripts/try_download.sh
 ```
+Note that our scripts and modules are tested in Linux environments on FAIR devservers. There may be differences running on Mac OSX.
+For internal users, we recommend running our client and server on devfair and tunnelling ports 3000 and 9000 with Eternal Terminal, which persists the connections, eg.
+```
+et <your_devserver>:8080 -N -t 3000:3000 --jport 8080
+```
+Then you are able to access the Autocomplete tool in your browser at `localhost:3000/autocomplete`.
 
 ## Preprocessing
 First, create a file `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt` and write commands we want to annotate, one on each line.
