@@ -106,8 +106,8 @@ def interpret_shape_schematic(
     - a list of (pred, val) tags
 
     warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is 
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+    heursitic just picks one.  e.g. if the lf is
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
                      {"pred_text": "has_colour", "obj_text": "blue"}]
     will currently just pick red.   Same for other properties encoded in triples
     """
@@ -134,7 +134,7 @@ def interpret_shape_schematic(
             if val:
                 tags.append((key, stemmed_val))
 
-    return SPECIAL_SHAPE_FNS[shape](**attrs), tags
+    return SPECIAL_SHAPE_FNS[shape.upper()](**attrs), tags
 
 
 def interpret_size(interpreter, text) -> Union[int, List[int]]:
@@ -163,8 +163,8 @@ def interpret_named_schematic(
     - a list of (pred, val) tags
 
     warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is 
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+    heursitic just picks one.  e.g. if the lf is
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
                      {"pred_text": "has_colour", "obj_text": "blue"}]
     will currently just pick red.   Same for other properties encoded in triples
     """
