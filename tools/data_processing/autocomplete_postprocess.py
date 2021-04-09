@@ -5,7 +5,7 @@ import pprint as pp
 import argparse
 import json
 import pkg_resources
-from datetime import date
+from datetime import datetime
 
 """Applies updates to annotated dataset following grammar changes.
 """
@@ -85,7 +85,8 @@ if __name__ == "__main__":
         dataset = json.load(fd)
     autocomplete_annotations = {}
     updated_dataset = []
-    datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/autocomplete_{}.txt".format(date.today().strftime("%d_%m_%Y")))
+    current_time = datetime.now()
+    datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/autocomplete_{}.txt".format(current_time.strftime('%Y-%m-%d-%H-%M-%S')))
 
     # Read the file, update  
     for command in dataset:
