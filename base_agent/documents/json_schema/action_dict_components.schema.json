@@ -14,30 +14,7 @@
           ]
         },
         "input_left": {
-          "type": "object",
-          "properties": {
-            "filters": {
-              "type": "object",
-              "properties": {
-                "output": {
-                  "type": "object",
-                  "properties": {
-                    "attribute": {
-                      "enum": ["RUN_COUNT"]
-                    }
-                  }
-                },
-                "special": {
-                  "type": "object",
-                  "properties": {
-                    "fixed_value": {
-                      "enum": ["THIS"]
-                    }
-                  }
-                }
-              }
-            }
-          }
+          "$ref": "#/definitions/input_left"
         },
         "input_right": {
           "type": "object",
@@ -49,18 +26,37 @@
         }
       }
     },
+    "input_left": {
+      "type": "object",
+      "properties": {
+        "value_extractor": {
+          "$ref": "#/definitions/value_extractor"
+        }
+      }
+    },
     "span": {
       "$ref": "span.schema.json#/definitions/span"
     },
-    "fixed_value": {
+    "special": {
       "type": "object",
       "properties": {
         "fixed_value": {
-          "type": "string"
+          "enum": ["THIS"]
         }
-      },
-      "required": [
-        "fixed_value"
+      }
+    },
+    "fixed_value": {
+      "type": "string"
+    },
+    "has_measure": {
+      "oneOf": [
+        {"$ref": "#/definitions/span"},
+        {
+          "type": "object",
+          "properties": {
+            "fixed_value": {"$ref": "#/definitions/fixed_value"}
+          }
+        }
       ]
     },
     "location": {
@@ -73,15 +69,7 @@
           "$ref": "#/definitions/span"
         },
         "has_measure": {
-          "oneOf": [
-            {"$ref": "#/definitions/span"},
-            {
-              "type": "object",
-              "properties": {
-                "fixed_value": {"$ref": "#/definitions/fixed_value"}
-              }
-            }
-          ]
+          "$ref": "#/definitions/has_measure"
         },
         "contains_coreference": {
           "enum": [
@@ -115,20 +103,7 @@
       "type": "object",
       "properties": {
         "special_reference": {
-          "oneOf": [
-            {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "coordinates_span": {
-                  "$ref": "#/definitions/span"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
+          "$ref": "#/definitions/special_reference"
         },
         "text_span": {
           "$ref": "#/definitions/span"
@@ -151,6 +126,27 @@
           "$ref": "#/definitions/condition"
         }
       }
+    },
+    "special_reference": {
+      "oneOf": [
+        {
+          "properties": {
+            "fixed_value": {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "coordinates_span": {
+              "$ref": "#/definitions/span"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "stop_condition": {
       "type": "object",
@@ -224,7 +220,11 @@
               "$ref": "#/definitions/span"
             },
             {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
             }
           ]
         },
@@ -234,7 +234,11 @@
               "$ref": "#/definitions/span"
             },
             {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
             }
           ]
         },

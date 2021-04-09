@@ -5,6 +5,7 @@ import pprint as pp
 import argparse
 import json
 import pkg_resources
+from datetime import datetime
 
 """Applies updates to annotated dataset following grammar changes.
 """
@@ -49,10 +50,28 @@ def traverse_subtree(command, action_dict):
                     traverse_subtree(command, ad)
         if value == "":
             del action_dict[key]
+        # Check if the value is a substring of the command
+        # hacky way to map spans
+        elif type(value) == str and value in command:
+            # Get the span ranges
+            command_word_tokens = command.split(" ")
+            span_tokens = value.split(" ")
+            for i in range(len(command_word_tokens)):
+                if command_word_tokens[i] == span_tokens[0]:
+                    span_start = i
+                    span_end = i
+                    # begin checking for equality
+                    for j in range(1, len(span_tokens)):
+                        if command_word_tokens[i + j] != span_tokens[j]:
+                            break
+                        else:
+                            span_end += 1
+            span_idxs = [0, [span_start, span_end]]
+            action_dict[key] = span_idxs   
     return action_dict
 
 def write_file(dataset, file_path):
-    with open(file_path, "w") as fd:
+    with open(file_path, "w+") as fd:
         for line in dataset:
             fd.write(line + "\n")
 
@@ -66,7 +85,8 @@ if __name__ == "__main__":
         dataset = json.load(fd)
     autocomplete_annotations = {}
     updated_dataset = []
-    datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/high_pri_commands.txt")
+    current_time = datetime.now()
+    datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/autocomplete_{}.txt".format(current_time.strftime('%Y-%m-%d-%H-%M-%S')))
 
     # Read the file, update  
     for command in dataset:
@@ -74,12 +94,13 @@ if __name__ == "__main__":
         updated_tree = traverse_tree(command, action_dict)
         autocomplete_annotations[command] = updated_tree
     # Load all the existing action dictionaries
-    with open(datasets_read_path) as fd:
-        existing_annotations = fd.readlines()
-        for row in existing_annotations:
-            command, action_dict = row.strip().split("|")
-            if command not in autocomplete_annotations:
-                autocomplete_annotations[command] = json.loads(action_dict)
+    if os.path.isfile(datasets_read_path):
+        with open(datasets_read_path) as fd:
+            existing_annotations = fd.readlines()
+            for row in existing_annotations:
+                command, action_dict = row.strip().split("|")
+                if command not in autocomplete_annotations:
+                    autocomplete_annotations[command] = json.loads(action_dict)
 
     for command in autocomplete_annotations:
         updated_dataset.append("{}|{}".format(command, json.dumps(autocomplete_annotations[command])))

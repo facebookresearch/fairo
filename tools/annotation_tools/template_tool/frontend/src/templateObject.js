@@ -121,7 +121,7 @@ class TemplateAnnotator extends React.Component {
         <div style={{ padding: 10 }}>
           <b> {this.props.title} </b>
           <ListComponent fullText={this.props.fullText} onChange={this.handleTextChange} />
-          <LogicalForm title="Action Dictionary List" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
+          <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
           </div>
