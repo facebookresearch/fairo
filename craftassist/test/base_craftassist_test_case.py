@@ -8,21 +8,25 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 from unittest.mock import Mock
+import numpy as np
 from typing import List, Sequence, Dict
 
 from craftassist.agent.build_utils import to_relative_pos
 from base_agent.dialogue_objects import AwaitResponse
-from fake_agent import FakeAgent
+from fake_agent import FakeAgent, FakePlayer
 from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.mc_util import XYZ, Block, IDM
-from utils import Player, Pos, Look, Item
+from utils import Player, Pos, Look, Item, Look
 from world import World, Opt, flat_ground_generator
+from craftassist.agent.rotation import yaw_pitch
 
 
 class BaseCraftassistTestCase(unittest.TestCase):
-    def setUp(self, agent_opts=None):
+    def setUp(self, agent_opts=None, players=[]):
+        if not players:
+            players = [FakePlayer(Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)))]
         spec = {
-            "players": [Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0))],
+            "players": players,
             "mobs": [],
             "item_stacks": [],
             "ground_generator": flat_ground_generator,
@@ -33,7 +37,6 @@ class BaseCraftassistTestCase(unittest.TestCase):
         world_opts.sl = 32
         self.world = World(world_opts, spec)
         self.agent = FakeAgent(self.world, opts=agent_opts)
-
         self.set_looking_at((0, 63, 0))
         self.speaker = self.agent.get_other_players()[0].name
         self.agent.perceive()
@@ -99,9 +102,18 @@ class BaseCraftassistTestCase(unittest.TestCase):
             stop = True
         return stop
 
-    def set_looking_at(self, xyz: XYZ):
-        """Set the return value for C++ call to get_player_line_of_sight"""
-        self.agent.get_player_line_of_sight = Mock(return_value=Pos(*xyz))
+    def set_looking_at(self, xyz: XYZ, player=None):
+        """ 
+        sets the look of the given player (or the first one from agent.get_other_players()) 
+        player if given should be a Player struct.
+        
+        warning: previous incarnation of this mocked the agent's 
+        get_player_line_of_sight.  This new version will be "fooled"
+        if something is in between the player and the target xyz;
+        and uses the agent's world's get_line_of_sight
+        """
+        player = player or self.agent.world.players[0]
+        player.look_at(*xyz)
 
     def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
         self.agent.set_blocks(xyzbms, origin)
