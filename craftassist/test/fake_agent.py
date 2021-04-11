@@ -334,10 +334,8 @@ class FakeAgent(LocoMCAgent):
             self.recorder.record_world()
         super().step()
 
-    #### use the CraftassistAgent.controller_step()
     def controller_step(self):
         if self.logical_form is None:
-            pass
             CraftAssistAgent.controller_step(self)
         else:  # logical form given directly:
             # clear the chat buffer
@@ -555,14 +553,20 @@ class FakeAgent(LocoMCAgent):
 
 class FakePlayer(FakeAgent):
     def __init__(
-        self, struct=None, opts=None, do_heuristic_perception=False, get_world_pos=False, name=""
+        self,
+        struct=None,
+        opts=None,
+        do_heuristic_perception=False,
+        get_world_pos=False,
+        name="",
+        active=True,
     ):
         class NubWorld:
             def __init__(self):
                 self.count = 0
 
         super().__init__(NubWorld(), opts=opts, do_heuristic_perception=do_heuristic_perception)
-        self.active = False
+        self.active = active
         self.get_world_pos = get_world_pos
         if struct:
             self.entityId = struct.entityId
@@ -592,13 +596,13 @@ class FakePlayer(FakeAgent):
         self.memory.get_most_recent_incoming_chat = get_recent_chat
 
     def step(self):
-        if self.lf_list:
-            # only check once...
-            self.active = True
         if self.active:
             LocoMCAgent.step(self)
 
     def controller_step(self):
+        import ipdb
+
+        ipdb.set_trace()
         if self.logical_form is None:
             CraftAssistAgent.controller_step(self)
             query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
@@ -630,6 +634,11 @@ class FakePlayer(FakeAgent):
             self.look,
             self.mainHand,
         )
+
+    # fake player does not respond to chats, etc.
+    # fixme for clarifications?
+    def get_incoming_chats(self):
+        return []
 
     def set_lf_list(self, lf_list):
         self.lf_list = lf_list

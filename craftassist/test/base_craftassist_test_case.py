@@ -24,7 +24,11 @@ from craftassist.agent.rotation import yaw_pitch
 class BaseCraftassistTestCase(unittest.TestCase):
     def setUp(self, agent_opts=None, players=[]):
         if not players:
-            players = [FakePlayer(Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)))]
+            players = [
+                FakePlayer(
+                    Player(42, "SPEAKER", Pos(5, 63, 5), Look(270, 0), Item(0, 0)), active=False
+                )
+            ]
         spec = {
             "players": players,
             "mobs": [],
