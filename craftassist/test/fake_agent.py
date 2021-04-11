@@ -552,6 +552,10 @@ class FakeAgent(LocoMCAgent):
 
 
 class FakePlayer(FakeAgent):
+    """ 
+    a fake player that can do actions, but does not currently interact with agent.
+    """
+
     def __init__(
         self,
         struct=None,
@@ -566,6 +570,7 @@ class FakePlayer(FakeAgent):
                 self.count = 0
 
         super().__init__(NubWorld(), opts=opts, do_heuristic_perception=do_heuristic_perception)
+        # if active is set to false, the fake player's step is passed.
         self.active = active
         self.get_world_pos = get_world_pos
         if struct:
@@ -600,9 +605,6 @@ class FakePlayer(FakeAgent):
             LocoMCAgent.step(self)
 
     def controller_step(self):
-        import ipdb
-
-        ipdb.set_trace()
         if self.logical_form is None:
             CraftAssistAgent.controller_step(self)
             query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
