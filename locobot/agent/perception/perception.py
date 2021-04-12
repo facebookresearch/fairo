@@ -183,7 +183,7 @@ class Perception:
             self.slow_vision_ready = False
 
         try:
-            old_image, detections, humans, old_xyz = self.recv_queue.get(block=force)
+            old_image, detections, humans, old_xyz = self.recv_queue.get(block=True)
             self.slow_vision_ready = True
         except queue.Empty:
             old_image, detections, humans, old_xyz = None, None, None, None

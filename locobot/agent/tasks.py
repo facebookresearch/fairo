@@ -10,10 +10,12 @@ from base_agent.memory_nodes import TaskNode
 from base_agent.task import Task
 from locobot.agent.objects import DanceMovement
 from locobot.agent.rotation import yaw_pitch
+import locobot.agent.loco_memory as loco_memory
 
 import time
 from locobot.agent.locobot_mover_utils import (
     get_move_target_for_point,
+    get_step_target_for_move,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
     get_camera_angles,
@@ -332,13 +334,44 @@ class Drop(Task):
                     for mmid in agent.memory.get_memids_by_tag("_in_inventory"):
                         agent.memory.untag(mmid, "_in_inventory")
 
-
 class Explore(Task):
     """use slam to explore environemt"""
 
     def __init__(self, agent, task_data):
+        # set the final destination here
+        # call step in step function 
         super().__init__(agent)
         self.command_sent = False
+        self.agent = agent
+        self.examined_eids = []
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.interrupted = False
+        self.finished = False
+        # objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
+        # for obj in objects:
+        #     if obj['eid'] not in self.examined_eids:
+        #         logging.info("object ", objects[0])
+        #         self.add_child_task(Move(self.agent, {"target": obj['xyz']}), self.agent)
+        #         self.examined_eids.append(obj['eid'])
+        #         break
+
+        if not self.command_sent:
+            self.command_sent = True
+            self.agent.mover.explore()
+        else:
+            self.finished = self.agent.mover.bot_step()
+
+examined = set()
+
+class CuriousExplore(Task):
+    """use slam to explore environemt, but also examine detections"""
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        self.steps = ["not_started"] * 2
         self.agent = agent
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
@@ -346,8 +379,68 @@ class Explore(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
-        if not self.command_sent:
-            self.command_sent = True
+        # Get a list of current detections
+        objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
+        pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        # pick randomly from unexamined, closest object
+        def pick_random_in_sight(objects, base_pos):
+            global examined
+            for x in objects:
+                if x['xyz'] not in examined:
+                    # check for line of sight and if within a certain distance
+                    yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], x['xyz'])
+                    dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
+                    if abs(yaw_rad) <= math.pi/4 and dist <= 5:
+                        logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
+                        return x
+            return None
+        
+        # execute a examine maneuver
+        if self.steps[0] == "not_started":
+            target = pick_random_in_sight(objects, pos)
+            if target is not None:
+                self.add_child_task(ExamineDetection(self.agent, {"target": target}))
+                self.last_step_explore = False
+                examined.add(target['xyz'])
+            self.steps[0] = "finished"
+            return
+            # what I want here is for the child task to be executed immediately
+            # and then explore to be executed. loop of examine - explore
+        # mark it as examined
+
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
             self.agent.mover.explore()
+            self.steps[1] = "finished"
+        else:
+            self.finished = self.agent.mover.bot_step()
+
+class ExamineDetection(Task):
+    """Examine a detection"""
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.last_base_pos = None
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.interrupted = False
+        self.finished = False
+        # Calculate a path around self.frontier_c and move on it facing the detection
+        # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
+
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        if (base_pos != self.last_base_pos).all() and dist > 1:
+            target = get_step_target_for_move(base_pos, self.frontier_center)
+            logging.info(f"Current Pos {base_pos}")
+            logging.info(f"Move Target for point {target}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
+            self.add_child_task(Move(self.agent, {"target": target}))
+            self.last_base_pos = base_pos
+            return
         else:
             self.finished = self.agent.mover.bot_step()
