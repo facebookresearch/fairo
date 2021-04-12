@@ -2,9 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-import csv
 from typing import Tuple, Optional
-
+import preprocess
 from dialogue_stack import DialogueStack
 from .dialogue_objects import DialogueObject, Say
 
@@ -38,29 +37,29 @@ class DialogueManager(object):
         agent: a droidlet agent
         model: a (perhaps ML) model used by and the model used for manager.
     """
+
     def __init__(self, agent, model):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.model = model
 
     def get_safety_words(self, safety_words_path):
-        """Read a list of safety words to prevent abuse.
-        """
+        """Read a set of safety words to prevent abuse."""
         with open(safety_words_path) as f:
             safety_lines = f.readlines()
-        safety_words = []
+        safety_words = set()
         for l in safety_lines:
             w = l.strip("\n").lower()
             if w != "" and w[0] != "<" and w[0] != "#":
-                safety_words.append(w)
+                safety_words.add(w)
         return safety_words
 
     def is_safe(self, chat):
-        """Check that chat does not contain unsafe words.
+        """Check that chat does not contain any word from the
+        safety check list.
         """
-        safety_set = set(self.safety_words)
         cmd_set = set(chat.lower().split())
-        notsafe = len(cmd_set & safety_set) > 0
+        notsafe = len(cmd_set & self.safety_words) > 0
         return not notsafe
 
     def step(self, chat: Tuple[str, str]):
@@ -79,19 +78,25 @@ class DialogueManager(object):
                 Example: ("player_1", "build a red cube")
 
         """
-        # check safety
-        if not self.is_safe(chat[1]):
-            self.dialogue_stack.append_new(Say, "Please don't be rude.")
-            return
+        # chat is a single line command
+        speaker, chatstr = chat
+        # tokenize the chat and get list of sentences to parse.
+        preprocessed_chatstrs = preprocess.preprocess_chat(chatstr)
 
-        if chat[1]:
+        # check safety for each chat first
+        for preprocessed_chatstr in preprocessed_chatstrs:
+            if not self.is_safe(preprocessed_chatstr):
+                self.dialogue_stack.append_new(Say, "Please don't be rude.")
+                return
+
+        if preprocessed_chatstrs:
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
             # NOTE: the model is responsible for not putting a new
             # object on the stack if it sees that whatever is on
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
-            obj = self.maybe_get_dialogue_obj(chat)
+            obj = self.maybe_get_dialogue_obj(speaker=speaker, chat_list=preprocessed_chatstrs)
             if obj is not None:
                 self.dialogue_stack.append(obj)
 
