@@ -10,6 +10,7 @@ from base_agent.memory_nodes import TaskNode
 from base_agent.task import Task
 import locobot.agent.dance as dance
 from locobot.agent.rotation import yaw_pitch
+import locobot.agent.loco_memory as loco_memory
 
 import time
 from locobot.agent.locobot_mover_utils import (
@@ -333,9 +334,39 @@ class Drop(Task):
                     for mmid in agent.memory.get_memids_by_tag("_in_inventory"):
                         agent.memory.untag(mmid, "_in_inventory")
 
-
 class Explore(Task):
     """use slam to explore environemt    """
+
+    def __init__(self, agent, task_data):
+        # set the final destination here
+        # call step in step function 
+        super().__init__(agent)
+        self.command_sent = False
+        self.agent = agent
+        self.examined_eids = []
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.interrupted = False
+        self.finished = False
+        objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
+        for obj in objects:
+            if obj['eid'] not in self.examined_eids:
+                logging.info("object ", objects[0])
+                self.add_child_task(Move(self.agent, {"target": obj['xyz']}), self.agent)
+                self.examined_eids.append(obj['eid'])
+                break
+
+        if not self.command_sent:
+            self.command_sent = True
+            self.agent.mover.explore()
+        else:
+            self.finished = self.agent.mover.bot_step()
+
+
+class CuriousExplore(Task):
+    """use slam to explore environemt, but also examine detections"""
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
@@ -347,6 +378,43 @@ class Explore(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
+        # Get a list of current detections
+        objects = self.agent.memory.get_objects()
+        # pick randomly from unexamined, closest object
+
+        # execute a examine maneuver
+        self.add_child_task(ExamineDetection(agent, {"target": target}))
+        # mark it as examined
+
+        if not self.command_sent:
+            self.command_sent = True
+            self.agent.mover.explore()
+        else:
+            self.finished = self.agent.mover.bot_step()
+
+class ExamineDetection(Task):
+    """Examine a detection"""
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        self.command_sent = False
+        self.agent = agent
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.interrupted = False
+        self.finished = False
+        # Get a list of current detections
+        objects = self.agent.memory.get_objects()
+        if len(objects) > 0:
+            logging.info("object ", objects[0])
+        # pick randomly from unexamined, closest object
+
+        # execute a examine maneuver
+        # self.add_child_task(ExamineDetection(agent, {"target": target}))
+        # mark it as examined
+
         if not self.command_sent:
             self.command_sent = True
             self.agent.mover.explore()

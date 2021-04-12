@@ -66,6 +66,9 @@ class RemoteLocobot(object):
         # check skfmm, skimage in installed, its necessary for slam
         self._slam = Slam(self._robot, backend)
         self._slam_step_size = 25  # step size in cm
+        self._slam_goal = (19, 19, 0)
+        self._slam_next_dir = [(1,1,0), (-1,1,0), (-1,-1,0), (1,-1,0)]
+        self._slam_idx = 0
         self._done = True
         self.backend = backend
 
@@ -665,11 +668,14 @@ class RemoteLocobot(object):
     def explore(self):
         if self._done:
             self._done = False
-            if not self._slam.whole_area_explored:
-                self._slam.set_goal(
-                    (19, 19, 0)
+            self._slam.set_goal(
+                    np.multiply(self._slam_goal, self._slam_next_dir[self._slam_idx])
                 )  # set  far away goal for exploration, default map size [-20,20]
-                self._slam.take_step(self._slam_step_size)
+            self._slam.take_step(self._slam_step_size)
+
+            if self._slam.whole_area_explored:
+                # set new goal
+                self._slam_idx = (self._slam_idx + 1) % 4
             self._done = True
             return True
 
