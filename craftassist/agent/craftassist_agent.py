@@ -322,10 +322,11 @@ if __name__ == "__main__":
     logger.addHandler(sh)
     logging.info("LOG LEVEL: {}".format(logger.level))
 
-    # Check that models and datasets are up to date
+    # Check that models and datasets are up to date and download latest resources.
+    # Also fetches additional resources for internal users.
     if not opts.dev:
         rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
-
+    
     set_start_method("spawn", force=True)
 
     sa = CraftAssistAgent(opts)

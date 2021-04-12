@@ -87,7 +87,8 @@ class NSPDialogueManager(DialogueManager):
         super(NSPDialogueManager, self).__init__(agent, None)
         # Write file headers to the NSP outputs log
         self.dialogue_objects = dialogue_object_classes
-        safety_words_path = opts.ground_truth_data_dir + "safety.txt"
+        # Optional safety blacklist
+        safety_words_path = "{}/../../../base_agent/documents/internal/{}".format(opts.nsp_data_dir, "safety.txt")
         if os.path.isfile(safety_words_path):
             self.safety_words = self.get_safety_words(safety_words_path)
         else:
