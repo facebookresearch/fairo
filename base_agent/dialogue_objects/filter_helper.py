@@ -21,39 +21,6 @@ from dialogue_object_utils import tags_from_dict
 CARDINAL_RADIUS = 20
 
 
-def build_linear_extent_selector(interpreter, speaker, location_d):
-    """ 
-    builds a MemoryFilter that selects by a linear_extent dict 
-    chooses memory location nearest to 
-    the linear_extent dict interpreted as a location
-    """
-
-    # FIXME this is being done at construction time, rather than execution
-    mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location_d)
-    steps, reldir = interpret_relative_direction(interpreter, location_d)
-    pos, _ = interpreter.subinterpret["specify_locations"](
-        interpreter, speaker, mems, steps, reldir
-    )
-
-    class dummy_loc_mem:
-        def get_pos(self):
-            return pos
-
-    selector_attribute = LinearExtentAttribute(
-        interpreter.agent, {"relative_direction": "AWAY"}, mem=dummy_loc_mem()
-    )
-    polarity = "argmin"
-    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-    selector = ExtremeValueMemorySelector(interpreter.agent.memory, polarity=polarity, ordinal=1)
-    selector.append(sa)
-    mems_filter = MemidList(interpreter.agent.memory, [mems[0].memid])
-    not_mems_filter = NotFilter(interpreter.agent.memory, [mems_filter])
-    selector.append(not_mems_filter)
-    #    selector.append(build_radius_comparator(interpreter, speaker, location_d))
-
-    return selector
-
-
 def get_val_map(interpreter, speaker, filters_d, get_all=False):
     output = filters_d.get("output")
     val_map = None
@@ -167,8 +134,43 @@ def interpret_argval_selector(interpreter, speaker, selector_d):
     return selector
 
 
+def build_linear_extent_selector(interpreter, speaker, location_d):
+    """ 
+    builds a MemoryFilter that selects by a linear_extent dict 
+    chooses memory location nearest to 
+    the linear_extent dict interpreted as a location
+    """
+
+    # FIXME this is being done at construction time, rather than execution
+    mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location_d)
+    steps, reldir = interpret_relative_direction(interpreter, location_d)
+    pos, _ = interpreter.subinterpret["specify_locations"](
+        interpreter, speaker, mems, steps, reldir
+    )
+
+    class dummy_loc_mem:
+        def get_pos(self):
+            return pos
+
+    selector_attribute = LinearExtentAttribute(
+        interpreter.agent, {"relative_direction": "AWAY"}, mem=dummy_loc_mem()
+    )
+    polarity = "argmin"
+    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
+    selector = ExtremeValueMemorySelector(interpreter.agent.memory, polarity=polarity, ordinal=1)
+    selector.append(sa)
+    mems_filter = MemidList(interpreter.agent.memory, [mems[0].memid])
+    not_mems_filter = NotFilter(interpreter.agent.memory, [mems_filter])
+    selector.append(not_mems_filter)
+    #    selector.append(build_radius_comparator(interpreter, speaker, location_d))
+
+    return selector
+
+
 def interpret_selector(interpreter, speaker, selector_d):
     selector = None
+    if selector_d.get("location"):
+        return build_linear_extent_selector(interpreter, speaker, selector_d["location"])
     return_d = selector_d.get("return_quantity", "ALL")
     if type(return_d) is str:
         if return_d == "ALL":
