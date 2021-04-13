@@ -151,8 +151,8 @@ class NSPDialogueManager(DialogueManager):
         The order is:
         1. check againt greetings and return
         2. check against ground_truth commands or query model
-        3. process spans , coref resolve
-        4. handle the logical form by handing over to interpreter
+        3. handle the logical form by first: processing spans + resolving coreference
+        and then handing over to interpreter.
 
         Args:
             chat str: Incoming chat from a player.
@@ -172,16 +172,14 @@ class NSPDialogueManager(DialogueManager):
 
         # 1. Check if incoming chat is one of the scripted ones in greetings
         # and push appropriate DialogueObjects to stack.
-        for greeting_type, allowed_str in self.botGreetings:
+        for greeting_type, allowed_str in self.botGreetings.items():
             if chat in allowed_str:
                 return BotGreet(greeting_type, **self.dialogue_object_parameters)
 
         # 2. Get logical form from either ground truth or query the model
         logical_form = self.get_logical_form(chat=chat, model=self.model)
-        # 3. postprocess logical form: fill spans + resolve coreference
-        updated_logical_form = self.postprocess_logical_form(speaker, chat, logical_form)
-        # 4. return the DialogueObject
-        return self.handle_logical_form(speaker, updated_logical_form, chat)
+        # 3. return the DialogueObject
+        return self.handle_logical_form(speaker, logical_form, chat)
 
     def validate_parse_tree(self, parse_tree: Dict) -> bool:
         """Validate the parse tree against current grammar."""
@@ -292,6 +290,8 @@ class NSPDialogueManager(DialogueManager):
         """Return the appropriate DialogueObject to handle an action dict d
         d should have spans filled (via process_spans_and_remove_fixed_value).
         """
+        # First postprocess logical form: fill spans + resolve coreference
+        logical_form = self.postprocess_logical_form(speaker, chat, logical_form)
         ProgramNode.create(self.agent.memory, logical_form)
 
         if logical_form["dialogue_type"] == "NOOP":
