@@ -14,7 +14,6 @@ For internal users, we recommend running our client and server on devfair and tu
 ```
 et <your_devserver>:8080 -N -t 3000:3000 --jport 8080
 ```
-Then you are able to access the Autocomplete tool in your browser at `localhost:3000/autocomplete`.
 
 ## Preprocessing
 First, create a file `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt` and write commands we want to annotate, one on each line.
@@ -48,6 +47,8 @@ npm install && npm start
 ```
 
 In order to write to the Craftassist S3 bucket, you need to be in an environment with `boto3` installed and have valid AWS credentials. For instructions on how to configure awscli, see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html .
+
+Then you are able to access the Autocomplete tool in your browser at `localhost:3000/autocomplete`.
 
 # Usage
 ## Autocomplete
