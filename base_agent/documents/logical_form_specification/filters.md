@@ -7,11 +7,13 @@ The supported fields are :
 - `output` : This field specifies the expected output type. In the `output` field we can either have a `"memory"` value which means return the entire memory node (for eg: "is that red"), or `"count"` that represents the equivalent of `count(*)` (for eg: "how many houses on your left") or `attribute` representing the column name of that memory node (equivalent to `Select <attribute> from memory_node`) (for example: "what colour is the cube in front of me"). 
 - `contains coreference` : This field specifies whether the memory node has a coreference that needs to be resolved based on dialogue context.
 - `memory_type` : Specifies the type of memory is the name of memory node. The default value for this is : `"REFERENCE_OBJECT"`.
-- `selector` : This field specifies how the selection is done. It has a `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects. `selector` also has a field called `same` that specifies whether or not we are allowed to return the exact copies of an object. 
+- `selector` : This field specifies how the selection is done. This has the following fields:
+  - `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects. 
+  - `same` that specifies whether or not we are allowed to return the exact copies of an object. 
+  - `location` : location of the object based on which the selection is done. This is defined [here](human_give_command.md#location)
 - `comparator`: This field specifies some form of comparison between two values.
 - `triples` : This is a list of triple dictionaries that have a subject, predicate and object.
 - `author` : Specifies the author of the change. For eg in "go to the house I made last", author is "SPEAKER" here.
-- `location` : location of the object and is defined [here](human_give_command.md#location)
 
 
 ```
@@ -21,12 +23,13 @@ FILTERS = {
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
       "selector": {
         "return_quantity": <ARGMAX> / <ARGMIN> / <RANDOM>,
+        "location": <LOCATION>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
       "comparator": [<COMPARATOR> , ...],
       "triples": <TRIPLES>,
       "author":  {"fixed_value" : "AGENT" / "SPEAKER"} / span,
-      "location": <LOCATION> }
+      }
 ```
 
 ## ATTRIBUTE ##
@@ -47,8 +50,7 @@ This represents number of blocks and hence a filter over those. For example: "go
 Representation:
 ```
 {"num_blocks": {
-                "block_filters": {
-                    "triples" : <TRIPLES> } }
+    "block_filters": {"triples" : <TRIPLES> } }
 }
 ```
 
@@ -56,13 +58,13 @@ Representation:
 This is used to mean the number of steps (in "has_measure" units, default is "blocks=meters") in the direction "relative_direction" from the "source" location in the frame of reference of "frame".  If "source" and "destination" are specified, LINEAR_EXTENT evaluates to a number; otherwise, LINEAR_EXTENT evaluates to an <ATTRIBUTE>, a function that takes a (list of) memor(ies) and outputs a (list of) number(s)).  LINEAR_EXTENT can be used for "distance to" via relative_direction "AWAY".  "ABSOLUTE" is the coordinate system in which the agent starts.
 ```
 {"linear_extent" : {
-            "relative_direction": "LEFT" / "RIGHT"/ "UP" / "DOWN"/ "FRONT" 
-                                  / "BACK"/ "AWAY" / "INSIDE" / "OUTSIDE", 
-            "frame": {"fixed_value": "SPEAKER" / "AGENT" / "ABSOLUTE"} / {"player_span": span},
-            "has_measure" : {"fixed_value" : text} / span,
-            "source": <REFERENCE_OBJECT>,
-		        "destination": <REFERENCE_OBJECT> }
-            }ss
+    "relative_direction": "LEFT" / "RIGHT"/ "UP" / "DOWN"/ "FRONT" 
+                          / "BACK"/ "AWAY" / "INSIDE" / "OUTSIDE", 
+    "frame": {"fixed_value": "SPEAKER" / "AGENT" / "ABSOLUTE"} / {"player_span": span},
+    "has_measure" : {"fixed_value" : text} / span,
+    "source": <REFERENCE_OBJECT>,
+    "destination": <REFERENCE_OBJECT> }
+    }
 }
 ```
 
@@ -173,10 +175,11 @@ and `'memory_type': 'REFERENCE_OBJECT'`
 - Task name is represented using :
 ```
 {"pred_text": "has_name", 
- "obj_text": {"fixed_value": "BUILD" / "DIG" / "FILL" / "SPAWN" / 
-                             "RESUME" / "FILL" / "DESTROY" / "MOVE" / 
-                             "DIG" / "GET" / "DANCE" / "FREEBUILD" /
-                             "STOP" / "UNDO"}
+ "obj_text": {
+   "fixed_value": "BUILD" / "DIG" / "FILL" / "SPAWN" / 
+                  "RESUME" / "FILL" / "DESTROY" / "MOVE" / 
+                  "DIG" / "GET" / "DANCE" / "FREEBUILD" /
+                  "STOP" / "UNDO"}
 }
 ```
 
