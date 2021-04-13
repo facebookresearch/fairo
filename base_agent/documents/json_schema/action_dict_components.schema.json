@@ -96,6 +96,12 @@
         },
         "reference_object": {
           "$ref": "#/definitions/reference_object"
+        },
+        "reference_object_1": {
+          "$ref": "#/definitions/reference_object"
+        },
+        "reference_object_2": {
+          "$ref": "#/definitions/reference_object"
         }
       }
     },
