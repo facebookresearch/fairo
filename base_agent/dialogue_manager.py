@@ -52,7 +52,7 @@ class DialogueManager(object):
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
-        return "hello"
+        return ["bad Clinton"]
 
     def step(self, chat: Tuple[str, str]):
         """Process a chat and step through the dialogue manager task stack.
@@ -80,7 +80,7 @@ class DialogueManager(object):
             # object on the stack if it sees that whatever is on
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
-            obj = self.semantic_parsing_model.get_dialogue_object(speaker=speaker)
+            obj = self.semantic_parsing_model_wrapper.get_dialogue_object(speaker=speaker)
             # obj = self.maybe_get_dialogue_obj(speaker=speaker, chat_list=preprocessed_chatstrs)
             if obj is not None:
                 self.dialogue_stack.append(obj)
