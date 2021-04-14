@@ -37,12 +37,17 @@ class DialogueManager(object):
         model: a (perhaps ML) model used by and the model used for manager.
     """
 
-    def __init__(self, agent, dialogue_object_classes, opts, model, semantic_parsing_model):
+    def __init__(
+        self, agent, dialogue_object_classes, opts, semantic_parsing_model_wrapper, model=None
+    ):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.model = model
-        self.semantic_parsing_model = semantic_parsing_model(
-            self.agent, dialogue_object_classes, opts, self
+        self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
+            agent=self.agent,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=opts,
+            dialogue_manager=self,
         )
 
     def get_last_m_chats(self, m=1):
