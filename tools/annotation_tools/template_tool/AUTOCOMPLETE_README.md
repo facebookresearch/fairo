@@ -14,6 +14,10 @@ For internal users, we recommend running our client and server on devfair and tu
 ```
 et <your_devserver>:8080 -N -t 3000:3000 --jport 8080
 ```
+and for the server,
+```
+et <your_devserver>:8080 -N -t 9000:9000 --jport 8080
+```
 
 ## Preprocessing
 First, create a file `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt` and write commands we want to annotate, one on each line.
@@ -34,6 +38,7 @@ Commands we want to label are in `~/droidlet/tools/annotation_tools/template_too
 
 
 ## Running the Autocomplete Tool
+In two separate terminal sessions on devfair, run:
 Running server:
 ```
 cd ~/droidlet/tools/annotation_tools/template_tool/backend/
@@ -57,17 +62,49 @@ Currently the tool supports all of `HUMAN_GIVE_COMMAND`, `GET_MEMORY`, `PUT_MEMO
 
 The tool autocompletes children for tree nodes based on matches in the filters spec on key expansion, indicated by `<key>: [space] [space] [Enter]`.
 
-Some examples of find and replace:
-Input:
-`"get_memory":  \n"`
-Match:
-`{ "dialogue_type": "GET_MEMORY", "filters": "", "replace": "" }`
+For dialogue type autocomplete, type the dialogue type in lower case, eg. `"get_memory":[space][space]<enter>` -->
+```
+{
+    "dialogue_type": "GET_MEMORY",
+    "filters": "",
+    "replace": ""
+}
+```
 
-Input:
-`{ "dialogue_type": "GET_MEMORY", "filters":  \n, "replace": "" }`
+For all other keys, type the key value and `[space][space]<enter>`, eg.
+```
+{
+    "dialogue_type": "GET_MEMORY",
+    "filters": [space][space]<enter>,
+    "replace": ""
+}
+```
+will autocomplete to
+```
+{
+    "dialogue_type": "GET_MEMORY",
+    "filters": {
+        "output": "",
+        "contains_coreference": "",
+        "memory_type": "",
+        "comparator": "",
+        "triples": "",
+        "author": "",
+        "location": "",
+        "repeat": "",
+        "selector": ""
+    },
+    "replace": ""
+}
+```
 
-Match:
-`{ "dialogue_type": "GET_MEMORY", "filters": { "triples": "", "output": "", "contains_coreference": "", "memory_type": "", "argval": "", "comparator": "", "author": "", "location": "" }, "replace": "" }`
+Note that there is a comma after "filters", which ensures that the subtree inserted by autocomplete will complete to correct JSON. Otherwise, this will not work.
+
+If labelling fragments, you need to start with an empty dictionary, eg.
+```
+{"filters":[space][space]<enter>}
+```
+instead of `"filters":[space][space]<enter>`. Again, this is to ensure correct JSON.
 
 The tool also populates triples with the first array item's keys pre-filled.
 
