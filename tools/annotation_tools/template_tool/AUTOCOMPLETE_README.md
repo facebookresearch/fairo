@@ -113,9 +113,9 @@ The tool also populates triples with the first array item's keys pre-filled.
 To pretty print a JSON valid dictionary, press Enter in the text box.
 
 ## Save and Upload
-On `Save`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/`.
+On `Save Annotations`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/`.
 
-On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. The results are then written to `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. This is in the format
+On `Create Dataset from Annotations`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. The results are then written to `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. This is in the format
 
 ```
 [command]|[action_dict]\n
