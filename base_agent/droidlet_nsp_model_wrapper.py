@@ -170,7 +170,9 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
             speaker=speaker, chat=chat, logical_form=logical_form
         )
         # 6. return the DialogueObject
-        return self.handle_logical_form(speaker, updated_logical_form, chat)
+        return self.handle_logical_form(
+            speaker=speaker, logical_form=updated_logical_form, chat=chat
+        )
 
     def validate_parse_tree(self, parse_tree: Dict) -> bool:
         """Validate the parse tree against current grammar."""
