@@ -47,10 +47,10 @@ class AutocompleteAnnotator extends React.Component {
     return (
       <div>
         <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <ParseTreeAnnotator title="Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
+          <TemplateAnnotator title="Add New Command" fullText={this.state.fragmentsText} schema={this.state.schema} />
         </div>
         <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <TemplateAnnotator title="Add New Command" fullText={this.state.fragmentsText} schema={this.state.schema} />
+          <ParseTreeAnnotator title="Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
         </div>
       </div>
     )
