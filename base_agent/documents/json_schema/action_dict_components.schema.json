@@ -103,8 +103,7 @@
         "reference_object_2": {
           "$ref": "#/definitions/reference_object"
         }
-      },
-      "additionalProperties": false
+      }
     },
     "reference_object": {
       "type": "object",
