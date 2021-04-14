@@ -5,7 +5,8 @@ import os
 import unittest
 import json
 
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from base_agent.loco_mc_agent import LocoMCAgent
 from fake_agent import MockOpt
 from prettytable import PrettyTable
@@ -32,7 +33,12 @@ class FakeAgent(LocoMCAgent):
 
     def init_controller(self):
         dialogue_object_classes = {}
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
 
 class fontcolors:
@@ -921,7 +927,9 @@ class TestDialogueManager(unittest.TestCase):
             else:
                 # else query the model and remove the value for key "text_span"
                 model_prediction = remove_text_span(
-                    self.agent.dialogue_manager.model.model.parse(chat=command)
+                    self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
+                        chat=command
+                    )
                 )
 
             # compute parsing pipeline accuracy
@@ -940,7 +948,9 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             model_output = remove_text_span(
-                self.agent.dialogue_manager.model.model.parse(chat=command)
+                self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
+                    chat=command
+                )
             )
             parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:

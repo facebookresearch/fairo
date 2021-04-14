@@ -5,7 +5,8 @@ import os
 import unittest
 import logging
 
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.test.all_test_commands import *
 from fake_agent import MockOpt
@@ -32,7 +33,12 @@ class FakeAgent(LocoMCAgent):
 
     def init_controller(self):
         dialogue_object_classes = {}
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
 
 # NOTE: The following commands in locobot_commands can't be supported
@@ -70,8 +76,8 @@ class TestDialogueManager(unittest.TestCase):
 
         for command in locobot_commands:
             ground_truth_parse = GROUND_TRUTH_PARSES.get(command, None)
-            model_prediction = self.agent.dialogue_manager.get_logical_form(
-                command, self.agent.dialogue_manager.model
+            model_prediction = self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
+                command
             )
 
             logging.info(
@@ -81,19 +87,59 @@ class TestDialogueManager(unittest.TestCase):
             )
 
     def test_validate_bad_json(self):
-        is_valid_json = self.agent.dialogue_manager.validate_parse_tree({})
+        is_valid_json = (
+            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree({})
+        )
         self.assertFalse(is_valid_json)
 
     def test_validate_array_span_json(self):
-        action_dict = {'dialogue_type': 'HUMAN_GIVE_COMMAND', 'action_sequence': [{'action_type': 'BUILD', 'schematic': {'text_span': [0, [5, 5]], 'filters': {'triples': [{'pred_text': 'has_name', 'obj_text': [0, [5, 5]]}]}}}]}
-        is_valid_json = self.agent.dialogue_manager.validate_parse_tree(action_dict)
+        action_dict = {
+            "dialogue_type": "HUMAN_GIVE_COMMAND",
+            "action_sequence": [
+                {
+                    "action_type": "BUILD",
+                    "schematic": {
+                        "text_span": [0, [5, 5]],
+                        "filters": {
+                            "triples": [{"pred_text": "has_name", "obj_text": [0, [5, 5]]}]
+                        },
+                    },
+                }
+            ],
+        }
+        is_valid_json = (
+            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
+                action_dict
+            )
+        )
         self.assertTrue(is_valid_json)
 
     def test_validate_string_span_json(self):
-        action_dict = {'dialogue_type': 'HUMAN_GIVE_COMMAND', 'action_sequence': [{'action_type': 'DANCE', 'dance_type': {'look_turn': {'location': {'reference_object': {'filters': {'triples': [{'pred_text': 'has_name', 'obj_text': 'cube'}]}}}}}}]}
-        is_valid_json = self.agent.dialogue_manager.validate_parse_tree(action_dict)
+        action_dict = {
+            "dialogue_type": "HUMAN_GIVE_COMMAND",
+            "action_sequence": [
+                {
+                    "action_type": "DANCE",
+                    "dance_type": {
+                        "look_turn": {
+                            "location": {
+                                "reference_object": {
+                                    "filters": {
+                                        "triples": [{"pred_text": "has_name", "obj_text": "cube"}]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                }
+            ],
+        }
+        is_valid_json = (
+            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
+                action_dict
+            )
+        )
         self.assertTrue(is_valid_json)
-
 
 
 if __name__ == "__main__":

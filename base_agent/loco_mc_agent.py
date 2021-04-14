@@ -167,7 +167,7 @@ class LocoMCAgent(BaseAgent):
         raise NotImplementedError
 
     def init_memory(self):
-        """ something like:
+        """something like:
         self.memory = memory.AgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
@@ -180,7 +180,7 @@ class LocoMCAgent(BaseAgent):
         dialogue_object_classes["interpreter"] = ....
         dialogue_object_classes["get_memory"] = ....
         dialogue_object_classes["put_memory"] = ....
-        self.dialogue_manager = NSPDialogueManager(self,
+        self.dialogue_manager = DialogueManager(self,
                                                    dialogue_object_classes,
                                                    self.opts)
         logging.info("Initialized DialogueManager")
