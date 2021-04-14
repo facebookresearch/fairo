@@ -115,7 +115,17 @@ To pretty print a JSON valid dictionary, press Enter in the text box.
 ## Save and Upload
 On `Save Annotations`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/`.
 
-On `Create Dataset from Annotations`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. The results are then written to `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. This is in the format
+On `Create Dataset from Annotations`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. 
+
+By default, the results are written to a new file under `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. If you want to overwrite an existing data file, you need to specify the source file and output path in args, eg.
+
+```
+python3 /private/home/rebeccaqian/droidlet/tools/data_processing/autocomplete_postprocess.py --existing_annotations annotated.txt --output_file annotated_latest.txt
+```
+
+This above command would replace the commands in `annotated.txt` that have been relabelled, and write the new annotated dataset to `annotated_latest.txt`.
+
+Final data is in the format
 
 ```
 [command]|[action_dict]\n
@@ -123,5 +133,5 @@ On `Create Dataset from Annotations`, the new data pairs in `~/droidlet/tools/an
 ...
 ```
 
-Then, you may upload this file to the S3 URI `s3://craftassist/pubr/`. It is now ready to be used in training, validation or ground truth actions!
+Then, you may rename and upload this file to the S3 URI `s3://craftassist/pubr/`. You can also submit a PR to update the datasets. It is now ready to be used in training, validation or ground truth actions!
 
