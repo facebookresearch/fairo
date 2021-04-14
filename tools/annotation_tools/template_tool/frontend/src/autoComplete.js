@@ -195,7 +195,7 @@ class ParseTreeAnnotator extends React.Component {
   }
 
   uploadData() {
-    console.log("Uploading Data to S3")
+    console.log("Postprocessing annotations")
     // First postprocess
     const requestOptions = {
       method: 'POST',
