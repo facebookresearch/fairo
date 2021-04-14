@@ -39,8 +39,8 @@ The Dialogue Stack holds Dialogue Objects, and steps them.
 ```
 The Dialogue Manager operates the Stack, and chooses whether to place Dialogue objects
 ```eval_rst
- .. autoclass:: base_agent.nsp_dialogue_manager.NSPDialogueManager
-  :members: maybe_get_dialogue_obj, get_logical_form, handle_logical_form
+ .. autoclass:: base_agent.dialogue_manager.DialogueManager
+  :members: step
 ```
 ### Semantic Parser ###
 The training of the semantic parsing model we use is described in detail [here](https://github.com/fairinternal/minecraft/tree/master/base_agent/ttad/); the interface is
