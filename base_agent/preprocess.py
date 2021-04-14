@@ -17,17 +17,6 @@ def word_tokenize(st) -> str:
     return " ".join([str(x) for x in tokenizer(chat_with_spaces)])
 
 
-def sentence_split(st):
-    st = st.replace(" ?", " .")
-    st = st.replace(" !", " .")
-    st = st.replace(" ...", " .")
-    res = [
-        " ".join([x for x in sen.lower().split() if x not in string.punctuation])
-        for sen in st.split(" .")
-    ]
-    return [x for x in res if x != ""]
-
-
 def insert_spaces(chat):
     updated_chat = ""
     for i, c in enumerate(chat):
@@ -59,9 +48,8 @@ def preprocess_chat(chat: str) -> List[str]:
 
     # Tokenize the line and return list of sentences.
     tokenized_line = word_tokenize(chat)
-    tokenized_sentences = sentence_split(tokenized_line)
 
-    return tokenized_sentences
+    return tokenized_line
 
 
 if __name__ == "__main__":
