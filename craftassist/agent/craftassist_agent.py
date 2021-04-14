@@ -31,12 +31,18 @@ if __name__ == "__main__":
     print("starting dashboard...")
     dldashboard.start()
 
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from base_agent.base_util import Pos, Look
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.memory_nodes import PlayerNode
 from base_agent.argument_parser import ArgumentParser
-from craftassist.agent.dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
+from craftassist.agent.dialogue_objects import (
+    MCBotCapabilities,
+    MCGetMemoryHandler,
+    PutMemoryHandler,
+    MCInterpreter,
+)
 from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
 from dlevent import sio
@@ -163,7 +169,12 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
     def perceive(self, force=False):
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
