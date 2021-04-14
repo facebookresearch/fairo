@@ -33,7 +33,7 @@ spacy_model = spacy.load("en_core_web_sm")
 
 class DroidletNSPModelWrapper(SemanticParserWrapper):
     def __init__(self, agent, dialogue_object_classes, opts, dialogue_manager):
-        super(DroidletNSPModelWrapper, self).__init__(agent, None)
+        super(DroidletNSPModelWrapper, self).__init__(agent, dialogue_object_classes, opts, dialogue_manager)
         # Read all datasets
         self.read_datasets(opts)
         # instantiate logger and parsing model
@@ -42,17 +42,9 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         )
         try:
             self.parsing_model = DroidletSemanticParsingModel(
-                opts.nsp_models_dir, opts.nsp_data_dir
-            )
+                opts.nsp_models_dir, opts.nsp_data_dir)
         except NotADirectoryError:
             pass
-        # self.dialogue_objects = dialogue_object_classes
-        # self.dialogue_object_parameters = {
-        #     "agent": self.agent,
-        #     "memory": self.agent.memory,
-        #     "dialogue_stack": self.dialogue_stack,
-        # }
-
         # Socket event listener
         # TODO: might need to be rewritten / moved to spr?
         @sio.on("queryParser")
@@ -155,7 +147,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         # 2. Preprocess chat
         chat = self.preprocess_chat(chat_list[0])
         if not self.is_safe(chat):
-            return Say("Please don't be rude.")
+            return Say("Please don't be rude.", **self.dialogue_object_parameters)
 
         # 3. Check if incoming chat is one of the scripted ones in greetings
         # and push appropriate DialogueObjects to stack.
