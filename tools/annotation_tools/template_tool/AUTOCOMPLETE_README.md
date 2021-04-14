@@ -25,9 +25,9 @@ First, create a file `~/droidlet/tools/annotation_tools/template_tool/backend/co
 To prepopulate the tool with annotated data, run the preprocessing script from the `backend` folder:
 ```
 cd ~/droidlet/tools/annotation_tools/template_tool/backend/
-python ~/droidlet/tools/data_processing/preprocess_datasets_for_autocomplete.py [args]
+python ~/droidlet/tools/data_processing/preprocess_datasets_for_autocomplete.py
 
-Args:
+Optional Args:
 --annotations_dir_path: Path to directory containing existing labelled data.
 --commands_path: Path to file with one command per line, which we want to annotate. Defaults to commands.txt
 ```
@@ -51,9 +51,9 @@ cd ~/droidlet/tools/annotation_tools/template_tool/frontend/
 npm install && npm start
 ```
 
-In order to write to the Craftassist S3 bucket, you need to be in an environment with `boto3` installed and have valid AWS credentials. For instructions on how to configure awscli, see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html .
-
 Then you are able to access the Autocomplete tool in your browser at `localhost:3000/autocomplete`.
+
+In order to write to the Craftassist S3 bucket, you need to be in an environment with `boto3` installed and have valid AWS credentials. For instructions on how to configure awscli, see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html . If you do not have this configured, you can still run the tool as usual and save annotations to disk.
 
 # Usage
 ## Autocomplete
@@ -113,7 +113,7 @@ The tool also populates triples with the first array item's keys pre-filled.
 To pretty print a JSON valid dictionary, press Enter in the text box.
 
 ## Save and Upload
-On `Save`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/backend/`.
+On `Save`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/`.
 
 On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. The results are then written to `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. This is in the format
 
