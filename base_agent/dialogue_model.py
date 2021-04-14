@@ -7,7 +7,7 @@ from typing import Dict
 from ttad.ttad_transformer_model.query_model import TTADBertModel as Model
 
 
-class SemanticParsingModel:
+class DroidletSemanticParsingModel:
     def __init__(self, models_dir, data_dir):
         """The SemanticParsingModel converts natural language
         commands to logical forms.
@@ -36,7 +36,7 @@ class SemanticParsingModel:
         else:
             raise NotADirectoryError
 
-    def get_logical_form(self, chat: str) -> Dict:
+    def query_for_logical_form(self, chat: str) -> Dict:
         """Get logical form output for a given chat command.
         First check the ground truth file for the chat string. If not
         in ground truth, query semantic parsing model to get the output.
@@ -50,7 +50,7 @@ class SemanticParsingModel:
                 https://arxiv.org/abs/1907.08584
 
         Examples:
-            >>> get_logical_form("destroy this", model)
+            >>> query_for_logical_form("destroy this", model)
             {
                 "dialogue_type": "HUMAN_GIVE_COMMAND",
                 "action_sequence": [{
