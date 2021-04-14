@@ -22,11 +22,11 @@ class SafetyTest(BaseCraftassistTestCase):
         super().setUp(agent_opts=opts)
 
     def test_unsafe_word(self):
-        is_safe = self.agent.dialogue_manager.is_safe("bad Clinton")
+        is_safe = self.agent.dialogue_manager.semantic_parsing_model_wrapper.is_safe("bad Clinton")
         self.assertFalse(is_safe)
 
     def test_safe_word(self):
-        is_safe = self.agent.dialogue_manager.is_safe("build a house")
+        is_safe = self.agent.dialogue_manager.semantic_parsing_model_wrapper.is_safe("build a house")
         self.assertTrue(is_safe)
 
     def test_dialogue_manager(self):
