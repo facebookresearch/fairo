@@ -3,9 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from typing import Tuple, Optional
-import preprocess
 from dialogue_stack import DialogueStack
-from .dialogue_objects import DialogueObject, Say
+from .dialogue_objects import DialogueObject
 
 
 class DialogueManager(object):
@@ -38,29 +37,17 @@ class DialogueManager(object):
         model: a (perhaps ML) model used by and the model used for manager.
     """
 
-    def __init__(self, agent, model):
+    def __init__(self, agent, dialogue_object_classes, opts, model, semantic_parsing_model):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.model = model
+        self.semantic_parsing_model = semantic_parsing_model(
+            self.agent, dialogue_object_classes, opts, self
+        )
 
-    def get_safety_words(self, safety_words_path):
-        """Read a set of safety words to prevent abuse."""
-        with open(safety_words_path) as f:
-            safety_lines = f.readlines()
-        safety_words = set()
-        for l in safety_lines:
-            w = l.strip("\n").lower()
-            if w != "" and w[0] != "<" and w[0] != "#":
-                safety_words.add(w)
-        return safety_words
-
-    def is_safe(self, chat):
-        """Check that chat does not contain any word from the
-        safety check list.
-        """
-        cmd_set = set(chat.lower().split())
-        notsafe = len(cmd_set & self.safety_words) > 0
-        return not notsafe
+    def get_last_m_chats(self, m=1):
+        # fetch last m chats from memory
+        return "hello"
 
     def step(self, chat: Tuple[str, str]):
         """Process a chat and step through the dialogue manager task stack.
@@ -80,23 +67,16 @@ class DialogueManager(object):
         """
         # chat is a single line command
         speaker, chatstr = chat
-        # tokenize the chat and get list of sentences to parse.
-        preprocessed_chatstrs = preprocess.preprocess_chat(chatstr)
 
-        # check safety for each chat first
-        for preprocessed_chatstr in preprocessed_chatstrs:
-            if not self.is_safe(preprocessed_chatstr):
-                self.dialogue_stack.append_new(Say, "Please don't be rude.")
-                return
-
-        if preprocessed_chatstrs:
+        if chatstr:
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
             # NOTE: the model is responsible for not putting a new
             # object on the stack if it sees that whatever is on
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
-            obj = self.maybe_get_dialogue_obj(speaker=speaker, chat_list=preprocessed_chatstrs)
+            obj = self.semantic_parsing_model.get_dialogue_object(speaker=speaker)
+            # obj = self.maybe_get_dialogue_obj(speaker=speaker, chat_list=preprocessed_chatstrs)
             if obj is not None:
                 self.dialogue_stack.append(obj)
 
