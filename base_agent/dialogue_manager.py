@@ -34,15 +34,14 @@ class DialogueManager(object):
 
     args:
         agent: a droidlet agent
-        model: a (perhaps ML) model used by and the model used for manager.
+        
     """
 
     def __init__(
-        self, agent, dialogue_object_classes, opts, semantic_parsing_model_wrapper, model=None
+        self, agent, dialogue_object_classes, opts, semantic_parsing_model_wrapper
     ):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
-        self.model = model
         self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
             agent=self.agent,
             dialogue_object_classes=dialogue_object_classes,
@@ -53,8 +52,12 @@ class DialogueManager(object):
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
         all_chats = self.agent.memory.get_recent_chats(n=m)
-        chat_list_text = [chat.chat_text for chat in all_chats]
-
+        chat_list_text = []
+        for chat in all_chats:
+            speaker = self.agent.memory.get_player_by_id(chat.speaker_id).name
+            chat_str = chat.chat_text
+            chat_list_text.append((speaker, chat_str))
+        
         return chat_list_text
 
     def step(self, chat: Tuple[str, str]):
@@ -83,7 +86,7 @@ class DialogueManager(object):
             # object on the stack if it sees that whatever is on
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
-            obj = self.semantic_parsing_model_wrapper.get_dialogue_object(speaker=speaker)
+            obj = self.semantic_parsing_model_wrapper.get_dialogue_object()
             if obj is not None:
                 self.dialogue_stack.append(obj)
 
