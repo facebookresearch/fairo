@@ -90,6 +90,3 @@ class DialogueManager(object):
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.dialogue_stack) > 0:
             self.dialogue_stack.step()
-
-    def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
-        raise NotImplementedError("Must implement maybe_get_dialogue_object in subclass")
