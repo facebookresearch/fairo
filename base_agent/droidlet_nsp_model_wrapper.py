@@ -45,8 +45,10 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
                 opts.nsp_models_dir, opts.nsp_data_dir)
         except NotADirectoryError:
             pass
+        
+        
         # Socket event listener
-        # TODO: might need to be rewritten / moved to spr?
+        # TODO(kavyas): I might want to move this to SemanticParserWrapper
         @sio.on("queryParser")
         def query_parser(sid, data):
             """This is a socket event listener from dashboard and returns
@@ -114,27 +116,19 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         necessary.
         The order is:
         1. Check if pending confirmation
-        2. check against safety words first
-        3. check againt greetings and return
-        4. check against ground_truth commands or query model
-        5. handle the logical form by first: processing spans + resolving coreference
-        and then handing over to interpreter.
+        2. Preprocess chat
+        3. check against safety words first
+        4. check againt greetings and return
+        5. check against ground_truth commands or query model
+        6. postprocess the logical form: processing spans + resolving coreference
+        7. handle the logical form by returning appropriate DialogueObject.
 
         Args:
-            chat str: Incoming chat from a player.
-                Format is chat, eg. "build a red house"
+            speaker str: text with speaker identification/name
 
         Returns:
             DialogueObject or empty if no action is needed.
         """
-        # first call get_last_m(m=1) and extract 0th element
-        # TODO: move safety check here
-        # then check against greetings
-        # then against ground truth
-        # then model
-        # then postprocess lf
-        # the handle and return dialogueobject
-
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
         if (len(self.dialogue_manager.dialogue_stack) > 0) and (
@@ -142,26 +136,30 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         ):
             return None
 
-        # NOTE: We are only handling the last chat here compared to chat history
+        # NOTE: We are only handling the last chat here compared to full chat history
         chat_list = self.dialogue_manager.get_last_m_chats(m=1)
+
         # 2. Preprocess chat
         chat = self.preprocess_chat(chat_list[0])
+
+        # 3. Check against safety phrase list
         if not self.is_safe(chat):
             return Say("Please don't be rude.", **self.dialogue_object_parameters)
 
-        # 3. Check if incoming chat is one of the scripted ones in greetings
-        # and push appropriate DialogueObjects to stack.
+        # 4. Check if incoming chat is one of the scripted ones in greetings
         for greeting_type, allowed_str in self.botGreetings.items():
             if chat in allowed_str:
                 return BotGreet(greeting_type, **self.dialogue_object_parameters)
 
-        # 4. Get logical form from either ground truth or query the parsing model
+        # 5. Get logical form from either ground truth or query the parsing model
         logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)
-        # 5. postprocess logical form: fill spans + resolve coreference
+
+        # 6. postprocess logical form: fill spans + resolve coreference
         updated_logical_form = self.postprocess_logical_form(
             speaker=speaker, chat=chat, logical_form=logical_form
         )
-        # 6. return the DialogueObject
+
+        # 7. return the DialogueObject
         return self.handle_logical_form(
             speaker=speaker, logical_form=updated_logical_form, chat=chat
         )
@@ -179,7 +177,6 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
     def postprocess_logical_form(self, speaker: str, chat: str, logical_form: Dict) -> Dict:
         """This function performs some postprocessing on the logical form:
         substitutes indices with words and resolves coreference"""
-
         # perform lemmatization on the chat
         logging.debug('chat before lemmatization "{}"'.format(chat))
         lemmatized_chat = spacy_model(chat)

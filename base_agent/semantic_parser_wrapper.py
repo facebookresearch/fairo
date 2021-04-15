@@ -17,5 +17,5 @@ class SemanticParserWrapper(object):
             "dialogue_stack": self.dialogue_manager.dialogue_stack,
         }
 
-    def get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
-        raise NotImplementedError("Must implement maybe_get_dialogue_object in subclass")
+    def get_dialogue_object(self, speaker: str) -> Optional[DialogueObject]:
+        raise NotImplementedError("Must implement get_dialogue_object in subclass")

@@ -84,7 +84,6 @@ class DialogueManager(object):
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
             obj = self.semantic_parsing_model_wrapper.get_dialogue_object(speaker=speaker)
-            # obj = self.maybe_get_dialogue_obj(speaker=speaker, chat_list=preprocessed_chatstrs)
             if obj is not None:
                 self.dialogue_stack.append(obj)
 
