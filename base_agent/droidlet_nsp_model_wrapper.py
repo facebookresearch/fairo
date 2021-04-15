@@ -138,7 +138,8 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         chat_list = self.dialogue_manager.get_last_m_chats(m=1)
 
         # 2. Preprocess chat
-        speaker, chat = self.preprocess_chat(chat_list[0])
+        speaker, chatstr = chat_list[0]
+        chat = self.preprocess_chat(chatstr)
 
         # 3. Check against safety phrase list
         if not self.is_safe(chat):
