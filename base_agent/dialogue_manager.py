@@ -52,7 +52,10 @@ class DialogueManager(object):
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
-        return ["bad Clinton"]
+        all_chats = self.agent.memory.get_recent_chats(n=m)
+        chat_list_text = [chat.chat_text for chat in all_chats]
+
+        return chat_list_text
 
     def step(self, chat: Tuple[str, str]):
         """Process a chat and step through the dialogue manager task stack.
