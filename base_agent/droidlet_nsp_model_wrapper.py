@@ -110,7 +110,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         preprocessed_chat = preprocess.preprocess_chat(chat)
         return preprocessed_chat
 
-    def get_dialogue_object(self, speaker: str) -> Optional[DialogueObject]:
+    def get_dialogue_object(self) -> Optional[DialogueObject]:
         """This is the function that is called from the step() of DialogueManager.
         This function processes a chat and modified the dialogue stack if
         necessary.
@@ -123,8 +123,6 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         6. postprocess the logical form: processing spans + resolving coreference
         7. handle the logical form by returning appropriate DialogueObject.
 
-        Args:
-            speaker str: text with speaker identification/name
 
         Returns:
             DialogueObject or empty if no action is needed.
@@ -140,7 +138,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         chat_list = self.dialogue_manager.get_last_m_chats(m=1)
 
         # 2. Preprocess chat
-        chat = self.preprocess_chat(chat_list[0])
+        speaker, chat = self.preprocess_chat(chat_list[0])
 
         # 3. Check against safety phrase list
         if not self.is_safe(chat):
