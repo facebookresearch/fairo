@@ -25,7 +25,6 @@ jobs:
           name: Deploy Github key
           command: |
             echo ${MCDEPLOY_KEY_B64} | base64 -d > tools/docker/mcdeploy.key
-            tail -2 tools/docker/mcdeploy.key
             chmod 400 tools/docker/mcdeploy.key
 
       - run:
