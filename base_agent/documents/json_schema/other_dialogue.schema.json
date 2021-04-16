@@ -5,59 +5,68 @@
     "type": "object",
     "definitions": {
         "get_memory": {
-            "type": "object",
-            "anyOf": [
-                {
-                    "filters": {
-                        "$ref": "filters.schema.json#/definitions/filters"
-                    }
+            "properties": {
+                "dialogue_type": {
+                "const": "GET_MEMORY"
                 },
-                {
-                    "replace": {
-                        "$ref": "grammar_spec.schema.json#/definitions/replace"
-                    }
+                "filters": {
+                "$ref": "filters.schema.json#/definitions/triples"
+                },
+                "replace": {
+                "$ref": "#/definitions/replace"
                 }
-            ]
+            }
+        },
+        "put_memory": {
+            "properties": {
+              "dialogue_type": {
+                "const": "PUT_MEMORY"
+              },
+              "filters": {
+                "$ref": "filters.schema.json#/definitions/triples"
+              },
+              "upsert": {
+                "$ref": "#/definitions/upsert"
+              }
+            }
+        },
+        "memory_data": {
+            "type": "object",
+            "properties": {
+                "memory_type": {
+                    "enum": [
+                        "REWARD",
+                        "TRIPLE"
+                    ]
+                },
+                "reward_value": {
+                    "enum": [
+                        "POSITIVE",
+                        "NEGATIVE"
+                    ]
+                },
+                "triples": {
+                    "$ref": "filters.schema.json#/definitions/triples"
+                }
+            }
         },
         "upsert": {
             "type": "object",
             "properties": {
                 "memory_data": {
-                    "type": "object",
-                    "properties": {
-                        "memory_type": {
-                            "enum": [
-                                "REWARD",
-                                "TRIPLE"
-                            ]
-                        },
-                        "reward_value": {
-                            "enum": [
-                                "POSITIVE",
-                                "NEGATIVE"
-                            ]
-                        },
-                        "triples": {
-                            "$ref": "filters.schema.json#/definitions/triples"
-                        }
-                    }
+                    "$ref": "#/definitions/memory_data"
                 }
             }
         },
-        "put_memory": {
-            "type": "object",
-            "anyOf": [
-                {
-                    "filters": {
-                        "$ref": "filters.schema.json#/definitions/filters"
-                    }
-                },
-                {
-                    "replace": {
-                        "$ref": "#/definitions/upsert"
-                    }
-                }
-            ]
+        "noop": {
+            "properties": {
+              "dialogue_type": {
+                "enum": [
+                  "NOOP",
+                  "BOT_CAPABILITIES"
+                ]
+              }
+            }
         },
         "otheraction": {
             "type": "object",

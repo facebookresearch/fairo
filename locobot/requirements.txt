@@ -6,7 +6,7 @@ dlib==19.19.0
 face_recognition
 norfair
 facenet-pytorch
---find-links https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.4/index.html
+-f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
 detectron2
 scipy==1.5.4
 scikit-fmm

@@ -23,13 +23,7 @@
                     ]
                 },
                 "quantity": {
-                    "type": "object",
-                    "properties": {
-                        "attribute": {
-                            "$ref": "#/definitions/attribute"
-                        }
-                    },
-                    "additionalProperties": false
+                    "$ref": "#/definitions/quantity"
                 }
             }
         },
@@ -87,11 +81,7 @@
                     "type": "object",
                     "properties": {
                         "task_info": {
-                            "properties": {
-                                "reference_object": {
-                                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
-                                }
-                            }
+                            "$ref": "#/definitions/task_info"
                         }
                     },
                     "required": [
@@ -99,6 +89,13 @@
                     ]
                 }
             ]
+        },
+        "block_filters": {
+            "properties": {
+                "triples": {
+                    "$ref": "#/definitions/triples"
+                }
+            }
         },
         "close_to": {
             "type": "object",
@@ -120,37 +117,7 @@
         "comparator": {
             "properties": {
                 "input_left": {
-                    "properties": {
-                        "value_extractor": {
-                            "oneOf": [
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "filters": {
-                                            "$ref": "#/definitions/filters"
-                                        }
-                                    },
-                                    "required": [
-                                        "filters"
-                                    ]
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "attribute": {
-                                            "$ref": "#/definitions/attribute"
-                                        }
-                                    },
-                                    "required": [
-                                        "attribute"
-                                    ]
-                                },
-                                {
-                                    "$ref": "action_dict_components.schema.json#/definitions/span"
-                                }
-                            ]
-                        }
-                    }
+                    "$ref": "#/definitions/input_left"
                 },
                 "comparison_type": {
                     "oneOf": [
@@ -176,21 +143,7 @@
                     ]
                 },
                 "input_right": {
-                    "properties": {
-                        "value_extractor": {
-                            "oneOf": [
-                                {
-                                    "$ref": "#/definitions/filters"
-                                },
-                                {
-                                    "$ref": "#/definitions/attribute"
-                                },
-                                {
-                                    "$ref": "action_dict_components.schema.json#/definitions/span"
-                                }
-                            ]
-                        }
-                    }
+                    "$ref": "#/definitions/input_right"
                 },
                 "comparison_measure": {
                     "$ref": "action_dict_components.schema.json#/definitions/span"
@@ -203,26 +156,16 @@
                 }
             }
         },
+        "destination": {
+            "properties": {
+                "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+            }
+        },
         "filters": {
             "type": "object",
             "properties": {
                 "output": {
-                    "oneOf": [
-                        {
-                            "enum": [
-                                "MEMORY",
-                                "COUNT"
-                            ]
-                        },
-                        {
-                            "type": "object",
-                            "properties": {
-                                "attribute": {
-                                    "$ref": "#/definitions/attribute"
-                                }
-                            }
-                        }
-                    ]
+                    "$ref": "#/definitions/output"
                 },
                 "contains_coreference": {
                     "const": "yes"
@@ -245,7 +188,11 @@
                 "author": {
                     "oneOf": [
                         {
-                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                            "properties": {
+                                "fixed_value": {
+                                    "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                }
+                            }
                         },
                         {
                             "$ref": "action_dict_components.schema.json#/definitions/span"
@@ -263,6 +210,20 @@
                 }
             },
             "additionalProperties": false
+        },
+        "input_left": {
+            "properties": {
+                "value_extractor": {
+                    "$ref": "#/definitions/value_extractor"
+                }
+            }
+        },
+        "input_right": {
+            "properties": {
+                "value_extractor": {
+                    "$ref": "#/definitions/value_extractor"
+                }
+            }
         },
         "linear_extent": {
             "properties": {
@@ -290,10 +251,10 @@
                     "$ref": "action_dict_components.schema.json#/definitions/span"
                 },
                 "source": {
-                    "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                    "$ref": "#/definitions/source"
                 },
                 "destination": {
-                    "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                    "$ref": "#/definitions/destination"
                 }
             }
         },
@@ -348,11 +309,42 @@
             "description": "This represents number of blocks and hence a filter over those. For example: go to the house with most red blocks.",
             "properties": {
                 "block_filters": {
+                    "$ref": "#/definitions/block_filters"
+                }
+            }
+        },
+        "output": {
+            "oneOf": [
+                {
+                    "enum": [
+                        "MEMORY",
+                        "COUNT"
+                    ]
+                },
+                {
+                    "type": "object",
                     "properties": {
-                        "triples": {
-                            "$ref": "#/definitions/triples"
+                        "attribute": {
+                            "$ref": "#/definitions/attribute"
                         }
                     }
+                }
+            ]
+        },
+        "quantity": {
+            "type": "object",
+            "properties": {
+                "attribute": {
+                    "$ref": "#/definitions/attribute"
+                }
+            },
+            "additionalProperties": false
+        },
+        "return_quantity": {
+            "type": "object",
+            "properties": {
+                "random": {
+                    "$ref": "action_dict_components.schema.json#/definitions/span"
                 }
             }
         },
@@ -364,6 +356,28 @@
                 },
                 "location": {
                     "$ref": "action_dict_components.schema.json#/definitions/location"
+                },
+                "return_quantity": {
+                    "$ref": "#/definitions/return_quantity"
+                },
+                "same": {
+                    "enum": [
+                        "ALLOWED",
+                        "DISALLOWED",
+                        "REQUIRED"
+                    ]
+                }
+            }
+        },
+        "source": {
+            "properties": {
+                "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+            }
+        },
+        "task_info": {
+            "properties": {
+                "reference_object": {
+                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
                 }
             }
         },
@@ -401,7 +415,11 @@
                                 "$ref": "action_dict_components.schema.json#/definitions/span"
                             },
                             {
-                                "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                "properties": {
+                                    "fixed_value": {
+                                        "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                    }
+                                }
                             }
                         ]
                     },
@@ -414,7 +432,11 @@
                                 "$ref": "action_dict_components.schema.json#/definitions/span"
                             },
                             {
-                                "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                "properties": {
+                                    "fixed_value": {
+                                        "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                    }
+                                }
                             }
                         ]
                     },
@@ -446,6 +468,46 @@
                     }
                 }
             }
+        },
+        "value_extractor": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "filters": {
+                            "$ref": "#/definitions/filters"
+                        }
+                    },
+                    "required": [
+                        "filters"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "fixed_value": {
+                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                        }
+                    },
+                    "required": [
+                        "fixed_value"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "attribute": {
+                            "$ref": "#/definitions/attribute"
+                        }
+                    },
+                    "required": [
+                        "attribute"
+                    ]
+                },
+                {
+                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                }
+            ]
         }
     }
 }

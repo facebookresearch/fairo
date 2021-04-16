@@ -40,12 +40,6 @@
     "noop": {
       "$ref": "other_dialogue.schema.json#/definitions/noop"
     },
-    "get_memory": {
-      "$ref": "other_dialogue.schema.json#/definitions/get_memory"
-    },
-    "put_memory": {
-      "$ref": "other_dialogue.schema.json#/definitions/put_memory"
-    },
     "upsert": {
       "$ref": "other_dialogue.schema.json#/definitions/upsert"
     },
@@ -57,9 +51,6 @@
       "properties": {
         "location": {
           "$ref": "#/definitions/location"
-        },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
         },
         "replace": {
           "type": "boolean"
@@ -91,9 +82,6 @@
         "location": {
           "$ref": "#/definitions/location"
         },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
-        },
         "replace": {
           "type": "boolean"
         },
@@ -104,34 +92,11 @@
         },
         "stop_condition": {
           "$ref": "#/definitions/stop_condition"
+        },
+        "remove_condition": {
+          "$ref": "#/definitions/stop_condition"
         }
-      },
-      "anyOf": [
-        {
-          "required": [
-            "action_type",
-            "repeat",
-            "stop_condition"
-          ]
-        },
-        {
-          "required": [
-            "action_type",
-            "location"
-          ]
-        },
-        {
-          "required": [
-            "action_type"
-          ]
-        },
-        {
-          "required": [
-            "action_type",
-            "reference_object"
-          ]
-        }
-      ]
+      }
     },
     "spawn": {
       "type": "object",
@@ -141,9 +106,6 @@
         },
         "reference_object": {
           "$ref": "#/definitions/reference_object"
-        },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
         },
         "replace": {
           "$ref": "#/definitions/replace"
@@ -177,8 +139,8 @@
             "FILL"
           ]
         },
-        "triples": {
-          "$ref": "#/definitions/triples"
+        "schematic": {
+          "$ref": "action_dict_components.schema.json#/definitions/schematic"
         },
         "reference_object": {
           "$ref": "#/definitions/reference_object"
@@ -216,6 +178,17 @@
         "action_type"
       ]
     },
+    "target_action_type": {
+      "oneOf": [
+        {"$ref": "#/definitions/span"},
+        {
+          "type": "object",
+          "properties": {
+            "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
+          }
+        }
+      ]
+    },
     "undo": {
       "type": "object",
       "properties": {
@@ -223,7 +196,7 @@
           "const": "UNDO"
         },
         "target_action_type": {
-          "$ref": "#/definitions/span"
+          "$ref": "#/definitions/target_action_type"
         }
       },
       "required": [
@@ -237,7 +210,7 @@
           "const": "STOP"
         },
         "target_action_type": {
-          "$ref": "#/definitions/span"
+          "$ref": "#/definitions/target_action_type"
         }
       },
       "required": [
@@ -308,14 +281,14 @@
         "stop_condition": {
           "$ref": "#/definitions/stop_condition"
         },
+        "remove_condition": {
+          "$ref": "#/definitions/stop_condition"
+        },
         "location": {
           "$ref": "#/definitions/location"
         },
         "dance_type": {
           "$ref": "#/definitions/dance_type"
-        },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
         },
         "replace": {
           "$ref": "#/definitions/replace"
@@ -340,32 +313,63 @@
           "$ref": "#/definitions/repeat"
         },
         "receiver": {
-          "oneOf": [
-            {
-              "type": "object",
-              "properties": {
-                "reference_object": {
-                  "$ref": "#/definitions/reference_object"
-                }
-              },
-              "required": [
-                "reference_object"
-              ]
-            },
-            {
-              "type": "object",
-              "properties": {
-                "location": {
-                  "$ref": "#/definitions/location"
-                }
-              },
-              "required": [
-                "location"
-              ]
-            }
+          "$ref": "#/definitions/receiver"
+        }
+      }
+    },
+    "get_capabilities": {
+      "properties": {
+        "dialogue_type": {
+          "enum": [
+            "GET_CAPABILITIES"
+          ]
+        },
+        "action_type": {
+          "enum": [
+            "UNKNOWN",
+            "ANY",
+            "BUILD",
+            "PUT_MEMORY",
+            "GET_MEMORY"
           ]
         }
       }
+    },
+    "human_give_command": {
+        "properties": {
+          "dialogue_type": {
+            "const": "HUMAN_GIVE_COMMAND"
+          },
+          "action_sequence": {
+            "$ref": "#/definitions/action_sequence"
+          }
+        }
+    },
+    "receiver": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "reference_object": {
+              "$ref": "#/definitions/reference_object"
+            }
+          },
+          "required": [
+            "reference_object"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "location": {
+              "$ref": "#/definitions/location"
+            }
+          },
+          "required": [
+            "location"
+          ]
+        }
+      ]
     },
     "scout": {
       "type": "object",

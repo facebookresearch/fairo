@@ -1011,7 +1011,10 @@ class AgentMemory:
 
     def get_db_log_idx(self):
         """Return log index for database"""
-        return self._db_log_idx
+        try:
+            return self._db_log_idx
+        except AttributeError:
+            return None
 
     def _write_to_db_log(self, s: str, *args, no_format=False):
         """Write to database log file

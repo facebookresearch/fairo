@@ -224,7 +224,7 @@ class LinearExtentAttribute(Attribute):
     def extent(self, source, destination):
         # source and destination are arrays in this function
         # arrow goes from source to destination:
-        diff = np.subtract(source, destination)
+        diff = np.subtract(destination, source)
         if self.location_data["relative_direction"] in ["INSIDE", "OUTSIDE"]:
             raise Exception("inside and outside not yet implemented in linear extent")
         if self.location_data["relative_direction"] in [
