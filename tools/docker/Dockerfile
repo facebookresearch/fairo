@@ -1,30 +1,38 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 FROM shaomai/craftassist:latest as base
 
-COPY mcdeploy.key /mcdeploy.key
-COPY AWS_S3_ACCESS_KEY_ID.txt /AWS_S3_ACCESS_KEY_ID.txt
-COPY AWS_S3_SECRET_ACCESS_KEY.txt /AWS_S3_SECRET_ACCESS_KEY.txt
 ARG current_branch
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
 
 # Clone/make repo
-ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
-RUN git clone --recursive git@github.com:facebookresearch/droidlet.git
+RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/droidlet
 WORKDIR droidlet
-RUN git checkout ${current_branch}
-RUN tools/data_scripts/try_download.sh craftassist
 
 RUN pip3 install -r requirements.txt
+RUN tools/data_scripts/try_download.sh craftassist
 
-RUN mkdir -p /cache/.ccache
-RUN (AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && tar -xvf /client_ccache.tar.gz -C /cache) || echo "Pulling ccache from S3"
-RUN export CCACHE_DIR="/cache/.ccache"
-RUN git submodule update --init --recursive
-RUN cd craftassist && make && cd ..
-RUN tar -cvzf client_ccache.tar.gz /cache/.ccache
-RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz
+# use the much faster lld linker
+RUN rm -f /usr/bin/ld && ln -s /usr/bin/ld.lld /usr/bin/ld
+
+RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && \
+      tar -xvf /client_ccache.tar.gz -C /cache/.ccache) \
+      || echo "Failed pulling ccache from S3") && \
+    ccache -s && \
+    ls -alh /client_ccache.tar.gz && \
+    ls -alh /cache/.ccache && \
+    cd droidlet/lowlevel/minecraft && \
+    CC="/usr/local/bin/gcc" CXX="/usr/local/bin/g++" make && \
+    cd ../../../ && \
+    tar -cvzf client_ccache.tar.gz -C /cache/.ccache . && \
+    ls -alh client_ccache.tar.gz && \
+    aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz --acl public-read && \
+    ls -alh /cache/.ccache && \
+    ccache -s && \
+    rm -rf client_ccache.tar.gz /cache/.ccache /client_ccache.tar.gz
 
 RUN npm install -g yarn
-RUN cd /droidlet/dldashboard/web && yarn install
+RUN cd /droidlet/droidlet/dashboard/web && yarn install
 
 RUN mkdir workdir
 WORKDIR workdir

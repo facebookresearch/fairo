@@ -18,13 +18,6 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     zlib1g-dev 
 
-COPY mcdeploy.key /mcdeploy.key
-
-RUN mkdir -p /root/.ssh
-RUN cp mcdeploy.key /root/.ssh/id_rsa
-RUN chmod 600 /root/.ssh/id_rsa
-RUN ssh-keyscan github.com >> /root/.ssh/known_hosts
-
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
 
@@ -41,10 +34,12 @@ SHELL ["/bin/bash", "-c"]
 # Environment 
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
 
-RUN conda create -n minecraft_env python==3.7.4 pip numpy scikit-learn==0.19.1 pytorch==1.4.0 torchvision -c conda-forge -c pytorch && \
+RUN conda create -n droidlet_env python=3.7 \
+    pytorch==1.7.1 torchvision==0.8.2 \
+    cudatoolkit=11.0 -c pytorch && \
     conda init bash && \
     source ~/.bashrc && \
-    source activate /root/miniconda3/envs/minecraft_env && \
+    source activate /root/miniconda3/envs/droidlet_env && \
     curl https://raw.githubusercontent.com/facebookresearch/droidlet/main/requirements.txt -o requirements_1.txt && \
     curl https://raw.githubusercontent.com/facebookresearch/droidlet/main/locobot/requirements.txt -o requirements_2.txt && \
     echo -en '\n' >> requirements_1.txt && \

@@ -3,5 +3,5 @@
 
 
 
-cd $(dirname $0)/../../craftassist/agent
+cd $(dirname $0)/../../agents/craftassist
 mypy --ignore-missing-imports craftassist_agent.py

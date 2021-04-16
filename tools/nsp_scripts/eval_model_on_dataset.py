@@ -9,9 +9,9 @@ import pickle
 import torch
 import argparse
 from transformers import AutoModel, AutoTokenizer, BertConfig
-from base_agent.ttad.ttad_transformer_model.utils_caip import *
-from base_agent.ttad.ttad_transformer_model.utils_parsing import *
-from base_agent.ttad.ttad_transformer_model.train_model import *
+from droidlet.dialog.ttad.ttad_transformer_model.utils_caip import *
+from droidlet.dialog.ttad.ttad_transformer_model.utils_parsing import *
+from droidlet.dialog.ttad.ttad_transformer_model.train_model import *
 from pprint import pprint
 
 
@@ -26,7 +26,9 @@ def main():
     args = parser.parse_args()
 
     model = "craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model.pth"
-    args_path = "craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model_args.pk"
+    args_path = (
+        "craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model_args.pk"
+    )
     args = pickle.load(open(args_path, "rb"))
 
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
@@ -49,7 +51,9 @@ def main():
     _ = encoder_decoder.eval()
 
     model_trainer = ModelTrainer(args)
-    model_trainer.eval_model_on_dataset(encoder_decoder, "annotated", full_tree_voc, tokenizer, split="test")
+    model_trainer.eval_model_on_dataset(
+        encoder_decoder, "annotated", full_tree_voc, tokenizer, split="test"
+    )
 
 
 if __name__ == "__main__":

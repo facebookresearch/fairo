@@ -12,8 +12,10 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
+    "material-ui-search-bar": "^1.0.0",
     "morgan": "~1.9.1",
     "react-autocomplete": "^1.8.1",
     "serve-index": "^1.9.1"
-  }
+  },
+  "devDependencies": {}
 }

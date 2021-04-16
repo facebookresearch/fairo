@@ -1,0 +1,93 @@
+{
+    "$id": "other_dialogue.schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Other dialogue types, such as get or put memory, NOOPs and get capability.",
+    "type": "object",
+    "definitions": {
+        "get_memory": {
+            "properties": {
+                "dialogue_type": {
+                    "const": "GET_MEMORY"
+                },
+                "filters": {
+                    "$ref": "filters.schema.json#/definitions/triples"
+                },
+                "replace": {
+                    "$ref": "#/definitions/replace"
+                }
+            }
+        },
+        "put_memory": {
+            "properties": {
+                "dialogue_type": {
+                    "const": "PUT_MEMORY"
+                },
+                "filters": {
+                    "$ref": "filters.schema.json#/definitions/triples"
+                },
+                "upsert": {
+                    "$ref": "#/definitions/upsert"
+                }
+            }
+        },
+        "memory_data": {
+            "type": "object",
+            "properties": {
+                "memory_type": {
+                    "enum": [
+                        "REWARD",
+                        "TRIPLE"
+                    ]
+                },
+                "reward_value": {
+                    "enum": [
+                        "POSITIVE",
+                        "NEGATIVE"
+                    ]
+                },
+                "triples": {
+                    "$ref": "filters.schema.json#/definitions/triples"
+                }
+            }
+        },
+        "upsert": {
+            "type": "object",
+            "properties": {
+                "memory_data": {
+                    "$ref": "#/definitions/memory_data"
+                }
+            }
+        },
+        "noop": {
+            "properties": {
+                "dialogue_type": {
+                    "enum": [
+                        "NOOP",
+                        "BOT_CAPABILITIES"
+                    ]
+                }
+            }
+        },
+        "otheraction": {
+            "type": "object",
+            "properties": {
+                "action_type": {
+                    "const": "OTHERACTION"
+                },
+                "reference_object": {
+                    "$ref": "action_dict_components.schema.json#/definitions/reference_object"
+                },
+                "location": {
+                    "$ref": "action_dict_components.schema.json#/definitions/location"
+                },
+                "repeat": {
+                    "$ref": "grammar_spec.schema.json#/definitions/repeat"
+                }
+            },
+            "required": [
+                "action_type"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

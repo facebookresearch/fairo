@@ -1,4 +1,4 @@
-# droidlet
+<img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br></br>
 
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
@@ -62,15 +62,20 @@ cd droidlet
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 2. Install dependencies
+        <td> 3. Install dependencies
         <sub><pre lang="bash">
+conda create -n droidlet_env python=3.7 \
+   pytorch==1.7.1 torchvision==0.8.2 \
+   cudatoolkit=11.0 -c pytorch
+conda activate droidlet_env
 pip install -r \
-    locobot/requirements.txt
+    agents/locobot/requirements.txt
+python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
 pip install -r \
-    craftassist/requirements.txt
+    agents/craftassist/requirements.txt
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
@@ -78,7 +83,7 @@ pip install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 3. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
+        <td> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
         </td>
         <td>
         3. <a href="https://github.com/facebookresearch/droidlet/blob/main/craftassist/README.md">Instructions for running the Craftassist agent</a>
@@ -88,15 +93,15 @@ pip install -r requirements.txt
         </td>
     </tr>
         <tr valign="top">
-        <td colspan=3> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
+        <td colspan=3> 5. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
         </td>      
     </tr>    
     <tr valign="top" align="center">
-        <td colspan=3> 5. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
+        <td colspan=3> 6. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
         </td>
     </tr>
     <tr valign="top" align="center">
-        <td colspan=3> 6. Agent-specific API Documentation</a>
+        <td colspan=3> 7. Agent-specific API Documentation</a>
         </td>
     </tr>
     <tr valign="top">        
@@ -111,7 +116,6 @@ pip install -r requirements.txt
         </td>
     </tr>
   </table>
-</p>
 
 
 ## Documentation, Tutorials and Papers

@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 function pyabspath() {
-    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+    python3 -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
@@ -34,11 +34,11 @@ cd $ROOTDIR
 echo "====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/$DATA_DIRNAME.tar.gz ======"
 curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${DATA_DIRNAME}_${CHECKSUM}.tar.gz -o $DATA_DIRNAME.tar.gz
 
-if [ -d "${AGENT}/agent/datasets" ]
+if [ -d "agents/${AGENT}/datasets/" ]
 then
 	echo "Overwriting datasets directory"
-	rm -rf $AGENT/agent/datasets/
+	rm -rf agents/${AGENT}/datasets/
 fi
-mkdir -p $AGENT/agent/datasets/
+mkdir -p agents/${AGENT}/datasets/
 
-tar -xzvf $DATA_DIRNAME.tar.gz -C $AGENT/agent/datasets/ --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${DATA_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
+tar -xzvf $DATA_DIRNAME.tar.gz -C agents/${AGENT}/datasets/ --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${DATA_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
