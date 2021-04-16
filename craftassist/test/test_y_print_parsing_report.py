@@ -277,11 +277,15 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "location": {
-                "relative_direction": "OUTSIDE",
-                "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]}
-                },
+            "selector": {
+                "location": {
+                    "relative_direction": "OUTSIDE",
+                    "reference_object": {
+                        "filters": {
+                            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+                        }
+                    },
+                }
             },
             "memory_type": "REFERENCE_OBJECT",
         },
@@ -351,9 +355,11 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "location": {
-                "relative_direction": "LEFT",
-                "reference_object": {"filters": {"contains_coreference": "yes"}},
+            "selector": {
+                "location": {
+                    "relative_direction": "LEFT",
+                    "reference_object": {"filters": {"contains_coreference": "yes"}},
+                }
             },
             "memory_type": "REFERENCE_OBJECT",
         },
@@ -362,11 +368,15 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "location": {
-                "relative_direction": "LEFT",
-                "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]}
-                },
+            "selector": {
+                "location": {
+                    "relative_direction": "LEFT",
+                    "reference_object": {
+                        "filters": {
+                            "triples": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                        }
+                    },
+                }
             },
             "memory_type": "REFERENCE_OBJECT",
         },
@@ -504,7 +514,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "location": {"reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}},
+            "selector": {
+                "location": {"reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}}
+            },
         },
     },
     "how many pencils are there": {
@@ -756,9 +768,11 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "location": {
-                "relative_direction": "LEFT",
-                "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}},
+            "selector": {
+                "location": {
+                    "relative_direction": "LEFT",
+                    "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}},
+                }
             },
         },
     },

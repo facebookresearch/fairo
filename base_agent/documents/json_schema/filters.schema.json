@@ -199,9 +199,6 @@
                         }
                     ]
                 },
-                "location": {
-                    "$ref": "action_dict_components.schema.json#/definitions/location"
-                },
                 "repeat": {
                     "$ref": "grammar_spec.schema.json#/definitions/repeat"
                 },
