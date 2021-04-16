@@ -519,6 +519,17 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     return hole_mems
 
 
+def maybe_get_type_name(idm):
+    try:
+        type_name = BLOCK_DATA["bid_to_name"][idm]
+    except:
+        type_name = "UNK"
+        logging.debug(
+            "heuristic perception encountered unknown block: ({}, {})".format(idm[0], idm[1])
+        )
+    return type_name
+
+
 class PerceptionWrapper:
     """Perceive the world at a given frequency and update agent
     memory.
@@ -563,7 +574,7 @@ class PerceptionWrapper:
                     memid = BlockObjectNode.create(self.agent.memory, obj)
                     color_tags = []
                     for idm in obj:
-                        type_name = BLOCK_DATA["bid_to_name"][idm]
+                        type_name = maybe_get_type_name(idm)
                         color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
                     for color_tag in list(set(color_tags)):
                         self.agent.memory.add_triple(
@@ -579,7 +590,7 @@ class PerceptionWrapper:
                 color_tags = []
                 for obj in objs:
                     idm = obj[1]
-                    type_name = BLOCK_DATA["bid_to_name"][idm]
+                    type_name = maybe_get_type_name(idm)
                     color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
                 for color_tag in list(set(color_tags)):
                     self.agent.memory.add_triple(
