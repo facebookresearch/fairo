@@ -7,6 +7,7 @@ import numpy as np
 import random
 import heuristic_perception
 from typing import Tuple, Dict, Any, Optional, List
+from copy import deepcopy
 from word2number.w2n import word_to_num
 
 import sys
@@ -23,6 +24,7 @@ from base_agent.dialogue_objects import (
     get_repeat_num,
     filter_by_sublocation,
     interpret_dance_filter,
+    convert_location_to_selector,
 )
 
 from .schematic_helper import (
@@ -46,13 +48,13 @@ from .block_helpers import get_block_type
 from .condition_helper import MCConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from base_agent.base_util import ErrorWithResponse
+from base_agent.base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import PlayerNode
 from mc_memory_nodes import MobNode, ItemStackNode
 import dance
 import tasks
 from base_agent.task import ControlBlock, maybe_task_list_to_control_block
-from mc_util import to_block_pos, Hole, XYZ
+from mc_util import to_block_pos, XYZ
 
 
 class MCInterpreter(Interpreter):
@@ -158,7 +160,8 @@ class MCInterpreter(Interpreter):
             d: the complete action dictionary
         """
         # FIXME! use filters appropriately, don't search by hand
-        spawn_triples = d.get("reference_object", {}).get("filters", {}).get("triples", [])
+        filters_d = d.get("reference_object", {}).get("filters", {})
+        spawn_triples = filters_d.get("triples", [])
         if not spawn_triples:
             raise ErrorWithResponse("I don't understand what you want me to spawn.")
         names = [t.get("obj_text") for t in spawn_triples if t.get("pred_text", "") == "has_name"]
@@ -166,6 +169,10 @@ class MCInterpreter(Interpreter):
             raise ErrorWithResponse("I don't understand what you want me to spawn.")
         # if multiple possible has_name triples, just pick the first:
         object_name = names[0]
+        #############################################################
+        # FIXME! use FILTERS handle this properly...!
+        # repeats are hacky (and wrong) too because not using FILTERS
+        #############################################################
         schematic = self.memory.get_mob_schematic_by_name(object_name)
         if not schematic:
             raise ErrorWithResponse("I don't know how to spawn: %r." % (object_name))
@@ -175,7 +182,9 @@ class MCInterpreter(Interpreter):
         mems = self.subinterpret["reference_locations"](self, speaker, location_d)
         steps, reldir = interpret_relative_direction(self, location_d)
         pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
-        repeat_times = get_repeat_num(d)
+        # FIXME, not using selector properly (but need to use FILTERS first)
+        repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
+        repeat_times = int(number_from_span(repeat))
         tasks = []
         for i in range(repeat_times):
             task_data = {"object_idm": object_idm, "pos": pos, "action_dict": d}
@@ -194,12 +203,13 @@ class MCInterpreter(Interpreter):
         # Get the segment to build
         if "reference_object" in d:
             # handle copy
-            repeat = get_repeat_num(d)
+            ##########FIXME remove this when DSL updated!!!
+            md = deepcopy(d)
+            convert_location_to_selector(md["reference_object"])
             objs = self.subinterpret["reference_objects"](
                 self,
                 speaker,
-                d["reference_object"],
-                limit=repeat,
+                md["reference_object"],
                 extra_tags=["VOXEL_OBJECT"],
                 loose_speakerlook=True,
             )
@@ -212,13 +222,7 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            if d.get("repeat") is not None:
-                repeat_dict = d
-            else:
-                repeat_dict = None
-            interprets = interpret_schematic(
-                self, speaker, d.get("schematic", {}), repeat_dict=repeat_dict
-            )
+            interprets = interpret_schematic(self, speaker, d.get("schematic", {}))
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
@@ -279,14 +283,9 @@ class MCInterpreter(Interpreter):
         location, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
 
         # Get nearby holes
-        holes: List[Hole] = heuristic_perception.get_all_nearby_holes(self.agent, location)
-        candidates: List[Tuple[XYZ, Hole]] = [
-            (to_block_pos(np.mean(hole[0], axis=0)), hole) for hole in holes
-        ]
-
+        holes = heuristic_perception.get_all_nearby_holes(self.agent, location)
         # Choose the best ones to fill
-        repeat = get_repeat_num(d)
-        holes = filter_by_sublocation(self, speaker, candidates, r, limit=repeat, loose=True)
+        holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
         if holes is None:
             self.dialogue_stack.append_new(
                 Say, "I don't understand what holes you want me to fill."
@@ -294,10 +293,18 @@ class MCInterpreter(Interpreter):
             return None, None, None
         tasks = []
         for hole in holes:
-            _, hole_info = hole
-            poss, hole_idm = hole_info
+            poss = list(hole.blocks.keys())
+            try:
+                fill_memid = self.agent.memory.get_triples(
+                    subj=hole.memid, pred_text="has_fill_type"
+                )[0][2]
+                fill_block_mem = self.agent.memory.get_mem_by_id(fill_memid)
+                fill_idm = (fill_block_mem.b, fill_block_mem.m)
+            except:
+                # FIXME use a constant name
+                fill_idm = (3, 0)
             schematic, tags = interpret_fill_schematic(
-                self, speaker, d.get("schematic", {}), poss, hole_idm
+                self, speaker, d.get("schematic", {}), poss, fill_idm
             )
             origin = np.min([xyz for (xyz, bid) in schematic], axis=0)
             task_data = {

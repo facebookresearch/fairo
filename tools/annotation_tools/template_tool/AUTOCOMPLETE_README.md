@@ -9,8 +9,16 @@ Make sure that you have the latest datasets downloaded from S3.
 cd droidlet
 ./tools/data_scripts/try_download.sh
 ```
+Note that our scripts and modules are tested in Linux environments on FAIR devservers. There may be differences running on Mac OSX.
+For internal users, we recommend running our client and server on devfair and tunnelling ports 3000 and 9000 with Eternal Terminal, which persists the connections, eg.
+```
+et <your_devserver>:8080 -N -t 3000:3000 --jport 8080
+```
+Then you are able to access the Autocomplete tool in your browser at `localhost:3000/autocomplete`.
 
 ## Preprocessing
+First, create a file `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt` and write commands we want to annotate, one on each line.
+
 To prepopulate the tool with annotated data, run the preprocessing script from the `backend` folder:
 ```
 cd ~/droidlet/tools/annotation_tools/template_tool/backend/
@@ -21,7 +29,7 @@ Args:
 --commands_path: Path to file with one command per line, which we want to annotate. Defaults to commands.txt
 ```
 
-By default, the tool loads from `annotated.txt`, `locobot.txt`, `high_pri_commands.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
+By default, the tool loads from `annotated.txt`, `locobot.txt`, `high_pri_commands.txt` and `short_commands.txt` in `~/droidlet/craftassist/agent/datasets/full_data/` to create the initial data store in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json`. Commands provided for labelling are first checked against this set, to see if there is an existing parse tree.
 
 Commands we want to label are in `~/droidlet/tools/annotation_tools/template_tool/backend/commands.txt`. Write one command for each line.
 
@@ -50,28 +58,26 @@ The tool autocompletes children for tree nodes based on matches in the filters s
 
 Some examples of find and replace:
 Input:
-`"GET_MEMORY": \n"`
+`"get_memory":  \n"`
 Match:
 `{ "dialogue_type": "GET_MEMORY", "filters": "", "replace": "" }`
 
 Input:
-`{ "dialogue_type": "GET_MEMORY", "filters": \n, "replace": "" }`
+`{ "dialogue_type": "GET_MEMORY", "filters":  \n, "replace": "" }`
 
 Match:
 `{ "dialogue_type": "GET_MEMORY", "filters": { "triples": "", "output": "", "contains_coreference": "", "memory_type": "", "argval": "", "comparator": "", "author": "", "location": "" }, "replace": "" }`
 
-The tool also populates new triples, on `}, [space] [space] [Enter]`.
+The tool also populates triples with the first array item's keys pre-filled.
 
 `"triples": [ { "pred_text": "", "obj_text": "", "subj_text": "" }, \n`
-becomes
-`"triples": [ { "pred_text": "", "obj_text": "", "subj_text": "" }, { "pred_text": "", "obj_text": "", "subj_text": "" } ]`
 
 To pretty print a JSON valid dictionary, press Enter in the text box.
 
 ## Save and Upload
 On `Save`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/backend/`.
 
-On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/backend/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components, and written to `~/droidlet/tools/annotation_tools/template_tool/backend/autocomplete_annotations.txt`. This is in the format
+On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. The results are then written to `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. This is in the format
 
 ```
 [command]|[action_dict]\n
@@ -79,5 +85,5 @@ On `Upload to S3`, the new data pairs in `~/droidlet/tools/annotation_tools/temp
 ...
 ```
 
-Then, this file is uploaded to the S3 URI `s3://craftassist/pubr/high_pri_commands.txt`. It is now ready to be used in training, validation or ground truth actions!
+Then, you may upload this file to the S3 URI `s3://craftassist/pubr/`. It is now ready to be used in training, validation or ground truth actions!
 

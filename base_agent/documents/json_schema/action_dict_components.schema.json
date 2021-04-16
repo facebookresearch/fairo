@@ -4,18 +4,59 @@
   "title": "Subcomponents of action dictionaries",
   "type": "object",
   "definitions": {
+    "condition": {
+      "description": "currently subdict of remove condition. WIP.",
+      "type": "object",
+      "properties": {
+        "comparison_type": {
+          "enum": [
+            "EQUAL"
+          ]
+        },
+        "input_left": {
+          "$ref": "#/definitions/input_left"
+        },
+        "input_right": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "$ref": "#/definitions/span"
+            }
+          }
+        }
+      }
+    },
+    "input_left": {
+      "type": "object",
+      "properties": {
+        "value_extractor": {
+          "$ref": "#/definitions/value_extractor"
+        }
+      }
+    },
     "span": {
       "$ref": "span.schema.json#/definitions/span"
     },
-    "fixed_value": {
+    "special": {
       "type": "object",
       "properties": {
         "fixed_value": {
-          "type": "string"
+          "enum": ["THIS"]
         }
-      },
-      "required": [
-        "fixed_value"
+      }
+    },
+    "fixed_value": {
+      "type": "string"
+    },
+    "has_measure": {
+      "oneOf": [
+        {"$ref": "#/definitions/span"},
+        {
+          "type": "object",
+          "properties": {
+            "fixed_value": {"$ref": "#/definitions/fixed_value"}
+          }
+        }
       ]
     },
     "location": {
@@ -28,7 +69,7 @@
           "$ref": "#/definitions/span"
         },
         "has_measure": {
-          "$ref": "#/definitions/span"
+          "$ref": "#/definitions/has_measure"
         },
         "contains_coreference": {
           "enum": [
@@ -62,31 +103,50 @@
       "type": "object",
       "properties": {
         "special_reference": {
-          "oneOf": [
-            {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
-            },
-            {
-              "type": "object",
-              "properties": {
-                "coordinates_span": {
-                  "$ref": "#/definitions/span"
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
+          "$ref": "#/definitions/special_reference"
         },
         "text_span": {
           "$ref": "#/definitions/span"
-        },
-        "repeat": {
-          "$ref": "grammar_spec.schema.json#/definitions/repeat"
         },
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
         }
       }
+    },
+    "remove_condition": {
+      "type": "object",
+      "description": "Condition for removing an event",
+      "properties": {
+        "condition_type": {
+          "enum": [
+            "COMPARATOR"
+          ]
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
+        }
+      }
+    },
+    "special_reference": {
+      "oneOf": [
+        {
+          "properties": {
+            "fixed_value": {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "coordinates_span": {
+              "$ref": "#/definitions/span"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "stop_condition": {
       "type": "object",
@@ -109,9 +169,6 @@
         "filters": {
           "$ref": "filters.schema.json#/definitions/filters"
         },
-        "repeat": {
-          "$ref": "#/definitions/repeat"
-        },
         "text_span": {
           "$ref": "#/definitions/span"
         }
@@ -125,7 +182,6 @@
       "properties": {
         "repeat_key": {
           "enum": [
-            "FOR",
             "ALL"
           ]
         },
@@ -140,25 +196,7 @@
             "AROUND",
             "SURROUND"
           ]
-        },
-        "repeat_count": {
-          "$ref": "#/definitions/span"
         }
-      },
-      "if": {
-        "properties": {
-          "repeat_key": {
-            "const": "FOR"
-          }
-        },
-        "required": [
-          "repeat_key"
-        ]
-      },
-      "then": {
-        "required": [
-          "repeat_count"
-        ]
       }
     },
     "facing": {
@@ -182,7 +220,11 @@
               "$ref": "#/definitions/span"
             },
             {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
             }
           ]
         },
@@ -192,7 +234,11 @@
               "$ref": "#/definitions/span"
             },
             {
-              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
             }
           ]
         },

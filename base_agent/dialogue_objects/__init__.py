@@ -23,6 +23,8 @@ from dialogue_object_utils import (
     coref_resolve,
     tags_from_dict,
     strip_prefix,
+    ref_obj_lf_to_selector,
+    convert_location_to_selector,
 )
 
 from reference_object_helpers import (
@@ -55,6 +57,8 @@ __all__ = [
     SPEAKERLOOK,
     SPEAKERPOS,
     AGENTPOS,
+    ref_obj_lf_to_selector,
+    convert_location_to_selector,
     is_loc_speakerlook,
     coref_resolve,
     process_spans_and_remove_fixed_value,

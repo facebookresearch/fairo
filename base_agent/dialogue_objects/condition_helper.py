@@ -90,6 +90,8 @@ class ConditionInterpreter:
         return TimeCondition(interpreter.agent, comparator, event=event)
 
 
+# FIXME!!!!!
+# this function needs to be torched
 def get_repeat_num(d) -> Union[int, str]:
     if "repeat" in d:
         repeat_dict = d["repeat"]

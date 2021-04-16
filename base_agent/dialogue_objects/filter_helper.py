@@ -115,38 +115,82 @@ def interpret_ref_obj_filter(interpreter, speaker, filters_d):
     return F
 
 
-def maybe_apply_selector(interpreter, speaker, filters_d, F):
-    selector = None
-    location_d = filters_d.get("location")
-    if location_d:
-        # FIXME!!!! this is not fixed in grammar
-        # should not have selector for location
-        selector = build_linear_extent_selector(interpreter, speaker, location_d)
-    else:
-        selector_d = filters_d.get("selector", {})
-        return_d = selector_d.get("return_quantity", "ALL")
-        if type(return_d) is str:
-            if return_d == "ALL":
-                # no selector, just return everything
-                pass
-            else:
-                raise Exception("malformed selector dict {}".format(selector_d))
+def interpret_random_selector(interpreter, speaker, selector_d):
+    """
+    returns a RandomMemorySelector from the selector_d
+    """
+    return_d = selector_d.get("return_quantity", {})
+    random_num = return_d.get("random")
+    if not random_num:
+        raise Exception(
+            "tried to build random selector from logical form without random clause {}".format(
+                selector_d
+            )
+        )
+    try:
+        if type(random_num) is int:
+            n = random_num
         else:
-            argval_d = return_d.get("argval")
-            if argval_d:
-                polarity = "arg" + argval_d.get("polarity").lower()
-                attribute_d = argval_d.get("quantity").get("attribute")
-                get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
-                selector_attribute = get_attribute(interpreter, speaker, attribute_d)
-                # FIXME
-                ordinal = {"first": 1, "second": 2, "third": 3}.get(
-                    argval_d.get("ordinal", "first").lower(), 1
-                )
-                sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-                selector = ExtremeValueMemorySelector(
-                    interpreter.agent.memory, polarity=polarity, ordinal=ordinal
-                )
-                selector.append(sa)
+            n = word_to_num(random_num)
+    except:
+        raise Exception(
+            "malformed selector dict {}, tried to get random number {} ".format(
+                selector_d, random_num
+            )
+        )
+    s = selector_d.get("same", "ALLOWED")
+    return RandomMemorySelector(interpreter.agent.memory, same=s, n=n)
+
+
+def interpret_argval_selector(interpreter, speaker, selector_d):
+    return_d = selector_d.get("return_quantity", {})
+    argval_d = return_d.get("argval")
+    if not argval_d:
+        raise Exception(
+            "tried to build argval selector from logical form without argval clause {}".format(
+                selector_d
+            )
+        )
+    polarity = "arg" + argval_d.get("polarity").lower()
+    attribute_d = argval_d.get("quantity").get("attribute")
+    get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
+    selector_attribute = get_attribute(interpreter, speaker, attribute_d)
+    # FIXME
+    ordinal = {"first": 1, "second": 2, "third": 3}.get(
+        argval_d.get("ordinal", "first").lower(), 1
+    )
+    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
+    selector = ExtremeValueMemorySelector(
+        interpreter.agent.memory, polarity=polarity, ordinal=ordinal
+    )
+    selector.append(sa)
+    return selector
+
+
+def interpret_selector(interpreter, speaker, selector_d):
+    selector = None
+    return_d = selector_d.get("return_quantity", "ALL")
+    if type(return_d) is str:
+        if return_d == "ALL":
+            # no selector, just return everything
+            pass
+        else:
+            raise Exception("malformed selector dict {}".format(selector_d))
+    else:
+        argval_d = return_d.get("argval")
+        random_num = return_d.get("random")
+        if argval_d:
+            selector = interpret_argval_selector(interpreter, speaker, selector_d)
+        elif random_num:
+            selector = interpret_random_selector(interpreter, speaker, selector_d)
+        else:
+            raise Exception("malformed selector dict {}".format(selector_d))
+    return selector
+
+
+def maybe_apply_selector(interpreter, speaker, filters_d, F):
+    selector_d = filters_d.get("selector", {})
+    selector = interpret_selector(interpreter, speaker, selector_d)
     if selector is not None:
         selector.append(F)
         return selector

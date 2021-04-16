@@ -104,7 +104,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_path",
         type=str,
-        default="craftassist/agent/datasets/full_data/locobot.txt",
+        default="craftassist/agent/datasets/full_data/annotated.txt",
         help="path to dataset with examples we want to validate, where each row contains a command and parse tree separated by |.",
     )
     parser.add_argument(

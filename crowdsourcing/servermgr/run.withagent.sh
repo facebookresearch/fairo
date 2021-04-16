@@ -1,9 +1,7 @@
 #!/bin/bash -x
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-
-
-S3_DEST=s3://craftassist/turk_interactions_with_agent/$TIMESTAMP
+S3_DEST=s3://craftassist/turk_interactions_with_agent
 
 function background_agent() (
     python3 /droidlet/craftassist/wait_for_cuberite.py --host localhost --port 25565
@@ -24,6 +22,12 @@ python3 /droidlet/craftassist/cuberite_process.py \
 
 background_agent
 
+# if turk_id.txt is provided, write to a turk bucket
+if test -f "turk_id.txt"; then
+    turk_id="$(cat turk_id.txt)"
+    S3_DEST="$S3_DEST/turk/$turk_id"
+fi
+S3_DEST="$S3_DEST/$TIMESTAMP"
 
 TARBALL=logs.tar.gz
 
