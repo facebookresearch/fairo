@@ -79,6 +79,8 @@ if __name__ == "__main__":
     print("*** Applying grammar updates ***")
     parser = argparse.ArgumentParser()
     parser.add_argument("--source_path", default="command_dict_pairs.json")
+    parser.add_argument("--existing_annotations", default="high_pri_commands.txt")
+    parser.add_argument("--output_file", default="")
     args = parser.parse_args()
     # load the annotated dataset
     with open(args.source_path) as fd:
@@ -86,7 +88,12 @@ if __name__ == "__main__":
     autocomplete_annotations = {}
     updated_dataset = []
     current_time = datetime.now()
-    datasets_read_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/autocomplete_{}.txt".format(current_time.strftime('%Y-%m-%d-%H-%M-%S')))
+    existing_annotations_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/{}".format(args.existing_annotations))
+    if args.output_file == "":
+        filename = "autocomplete_{}.txt".format(current_time.strftime('%Y-%m-%d-%H-%M-%S'))
+    else:
+        filename = args.output_file
+    datasets_write_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/{}".format(filename))
 
     # Read the file, update  
     for command in dataset:
@@ -94,8 +101,8 @@ if __name__ == "__main__":
         updated_tree = traverse_tree(command, action_dict)
         autocomplete_annotations[command] = updated_tree
     # Load all the existing action dictionaries
-    if os.path.isfile(datasets_read_path):
-        with open(datasets_read_path) as fd:
+    if os.path.isfile(existing_annotations_path):
+        with open(existing_annotations_path) as fd:
             existing_annotations = fd.readlines()
             for row in existing_annotations:
                 command, action_dict = row.strip().split("|")
@@ -104,4 +111,6 @@ if __name__ == "__main__":
 
     for command in autocomplete_annotations:
         updated_dataset.append("{}|{}".format(command, json.dumps(autocomplete_annotations[command])))
-    write_file(updated_dataset, datasets_read_path)
+    
+    with open(datasets_write_path, "w") as fd:
+        write_file(updated_dataset, datasets_write_path)
