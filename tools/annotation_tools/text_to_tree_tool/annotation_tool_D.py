@@ -141,15 +141,19 @@ if __name__ == "__main__":
     initial_content = (
         "Please give more details about the comparison or ranking of the highlighted property"
     )
-    print("""
+    print(
+        """
     <HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
     <HTMLContent><![CDATA[
-    """)
+    """
+    )
     print(BEFORE)
-    print("""
+    print(
+        """
         <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
         <form name='mturk_form' method='post' id='mturk_form' action='https://workersandbox.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
-    """)
+    """
+    )
     # TODO: check if we even need action and child names here at all
     child = "reference_object"
     ref_obj_child = "comparison"
@@ -174,7 +178,8 @@ if __name__ == "__main__":
             render_output += """</div><br><br>"""
             print(render_output)
 
-    print("""
+    print(
+        """
      <p><input type='submit' id='submitButton' value='Submit' /></p></form>
         <script language='Javascript'>
         turkSetAssignmentID();
@@ -227,11 +232,14 @@ if __name__ == "__main__":
         }
         document.body.appendChild(styleNode);
         </script>
-    """)
+    """
+    )
     print(AFTER)
-    print("""
+    print(
+        """
       ]]>
   </HTMLContent>
   <FrameHeight>600</FrameHeight>
   </HTMLQuestion>
-    """)
+    """
+    )

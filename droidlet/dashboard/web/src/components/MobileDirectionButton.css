@@ -1,0 +1,59 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+.container {
+  height: 200px;
+  position: relative;
+}
+
+.directionButton {
+  background-color: white;
+  color: black;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  height: 50px;
+  width: 23%;
+  /* padding: 20px 20px; */
+  text-align: center;
+}
+
+.directionButton:active {
+  background-color: #3e8e41;
+}
+
+.up {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.down {
+  margin: 0;
+  position: absolute;
+  top: 85%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.left {
+  margin: 0;
+  position: absolute;
+  top: 67.5%;
+  left: 25%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.right {
+  margin: 0;
+  position: absolute;
+  top: 67.5%;
+  left: 75%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}

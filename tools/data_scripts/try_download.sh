@@ -5,11 +5,14 @@
 # assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
 
 function pyabspath() {
-    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+    python3 -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "Rootdir ${ROOTDIR}"
+
+# Optionally fetch secure resources for internal users and prod systems
+python3 ${ROOTDIR}/tools/data_scripts/fetch_internal_resources.py ${ROOTDIR}/droidlet/documents/internal/safety.txt
 
 . ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
@@ -21,7 +24,7 @@ else
     AGENT=$1
 fi
 
-AGENT_PATH="${ROOTDIR}/${AGENT}/agent/"
+AGENT_PATH="${ROOTDIR}/agents/${AGENT}/"
 echo "agent path ${AGENT_PATH}"
 
 # in case directories don't even exist, create them

@@ -14,13 +14,20 @@ collects results in batches and collates data.
 """
 
 # CSV input
-rc = subprocess.call(["python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file 1D_input.txt --tool_num 4 > turk_input.csv"], shell=True)
+rc = subprocess.call(
+    [
+        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file 1D_input.txt --tool_num 4 > turk_input.csv"
+    ],
+    shell=True,
+)
 if rc != 0:
     print("Error preprocessing. Exiting.")
     sys.exit()
 
 # Load input commands and create a separate HIT for each row
-rc = subprocess.call(["python3 create_jobs.py --xml_file fetch_question_D.xml --tool_num 4"], shell=True)
+rc = subprocess.call(
+    ["python3 create_jobs.py --xml_file fetch_question_D.xml --tool_num 4"], shell=True
+)
 if rc != 0:
     print("Error creating HIT jobs. Exiting.")
     sys.exit()
