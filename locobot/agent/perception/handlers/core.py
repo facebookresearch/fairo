@@ -6,6 +6,7 @@ import logging
 import numpy as np
 import sys
 import os
+import open3d as o3d
 
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
@@ -41,14 +42,26 @@ class WorldObject:
         self.label = label
         self.center = center
         self.rgb_depth = rgb_depth
-        self.mask = mask
+        self.mask = mask.numpy()
         self.xyz = xyz if xyz else rgb_depth.get_coords_for_point(self.center)
         self.eid = None
         self.feature_repr = None
+        self.bounds = rgb_depth.get_bounds_for_mask(self.mask) 
 
     def get_xyz(self):
         """returns xyz in canonical world coordinates."""
         return {"x": self.xyz[0], "y": self.xyz[1], "z": self.xyz[2]}
+    
+    def get_bounds(self):
+        """returns bounding box as dict."""
+        return {
+            "minx": self.bounds[0],
+            "miny": self.bounds[1],
+            "minz": self.bounds[2],
+            "maxx": self.bounds[3],
+            "maxy": self.bounds[4],
+            "maxz": self.bounds[5],
+        }
 
     def get_masked_img(self):
         raise NotImplementedError
@@ -82,6 +95,16 @@ class RGBDepth:
 
     def get_pillow_image(self):
         return Image.fromarray(self.rgb, "RGB")
+
+    def get_bounds_for_mask(self, mask):
+        """for all points in the mask, returns the bounds as an axis-aligned bounding box.
+        """
+        points = []
+        indices = zip(*np.where(mask == True))
+        for x, y in indices:
+            points.append(self.get_coords_for_point((x,y)))
+        obb = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
+        return np.concatenate([obb.get_min_bound(), obb.get_max_bound()])
 
     def get_coords_for_point(self, point):
         """fetches xyz from the point cloud in pyrobot coordinates and converts it to

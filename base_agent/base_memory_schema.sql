@@ -43,6 +43,12 @@ CREATE TABLE ReferenceObjects (
     x           FLOAT,
     y           FLOAT,
     z           FLOAT,
+    minx        FLOAT,
+    miny        FLOAT,
+    minz        FLOAT,
+    maxx        FLOAT,
+    maxy        FLOAT,
+    maxz        FLOAT,
     yaw         FLOAT,         -- look vec
     pitch       FLOAT,         -- look vec
     name        VARCHAR(255),  -- for people/player/agent names, etc.

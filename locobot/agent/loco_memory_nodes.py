@@ -34,13 +34,22 @@ class DetectedObjectNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, detected_obj) -> str:
         memid = cls.new(memory)
+        bounds = detected_obj.get_bounds()
         memory.db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO ReferenceObjects \
+            (uuid, eid, x, y, z, minx, miny, minz, maxx, maxy, maxz, ref_type) \
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             detected_obj.eid,
             detected_obj.get_xyz()["x"],
             detected_obj.get_xyz()["y"],
             detected_obj.get_xyz()["z"],
+            bounds["minx"],
+            bounds["miny"],
+            bounds["minz"],
+            bounds["maxx"],
+            bounds["maxy"],
+            bounds["maxz"],
             cls.NODE_TYPE,
         )
         memory.db_write(
@@ -73,7 +82,6 @@ class DetectedObjectNode(ReferenceObjectNode):
 
         memid = memids[0][0]
         memory.set_memory_attended_time(memid)
-
         memory.db_write(
             "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
             detected_obj.get_xyz()["x"],
@@ -140,6 +148,12 @@ class DetectedObjectNode(ReferenceObjectNode):
         )
         self.pos = (x, y, z)
         return self.pos
+
+    def get_bounds(self):
+        minx, miny, minz, maxx, maxy, maxz = self.agent_memory._db_read_one(
+            "SELECT minx, miny, minz, maxx, maxy, maxz FROM ReferenceObjects WHERE uuid=?", self.memid
+        )
+        return (minx, miny, minz, maxx, maxy, maxz)
 
     # TODO: use a smarter way to get point_at_target
     def get_point_at_target(self):
