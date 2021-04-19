@@ -44,7 +44,7 @@ BGPID=$!
 sleep 30
 deactivate
 source activate /root/miniconda3/envs/minecraft_env
-pip install -r locobot/requirements.txt
+pip install -r locobot/requirements.txt --force-reinstall
 python setup.py develop
 
 pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=$COV_RELATIVE locobot/test/test_mover.py --disable-pytest-warnings
