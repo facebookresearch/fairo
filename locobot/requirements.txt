@@ -6,8 +6,7 @@ dlib==19.19.0
 face_recognition
 norfair
 facenet-pytorch
--f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
-detectron2
+detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
 scipy==1.5.4
 scikit-fmm
 scikit-image
