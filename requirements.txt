@@ -23,8 +23,8 @@ sentry-sdk>=0.7.9
 six>=1.11.0
 snowballstemmer>=1.2.1
 spacy==2.0.12
-torch==1.7.0+cu110
-torchvision==0.8.0+cu110
+torch==1.7.0
+torchvision==0.8.0
 tqdm>=4.41.1
 word2number>=1.1
 transformers==3.3.1
