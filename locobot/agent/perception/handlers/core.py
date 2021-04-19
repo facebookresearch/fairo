@@ -103,6 +103,7 @@ class RGBDepth:
         indices = zip(*np.where(mask == True))
         for x, y in indices:
             points.append(self.get_coords_for_point((x,y)))
+        points = o3d.utility.Vector3dVector(points)
         obb = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
         return np.concatenate([obb.get_min_bound(), obb.get_max_bound()])
 
