@@ -2,12 +2,12 @@
 pyro4
 scikit-build
 webcolors==1.10
-dlib==19.19.0
-face_recognition
+face_recognition==1.3.0
 norfair
 facenet-pytorch
-detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
-scipy==1.5.4
+-f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
+detectron2
+scipy==1.6.2
 scikit-fmm
 scikit-image
 tenacity
