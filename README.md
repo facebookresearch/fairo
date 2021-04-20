@@ -62,7 +62,7 @@ cd droidlet
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 2. Install dependencies
+        <td> 3. Install dependencies
         <sub><pre lang="bash">
 conda create -n droidlet_env python=3.6
 conda activate droidlet_env
@@ -80,7 +80,7 @@ pip install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 3. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
+        <td> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
         </td>
         <td>
         3. <a href="https://github.com/facebookresearch/droidlet/blob/main/craftassist/README.md">Instructions for running the Craftassist agent</a>
@@ -90,15 +90,15 @@ pip install -r requirements.txt
         </td>
     </tr>
         <tr valign="top">
-        <td colspan=3> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
+        <td colspan=3> 5. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
         </td>      
     </tr>    
     <tr valign="top" align="center">
-        <td colspan=3> 5. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
+        <td colspan=3> 6. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
         </td>
     </tr>
     <tr valign="top" align="center">
-        <td colspan=3> 6. Agent-specific API Documentation</a>
+        <td colspan=3> 7. Agent-specific API Documentation</a>
         </td>
     </tr>
     <tr valign="top">        
