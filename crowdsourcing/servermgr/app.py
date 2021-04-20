@@ -5,7 +5,6 @@
 # LICENSE file in the root directory of this source tree.
 
 from gevent import monkey
-import CloudFlare
 
 monkey.patch_all()
 
@@ -173,14 +172,6 @@ def status():
         return json.dumps({"progress": 90, "ip": ip})
 
     logging.info("status: success")
-    # register subdomain to proxy instance IP
-    if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
-        logging.info("registering subdomain on craftassist.io")
-        cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
-        zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
-        cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
-        dns_records = cf.zones.dns_records.get(zone_id)
-        register_dashboard_subdomain(cf, zone_id, ip)
 
     return json.dumps({"progress": 100, "ip": ip})
 
