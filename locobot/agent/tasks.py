@@ -8,7 +8,7 @@ import logging
 from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode
 from base_agent.task import Task
-import locobot.agent.dance as dance
+from locobot.agent.objects import DanceMovement
 from locobot.agent.rotation import yaw_pitch
 
 import time
@@ -25,7 +25,7 @@ class Dance(Task):
     def __init__(self, agent, task_data, featurizer=None):
         super().__init__(agent)
         # movement should be a Movement object from dance.py
-        self.movement = dance.DanceMovement(self.agent, None)
+        self.movement = DanceMovement(self.agent, None)
         self.movement_type = task_data.get("movement_type", None)
         TaskNode(self.agent.memory, self.memid).update_task(task=self)
 
