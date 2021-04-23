@@ -205,7 +205,7 @@ class LocoMCAgent(BaseAgent):
         else:
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
-            if self.opts.debug_mode:
+            if self.opts.agent_debug_mode:
                 return
             else:
                 raise e

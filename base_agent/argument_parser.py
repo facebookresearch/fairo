@@ -35,7 +35,7 @@ class ArgumentParser:
             help="path to script that checks hash against latest models and tries download",
         )
         self.parser.add_argument(
-            "--debug_mode",
+            "--agent_debug_mode",
             action="store_true",
             default=False,
             help="Support a mode where the agent fails gracefully. Only use this for turk session, etc. ",
