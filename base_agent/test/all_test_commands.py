@@ -637,6 +637,21 @@ FILL_COMMANDS = {
     },
 }
 
+DIG_COMMANDS = {
+    "dig a hole": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "action_sequence": [
+            {
+                "schematic": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "hole"}]}
+                },
+                "action_type": "DIG",
+            }
+        ],
+    }
+}
+
+
 DANCE_COMMANDS = {
     "dance": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",

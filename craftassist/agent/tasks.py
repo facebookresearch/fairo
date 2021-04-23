@@ -924,8 +924,8 @@ class Dig(Task):
         ]
         #        TODO ADS unwind this
         #        schematic = fill_idmeta(agent, poss)
-        self.destroy_task = Destroy(self.agent, {"schematic": schematic, "dig_message": True})
-        self.add_child_task(self.destroy_task)
+        destroy_task = Destroy(self.agent, {"schematic": schematic, "dig_message": True})
+        self.add_child_task(destroy_task)
 
         self.finished = True
 

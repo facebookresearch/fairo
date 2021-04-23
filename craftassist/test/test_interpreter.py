@@ -162,6 +162,20 @@ class TwoCubesInterpreterTest(BaseCraftassistTestCase):
         self.assertEqual(len(changes), len(self.cube_right) + 1)
 
 
+class DigTest(BaseCraftassistTestCase):
+    def setUp(self):
+        super().setUp()
+        self.set_looking_at((0, 63, 0))
+
+    def test_dance(self):
+        d = DIG_COMMANDS["dig a hole"]
+        changes = self.handle_logical_form(d)
+        # check agent changed a block:
+        self.assertGreater(len(changes), 0)
+        # check that all changes replaced blocks with air:
+        assert not any([l[0] for l in list(changes.values())])
+
+
 # doesn't actually check if the bot dances, just if it crashes FIXME!
 # use recorder class from e2e_env
 class DanceTest(BaseCraftassistTestCase):
