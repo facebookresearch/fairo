@@ -18,7 +18,6 @@ from locobot.agent.locobot_mover_utils import (
     ARM_HEIGHT,
     get_camera_angles,
 )
-import math
 
 # FIXME store dances, etc.
 class Dance(Task):
