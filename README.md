@@ -68,6 +68,7 @@ conda create -n droidlet_env python=3.6
 conda activate droidlet_env
 pip install -r \
     locobot/requirements.txt
+python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
