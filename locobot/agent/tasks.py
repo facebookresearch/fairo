@@ -350,13 +350,13 @@ class Explore(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
-        objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
-        for obj in objects:
-            if obj['eid'] not in self.examined_eids:
-                logging.info("object ", objects[0])
-                self.add_child_task(Move(self.agent, {"target": obj['xyz']}), self.agent)
-                self.examined_eids.append(obj['eid'])
-                break
+        # objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
+        # for obj in objects:
+        #     if obj['eid'] not in self.examined_eids:
+        #         logging.info("object ", objects[0])
+        #         self.add_child_task(Move(self.agent, {"target": obj['xyz']}), self.agent)
+        #         self.examined_eids.append(obj['eid'])
+        #         break
 
         if not self.command_sent:
             self.command_sent = True
@@ -364,6 +364,7 @@ class Explore(Task):
         else:
             self.finished = self.agent.mover.bot_step()
 
+examined = set()
 
 class CuriousExplore(Task):
     """use slam to explore environemt, but also examine detections"""
@@ -379,11 +380,26 @@ class CuriousExplore(Task):
         self.interrupted = False
         self.finished = False
         # Get a list of current detections
-        objects = self.agent.memory.get_objects()
+        objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
+        pos = self.agent.mover.get_base_pos_in_canonical_coords()
         # pick randomly from unexamined, closest object
+        def pick_random_in_sight(objects, pos):
+            global examined
+            for x in objects:
+                if x['eid'] not in examined:
+                    examined.add(x['eid'])
+                    logging.info("Exploring {}, {} next".format(x['eid'], x['label']))
+                    return x
+            return None
+        
+        target = pick_random_in_sight(objects, pos)
 
         # execute a examine maneuver
-        self.add_child_task(ExamineDetection(agent, {"target": target}))
+        if target is not None:
+            self.add_child_task(ExamineDetection(self.agent, {"target": target['xyz']}))
+            return
+            # what I want here is for the child task to be executed immediately
+            # and then explore to be executed. loop of examine - explore
         # mark it as examined
 
         if not self.command_sent:
@@ -397,6 +413,7 @@ class ExamineDetection(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
+        self.frontier_center = list(task_data['target'])
         self.command_sent = False
         self.agent = agent
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -405,18 +422,18 @@ class ExamineDetection(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
-        # Get a list of current detections
-        objects = self.agent.memory.get_objects()
-        if len(objects) > 0:
-            logging.info("object ", objects[0])
-        # pick randomly from unexamined, closest object
+        # Calculate a path around self.frontier_c and move on it facing the detection
+        # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
 
-        # execute a examine maneuver
-        # self.add_child_task(ExamineDetection(agent, {"target": target}))
-        # mark it as examined
-
-        if not self.command_sent:
-            self.command_sent = True
-            self.agent.mover.explore()
-        else:
-            self.finished = self.agent.mover.bot_step()
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        dist = np.linalg.norm(base_pos[:2] - self.frontier_center[:2])
+        # move eps distance from current position towards target
+        if dist > 0.5:
+            target = get_move_target_for_point(base_pos, self.frontier_center, eps=dist-0.1)
+            logging.info(f"Move Target for point {target}")
+            self.add_child_task(Move(self.agent, {"target": target}))
+            
+        return
+        
+        # keep this recurring until the base_pos is at the end. 
+        # How does tasks really work to allow this to happen
