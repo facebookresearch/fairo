@@ -64,10 +64,13 @@ cd droidlet
     <tr valign="top">        
         <td> 3. Install dependencies
         <sub><pre lang="bash">
-conda create -n droidlet_env python=3.6
+conda create -n droidlet_env python=3.7 \
+   pytorch==1.7.1 torchvision==0.8.2 \
+   cudatoolkit=11.0 -c pytorch
 conda activate droidlet_env
 pip install -r \
     locobot/requirements.txt
+python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>

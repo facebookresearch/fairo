@@ -3,9 +3,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import os
-import locobot.agent.dance as dance
 import logging
 from typing import List
+from locobot.agent.dance import add_default_dances
 from locobot.agent.loco_memory_nodes import *
 from base_agent.memory_nodes import PlayerNode
 from base_agent.sql_memory import AgentMemory
@@ -30,7 +30,7 @@ class LocoAgentMemory(AgentMemory):
         self._safe_pickle_saved_attrs = {}
 
         self.dances = {}
-        dance.add_default_dances(self)
+        add_default_dances(self)
 
     def update(self, agent):
         pass
