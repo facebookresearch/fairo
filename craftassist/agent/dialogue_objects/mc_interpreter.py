@@ -380,7 +380,6 @@ class MCInterpreter(Interpreter):
                     attrs[dim] = interpret_size(self, schematic_d["has_size"])
                 else:
                     attrs[dim] = default
-            # minecraft world is [z, x, y]
             padding = (attrs["depth"] + 4, attrs["length"] + 4, attrs["width"] + 4)
             location_d = d.get("location", SPEAKERLOOK)
             repeat_num = get_repeat_num(d)
