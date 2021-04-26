@@ -6,6 +6,12 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE DetectedObjectFeatures(
     uuid            NCHAR(36)   NOT NULL,
     featureBlob     BLOB,
+    minx        FLOAT,
+    miny        FLOAT,
+    minz        FLOAT,
+    maxx        FLOAT,
+    maxy        FLOAT,
+    maxz        FLOAT,
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 

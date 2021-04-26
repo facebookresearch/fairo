@@ -37,25 +37,26 @@ class DetectedObjectNode(ReferenceObjectNode):
         bounds = detected_obj.get_bounds()
         memory.db_write(
             "INSERT INTO ReferenceObjects \
-            (uuid, eid, x, y, z, minx, miny, minz, maxx, maxy, maxz, ref_type) \
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (uuid, eid, x, y, z, ref_type) \
+            VALUES (?, ?, ?, ?, ?, ?)",
             memid,
             detected_obj.eid,
             detected_obj.get_xyz()["x"],
             detected_obj.get_xyz()["y"],
             detected_obj.get_xyz()["z"],
+            cls.NODE_TYPE,
+        )
+        memory.db_write(
+            "INSERT INTO DetectedObjectFeatures(uuid, featureBlob, minx, miny, minz, maxx, maxy, maxz) \
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            memid,
+            pickle.dumps(detected_obj.feature_repr),
             bounds["minx"],
             bounds["miny"],
             bounds["minz"],
             bounds["maxx"],
             bounds["maxy"],
             bounds["maxz"],
-            cls.NODE_TYPE,
-        )
-        memory.db_write(
-            "INSERT INTO DetectedObjectFeatures(uuid, featureBlob) VALUES (?, ?)",
-            memid,
-            pickle.dumps(detected_obj.feature_repr),
         )
 
         cls.safe_tag(detected_obj, memory, memid, "has_name", "label")
@@ -151,7 +152,7 @@ class DetectedObjectNode(ReferenceObjectNode):
 
     def get_bounds(self):
         minx, miny, minz, maxx, maxy, maxz = self.agent_memory._db_read_one(
-            "SELECT minx, miny, minz, maxx, maxy, maxz FROM ReferenceObjects WHERE uuid=?", self.memid
+            "SELECT minx, miny, minz, maxx, maxy, maxz FROM DetectedObjectFeatures WHERE uuid=?", self.memid
         )
         return (minx, miny, minz, maxx, maxy, maxz)
 

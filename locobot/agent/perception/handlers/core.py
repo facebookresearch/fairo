@@ -42,7 +42,7 @@ class WorldObject:
         self.label = label
         self.center = center
         self.rgb_depth = rgb_depth
-        self.mask = mask.numpy()
+        self.mask = mask
         self.xyz = xyz if xyz else rgb_depth.get_coords_for_point(self.center)
         self.eid = None
         self.feature_repr = None
