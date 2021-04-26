@@ -71,6 +71,19 @@ For dialogue type autocomplete, type the dialogue type in lower case, eg. `"get_
 }
 ```
 
+This also applies to action types, eg. eg. `{ "move":[space][space]<enter> }` -->
+```
+{
+    "move": {
+        "location": "",
+        "replace": "",
+        "action_type": "",
+        "stop_condition": "",
+        "remove_condition": ""
+    }
+}
+```
+
 For all other keys, type the key value and `[space][space]<enter>`, eg.
 ```
 {
