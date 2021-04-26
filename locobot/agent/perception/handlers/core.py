@@ -99,10 +99,8 @@ class RGBDepth:
     def get_bounds_for_mask(self, mask):
         """for all points in the mask, returns the bounds as an axis-aligned bounding box.
         """
-        points = []
         indices = zip(*np.where(mask == True))
-        for x, y in indices:
-            points.append(self.get_coords_for_point((x,y)))
+        points = [self.get_coords_for_point((x,y)) for x,y in indices]
         points = o3d.utility.Vector3dVector(points)
         obb = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
         return np.concatenate([obb.get_min_bound(), obb.get_max_bound()])
