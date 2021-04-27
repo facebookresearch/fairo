@@ -25,6 +25,7 @@ class TemplateAnnotator extends React.Component {
       this.componentDidMount = this.componentDidMount.bind(this);
       this.callAPI = this.callAPI.bind(this);
       this.updateLabels = this.updateLabels.bind(this);
+      this.selectCommand = this.selectCommand.bind(this);
     }
   
     componentDidMount() {
@@ -101,11 +102,6 @@ class TemplateAnnotator extends React.Component {
         this.setState({ dataset: items }, function () {
           try {
             let actionDict = JSONActionDict
-            // let JSONString = {
-            //   "command": this.state.textValue,
-            //   "name": this.state.templateName,
-            //   "logical_form": actionDict
-            // }
             console.log("writing dataset")
             console.log(JSONString)
             this.writeLabels(this.state.dataset)
@@ -127,21 +123,32 @@ class TemplateAnnotator extends React.Component {
       // First save to local storage
       this.updateLabels()
     }
+
+    selectCommand(event, value) {
+      // Update the current command selected and render the corresponding action dictionary
+      let selectedDict = this.state.dataset[value.command]
+      console.log(selectedDict)
+      this.setState({ command: value.command, value: JSON.stringify(selectedDict) })
+      console.log(value)
+      console.log("Hello")
+    }
   
   
     render() {
       return (
         <div style={{ padding: 10 }}>
-          <b> {this.props.title} </b>
           <Autocomplete
             id="combo-box-demo"
             options={[
-              { title: 'build a X' },
-              { title: 'where is X' }]}
-            getOptionLabel={(option) => option.title}
+              { command: 'build a X' },
+              { command: 'where is X' }]}
+            getOptionLabel={(option) => option.command}
+            getOptionSelected={(option, value) => option.command === value.command}
             style={{ width: 300 }}
             renderInput={(params) => <TextField {...params} label="Choose Command" variant="outlined" />}
+            onChange={this.selectCommand}
           />
+          <b> {this.props.title} </b>
           <ListComponent fullText={this.props.fullText} onChange={this.handleTextChange} />
           <div> Name of template </div>
           <ListComponent onChange={this.handleNameChange} />
