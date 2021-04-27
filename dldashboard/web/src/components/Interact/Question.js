@@ -47,7 +47,8 @@ class Question extends Component {
     };
 
     // socket.io to save data to database
-    this.props.stateManager.socket.emit("saveErrorDetailsToDb", data);
+    // this.props.stateManager.socket.emit("saveErrorDetailsToDb", data);
+    this.props.stateManager.socket.emit("saveErrorDetailsToTurk", data);
 
     // go back to message page after writing to database
     this.props.goToMessage();

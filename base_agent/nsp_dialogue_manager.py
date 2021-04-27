@@ -134,6 +134,10 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
+        @sio.on("saveErrorDetailsToTurk")
+        def test(sid, data):
+            logging.debug("testing: %r" % (data))
+
 
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
