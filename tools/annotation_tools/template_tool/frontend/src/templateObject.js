@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import LogicalForm from './logicalForm.js'
 import TextCommand from './textCommand.js'
 import ListComponent from './listComponent.js'
+import { Autocomplete } from '@material-ui/lab';
+import { TextField } from '@material-ui/core';
 
 // Renders an Annotation component consisting of a region for displaying text and area for logical form annotation
 class TemplateAnnotator extends React.Component {
@@ -131,6 +133,15 @@ class TemplateAnnotator extends React.Component {
       return (
         <div style={{ padding: 10 }}>
           <b> {this.props.title} </b>
+          <Autocomplete
+            id="combo-box-demo"
+            options={[
+              { title: 'build a X' },
+              { title: 'where is X' }]}
+            getOptionLabel={(option) => option.title}
+            style={{ width: 300 }}
+            renderInput={(params) => <TextField {...params} label="Choose Command" variant="outlined" />}
+          />
           <ListComponent fullText={this.props.fullText} onChange={this.handleTextChange} />
           <div> Name of template </div>
           <ListComponent onChange={this.handleNameChange} />
