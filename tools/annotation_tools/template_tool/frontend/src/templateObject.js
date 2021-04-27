@@ -18,6 +18,7 @@ class TemplateAnnotator extends React.Component {
       /* Array of text commands that need labelling */
       this.handleChange = this.handleChange.bind(this);
       this.handleTextChange = this.handleTextChange.bind(this);
+      this.handleNameChange = this.handleNameChange.bind(this);
       this.logSerialized = this.logSerialized.bind(this);
       this.componentDidMount = this.componentDidMount.bind(this);
       this.callAPI = this.callAPI.bind(this);
@@ -53,6 +54,10 @@ class TemplateAnnotator extends React.Component {
     handleTextChange(e) {
       this.setState({ textValue: e.target.value });
     }
+
+    handleNameChange(e) {
+      this.setState({ templateName: e.target.value });
+    }
   
     writeLabels(data) {
       const requestOptions = {
@@ -83,18 +88,24 @@ class TemplateAnnotator extends React.Component {
       try {
         // First check that the string is JSON valid
         let JSONActionDict = JSON.parse(this.state.value)
+        let JSONString = {
+          "command": this.state.textValue,
+          "name": this.state.templateName,
+          "logical_form": JSONActionDict
+        }
         let items = { ...this.state.dataset };
-        items[this.state.textValue] = JSONActionDict
+        items[this.state.templateName] = JSONString
         // Set state to the data items
         this.setState({ dataset: items }, function () {
           try {
             let actionDict = JSONActionDict
-            let JSONString = {
-              "command": this.state.textValue,
-              "logical_form": actionDict
-            }
+            // let JSONString = {
+            //   "command": this.state.textValue,
+            //   "name": this.state.templateName,
+            //   "logical_form": actionDict
+            // }
             console.log("writing dataset")
-            console.log(this.state.dataset)
+            console.log(JSONString)
             this.writeLabels(this.state.dataset)
           } catch (error) {
             console.error(error)
@@ -121,6 +132,8 @@ class TemplateAnnotator extends React.Component {
         <div style={{ padding: 10 }}>
           <b> {this.props.title} </b>
           <ListComponent fullText={this.props.fullText} onChange={this.handleTextChange} />
+          <div> Name of template </div>
+          <ListComponent onChange={this.handleNameChange} />
           <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
