@@ -4,10 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import sys
 import os
 import unittest
+import numpy as np
+from numpy.testing import assert_allclose
 from locobot.agent.loco_memory import LocoAgentMemory
 from locobot.agent.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
-from locobot.test.utils import get_fake_detection, get_fake_humanpose
-
+from locobot.test.utils import get_fake_detection, get_fake_humanpose, get_fake_bbox
+from locobot.agent.locobot_mover_utils import xyz_canonical_coords_to_pyrobot_coords
+from locobot.agent.perception import Detection, RGBDepth
 
 class MemoryTests(unittest.TestCase):
     def __init__(self, *args, **kwargs):
@@ -25,6 +28,53 @@ class MemoryTests(unittest.TestCase):
         for x in tags_to_check:
             t = self.memory.get_detected_objects_tagged(x)
             self.assertEqual(len(t), 1)
+    
+    def test_detected_object_3dbbox(self):
+        # Artificially create a mask of the first 10*10 pixels in a fixed size image
+        # x increases horizontally, y increases vertically, z is constant.
+
+        pts = [] # (x,y,z) in row-major form, in locobot coords
+        p = 100
+        zs = np.ones((p, p))
+        xs = np.sort(np.random.uniform(0, 10, p))
+        xs = np.tile(xs, (p, 1))
+
+        ys = np.sort(np.random.uniform(0, 10, p))
+        ys[::-1].sort()
+        ys = np.transpose(np.tile(ys, (p,1)))
+
+        for x,y,z in zip(xs.ravel(), ys.ravel(), zs.ravel()):
+            pts.append(xyz_canonical_coords_to_pyrobot_coords((x,y,z)))
+        
+        depth = np.ones((p, p))
+        rgb = np.float32(np.random.rand(p, p, 3) * 255)
+
+        rgb_d = RGBDepth(rgb, depth, pts)
+        
+        mask = np.zeros((p,p), dtype=bool)
+        for x in np.arange(10):
+            for y in np.arange(10):
+                mask[x][y] = 1
+
+        # expected bounds of the detection minx, miny, minz, maxx, maxy, maxz
+        exp_bounds = (xs[0][0], ys[9][0], 1.0, xs[0][9], ys[0][0], 1.0)
+
+        d = Detection(
+            rgb_d,
+            class_label="3dbbox_test",
+            properties="properties",
+            mask=mask,
+            bbox=get_fake_bbox(),
+            center=(5,5)
+        )
+        b = d.get_bounds()
+
+        DetectedObjectNode.create(self.memory, d)
+        o = DetectedObjectNode.get_all(self.memory)[0]['bounds']
+        
+        assert_allclose(b, o) # assert created bounds are same as retreieved.
+        assert_allclose(o, exp_bounds) # assert bounds retrieved are same as expected.
+
 
     def test_humanpose_node_creation(self):
         h = get_fake_humanpose()

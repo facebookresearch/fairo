@@ -51,12 +51,12 @@ class DetectedObjectNode(ReferenceObjectNode):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             pickle.dumps(detected_obj.feature_repr),
-            bounds["minx"],
-            bounds["miny"],
-            bounds["minz"],
-            bounds["maxx"],
-            bounds["maxy"],
-            bounds["maxz"],
+            bounds[0],
+            bounds[1],
+            bounds[2],
+            bounds[3],
+            bounds[4],
+            bounds[5],
         )
 
         cls.safe_tag(detected_obj, memory, memid, "has_name", "label")
@@ -128,11 +128,12 @@ class DetectedObjectNode(ReferenceObjectNode):
         color = get_value(node[0], "has_colour")
         properties = get_value(node[0], "has_properties")
 
-        # get feature blob
-        feature_blob = memory._db_read(
-            "SELECT featureBlob FROM DetectedObjectFeatures WHERE uuid=?", node[0]
-        )
-        feature_repr = pickle.loads(feature_blob[0][0])
+        # Get DetectedObjectFeatures
+        feature_blob, minx, miny, minz, maxx, maxy, maxz = memory._db_read(
+            "SELECT featureBlob, minx, miny, minz, maxx, maxy, maxz \
+                FROM DetectedObjectFeatures WHERE uuid=?", node[0]
+        )[0]
+        feature_repr = pickle.loads(feature_blob)
 
         return {
             "eid": node[1],
@@ -141,6 +142,7 @@ class DetectedObjectNode(ReferenceObjectNode):
             "color": color,
             "properties": properties,
             "feature_repr": feature_repr,
+            "bounds": (minx, miny, minz, maxx, maxy, maxz)
         }
 
     def get_pos(self) -> XYZ:

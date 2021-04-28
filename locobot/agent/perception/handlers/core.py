@@ -54,14 +54,8 @@ class WorldObject:
     
     def get_bounds(self):
         """returns bounding box as dict."""
-        return {
-            "minx": self.bounds[0],
-            "miny": self.bounds[1],
-            "minz": self.bounds[2],
-            "maxx": self.bounds[3],
-            "maxy": self.bounds[4],
-            "maxz": self.bounds[5],
-        }
+        return (self.bounds[0], self.bounds[1], self.bounds[2],
+            self.bounds[3], self.bounds[4], self.bounds[5])
 
     def get_masked_img(self):
         raise NotImplementedError
@@ -85,13 +79,11 @@ class RGBDepth:
     rgb: np.array
     depth: np.array
     ptcloud: list
-    gray: np.array
 
     def __init__(self, rgb, depth, pts):
         self.rgb = rgb
         self.depth = depth
         self.ptcloud = pts
-        self.gray = cv2.cvtColor(rgb, cv2.COLOR_BGR2GRAY)
 
     def get_pillow_image(self):
         return Image.fromarray(self.rgb, "RGB")
