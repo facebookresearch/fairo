@@ -34,7 +34,6 @@ class MemoryTests(unittest.TestCase):
         # x increases horizontally, y increases vertically, z is constant.
         # Check that the returned axis aligned bbox alignes with the values in this 10*10 patch.
 
-        pts = [] # (x,y,z) in row-major form, in locobot coords
         p = 100
         zs = np.ones((p, p))
         xs = np.sort(np.random.uniform(0, 10, p))
@@ -44,8 +43,9 @@ class MemoryTests(unittest.TestCase):
         ys[::-1].sort()
         ys = np.transpose(np.tile(ys, (p,1)))
 
-        for x,y,z in zip(xs.ravel(), ys.ravel(), zs.ravel()):
-            pts.append(xyz_canonical_coords_to_pyrobot_coords((x,y,z)))
+        # (x,y,z) in row-major form, in locobot coords
+        pts = [xyz_canonical_coords_to_pyrobot_coords((x,y,z))
+            for x,y,z in zip(xs.ravel(), ys.ravel(), zs.ravel())]
         
         depth = np.ones((p, p))
         rgb = np.float32(np.random.rand(p, p, 3) * 255)
