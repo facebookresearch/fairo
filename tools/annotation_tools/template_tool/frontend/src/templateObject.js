@@ -12,7 +12,9 @@ class TemplateAnnotator extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
+        command: '',
         value: '',
+        name: '',
         currIndex: -1,
         dataset: {},
         fragment: ""
@@ -55,11 +57,11 @@ class TemplateAnnotator extends React.Component {
     }
 
     handleTextChange(e) {
-      this.setState({ textValue: e.target.value });
+      this.setState({ command: e.target.value });
     }
 
     handleNameChange(e) {
-      this.setState({ templateName: e.target.value });
+      this.setState({ name: e.target.value });
     }
   
     writeLabels(data) {
@@ -92,12 +94,13 @@ class TemplateAnnotator extends React.Component {
         // First check that the string is JSON valid
         let JSONActionDict = JSON.parse(this.state.value)
         let JSONString = {
-          "command": this.state.textValue,
-          "name": this.state.templateName,
+          "command": this.state.command,
+          "name": this.state.name,
           "logical_form": JSONActionDict
         }
+        console.log(JSONString)
         let items = { ...this.state.dataset };
-        items[this.state.templateName] = JSONString
+        items[this.state.name] = JSONString
         // Set state to the data items
         this.setState({ dataset: items }, function () {
           try {
@@ -126,14 +129,28 @@ class TemplateAnnotator extends React.Component {
 
     selectCommand(event, value) {
       // Update the current command selected and render the corresponding action dictionary
-      if (value.command in this.state.dataset) {
-        let selectedDict = this.state.dataset[value.command]
+      if (value in this.state.dataset) {
+        let selectedDict = this.state.dataset[value]
+        let logical_form;
+        let command;
+        if ("logical_form" in selectedDict) {
+          logical_form = selectedDict.logical_form
+          command = selectedDict.command
+        } else {
+          logical_form = selectedDict
+          command = ""
+        }
         console.log(selectedDict)
-        this.setState({ command: value.command, value: JSON.stringify("logical_form" in selectedDict ? selectedDict.logical_form : {}) })
+        console.log("helloo")
+        this.setState({ 
+          command: command, 
+          value: JSON.stringify(logical_form),
+          name:  value
+        })
         console.log(value)
         console.log("Hello")
       } else {
-        this.setState({ command: value.command, value: JSON.stringify({}) })
+        this.setState({ name: value, value: JSON.stringify({}) })
       }
     }
   
@@ -144,19 +161,19 @@ class TemplateAnnotator extends React.Component {
           <Autocomplete
             id="combo-box-demo"
             options={[
-              { command: 'build a X' },
-              { command: 'where is X' },
-              { command: 'where_X' }]}
-            getOptionLabel={(option) => option.command}
-            getOptionSelected={(option, value) => option.command === value.command}
+              'find the chessboard',
+              'where_X', 'come',
+              'where_is_X']}
+            getOptionLabel={(option) => option}
+            getOptionSelected={(option, value) => option === value}
             style={{ width: 300 }}
             renderInput={(params) => <TextField {...params} label="Choose Command" variant="outlined" />}
             onChange={this.selectCommand}
           />
           <b> {this.props.title} </b>
-          <ListComponent fullText={this.props.fullText} onChange={this.handleTextChange} />
+          <ListComponent value={this.state.command} fullText={this.props.fullText} onChange={this.handleTextChange} />
           <div> Name of template </div>
-          <ListComponent onChange={this.handleNameChange} />
+          <ListComponent value={this.state.name} onChange={this.handleNameChange} />
           <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
