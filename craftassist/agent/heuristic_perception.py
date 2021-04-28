@@ -7,6 +7,7 @@ import math
 import numpy as np
 from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
+from copy import deepcopy
 
 import logging
 import minecraft_specs
@@ -384,7 +385,9 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
                                 blocktypes.append(idm)
                                 type_name = BLOCK_DATA["bid_to_name"][idm]
                                 tags = [type_name]
-                                colours = COLOUR_DATA["name_to_colors"].get(type_name, [])
+                                colours = deepcopy(
+                                    COLOUR_DATA["name_to_colors"].get(type_name, [])
+                                )
                                 colours.extend([c for c in COLOUR_LIST if c in type_name])
                                 if colours:
                                     tags.extend(colours)
