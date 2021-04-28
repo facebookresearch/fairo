@@ -154,7 +154,6 @@ class ParseTreeAnnotator extends React.Component {
   goToIndex(i) {
     console.log("Fetching index " + i)
     this.setState({ currIndex: Number(i), value: JSON.stringify(this.state.dataset[this.props.fullText[i]] ?? {}) });
-    console.log(this.state.dataset)
   }
 
   updateLabels(e) {
