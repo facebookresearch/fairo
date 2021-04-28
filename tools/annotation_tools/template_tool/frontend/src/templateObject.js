@@ -126,11 +126,15 @@ class TemplateAnnotator extends React.Component {
 
     selectCommand(event, value) {
       // Update the current command selected and render the corresponding action dictionary
-      let selectedDict = this.state.dataset[value.command]
-      console.log(selectedDict)
-      this.setState({ command: value.command, value: JSON.stringify(selectedDict) })
-      console.log(value)
-      console.log("Hello")
+      if (value.command in this.state.dataset) {
+        let selectedDict = this.state.dataset[value.command]
+        console.log(selectedDict)
+        this.setState({ command: value.command, value: JSON.stringify("logical_form" in selectedDict ? selectedDict.logical_form : {}) })
+        console.log(value)
+        console.log("Hello")
+      } else {
+        this.setState({ command: value.command, value: JSON.stringify({}) })
+      }
     }
   
   
@@ -141,7 +145,8 @@ class TemplateAnnotator extends React.Component {
             id="combo-box-demo"
             options={[
               { command: 'build a X' },
-              { command: 'where is X' }]}
+              { command: 'where is X' },
+              { command: 'where_X' }]}
             getOptionLabel={(option) => option.command}
             getOptionSelected={(option, value) => option.command === value.command}
             style={{ width: 300 }}
