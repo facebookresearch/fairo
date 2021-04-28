@@ -32,6 +32,7 @@ class MemoryTests(unittest.TestCase):
     def test_detected_object_3dbbox(self):
         # Artificially create a mask of the first 10*10 pixels in a fixed size image
         # x increases horizontally, y increases vertically, z is constant.
+        # Check that the returned axis aligned bbox alignes with the values in this 10*10 patch.
 
         pts = [] # (x,y,z) in row-major form, in locobot coords
         p = 100
@@ -70,10 +71,10 @@ class MemoryTests(unittest.TestCase):
         b = d.get_bounds()
 
         DetectedObjectNode.create(self.memory, d)
-        o = DetectedObjectNode.get_all(self.memory)[0]['bounds']
-        
-        assert_allclose(b, o) # assert created bounds are same as retreieved.
-        assert_allclose(o, exp_bounds) # assert bounds retrieved are same as expected.
+        o = DetectedObjectNode.get_all(self.memory)
+        self.assertEqual(len(o), 1) # assert only one detection retrieved
+        assert_allclose(b, o[0]['bounds']) # assert created bounds are same as retreieved.
+        assert_allclose(o[0]['bounds'], exp_bounds) # assert bounds retrieved are same as expected.
 
 
     def test_humanpose_node_creation(self):
