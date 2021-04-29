@@ -13,10 +13,9 @@ class LogicalForm extends React.Component {
     keyPress(e) {
       // Hit enter
       if (e.keyCode == 13) {
+        let text = ""
         try {
           let autocompletedResult = e.target.value
-          console.log("step 1")
-          console.log(autocompletedResult)
           // Apply replacements
           let definitions = Object.keys(this.props.schema)
           definitions.forEach(node => {
@@ -69,11 +68,18 @@ class LogicalForm extends React.Component {
               let actionDictObj = this.props.dataset[commands[i]]
               let actionDict;
               // Template objects
+              if (!autocompletedResult.includes(commands[i])) {
+                console.log(commands[i])
+                continue
+              }
               if (Object.keys(actionDictObj).includes("logical_form")) {
                 actionDict = actionDictObj["logical_form"]
-              }
-              // If the substitution is a list of subtrees, pick a random one
-              if (Array.isArray(actionDictObj)) {
+                text = actionDictObj["command"]
+                console.log(actionDict)
+                console.log("Found template object")
+                // Update the command field with the text substitution
+              } else if (Array.isArray(actionDictObj)) {
+                  // If the substitution is a list of subtrees, pick a random one
                   actionDict = actionDictObj[Math.floor(Math.random() * actionDictObj.length)]
               } else {
                   actionDict = actionDictObj
@@ -87,13 +93,12 @@ class LogicalForm extends React.Component {
           var pretty = JSON.stringify(obj, undefined, 4);
           // console.log(pretty)
           e.target.value = pretty
+          console.log(e.target.value)
         }
         catch(err) {
           console.log(err)
-          console.log("THIS IS WRONG")
-          console.log(e.target.value)
-          // console.log(autocompletedResult)
         }
+        // const a = this.props.updateCommand(text)
       }
     }
   

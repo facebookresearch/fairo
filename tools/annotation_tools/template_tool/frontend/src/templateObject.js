@@ -28,6 +28,7 @@ class TemplateAnnotator extends React.Component {
       this.callAPI = this.callAPI.bind(this);
       this.updateLabels = this.updateLabels.bind(this);
       this.selectCommand = this.selectCommand.bind(this);
+      this.updateCommandWithSubstitution = this.updateCommandWithSubstitution.bind(this);
     }
   
     componentDidMount() {
@@ -140,18 +141,22 @@ class TemplateAnnotator extends React.Component {
           logical_form = selectedDict
           command = ""
         }
-        console.log(selectedDict)
-        console.log("helloo")
         this.setState({ 
           command: command, 
           value: JSON.stringify(logical_form),
           name:  value
         })
-        console.log(value)
-        console.log("Hello")
       } else {
         this.setState({ name: value, value: JSON.stringify({}) })
       }
+    }
+
+    updateCommandWithSubstitution(text) {
+      // Update state for command
+      console.log(text)
+      text = this.state.command.replace('X', text)
+      console.log(text)
+      this.setState({ command: text })
     }
   
   
@@ -174,7 +179,7 @@ class TemplateAnnotator extends React.Component {
           <ListComponent value={this.state.command} fullText={this.props.fullText} onChange={this.handleTextChange} />
           <div> Name of template </div>
           <ListComponent value={this.state.name} onChange={this.handleNameChange} />
-          <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
+          <LogicalForm title="Action Dictionary" onChange={this.handleChange} updateCommand={(x) => this.updateCommandWithSubstitution(x)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
           </div>

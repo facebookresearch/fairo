@@ -223,7 +223,7 @@ class ParseTreeAnnotator extends React.Component {
       <div style={{ padding: 10 }}>
         <b> {this.props.title} </b>
         <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
+        <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} schema={this.props.schema} dataset={this.state.dataset} />
         <div style={{ padding: 10 }} onClick={this.logSerialized}>
           <button>Save Annotations</button>
         </div>
