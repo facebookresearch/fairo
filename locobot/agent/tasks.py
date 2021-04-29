@@ -371,7 +371,7 @@ class CuriousExplore(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.command_sent = False
+        self.steps = ["not_started"] * 2
         self.agent = agent
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
@@ -383,28 +383,34 @@ class CuriousExplore(Task):
         objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
         pos = self.agent.mover.get_base_pos_in_canonical_coords()
         # pick randomly from unexamined, closest object
-        def pick_random_in_sight(objects, pos):
+        def pick_random_in_sight(objects, base_pos):
             global examined
             for x in objects:
                 if x['eid'] not in examined:
-                    examined.add(x['eid'])
-                    logging.info("Exploring {}, {} next".format(x['eid'], x['label']))
-                    return x
+                    # check for line of sight and if within a certain distance
+                    yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], x['xyz'])
+                    dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
+                    if abs(yaw_rad) <= math.pi/4 and dist <= 5:
+                        logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
+                        return x
             return None
         
-        target = pick_random_in_sight(objects, pos)
-
         # execute a examine maneuver
-        if target is not None:
-            self.add_child_task(ExamineDetection(self.agent, {"target": target['xyz']}))
+        if self.steps[0] == "not_started":
+            target = pick_random_in_sight(objects, pos)
+            if target is not None:
+                self.add_child_task(ExamineDetection(self.agent, {"target": target['xyz']}))
+                self.last_step_explore = False
+                examined.add(target['eid'])
+            self.steps[0] = "finished"
             return
             # what I want here is for the child task to be executed immediately
             # and then explore to be executed. loop of examine - explore
         # mark it as examined
 
-        if not self.command_sent:
-            self.command_sent = True
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
             self.agent.mover.explore()
+            self.steps[1] = "finished"
         else:
             self.finished = self.agent.mover.bot_step()
 
@@ -425,15 +431,20 @@ class ExamineDetection(Task):
         # Calculate a path around self.frontier_c and move on it facing the detection
         # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
 
-        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        dist = np.linalg.norm(base_pos[:2] - self.frontier_center[:2])
-        # move eps distance from current position towards target
-        if dist > 0.5:
-            target = get_move_target_for_point(base_pos, self.frontier_center, eps=dist-0.1)
-            logging.info(f"Move Target for point {target}")
-            self.add_child_task(Move(self.agent, {"target": target}))
-            
-        return
+        if not self.command_sent:
+            self.command_sent = True
+            base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+            dist = np.linalg.norm(base_pos[:2]-[self.frontier_center[0], self.frontier_center[:2]])
+            # move eps distance from current position towards target
+            if dist > 0.5:
+                target = get_move_target_for_point(base_pos, self.frontier_center, eps=dist-0.1)
+                logging.info(f"Move Target for point {target}")
+                logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
+                self.add_child_task(Move(self.agent, {"target": target}))
+                return
+        else:
+            self.finished = self.agent.mover.bot_step()
+        
         
         # keep this recurring until the base_pos is at the end. 
         # How does tasks really work to allow this to happen

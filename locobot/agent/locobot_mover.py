@@ -180,7 +180,7 @@ class LoCoBotMover:
             while not self.bot.command_finished():
                 print(self.bot.get_base_state("odom"))
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
+    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
