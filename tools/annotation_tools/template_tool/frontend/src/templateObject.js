@@ -21,6 +21,7 @@ class TemplateAnnotator extends React.Component {
       }
       /* Array of text commands that need labelling */
       this.handleChange = this.handleChange.bind(this);
+      this.updateTextValue = this.updateTextValue.bind(this);
       this.handleTextChange = this.handleTextChange.bind(this);
       this.handleNameChange = this.handleNameChange.bind(this);
       this.logSerialized = this.logSerialized.bind(this);
@@ -88,6 +89,10 @@ class TemplateAnnotator extends React.Component {
     handleChange(e) {
       this.setState({ value: e.target.value });
     }
+
+    updateTextValue(text) {
+      this.setState({ value: text });
+    }
   
     updateLabels(e) {
       // Make a shallow copy of the items
@@ -154,6 +159,7 @@ class TemplateAnnotator extends React.Component {
     updateCommandWithSubstitution(text) {
       // Update state for command
       console.log(text)
+      console.log(this.state.command)
       text = this.state.command.replace('X', text)
       console.log(text)
       this.setState({ command: text })
@@ -179,7 +185,7 @@ class TemplateAnnotator extends React.Component {
           <ListComponent value={this.state.command} fullText={this.props.fullText} onChange={this.handleTextChange} />
           <div> Name of template </div>
           <ListComponent value={this.state.name} onChange={this.handleNameChange} />
-          <LogicalForm title="Action Dictionary" onChange={this.handleChange} updateCommand={(x) => this.updateCommandWithSubstitution(x)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
+          <LogicalForm title="Action Dictionary" updateTextValue={this.updateTextValue} onChange={this.handleChange} updateCommand={(x) => this.updateCommandWithSubstitution(x)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
           </div>

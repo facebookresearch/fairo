@@ -13,6 +13,7 @@ class LogicalForm extends React.Component {
     keyPress(e) {
       // Hit enter
       if (e.keyCode == 13) {
+        e.preventDefault()
         let text = ""
         try {
           let autocompletedResult = e.target.value
@@ -77,6 +78,7 @@ class LogicalForm extends React.Component {
                 text = actionDictObj["command"]
                 console.log(actionDict)
                 console.log("Found template object")
+                this.props.updateCommand(text)
                 // Update the command field with the text substitution
               } else if (Array.isArray(actionDictObj)) {
                   // If the substitution is a list of subtrees, pick a random one
@@ -92,13 +94,13 @@ class LogicalForm extends React.Component {
           var obj = JSON.parse(autocompletedResult);
           var pretty = JSON.stringify(obj, undefined, 4);
           // console.log(pretty)
+          this.props.updateTextValue(pretty)
           e.target.value = pretty
           console.log(e.target.value)
         }
         catch(err) {
           console.log(err)
         }
-        // const a = this.props.updateCommand(text)
       }
     }
   
@@ -106,7 +108,7 @@ class LogicalForm extends React.Component {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: 10, marginTop: 10 }} >
           <b> {this.props.title}</b>
-          <textarea rows="20" cols="100" value={this.props.value} onKeyDown={this.keyPress} onChange={(e) => this.props.onChange(e)} fullWidth={false} />
+          <textarea rows="20" cols="100" value={this.props.value} onKeyDown={this.keyPress} onChange={(text) => this.props.onChange(text)} fullWidth={false} />
         </div>
       )
     }
