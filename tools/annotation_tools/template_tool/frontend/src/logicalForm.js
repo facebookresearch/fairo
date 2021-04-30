@@ -70,7 +70,6 @@ class LogicalForm extends React.Component {
               let actionDict;
               // Template objects
               if (!autocompletedResult.includes(commands[i])) {
-                console.log(commands[i])
                 continue
               }
               if (Object.keys(actionDictObj).includes("logical_form")) {
@@ -93,7 +92,6 @@ class LogicalForm extends React.Component {
           console.log(autocompletedResult)
           var obj = JSON.parse(autocompletedResult);
           var pretty = JSON.stringify(obj, undefined, 4);
-          // console.log(pretty)
           this.props.updateTextValue(pretty)
           e.target.value = pretty
           console.log(e.target.value)

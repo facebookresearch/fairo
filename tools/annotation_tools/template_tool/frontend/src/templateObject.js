@@ -17,6 +17,7 @@ class TemplateAnnotator extends React.Component {
         name: '',
         currIndex: -1,
         dataset: {},
+        allCommands: [],
         fragment: ""
       }
       /* Array of text commands that need labelling */
@@ -37,6 +38,10 @@ class TemplateAnnotator extends React.Component {
         .then(res => res.json())
         .then((data) => { this.setState({ dataset: data }) })
         .then(() => console.log(this.state.dataset))
+
+      fetch("http://localhost:9000/readAndSaveToFile/get_commands")
+        .then(res => res.text())
+        .then((text) => { this.setState({ allCommands: text.split("\n").filter(r => r !== "") }) })
     }
   
     callAPI(data) {
@@ -77,7 +82,7 @@ class TemplateAnnotator extends React.Component {
           (result) => {
             console.log("success")
             console.log(result)
-            this.setState({ value: "" })
+            this.setState({ value: "", command: "", name: "" })
             alert("saved!")
           },
           (error) => {
@@ -93,6 +98,17 @@ class TemplateAnnotator extends React.Component {
     updateTextValue(text) {
       this.setState({ value: text });
     }
+
+    updateAllCommands(text) {
+      // Add a new command to the set of all commands
+      console.log(text)
+      let items = [...this.state.allCommands];
+      items.push(text);
+      this.setState({ allCommands: items }, function () {
+        console.log("Updated list of commands")
+      })
+    }
+  
   
     updateLabels(e) {
       // Make a shallow copy of the items
@@ -113,7 +129,10 @@ class TemplateAnnotator extends React.Component {
             let actionDict = JSONActionDict
             console.log("writing dataset")
             console.log(JSONString)
+            // save to disk
             this.writeLabels(this.state.dataset)
+            // update the current commands
+            this.updateAllCommands(this.state.command)
           } catch (error) {
             console.error(error)
             console.log("Error parsing JSON")
@@ -129,8 +148,9 @@ class TemplateAnnotator extends React.Component {
   
     logSerialized() {
       console.log("saving serialized tree")
-      // First save to local storage
+      // Save to local storage and disk
       this.updateLabels()
+      // 
     }
 
     selectCommand(event, value) {
@@ -171,10 +191,7 @@ class TemplateAnnotator extends React.Component {
         <div style={{ padding: 10 }}>
           <Autocomplete
             id="combo-box-demo"
-            options={[
-              'find the chessboard',
-              'where_X', 'come',
-              'where_is_X']}
+            options={this.state.allCommands}
             getOptionLabel={(option) => option}
             getOptionSelected={(option, value) => option === value}
             style={{ width: 300 }}
@@ -182,7 +199,7 @@ class TemplateAnnotator extends React.Component {
             onChange={this.selectCommand}
           />
           <b> {this.props.title} </b>
-          <ListComponent value={this.state.command} fullText={this.props.fullText} onChange={this.handleTextChange} />
+          <ListComponent value={this.state.command} fullText={this.state.allCommands} onChange={this.handleTextChange} />
           <div> Name of template </div>
           <ListComponent value={this.state.name} onChange={this.handleNameChange} />
           <LogicalForm title="Action Dictionary" updateTextValue={this.updateTextValue} onChange={this.handleChange} updateCommand={(x) => this.updateCommandWithSubstitution(x)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
