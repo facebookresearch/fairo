@@ -43,7 +43,7 @@ python locobot/robot/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
 deactivate
-source activate /root/miniconda3/envs/minecraft_env
+source activate /root/miniconda3/envs/droidlet_env
 pip install -r locobot/requirements.txt
 python setup.py develop
 
@@ -57,10 +57,10 @@ python locobot/robot/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
 deactivate
-source activate /root/miniconda3/envs/minecraft_env
+source activate /root/miniconda3/envs/droidlet_env
 
-# pytest --cov-report=xml:$SHARED_PATH/test_locobot_agent.xml --cov=$COV_RELATIVE locobot/test/test_locobot_agent.py --disable-pytest-warnings
-# pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_locobot_agent.xml --cov=$COV_RELATIVE locobot/test/test_locobot_agent.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
 
 kill -9 $BGPID
 pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE locobot/test/test_memory.py --disable-pytest-warnings
