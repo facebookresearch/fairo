@@ -59,7 +59,6 @@ sleep 30
 deactivate
 source activate /root/miniconda3/envs/droidlet_env
 
-pytest --cov-report=xml:$SHARED_PATH/test_locobot_agent.xml --cov=$COV_RELATIVE locobot/test/test_locobot_agent.py --disable-pytest-warnings
 pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
 
 kill -9 $BGPID
