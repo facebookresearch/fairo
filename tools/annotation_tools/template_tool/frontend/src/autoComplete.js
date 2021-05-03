@@ -75,7 +75,6 @@ class ParseTreeAnnotator extends React.Component {
     this.incrementIndex = this.incrementIndex.bind(this);
     this.decrementIndex = this.decrementIndex.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
-    this.callAPI = this.callAPI.bind(this);
     this.goToIndex = this.goToIndex.bind(this);
     this.updateLabels = this.updateLabels.bind(this);
     this.updateCommand = this.updateCommand.bind(this);
@@ -86,25 +85,6 @@ class ParseTreeAnnotator extends React.Component {
       .then(res => res.json())
       .then((data) => { this.setState({ dataset: data }) })
       .then(() => console.log(this.state.dataset))
-  }
-
-  callAPI(data) {
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    };
-    fetch("http://localhost:9000/readAndSaveToFile/append", requestOptions)
-      .then(
-        (result) => {
-          console.log(result)
-          this.setState({ value: "" })
-          alert("saved!")
-        },
-        (error) => {
-          console.log(error)
-        }
-      )
   }
 
   writeLabels(data) {

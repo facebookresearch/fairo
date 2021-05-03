@@ -79,9 +79,9 @@ router.get("/get_labels_progress", function (req, res, next) {
  * Fetch previously labelled templates
  */
  router.get("/get_templates", function (req, res, next) {
-  if (fs.existsSync("templates.json")) {
+  if (fs.existsSync("templates_autocomplete.json")) {
     // the file exists
-    fs.readFile("templates.json", function (err, data) {
+    fs.readFile("templates_autocomplete.json", function (err, data) {
       if (err) throw err;
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(data);
@@ -94,17 +94,6 @@ router.post("/", function (req, res, next) {
   console.log(req.body);
 
   fs.writeFile("templates.txt", JSON.stringify(req.body), function (err) {
-    // err is an error other than fileNotExists
-    // if file does not exist, writeFile will create it
-    if (err) throw err;
-    console.log("Saved template information to file!");
-  });
-  res.send("post is working properly");
-});
-
-router.post("/append", function (req, res, next) {
-  console.log(req.body);
-  fs.appendFile("command_dict_pairs.txt", "hi" + JSON.stringify(req.body) + "\n", function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;
@@ -132,7 +121,7 @@ router.post("/writeLabels", function (req, res, next) {
  */
  router.post("/writeTemplates", function (req, res, next) {
   console.log(req.body);
-  fs.writeFile("templates.json", JSON.stringify(req.body, undefined, 4), function (err) {
+  fs.writeFile("templates_autocomplete.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;

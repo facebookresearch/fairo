@@ -135,10 +135,8 @@ class LogicalForm extends React.Component {
           this.parseTemplates(actionDict);
           console.log("final")
           console.log(actionDict)
-          // Apply replacements        
+          // Apply JSON formatting       
           // console.log(JSON.stringify(autocompletedResult))
-          // console.log(autocompletedResult)
-          // var obj = JSON.parse(autocompletedResult);
           var pretty = JSON.stringify(actionDict, undefined, 4);
           this.props.updateTextValue(pretty)
           e.target.value = pretty
