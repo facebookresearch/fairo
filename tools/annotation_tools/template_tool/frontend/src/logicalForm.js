@@ -21,10 +21,10 @@ class LogicalForm extends React.Component {
           this.parseTemplates(actionDict[keys[i]][0])
         } else if (typeof(actionDict[keys[i]]) == "object") {
           this.parseTemplates(actionDict[keys[i]])
-        } else if (keys[i].match(/<.+>/g)) {
+        } else if (keys[i].match(/<.+>/g) && actionDict[keys[i]].match(/<.+>/g)) {
           // The key that we are substituting
           var matchKey = /<(.+)>/g.exec(keys[i])[1]
-          let substituteText = actionDict[keys[i]]
+          let substituteText = /<(.+)>/g.exec(actionDict[keys[i]])[1]
           // TODO: don't iterate over full dataset, only fragments
           let commands = Object.keys(this.props.dataset)
           for (var j = 0; j < commands.length; j++) {
