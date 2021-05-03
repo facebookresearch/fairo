@@ -22,6 +22,8 @@ class LogicalForm extends React.Component {
         } else if (typeof(actionDict[keys[i]]) == "object") {
           this.parseTemplates(actionDict[keys[i]])
         } else if (keys[i].match(/<.+>/g)) {
+          // The key that we are substituting
+          var matchKey = /<(.+)>/g.exec(keys[i])[1]
           let substituteText = actionDict[keys[i]]
           // TODO: don't iterate over full dataset, only fragments
           let commands = Object.keys(this.props.dataset)
@@ -35,12 +37,15 @@ class LogicalForm extends React.Component {
             if (Object.keys(actionDictObj).includes("logical_form")) {
               logicalForm = actionDictObj["logical_form"]
               let text = actionDictObj["command"]
-              // Update the action dictionary with the inserted logical form
-              actionDict[keys[i]] = logicalForm
-              console.log(actionDict)
-              console.log("helloooo")
-              // Update the command field with the text substitution
-              this.props.updateCommand("<location>", text)
+              // Check that the logical form contains the key we are inserting into
+              // NOTE: assuming a top level key matches up here
+              if (Object.keys(logicalForm).includes(matchKey)) {
+                console.log(`Found substitution for key ${matchKey}`)
+                // Update the action dictionary with the inserted logical form
+                actionDict[keys[i]] = logicalForm[matchKey]
+                // Update the command field with the text substitution
+                this.props.updateCommand(keys[i], text)
+              }
             }
           }
         }
