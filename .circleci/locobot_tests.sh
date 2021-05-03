@@ -59,8 +59,7 @@ sleep 30
 deactivate
 source activate /root/miniconda3/envs/droidlet_env
 
-# FIXME - why does this fail on CI? Uncomment and fix.
-# pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE locobot/test/test_handlers.py --disable-pytest-warnings
 
 kill -9 $BGPID
 pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE locobot/test/test_memory.py --disable-pytest-warnings
