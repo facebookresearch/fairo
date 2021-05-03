@@ -12,12 +12,12 @@ class TemplateAnnotator extends React.Component {
     constructor(props) {
       super(props);
       this.state = {
-        command: '',
-        value: '',
-        name: '',
+        command: "",
+        value: "",
+        name: "",
         currIndex: -1,
         dataset: {},
-        allCommands: [],
+        templates: {},
         fragment: ""
       }
       /* Array of text commands that need labelling */
@@ -27,7 +27,6 @@ class TemplateAnnotator extends React.Component {
       this.handleNameChange = this.handleNameChange.bind(this);
       this.logSerialized = this.logSerialized.bind(this);
       this.componentDidMount = this.componentDidMount.bind(this);
-      this.callAPI = this.callAPI.bind(this);
       this.updateLabels = this.updateLabels.bind(this);
       this.selectCommand = this.selectCommand.bind(this);
       this.updateCommandWithSubstitution = this.updateCommandWithSubstitution.bind(this);
@@ -38,29 +37,13 @@ class TemplateAnnotator extends React.Component {
         .then(res => res.json())
         .then((data) => { this.setState({ dataset: data }) })
         .then(() => console.log(this.state.dataset))
+        .then(() => this.setState({ allCommands: Object.keys(this.state.dataset) }))
+        .then(() => console.log(this.state.allCommands))
 
-      fetch("http://localhost:9000/readAndSaveToFile/get_commands")
-        .then(res => res.text())
-        .then((text) => { this.setState({ allCommands: text.split("\n").filter(r => r !== "") }) })
-    }
-  
-    callAPI(data) {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      };
-      fetch("http://localhost:9000/readAndSaveToFile/append", requestOptions)
-        .then(
-          (result) => {
-            console.log(result)
-            this.setState({ value: "" })
-            alert("saved!")
-          },
-          (error) => {
-            console.log(error)
-          }
-        )
+      fetch("http://localhost:9000/readAndSaveToFile/get_templates")
+        .then(res => res.json())
+        .then((data) => { this.setState({ templates: data }) })
+        .then(() => console.log(this.state.templates))
     }
 
     handleTextChange(e) {
@@ -71,24 +54,37 @@ class TemplateAnnotator extends React.Component {
       this.setState({ name: e.target.value });
     }
   
-    writeLabels(data) {
+    writeLabels(data, is_template=false) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       };
-      fetch("http://localhost:9000/readAndSaveToFile/writeLabels", requestOptions)
-        .then(
-          (result) => {
-            console.log("success")
-            console.log(result)
-            this.setState({ value: "", command: "", name: "" })
-            alert("saved!")
-          },
-          (error) => {
-            console.log(error)
-          }
-        )
+      if (is_template) {
+        fetch("http://localhost:9000/readAndSaveToFile/writeTemplates", requestOptions)
+          .then(
+            (result) => {
+              console.log("success")
+              console.log(result)
+            },
+            (error) => {
+              console.log(error)
+            }
+          )
+      } else {
+        fetch("http://localhost:9000/readAndSaveToFile/writeLabels", requestOptions)
+          .then(
+            (result) => {
+              console.log("success")
+              console.log(result)
+              this.setState({ value: "", command: "", name: "" })
+              alert("saved!")
+            },
+            (error) => {
+              console.log(error)
+            }
+          )
+     }
     }
   
     handleChange(e) {
@@ -139,6 +135,27 @@ class TemplateAnnotator extends React.Component {
             alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
           }
         });
+
+        // Write templates
+        // TODO: switch to name
+        if (this.state.command !== "") {
+          let templates = { ...this.state.templates };
+          templates[this.state.name] = JSONString
+                  // Set state to the data items
+          this.setState({ templates: templates }, function () {
+            try {
+              let actionDict = JSONActionDict
+              console.log("writing dataset")
+              console.log(JSONString)
+              // save to disk
+              this.writeLabels(this.state.templates, true)
+            } catch (error) {
+              console.error(error)
+              console.log("Error parsing JSON")
+              alert("Error: Could not save logical form. Check that JSON is formatted correctly.")
+            }
+          });
+        }
       } catch (error) {
         console.error(error)
         console.log("Error parsing JSON")

@@ -75,6 +75,21 @@ router.get("/get_labels_progress", function (req, res, next) {
   }
 });
 
+/***
+ * Fetch previously labelled templates
+ */
+ router.get("/get_templates", function (req, res, next) {
+  if (fs.existsSync("templates.json")) {
+    // the file exists
+    fs.readFile("templates.json", function (err, data) {
+      if (err) throw err;
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write(data);
+      return res.end();
+    });
+  }
+});
+
 router.post("/", function (req, res, next) {
   console.log(req.body);
 
@@ -104,6 +119,20 @@ router.post("/append", function (req, res, next) {
 router.post("/writeLabels", function (req, res, next) {
   console.log(req.body);
   fs.writeFile("../frontend/src/command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
+    // err is an error other than fileNotExists
+    // if file does not exist, writeFile will create it
+    if (err) throw err;
+    console.log("Saved template information to file!");
+  });
+  res.send("post is working properly");
+});
+
+/**
+ * Write Templates
+ */
+ router.post("/writeTemplates", function (req, res, next) {
+  console.log(req.body);
+  fs.writeFile("templates.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;
