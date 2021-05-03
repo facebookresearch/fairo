@@ -193,13 +193,13 @@ class TemplateAnnotator extends React.Component {
       }
     }
 
-    updateCommandWithSubstitution(text) {
+    updateCommandWithSubstitution(replaceText, substituteText) {
       // Update state for command
-      console.log(text)
+      console.log(substituteText)
       console.log(this.state.command)
-      text = this.state.command.replace('X', text)
-      console.log(text)
-      this.setState({ command: text })
+      let newCommand = this.state.command.replace(replaceText, substituteText)
+      console.log(newCommand)
+      this.setState({ command: newCommand })
     }
   
   
@@ -219,7 +219,7 @@ class TemplateAnnotator extends React.Component {
           <ListComponent value={this.state.command} fullText={this.state.allCommands} onChange={this.handleTextChange} />
           <div> Name of template </div>
           <ListComponent value={this.state.name} onChange={this.handleNameChange} />
-          <LogicalForm title="Action Dictionary" updateTextValue={this.updateTextValue} onChange={this.handleChange} updateCommand={(x) => this.updateCommandWithSubstitution(x)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
+          <LogicalForm title="Action Dictionary" updateTextValue={this.updateTextValue} onChange={this.handleChange} updateCommand={(x, y) => this.updateCommandWithSubstitution(x, y)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
           </div>

@@ -5,11 +5,48 @@ class LogicalForm extends React.Component {
     constructor(props) {
       super(props)
       this.keyPress = this.keyPress.bind(this)
+      this.parseTemplates = this.parseTemplates.bind(this)
       this.state = {
         fragment: ""
       }
     }
-  
+
+    parseTemplates(actionDict) {
+      console.log(actionDict)
+      var keys = Object.keys(actionDict)
+      console.log(keys)
+      for (var i = 0; i < keys.length; i++) {
+        if (Array.isArray(actionDict[keys[i]])) {
+          // Currently grabbing the first, to change to check all
+          this.parseTemplates(actionDict[keys[i]][0])
+        } else if (typeof(actionDict[keys[i]]) == "object") {
+          this.parseTemplates(actionDict[keys[i]])
+        } else if (keys[i].match(/<.+>/g)) {
+          let substituteText = actionDict[keys[i]]
+          // TODO: don't iterate over full dataset, only fragments
+          let commands = Object.keys(this.props.dataset)
+          for (var j = 0; j < commands.length; j++) {
+            if (substituteText !== commands[j]) {
+              continue;
+            }
+            let actionDictObj = this.props.dataset[commands[j]]
+            let logicalForm;
+            // Template objects
+            if (Object.keys(actionDictObj).includes("logical_form")) {
+              logicalForm = actionDictObj["logical_form"]
+              let text = actionDictObj["command"]
+              // Update the action dictionary with the inserted logical form
+              actionDict[keys[i]] = logicalForm
+              console.log(actionDict)
+              console.log("helloooo")
+              // Update the command field with the text substitution
+              this.props.updateCommand("<location>", text)
+            }
+          }
+        }
+      }
+    }
+
     keyPress(e) {
       // Hit enter
       if (e.keyCode == 13) {
@@ -64,34 +101,40 @@ class LogicalForm extends React.Component {
           }
           )
           // Insert fragments and lists
-          let commands = Object.keys(this.props.dataset)
-          for (var i = 0; i < commands.length; i++) {
-              let actionDictObj = this.props.dataset[commands[i]]
-              let actionDict;
-              // Template objects
-              if (!autocompletedResult.includes(commands[i])) {
-                continue
-              }
-              if (Object.keys(actionDictObj).includes("logical_form")) {
-                actionDict = actionDictObj["logical_form"]
-                text = actionDictObj["command"]
-                console.log(actionDict)
-                console.log("Found template object")
-                this.props.updateCommand(text)
-                // Update the command field with the text substitution
-              } else if (Array.isArray(actionDictObj)) {
-                  // If the substitution is a list of subtrees, pick a random one
-                  actionDict = actionDictObj[Math.floor(Math.random() * actionDictObj.length)]
-              } else {
-                  actionDict = actionDictObj
-              }
-              autocompletedResult = autocompletedResult.replace('<' + commands[i] + '>', JSON.stringify(actionDict))
-          }
+          // let commands = Object.keys(this.props.dataset)
+          // for (var i = 0; i < commands.length; i++) {
+          //     let actionDictObj = this.props.dataset[commands[i]]
+          //     let actionDict;
+          //     // Template objects
+          //     if (!autocompletedResult.includes(commands[i])) {
+          //       continue
+          //     }
+          //     if (Object.keys(actionDictObj).includes("logical_form")) {
+          //       actionDict = actionDictObj["logical_form"]
+          //       text = actionDictObj["command"]
+          //       console.log(actionDict)
+          //       console.log("Found template object")
+          //       this.props.updateCommand("<location>", text)
+          //       // Update the command field with the text substitution
+          //     } else if (Array.isArray(actionDictObj)) {
+          //         // If the substitution is a list of subtrees, pick a random one
+          //         actionDict = actionDictObj[Math.floor(Math.random() * actionDictObj.length)]
+          //     } else {
+          //         actionDict = actionDictObj
+          //     }
+          //     autocompletedResult = autocompletedResult.replace('<' + commands[i] + '>', JSON.stringify(actionDict))
+          // }
+          // Recursive updates
+          // Find the template objects
+          var actionDict = JSON.parse(autocompletedResult);
+          this.parseTemplates(actionDict);
+          console.log("final")
+          console.log(actionDict)
           // Apply replacements        
           // console.log(JSON.stringify(autocompletedResult))
-          console.log(autocompletedResult)
-          var obj = JSON.parse(autocompletedResult);
-          var pretty = JSON.stringify(obj, undefined, 4);
+          // console.log(autocompletedResult)
+          // var obj = JSON.parse(autocompletedResult);
+          var pretty = JSON.stringify(actionDict, undefined, 4);
           this.props.updateTextValue(pretty)
           e.target.value = pretty
           console.log(e.target.value)
