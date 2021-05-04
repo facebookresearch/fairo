@@ -105,7 +105,7 @@ class RGBDepth:
         """
         if point is None:
             return None
-        xyz_p = self.ptcloud[point[0], point[1]]
+        xyz_p = self.ptcloud[point[1], point[0]]
         return xyz_pyrobot_to_canonical_coords(xyz_p)
 
     def to_struct(self, size=None, quality=10):
