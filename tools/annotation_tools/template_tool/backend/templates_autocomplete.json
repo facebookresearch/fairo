@@ -1,0 +1,90 @@
+{
+    "build_next_to": {
+        "command": "build a <filters> next to the <reference_object>",
+        "name": "build_next_to",
+        "logical_form": {
+            "dialogue_type": "HUMAN_GIVE_COMMAND",
+            "action_sequence": [
+                {
+                    "build": {
+                        "location": {
+                            "text_span": "",
+                            "steps": "",
+                            "has_measure": "",
+                            "contains_coreference": "",
+                            "relative_direction": "NEAR",
+                            "<reference_object>": "<>",
+                            "reference_object_1": "",
+                            "reference_object_2": ""
+                        },
+                        "replace": "",
+                        "action_type": "",
+                        "schematic": {
+                            "<filters>": "<>",
+                            "text_span": ""
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "big_house": {
+        "command": "big house",
+        "name": "big_house",
+        "logical_form": {
+            "filters": {
+                "output": "",
+                "contains_coreference": "",
+                "memory_type": "",
+                "comparator": "",
+                "triples": [
+                    {
+                        "pred_text": "has_size",
+                        "subj_text": "",
+                        "obj_text": "big",
+                        "subj": "",
+                        "obj": ""
+                    },
+                    {
+                        "pred_text": "has_name",
+                        "subj_text": "",
+                        "obj_text": "house",
+                        "subj": "",
+                        "obj": ""
+                    }
+                ],
+                "author": "",
+                "repeat": "",
+                "selector": ""
+            }
+        }
+    },
+    "lake": {
+        "command": "lake",
+        "name": "lake",
+        "logical_form": {
+            "reference_object": {
+                "special_reference": "",
+                "text_span": "lake",
+                "filters": {
+                    "output": "",
+                    "contains_coreference": "",
+                    "memory_type": "",
+                    "comparator": "",
+                    "triples": [
+                        {
+                            "pred_text": "has_name",
+                            "subj_text": "",
+                            "obj_text": "lake",
+                            "subj": "",
+                            "obj": ""
+                        }
+                    ],
+                    "author": "",
+                    "repeat": "",
+                    "selector": ""
+                }
+            }
+        }
+    }
+}
