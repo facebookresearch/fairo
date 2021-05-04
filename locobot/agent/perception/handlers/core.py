@@ -73,17 +73,17 @@ class RGBDepth:
     Args:
         rgb (np.array): RGB image fetched from the robot
         depth (np.array): depth map fetched from the robot
-        pts (list[(x,y,z)]): list of x,y,z coordinates of the pointcloud corresponding 
+        pts (np.array [(x,y,z)]): array of x,y,z coordinates of the pointcloud corresponding 
         to the rgb and depth maps.
     """
     rgb: np.array
     depth: np.array
-    ptcloud: list
+    ptcloud: np.array
 
     def __init__(self, rgb, depth, pts):
         self.rgb = rgb
         self.depth = depth
-        self.ptcloud = pts
+        self.ptcloud = pts.reshape(rgb.shape)
 
     def get_pillow_image(self):
         return Image.fromarray(self.rgb, "RGB")
@@ -91,8 +91,10 @@ class RGBDepth:
     def get_bounds_for_mask(self, mask):
         """for all points in the mask, returns the bounds as an axis-aligned bounding box.
         """
-        indices = zip(*np.where(mask == True))
-        points = [self.get_coords_for_point((x,y)) for x,y in indices]
+        if mask is None:
+            return None
+        points = self.ptcloud[np.where(mask == True)]
+        points = xyz_pyrobot_to_canonical_coords(points)
         points = o3d.utility.Vector3dVector(points)
         obb = o3d.geometry.AxisAlignedBoundingBox.create_from_points(points)
         return np.concatenate([obb.get_min_bound(), obb.get_max_bound()])
@@ -101,7 +103,9 @@ class RGBDepth:
         """fetches xyz from the point cloud in pyrobot coordinates and converts it to
         canonical world coordinates.
         """
-        xyz_p = self.ptcloud[point[1] * self.rgb.shape[0] + point[0]]
+        if point is None:
+            return None
+        xyz_p = self.ptcloud[point[0], point[1]]
         return xyz_pyrobot_to_canonical_coords(xyz_p)
 
     def to_struct(self, size=None, quality=10):
