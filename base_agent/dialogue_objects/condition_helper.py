@@ -3,10 +3,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import Optional, Union
 from word2number.w2n import word_to_num
-from base_util import ErrorWithResponse
-from condition import Condition, NeverCondition, AndCondition, OrCondition, TimeCondition
-from memory_values import MemoryColumnValue, FixedValue
-from comparator_helper import interpret_comparator
+from base_agent.base_util import ErrorWithResponse
+from base_agent.condition import Condition, NeverCondition, AndCondition, OrCondition, TimeCondition
+from base_agent.memory_values import MemoryColumnValue, FixedValue
+from .comparator_helper import interpret_comparator
 
 
 class ConditionInterpreter:

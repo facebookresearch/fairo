@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from copy import deepcopy
-from memory_attributes import (
+from base_agent.memory_attributes import (
     LinearExtentAttribute,
     TableColumn,
     ListAttribute,
@@ -10,10 +10,10 @@ from memory_attributes import (
     AttributeSequence,
     BBoxSize,
 )
-from memory_values import LinearExtentValue, FixedValue, convert_comparison_value
-from base_util import ErrorWithResponse, number_from_span
+from base_agent.memory_values import LinearExtentValue, FixedValue, convert_comparison_value
+from base_agent.base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import ReferenceObjectNode
-from dialogue_object_utils import tags_from_dict, ref_obj_lf_to_selector, SPEAKERLOOK, AGENTPOS
+from .dialogue_object_utils import tags_from_dict, ref_obj_lf_to_selector, SPEAKERLOOK, AGENTPOS
 
 
 """

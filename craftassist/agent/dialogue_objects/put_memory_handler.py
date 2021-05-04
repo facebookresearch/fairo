@@ -13,7 +13,7 @@ from base_agent.dialogue_objects import (
     interpret_reference_object,
 )
 from .spatial_reasoning import ComputeLocations
-from mc_memory_nodes import VoxelObjectNode, RewardNode
+from ..mc_memory_nodes import VoxelObjectNode, RewardNode
 from base_agent.base_util import ErrorWithResponse
 
 

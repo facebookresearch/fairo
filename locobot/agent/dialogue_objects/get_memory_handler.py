@@ -17,7 +17,7 @@ from .point_target import PointTargetInterpreter
 from base_agent.base_util import ErrorWithResponse
 from base_agent.memory_nodes import MemoryNode, ReferenceObjectNode
 from base_agent.string_lists import ACTION_ING_MAPPING
-from ttad.generation_dialogues.generate_utils import prepend_a_an
+from base_agent.ttad.generation_dialogues.generate_utils import prepend_a_an
 from copy import deepcopy
 from locobot.agent.tasks import Point
 

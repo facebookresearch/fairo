@@ -14,11 +14,6 @@ from pyglet.gl import *
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
 
-import os
-import sys
-
-sys.path.append(os.path.dirname(__file__))
-
 TICKS_PER_SEC = 60
 PLAYER_HEIGHT = 2
 FLYING_SPEED = 20

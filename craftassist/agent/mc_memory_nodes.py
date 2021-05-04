@@ -9,13 +9,10 @@ import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
 
-# FIXME fix util imports
-from mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-import minecraft_specs
-from entities import MOBS_BY_ID
+from .mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
+from . import minecraft_specs
+from .entities import MOBS_BY_ID
 
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
 

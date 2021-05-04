@@ -14,8 +14,8 @@ import pickle
 import os
 import torch
 
-GEOSCORER_DIR = os.path.dirname(os.path.realpath(__file__))
-MC_DIR = os.path.join(GEOSCORER_DIR, "../../../")
+CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
+MC_DIR = os.path.join(CURRENT_DIR, "../../../")
 
 A = Axes3D  # to make flake happy :(
 
@@ -168,61 +168,6 @@ class SchematicPlotter:
 
         return fig, ax
 
-    def drawGeoscorerPlotly(self, schematic):
-        x = []
-        y = []
-        z = []
-        id = []
-        if type(schematic) is torch.Tensor:
-            sizes = list(schematic.size())
-            for i in range(sizes[0]):
-                for j in range(sizes[1]):
-                    for k in range(sizes[2]):
-                        if schematic[i, j, k] > 0:
-                            x.append(i)
-                            y.append(j)
-                            z.append(k)
-                            id.append(schematic[i, j, k].item())
-        elif type(schematic) is np.ndarray:
-            for i in range(schematic.shape[0]):
-                for j in range(schematic.shape[1]):
-                    for k in range(schematic.shape[2]):
-                        if schematic[i, j, k, 0] > 0:
-                            c = self.bid_to_color.get(tuple(schematic[i, j, k, :]))
-                            if c:
-                                x.append(i)
-                                y.append(j)
-                                z.append(k)
-                                id.append(i + j + k)
-        else:
-            for b in schematic:
-                if b[1][0] > 0:
-                    c = self.bid_to_color.get(b[1])
-                    if c:
-                        x.append(b[0][0])
-                        y.append(b[0][2])
-                        z.append(b[0][1])
-                        id.append(i + j + k)
-        trace1 = go.Scatter3d(
-            x=np.asarray(x).transpose(),
-            y=np.asarray(y).transpose(),
-            z=np.asarray(z).transpose(),
-            mode="markers",
-            marker=dict(
-                size=5,
-                symbol="square",
-                color=id,
-                colorscale="Viridis",
-                line=dict(color="rgba(217, 217, 217, 1.0)", width=0),
-                opacity=1.0,
-            ),
-        )
-        data = [trace1]
-        layout = go.Layout(margin=dict(l=0, r=0, b=0, t=0))
-        fig = go.Figure(data=data, layout=layout)
-        self.viz.plotlyplot(fig)
-        return fig
-
     def drawPlotly(self, schematic, title="", ptype="scatter"):
         x = []
         y = []
@@ -332,9 +277,6 @@ if __name__ == "__main__":
                         dataset to visualize (shapes|segments)",
     )
     opts = parser.parse_args()
-
-    CRAFTASSIST_DIR = os.path.join(GEOSCORER_DIR, "../")
-    sys.path.append(CRAFTASSIST_DIR)
 
     vis = visdom.Visdom(server="http://localhost")
     sp = SchematicPlotter(vis)

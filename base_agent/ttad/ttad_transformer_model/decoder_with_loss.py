@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import logging
 from transformers.modeling_bert import BertModel, BertOnlyMLMHead
-from tokenization_utils import fixed_span_values_voc
+from .tokenization_utils import fixed_span_values_voc
 
 
 def my_xavier_init(m, gain=1):

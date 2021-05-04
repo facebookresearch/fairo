@@ -35,15 +35,15 @@ Action = {
 from collections import OrderedDict
 
 from .action_node import *
-from generate_utils import *
+from base_agent.ttad.generation_dialogues.generate_utils import *
 
-from template_objects import (
+from base_agent.ttad.generation_dialogues.template_objects import (
     LOCATION_TEMPLATES,
     CONDIITON_TEMPLATES,
     REPEAT_KEY_TEMPLATES,
     BLOCKOBJECT_TEMPLATES,
 )
-from tree_components import Location, Schematic, BlockObject, Object, Mob, StopCondition, Repeat
+from base_agent.ttad.generation_dialogues.tree_components import Location, Schematic, BlockObject, Object, Mob, StopCondition, Repeat
 
 
 ############

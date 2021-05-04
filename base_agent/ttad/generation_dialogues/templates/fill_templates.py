@@ -22,7 +22,7 @@ Examples:
 '''
 
 
-from template_objects import *
+from base_agent.ttad.generation_dialogues.template_objects import *
 
 FILL_WITH_CORRECTION = [
     ## Single word command ##

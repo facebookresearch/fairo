@@ -36,10 +36,6 @@ if __name__ == "__main__":
         vis = visdom.Visdom(server="http://localhost")
         sp = SchematicPlotter(vis)
 
-    this_dir = os.path.dirname(os.path.realpath(__file__))
-    parent_dir = os.path.join(this_dir, "../")
-    sys.path.append(parent_dir)
-
     print("loading train data")
 
     ################# FIXME!!!!

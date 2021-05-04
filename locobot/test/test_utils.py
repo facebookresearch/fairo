@@ -8,12 +8,6 @@ import math
 import unittest
 import logging
 
-import os
-import sys
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
-
 from locobot.agent.locobot_mover_utils import (
     get_move_target_for_point,
     xyz_canonical_coords_to_pyrobot_coords,

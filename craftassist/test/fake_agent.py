@@ -42,7 +42,6 @@ class MockOpt:
         self.nsp_data_dir = ""
         self.ground_truth_data_dir = ""
         self.semseg_model_path = ""
-        self.geoscorer_model_path = ""
         self.no_ground_truth = True
         # test does not instantiate cpp client
         self.port = -1
@@ -290,7 +289,6 @@ class FakeAgent(LocoMCAgent):
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(self)
         self.on_demand_perception = {}
-        self.on_demand_perception["geoscorer"] = None
         self.on_demand_perception["check_inside"] = check_inside
 
     def init_physical_interfaces(self):

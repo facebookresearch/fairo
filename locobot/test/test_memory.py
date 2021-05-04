@@ -1,8 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import sys
-import os
 import unittest
 from locobot.agent.loco_memory import LocoAgentMemory
 from locobot.agent.loco_memory_nodes import DetectedObjectNode, HumanPoseNode

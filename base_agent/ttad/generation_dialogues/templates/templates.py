@@ -14,21 +14,21 @@ type.
 import copy
 import random
 
-from template_objects import *
-from build_templates import *
-from move_templates import *
-from dig_templates import *
-from destroy_templates import *
-from copy_templates import *
-from undo_templates import *
-from fill_templates import *
-from spawn_templates import *
-from freebuild_templates import *
-from dance_templates import *
-from get_memory_templates import *
-from put_memory_templates import *
-from stop_templates import *
-from resume_templates import *
+from base_agent.ttad.generation_dialogues.template_objects import *
+from .build_templates import *
+from .move_templates import *
+from .dig_templates import *
+from .destroy_templates import *
+from .copy_templates import *
+from .undo_templates import *
+from .fill_templates import *
+from .spawn_templates import *
+from .freebuild_templates import *
+from .dance_templates import *
+from .get_memory_templates import *
+from .put_memory_templates import *
+from .stop_templates import *
+from .resume_templates import *
 
 template_map = {
     "Move": [MOVE_TEMPLATES, MOVE_WITH_CORRECTION],

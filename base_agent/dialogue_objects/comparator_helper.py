@@ -1,11 +1,11 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from base_util import ErrorWithResponse
-from attribute_helper import AttributeInterpreter, maybe_specific_mem, interpret_span_value
-from condition import Comparator
-from memory_values import MemoryColumnValue
-from memory_attributes import ComparatorAttribute
+from base_agent.base_util import ErrorWithResponse
+from .attribute_helper import AttributeInterpreter, maybe_specific_mem, interpret_span_value
+from base_agent.condition import Comparator
+from base_agent.memory_values import MemoryColumnValue
+from base_agent.memory_attributes import ComparatorAttribute
 
 # TODO distance between
 # TODO make this more modular.  what if we want to redefine just distance_between in a new agent?

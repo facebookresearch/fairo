@@ -1,8 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from memory_attributes import COMPARATOR_FUNCTIONS
-from memory_values import TimeValue
+from .memory_attributes import COMPARATOR_FUNCTIONS
+from .memory_values import TimeValue
 
 
 class Condition:

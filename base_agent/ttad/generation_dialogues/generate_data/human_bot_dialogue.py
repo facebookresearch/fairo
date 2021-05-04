@@ -23,7 +23,7 @@ Action = {
 }
 """
 from .action_node import *
-from tree_components import *
+from base_agent.ttad.generation_dialogues.tree_components import *
 
 
 class GetMemory(ActionNode):

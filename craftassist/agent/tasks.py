@@ -10,24 +10,21 @@ import time
 
 from random import randint
 
-from block_data import (
+from .block_data import (
     PASSABLE_BLOCKS,
     BUILD_BLOCK_REPLACE_MAP,
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from build_utils import blocks_list_to_npy, npy_to_blocks_list
-from entities import MOBS_BY_ID
-import search
-from heuristic_perception import ground_height
-from mc_util import to_block_pos, manhat_dist, strip_idmeta
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
+from .build_utils import blocks_list_to_npy, npy_to_blocks_list
+from .entities import MOBS_BY_ID
+from . import search
+from .heuristic_perception import ground_height
+from .mc_util import to_block_pos, manhat_dist, strip_idmeta
 
 from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode, TripleNode
-from mc_memory_nodes import MobNode
+from .mc_memory_nodes import MobNode
 
 # tasks should be interruptible; that is, if they
 # store state, stopping the task and doing something

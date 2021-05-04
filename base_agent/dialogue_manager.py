@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from typing import Tuple, Optional
-from dialogue_stack import DialogueStack
+from .dialogue_stack import DialogueStack
 from .dialogue_objects import DialogueObject
 
 

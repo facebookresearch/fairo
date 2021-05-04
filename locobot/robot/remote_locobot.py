@@ -11,7 +11,6 @@ from scipy.spatial.transform import Rotation
 import logging
 import os
 import json
-import sys
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor

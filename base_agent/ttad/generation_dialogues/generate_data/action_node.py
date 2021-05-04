@@ -4,8 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import random
 
-from generate_utils import *
-from templates.templates import get_template
+from ..generate_utils import *
+from ..templates.templates import get_template
 
 
 class ActionNode:

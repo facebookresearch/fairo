@@ -27,8 +27,6 @@ import recommonmark
 from recommonmark.transform import AutoStructify
 
 
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
 
 # -- General configuration ------------------------------------------------
 

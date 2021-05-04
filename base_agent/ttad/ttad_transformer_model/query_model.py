@@ -10,10 +10,10 @@ import torch
 
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
-from utils_parsing import *
-from utils_parsing import beam_search
-from utils_caip import *
-from train_model import *
+from .utils_parsing import *
+from .utils_parsing import beam_search
+from .utils_caip import *
+from .train_model import *
 
 
 class TTADBertModel(object):

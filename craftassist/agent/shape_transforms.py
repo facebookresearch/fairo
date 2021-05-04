@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 from collections import Counter
-from build_utils import blocks_list_to_npy  # , npy_to_blocks_list
+from .build_utils import blocks_list_to_npy
 
 ##############################################
 # WARNING: all npy arrays in this file are xyz

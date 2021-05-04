@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import uuid
 import ast
 from typing import Optional, List, Dict, cast
-from base_util import XYZ, POINT_AT_TARGET, to_player_struct
+from .base_util import XYZ, POINT_AT_TARGET, to_player_struct
 
 
 class MemoryNode:

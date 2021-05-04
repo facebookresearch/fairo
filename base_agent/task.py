@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from condition import (
+from .condition import (
     NeverCondition,
     AlwaysCondition,
     TaskStatusCondition,
@@ -9,7 +9,7 @@ from condition import (
     SwitchCondition,
     AndCondition,
 )
-from memory_nodes import TaskNode, LocationNode, TripleNode
+from .memory_nodes import TaskNode, LocationNode, TripleNode
 
 # FIXME TODO store conditions in memory (new table)
 # TaskNode method to update a tasks conditions

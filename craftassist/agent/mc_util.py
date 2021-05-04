@@ -3,14 +3,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 """This file contains utility functions for the CraftAssist agent"""
 import copy
-import os
-import sys
 
 from math import sin, cos, pi
 from typing import cast
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.base_util import *
 

@@ -4,8 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 This file defines the TemplateObject class and other data structures used across
 template objects.
 """
-from generate_utils import *
-from tree_components import *
+from ..generate_utils import *
+from ..tree_components import *
 
 
 SCHEMATIC_TYPES = [

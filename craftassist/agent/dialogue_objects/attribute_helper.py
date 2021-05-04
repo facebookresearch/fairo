@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from base_agent.dialogue_objects import AttributeInterpreter
-from mc_attributes import VoxelCounter
+from ..mc_attributes import VoxelCounter
 
 
 class MCAttributeInterpreter(AttributeInterpreter):
