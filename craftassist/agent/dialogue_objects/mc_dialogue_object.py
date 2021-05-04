@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from base_agent.dialogue_objects import BotCapabilities
 
+
 class MCBotCapabilities(BotCapabilities):
     """This class represents a sub-type of the Say DialogueObject above to answer
     something about the current capabilities of the bot, to the user.

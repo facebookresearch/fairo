@@ -43,7 +43,15 @@ from base_agent.ttad.generation_dialogues.template_objects import (
     REPEAT_KEY_TEMPLATES,
     BLOCKOBJECT_TEMPLATES,
 )
-from base_agent.ttad.generation_dialogues.tree_components import Location, Schematic, BlockObject, Object, Mob, StopCondition, Repeat
+from base_agent.ttad.generation_dialogues.tree_components import (
+    Location,
+    Schematic,
+    BlockObject,
+    Object,
+    Mob,
+    StopCondition,
+    Repeat,
+)
 
 
 ############
@@ -945,8 +953,7 @@ class Dance(ActionNode):
 
 
 class Stop(ActionNode):
-    """Stop action takes no arguments, and only has a description.
-    """
+    """Stop action takes no arguments, and only has a description."""
 
     def __init__(self, template=None, template_attr={}):
         super().__init__("Stop", template, template_attr=template_attr)
@@ -995,8 +1002,7 @@ class Stop(ActionNode):
 
 
 class Resume(ActionNode):
-    """Resume action takes no arguments and only has a description.
-    """
+    """Resume action takes no arguments and only has a description."""
 
     def __init__(self, template=None, template_attr={}):
         super().__init__("Resume", template, template_attr=template_attr)
@@ -1045,8 +1051,7 @@ class Resume(ActionNode):
 
 
 class Noop(ActionNode):
-    """Incoming messages which do not correspond to any action are mapped to Noop.
-    """
+    """Incoming messages which do not correspond to any action are mapped to Noop."""
 
     CHATS = ["hello there", "how are you", "great"]
 

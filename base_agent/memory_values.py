@@ -57,7 +57,7 @@ class FixedValue(ComparisonValue):
 # make some TimeNodes as side effects
 # WARNING:  elapsed mode uses get_time at construction as 0
 class TimeValue(ComparisonValue):
-    """ 
+    """
     modes are elapsed, time, and world_time.
     if "elapsed" or "time" uses memory.get_time as timer
     if "elapsed", value is offset by time at creation

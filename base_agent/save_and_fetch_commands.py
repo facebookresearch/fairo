@@ -6,7 +6,7 @@ import json
 
 
 def create_connection(db_file):
-    """ create a database connection to the SQLite database
+    """create a database connection to the SQLite database
         specified by the db_file
     :param db_file: database file
     :return: Connection object or None
@@ -17,7 +17,7 @@ def create_connection(db_file):
 
 
 def create_table(conn, create_table_sql):
-    """ create a table from the create_table_sql statement
+    """create a table from the create_table_sql statement
     :param conn: Connection object
     :param create_table_sql: a CREATE TABLE statement
     :return:
@@ -231,6 +231,10 @@ def saveObjectAnnotationsToDb(conn, postData):
         object_point_map = postData["pointMap"][key]
         cur.execute(
             """INSERT INTO object_annotations (object_name, object_tags, object_points) VALUES (?, ?, ?)""",
-            (object_name, json.dumps(object_property_map), json.dumps(object_point_map),),
+            (
+                object_name,
+                json.dumps(object_property_map),
+                json.dumps(object_point_map),
+            ),
         )
     print("successfully saved annotation info")

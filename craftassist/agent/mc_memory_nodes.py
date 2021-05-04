@@ -21,18 +21,18 @@ class VoxelObjectNode(ReferenceObjectNode):
     """This is a reference object that is distributed over
     multiple voxels and uses VoxelObjects table to hold the
     location of the voxels; and ReferenceObjects to hold 'global' info
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         locs (tuple): List of (x, y, z) tuples
         blocks (dict): Dictionary of (x, y, z) -> (blockid, meta)
         update_times (dict): Dictionary of (x, y, z) -> time this was last updated
         player_placed (dict): Dictionary of (x, y, z) -> was this placed by player ?
         agent_placed (dict): Dictionary of (x, y, z) -> was this placed by the agent ?
-    
+
     Examples::
         >>> node_list = [TaskNode, VoxelObjectNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -113,11 +113,11 @@ class VoxelObjectNode(ReferenceObjectNode):
 class BlockObjectNode(VoxelObjectNode):
     """This is a voxel object that represents a set of physically present blocks.
     it is considered to be nonephemeral
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Examples::
         >>> node_list = [TaskNode, BlockObjectNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -187,18 +187,18 @@ class BlockObjectNode(VoxelObjectNode):
 # note: instance segmentation objects should not be tagged except by the creator
 # build an archive if you want to tag permanently
 class InstSegNode(VoxelObjectNode):
-    """This is a voxel object that represents a region of space, 
+    """This is a voxel object that represents a region of space,
     and is considered ephemeral
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         locs (tuple): List of (x, y, z) tuples for this object
-        blocks (dict): Dictionary of (x, y, z) to (blockid, meta) 
+        blocks (dict): Dictionary of (x, y, z) to (blockid, meta)
         tags (list): List of tags for this object
-    
+
     Examples::
         >>> node_list = [TaskNode, InstSegNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -217,10 +217,10 @@ class InstSegNode(VoxelObjectNode):
     @classmethod
     def create(cls, memory, locs, tags=[]) -> str:
         """Creates a new entry into the VoxelObjects table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> locs = [(1, 0, 34), (1, 0, 35), (2, 0, 34), (3, 0, 34)]
@@ -283,16 +283,16 @@ class InstSegNode(VoxelObjectNode):
 
 class MobNode(ReferenceObjectNode):
     """This is a memory node representing a mob (moving object) in game
-    
+
     Args:
         agent_memory  (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         eid (int): Entity ID of the mob node
         pos (tuple): (x, y, z) coordinates of the mob
         look (tuple): (yaw, pitch) of the mob
-    
+
     Examples::
         >>> node_list = [TaskNode, MobNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -333,10 +333,10 @@ class MobNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, mob, player_placed=False, agent_placed=False) -> str:
         """Creates a new entry into the ReferenceObjects table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> from entities import MOBS_BY_ID
@@ -401,19 +401,19 @@ class MobNode(ReferenceObjectNode):
 
 
 class ItemStackNode(ReferenceObjectNode):
-    """A memory node for an item stack, which is something on the ground, 
-    this is different from the placed blocks and can be picked up by the player/agent 
+    """A memory node for an item stack, which is something on the ground,
+    this is different from the placed blocks and can be picked up by the player/agent
     if they are close to it.
-    
+
     Args:
         agent_memory  (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         memid (string): MemoryID of the node
         eid (int): Entity ID of the item
         pos(tuple): (x, y, z) coordinates of the item
-    
+
     Examples::
         >>> node_list = [TaskNode, ItemStackNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -441,10 +441,10 @@ class ItemStackNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, item_stack) -> str:
         """Creates a new entry into the ReferenceObjects table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> from collections import namedtuple
@@ -495,17 +495,17 @@ class ItemStackNode(ReferenceObjectNode):
 
 
 class SchematicNode(MemoryNode):
-    """A memory node representing a plan for an object that could 
+    """A memory node representing a plan for an object that could
     be built in the environment.
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         blocks (dict): Mapping of each (x, y, z) coordinate to the (block_id, meta) of
                 the block at that coordinate.
-    
+
     Examples::
         >>> node_list = [TaskNode, SchematicNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -536,10 +536,10 @@ class SchematicNode(MemoryNode):
     @classmethod
     def create(cls, memory, blocks: Sequence[Block]) -> str:
         """Creates a new entry into the Schematics table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> blocks = [((0, 0, 1), (1, 0)), ((0, 0, 2), (1, 0)),
@@ -564,16 +564,16 @@ class SchematicNode(MemoryNode):
 
 class BlockTypeNode(MemoryNode):
     """This is a memory node representing the type of a block in Minecraft
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         type_name (string): Name of the type of block (example: wool)
         b (int): The id of the block
         m (int): The meta information of a block
-    
+
     Examples::
         >>> node_list = [TaskNode, BlockTypeNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -601,10 +601,10 @@ class BlockTypeNode(MemoryNode):
     @classmethod
     def create(cls, memory, type_name: str, idm: IDM) -> str:
         """Creates a new entry into the BlockTypes table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> type_name = "air_block"
@@ -623,18 +623,18 @@ class BlockTypeNode(MemoryNode):
 
 
 class MobTypeNode(MemoryNode):
-    """This represents a mob type memory node (the type of a mob, 
+    """This represents a mob type memory node (the type of a mob,
     example: animal)
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         type_name (string): Name of the mob type
         b (int): Id of the mob type
         m (int): Meta information of the mob type
-    
+
     Examples::
         >>> node_list = [TaskNode, MobTypeNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -662,10 +662,10 @@ class MobTypeNode(MemoryNode):
     @classmethod
     def create(cls, memory, type_name: str, idm: IDM) -> str:
         """Creates a new entry into the MobTypes table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> type_name = "spawn husk"
@@ -685,14 +685,14 @@ class MobTypeNode(MemoryNode):
 
 class DanceNode(MemoryNode):
     """This is a memory node representing a dance or sequence of movement steps
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         dance_fn (function): The function representing the execution of the dance
-    
+
     Examples::
         >>> node_list = [TaskNode, DanceNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -716,10 +716,10 @@ class DanceNode(MemoryNode):
     @classmethod
     def create(cls, memory, dance_fn, name=None, tags=[]) -> str:
         """Creates a new entry into the Dances table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> from dance import *
@@ -768,10 +768,10 @@ class RewardNode(MemoryNode):
     @classmethod
     def create(cls, agent_memory, reward_value: str) -> str:
         """Creates a new entry into the Rewards table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> reward_value = "positive"

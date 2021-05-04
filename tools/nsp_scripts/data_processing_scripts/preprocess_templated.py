@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
 from random import shuffle
 
+
 def preprocess(input_path, output_path):
     """Loads a templated dataset file and processes it into format read for training.
     - Discard examples with multiple chats
@@ -19,7 +20,7 @@ def preprocess(input_path, output_path):
         examples = []
         commands = []
         for line in f:
-            if line.strip() == '':
+            if line.strip() == "":
                 if len(commands) > 2:
                     commands = []
                     continue
@@ -34,9 +35,12 @@ def preprocess(input_path, output_path):
         for line in examples:
             fd.write(line + "\n")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw_data_path", type=str, default="generated_dialogues.txt")
-    parser.add_argument("--output_path", type=str, default="craftassist/agent/datasets/full_data/templated.txt")
+    parser.add_argument(
+        "--output_path", type=str, default="craftassist/agent/datasets/full_data/templated.txt"
+    )
     args = parser.parse_args()
     preprocess(args.raw_data_path, args.output_path)

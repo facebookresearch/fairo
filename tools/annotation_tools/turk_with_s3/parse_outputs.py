@@ -68,79 +68,81 @@ def preprocess_chat(chat: str) -> List[str]:
 
     return tokenized_sentences
 
+
 def process_repeat_dict(d):
     if d["loop"] == "ntimes":
         repeat_dict = {"repeat_key": "FOR"}
         processed_d = process_dict(with_prefix(d, "loop.ntimes."))
-        if 'repeat_for' in processed_d:
+        if "repeat_for" in processed_d:
             repeat_dict["repeat_count"] = processed_d["repeat_for"]
-        if 'repeat_dir' in processed_d:
-            repeat_dict['repeat_dir'] = processed_d['repeat_dir']
+        if "repeat_dir" in processed_d:
+            repeat_dict["repeat_dir"] = processed_d["repeat_dir"]
         return repeat_dict
     if d["loop"] == "repeat_all":
         repeat_dict = {"repeat_key": "ALL"}
         processed_d = process_dict(with_prefix(d, "loop.repeat_all."))
-        if 'repeat_dir' in processed_d:
-            repeat_dict['repeat_dir'] = processed_d['repeat_dir']
+        if "repeat_dir" in processed_d:
+            repeat_dict["repeat_dir"] = processed_d["repeat_dir"]
         return repeat_dict
     if d["loop"] == "forever":
         return {"stop_condition": {"condition_type": "NEVER"}}
-    if d['loop'] == 'repeat_until':
-        stripped_d = with_prefix(d, 'loop.repeat_until.')
+    if d["loop"] == "repeat_until":
+        stripped_d = with_prefix(d, "loop.repeat_until.")
         if not stripped_d:
             return None
         processed_d = process_dict(stripped_d)
-        if 'adjacent_to_block_type' in processed_d:
-            return {"stop_condition" : {
-                        "condition_type" : 'ADJACENT_TO_BLOCK_TYPE',
-                        'block_type': processed_d['adjacent_to_block_type']}
-                   }
-        elif 'condition_span' in processed_d:
-            return {"stop_condition" : {
-                        "condition_span" : processed_d['condition_span']}
-                   }
-    
+        if "adjacent_to_block_type" in processed_d:
+            return {
+                "stop_condition": {
+                    "condition_type": "ADJACENT_TO_BLOCK_TYPE",
+                    "block_type": processed_d["adjacent_to_block_type"],
+                }
+            }
+        elif "condition_span" in processed_d:
+            return {"stop_condition": {"condition_span": processed_d["condition_span"]}}
+
     raise NotImplementedError("Bad repeat dict option: {}".format(d["loop"]))
 
+
 def process_get_memory_dict(d):
-    filters_val = d['filters']
-    out_dict = {'filters': {}}
+    filters_val = d["filters"]
+    out_dict = {"filters": {}}
     parent_dict = {}
-    if filters_val.startswith('type.'):
-        parts = remove_prefix(filters_val, 'type.').split('.')
+    if filters_val.startswith("type."):
+        parts = remove_prefix(filters_val, "type.").split(".")
         type_val = parts[0]
-        if type_val in ['ACTION', 'AGENT']:
-            out_dict['filters']['temporal'] = 'CURRENT'
+        if type_val in ["ACTION", "AGENT"]:
+            out_dict["filters"]["temporal"] = "CURRENT"
             tag_val = parts[1]
-            out_dict['answer_type'] = 'TAG'
-            out_dict['tag_name'] = parts[1] # the name of tag is here
-            if type_val == 'ACTION':
-                x = with_prefix(d, 'filters.'+filters_val+'.')
-                out_dict['filters'].update(x)
-        elif type_val in ['REFERENCE_OBJECT']:
-            d.pop('filters')
-            ref_obj_dict = remove_key_prefixes(d, ['filters.type.'])
+            out_dict["answer_type"] = "TAG"
+            out_dict["tag_name"] = parts[1]  # the name of tag is here
+            if type_val == "ACTION":
+                x = with_prefix(d, "filters." + filters_val + ".")
+                out_dict["filters"].update(x)
+        elif type_val in ["REFERENCE_OBJECT"]:
+            d.pop("filters")
+            ref_obj_dict = remove_key_prefixes(d, ["filters.type."])
             ref_dict = process_dict(ref_obj_dict)
-            if 'answer_type' in ref_dict['reference_object']:
-                out_dict['answer_type'] = ref_dict['reference_object']['answer_type']
-                ref_dict['reference_object'].pop('answer_type')
-            if 'tag_name' in ref_dict['reference_object']:
-                out_dict['tag_name'] = ref_dict['reference_object']['tag_name']
-                ref_dict['reference_object'].pop('tag_name')    
-            out_dict['filters'].update(ref_dict)
-            
-        out_dict['filters']['type'] = type_val
-        
+            if "answer_type" in ref_dict["reference_object"]:
+                out_dict["answer_type"] = ref_dict["reference_object"]["answer_type"]
+                ref_dict["reference_object"].pop("answer_type")
+            if "tag_name" in ref_dict["reference_object"]:
+                out_dict["tag_name"] = ref_dict["reference_object"]["tag_name"]
+                ref_dict["reference_object"].pop("tag_name")
+            out_dict["filters"].update(ref_dict)
+
+        out_dict["filters"]["type"] = type_val
+
     return out_dict
 
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
-        return text[len(prefix):]
+        return text[len(prefix) :]
 
 
 def handle_get_memory(d):
-    out_d = {'dialogue_type': 'GET_MEMORY'}
+    out_d = {"dialogue_type": "GET_MEMORY"}
     child_d = process_get_memory_dict(with_prefix(d, "action_type.ANSWER."))
     out_d.update(child_d)
     return out_d
@@ -164,7 +166,7 @@ def with_prefix(d, prefix):
 
 
 def remove_key_prefixes(d, ps):
-    """This function removes certain prefixes from keys and renames the key to be: key with text following 
+    """This function removes certain prefixes from keys and renames the key to be: key with text following
     the prefix in the dict.
     """
     for p in ps:
@@ -220,26 +222,31 @@ def fix_spans_due_to_empty_words(action_dict, words):
 
 def process_dict(d):
     r = {}
-    d = remove_key_prefixes(d, ["TURN_CHECK.LOOK.",
-                                "TURN_CHECK.POINT.",
-                                "TURN_CHECK.TURN.",
-                                "MOVE.yes.", 
-                                "MOVE.no.", 
-                                "COPY.yes.", 
-                                "COPY.no.", 
-                                "receiver_loc.",
-                                "receiver_ref.",
-                                "source_loc.",
-                                "source_ref.",
-                                'FREEBUILD.BUILD.', 
-                                'answer_type.TAG.', 
-                                'FREEBUILD.FREEBUILD.', 
-                                'coref_resolve_check.yes.', 
-                                'coref_resolve_check.no.'])
+    d = remove_key_prefixes(
+        d,
+        [
+            "TURN_CHECK.LOOK.",
+            "TURN_CHECK.POINT.",
+            "TURN_CHECK.TURN.",
+            "MOVE.yes.",
+            "MOVE.no.",
+            "COPY.yes.",
+            "COPY.no.",
+            "receiver_loc.",
+            "receiver_ref.",
+            "source_loc.",
+            "source_ref.",
+            "FREEBUILD.BUILD.",
+            "answer_type.TAG.",
+            "FREEBUILD.FREEBUILD.",
+            "coref_resolve_check.yes.",
+            "coref_resolve_check.no.",
+        ],
+    )
     if "location" in d:
         r["location"] = {"location_type": d["location"]}
-        if r['location']['location_type'] == 'coref_resolve_check':
-            del r['location']['location_type']
+        if r["location"]["location_type"] == "coref_resolve_check":
+            del r["location"]["location_type"]
         elif r["location"]["location_type"] == "REFERENCE_OBJECT":
             r["location"]["location_type"] = "REFERENCE_OBJECT"
             r["location"]["relative_direction"] = d.get(
@@ -250,11 +257,11 @@ def process_dict(d):
                 del r["location"]["relative_direction"]
             d["location.REFERENCE_OBJECT.relative_direction"] = None
         r["location"].update(process_dict(with_prefix(d, "location.")))
-        
+
     for k, v in d.items():
         if (
             k == "location"
-            or k in ['COPY', 'coref_resolve_check', 'receiver', 'source']
+            or k in ["COPY", "coref_resolve_check", "receiver", "source"]
             or (k == "relative_direction" and v in ("EXACT", "NEAR", "Other"))
         ):
             continue
@@ -280,9 +287,10 @@ def process_dict(d):
             r[k] = v
     return r
 
+
 def handle_put_memory(d):
     return {}
-    
+
 
 def handle_commands(d):
     output = {}
@@ -291,95 +299,92 @@ def handle_commands(d):
     child_d = process_dict(with_prefix(d, "action_type.{}.".format(action_name)))
     # Fix Build/Freebuild mismatch
     if child_d.get("FREEBUILD") == "FREEBUILD":
-        action_name = 'FREEBUILD'
-    child_d.pop("FREEBUILD", None)    
-    
-    if 'MOVE' in child_d:
-        if child_d['MOVE'] == 'yes':
-            action_name = 'MOVE'
-        elif child_d['MOVE'] == 'no':
-            action_name = 'DANCE'
-        child_d.pop('MOVE')
-    
-    
-    if formatted_dict.get('COPY', 'no') == 'yes':
-        action_name = 'COPY'
-        formatted_dict.pop('COPY')
-    
+        action_name = "FREEBUILD"
+    child_d.pop("FREEBUILD", None)
+
+    if "MOVE" in child_d:
+        if child_d["MOVE"] == "yes":
+            action_name = "MOVE"
+        elif child_d["MOVE"] == "no":
+            action_name = "DANCE"
+        child_d.pop("MOVE")
+
+    if formatted_dict.get("COPY", "no") == "yes":
+        action_name = "COPY"
+        formatted_dict.pop("COPY")
+
     # add action type info
-    if 'TURN_CHECK' in child_d:
-        output['action_type'] = ['yes', child_d['TURN_CHECK'].lower()]
-        child_d.pop('TURN_CHECK')
+    if "TURN_CHECK" in child_d:
+        output["action_type"] = ["yes", child_d["TURN_CHECK"].lower()]
+        child_d.pop("TURN_CHECK")
     else:
-        output['action_type'] = ['yes', action_name.lower()]
+        output["action_type"] = ["yes", action_name.lower()]
     # add dialogue type info
-    if output['action_type'][1] == 'tag':
-        output['dialogue_type'] = ['yes', 'PUT_MEMORY']
+    if output["action_type"][1] == "tag":
+        output["dialogue_type"] = ["yes", "PUT_MEMORY"]
     else:
-        output['dialogue_type'] = ['yes', 'HUMAN_GIVE_COMMAND']
-    
-    if output['action_type'][1] == 'get' :
-        if 'receiver' in child_d:
-            if 'reference_object' in child_d['receiver']:
-                child_d['receiver_reference_object'] = child_d['receiver']['reference_object']
-            elif 'location' in child_d['receiver']:
-                child_d['receiver_location'] = child_d['receiver']['location']
-            child_d.pop('receiver')
-        if 'source' in child_d:
-            if 'reference_object' in child_d['source']:
-                child_d['source_reference_object'] = child_d['source']['reference_object']
-            elif 'location' in child_d['source']:
-                child_d['source_location'] = child_d['source']['location']
-            child_d.pop('source')
-    
+        output["dialogue_type"] = ["yes", "HUMAN_GIVE_COMMAND"]
+
+    if output["action_type"][1] == "get":
+        if "receiver" in child_d:
+            if "reference_object" in child_d["receiver"]:
+                child_d["receiver_reference_object"] = child_d["receiver"]["reference_object"]
+            elif "location" in child_d["receiver"]:
+                child_d["receiver_location"] = child_d["receiver"]["location"]
+            child_d.pop("receiver")
+        if "source" in child_d:
+            if "reference_object" in child_d["source"]:
+                child_d["source_reference_object"] = child_d["source"]["reference_object"]
+            elif "location" in child_d["source"]:
+                child_d["source_location"] = child_d["source"]["location"]
+            child_d.pop("source")
+
     for k, v in child_d.items():
-        if k in ['target_action_type', 'has_block_type', 'dance_type_name']:
-            output[k] = ['yes', v]
-            
-        elif type(v)==list or (k == 'receiver'):
-            output[k]= ['no', v]
+        if k in ["target_action_type", "has_block_type", "dance_type_name"]:
+            output[k] = ["yes", v]
+
+        elif type(v) == list or (k == "receiver"):
+            output[k] = ["no", v]
         else:
-            output[k] = ['yes', v]
+            output[k] = ["yes", v]
     return output
 
 
-
-
 def process_result(full_d):
-    
+
     worker_id = full_d["WorkerId"]
     d = with_prefix(full_d, "Answer.root.")
     if not d:
-        return worker_id, {}, full_d['Input.command'].split()
+        return worker_id, {}, full_d["Input.command"].split()
     try:
         action = d["action_type"]
     except KeyError:
-        return worker_id, {}, full_d['Input.command'].split()
+        return worker_id, {}, full_d["Input.command"].split()
 
     action_dict = handle_commands(d)
 
     ##############
     # repeat dict
     ##############
-    #NOTE: this can probably loop over or hold indices of which specific action ?
-    if action_dict.get('dialogue_type', [None, None])[1] == 'HUMAN_GIVE_COMMAND':
+    # NOTE: this can probably loop over or hold indices of which specific action ?
+    if action_dict.get("dialogue_type", [None, None])[1] == "HUMAN_GIVE_COMMAND":
         if d.get("loop") not in [None, "Other"]:
             repeat_dict = process_repeat_dict(d)
             if repeat_dict:
                 # Some turkers annotate a repeat dict for a repeat_count of 1.
                 # Don't include the repeat dict if that's the case
-                if repeat_dict.get('repeat_dir', None) == 'Other':
-                    repeat_dict.pop('repeat_dir')
+                if repeat_dict.get("repeat_dir", None) == "Other":
+                    repeat_dict.pop("repeat_dir")
                 if repeat_dict.get("repeat_count"):
                     a, b = repeat_dict["repeat_count"][0]
                     repeat_count_str = " ".join(
                         [full_d["Input.word{}".format(x)] for x in range(a, b + 1)]
                     )
                     if repeat_count_str not in ("a", "an", "one", "1"):
-                        action_dict['repeat'] = ['yes', repeat_dict]
+                        action_dict["repeat"] = ["yes", repeat_dict]
                 else:
-                    action_dict['repeat'] = ['yes', repeat_dict]
-            
+                    action_dict["repeat"] = ["yes", repeat_dict]
+
     ##################
     # post-processing
     ##################
@@ -388,37 +393,37 @@ def process_result(full_d):
     for key in full_d:
         if "Input.word" in key:
             words.append(full_d[key])
-    
+
     return worker_id, action_dict, words
 
 
 def fix_cnt_in_schematic(words, action_dict):
-    if 'repeat' not in action_dict:
+    if "repeat" not in action_dict:
         return action_dict
-    repeat = action_dict['repeat']
+    repeat = action_dict["repeat"]
     val = []
-    if 'repeat_count' in repeat[1]:
-        val = repeat[1]['repeat_count']
-    elif 'repeat_key' in repeat[1] and repeat[1]['repeat_key'] == 'ALL':
-        if any(x in ['all', 'every', 'each'] for x in words):
-            if 'all' in words:
-                all_val = words.index('all')
-            elif 'each' in words:
-                all_val = words.index('each')
-            elif 'every' in words:
-                all_val = words.index('every')
+    if "repeat_count" in repeat[1]:
+        val = repeat[1]["repeat_count"]
+    elif "repeat_key" in repeat[1] and repeat[1]["repeat_key"] == "ALL":
+        if any(x in ["all", "every", "each"] for x in words):
+            if "all" in words:
+                all_val = words.index("all")
+            elif "each" in words:
+                all_val = words.index("each")
+            elif "every" in words:
+                all_val = words.index("every")
             val = [[all_val, all_val]]
     else:
         return action_dict
-    
+
     for k, v in action_dict.items():
-        if k in ['schematic', 'reference_object']:
+        if k in ["schematic", "reference_object"]:
             for i, meh in enumerate(v[1]):
                 if meh in val:
                     v[1].pop(i)
             action_dict[k] = [v[0], v[1]]
     return action_dict
-    
+
 
 def remove_definite_articles(cmd, d):
     words = cmd.split()
@@ -426,15 +431,15 @@ def remove_definite_articles(cmd, d):
         d = ast.literal_eval(d)
     new_d = {}
     for k, v in d.items():
-        # for level 1 
-        if type(v) == list and v[0] in ['yes', 'no']:
+        # for level 1
+        if type(v) == list and v[0] in ["yes", "no"]:
             if type(v[1]) == list:
                 new_v = []
                 for span in v[1]:
-                    if words[span[0]] in ['the', 'a', 'an']:
+                    if words[span[0]] in ["the", "a", "an"]:
                         continue
                     new_v.append(span)
-                new_d[k] = [v[0], new_v]  
+                new_d[k] = [v[0], new_v]
             elif type(v[1]) == dict:
                 v_new = remove_definite_articles(cmd, v[1])
                 new_d[k] = [v[0], v_new]
@@ -446,10 +451,10 @@ def remove_definite_articles(cmd, d):
             if type(v) == list:
                 new_v = []
                 for span in v:
-                    if words[span[0]] in ['the', 'a', 'an']:
+                    if words[span[0]] in ["the", "a", "an"]:
                         continue
                     new_v.append(span)
-                new_d[k] = new_v  
+                new_d[k] = new_v
             elif type(v) == dict:
                 v_new = remove_definite_articles(cmd, v)
                 new_d[k] = v_new
@@ -473,26 +478,26 @@ def resolve_spans(words, dicts):
                 for item in v[1]:
                     new_v.append(words[item[0]])
                 new_d[k] = [v[0], new_v]
-            elif k =='repeat':
-                #v[1] = ast.literal_eval(v[1])
-                if 'stop_condition' in v[1]:
+            elif k == "repeat":
+                # v[1] = ast.literal_eval(v[1])
+                if "stop_condition" in v[1]:
                     new_v = {}
-                    new_v['stop_condition'] = {}
+                    new_v["stop_condition"] = {}
                     x = {}
-                    
-                    if 'condition_type' in v[1]['stop_condition']:
-                        x['condition_type'] = v[1]['stop_condition']['condition_type']
+
+                    if "condition_type" in v[1]["stop_condition"]:
+                        x["condition_type"] = v[1]["stop_condition"]["condition_type"]
                     new_vals = []
                     if "block_type" in v[1]["stop_condition"]:
-                        for item in v[1]['stop_condition']['block_type']:
+                        for item in v[1]["stop_condition"]["block_type"]:
                             new_vals.append(words[item[0]])
-                        x['block_type'] = new_vals
-                    elif 'condition_span' in v[1]['stop_condition']:
-                        for item in v[1]['stop_condition']['condition_span']:
+                        x["block_type"] = new_vals
+                    elif "condition_span" in v[1]["stop_condition"]:
+                        for item in v[1]["stop_condition"]["condition_span"]:
                             new_vals.append(words[item[0]])
-                        x['condition_span'] = new_vals
-                    new_v['stop_condition'] = x
-                    new_d['repeat'] = [v[0], new_v]
+                        x["condition_span"] = new_vals
+                    new_v["stop_condition"] = x
+                    new_d["repeat"] = [v[0], new_v]
                 else:
                     new_d[k] = v
             else:
@@ -505,31 +510,30 @@ def resolve_spans(words, dicts):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--folder_name',
-        default='/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/A/'
+        "--folder_name",
+        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/A/",
     )
     opts = parser.parse_args()
     print(opts)
     tokenizer = English().Defaults.create_tokenizer()
 
-
     # convert csv to txt first
-    #def process_results_with_agreements(f_name, num_agreements=1, debug=False, tsv=False, only_show_disagreements=False):
-    num_agreements=2
+    # def process_results_with_agreements(f_name, num_agreements=1, debug=False, tsv=False, only_show_disagreements=False):
+    num_agreements = 2
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + '../processed_outputs.csv'
-    only_show_disagreements=True
-    with open(f_name, 'r') as f:
+    f_name = folder_name + "../processed_outputs.csv"
+    only_show_disagreements = True
+    with open(f_name, "r") as f:
         r = csv.DictReader(f)
         for i, d in enumerate(r):
             worker_id = d["WorkerId"]
-            sentence = preprocess_chat(d['Input.command'])[0]
+            sentence = preprocess_chat(d["Input.command"])[0]
             _, action_dict, words = process_result(d)
             a_dict = fix_cnt_in_schematic(words, action_dict)
             print(sentence)
             pprint(a_dict)
-            print("*"*20)
+            print("*" * 20)
             if a_dict is None:
                 continue
             command = " ".join(words)
@@ -542,34 +546,34 @@ if __name__ == "__main__":
             else:
                 result_dict[command] = [result]
 
-
     print(len(result_dict.keys()))
 
     # write to txt
-    f_name = folder_name + 'out.txt'
-    with open(f_name, 'w') as outfile:
+    f_name = folder_name + "out.txt"
+    with open(f_name, "w") as outfile:
         for k, v in result_dict.items():
             cmd = k
             if len(v) == 1:
                 items = v[0] + "\t" + v[0] + "\t" + v[0]
             else:
-                items =  "\t".join(v) 
-            outfile.write(cmd + "\t" + items+"\n")
+                items = "\t".join(v)
+            outfile.write(cmd + "\t" + items + "\n")
 
     # construct counter from txt
     result_counts = defaultdict(Counter)
-    f_name = folder_name + 'out.txt'
+    f_name = folder_name + "out.txt"
     import ast
+
     with open(f_name) as in_data:
         for line in in_data.readlines():
             line = line.strip()
-            #print(len(line.split("\t")))
+            # print(len(line.split("\t")))
             parts = line.split("\t")
             if len(parts) == 4:
                 cmd, r1, r2, r3 = parts
-            elif len(parts) == 3: # for just one answer
+            elif len(parts) == 3:  # for just one answer
                 cmd, r1, r2 = parts
-                r3 = r2 
+                r3 = r2
             else:
                 cmd, r = parts
                 r1, r2, r3 = r, r, r
@@ -596,7 +600,7 @@ if __name__ == "__main__":
                     disagreements_dict[command] = [result]
                 else:
                     disagreements_dict[command].append(result)
-            
+
             continue
         elif only_show_disagreements:
             continue
@@ -605,28 +609,28 @@ if __name__ == "__main__":
             if count >= num_agreements:
                 all_agreements_dict[command] = result
                 agreement += 1
-                
+
         print(agreement)
         print(no_agreement)
 
     # write out agreements to a file
     ## format is : command child dict
     ag = str(agreement)
-    f = folder_name + ag + '_agreements.txt'
-    with open(f, 'w') as outfile:
+    f = folder_name + ag + "_agreements.txt"
+    with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd = k
-            outfile.write(cmd + "\t" + v + "\n") 
+            outfile.write(cmd + "\t" + v + "\n")
 
     # write disagreements to a file
     disag = str(no_agreement)
-    f = folder_name + disag + '_disagreements.txt'
-    with open(f, 'w') as outfile:
+    f = folder_name + disag + "_disagreements.txt"
+    with open(f, "w") as outfile:
         for k, v in disagreements_dict.items():
             cmd = k
             outfile.write(cmd + "\n")
             for item in v:
-                outfile.write(item + "\n") 
+                outfile.write(item + "\n")
             outfile.write("\n")
 
     for command, counts in disagreement.items():
@@ -635,15 +639,15 @@ if __name__ == "__main__":
         print(command)
         for k, v in c.items():
             pprint(ast.literal_eval(k))
-        print("*"*30)
+        print("*" * 30)
 
-    with open(folder_name + 'all_agreements.txt', 'w') as f_out, \
-        open(folder_name + ag +'_agreements.txt') as f1, \
-        open(folder_name + disag + '_disagreements.txt') as f_in:
+    with open(folder_name + "all_agreements.txt", "w") as f_out, open(
+        folder_name + ag + "_agreements.txt"
+    ) as f1, open(folder_name + disag + "_disagreements.txt") as f_in:
         for line in f1.readlines():
             cmd, out = line.strip().split("\t")
-            cmd  = preprocess_chat(cmd)[0]
-            f_out.write(cmd+"\t"+ out+"\n")
+            cmd = preprocess_chat(cmd)[0]
+            f_out.write(cmd + "\t" + out + "\n")
         for line in f_in.readlines():
             cmd, out = line.strip().split("\t")
-            f_out.write(cmd+"\t"+ out+"\n")
+            f_out.write(cmd + "\t" + out + "\n")

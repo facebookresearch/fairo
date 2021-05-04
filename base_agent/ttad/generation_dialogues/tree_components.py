@@ -960,8 +960,7 @@ class TowerShape(Shape):
 
 
 class Schematic(ComponentNode):
-    """A Schematic can be either a Shape or a CategoryObject
-    """
+    """A Schematic can be either a Shape or a CategoryObject"""
 
     def __init__(
         self,

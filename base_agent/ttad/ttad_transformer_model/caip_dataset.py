@@ -10,10 +10,11 @@ from torch.utils.data import Dataset
 from .tokenization_utils import fixed_span_values
 from .utils_caip import *
 
+
 class CAIPDataset(Dataset):
     """Torch Dataset for the CAIP format, applies BPE and linearizes trees on-the-fly
 
-    CAIP: CraftAssist Instruction Parsing 
+    CAIP: CraftAssist Instruction Parsing
 
     Args:
         tokenizer: pre-trained tokenizer for input
@@ -24,7 +25,7 @@ class CAIPDataset(Dataset):
         tree_voc: Tree vocabulary file
         tree_idxs: Tree dictionary
         data: Dictionary containing datasets loaded into memory.
-        
+
     """
 
     def __init__(
@@ -100,8 +101,7 @@ class CAIPDataset(Dataset):
         return self.dataset_length
 
     def __getitem__(self, idx):
-        """Sample data type and get example
-        """
+        """Sample data type and get example"""
         if self.sampling:
             dtype = np.random.choice(self.dtypes, p=self.sample_probas)
             if len(self.data[dtype]) == 0:
@@ -118,8 +118,21 @@ class CAIPDataset(Dataset):
         )
         text_idx_ls = [self.tokenizer._convert_token_to_id(w) for w in text.split()]
         tree_idx_ls = [
-            [self.tree_idxs[w], bi, ei, text_span_start, text_span_end, (self.tree_idxs[fixed_span_val] if type(fixed_span_val) == str else fixed_span_val)]
-            for w, bi, ei, text_span_start, text_span_end, fixed_span_val in [("<S>", -1, -1, -1, -1, -1)]
+            [
+                self.tree_idxs[w],
+                bi,
+                ei,
+                text_span_start,
+                text_span_end,
+                (
+                    self.tree_idxs[fixed_span_val]
+                    if type(fixed_span_val) == str
+                    else fixed_span_val
+                ),
+            ]
+            for w, bi, ei, text_span_start, text_span_end, fixed_span_val in [
+                ("<S>", -1, -1, -1, -1, -1)
+            ]
             + tree
             + [("</S>", -1, -1, -1, -1, -1)]
         ]
@@ -136,8 +149,7 @@ class CAIPDataset(Dataset):
         return (text_idx_ls, tree_idx_ls, (text, p_text, p_tree))
 
     def add_hard_example(self, exple):
-        """Add a given example for resampling.
-        """
+        """Add a given example for resampling."""
         if self.hard_buffer_counter < self.hard_buffer_size:
             self.data["hard"] += [exple]
         else:

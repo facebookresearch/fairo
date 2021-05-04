@@ -45,9 +45,7 @@ class LocoGetMemoryHandler(GetMemoryHandler):
             "attribute": AttributeInterpreter(),
             "point_target": PointTargetInterpreter(),
         }
-        self.task_objects = {
-            "point": Point
-        }
+        self.task_objects = {"point": Point}
 
     def handle_task_refobj_string(self, task, refobj_attr):
         if refobj_attr == "name":

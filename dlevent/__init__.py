@@ -16,6 +16,7 @@ class SocketIOMock:
     emulates the SocketIO interface, so that it can be
     used as a no-op mock class when dashboard is not enabled
     """
+
     mock = True
 
     def on(self, event, **kwargs):

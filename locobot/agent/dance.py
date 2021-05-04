@@ -53,6 +53,7 @@ head_bob = [
     {"head_yaw_pitch": (0, 0)},
 ]
 
+
 def add_default_dances(memory):
     memory.add_dance(
         generate_sequential_move_fn(konami_dance), name="konami_dance", tags=["dance"]

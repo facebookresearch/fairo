@@ -11,7 +11,7 @@ ITEM_QUEUE = Tuple[
 
 
 class Inventory:
-    """Handlers for adding and removing items from the agent's 
+    """Handlers for adding and removing items from the agent's
     inventory."""
 
     def __init__(self):

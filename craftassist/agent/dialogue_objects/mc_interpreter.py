@@ -101,8 +101,8 @@ class MCInterpreter(Interpreter):
 
     def handle_modify(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
-        and handles a 'modify' command by either replying back or pushing 
-        appropriate tasks to the task stack. 
+        and handles a 'modify' command by either replying back or pushing
+        appropriate tasks to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -149,8 +149,8 @@ class MCInterpreter(Interpreter):
 
     def handle_spawn(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
-        and handles a 'spawn' command by either replying back or 
-        pushing a Spawn task to the task stack. 
+        and handles a 'spawn' command by either replying back or
+        pushing a Spawn task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -191,7 +191,7 @@ class MCInterpreter(Interpreter):
     def handle_build(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'build' command by either pushing a dialogue object
-        or pushing a Build task to the task stack. 
+        or pushing a Build task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -261,7 +261,7 @@ class MCInterpreter(Interpreter):
     def handle_fill(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'fill' command by either pushing a dialogue object
-        or pushing a Fill task to the task stack. 
+        or pushing a Fill task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -325,7 +325,7 @@ class MCInterpreter(Interpreter):
     def handle_destroy(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'destroy' command by either pushing a dialogue object
-        or pushing a Destroy task to the task stack. 
+        or pushing a Destroy task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -357,7 +357,7 @@ class MCInterpreter(Interpreter):
     def handle_dig(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'dig' command by either pushing a dialogue object
-        or pushing a Dig task to the task stack. 
+        or pushing a Dig task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -422,7 +422,7 @@ class MCInterpreter(Interpreter):
     def handle_dance(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'dance' command by either pushing a dialogue object
-        or pushing a Dance task to the task stack. 
+        or pushing a Dance task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -518,7 +518,7 @@ class MCInterpreter(Interpreter):
     def handle_get(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
-        or pushing a Get task to the task stack. 
+        or pushing a Get task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -543,7 +543,7 @@ class MCInterpreter(Interpreter):
     def handle_drop(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'drop' command by either pushing a dialogue object
-        or pushing a Drop task to the task stack. 
+        or pushing a Drop task to the task stack.
 
         Args:
             speaker: speaker_id or name.

@@ -13,7 +13,7 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
     """subinterpreter to interpret comparators
     args:
     interpreter:  root interpreter.
-    speaker (str): The name of the player/human/agent who uttered 
+    speaker (str): The name of the player/human/agent who uttered
         the chat resulting in this interpreter
     d: logical form from semantic parser
     """

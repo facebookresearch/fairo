@@ -27,6 +27,7 @@ class SubcomponentClassifierWrapper:
         perceive_freq (int): if not forced, how many Agent steps between perception.
             If 0, does not run unless forced
     """
+
     def __init__(self, agent, model_path, perceive_freq=0):
         self.agent = agent
         self.memory = self.agent.memory

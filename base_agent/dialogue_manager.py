@@ -34,12 +34,10 @@ class DialogueManager(object):
 
     args:
         agent: a droidlet agent
-        
+
     """
 
-    def __init__(
-        self, agent, dialogue_object_classes, opts, semantic_parsing_model_wrapper
-    ):
+    def __init__(self, agent, dialogue_object_classes, opts, semantic_parsing_model_wrapper):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
@@ -57,7 +55,7 @@ class DialogueManager(object):
             speaker = self.agent.memory.get_player_by_id(chat.speaker_id).name
             chat_str = chat.chat_text
             chat_list_text.append((speaker, chat_str))
-        
+
         return chat_list_text
 
     def step(self, chat: Tuple[str, str]):
