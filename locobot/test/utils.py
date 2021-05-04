@@ -65,7 +65,9 @@ def get_fake_detection(class_label, properties, xyz):
 def get_rand_pixel(rgb_d):
     h = rgb_d.rgb.shape[0]
     w = rgb_d.rgb.shape[1]
-    return [np.random.randint(0, h), np.random.randint(0, w)]
+    # return in (w,h) format, since that is the currently followed convention for points
+    # See https://github.com/facebookresearch/droidlet/issues/358
+    return [np.random.randint(0, w), np.random.randint(0, h)]
 
 
 def get_fake_human_keypoints(rgb_d):
