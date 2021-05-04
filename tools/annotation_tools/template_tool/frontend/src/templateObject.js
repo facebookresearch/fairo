@@ -30,6 +30,9 @@ class TemplateAnnotator extends React.Component {
       this.updateLabels = this.updateLabels.bind(this);
       this.selectCommand = this.selectCommand.bind(this);
       this.updateCommandWithSubstitution = this.updateCommandWithSubstitution.bind(this);
+      this.uploadData = this.uploadData.bind(this);
+      this.incrementIndex = this.incrementIndex.bind(this);
+      this.decrementIndex = this.decrementIndex.bind(this);
     }
   
     componentDidMount() {
@@ -91,7 +94,22 @@ class TemplateAnnotator extends React.Component {
       this.setState({ value: e.target.value });
     }
 
+    incrementIndex() {
+      console.log("Moving to the next command")
+      if (this.state.currIndex + 1 >= this.state.allCommands.length) {
+        alert("Congrats! You have reached the end of annotations.")
+      }
+      this.setState({ name: this.state.allCommands[this.state.currIndex + 1], currIndex: this.state.currIndex + 1, value: JSON.stringify(this.state.dataset[this.state.allCommands[this.state.currIndex + 1]] ?? {}, undefined, 4) });
+    }
+  
+    decrementIndex() {
+      console.log("Moving to the next command")
+      console.log(this.state.currIndex)
+      this.setState({ name: this.state.allCommands[this.state.currIndex - 1], currIndex: this.state.currIndex - 1, value: JSON.stringify(this.state.dataset[this.state.allCommands[this.state.currIndex - 1]] ?? {}, undefined, 4) });
+    }
+
     updateTextValue(text) {
+      // Updates the logical form action dict value
       this.setState({ value: text });
     }
 
@@ -185,7 +203,7 @@ class TemplateAnnotator extends React.Component {
         }
         this.setState({ 
           command: command, 
-          value: JSON.stringify(logical_form),
+          value: JSON.stringify(logical_form, undefined, 4),
           name:  value
         })
       } else {
@@ -201,7 +219,30 @@ class TemplateAnnotator extends React.Component {
       console.log(newCommand)
       this.setState({ command: newCommand })
     }
-  
+
+    uploadData() {
+      console.log("Postprocessing annotations")
+      // First postprocess
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      };
+      fetch("http://localhost:9000/readAndSaveToFile/uploadDataToS3", requestOptions)
+        .then(
+          (result) => {
+            if (result.status == 200) {
+              this.setState({ value: "" })
+              alert("saved!")
+            } else {
+              alert("Error: could not upload data to S3: " + result.statusText + "\n Check the format of your action dictionary labels.")
+            }
+          },
+          (error) => {
+            console.error(error)
+          }
+        )
+    }
   
     render() {
       return (
@@ -216,12 +257,19 @@ class TemplateAnnotator extends React.Component {
             onChange={this.selectCommand}
           />
           <b> {this.props.title} </b>
-          <ListComponent value={this.state.command} fullText={this.state.allCommands} onChange={this.handleTextChange} />
-          <div> Name of template </div>
+          <ListComponent value={this.state.command} onChange={this.handleTextChange} />
+          <div> Name of Template / Annotation </div>
           <ListComponent value={this.state.name} onChange={this.handleNameChange} />
+          <div>
+            <button style={{ marginBottom: 5, marginRight: 5, marginTop: 5 }} onClick={this.decrementIndex}>Prev</button>
+            <button style={{ marginBottom: 5, marginRight: 5, marginTop: 5 }} onClick={this.incrementIndex}>Next</button>
+          </div>
           <LogicalForm title="Action Dictionary" updateTextValue={this.updateTextValue} onChange={this.handleChange} updateCommand={(x, y) => this.updateCommandWithSubstitution(x, y)} currIndex={this.state.fragmentsIndex} value={this.state.value} schema={this.props.schema} dataset={this.state.dataset} />
           <div onClick={this.logSerialized}>
             <button>Save</button>
+          </div>
+          <div style={{ padding: 10 }} onClick={this.uploadData}>
+            <button>Create Dataset</button>
           </div>
         </div>
       )
