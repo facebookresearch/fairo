@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-from memory_filters import get_property_value
+from .memory_filters import get_property_value
 
 
 # attribute has function signature list(mems) --> list(value)

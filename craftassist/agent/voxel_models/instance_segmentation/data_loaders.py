@@ -215,7 +215,6 @@ if __name__ == "__main__":
     #    import sys
     #    import visdom
 
-    #    sys.path.append("/private/home/aszlam/fairinternal/minecraft/python/craftassist/geoscorer/")
     #    import plot_voxels
 
     S = InstSegData("/checkpoint/aszlam/minecraft/segmentation_data/training_data.pkl")

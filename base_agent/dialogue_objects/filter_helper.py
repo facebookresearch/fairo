@@ -1,9 +1,9 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from attribute_helper import AttributeInterpreter, maybe_specific_mem
-from memory_attributes import LinearExtentAttribute
-from memory_filters import (
+from .attribute_helper import AttributeInterpreter, maybe_specific_mem
+from base_agent.memory_attributes import LinearExtentAttribute
+from base_agent.memory_filters import (
     MemoryFilter,
     NotFilter,
     MemidList,
@@ -14,9 +14,9 @@ from memory_filters import (
     ExtremeValueMemorySelector,
 )
 from base_agent.base_util import ErrorWithResponse
-from location_helpers import interpret_relative_direction
-from comparator_helper import interpret_comparator
-from dialogue_object_utils import tags_from_dict
+from .location_helpers import interpret_relative_direction
+from .comparator_helper import interpret_comparator
+from .dialogue_object_utils import tags_from_dict
 
 CARDINAL_RADIUS = 20
 

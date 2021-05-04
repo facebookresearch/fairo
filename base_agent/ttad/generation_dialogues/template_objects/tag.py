@@ -5,8 +5,8 @@ This file contains template objects associated with the Tag action
 """
 import random
 
-from generate_utils import *
-from tree_components import *
+from ..generate_utils import *
+from ..tree_components import *
 from .template_object import *
 
 #####################

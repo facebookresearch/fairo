@@ -15,8 +15,8 @@ from .attribute_helper import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from base_agent.base_util import ErrorWithResponse
-from tasks import Build, Point
-from ttad.generation_dialogues.generate_utils import prepend_a_an
+from ..tasks import Build, Point
+from base_agent.ttad.generation_dialogues.generate_utils import prepend_a_an
 
 
 class MCGetMemoryHandler(GetMemoryHandler):

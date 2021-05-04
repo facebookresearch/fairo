@@ -1,8 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from memory_filters import BasicMemorySearcher
-from base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
+from .memory_filters import BasicMemorySearcher
+from .base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
 
 
 # a value has a get_value() method; and get_value should not have

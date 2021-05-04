@@ -21,7 +21,7 @@ Examples:
 '''
 
 
-from template_objects import *
+from base_agent.ttad.generation_dialogues.template_objects import *
 
 DIG_WITH_CORRECTION = [
     ## General pattern : dig + new location specification

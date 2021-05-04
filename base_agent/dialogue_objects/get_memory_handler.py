@@ -4,13 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 from typing import Dict, Tuple, Any, Optional, Sequence
 
-from base_agent.dialogue_objects import DialogueObject, convert_location_to_selector
-from base_agent.base_util import ErrorWithResponse
-from base_agent.memory_nodes import MemoryNode
-from string_lists import ACTION_ING_MAPPING
+from . import DialogueObject, convert_location_to_selector
+from ..base_util import ErrorWithResponse
+from ..memory_nodes import MemoryNode
+from ..string_lists import ACTION_ING_MAPPING
 from copy import deepcopy
 import logging
-from base_agent.dialogue_objects.filter_helper import get_val_map
+from .filter_helper import get_val_map
 
 ALL_PROXIMITY = 1000
 

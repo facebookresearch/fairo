@@ -9,7 +9,7 @@ import pkg_resources
 import re
 import sentry_sdk
 import spacy
-import preprocess
+from . import preprocess
 from time import time
 from typing import Dict, Optional
 from base_agent.semantic_parser_wrapper import SemanticParserWrapper
@@ -22,11 +22,12 @@ from base_agent.dialogue_objects import (
     coref_resolve,
     process_spans_and_remove_fixed_value,
 )
-from base_util import hash_user
+from base_agent.base_util import hash_user
+# TODO: move JSONValidator into base
 from craftassist.test.validate_json import JSONValidator
 from base_agent.dialogue_model import DroidletSemanticParsingModel
 from dlevent import sio
-from nsp_logger import NSPLogger
+from .nsp_logger import NSPLogger
 
 spacy_model = spacy.load("en_core_web_sm")
 

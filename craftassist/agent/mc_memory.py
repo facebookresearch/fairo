@@ -6,13 +6,11 @@ import random
 import sys
 from typing import Optional, List
 
-from build_utils import npy_to_blocks_list
-import minecraft_specs
-import dance
+from .build_utils import npy_to_blocks_list
+from . import minecraft_specs
+from . import dance
 
 PERCEPTION_RANGE = 64
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
 
 
 from base_agent.base_util import XYZ, Block
@@ -30,7 +28,7 @@ from base_agent.memory_nodes import (  # noqa
     ReferenceObjectNode,
 )
 
-from mc_memory_nodes import (  # noqa
+from .mc_memory_nodes import (  # noqa
     DanceNode,
     VoxelObjectNode,
     BlockObjectNode,
@@ -43,10 +41,11 @@ from mc_memory_nodes import (  # noqa
     NODELIST,
 )
 
-from word_maps import SPAWN_OBJECTS
+from .word_maps import SPAWN_OBJECTS
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 
+# TODO: ship these schemas via setup.py and fix these directory references
 SCHEMAS = [
     os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql"),
     os.path.join(os.path.dirname(__file__), "mc_memory_schema.sql"),

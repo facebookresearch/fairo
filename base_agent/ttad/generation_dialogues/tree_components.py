@@ -41,7 +41,7 @@ import random
 
 from collections import OrderedDict
 
-from generate_utils import *
+from .generate_utils import *
 
 
 SUBCOMPONENT_LABELS = [

@@ -4,21 +4,14 @@ import logging
 import time
 import numpy as np
 
-dir_root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../..")
-dir_example = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..")
-dir_grid = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-sys.path.insert(0, dir_root)
-sys.path.append(dir_example)
-sys.path.append(dir_grid)
-
-from argument_parser import ArgumentParser
+from base_agent.argument_parser import ArgumentParser
 
 from base_agent.core import BaseAgent
 from base_agent.sql_memory import AgentMemory
-from grid.agent.heuristic_perception import HeuristicPerception
+from heuristic_perception import HeuristicPerception
 
-from grid.agent.world import World
-from grid.agent.tasks import Catch
+from world import World
+from tasks import Catch
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
@@ -116,7 +109,6 @@ if __name__ == "__main__":
 
     # set up stdout logging
     sh = logging.StreamHandler()
-    sh.setLevel(logging.DEBUG if opts.verbose else logging.INFO)
     sh.setFormatter(log_formatter)
     logging.getLogger().addHandler(sh)
     logging.info("Info logging")

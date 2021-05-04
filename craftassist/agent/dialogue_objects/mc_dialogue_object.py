@@ -1,12 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import sys
-import os
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../..")
-sys.path.append(BASE_AGENT_ROOT)
-
 from base_agent.dialogue_objects import BotCapabilities
 
 class MCBotCapabilities(BotCapabilities):

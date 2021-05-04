@@ -3,7 +3,7 @@ from base_agent.task import Task
 
 class Move(Task):
     def __init__(self, agent, task_data):
-        super(Move, self).__init__()
+        super(Move, self).__init__(agent)
         self.target = task_data["target"]
     
     def step(self, agent):
@@ -16,7 +16,7 @@ class Move(Task):
 
 class Grab(Task):
     def __init__(self, agent, task_data):
-        super(Grab, self).__init__()
+        super(Grab, self).__init__(agent)
         self.target_eid = task_data["target_eid"]
 
     def step(self, agent):
@@ -33,7 +33,7 @@ class Grab(Task):
 
 class Catch(Task):
     def __init__(self, agent, task_data):
-        super(Catch, self).__init__()
+        super(Catch, self).__init__(agent)
         self.target_memid = task_data["target_memid"]
     
     def step(self, agent):

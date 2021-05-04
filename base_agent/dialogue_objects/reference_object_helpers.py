@@ -8,9 +8,9 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 
-from dialogue_object_utils import SPEAKERLOOK
-from dialogue_object import ConfirmReferenceObject
-from location_helpers import interpret_relative_direction
+from .dialogue_object_utils import SPEAKERLOOK
+from .dialogue_object import ConfirmReferenceObject
+from .location_helpers import interpret_relative_direction
 from base_agent.base_util import euclid_dist, number_from_span
 from base_agent.memory_attributes import LookRayDistance, LinearExtentAttribute
 from base_agent.memory_nodes import ReferenceObjectNode

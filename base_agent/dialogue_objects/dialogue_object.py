@@ -6,8 +6,8 @@ import logging
 import numpy as np
 import random
 
-from string_lists import MAP_YES, MAP_NO
-from base_util import pos_to_np
+from base_agent.string_lists import MAP_YES, MAP_NO
+from base_agent.base_util import pos_to_np
 from enum import Enum
 from base_agent.memory_nodes import TaskNode
 
