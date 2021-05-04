@@ -73,9 +73,7 @@ for unit in units:
             # the worker from working on more of these tasks
             agent = unit.get_assigned_agent()
             agent.soft_reject_work()
-            should_soft_block = input(
-                "Do you want to soft block this worker? (y)es/(n)o: "
-            )
+            should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
             if should_soft_block.lower() in ["y", "yes"]:
                 if disqualification_name == None:
                     disqualification_name = input(

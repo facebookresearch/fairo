@@ -437,7 +437,7 @@ class Fill(TemplateObject):
 
 
 class Undo(TemplateObject):
-    """This template object repesents the Undo / revert action """
+    """This template object repesents the Undo / revert action"""
 
     def add_generate_args(self, index=0, templ_index=0):
         template = get_template_names(self, templ_index)

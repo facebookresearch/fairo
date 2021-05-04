@@ -7,7 +7,7 @@ from .tokenization_utils import fixed_span_values_voc
 
 
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
-    """Beam search decoding. 
+    """Beam search decoding.
 
     Note: Only uses node prediction scores, not the span scores.
 
@@ -53,7 +53,9 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     beam_seqs = [[("<S>", -1, -1, -1, -1, -1)] for _ in range(beam_size)]
     finished = [False for _ in range(beam_size)]
     fixed_value_vocab_size = len(fixed_span_values_voc)
-    pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - fixed_value_vocab_size)).to(model_device)
+    pad_scores = torch.Tensor([-1e9] * (len(dataset.tree_voc) - fixed_value_vocab_size)).to(
+        model_device
+    )
     pad_scores[dataset.tree_idxs["[PAD]"]] = 0
     for i in range(100):
         outputs = model.decoder.step(y, y_mask, x_reps, x_mask)
@@ -120,7 +122,9 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
         fixed_value_scores = outputs["fixed_value_scores"][:, -1, :][n_beam_ids]  # B x T
         fixed_value_lin_scores = fixed_value_scores.view(-1)
         # get the highest probability tokens
-        fixed_value_ranked_scores, fixed_value_ids = fixed_value_lin_scores.sort(dim=-1, descending=True)
+        fixed_value_ranked_scores, fixed_value_ids = fixed_value_lin_scores.sort(
+            dim=-1, descending=True
+        )
         fixed_value_beam_ids = fixed_value_ids // fixed_value_scores.shape[-1]
         # map back to which word in sequence, since
         fixed_value_word_ids = fixed_value_ids % fixed_value_scores.shape[-1]
@@ -140,8 +144,8 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
                     beam_b_ids[i],
                     beam_e_ids[i],
                     text_span_beam_start_ids[i],
-                    text_span_beam_end_ids[i],  
-                    fixed_value_words[i]
+                    text_span_beam_end_ids[i],
+                    fixed_value_words[i],
                 )
             ]
             for i in range(beam_size)

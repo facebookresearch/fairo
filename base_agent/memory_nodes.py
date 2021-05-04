@@ -9,11 +9,11 @@ from .base_util import XYZ, POINT_AT_TARGET, to_player_struct
 
 class MemoryNode:
     """This is the main class representing a node in the memory
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -31,7 +31,7 @@ class MemoryNode:
     @classmethod
     def new(cls, agent_memory, snapshot=False) -> str:
         """Creates a new entry into the Memories table
-        
+
         Returns:
             string: memid of the entry
         """
@@ -100,14 +100,14 @@ def link_archive_to_mem(agent_memory, memid, archive_memid):
 class ProgramNode(MemoryNode):
     """This class represents the logical forms (outputs from
     the semantic parser)
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         logical_form (dict): The semantic parser output for text
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -133,10 +133,10 @@ class ProgramNode(MemoryNode):
     @classmethod
     def create(cls, memory, logical_form, snapshot=False) -> str:
         """Creates a new entry into the Programs table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> logical_form = {"dialogue_type" : "HUMAN_GIVE_COMMAND",
@@ -158,14 +158,14 @@ class ProgramNode(MemoryNode):
 class NamedAbstractionNode(MemoryNode):
     """This class represents an abstract concept with a name,
     to be used in triples
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         name (string): Name of the abstraction, for example : "has_tag"
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -191,10 +191,10 @@ class NamedAbstractionNode(MemoryNode):
     @classmethod
     def create(cls, memory, name, snapshot=False) -> str:
         """Creates a new entry into the NamedAbstractions table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> name = "has_tag"
@@ -210,11 +210,11 @@ class NamedAbstractionNode(MemoryNode):
 
 class TripleNode(MemoryNode):
     """This class represents a (subject, predicate, object) KB triple
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         subj_text (string): the text of the subject
         subj (string):      the memid of the subject
@@ -223,7 +223,7 @@ class TripleNode(MemoryNode):
         obj_text (string):  the text of the object
         obj (string):       the memid of the object
         confidence (float): float between 0 and 1, currently unused
-    
+
     """
 
     TABLE_COLUMNS = [
@@ -311,8 +311,8 @@ class TripleNode(MemoryNode):
 # the table entry just has the memid and a modification time,
 # actual set elements are handled as triples
 class SetNode(MemoryNode):
-    """ for representing sets of objects, so that it is easier to build complex relations
-    using RDF/triplestore format.  is currently fetal- not used in main codebase yet """
+    """for representing sets of objects, so that it is easier to build complex relations
+    using RDF/triplestore format.  is currently fetal- not used in main codebase yet"""
 
     TABLE_COLUMNS = ["uuid"]
     TABLE = "SetMems"
@@ -336,13 +336,13 @@ class SetNode(MemoryNode):
 
 
 class ReferenceObjectNode(MemoryNode):
-    """ This is a class representing generic memory node for anything that has a spatial location and can be
+    """This is a class representing generic memory node for anything that has a spatial location and can be
     used a spatial reference (e.g. to the left of the x).
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode, ReferenceObjectNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -369,20 +369,20 @@ class ReferenceObjectNode(MemoryNode):
 
 
 class PlayerNode(ReferenceObjectNode):
-    """ This class represents humans and other agents that can affect
+    """This class represents humans and other agents that can affect
     the world
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         eid (int): Entity ID
         name (string): Name of player
         pos (tuple(float, float, float)): x, y, z coordinates
         pitch (float): the vertical angle of the agent's view vector
         yaw (float): the horizontal rotation angle of the agent's view vector
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode, PlayerNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -411,10 +411,10 @@ class PlayerNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, player_struct, memid=None) -> str:
         """Creates a new entry into the ReferenceObjects table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> from collections import namedtuple
@@ -488,11 +488,11 @@ class PlayerNode(ReferenceObjectNode):
 class SelfNode(PlayerNode):
     """This class is a special PLayerNode for representing the
     agent's self
-    
+
     Args:
         agent_memory  (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode, PlayerNode, SelfNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -512,15 +512,15 @@ class SelfNode(PlayerNode):
 class LocationNode(ReferenceObjectNode):
     """This is a ReferenceObjectNode representing a raw location
     (a point in space)
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         location (tuple): (x, y, z) coordinates of the node
         pos (tuple): (x, y, z) coordinates of the node
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode, LocationNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -546,10 +546,10 @@ class LocationNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, xyz: XYZ) -> str:
         """Creates a new entry into the ReferenceObjects table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> xyz = [0.0, 1.0, 3.0]
@@ -581,14 +581,14 @@ class LocationNode(ReferenceObjectNode):
 # locations should always be archives?
 class AttentionNode(LocationNode):
     """This is a ReferenceObjectNode representing spatial attention
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         attended (string): name of the node that is attending
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode, AttentionNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -614,10 +614,10 @@ class AttentionNode(LocationNode):
     @classmethod
     def create(cls, memory, xyz: XYZ, attender=None) -> str:
         """Creates a new entry into the ReferenceObjects table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> xyz = [0.0, 2.0, 50.0]
@@ -639,14 +639,14 @@ class AttentionNode(LocationNode):
 
 class TimeNode(MemoryNode):
     """This class represents a temporal 'location'
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         time (int): the value of time
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode, TimeNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -670,10 +670,10 @@ class TimeNode(MemoryNode):
     @classmethod
     def create(cls, memory, time: int) -> str:
         """Creates a new entry into the Times table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> time = 1234
@@ -686,16 +686,16 @@ class TimeNode(MemoryNode):
 
 class ChatNode(MemoryNode):
     """This node represents a chat/utterance from another agent/human
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         speaker_id (string): The memid of the speaker who sent the chat
         chat_text (string): The chat string
         time (int): The time at which the chat was delivered
-    
+
     Examples::
         >>> node_list = [TaskNode, ChatNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -723,10 +723,10 @@ class ChatNode(MemoryNode):
     @classmethod
     def create(cls, memory, speaker: str, chat: str) -> str:
         """Creates a new entry into the Chats table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> speaker = "189fsfagf9382jfjash" #'name' of the Player giving the command
@@ -745,19 +745,19 @@ class ChatNode(MemoryNode):
 
 
 class TaskNode(MemoryNode):
-    """ This node represents a task object that was placed on
+    """This node represents a task object that was placed on
     the agent's task_stack
-    
+
     Args:
         agent_memory (AgentMemory): An AgentMemory object
         memid (string): Memory ID for this node
-    
+
     Attributes:
         task (object): Name of the task
         created (int): Time at which it was created
         finished (int): Time at which it was finished
         action_name (string): The name of action that corresponds to this task
-    
+
     Examples::
         >>> node_list = [TaskNode]
         >>> schema_path = [os.path.join(os.path.dirname(__file__), "memory_schema.sql")]
@@ -784,7 +784,15 @@ class TaskNode(MemoryNode):
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
-        pickled, prio, running, run_count, created, finished, action_name = self.agent_memory._db_read_one(
+        (
+            pickled,
+            prio,
+            running,
+            run_count,
+            created,
+            finished,
+            action_name,
+        ) = self.agent_memory._db_read_one(
             "SELECT pickled, prio, running, run_count, created, finished, action_name FROM Tasks WHERE uuid=?",
             memid,
         )
@@ -801,10 +809,10 @@ class TaskNode(MemoryNode):
     @classmethod
     def create(cls, memory, task) -> str:
         """Creates a new entry into the Tasks table
-        
+
         Returns:
             string: memid of the entry
-        
+
         Examples::
             >>> memory = AgentMemory()
             >>> task = Task()
@@ -841,7 +849,7 @@ class TaskNode(MemoryNode):
         )
 
     def update_condition(self, conditions):
-        """ 
+        """
         conditions is a dict with keys in
         "init_condition", "run_condition", "stop_condition", "remove_condition"
         and values being Condition objects
@@ -855,7 +863,7 @@ class TaskNode(MemoryNode):
     def get_update_status(self, status, force_db_update=True, force_task_update=True):
         """
         status is a dict with possible keys "prio", "running", "finished".
-        
+
         prio > 0  :  run me if possible, check my stop condition
         prio = 0  :  check my run_condition, run if true
         prio = -1 :  check my init_condition, set prio = 0 if True
@@ -866,10 +874,10 @@ class TaskNode(MemoryNode):
 
         finished >  0 :  task has run and is complete, completed at the time indicated
         finished = -1 :  task has not completed
-        
+
         this method updates these columns of the DB for each of the keys if have values
         if force_db_update is set, these will be updated with the relevant attr from self.task
-        even if it is not in the status dict.  
+        even if it is not in the status dict.
         if force_task_update is set, the information will go the other way,
         and whatever is in the dict will be put on the task.
         """
@@ -900,14 +908,14 @@ class TaskNode(MemoryNode):
         pass
 
     def add_child_task(self, t, prio=1):
-        """Add (and by default activate) a child task, and pass along the id 
+        """Add (and by default activate) a child task, and pass along the id
         of the parent task (current task).  A task can only have one direct
         descendant any any given time.  To add a list of children use a ControlBlock
-    
+
         Args:
             t: the task to be added.  a *Task* object, not a TaskNode
                agent: the agent running this task
-            prio: default 1, set to 0 if you want the child task added but not activated, 
+            prio: default 1, set to 0 if you want the child task added but not activated,
                   None if you want it added but its conditions left in charge
         """
         TaskMem = TaskNode(self.memory, t.memid)

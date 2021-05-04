@@ -18,14 +18,14 @@ from base_agent.base_util import ErrorWithResponse
 
 
 class PutMemoryHandler(DialogueObject):
-    """This class handles logical forms that give input to the agent about the environment or 
+    """This class handles logical forms that give input to the agent about the environment or
     about the agent itself. This requires writing to the assistant's memory.
 
     Args:
         provisional: A dictionary used to store information to support clarifications
         speaker_name: Name or id of the speaker
         action_dict: output of the semantic parser (also called the logical form).
-        subinterpret: A dictionary that contains handlers to resolve the details of 
+        subinterpret: A dictionary that contains handlers to resolve the details of
                       salient components of a dictionary for this kind of dialogue.
     """
 
@@ -56,7 +56,7 @@ class PutMemoryHandler(DialogueObject):
     def _step(self) -> Tuple[Optional[str], Any]:
         """Read the action dictionary and take immediate actions based
         on memory type - either delegate to other handlers or raise an exception.
-        
+
         Returns:
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
@@ -71,7 +71,7 @@ class PutMemoryHandler(DialogueObject):
             raise NotImplementedError
 
     def handle_reward(self) -> Tuple[Optional[str], Any]:
-        """Creates a new node of memory type : RewardNode and 
+        """Creates a new node of memory type : RewardNode and
         returns a confirmation.
 
         Returns:

@@ -41,7 +41,7 @@ class TTADBertModel(object):
         model_name = os.path.join(model_dir, model_name)
         with open(model_name + "_args.pk", "rb") as fd:
             args = pickle.load(fd)
-        
+
         args.data_dir = data_dir
 
         self.tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)

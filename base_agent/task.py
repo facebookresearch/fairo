@@ -19,11 +19,11 @@ def get_default_conditions(task_data, agent, task):
     takes a task_data dict and fills in missing conditions with defaults
 
     Args:
-        task_data (dict):  this function willtry to use the values of "init_condition", 
+        task_data (dict):  this function willtry to use the values of "init_condition",
                            "stop_condition", "run_condition", and "remove_condition"
-        agent (Droidlet Agent): the agent that is going to be doing the Task controlled by 
+        agent (Droidlet Agent): the agent that is going to be doing the Task controlled by
                                 condition
-        task (Task):  the task to be controlled by the conditions 
+        task (Task):  the task to be controlled by the conditions
     """
     init_condition = task_data.get("init_condition", AlwaysCondition(None))
 
@@ -44,15 +44,15 @@ def get_default_conditions(task_data, agent, task):
 
 # put a counter and a max_count so can't get stuck?
 class Task(object):
-    """This class represents a Task, the exact implementation of which 
-    will depend on the framework and environment. A task can be placed on a 
+    """This class represents a Task, the exact implementation of which
+    will depend on the framework and environment. A task can be placed on a
     task stack, and represents a unit (which in itself can contain a sequence of s
     smaller subtasks).
 
     Attributes:
         memid (string): Memory id of the task in agent's memory
         interrupted (bool): A flag indicating whetherr the task has been interrupted
-        finished (bool): A flag indicating whether the task finished 
+        finished (bool): A flag indicating whether the task finished
         name (string): Name of the task
         undone (bool): A flag indicating whether the task was undone / reverted
         last_stepped_time (int): Timestamp of last step through the task
@@ -124,7 +124,7 @@ class Task(object):
 
     def check_finished(self):
         """Check if the task has marked itself finished
-        
+
         Returns:
             bool: If the task has finished
         """
@@ -139,8 +139,8 @@ class Task(object):
 
 
 class TaskListWrapper:
-    """ gadget for converting a list of tasks into a callable that serves as a new_tasks 
-        callable for a ControlBlock.  
+    """gadget for converting a list of tasks into a callable that serves as a new_tasks
+        callable for a ControlBlock.
 
     Args:
         agent: the agent who will perform the task list
@@ -190,14 +190,14 @@ class TaskListWrapper:
 #
 # FIXME/TODO: name any nonpicklable attributes in the object
 class ControlBlock(Task):
-    """Container for task control    
+    """Container for task control
 
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
             task_data["new_tasks"] is a callable, when called it returns a Task or None
             when it returns None, this ControlBlock is finished.
-            to make an infinite loop, the callable needs to keep returning Tasks; 
+            to make an infinite loop, the callable needs to keep returning Tasks;
     """
 
     def __init__(self, agent, task_data):
@@ -218,16 +218,16 @@ class ControlBlock(Task):
 
 
 class BaseMovementTask(Task):
-    """ a Task that changes the location of the agent
+    """a Task that changes the location of the agent
 
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
             task_data should have a key "target" with a target location
 
-    Attributes: 
+    Attributes:
         target_to_memory:  method that converts the task_data target into a location to record in memory
-    
+
     """
 
     # TODO FIXME!  PoseNode instead of LocationNode

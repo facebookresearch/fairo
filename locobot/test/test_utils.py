@@ -12,8 +12,9 @@ from locobot.agent.locobot_mover_utils import (
     get_move_target_for_point,
     xyz_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
-    pyrobot_to_canonical_frame,    
+    pyrobot_to_canonical_frame,
 )
+
 
 def assert_distance_moved(pos1, pos2, movement_vector):
     act_dist = norm(array(pos1)[:2] - array(pos2)[:2])
@@ -53,12 +54,13 @@ class LocoboMoverUtilsTest(unittest.TestCase):
     """
     Coordinate transform related tests https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
     """
+
     def test_pyrobot_to_canonical_to_pyrobot(self):
         pt_r = (1, 2, 3)
         pt_c = xyz_pyrobot_to_canonical_coords(pt_r)
         assert_allclose(pt_c, (-2, 3, 1))
         assert_allclose(xyz_canonical_coords_to_pyrobot_coords(pt_c), pt_r)
-    
+
     def test_canonical_to_pyrobot_to_canonical(self):
         pt_c = (1, 2, 3)
         pt_r = xyz_canonical_coords_to_pyrobot_coords(pt_c)
@@ -72,7 +74,7 @@ class LocoboMoverUtilsTest(unittest.TestCase):
         # define a dictionary that maps point target to move targets if eps is 1 (ie we want to move to with 1)
         # of the x, z and coordinates.
         target_move_dict_1 = {
-            (2, 0, 3): (1, 2), # (x,y,z) : (x,z)
+            (2, 0, 3): (1, 2),  # (x,y,z) : (x,z)
             (-2, 0, 3): (-1, 2),
             (-2, 0, -3): (-1, -2),
             (2, 0, -3): (1, -2),
@@ -93,6 +95,7 @@ class LocoboMoverUtilsTest(unittest.TestCase):
         for pt_target, mv_target in target_move_dict_4.items():
             act_mv = get_move_target_for_point(base_pos, pt_target, eps=4)
             assert_allclose(act_mv[:2], mv_target)
+
 
 if __name__ == "__main__":
     unittest.main()

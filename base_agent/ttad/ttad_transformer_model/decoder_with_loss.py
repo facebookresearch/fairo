@@ -17,8 +17,8 @@ def my_xavier_init(m, gain=1):
 
 
 class HighwayLayer(torch.nn.Module):
-    """Highway transformation used in span prediction.
-    """
+    """Highway transformation used in span prediction."""
+
     def __init__(self, dim):
         super(HighwayLayer, self).__init__()
         self.gate_proj = nn.Linear(dim, dim, bias=True)
@@ -53,6 +53,7 @@ class DecoderWithLoss(nn.Module):
         text_span_loss: Cross Entropy loss for text spans
 
     """
+
     def __init__(self, config, args, tokenizer):
         super(DecoderWithLoss, self).__init__()
         # model components
@@ -60,8 +61,12 @@ class DecoderWithLoss(nn.Module):
         self.bert = BertModel(config)
         self.lm_head = BertOnlyMLMHead(config)
         self.fixed_span_head = nn.Linear(config.hidden_size, len(fixed_span_values_voc))
-        self.span_b_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
-        self.span_e_proj = nn.ModuleList([HighwayLayer(config.hidden_size) for _ in range(args.num_highway)])
+        self.span_b_proj = nn.ModuleList(
+            [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
+        )
+        self.span_e_proj = nn.ModuleList(
+            [HighwayLayer(config.hidden_size) for _ in range(args.num_highway)]
+        )
         # predict text span beginning and end
         self.text_span_start_head = nn.Linear(config.hidden_size, config.hidden_size)
         self.text_span_end_head = nn.Linear(config.hidden_size, config.hidden_size)
@@ -151,8 +156,7 @@ class DecoderWithLoss(nn.Module):
         return res
 
     def forward(self, y, y_mask, x_reps, x_mask, is_eval=False):
-        """Same as step, except with loss. Set is_eval=True for validation.
-        """
+        """Same as step, except with loss. Set is_eval=True for validation."""
         if self.tree_to_text:
             bert_model = self.bert(
                 input_ids=y,
@@ -195,7 +199,9 @@ class DecoderWithLoss(nn.Module):
             fixed_span_scores = self.fixed_span_head(self.fixed_span_hidden_z)
             fixed_span_lin_scores = fixed_span_scores.view(-1, fixed_span_scores.shape[-1])
             fixed_span_lin_targets = y[:, 1:, 5].contiguous().view(-1)
-            fixed_span_lin_loss = self.fixed_span_loss(fixed_span_lin_scores, fixed_span_lin_targets)
+            fixed_span_lin_loss = self.fixed_span_loss(
+                fixed_span_lin_scores, fixed_span_lin_targets
+            )
             fixed_span_loss = fixed_span_lin_loss.sum() / (y[:, :, 5] >= 0).sum()
             # span prediction
             ## beginning of spans
@@ -272,6 +278,6 @@ class DecoderWithLoss(nn.Module):
                 "text_span_start_scores": text_span_start_scores,
                 "text_span_end_scores": text_span_end_scores,
                 "text_span_loss": text_span_loss,
-                "fixed_span_loss": fixed_span_loss
+                "fixed_span_loss": fixed_span_loss,
             }
         return res

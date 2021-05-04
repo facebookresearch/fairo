@@ -91,7 +91,7 @@ class RemoteLocobot(object):
         return "Connected!"  # should print on client terminal
 
     def get_img_resolution(self):
-        """ return height and width"""
+        """return height and width"""
         if self.backend == "locobot":
             return (
                 self._robot.camera.depth_cam.cfg_data["Camera.height"],
@@ -140,10 +140,11 @@ class RemoteLocobot(object):
                 self._robot.base.go_to_absolute([0, 0, 0])
             self._done = True
 
-    def go_to_absolute(self, 
-        xyt_position, 
-        use_map=False, 
-        close_loop=True, 
+    def go_to_absolute(
+        self,
+        xyt_position,
+        use_map=False,
+        close_loop=True,
         smooth=False,
         use_dslam=False,
     ):
@@ -171,13 +172,14 @@ class RemoteLocobot(object):
             else:
                 self._robot.base.go_to_absolute(
                     xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-                    )
+                )
             self._done = True
 
-    def go_to_relative(self, 
-        xyt_position, 
-        use_map=False, 
-        close_loop=True, 
+    def go_to_relative(
+        self,
+        xyt_position,
+        use_map=False,
+        close_loop=True,
         smooth=False,
         use_dslam=False,
     ):
@@ -205,7 +207,7 @@ class RemoteLocobot(object):
             else:
                 self._robot.base.go_to_relative(
                     xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
-                    )
+                )
             self._done = True
 
     @Pyro4.oneway
@@ -432,10 +434,9 @@ class RemoteLocobot(object):
         if rgb is not None:
             return rgb
         return None
-    
+
     def get_rgbd_segm(self):
-        """Returns the RGB image, depth, instance segmentation map.
-        """
+        """Returns the RGB image, depth, instance segmentation map."""
         rgb, d, segm = self._robot.camera.get_rgb_depth_segm()
         if rgb is not None:
             return rgb, d, segm
@@ -673,8 +674,7 @@ class RemoteLocobot(object):
             return True
 
     def get_map(self):
-        """returns the location of obstacles created by slam only for the obstacles,
-        """
+        """returns the location of obstacles created by slam only for the obstacles,"""
         # get the index correspnding to obstacles
         indices = np.where(self._slam.map_builder.map[:, :, 1] >= 1.0)
         # convert them into robot frame
@@ -683,6 +683,7 @@ class RemoteLocobot(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
+
 
 if __name__ == "__main__":
     import argparse

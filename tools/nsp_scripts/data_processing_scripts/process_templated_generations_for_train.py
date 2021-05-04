@@ -6,30 +6,30 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--raw_templated_path",
-        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/generation_dialogues/templated_pre.txt"
+        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/generation_dialogues/templated_pre.txt",
     )
     parser.add_argument(
         "--ground_truth_path",
-        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/ground_truth/datasets/templated.txt"
+        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/ground_truth/datasets/templated.txt",
     )
     parser.add_argument(
         "--templated_path",
-        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/generation_dialogues/templated_pre.txt"
+        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/generation_dialogues/templated_pre.txt",
     )
     parser.add_argument(
         "--full_path",
-        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/full_data/templated.txt"
+        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/full_data/templated.txt",
     )
     parser.add_argument(
         "--train_dir_path",
-        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/annotated_data/"
+        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/annotated_data/",
     )
     opts = parser.parse_args()
     f = open(opts.raw_templated_path)
     examples = []
     commands = []
     for line in f:
-        if line.strip() == '':
+        if line.strip() == "":
             if len(commands) > 2:
                 commands = []
                 continue
@@ -39,7 +39,7 @@ if __name__ == "__main__":
             commands += [line.strip()]
 
     f.close()
-    
+
     train_idx = int(round(len(examples) * 0.8))
     # test_idx = train_idx + int(round(len(examples) * 0.2))
     train = examples[:train_idx]
@@ -63,4 +63,3 @@ if __name__ == "__main__":
     with open(opts.train_dir_path + "valid/templated.txt", "w") as fd:
         for line in valid:
             fd.write(line + "\n")
-

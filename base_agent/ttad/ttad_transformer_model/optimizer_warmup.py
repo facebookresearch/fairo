@@ -2,8 +2,8 @@ from torch.optim import Adam, Adagrad
 
 
 class OptimWarmupEncoderDecoder(object):
-    """Custom wrapper for Adam optimizer, handles lr warmup and smaller lr for encoder fine-tuning.
-    """
+    """Custom wrapper for Adam optimizer, handles lr warmup and smaller lr for encoder fine-tuning."""
+
     def __init__(self, model, args):
         self.encoder = model.encoder
         self.decoder = model.decoder

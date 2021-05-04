@@ -18,11 +18,11 @@ class ArgumentParser:
         self.agent_parsers[agent_type]()
 
         self.parser.add_argument(
-            "--log_level", 
-            "-log", 
-            default="info", 
-            choices=["info", "debug", "warn", "error"], 
-            help="Logging tier to specify verbosity level, eg. DEBUG."
+            "--log_level",
+            "-log",
+            default="info",
+            choices=["info", "debug", "warn", "error"],
+            help="Logging tier to specify verbosity level, eg. DEBUG.",
         )
         self.parser.add_argument(
             "--no_default_behavior",
@@ -103,7 +103,7 @@ class ArgumentParser:
         loco_parser.add_argument(
             "--check_controller",
             action="store_true",
-            help="sanity checks the robot's movement, camera, arm."
+            help="sanity checks the robot's movement, camera, arm.",
         )
 
     def fix_path(self, opts):
