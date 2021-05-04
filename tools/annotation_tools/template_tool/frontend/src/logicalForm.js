@@ -12,9 +12,7 @@ class LogicalForm extends React.Component {
   }
 
   parseTemplates(actionDict) {
-    console.log(actionDict)
     var keys = Object.keys(actionDict)
-    console.log(keys)
     for (var i = 0; i < keys.length; i++) {
       if (Array.isArray(actionDict[keys[i]])) {
         // Currently grabbing the first, to change to check all
@@ -133,14 +131,11 @@ class LogicalForm extends React.Component {
         // Find the template objects
         var actionDict = JSON.parse(autocompletedResult);
         this.parseTemplates(actionDict);
-        console.log("final")
-        console.log(actionDict)
         // Apply JSON formatting       
         // console.log(JSON.stringify(autocompletedResult))
         var pretty = JSON.stringify(actionDict, undefined, 4);
         this.props.updateTextValue(pretty)
         e.target.value = pretty
-        console.log(e.target.value)
       }
       catch (err) {
         console.log(err)
