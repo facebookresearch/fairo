@@ -48,7 +48,7 @@ router.get("/get_commands", function (req, res, next) {
 /***
  * Fetch the commands we want to label
  */
- router.get("/get_fragments", function (req, res, next) {
+router.get("/get_fragments", function (req, res, next) {
   if (fs.existsSync("fragments.txt")) {
     // the file exists
     fs.readFile("fragments.txt", function (err, data) {
@@ -78,7 +78,7 @@ router.get("/get_labels_progress", function (req, res, next) {
 /***
  * Fetch previously labelled templates
  */
- router.get("/get_templates", function (req, res, next) {
+router.get("/get_templates", function (req, res, next) {
   if (fs.existsSync("templates_autocomplete.json")) {
     // the file exists
     fs.readFile("templates_autocomplete.json", function (err, data) {
@@ -119,7 +119,7 @@ router.post("/writeLabels", function (req, res, next) {
 /**
  * Write Templates
  */
- router.post("/writeTemplates", function (req, res, next) {
+router.post("/writeTemplates", function (req, res, next) {
   console.log(req.body);
   fs.writeFile("templates_autocomplete.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
