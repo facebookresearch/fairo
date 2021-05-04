@@ -11,13 +11,16 @@ from datetime import datetime
 """Applies updates to annotated dataset following grammar changes.
 """
 
+
 def read_file(file_path):
     with open(file_path) as fd:
         dataset = fd.readlines()
     return dataset
 
+
 def update_tree():
     raise NotImplementedException
+
 
 def traverse_tree(command, action_dict):
     traverse_subtree(command, action_dict)
@@ -25,6 +28,7 @@ def traverse_tree(command, action_dict):
     pp.pprint(action_dict)
     print(action_dict)
     return action_dict
+
 
 def get_span_range(text, command):
     index = command.find(text)
@@ -35,11 +39,12 @@ def get_span_range(text, command):
         text_arr = text.split(" ")
         for i in range(len(words_arr)):
             if words_arr[i] == text_arr[0]:
-                words_arr_set = " ".join(words_arr[i:i+len(text_arr)])
+                words_arr_set = " ".join(words_arr[i:i + len(text_arr)])
                 if words_arr_set == text:
-                    return [0, [i, i+len(text_arr) -1]]
+                    return [0, [i, i + len(text_arr) - 1]]
 
         return -1
+
 
 def traverse_subtree(command, action_dict):
     for key, value in [x for x in action_dict.items()]:
@@ -69,15 +74,17 @@ def traverse_subtree(command, action_dict):
                             else:
                                 span_end += 1
                 span_idxs = [0, [span_start, span_end]]
-                action_dict[key] = span_idxs 
+                action_dict[key] = span_idxs
             except Exception as e:
-                raise e 
+                raise e
     return action_dict
+
 
 def write_file(dataset, file_path):
     with open(file_path, "w+") as fd:
         for line in dataset:
             fd.write(line + "\n")
+
 
 if __name__ == "__main__":
     print("*** Applying grammar updates ***")
@@ -92,14 +99,16 @@ if __name__ == "__main__":
     autocomplete_annotations = {}
     updated_dataset = []
     current_time = datetime.now()
-    existing_annotations_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/{}".format(args.existing_annotations))
+    existing_annotations_path = "{}/{}".format(pkg_resources.resource_filename(
+        'craftassist.agent', 'datasets'), "full_data/{}".format(args.existing_annotations))
     if args.output_file == "":
         filename = "autocomplete_{}.txt".format(current_time.strftime('%Y-%m-%d-%H-%M-%S'))
     else:
         filename = args.output_file
-    datasets_write_path = "{}/{}".format(pkg_resources.resource_filename('craftassist.agent', 'datasets'), "full_data/{}".format(filename))
+    datasets_write_path = "{}/{}".format(pkg_resources.resource_filename(
+        'craftassist.agent', 'datasets'), "full_data/{}".format(filename))
 
-    # Read the file, update  
+    # Read the file, update
     for annotation_name in dataset:
         annotation_dict = dataset[annotation_name]
         # do extra processing for templated generations
@@ -127,7 +136,8 @@ if __name__ == "__main__":
                     autocomplete_annotations[command] = json.loads(action_dict)
 
     for command in autocomplete_annotations:
-        updated_dataset.append("{}|{}".format(command, json.dumps(autocomplete_annotations[command])))
-    
+        updated_dataset.append("{}|{}".format(
+            command, json.dumps(autocomplete_annotations[command])))
+
     with open(datasets_write_path, "w") as fd:
         write_file(updated_dataset, datasets_write_path)
