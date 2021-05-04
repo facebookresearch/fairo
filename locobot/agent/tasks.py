@@ -15,6 +15,7 @@ import locobot.agent.loco_memory as loco_memory
 import time
 from locobot.agent.locobot_mover_utils import (
     get_move_target_for_point,
+    get_step_target_for_move,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
     get_camera_angles,
@@ -386,7 +387,7 @@ class CuriousExplore(Task):
         def pick_random_in_sight(objects, base_pos):
             global examined
             for x in objects:
-                if x['eid'] not in examined:
+                if x['xyz'] not in examined:
                     # check for line of sight and if within a certain distance
                     yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], x['xyz'])
                     dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
@@ -401,7 +402,7 @@ class CuriousExplore(Task):
             if target is not None:
                 self.add_child_task(ExamineDetection(self.agent, {"target": target['xyz']}))
                 self.last_step_explore = False
-                examined.add(target['eid'])
+                examined.add(target['xyz'])
             self.steps[0] = "finished"
             return
             # what I want here is for the child task to be executed immediately
@@ -419,7 +420,7 @@ class ExamineDetection(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.frontier_center = list(task_data['target'])
+        self.frontier_center = np.asarray(task_data['target'])
         self.command_sent = False
         self.agent = agent
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -434,10 +435,10 @@ class ExamineDetection(Task):
         if not self.command_sent:
             self.command_sent = True
             base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-            dist = np.linalg.norm(base_pos[:2]-[self.frontier_center[0], self.frontier_center[:2]])
+            dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
             # move eps distance from current position towards target
             if dist > 0.5:
-                target = get_move_target_for_point(base_pos, self.frontier_center, eps=dist-0.1)
+                target = get_step_target_for_move(base_pos, self.frontier_center)
                 logging.info(f"Move Target for point {target}")
                 logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
                 self.add_child_task(Move(self.agent, {"target": target}))

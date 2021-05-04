@@ -88,6 +88,31 @@ def get_move_target_for_point(base_pos, target, eps=1):
     
     return [targetx, targetz, yaw] 
 
+def get_step_target_for_move(base_pos, target, step_size=0.1):
+    """
+    For point, we first want to move close to the object and then point to it.
+
+    Args:
+        base_pos ([x,z,yaw]): robot base in canonical coords
+        target ([x,y,z]): point target in canonical coords
+    
+    Returns:
+        move_target ([x,z,yaw]): robot base move target in canonical coords 
+    """
+
+    dx = target[0] - base_pos[0]
+    signx = 1 if dx > 0 else -1 
+
+    dz = target[2] - base_pos[1]
+    signz = 1 if dz > 0 else -1 
+
+    targetx = base_pos[0] + signx * (step_size)
+    targetz = base_pos[2] + signz * (step_size) 
+
+    yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+    
+    return [targetx, targetz, yaw] 
+
 
 """
 Co-ordinate transform utils. Read more at https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
