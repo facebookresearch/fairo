@@ -46,7 +46,7 @@ class AutocompleteAnnotator extends React.Component {
   render() {
     return (
       <div>
-        <div style={{ float: 'left', width: '65%', padding: 5}}>
+        <div style={{ float: 'left', width: '65%', padding: 5 }}>
           <TemplateAnnotator title="Add New Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
         </div>
       </div>
