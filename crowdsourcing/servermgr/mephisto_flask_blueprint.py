@@ -375,9 +375,7 @@ class MephistoRouter(WebSocketApplication):
             },
         }
 
-    def make_provider_request(
-        self, request_packet: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def make_provider_request(self, request_packet: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Make a request to the core Mephisto server, and then await the response"""
         request_id = request_packet["data"]["request_id"]
 
@@ -396,9 +394,7 @@ class MephistoRouter(WebSocketApplication):
 def handle_provider_request(request_type: str, data: Dict[str, Any]):
     """Wrapper for provider requests that handles extracting the result and timing out"""
     provider_data = data["provider_data"]
-    packet = mephisto_router_app.get_default_provider_request_packet(
-        request_type, provider_data
-    )
+    packet = mephisto_router_app.get_default_provider_request_packet(request_type, provider_data)
     res = mephisto_router_app.make_provider_request(packet)
     if res is not None:
         return jsonify(res)

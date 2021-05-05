@@ -9,7 +9,7 @@ import pkg_resources
 import re
 import sentry_sdk
 import spacy
-import preprocess
+from . import preprocess
 from time import time
 from typing import Dict, Optional
 from base_agent.semantic_parser_wrapper import SemanticParserWrapper
@@ -22,18 +22,22 @@ from base_agent.dialogue_objects import (
     coref_resolve,
     process_spans_and_remove_fixed_value,
 )
-from base_util import hash_user
+from base_agent.base_util import hash_user
+
+# TODO: move JSONValidator into base
 from craftassist.test.validate_json import JSONValidator
 from base_agent.dialogue_model import DroidletSemanticParsingModel
 from dlevent import sio
-from nsp_logger import NSPLogger
+from .nsp_logger import NSPLogger
 
 spacy_model = spacy.load("en_core_web_sm")
 
 
 class DroidletNSPModelWrapper(SemanticParserWrapper):
     def __init__(self, agent, dialogue_object_classes, opts, dialogue_manager):
-        super(DroidletNSPModelWrapper, self).__init__(agent, dialogue_object_classes, opts, dialogue_manager)
+        super(DroidletNSPModelWrapper, self).__init__(
+            agent, dialogue_object_classes, opts, dialogue_manager
+        )
         # Read all datasets
         self.read_datasets(opts)
         # instantiate logger and parsing model
@@ -42,11 +46,11 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         )
         try:
             self.parsing_model = DroidletSemanticParsingModel(
-                opts.nsp_models_dir, opts.nsp_data_dir)
+                opts.nsp_models_dir, opts.nsp_data_dir
+            )
         except NotADirectoryError:
             pass
-        
-        
+
         # Socket event listener
         # TODO(kavyas): I might want to move this to SemanticParserWrapper
         @sio.on("queryParser")

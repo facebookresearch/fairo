@@ -15,19 +15,19 @@ from .attribute_helper import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from base_agent.base_util import ErrorWithResponse
-from tasks import Build, Point
-from ttad.generation_dialogues.generate_utils import prepend_a_an
+from ..tasks import Build, Point
+from base_agent.ttad.generation_dialogues.generate_utils import prepend_a_an
 
 
 class MCGetMemoryHandler(GetMemoryHandler):
-    """This class handles logical forms that ask questions about the environment or 
+    """This class handles logical forms that ask questions about the environment or
     the assistant's current state. This requires querying the assistant's memory.
 
     Args:
         provisional: A dictionary used to store information to support clarifications
         speaker_name: Name or id of the speaker
         action_dict: output of the semantic parser (also called the logical form).
-        subinterpret: A dictionary that contains handlers to resolve the details of 
+        subinterpret: A dictionary that contains handlers to resolve the details of
                       salient components of a dictionary for this kind of dialogue.
 
     """
@@ -42,9 +42,7 @@ class MCGetMemoryHandler(GetMemoryHandler):
             "point_target": PointTargetInterpreter(),
         }
         self.subinterpret["attribute"] = MCAttributeInterpreter()
-        self.task_objects = {
-            "point": Point
-        }
+        self.task_objects = {"point": Point}
 
     def handle_task_refobj_string(self, task, refobj_attr):
         if refobj_attr == "name":

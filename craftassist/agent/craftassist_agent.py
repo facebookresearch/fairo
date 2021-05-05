@@ -13,15 +13,14 @@ from multiprocessing import set_start_method
 from collections import namedtuple
 import subprocess
 
-import default_behaviors
-import heuristic_perception
-import inventory
-import mc_memory
-import rotation
+# `from craftassist.agent` instead of `from .` because this file is
+# also used as a standalone script and invoked via `python craftassist_agent.py`
+from craftassist.agent import default_behaviors
+from craftassist.agent import heuristic_perception
+from craftassist.agent import inventory
+from craftassist.agent import mc_memory
+from craftassist.agent import rotation
 
-CA_ROOT = os.path.join(os.path.dirname(__file__), "..")
-BASE_AGENT_ROOT = os.path.join(CA_ROOT, "..")
-sys.path.append(BASE_AGENT_ROOT)
 
 import dldashboard
 
@@ -47,8 +46,7 @@ from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
 from dlevent import sio
 from craftassist.agent.mc_util import cluster_areas, MCTime
-from voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
-from voxel_models.geoscorer import Geoscorer
+from craftassist.agent.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -154,12 +152,6 @@ class CraftAssistAgent(LocoMCAgent):
             )
 
         self.on_demand_perception = {}
-        # set up the Geoscorer model
-        self.on_demand_perception["geoscorer"] = (
-            Geoscorer(merger_model_path=self.opts.geoscorer_model_path)
-            if os.path.isfile(self.opts.geoscorer_model_path)
-            else None
-        )
         self.on_demand_perception["check_inside"] = heuristic_perception.check_inside
 
     def init_controller(self):

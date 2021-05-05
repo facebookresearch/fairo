@@ -5,16 +5,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 import random
-import heuristic_perception
+from .. import heuristic_perception
 from typing import Tuple, Dict, Any, Optional, List
 from copy import deepcopy
 from word2number.w2n import word_to_num
 
 import sys
 import os
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.dialogue_objects import (
     Interpreter,
@@ -50,11 +47,11 @@ from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from base_agent.base_util import ErrorWithResponse, number_from_span
 from base_agent.memory_nodes import PlayerNode
-from mc_memory_nodes import MobNode, ItemStackNode
-import dance
-import tasks
+from ..mc_memory_nodes import MobNode, ItemStackNode
+from .. import dance
+from .. import tasks
 from base_agent.task import ControlBlock, maybe_task_list_to_control_block
-from mc_util import to_block_pos, XYZ
+from ..mc_util import to_block_pos, XYZ
 
 
 class MCInterpreter(Interpreter):
@@ -104,8 +101,8 @@ class MCInterpreter(Interpreter):
 
     def handle_modify(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
-        and handles a 'modify' command by either replying back or pushing 
-        appropriate tasks to the task stack. 
+        and handles a 'modify' command by either replying back or pushing
+        appropriate tasks to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -152,8 +149,8 @@ class MCInterpreter(Interpreter):
 
     def handle_spawn(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
-        and handles a 'spawn' command by either replying back or 
-        pushing a Spawn task to the task stack. 
+        and handles a 'spawn' command by either replying back or
+        pushing a Spawn task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -194,7 +191,7 @@ class MCInterpreter(Interpreter):
     def handle_build(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'build' command by either pushing a dialogue object
-        or pushing a Build task to the task stack. 
+        or pushing a Build task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -236,7 +233,6 @@ class MCInterpreter(Interpreter):
             reldir,
             repeat_dir=get_repeat_dir(location_d),
             objects=interprets,
-            enable_geoscorer=True,
         )
         interprets_with_offsets = [
             (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
@@ -265,7 +261,7 @@ class MCInterpreter(Interpreter):
     def handle_fill(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'fill' command by either pushing a dialogue object
-        or pushing a Fill task to the task stack. 
+        or pushing a Fill task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -329,7 +325,7 @@ class MCInterpreter(Interpreter):
     def handle_destroy(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'destroy' command by either pushing a dialogue object
-        or pushing a Destroy task to the task stack. 
+        or pushing a Destroy task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -361,7 +357,7 @@ class MCInterpreter(Interpreter):
     def handle_dig(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'dig' command by either pushing a dialogue object
-        or pushing a Dig task to the task stack. 
+        or pushing a Dig task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -426,7 +422,7 @@ class MCInterpreter(Interpreter):
     def handle_dance(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'dance' command by either pushing a dialogue object
-        or pushing a Dance task to the task stack. 
+        or pushing a Dance task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -522,7 +518,7 @@ class MCInterpreter(Interpreter):
     def handle_get(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
-        or pushing a Get task to the task stack. 
+        or pushing a Get task to the task stack.
 
         Args:
             speaker: speaker_id or name.
@@ -547,7 +543,7 @@ class MCInterpreter(Interpreter):
     def handle_drop(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'drop' command by either pushing a dialogue object
-        or pushing a Drop task to the task stack. 
+        or pushing a Drop task to the task stack.
 
         Args:
             speaker: speaker_id or name.

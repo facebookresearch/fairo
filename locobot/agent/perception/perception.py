@@ -196,7 +196,9 @@ class Perception:
             previous_objects = self.vision.memory.get_objects()
             current_objects = detections + humans
             if previous_objects is not None:
-                new_objects, updated_objects = self.vision.deduplicate(current_objects, previous_objects)
+                new_objects, updated_objects = self.vision.deduplicate(
+                    current_objects, previous_objects
+                )
             self.vision.memory(new_objects, updated_objects)
 
         self.log(rgb_depth, detections, humans, old_image, old_xyz)

@@ -1,21 +1,18 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import sys
-import os
 import logging
-import os
 import random
 import re
 import time
 import numpy as np
 
-from core import BaseAgent
+from .core import BaseAgent
 from base_agent.base_util import ErrorWithResponse
 from dlevent import sio
 
-from base_util import hash_user
-from save_and_fetch_commands import *
+from .base_util import hash_user
+from .save_and_fetch_commands import *
 
 random.seed(0)
 

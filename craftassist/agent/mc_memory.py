@@ -6,13 +6,11 @@ import random
 import sys
 from typing import Optional, List
 
-from build_utils import npy_to_blocks_list
-import minecraft_specs
-import dance
+from .build_utils import npy_to_blocks_list
+from . import minecraft_specs
+from . import dance
 
 PERCEPTION_RANGE = 64
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
 
 
 from base_agent.base_util import XYZ, Block
@@ -30,7 +28,7 @@ from base_agent.memory_nodes import (  # noqa
     ReferenceObjectNode,
 )
 
-from mc_memory_nodes import (  # noqa
+from .mc_memory_nodes import (  # noqa
     DanceNode,
     VoxelObjectNode,
     BlockObjectNode,
@@ -43,10 +41,11 @@ from mc_memory_nodes import (  # noqa
     NODELIST,
 )
 
-from word_maps import SPAWN_OBJECTS
+from .word_maps import SPAWN_OBJECTS
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 
+# TODO: ship these schemas via setup.py and fix these directory references
 SCHEMAS = [
     os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql"),
     os.path.join(os.path.dirname(__file__), "mc_memory_schema.sql"),
@@ -130,7 +129,7 @@ class MCAgentMemory(AgentMemory):
             return None
 
     def update_voxel_mean(self, memid, count, loc):
-        """ update the x, y, z entries in ReferenceObjects
+        """update the x, y, z entries in ReferenceObjects
         to account for the removal or addition of a block.
         count should be the number of voxels *after* addition if >0
         and -count the number *after* removal if count < 0
@@ -185,9 +184,9 @@ class MCAgentMemory(AgentMemory):
         agent_placed: bool = False,
         update: bool = True,  # if update is set to False, forces a write
     ):
-        """This function upserts a block of ref_type in memory.        
+        """This function upserts a block of ref_type in memory.
         Note:
-        This functions only upserts to the same ref_type- if the voxel is 
+        This functions only upserts to the same ref_type- if the voxel is
         occupied by a different ref_type it will insert a new ref object even if update is True"""
 
         ((x, y, z), (b, m)) = block
@@ -254,7 +253,7 @@ class MCAgentMemory(AgentMemory):
 
     def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
         """Get ids of memory node of type "BlockObjects" or "VoxelObjectNode"
-         at (x, y, z)"""
+        at (x, y, z)"""
         memids = self.get_block_object_ids_by_xyz(xyz)
         if len(memids) == 0:
             return None
@@ -272,7 +271,7 @@ class MCAgentMemory(AgentMemory):
     #####################
 
     def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
-        """Get ids of memory nodes of ref_type: "inst_seg" using their 
+        """Get ids of memory nodes of ref_type: "inst_seg" using their
         location"""
         r = self._db_read(
             'SELECT DISTINCT(uuid) FROM VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?',
@@ -490,7 +489,7 @@ class MCAgentMemory(AgentMemory):
     def update_item_stack_eid(self, memid, eid) -> "ItemStackNode":
         """Update ItemStack in memory and return the corresponding node
         Returns:
-            ItemStackNode 
+            ItemStackNode
         """
         r = self._db_read_one("SELECT * FROM ReferenceObjects WHERE uuid=?", memid)
         if r:

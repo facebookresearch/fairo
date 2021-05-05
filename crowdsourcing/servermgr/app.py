@@ -47,7 +47,9 @@ app = Flask(__name__)
 app.register_blueprint(mephisto_router, url_prefix=r"/")
 
 ec2 = boto3.resource("ec2")
-ecs = boto3.client("ecs", aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+ecs = boto3.client(
+    "ecs", aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
 s3 = boto3.resource("s3")
 
 import ping_cuberite
@@ -59,7 +61,6 @@ logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
 logging.getLogger().setLevel(logging.INFO)
 
 
-
 SUBNET_IDS = ["subnet-bee9d9d9"]
 SECURITY_GROUP_IDS = ["sg-04ec8fa6e1d91d460"]
 
@@ -68,6 +69,7 @@ with open("run.withagent.sh", "rb") as f:
     txt_flat = txt.replace(b"diverse_world", b"flat_world")
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
     run_flat_sh_gz_b64 = b64encode(gzip.compress(txt_flat)).decode("utf-8")
+
 
 def register_dashboard_subdomain(cf, zone_id, ip):
     """Registers a unique subdomain for craftassist.io
@@ -83,13 +85,17 @@ def register_dashboard_subdomain(cf, zone_id, ip):
     # Check that DNS record does not already exist
     while dns_record_exists:
         subdomain_name = "dashboard-{}".format(randint(0, 10 ** 9))
-        dns_record_exists = cf.zones.dns_records.get(zone_id, params={'name': '{}.craftassist.io'.format(subdomain_name)})
-    dns_record = {'name': subdomain_name, 'type':'A', 'content': ip, 'proxied': True}
+        dns_record_exists = cf.zones.dns_records.get(
+            zone_id, params={"name": "{}.craftassist.io".format(subdomain_name)}
+        )
+    dns_record = {"name": subdomain_name, "type": "A", "content": ip, "proxied": True}
     r = cf.zones.dns_records.post(zone_id, data=dns_record)
+
 
 @app.route("/test")
 def test():
     return flask.render_template("index.html")
+
 
 @app.route("/launch", methods=["GET", "POST"])
 def launch():
@@ -227,14 +233,8 @@ def launch_instance(task="craftassist", config="random", debug=False):
                             "name": "SENTRY_DSN",
                             "value": os.environ.get("CRAFTASSIST_SENTRY_DSN", ""),
                         },
-                        {
-                            "name": "CLOUDFLARE_TOKEN",
-                            "value": os.getenv("CLOUDFLARE_TOKEN")
-                        },
-                        {
-                            "name": "CLOUDFLARE_ZONE_ID",
-                            "value": os.getenv("CLOUDFLARE_ZONE_ID")
-                        }
+                        {"name": "CLOUDFLARE_TOKEN", "value": os.getenv("CLOUDFLARE_TOKEN")},
+                        {"name": "CLOUDFLARE_ZONE_ID", "value": os.getenv("CLOUDFLARE_ZONE_ID")},
                     ],
                 }
             ]
@@ -273,8 +273,6 @@ def urlencode(s):
 def urldecode(s):
     """b64 str -> str"""
     return b64decode(s).decode()
-
-
 
 
 if __name__ == "__main__":

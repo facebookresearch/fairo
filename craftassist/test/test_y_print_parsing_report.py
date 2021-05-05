@@ -280,22 +280,22 @@ common_functional_commands = {
         },
     },
     "what is outside the window": {
-        "dialogue_type": "GET_MEMORY", 
+        "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute": "NAME"}, 
+            "output": {"attribute": "NAME"},
             "selector": {
                 "location": {
-                    "text_span": [0, [2, 4]], 
-                    "relative_direction": "OUTSIDE", 
+                    "text_span": [0, [2, 4]],
+                    "relative_direction": "OUTSIDE",
                     "reference_object": {
-                        "text_span": [0, [4, 4]], 
+                        "text_span": [0, [4, 4]],
                         "filters": {
                             "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-                        }
-                    }
+                        },
+                    },
                 }
-            }
-        }
+            },
+        },
     },
     "follow me": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -518,12 +518,12 @@ common_functional_commands = {
         ],
     },
     "where am i": {
-        "dialogue_type": "GET_MEMORY", 
+        "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute": "LOCATION"}, 
-            "memory_type": "REFERENCE_OBJECT", 
-            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SPEAKER"}}]
-        }
+            "output": {"attribute": "LOCATION"},
+            "memory_type": "REFERENCE_OBJECT",
+            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SPEAKER"}}],
+        },
     },
     "how many pencils are there": {
         "dialogue_type": "GET_MEMORY",

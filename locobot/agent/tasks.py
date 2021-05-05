@@ -334,7 +334,7 @@ class Drop(Task):
 
 
 class Explore(Task):
-    """use slam to explore environemt    """
+    """use slam to explore environemt"""
 
     def __init__(self, agent, task_data):
         super().__init__(agent)

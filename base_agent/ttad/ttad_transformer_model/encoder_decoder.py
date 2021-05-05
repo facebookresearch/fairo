@@ -12,11 +12,12 @@ class EncoderDecoderWithLoss(nn.Module):
     Args:
         encoder: Pre-trained BERT encoder
         decoder: Transformer decoder, see DecoderWithLoss
-        args: Parsed command line args from running agent, 
+        args: Parsed command line args from running agent,
             eg. ``train_encoder`` specifies whether to train the encoder
 
 
     """
+
     def __init__(self, encoder, decoder, args):
         super(EncoderDecoderWithLoss, self).__init__()
         self.encoder = encoder

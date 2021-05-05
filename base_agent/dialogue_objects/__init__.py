@@ -1,9 +1,4 @@
-import os
-import sys
-
-sys.path.append(os.path.dirname(__file__))
-
-from dialogue_object import (
+from .dialogue_object import (
     AwaitResponse,
     BotCapabilities,
     BotGreet,
@@ -14,7 +9,7 @@ from dialogue_object import (
     Say,
 )
 
-from dialogue_object_utils import (
+from .dialogue_object_utils import (
     SPEAKERLOOK,
     SPEAKERPOS,
     AGENTPOS,
@@ -27,7 +22,7 @@ from dialogue_object_utils import (
     convert_location_to_selector,
 )
 
-from reference_object_helpers import (
+from .reference_object_helpers import (
     ReferenceObjectInterpreter,
     interpret_reference_object,
     special_reference_search_data,
@@ -35,15 +30,15 @@ from reference_object_helpers import (
     filter_by_sublocation,
 )
 
-from location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
+from .location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
 
-from interpreter import Interpreter
+from .interpreter import Interpreter
 
-from get_memory_handler import GetMemoryHandler
+from .get_memory_handler import GetMemoryHandler
 
-from condition_helper import ConditionInterpreter, get_repeat_num
-from filter_helper import FilterInterpreter, interpret_dance_filter
-from attribute_helper import AttributeInterpreter
+from .condition_helper import ConditionInterpreter, get_repeat_num
+from .filter_helper import FilterInterpreter, interpret_dance_filter
+from .attribute_helper import AttributeInterpreter
 
 __all__ = [
     AwaitResponse,

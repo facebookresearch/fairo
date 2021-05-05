@@ -5,8 +5,8 @@ This file contains common template objects used across different templates.
 """
 import random
 
-from generate_utils import *
-from tree_components import *
+from ..generate_utils import *
+from ..tree_components import *
 from .template_object import *
 
 #######################

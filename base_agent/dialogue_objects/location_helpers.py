@@ -3,8 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import math
-from base_util import ErrorWithResponse
-from dialogue_object_utils import SPEAKERLOOK, tags_from_dict
+from base_agent.base_util import ErrorWithResponse
+from .dialogue_object_utils import SPEAKERLOOK, tags_from_dict
 
 
 def interpret_relative_direction(interpreter, location_d):
@@ -26,7 +26,7 @@ class ReferenceLocationInterpreter:
 
         args:
         interpreter:  root interpreter.
-        speaker (str): The name of the player/human/agent who uttered 
+        speaker (str): The name of the player/human/agent who uttered
             the chat resulting in this interpreter
         d: logical form from semantic parser
         """

@@ -1,9 +1,9 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from attribute_helper import AttributeInterpreter, maybe_specific_mem
-from memory_attributes import LinearExtentAttribute
-from memory_filters import (
+from .attribute_helper import AttributeInterpreter, maybe_specific_mem
+from base_agent.memory_attributes import LinearExtentAttribute
+from base_agent.memory_filters import (
     MemoryFilter,
     NotFilter,
     MemidList,
@@ -14,9 +14,9 @@ from memory_filters import (
     ExtremeValueMemorySelector,
 )
 from base_agent.base_util import ErrorWithResponse
-from location_helpers import interpret_relative_direction
-from comparator_helper import interpret_comparator
-from dialogue_object_utils import tags_from_dict
+from .location_helpers import interpret_relative_direction
+from .comparator_helper import interpret_comparator
+from .dialogue_object_utils import tags_from_dict
 
 CARDINAL_RADIUS = 20
 
@@ -135,9 +135,9 @@ def interpret_argval_selector(interpreter, speaker, selector_d):
 
 
 def build_linear_extent_selector(interpreter, speaker, location_d):
-    """ 
-    builds a MemoryFilter that selects by a linear_extent dict 
-    chooses memory location nearest to 
+    """
+    builds a MemoryFilter that selects by a linear_extent dict
+    chooses memory location nearest to
     the linear_extent dict interpreted as a location
     """
 
@@ -252,11 +252,11 @@ def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
 class FilterInterpreter:
     def __call__(self, interpreter, speaker, filters_d, get_all=False):
         """
-        This is a subinterpreter to handle FILTERS dictionaries 
+        This is a subinterpreter to handle FILTERS dictionaries
 
         Args:
         interpreter:  root interpreter.
-        speaker (str): The name of the player/human/agent who uttered 
+        speaker (str): The name of the player/human/agent who uttered
             the chat resulting in this interpreter
         filters_d: FILTERS logical form from semantic parser
         get_all (bool): if True, output attributes are set with get_all=True

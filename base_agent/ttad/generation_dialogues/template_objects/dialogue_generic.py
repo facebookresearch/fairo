@@ -3,8 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 This file contains generic template objects associated with Dilogue.
 """
-from generate_utils import *
-from tree_components import *
+from ..generate_utils import *
+from ..tree_components import *
 from .template_object import *
 
 

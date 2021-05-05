@@ -19,7 +19,12 @@ def print_csv_format(filename, option_num, max_words=40):
     elif option_num == 2:
         # level 2, tool B
         print(
-            "command", "intent", "child", "highlight_words", *["word{}".format(i) for i in range(max_words)], sep=","
+            "command",
+            "intent",
+            "child",
+            "highlight_words",
+            *["word{}".format(i) for i in range(max_words)],
+            sep=","
         )
 
         with open(filename) as f:
@@ -32,11 +37,24 @@ def print_csv_format(filename, option_num, max_words=40):
                 intent = parts[2]
                 child = parts[3]
                 highlight_words = parts[4].replace(",", "-")
-                print(parts[1], intent, child, highlight_words, *words, *([""] * (max_words - len(words))), sep=",")
+                print(
+                    parts[1],
+                    intent,
+                    child,
+                    highlight_words,
+                    *words,
+                    *([""] * (max_words - len(words))),
+                    sep=","
+                )
     elif option_num == 3:
         # tool C (for reference object only)
         print(
-            "command", "intent", "child", "highlight_words", *["word{}".format(i) for i in range(max_words)], sep=","
+            "command",
+            "intent",
+            "child",
+            "highlight_words",
+            *["word{}".format(i) for i in range(max_words)],
+            sep=","
         )
 
         with open(filename) as f:
@@ -51,7 +69,15 @@ def print_csv_format(filename, option_num, max_words=40):
                 intent = parts[2].replace(",", "")
                 child = parts[3].replace(",", "")
                 highlight_words = parts[4].replace(",", "-")
-                print(parts[1], intent, child, highlight_words, *words, *([""] * (max_words - len(words))), sep=",")
+                print(
+                    parts[1],
+                    intent,
+                    child,
+                    highlight_words,
+                    *words,
+                    *([""] * (max_words - len(words))),
+                    sep=","
+                )
     elif option_num == 4:
         # tool D, comparison for filters tool
         print(
@@ -75,7 +101,13 @@ def print_csv_format(filename, option_num, max_words=40):
                 ref_child = parts[3]
                 highlight_words = parts[4].replace(",", "-")
                 print(
-                    parts[1], child, ref_child, highlight_words, *words, *([""] * (max_words - len(words))), sep=","
+                    parts[1],
+                    child,
+                    ref_child,
+                    highlight_words,
+                    *words,
+                    *([""] * (max_words - len(words))),
+                    sep=","
                 )
     elif option_num == 5:
         # qualification test

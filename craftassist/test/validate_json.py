@@ -28,7 +28,7 @@ class JSONValidator:
         re_pattern = "(.*)\/(.*).schema.json$"
         base_schema_name = re.search(re_pattern, base_uri).group(2)
         resolver = RefResolver(base_schema_name + ".schema.json", base_schema)
-        
+
         span_schemas = ["string_span", "array_span", "array_and_string_span"]
         # Which type of span to load
         if span_type == "string":
@@ -96,7 +96,7 @@ class JSONValidator:
             print("Error validating:\n{}\n".format(parse_tree))
             print(e)
             return False
-        return True                          
+        return True
 
 
 if __name__ == "__main__":

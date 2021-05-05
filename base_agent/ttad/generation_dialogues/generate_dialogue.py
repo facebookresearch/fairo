@@ -170,7 +170,7 @@ def fix_spans(d, prev_sentence_len):
 
 
 def combine_dicts(dict_1, dict_2, prev_sentence_len):
-    """ This function appends the 'action_sequence' of dict_2 to dict_1
+    """This function appends the 'action_sequence' of dict_2 to dict_1
     after updating spans in dict_2 with length of sentence before it"""
     dict_2 = fix_spans(dict_2, prev_sentence_len)
     for action in dict_2["action_sequence"]:
@@ -201,7 +201,7 @@ def create_composite_action(action_1, action_2):
 
 
 def generate_actions(n, action_type=None, template_attributes={}, composite=False):
-    """ Generate action tree and language based on action type """
+    """Generate action tree and language based on action type"""
 
     texts = []
     dicts = []
