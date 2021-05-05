@@ -332,6 +332,11 @@ class LoCoBotMover:
         """
         return self.bot.get_base_state("odom")
 
+    def get_rgbd_segm(self):
+        """Returns the RGB image, depth, instance segmentation map.
+        """
+        return self.bot.get_rgbd_segm()
+        
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
 

@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import numpy as np
 import logging
+import cv2
 
 from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode
@@ -366,6 +367,44 @@ class Explore(Task):
 
 examined = set()
 
+import os
+root_path = '/scratch/apratik/active'
+img_folder = os.path.join(root_path, 'img')
+depth_folder = os.path.join(root_path, 'depth')
+seg_folder = os.path.join(root_path, 'seg')
+img_count = 0
+
+def save_state(agent):
+    global img_count
+    rgb, depth, seg = agent.mover.get_rgbd_segm()
+    pos = agent.mover.get_base_pos()
+
+    def mkdir(d):
+        if not os.path.isdir(d):
+            os.makedirs(d)
+
+    mkdir(img_folder)
+    mkdir(depth_folder)
+    mkdir(seg_folder)
+
+    # store the images and depth
+    cv2.imwrite(
+        img_folder + "/{:05d}.jpg".format(img_count),
+        cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
+    )
+
+    # store depth in mm
+    depth *= 1e3
+    depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+    depth = depth.astype(np.uint16)
+    np.save(depth_folder + "/{:05d}.npy".format(img_count), depth)
+
+    # store seg
+    np.save(seg_folder + "/{:05d}.npy".format(img_count), seg)
+
+    # store pos
+    img_count = img_count+1
+
 class CuriousExplore(Task):
     """use slam to explore environemt, but also examine detections"""
 
@@ -379,34 +418,33 @@ class CuriousExplore(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
-        # Get a list of current detections
-        objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
-        pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        # pick randomly from unexamined, closest object
-        def pick_random_in_sight(objects, base_pos):
-            global examined
-            for x in objects:
-                if x['xyz'] not in examined:
-                    # check for line of sight and if within a certain distance
-                    yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], x['xyz'])
-                    dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
-                    if abs(yaw_rad) <= math.pi/4 and dist <= 5:
-                        logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
-                        return x
-            return None
-        
+        # save state
+        save_state(self.agent)
+
         # execute a examine maneuver
         if self.steps[0] == "not_started":
+            # Get a list of current detections
+            objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
+            pos = self.agent.mover.get_base_pos_in_canonical_coords()
+            # pick randomly from unexamined, closest object
+            def pick_random_in_sight(objects, base_pos):
+                global examined
+                for x in objects:
+                    if x['xyz'] not in examined:
+                        # check for line of sight and if within a certain distance
+                        yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], x['xyz'])
+                        dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
+                        if abs(yaw_rad) <= math.pi/4 and dist <= 5:
+                            logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
+                            return x
+                return None
             target = pick_random_in_sight(objects, pos)
             if target is not None:
+                examined.add(target['xyz'])
                 self.add_child_task(ExamineDetection(self.agent, {"target": target}))
                 self.last_step_explore = False
-                examined.add(target['xyz'])
             self.steps[0] = "finished"
             return
-            # what I want here is for the child task to be executed immediately
-            # and then explore to be executed. loop of examine - explore
-        # mark it as examined
 
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
             self.agent.mover.explore()
@@ -429,6 +467,9 @@ class ExamineDetection(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
+
+        save_state(self.agent)
+
         # Calculate a path around self.frontier_c and move on it facing the detection
         # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
 
