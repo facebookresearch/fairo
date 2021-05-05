@@ -9,14 +9,14 @@ from typing import cast, List, Tuple, Union, Optional
 
 # TODO with subinterpret
 from base_agent.dialogue_objects import get_repeat_num
-import block_data
-import size_words
+from .. import block_data
+from .. import size_words
 from .block_helpers import get_block_type
 from base_agent.base_util import ErrorWithResponse, number_from_span
-from mc_util import Block, most_common_idm
+from ..mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
-from word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
+from ..word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
 
 
 def get_properties_from_triples(triples_list, p):
@@ -106,8 +106,8 @@ def interpret_shape_schematic(
     - a list of (pred, val) tags
 
     warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is 
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+    heursitic just picks one.  e.g. if the lf is
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
                      {"pred_text": "has_colour", "obj_text": "blue"}]
     will currently just pick red.   Same for other properties encoded in triples
     """
@@ -134,7 +134,7 @@ def interpret_shape_schematic(
             if val:
                 tags.append((key, stemmed_val))
 
-    return SPECIAL_SHAPE_FNS[shape](**attrs), tags
+    return SPECIAL_SHAPE_FNS[shape.upper()](**attrs), tags
 
 
 def interpret_size(interpreter, text) -> Union[int, List[int]]:
@@ -163,8 +163,8 @@ def interpret_named_schematic(
     - a list of (pred, val) tags
 
     warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is 
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"}, 
+    heursitic just picks one.  e.g. if the lf is
+        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
                      {"pred_text": "has_colour", "obj_text": "blue"}]
     will currently just pick red.   Same for other properties encoded in triples
     """

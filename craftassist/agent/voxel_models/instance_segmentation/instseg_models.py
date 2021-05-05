@@ -9,22 +9,19 @@ from data_loaders import make_example_from_raw
 
 
 def conv3x3x3(in_planes, out_planes, stride=1, bias=True):
-    """3x3x3 convolution with padding
-    """
+    """3x3x3 convolution with padding"""
     return nn.Conv3d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=bias)
 
 
 def conv3x3x3up(in_planes, out_planes, bias=True):
-    """3x3x3 convolution with padding
-    """
+    """3x3x3 convolution with padding"""
     return nn.ConvTranspose3d(
         in_planes, out_planes, stride=2, kernel_size=3, padding=1, output_padding=1
     )
 
 
 def convbn(in_planes, out_planes, stride=1, bias=True):
-    """3x3x3 convolution with batch norm and relu
-    """
+    """3x3x3 convolution with batch norm and relu"""
     return nn.Sequential(
         (conv3x3x3(in_planes, out_planes, stride=stride, bias=bias)),
         nn.BatchNorm3d(out_planes),
@@ -33,8 +30,7 @@ def convbn(in_planes, out_planes, stride=1, bias=True):
 
 
 def convbnup(in_planes, out_planes, bias=True):
-    """3x3x3 convolution with batch norm and relu
-    """
+    """3x3x3 convolution with batch norm and relu"""
     return nn.Sequential(
         (conv3x3x3up(in_planes, out_planes, bias=bias)),
         nn.BatchNorm3d(out_planes),
@@ -43,8 +39,8 @@ def convbnup(in_planes, out_planes, bias=True):
 
 
 class InstSegNet(nn.Module):
-    """Basic Instance Segmentation Neural Network
-    """
+    """Basic Instance Segmentation Neural Network"""
+
     def __init__(self, opts):
         super(InstSegNet, self).__init__()
         if opts.load:
@@ -79,8 +75,8 @@ class InstSegNet(nn.Module):
 
 
 class FlatInstSegNet(InstSegNet):
-    """Flat Instance Segmentation Neural Network
-    """
+    """Flat Instance Segmentation Neural Network"""
+
     def __init__(self, opts):
         super(FlatInstSegNet, self).__init__(opts)
 
@@ -143,8 +139,8 @@ class FlatInstSegNet(InstSegNet):
 
 
 class MsInstSegNet(InstSegNet):
-    """Multi-scale Instance Segmentation Neural Network
-    """
+    """Multi-scale Instance Segmentation Neural Network"""
+
     def __init__(self, opts):
         super(MsInstSegNet, self).__init__(opts)
 
@@ -223,8 +219,8 @@ class Opt:
 
 ############################NOT DONE!!!!!
 class InstSegWrapper:
-    """Wrapper for Instance Segmentation Net
-    """
+    """Wrapper for Instance Segmentation Net"""
+
     def __init__(self, model, threshold=-1.0, blocks_only=True, cuda=False):
         if type(model) is str:
             opts = Opt()

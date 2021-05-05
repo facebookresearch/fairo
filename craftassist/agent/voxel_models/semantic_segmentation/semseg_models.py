@@ -5,12 +5,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import torch
 import torch.nn as nn
-from data_loaders import make_example_from_raw
+from .data_loaders import make_example_from_raw
 
 
 class SemSegNet(nn.Module):
-    """Semantic Segmentation Neural Network
-    """
+    """Semantic Segmentation Neural Network"""
+
     def __init__(self, opts, classes=None):
         super(SemSegNet, self).__init__()
         if opts.load:
@@ -104,8 +104,8 @@ class Opt:
 
 
 class SemSegWrapper:
-    """Wrapper for Semantic Segmentation Net
-    """
+    """Wrapper for Semantic Segmentation Net"""
+
     def __init__(self, model, threshold=-1.0, blocks_only=True, cuda=False):
         if type(model) is str:
             opts = Opt()

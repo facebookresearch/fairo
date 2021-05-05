@@ -165,7 +165,7 @@ class AgentMemory:
     ########################
 
     def set_memory_updated_time(self, memid):
-        """"Set the updated_time of the memory object with given memid
+        """ "Set the updated_time of the memory object with given memid
 
         Args:
             memid (string): Memory ID
@@ -180,7 +180,7 @@ class AgentMemory:
         self._db_write("UPDATE Memories SET updated_time=? WHERE uuid=?", self.get_time(), memid)
 
     def set_memory_attended_time(self, memid):
-        """"Set the attended_time of the memory object with given memid
+        """ "Set the attended_time of the memory object with given memid
 
         Args:
             memid (string): Memory ID
@@ -195,7 +195,7 @@ class AgentMemory:
         self._db_write("UPDATE Memories SET attended_time=? WHERE uuid=?", self.get_time(), memid)
 
     def update_recent_entities(self, mems=[]):
-        """"Update memories in mems as recently attended
+        """ "Update memories in mems as recently attended
 
         Args:
             mems (list): List of memories
@@ -951,8 +951,8 @@ class AgentMemory:
 
     def db_write(self, query: str, *args) -> int:
         """Return the number of rows affected.  As a side effect,
-           sets the updated_time entry for each affected memory, 
-           and applies self.on_delete_callback to the list of deleted memids 
+           sets the updated_time entry for each affected memory,
+           and applies self.on_delete_callback to the list of deleted memids
            if there are any and on_delete_callback is not None
 
         Args:
@@ -1066,7 +1066,7 @@ class AgentMemory:
             pickle.dump(dict_memory, dict_memory_file)
 
     def reinstate_attrs(self, obj):
-        """ 
+        """
         replace non-picklable attrs on blob data, using their values
         from the key-value store, indexed by the obj memid
         """
@@ -1077,7 +1077,7 @@ class AgentMemory:
 
     def safe_pickle(self, obj):
         """
-        pickles memory objects to be put in blob data in the db.  
+        pickles memory objects to be put in blob data in the db.
         some attrs are not picklable, so stores these in a separate key-value store
         keyed by the memid
 
@@ -1096,7 +1096,7 @@ class AgentMemory:
         return p
 
     def safe_unpickle(self, bs):
-        """ 
+        """
         get non-picklable attrs from the key value store, and
         replace them on the blob data after retrieving from db
         """

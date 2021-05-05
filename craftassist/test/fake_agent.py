@@ -14,17 +14,25 @@ from craftassist.agent.mc_memory import MCAgentMemory
 from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.craftassist_agent import CraftAssistAgent
 from base_agent.base_util import Time
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
-from craftassist.agent.dialogue_objects import MCBotCapabilities, MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from craftassist.agent.dialogue_objects import (
+    MCBotCapabilities,
+    MCGetMemoryHandler,
+    PutMemoryHandler,
+    MCInterpreter,
+)
 from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.heuristic_perception import PerceptionWrapper, check_inside
-from craftassist.agent.rotation import look_vec
+from craftassist.agent.rotation import look_vec, yaw_pitch
 
 
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
 
 WORLD_STEPS_PER_DAY = 480
+
+HEAD_HEIGHT = 2
 
 
 class MockOpt:
@@ -34,7 +42,6 @@ class MockOpt:
         self.nsp_data_dir = ""
         self.ground_truth_data_dir = ""
         self.semseg_model_path = ""
-        self.geoscorer_model_path = ""
         self.no_ground_truth = True
         # test does not instantiate cpp client
         self.port = -1
@@ -179,6 +186,7 @@ class TurnAngle(FakeCPPAction):
             raise ValueError("bad angle={}".format(angle))
 
 
+# FIXME!
 class TurnLeft(FakeCPPAction):
     NAME = "turn_left"
 
@@ -191,6 +199,7 @@ class TurnLeft(FakeCPPAction):
         self.agent._look_vec[2] = new_l[2]
 
 
+# FIXME!
 class TurnRight(FakeCPPAction):
     NAME = "turn_right"
 
@@ -218,7 +227,11 @@ class LookAt(FakeCPPAction):
     NAME = "look_at"
 
     def action(self, x, y, z):
-        raise NotImplementedError()
+        self.agent.world_interaction_occurred = True
+        look_vec = np.array(
+            [x - self.agent.pos[0], y - self.agent.pos[1] - HEAD_HEIGHT, z - self.agent.pos[2]]
+        )
+        self.agent.set_look_vec(*look_vec.tolist())
 
 
 class SetLook(FakeCPPAction):
@@ -227,7 +240,7 @@ class SetLook(FakeCPPAction):
     def action(self, yaw, pitch):
         self.agent.world_interaction_occurred = True
         a = look_vec(yaw, pitch)
-        self._look_vec = [a[0], a[1], a[2]]
+        self.agent.set_look_vec(a[0], a[1], a[2])
 
 
 class Craft(FakeCPPAction):
@@ -243,6 +256,7 @@ class FakeAgent(LocoMCAgent):
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
 
     def __init__(self, world, opts=None, do_heuristic_perception=False):
+        self.head_height = HEAD_HEIGHT
         self.world = world
         self.chat_count = 0
         if not opts:
@@ -264,12 +278,17 @@ class FakeAgent(LocoMCAgent):
         self._outgoing_chats: List[str] = []
         CraftAssistAgent.add_self_memory_node(self)
 
+    def set_look_vec(self, x, y, z):
+        l = np.array((x, y, z))
+        l = l / np.linalg.norm(l)
+        self._look_vec = (l[0], l[1], l[2])
+        self.look = self.get_look()
+
     def init_perception(self):
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(self)
         self.on_demand_perception = {}
-        self.on_demand_perception["geoscorer"] = None
         self.on_demand_perception["check_inside"] = check_inside
 
     def init_physical_interfaces(self):
@@ -287,6 +306,7 @@ class FakeAgent(LocoMCAgent):
         self.turn_left = TurnLeft(self)
         self.turn_right = TurnRight(self)
         self.set_look = SetLook(self)
+        self.look_at = LookAt(self)
         self.place_block = PlaceBlock(self)
 
     def init_memory(self):
@@ -299,7 +319,12 @@ class FakeAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
@@ -313,10 +338,8 @@ class FakeAgent(LocoMCAgent):
             self.recorder.record_world()
         super().step()
 
-    #### use the CraftassistAgent.controller_step()
     def controller_step(self):
         if self.logical_form is None:
-            pass
             CraftAssistAgent.controller_step(self)
         else:  # logical form given directly:
             # clear the chat buffer
@@ -328,7 +351,14 @@ class FakeAgent(LocoMCAgent):
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             # force to get objects, speaker info
             self.perceive(force=True)
-            obj = self.dialogue_manager.handle_logical_form(speaker_name, d, chatstr)
+            logical_form = (
+                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                    speaker=speaker_name, chat=chatstr, logical_form=d
+                )
+            )
+            obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
+                speaker=speaker_name, logical_form=logical_form, chat=chatstr
+            )
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
@@ -386,7 +416,7 @@ class FakeAgent(LocoMCAgent):
         return self.world.get_item_stacks()
 
     def get_other_players(self):
-        return self.world.players.copy()
+        return self.world.get_players()
 
     def get_other_player_by_name(self):
         raise NotImplementedError()
@@ -398,13 +428,12 @@ class FakeAgent(LocoMCAgent):
         raise NotImplementedError()
 
     def get_look(self):
-        pitch = -np.rad2deg(np.arcsin(self._look_vec[1]))
-        yaw = -np.rad2deg(np.arctan2(self._look_vec[0], self._look_vec[2]))
-        return Look(pitch, yaw)
+        yaw, pitch = yaw_pitch(self._look_vec)
+        return Look(yaw, pitch)
 
     def get_player_line_of_sight(self, player_struct):
         if hasattr(self.world, "get_line_of_sight"):
-            pos = (player_struct.pos.x, player_struct.pos.y, player_struct.pos.z)
+            pos = (player_struct.pos.x, player_struct.pos.y + HEAD_HEIGHT, player_struct.pos.z)
             pitch = player_struct.look.pitch
             yaw = player_struct.look.yaw
             xsect = self.world.get_line_of_sight(pos, yaw, pitch)
@@ -531,3 +560,122 @@ class FakeAgent(LocoMCAgent):
             mapslice = mapslice + str(zs(j)).center(3)
 
         return mapslice
+
+
+class FakePlayer(FakeAgent):
+    """
+    a fake player that can do actions, but does not currently interact with agent.
+    """
+
+    def __init__(
+        self,
+        struct=None,
+        opts=None,
+        do_heuristic_perception=False,
+        get_world_pos=False,
+        name="",
+        active=True,
+    ):
+        class NubWorld:
+            def __init__(self):
+                self.count = 0
+
+        super().__init__(NubWorld(), opts=opts, do_heuristic_perception=do_heuristic_perception)
+        # if active is set to false, the fake player's step is passed.
+        self.active = active
+        self.get_world_pos = get_world_pos
+        if struct:
+            self.entityId = struct.entityId
+            self.name = struct.name
+            self.look = struct.look
+            self.mainHand = struct.mainHand
+            self.pos = np.array((struct.pos.x, struct.pos.y, struct.pos.z))
+        else:
+            self.entityId = np.random.randint(0, 10000000)
+            # FIXME
+            self.name = str(self.entityId)
+            self.look = Look(270, 0)
+            self.mainHand = Item(0, 0)
+        if name:
+            self.name = name
+        self.lf_list = []
+        self.look_towards_move = True
+
+        def get_recent_chat():
+            m = self.memory
+            if self.lf_list:
+                C = ChatNode(m, ChatNode.create(m, self.name, self.lf_list[0]["chatstr"]))
+            else:
+                C = ChatNode(m, ChatNode.create(self.memory, self.name, ""))
+            return C
+
+        self.memory.get_most_recent_incoming_chat = get_recent_chat
+
+    def step(self):
+        if self.active:
+            LocoMCAgent.step(self)
+
+    def controller_step(self):
+        if self.logical_form is None:
+            CraftAssistAgent.controller_step(self)
+            query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
+            task_mems = self.memory.basic_search(query)
+            if not task_mems:
+                if len(self.lf_list) > 0:
+                    self.logical_form = self.lf_list[0]
+                    del self.lf_list[0]
+        else:  # logical form given directly:
+            # clear the chat buffer
+            self.get_incoming_chats()
+            # use the logical form as given...
+            # force to get objects, speaker info
+            self.perceive(force=True)
+            speaker = self.logical_form["speaker"]
+            logical_form = self.logical_form["logical_form"]
+            chatstr = self.logical_form["chatstr"]
+            updated_logical_form = (
+                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                    speaker=speaker, chat=chatstr, logical_form=logical_form
+                )
+            )
+            obj = self.dialogue_manager.handle_logical_form(
+                speaker=speaker, logical_form=updated_logical_form, chat=chatstr
+            )
+            if obj is not None:
+                self.dialogue_manager.dialogue_stack.append(obj)
+            self.logical_form = None
+
+    def get_info(self):
+        return Player(
+            self.entityId,
+            self.name,
+            Pos(self.pos[0], self.pos[1], self.pos[2]),
+            self.look,
+            self.mainHand,
+        )
+
+    # fake player does not respond to chats, etc.
+    # fixme for clarifications?
+    def get_incoming_chats(self):
+        return []
+
+    def set_lf_list(self, lf_list):
+        self.lf_list = lf_list
+
+    def add_to_world(self, world):
+        self.world = world
+        if self.pos is None or self.get_world_pos:
+            xz = np.random.randint(0, world.sl, (2,))
+            slice = self.world.blocks[xz[0], :, xz[1], 0]
+            nz = np.flatnonzero(slice)
+            if len(nz) == 0:
+                # player will be floating, but why no floor here?
+                h = 0
+            else:
+                # if top block is nonzero player will be trapped
+                h = nz[-1]
+            off = self.world.coord_shift
+            self.pos = np.array(
+                (float(xz[0]) + off[0], float(h + 1) + off[1], float(xz[1]) + off[2]), dtype="int"
+            )
+        self.world.players.append(self)

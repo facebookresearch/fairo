@@ -6,8 +6,7 @@ from typing import Dict
 
 
 class SQLConverter(BaseSQLMockEnvironment):
-    """A script with basic commands dealing with reference objects.
-    """
+    """A script with basic commands dealing with reference objects."""
 
     def __init__(self):
         super().__init__()

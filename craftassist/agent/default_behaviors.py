@@ -3,20 +3,17 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 import os
-import sys
 
 import numpy as np
 import random
-import shape_helpers as sh
-import tasks
+from . import shape_helpers as sh
+from . import tasks
 
-from mc_util import pos_to_np
+from .mc_util import pos_to_np
 
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.dialogue_objects import Say
-from ttad.generation_dialogues.generate_utils import prepend_a_an
+from base_agent.ttad.generation_dialogues.generate_utils import prepend_a_an
 
 """This file contains functions that the agent can perform 
 at random when not following player instructions or interacting with the

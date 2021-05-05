@@ -76,6 +76,7 @@ class RGBDepth:
         pts (np.array [(x,y,z)]): array of x,y,z coordinates of the pointcloud corresponding 
         to the rgb and depth maps.
     """
+
     rgb: np.array
     depth: np.array
     ptcloud: np.array

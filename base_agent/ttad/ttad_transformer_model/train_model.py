@@ -17,16 +17,17 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
-from utils_parsing import *
-from utils_caip import *
-from decoder_with_loss import *
-from encoder_decoder import *
-from optimizer_warmup import *
-from caip_dataset import *
+from .utils_parsing import *
+from .utils_caip import *
+from .decoder_with_loss import *
+from .encoder_decoder import *
+from .optimizer_warmup import *
+from .caip_dataset import *
+
 
 class ModelTrainer:
-    """Wrapper Class around training model and data loader
-    """
+    """Wrapper Class around training model and data loader"""
+
     def __init__(self, args):
         self.args = args
 
@@ -113,18 +114,20 @@ class ModelTrainer:
 
                 loss.backward()
                 # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    text_span_loss_attenuation_factor
-                    * (
-                        model.decoder.text_span_start_hidden_z.grad
-                        + model.decoder.text_span_end_hidden_z.grad
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        text_span_loss_attenuation_factor
+                        * (
+                            model.decoder.text_span_start_hidden_z.grad
+                            + model.decoder.text_span_end_hidden_z.grad
+                        )
                     )
                 )
                 # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
-                    fixed_value_loss_attenuation_factor
-                    * (
-                        model.decoder.fixed_span_hidden_z.grad
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        fixed_value_loss_attenuation_factor
+                        * (model.decoder.fixed_span_hidden_z.grad)
                     )
                 )
                 if step % self.args.param_update_freq == 0:
@@ -199,8 +202,7 @@ class ModelTrainer:
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
 
     def validate(self, model, dataset, tokenizer, args):
-        """Validation: same as training loop but without back-propagation
-        """
+        """Validation: same as training loop but without back-propagation"""
         # make data sampler
         train_sampler = SequentialSampler(dataset)
         model_collate_fn = functools.partial(
@@ -249,7 +251,9 @@ class ModelTrainer:
             text_span_tot_loss / tot_steps,
         )
 
-    def eval_model_on_dataset(self, encoder_decoder, dtype, full_tree_voc, tokenizer, split="valid"):
+    def eval_model_on_dataset(
+        self, encoder_decoder, dtype, full_tree_voc, tokenizer, split="valid"
+    ):
         """Evaluate model on a given validation dataset
 
         Args:
@@ -283,7 +287,7 @@ def generate_model_name(args, optional_identifier=""):
 
     Returns:
         String
-        
+
     """
     name = ""
     # unix time in seconds, used as a unique identifier
@@ -304,7 +308,7 @@ def generate_model_name(args, optional_identifier=""):
         "word_dropout": "word_drp",
         "alpha": "a",
         "train_encoder": "tr",
-        "fixed_value_weight": "fv"
+        "fixed_value_weight": "fv",
     }
     for k, v in vars(args).items():
         if k in args_keys:
@@ -432,10 +436,7 @@ def main():
         "--optional_identifier", default="", type=str, help="Optional run info eg. debug or test"
     )
     parser.add_argument(
-        "--hard",
-        default=1,
-        type=int,
-        help="Whether to feed in failed examples during training"
+        "--hard", default=1, type=int, help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
         "--alpha",

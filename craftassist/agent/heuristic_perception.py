@@ -7,11 +7,12 @@ import math
 import numpy as np
 from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
+from copy import deepcopy
 
 import logging
-import minecraft_specs
+from . import minecraft_specs
 
-from mc_util import (
+from .mc_util import (
     manhat_dist,
     get_locs_from_entity,
     build_safe_diag_adjacent,
@@ -19,9 +20,9 @@ from mc_util import (
     to_block_pos,
     fill_idmeta,
 )
-from block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
-from search import depth_first_search
-from mc_memory_nodes import InstSegNode, BlockObjectNode
+from .block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
+from .search import depth_first_search
+from .mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
@@ -183,7 +184,7 @@ def connected_components(X, unique_idm=False):
 
 
 def check_between(entities, fat_scale=0.2):
-    """ Heuristic check if entities[0] is between entities[1] and entities[2]
+    """Heuristic check if entities[0] is between entities[1] and entities[2]
     by checking if the locs of enitity[0] are in the convex hull of
     union of the max cardinal points of entity[1] and entity[2]"""
     locs = []
@@ -294,7 +295,7 @@ def find_inside(entity):
 
 
 def label_top_bottom_blocks(block_list, top_heuristic=15, bottom_heuristic=25):
-    """ This function takes in a list of blocks, where each block is :
+    """This function takes in a list of blocks, where each block is :
     [[x, y, z], id] or [[x, y, z], [id, meta]]
     and outputs a dict:
     {
@@ -384,7 +385,9 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
                                 blocktypes.append(idm)
                                 type_name = BLOCK_DATA["bid_to_name"][idm]
                                 tags = [type_name]
-                                colours = COLOUR_DATA["name_to_colors"].get(type_name, [])
+                                colours = deepcopy(
+                                    COLOUR_DATA["name_to_colors"].get(type_name, [])
+                                )
                                 colours.extend([c for c in COLOUR_LIST if c in type_name])
                                 if colours:
                                     tags.extend(colours)
@@ -407,7 +410,7 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
 
 def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     """Returns:
-        a list of holes. Each hole is an InstSegNode"""
+    a list of holes. Each hole is an InstSegNode"""
     sx, sy, sz = location
     max_height = sy + 5
     map_size = radius * 2 + 1
@@ -437,8 +440,8 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     gz = [1, -1, 0, 0]
 
     def dfs(x, y, z):
-        """ Traverse current connected component and return minimum
-        height of all surrounding blocks """
+        """Traverse current connected component and return minimum
+        height of all surrounding blocks"""
         build_height = 100000
         if (x, y, z) in visited:
             return build_height
@@ -519,6 +522,17 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     return hole_mems
 
 
+def maybe_get_type_name(idm):
+    try:
+        type_name = BLOCK_DATA["bid_to_name"][idm]
+    except:
+        type_name = "UNK"
+        logging.debug(
+            "heuristic perception encountered unknown block: ({}, {})".format(idm[0], idm[1])
+        )
+    return type_name
+
+
 class PerceptionWrapper:
     """Perceive the world at a given frequency and update agent
     memory.
@@ -563,7 +577,7 @@ class PerceptionWrapper:
                     memid = BlockObjectNode.create(self.agent.memory, obj)
                     color_tags = []
                     for idm in obj:
-                        type_name = BLOCK_DATA["bid_to_name"][idm]
+                        type_name = maybe_get_type_name(idm)
                         color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
                     for color_tag in list(set(color_tags)):
                         self.agent.memory.add_triple(
@@ -579,7 +593,7 @@ class PerceptionWrapper:
                 color_tags = []
                 for obj in objs:
                     idm = obj[1]
-                    type_name = BLOCK_DATA["bid_to_name"][idm]
+                    type_name = maybe_get_type_name(idm)
                     color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
                 for color_tag in list(set(color_tags)):
                     self.agent.memory.add_triple(

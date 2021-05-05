@@ -40,12 +40,6 @@
     "noop": {
       "$ref": "other_dialogue.schema.json#/definitions/noop"
     },
-    "get_memory": {
-      "$ref": "other_dialogue.schema.json#/definitions/get_memory"
-    },
-    "put_memory": {
-      "$ref": "other_dialogue.schema.json#/definitions/put_memory"
-    },
     "upsert": {
       "$ref": "other_dialogue.schema.json#/definitions/upsert"
     },
@@ -184,6 +178,17 @@
         "action_type"
       ]
     },
+    "target_action_type": {
+      "oneOf": [
+        {"$ref": "#/definitions/span"},
+        {
+          "type": "object",
+          "properties": {
+            "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
+          }
+        }
+      ]
+    },
     "undo": {
       "type": "object",
       "properties": {
@@ -191,15 +196,7 @@
           "const": "UNDO"
         },
         "target_action_type": {
-          "oneOf": [
-            {"$ref": "#/definitions/span"},
-            {
-              "type": "object",
-              "properties": {
-                "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
-              }
-            }
-          ]
+          "$ref": "#/definitions/target_action_type"
         }
       },
       "required": [
@@ -213,15 +210,7 @@
           "const": "STOP"
         },
         "target_action_type": {
-          "oneOf": [
-            {"$ref": "#/definitions/span"},
-            {
-              "type": "object",
-              "properties": {
-                "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
-              }
-            }
-          ]
+          "$ref": "#/definitions/target_action_type"
         }
       },
       "required": [
@@ -324,32 +313,63 @@
           "$ref": "#/definitions/repeat"
         },
         "receiver": {
-          "oneOf": [
-            {
-              "type": "object",
-              "properties": {
-                "reference_object": {
-                  "$ref": "#/definitions/reference_object"
-                }
-              },
-              "required": [
-                "reference_object"
-              ]
-            },
-            {
-              "type": "object",
-              "properties": {
-                "location": {
-                  "$ref": "#/definitions/location"
-                }
-              },
-              "required": [
-                "location"
-              ]
-            }
+          "$ref": "#/definitions/receiver"
+        }
+      }
+    },
+    "get_capabilities": {
+      "properties": {
+        "dialogue_type": {
+          "enum": [
+            "GET_CAPABILITIES"
+          ]
+        },
+        "action_type": {
+          "enum": [
+            "UNKNOWN",
+            "ANY",
+            "BUILD",
+            "PUT_MEMORY",
+            "GET_MEMORY"
           ]
         }
       }
+    },
+    "human_give_command": {
+        "properties": {
+          "dialogue_type": {
+            "const": "HUMAN_GIVE_COMMAND"
+          },
+          "action_sequence": {
+            "$ref": "#/definitions/action_sequence"
+          }
+        }
+    },
+    "receiver": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "reference_object": {
+              "$ref": "#/definitions/reference_object"
+            }
+          },
+          "required": [
+            "reference_object"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "location": {
+              "$ref": "#/definitions/location"
+            }
+          },
+          "required": [
+            "location"
+          ]
+        }
+      ]
     },
     "scout": {
       "type": "object",

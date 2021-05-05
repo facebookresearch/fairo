@@ -4,9 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import sys
 
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
-
 from base_agent.stop_condition import StopCondition
 
 

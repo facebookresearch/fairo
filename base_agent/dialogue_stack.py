@@ -15,7 +15,7 @@ class DialogueStack(object):
         self.stack = []
 
     def __getitem__(self, i):
-        """Get the ith item on the stack """
+        """Get the ith item on the stack"""
         return self.stack[i]
 
     def peek(self):

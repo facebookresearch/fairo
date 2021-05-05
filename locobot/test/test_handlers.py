@@ -146,7 +146,7 @@ class MemoryHandlerTest(unittest.TestCase):
         if previous_objects is not None:
             new_objects, updated_objects = self.deduplicator(detections, previous_objects)
             self.memory(new_objects, updated_objects)
-        
+
         # Assert that some objects get deduped
         objs_t1 = DetectedObjectNode.get_all(self.agent.memory)
         self.assertLessEqual(len(objs_t1), len(objs_init) + len(detections))

@@ -25,7 +25,7 @@ Examples:
 """
 
 
-from template_objects import *
+from base_agent.ttad.generation_dialogues.template_objects import *
 
 BUILD_INBUILT_COMPOSITE = [
 [Human, Build, DescribingWord, AndBuild],

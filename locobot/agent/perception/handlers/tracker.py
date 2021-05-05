@@ -23,7 +23,8 @@ class TrackingHandler(AbstractHandler):
     """
 
     def __init__(self, silent=False):
-        self.silent=silent
+        self.silent = silent
+
         def euclidean_distance(detection, tracked_object):
             return np.linalg.norm(detection.points - tracked_object.estimate)
 

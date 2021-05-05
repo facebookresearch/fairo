@@ -1,6 +1,7 @@
 from base_agent.base_util import ErrorWithResponse, POINT_AT_TARGET
 from base_agent.dialogue_objects import interpret_relative_direction
 
+
 class PointTargetInterpreter:
     def __call__(self, interpreter, speaker, d) -> POINT_AT_TARGET:
         if d.get("location") is None:

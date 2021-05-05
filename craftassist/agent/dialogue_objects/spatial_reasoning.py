@@ -3,11 +3,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import numpy as np
-import rotation
-import shapes
+from .. import rotation
+from .. import shapes
 
-import heuristic_perception
-from mc_util import pos_to_np, to_block_center, to_block_pos, ErrorWithResponse
+from .. import heuristic_perception
+from ..mc_util import pos_to_np, to_block_center, to_block_pos, ErrorWithResponse
 
 DEFAULT_NUM_STEPS = 5
 
@@ -28,7 +28,6 @@ class ComputeLocations:
         repeat_dir=None,
         objects=[],
         padding=(1, 1, 1),
-        enable_geoscorer=False,
     ):
         agent = interpreter.agent
         repeat_num = max(repeat_num, len(objects))
@@ -38,27 +37,13 @@ class ComputeLocations:
             agent.perception_modules["low_level"].get_player_struct_by_name(speaker).pos
         )
         origin = compute_location_heuristic(player_look, player_pos, mems, steps, reldir)
-        agent_geoscorer = agent.on_demand_perception["geoscorer"]
-        if enable_geoscorer and agent_geoscorer is not None and agent_geoscorer.use(steps, reldir):
-            r = agent_geoscorer.radius
-            # Use heuristic to get starting point only for for between and inside
-            if reldir not in ("BETWEEN", "INSIDE"):
-                origin = to_block_pos(mems[0].get_pos())
-
-            minc = (origin[0] - r, origin[1] - r, origin[2] - r)
-            maxc = (minc[0] + 2 * r - 1, minc[1] + 2 * r - 1, minc[2] + 2 * r - 1)
-            context = agent.get_blocks(minc[0], maxc[0], minc[1], maxc[1], minc[2], maxc[2])
-            origin, offsets = agent_geoscorer.produce_object_positions(
-                objects, context, minc, reldir, speaker_pos
+        if repeat_num > 1:
+            schematic = None if len(objects) == 0 else objects[0][0]
+            offsets = get_repeat_arrangement(
+                player_look, repeat_num, repeat_dir, mems, schematic, padding
             )
         else:
-            if repeat_num > 1:
-                schematic = None if len(objects) == 0 else objects[0][0]
-                offsets = get_repeat_arrangement(
-                    player_look, repeat_num, repeat_dir, mems, schematic, padding
-                )
-            else:
-                offsets = [(0, 0, 0)]
+            offsets = [(0, 0, 0)]
         origin = post_process_loc(origin, interpreter)
         offsets = [post_process_loc(o, interpreter) for o in offsets]
         return origin, offsets
