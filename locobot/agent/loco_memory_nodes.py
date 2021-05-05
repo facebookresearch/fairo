@@ -34,8 +34,11 @@ class DetectedObjectNode(ReferenceObjectNode):
     @classmethod
     def create(cls, memory, detected_obj) -> str:
         memid = cls.new(memory)
+        bounds = detected_obj.get_bounds()
         memory.db_write(
-            "INSERT INTO ReferenceObjects(uuid, eid, x, y, z, ref_type) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO ReferenceObjects \
+            (uuid, eid, x, y, z, ref_type) \
+            VALUES (?, ?, ?, ?, ?, ?)",
             memid,
             detected_obj.eid,
             detected_obj.get_xyz()["x"],
@@ -44,9 +47,16 @@ class DetectedObjectNode(ReferenceObjectNode):
             cls.NODE_TYPE,
         )
         memory.db_write(
-            "INSERT INTO DetectedObjectFeatures(uuid, featureBlob) VALUES (?, ?)",
+            "INSERT INTO DetectedObjectFeatures(uuid, featureBlob, minx, miny, minz, maxx, maxy, maxz) \
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             pickle.dumps(detected_obj.feature_repr),
+            bounds[0],
+            bounds[1],
+            bounds[2],
+            bounds[3],
+            bounds[4],
+            bounds[5],
         )
 
         cls.safe_tag(detected_obj, memory, memid, "has_name", "label")
@@ -73,7 +83,6 @@ class DetectedObjectNode(ReferenceObjectNode):
 
         memid = memids[0][0]
         memory.set_memory_attended_time(memid)
-
         memory.db_write(
             "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
             detected_obj.get_xyz()["x"],
@@ -119,11 +128,12 @@ class DetectedObjectNode(ReferenceObjectNode):
         color = get_value(node[0], "has_colour")
         properties = get_value(node[0], "has_properties")
 
-        # get feature blob
-        feature_blob = memory._db_read(
-            "SELECT featureBlob FROM DetectedObjectFeatures WHERE uuid=?", node[0]
-        )
-        feature_repr = pickle.loads(feature_blob[0][0])
+        # Get DetectedObjectFeatures
+        feature_blob, minx, miny, minz, maxx, maxy, maxz = memory._db_read(
+            "SELECT featureBlob, minx, miny, minz, maxx, maxy, maxz \
+                FROM DetectedObjectFeatures WHERE uuid=?", node[0]
+        )[0]
+        feature_repr = pickle.loads(feature_blob)
 
         return {
             "eid": node[1],
@@ -132,6 +142,7 @@ class DetectedObjectNode(ReferenceObjectNode):
             "color": color,
             "properties": properties,
             "feature_repr": feature_repr,
+            "bounds": (minx, miny, minz, maxx, maxy, maxz)
         }
 
     def get_pos(self) -> XYZ:
@@ -140,6 +151,12 @@ class DetectedObjectNode(ReferenceObjectNode):
         )
         self.pos = (x, y, z)
         return self.pos
+
+    def get_bounds(self):
+        minx, miny, minz, maxx, maxy, maxz = self.agent_memory._db_read_one(
+            "SELECT minx, miny, minz, maxx, maxy, maxz FROM DetectedObjectFeatures WHERE uuid=?", self.memid
+        )
+        return (minx, miny, minz, maxx, maxy, maxz)
 
     # TODO: use a smarter way to get point_at_target
     def get_point_at_target(self):
