@@ -21,7 +21,7 @@ FILTERS = {
       "output" : "MEMORY" / "COUNT" / <ATTRIBUTE>,
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
-      "selector": {
+      "selector": "ALL" / {
         "return_quantity": <ARGMAX> / <ARGMIN> / <RANDOM>,
         "location": <LOCATION>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
