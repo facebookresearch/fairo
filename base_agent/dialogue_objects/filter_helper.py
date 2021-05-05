@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from word2number.w2n import word_to_num
 from .attribute_helper import AttributeInterpreter, maybe_specific_mem
 from base_agent.memory_attributes import LinearExtentAttribute
 from base_agent.memory_filters import (
@@ -12,8 +13,9 @@ from base_agent.memory_filters import (
     ApplyAttribute,
     CountTransform,
     ExtremeValueMemorySelector,
+    RandomMemorySelector,
 )
-from base_agent.base_util import ErrorWithResponse
+from base_agent.base_util import ErrorWithResponse, number_from_span
 from .location_helpers import interpret_relative_direction
 from .comparator_helper import interpret_comparator
 from .dialogue_object_utils import tags_from_dict
@@ -94,11 +96,9 @@ def interpret_random_selector(interpreter, speaker, selector_d):
                 selector_d
             )
         )
+    n = number_from_span(random_num)
     try:
-        if type(random_num) is int:
-            n = random_num
-        else:
-            n = word_to_num(random_num)
+        n = int(n)
     except:
         raise Exception(
             "malformed selector dict {}, tried to get random number {} ".format(
