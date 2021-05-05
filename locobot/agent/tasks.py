@@ -400,7 +400,7 @@ class CuriousExplore(Task):
         if self.steps[0] == "not_started":
             target = pick_random_in_sight(objects, pos)
             if target is not None:
-                self.add_child_task(ExamineDetection(self.agent, {"target": target['xyz']}))
+                self.add_child_task(ExamineDetection(self.agent, {"target": target}))
                 self.last_step_explore = False
                 examined.add(target['xyz'])
             self.steps[0] = "finished"
@@ -420,9 +420,10 @@ class ExamineDetection(Task):
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.frontier_center = np.asarray(task_data['target'])
-        self.command_sent = False
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
         self.agent = agent
+        self.last_base_pos = None
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -432,20 +433,15 @@ class ExamineDetection(Task):
         # Calculate a path around self.frontier_c and move on it facing the detection
         # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
 
-        if not self.command_sent:
-            self.command_sent = True
-            base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-            dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
-            # move eps distance from current position towards target
-            if dist > 0.5:
-                target = get_step_target_for_move(base_pos, self.frontier_center)
-                logging.info(f"Move Target for point {target}")
-                logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
-                self.add_child_task(Move(self.agent, {"target": target}))
-                return
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        if (base_pos != self.last_base_pos).all() and dist > 1:
+            target = get_step_target_for_move(base_pos, self.frontier_center)
+            logging.info(f"Current Pos {base_pos}")
+            logging.info(f"Move Target for point {target}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
+            self.add_child_task(Move(self.agent, {"target": target}))
+            self.last_base_pos = base_pos
+            return
         else:
             self.finished = self.agent.mover.bot_step()
-        
-        
-        # keep this recurring until the base_pos is at the end. 
-        # How does tasks really work to allow this to happen

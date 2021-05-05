@@ -82,7 +82,7 @@ def get_move_target_for_point(base_pos, target, eps=1):
     signz = 1 if dz > 0 else -1 
 
     targetx = base_pos[0] + signx * (abs(dx) - eps)
-    targetz = base_pos[2] + signz * (abs(dz) - eps) 
+    targetz = base_pos[1] + signz * (abs(dz) - eps) 
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
     
@@ -107,7 +107,7 @@ def get_step_target_for_move(base_pos, target, step_size=0.1):
     signz = 1 if dz > 0 else -1 
 
     targetx = base_pos[0] + signx * (step_size)
-    targetz = base_pos[2] + signz * (step_size) 
+    targetz = base_pos[1] + signz * (step_size) 
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
     
