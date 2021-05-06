@@ -10,9 +10,9 @@ from scipy.optimize import linprog
 from copy import deepcopy
 
 import logging
-import minecraft_specs
+from . import minecraft_specs
 
-from mc_util import (
+from .mc_util import (
     manhat_dist,
     get_locs_from_entity,
     build_safe_diag_adjacent,
@@ -20,9 +20,9 @@ from mc_util import (
     to_block_pos,
     fill_idmeta,
 )
-from block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
-from search import depth_first_search
-from mc_memory_nodes import InstSegNode, BlockObjectNode
+from .block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
+from .search import depth_first_search
+from .mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
@@ -184,7 +184,7 @@ def connected_components(X, unique_idm=False):
 
 
 def check_between(entities, fat_scale=0.2):
-    """ Heuristic check if entities[0] is between entities[1] and entities[2]
+    """Heuristic check if entities[0] is between entities[1] and entities[2]
     by checking if the locs of enitity[0] are in the convex hull of
     union of the max cardinal points of entity[1] and entity[2]"""
     locs = []
@@ -295,7 +295,7 @@ def find_inside(entity):
 
 
 def label_top_bottom_blocks(block_list, top_heuristic=15, bottom_heuristic=25):
-    """ This function takes in a list of blocks, where each block is :
+    """This function takes in a list of blocks, where each block is :
     [[x, y, z], id] or [[x, y, z], [id, meta]]
     and outputs a dict:
     {
@@ -410,7 +410,7 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
 
 def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     """Returns:
-        a list of holes. Each hole is an InstSegNode"""
+    a list of holes. Each hole is an InstSegNode"""
     sx, sy, sz = location
     max_height = sy + 5
     map_size = radius * 2 + 1
@@ -440,8 +440,8 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     gz = [1, -1, 0, 0]
 
     def dfs(x, y, z):
-        """ Traverse current connected component and return minimum
-        height of all surrounding blocks """
+        """Traverse current connected component and return minimum
+        height of all surrounding blocks"""
         build_height = 100000
         if (x, y, z) in visited:
             return build_height

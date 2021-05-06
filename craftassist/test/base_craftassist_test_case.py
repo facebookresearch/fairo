@@ -1,11 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-# import sys
-# import os
-# BASE_DIR = os.path.join(os.path.dirname(__file__), "../../")
-# sys.path.append(BASE_DIR)
-
 import unittest
 from unittest.mock import Mock
 import numpy as np
@@ -107,11 +102,11 @@ class BaseCraftassistTestCase(unittest.TestCase):
         return stop
 
     def set_looking_at(self, xyz: XYZ, player=None):
-        """ 
-        sets the look of the given player (or the first one from agent.get_other_players()) 
+        """
+        sets the look of the given player (or the first one from agent.get_other_players())
         player if given should be a Player struct.
-        
-        warning: previous incarnation of this mocked the agent's 
+
+        warning: previous incarnation of this mocked the agent's
         get_player_line_of_sight.  This new version will be "fooled"
         if something is in between the player and the target xyz;
         and uses the agent's world's get_line_of_sight

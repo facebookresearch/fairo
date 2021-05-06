@@ -8,8 +8,7 @@ import argparse
 def remove_duplicates_long_commands_and_NOOPs(
     input_path, output_path, keep_long_commands=False, keep_NOOPs=False
 ):
-    """Remove duplicate commands, NOOPs and long commands in dataset.
-    """
+    """Remove duplicate commands, NOOPs and long commands in dataset."""
     new_data = {}
     with open(input_path) as fd:
         data = fd.readlines()

@@ -40,7 +40,7 @@ class Slam(object):
         """
 
         :param robot: pyrobot robot object, only supports [habitat, locobot]
-        :param robot_name: name of the robot [habitat, locobot] 
+        :param robot_name: name of the robot [habitat, locobot]
         :param map_size: size of map to be build in cm, assumes square map
         :param resolution: resolution of map, 1 pix = resolution distance(in cm) in real world
         :param robot_rad: radius of the agent, used to explode the map
@@ -79,11 +79,7 @@ class Slam(object):
         self.prev_bot_state = (0, 0, 0)
         self.col_map = np.zeros((self.map_builder.map.shape[0], self.map_builder.map.shape[1]))
         self.robot_loc_list_map = np.array(
-            [
-                self.real2map(
-                    self.get_rel_state(self.get_robot_global_state(), self.init_state)[:2]
-                )
-            ]
+            [self.real2map(self.get_rel_state(self.get_robot_global_state(), self.init_state)[:2])]
         )
         self.map_builder.update_map(
             self.robot.camera.get_current_pcd(in_cam=False)[0],

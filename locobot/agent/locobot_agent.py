@@ -14,7 +14,8 @@ if __name__ == "__main__":
     # or else, those @sio.on calls become no-ops
     dldashboard.start()
 
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from locobot.agent.loco_memory import LocoAgentMemory
 from base_agent.base_util import to_player_struct, Pos, Look, Player, hash_user
 from base_agent.memory_nodes import PlayerNode
@@ -22,7 +23,12 @@ from base_agent.loco_mc_agent import LocoMCAgent
 from locobot.agent.perception import Perception, SelfPerception
 from base_agent.argument_parser import ArgumentParser
 import locobot.agent.default_behaviors as default_behaviors
-from locobot.agent.dialogue_objects import LocoBotCapabilities, LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from locobot.agent.dialogue_objects import (
+    LocoBotCapabilities,
+    LocoGetMemoryHandler,
+    PutMemoryHandler,
+    LocoInterpreter,
+)
 import locobot.agent.rotation as rotation
 from locobot.agent.locobot_mover import LoCoBotMover
 from multiprocessing import set_start_method
@@ -98,21 +104,13 @@ class LocobotAgent(LocoMCAgent):
                     movement[2] -= 0.3
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
-                    self.mover.bot.set_pan(
-                        self.mover.bot.get_pan() + 0.08
-                    )
+                    self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
                 elif command == "PAN_RIGHT":
-                    self.mover.bot.set_pan(
-                        self.mover.bot.get_pan() - 0.08
-                    )
+                    self.mover.bot.set_pan(self.mover.bot.get_pan() - 0.08)
                 elif command == "TILT_UP":
-                    self.mover.bot.set_tilt(
-                        self.mover.bot.get_tilt() - 0.08
-                    )
+                    self.mover.bot.set_tilt(self.mover.bot.get_tilt() - 0.08)
                 elif command == "TILT_DOWN":
-                    self.mover.bot.set_tilt(
-                        self.mover.bot.get_tilt() + 0.08
-                    )
+                    self.mover.bot.set_tilt(self.mover.bot.get_tilt() + 0.08)
             self.mover.move_relative([movement])
 
     def init_memory(self):
@@ -145,7 +143,12 @@ class LocobotAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = LocoInterpreter
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
@@ -178,7 +181,7 @@ class LocobotAgent(LocoMCAgent):
     def send_chat(self, chat: str):
         logging.info("Sending chat: {}".format(chat))
         # Send the socket event to show this reply on dashboard
-        sio.emit("showAssistantReply", {'agent_reply' : "Agent: {}".format(chat)})
+        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
         self.memory.add_chat(self.memory.self_memid, chat)
         # actually send the chat, FIXME FOR HACKATHON
         # return self._cpp_send_chat(chat)
@@ -203,7 +206,7 @@ if __name__ == "__main__":
     logger = logging.getLogger()
     logger.addHandler(sh)
     logging.info("LOG LEVEL: {}".format(logger.level))
-    
+
     # Check that models and datasets are up to date
     if not opts.dev:
         rc = subprocess.call([opts.verify_hash_script_path, "locobot"])

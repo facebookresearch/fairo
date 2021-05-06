@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 names of shapes to their functions"""
 from typing import Dict, Callable
 
-import shapes
+from . import shapes
 
 # mapping from mob names to id
 SPAWN_OBJECTS = {

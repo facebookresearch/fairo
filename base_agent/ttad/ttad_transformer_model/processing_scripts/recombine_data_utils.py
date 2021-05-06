@@ -50,7 +50,7 @@ class TurkToolProcessor:
 
     def filter_tool2_lines(self, tool2_lines: List[str]) -> List[str]:
         """Fetch Turk tool2 lines that correspond to the training dataset.
-        
+
         tool2_lines -- input from Turk tool, with format <chat> \t <tag> \t <action dict>
         node_types -- list of nodes we want to swap, eg. location
         Source: https://github.com/fairinternal/minecraft/tree/master/python/craftassist/text_to_tree_tool/turk_data/tool2/
@@ -176,7 +176,7 @@ def reformat_span_idxs(span_idx_list: List[List[int]]) -> list:
 
 
 def update_tree_spans(tree: dict, shift: int) -> dict:
-    """Insert recombined tree into parent tree. 
+    """Insert recombined tree into parent tree.
     Get rid of "yes" and "no" indicators, reformat tree, insert subtrees.
     """
     new_tree = copy.deepcopy(tree)

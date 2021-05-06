@@ -17,7 +17,7 @@ Examples:
 - human: good job
   bot: thanks for letting me know
 """
-from template_objects import *
+from base_agent.ttad.generation_dialogues.template_objects import *
 
 TAG_WITH_CORRECTION = [
     ## Add location ##

@@ -1,11 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import os
-import sys
 import numpy as np
 
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from base_agent.loco_mc_agent import LocoMCAgent
 from locobot.agent.perception import Detection, RGBDepth, Human, HumanKeypoints
 
@@ -26,7 +25,12 @@ class FakeAgent(LocoMCAgent):
 
     def init_controller(self):
         dialogue_object_classes = {}
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
 
 def get_fake_rgbd(rgb=None, h=480, w=640):
@@ -65,7 +69,9 @@ def get_fake_detection(class_label, properties, xyz):
 def get_rand_pixel(rgb_d):
     h = rgb_d.rgb.shape[0]
     w = rgb_d.rgb.shape[1]
-    return [np.random.randint(0, h), np.random.randint(0, w)]
+    # return in (w,h) format, since that is the currently followed convention for points
+    # See https://github.com/facebookresearch/droidlet/issues/358
+    return [np.random.randint(0, w), np.random.randint(0, h)]
 
 
 def get_fake_human_keypoints(rgb_d):

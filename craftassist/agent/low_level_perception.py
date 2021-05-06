@@ -5,15 +5,12 @@ import os
 import sys
 import numpy as np
 
-from mc_util import XYZ, IDM, to_block_pos, pos_to_np, euclid_dist, diag_adjacent
+from .mc_util import XYZ, IDM, to_block_pos, pos_to_np, euclid_dist, diag_adjacent
 from typing import Tuple, List
-from block_data import BORING_BLOCKS
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
+from .block_data import BORING_BLOCKS
 
 from base_agent.memory_nodes import PlayerNode, AttentionNode
-from mc_memory_nodes import BlockObjectNode
+from .mc_memory_nodes import BlockObjectNode
 
 
 def capped_line_of_sight(agent, player_struct, cap=20):

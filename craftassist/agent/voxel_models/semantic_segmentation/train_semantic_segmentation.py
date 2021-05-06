@@ -112,10 +112,6 @@ if __name__ == "__main__":
     parser.add_argument("--ndonkeys", type=int, default=4, help="workers in dataloader")
     args = parser.parse_args()
 
-    this_dir = os.path.dirname(os.path.realpath(__file__))
-    parent_dir = os.path.join(this_dir, "../")
-    sys.path.append(parent_dir)
-
     print("loading train data")
     aug = {}
     if args.augment != "none":

@@ -6,6 +6,7 @@ import re
 
 SPAN_NAMES = []
 
+
 def render_q(q, parent_id, show=True, show_siblings=True, sentence_id=""):
     """Return a fieldset for the given question"""
     assert "key" in q, "Missing key for q: {}".format(q)
@@ -30,7 +31,7 @@ def render_q(q, parent_id, show=True, show_siblings=True, sentence_id=""):
 def render_span(parent_id, optional=False, sentence_id=""):
     r = ""
     group_id = "{}.span".format(parent_id)
-    global SPAN_NAMES 
+    global SPAN_NAMES
     SPAN_NAMES += group_id
     if optional:
         onclick = """var x = document.getElementById('{}');

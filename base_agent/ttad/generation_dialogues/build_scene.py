@@ -9,9 +9,6 @@ import os
 import uuid
 import json
 
-TTAD_GEN_DIR = os.path.dirname(os.path.realpath(__file__))
-CRAFTASSIST_DIR = os.path.join(TTAD_GEN_DIR, "../../")
-sys.path.append(CRAFTASSIST_DIR)
 from generate_data import *
 import re
 from dialogue_objects.interpreter_helper import coref_resolve, interpret_shape_schematic
