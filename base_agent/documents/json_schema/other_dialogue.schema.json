@@ -7,27 +7,27 @@
         "get_memory": {
             "properties": {
                 "dialogue_type": {
-                "const": "GET_MEMORY"
+                    "const": "GET_MEMORY"
                 },
                 "filters": {
-                "$ref": "filters.schema.json#/definitions/triples"
+                    "$ref": "filters.schema.json#/definitions/triples"
                 },
                 "replace": {
-                "$ref": "#/definitions/replace"
+                    "$ref": "#/definitions/replace"
                 }
             }
         },
         "put_memory": {
             "properties": {
-              "dialogue_type": {
-                "const": "PUT_MEMORY"
-              },
-              "filters": {
-                "$ref": "filters.schema.json#/definitions/triples"
-              },
-              "upsert": {
-                "$ref": "#/definitions/upsert"
-              }
+                "dialogue_type": {
+                    "const": "PUT_MEMORY"
+                },
+                "filters": {
+                    "$ref": "filters.schema.json#/definitions/triples"
+                },
+                "upsert": {
+                    "$ref": "#/definitions/upsert"
+                }
             }
         },
         "memory_data": {
@@ -60,12 +60,12 @@
         },
         "noop": {
             "properties": {
-              "dialogue_type": {
-                "enum": [
-                  "NOOP",
-                  "BOT_CAPABILITIES"
-                ]
-              }
+                "dialogue_type": {
+                    "enum": [
+                        "NOOP",
+                        "BOT_CAPABILITIES"
+                    ]
+                }
             }
         },
         "otheraction": {

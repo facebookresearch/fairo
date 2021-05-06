@@ -180,11 +180,15 @@
     },
     "target_action_type": {
       "oneOf": [
-        {"$ref": "#/definitions/span"},
+        {
+          "$ref": "#/definitions/span"
+        },
         {
           "type": "object",
           "properties": {
-            "fixed_value": {"$ref": "action_dict_components.schema.json#/definitions/fixed_value"}
+            "fixed_value": {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+            }
           }
         }
       ]
@@ -336,14 +340,14 @@
       }
     },
     "human_give_command": {
-        "properties": {
-          "dialogue_type": {
-            "const": "HUMAN_GIVE_COMMAND"
-          },
-          "action_sequence": {
-            "$ref": "#/definitions/action_sequence"
-          }
+      "properties": {
+        "dialogue_type": {
+          "const": "HUMAN_GIVE_COMMAND"
+        },
+        "action_sequence": {
+          "$ref": "#/definitions/action_sequence"
         }
+      }
     },
     "receiver": {
       "oneOf": [
@@ -450,7 +454,8 @@
         "dialogue_type": {
           "enum": [
             "NOOP",
-            "BOT_CAPABILITIES"
+            "BOT_CAPABILITIES",
+            "OTHERACTION"
           ]
         }
       }

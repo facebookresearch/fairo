@@ -158,7 +158,9 @@
         },
         "destination": {
             "properties": {
-                "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                "reference_object": {
+                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                }
             }
         },
         "filters": {
@@ -203,7 +205,7 @@
                     "$ref": "grammar_spec.schema.json#/definitions/repeat"
                 },
                 "selector": {
-                    "$ref": "#/definitions/selector" 
+                    "$ref": "#/definitions/selector"
                 }
             },
             "additionalProperties": false
@@ -346,29 +348,38 @@
             }
         },
         "selector": {
-            "type": "object",
-            "properties": {
-                "argval": {
-                    "$ref": "#/definitions/argval"
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "argval": {
+                            "$ref": "#/definitions/argval"
+                        },
+                        "location": {
+                            "$ref": "action_dict_components.schema.json#/definitions/location"
+                        },
+                        "return_quantity": {
+                            "$ref": "#/definitions/return_quantity"
+                        },
+                        "same": {
+                            "enum": [
+                                "ALLOWED",
+                                "DISALLOWED",
+                                "REQUIRED"
+                            ]
+                        }
+                    }
                 },
-                "location": {
-                    "$ref": "action_dict_components.schema.json#/definitions/location"
-                },
-                "return_quantity": {
-                    "$ref": "#/definitions/return_quantity"
-                },
-                "same": {
-                    "enum": [
-                        "ALLOWED",
-                        "DISALLOWED",
-                        "REQUIRED"
-                    ]
+                {
+                    "type": "string"
                 }
-            }
+            ]
         },
         "source": {
             "properties": {
-                "reference_object": { "$ref": "grammar_spec.schema.json#/definitions/reference_object" }
+                "reference_object": {
+                    "$ref": "grammar_spec.schema.json#/definitions/reference_object"
+                }
             }
         },
         "task_info": {
