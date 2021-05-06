@@ -1,7 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from word2number.w2n import word_to_num
 from .attribute_helper import AttributeInterpreter, maybe_specific_mem
 from base_agent.memory_attributes import LinearExtentAttribute
 from base_agent.memory_filters import (
