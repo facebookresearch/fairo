@@ -401,7 +401,7 @@ class RandomMemorySelector(MemoryFilter):
         self.same = same
 
     def get_idxs(self, memids):
-        m = len(self.memids)
+        m = len(memids)
         if m == 0:
             return []
         if self.same == "REQUIRED":
@@ -425,7 +425,7 @@ class RandomMemorySelector(MemoryFilter):
 
     def filter(self, memids, vals):
         idxs = self.get_idxs(memids)
-        return [all_memids[i] for i in idxs], [vals[i] for i in idxs]
+        return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
 
 class ExtremeValueMemorySelector(MemoryFilter):
