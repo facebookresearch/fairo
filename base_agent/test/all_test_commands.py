@@ -251,10 +251,9 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "fill_all_holes_speaker_look": {
         "action_type": "FILL",
         "reference_object": {
-            "filters": {"selector": {"location": SPEAKERLOOK}},
+            "filters": {"selector": {"location": SPEAKERLOOK, "return_quantity": "ALL"}},
             "text_span": "where I'm looking",
         },
-        "repeat": {"repeat_key": "ALL"},
     },
     "go_to_tree": {
         "action_type": "MOVE",
