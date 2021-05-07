@@ -101,6 +101,11 @@ class ArgumentParser:
             help="sets slam_pkg to be used for navigation, otherwise pyrobot slam pkg will be used",
         )
         loco_parser.add_argument(
+            "--save_vis",
+            action="store_true",
+            help="saves visualizations at each task step",
+        )
+        loco_parser.add_argument(
             "--check_controller",
             action="store_true",
             help="sanity checks the robot's movement, camera, arm."

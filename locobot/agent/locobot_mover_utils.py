@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import logging
+import math
 from locobot.agent.rotation import yaw_pitch
 from scipy.spatial.transform import Rotation
 
@@ -108,6 +109,37 @@ def get_step_target_for_move(base_pos, target, step_size=0.1):
 
     targetx = base_pos[0] + signx * (step_size)
     targetz = base_pos[1] + signz * (step_size) 
+
+    yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+    
+    return [targetx, targetz, yaw] 
+
+def get_step_target_for_circular_move(base_pos, target, t=1):
+    """
+    For point, we first want to move close to the object and then point to it.
+
+    Args:
+        base_pos ([x,z,yaw]): robot base in canonical coords
+        target ([x,y,z]): point target in canonical coords
+    
+    Returns:
+        move_target ([x,z,yaw]): robot base move target in canonical coords 
+    """
+
+    # double r  = (...);  // Radius of circle
+    # double cX = (...);  // x-coordinate of center of rotation
+    # double cY = (...);  // y-coordinate of center of rotation
+
+    # double omega = (...);  // Angular velocity, like 1
+    # double t = (...);  // Time step, like 0.00, 0.01, 0.02, 0.03, etc.
+
+    cx = target[0]
+    cz = target[2]
+    r = 1
+    omega = 0.1
+
+    targetx = cx + r * math.cos(t * omega)
+    targetz = cz + r * math.sin(t * omega)
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
     

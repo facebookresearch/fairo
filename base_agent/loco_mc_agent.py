@@ -240,6 +240,8 @@ class LocoMCAgent(BaseAgent):
             return
         for mem in task_mems:
             mem.task.step()
+            sio.emit("setCurrentTask", mem.action_name)
+            logging.info(mem.action_name)
             if mem.task.finished:
                 mem.update_task()
 

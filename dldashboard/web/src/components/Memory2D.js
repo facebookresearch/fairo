@@ -146,7 +146,16 @@ class Memory2D extends React.Component {
           }}
         />
       );
-      // renderedObjects.push(<Text key={j++} text={obj.label} x={x} y={y} fill={color} fontSize={10} />);
+      renderedObjects.push(
+        <Text
+          key={j++}
+          text={obj.label}
+          x={xmin + 10}
+          y={ymin + 10}
+          fill={color}
+          fontSize={40}
+        />
+      );
     });
 
     /* bot marker

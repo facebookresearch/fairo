@@ -66,6 +66,7 @@ class StateManager {
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
+    this.currentTask = this.currentTask.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -129,6 +130,7 @@ class StateManager {
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("objects", this.processObjects);
+    socket.on("setCurrentTask", this.currentTask);
   }
 
   updateStateManagerMemory(data) {
@@ -254,6 +256,8 @@ class StateManager {
       }
     });
   }
+
+  currentTask(res) {}
 
   processObjects(res) {
     let rgb = new Image();
