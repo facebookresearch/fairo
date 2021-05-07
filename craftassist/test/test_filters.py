@@ -60,6 +60,26 @@ class FiltersTest(BaseCraftassistTestCase):
         self.assertEqual(len(vals), 1)
         self.assertEqual(vals[0], 64)
 
+    def test_random(self):
+        o = base_agent.test.all_test_commands.FILTERS["a random cube"]
+        t = base_agent.test.all_test_commands.FILTERS["two random cubes"]
+
+        DI = self.dummy_interpreter
+
+        memids = []
+        num_tries = 25
+        b = DI.subinterpret["filters"](DI, "SPEAKER", o)
+        for i in range(num_tries):
+            mems, vals = b()
+            self.assertEqual(len(mems), 1)
+            memids.append(mems[0])
+
+        assert not all([m == memids[0] for m in memids])
+
+        b = DI.subinterpret["filters"](DI, "SPEAKER", t)
+        mems, vals = b()
+        self.assertEqual(len(mems), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

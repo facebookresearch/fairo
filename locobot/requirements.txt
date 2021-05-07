@@ -16,3 +16,4 @@ tenacity
 wordcloud
 fuzzywuzzy
 krovetz
+open3d

@@ -216,7 +216,7 @@ If "location" is given in RIGIDMOTION, the modify is to move the reference objec
 
 #### Location ####
 ```
-"location" : {
+"location" : "OTHER" / {
           "text_span" : span,
           "steps" : span,
           "has_measure" : {"fixed_value" : text} / span,

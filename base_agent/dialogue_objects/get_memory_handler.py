@@ -79,6 +79,10 @@ class GetMemoryHandler(DialogueObject):
             all_proximity=ALL_PROXIMITY,
         )
         val_map = get_val_map(self, self.speaker_name, f, get_all=True)
+        if not val_map:
+            # this should be a yes or no question:
+            self.finished = True
+            return "yes" if ref_obj_mems else "no", None
         mems, vals = val_map([m.memid for m in ref_obj_mems], [] * len(ref_obj_mems))
         # back off to tags if nothing else, FIXME do this better!
         if vals:
