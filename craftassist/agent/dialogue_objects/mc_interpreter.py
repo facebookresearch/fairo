@@ -485,14 +485,19 @@ class MCInterpreter(Interpreter):
                 F = self.subinterpret["filters"](self, speaker, dance_type.get("filters", {}))
                 dance_memids, _ = F()
                 # TODO correct selector in filters
-                dance_memid = random.choice(dance_memids)
-                dance_mem = self.memory.get_mem_by_id(dance_memid)
-                for i in range(repeat):
-                    dance_obj = dance.Movement(
-                        agent=self.agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
-                    )
-                    t = self.task_objects["dance"](self.agent, {"movement": dance_obj})
-                    tasks_to_do.append(t)
+                if dance_memids:
+                    dance_memid = random.choice(dance_memids)
+                    dance_mem = self.memory.get_mem_by_id(dance_memid)
+                    for i in range(repeat):
+                        dance_obj = dance.Movement(
+                            agent=self.agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
+                        )
+                        t = self.task_objects["dance"](self.agent, {"movement": dance_obj})
+                        tasks_to_do.append(t)
+                else:
+                    # dance out of scope
+                    self.dialogue_stack.append_new(Say, "I don't know how to do that movement yet.")
+                    return None
             return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
         if "stop_condition" in d:
