@@ -9,6 +9,8 @@ from base_craftassist_test_case import BaseCraftassistTestCase
 from fake_agent import MockOpt
 
 NSP_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/")
+GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/")
+
 
 """This class tests safety checks using a preset list of blacklisted words.
 """
@@ -19,6 +21,7 @@ class SafetyTest(BaseCraftassistTestCase):
         opts = MockOpt()
         opts.nsp_data_dir = NSP_DATA_DIR
         opts.no_ground_truth = False
+        opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         super().setUp(agent_opts=opts)
 
     def test_unsafe_word(self):
