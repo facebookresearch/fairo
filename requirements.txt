@@ -22,13 +22,13 @@ scikit-learn>=0.23.1
 sentry-sdk>=0.7.9
 six>=1.11.0
 snowballstemmer>=1.2.1
-spacy==2.0.12
+spacy==2.3.0
 torch>=1.4.0
 torchvision>=0.5.0
 tqdm>=4.41.1
 word2number>=1.1
 transformers==3.3.1
-https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.3.0/en_core_web_sm-2.3.0.tar.gz
 coverage>=5.3
 flask-cors>=3.0.9
 flask>=1.1.2
