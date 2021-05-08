@@ -16,7 +16,7 @@ __pycache__
 *.sql
 !memory_schema.sql
 *~
-base_agent/documents/internal
+base_agent/documents/internal/*
 bin/*
 writeups/*.pdf
 writeups/*.aux
