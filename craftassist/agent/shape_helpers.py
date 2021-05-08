@@ -6,7 +6,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import numpy as np
 
-import shapes
+from . import shapes
 
 FORCE_SMALL = 10  # for debug
 

@@ -32,17 +32,25 @@ FILTERS = {
     "that cow": {
         "triples": [{"pred_text": "has_name", "obj_text": "cow"}],
         "contains_coreference": "resolved",
-        "location": SPEAKERLOOK,
+        "selector": {"location": SPEAKERLOOK},
     },
     "that cube": {
         "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
         "contains_coreference": "resolved",
-        "location": SPEAKERLOOK,
+        "selector": {"location": SPEAKERLOOK},
     },
     "a cow": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]},
+    "a random cube": {
+        "selector": {"return_quantity": {"random": "1"}},
+        "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
+    },
+    "two random cubes": {
+        "selector": {"return_quantity": {"random": "2"}},
+        "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
+    },
     "a cube": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]},
-    "where I am looking": {"location": SPEAKERLOOK},
-    "my location": {"location": AGENTPOS},
+    "where I am looking": {"selector": {"location": SPEAKERLOOK}},
+    "my location": {"selector": {"location": AGENTPOS}},
     "number of blocks in blue cube": {
         "output": {"attribute": ATTRIBUTES["number of blocks"]},
         "triples": [
@@ -143,7 +151,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "destroy_speaker_look": {
         "action_type": "DESTROY",
         "reference_object": {
-            "filters": {"location": SPEAKERLOOK},
+            "filters": {"selector": {"location": SPEAKERLOOK}},
             "text_span": "where I'm looking",
         },
     },
@@ -160,7 +168,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "copy_speaker_look_to_agent_pos": {
         "action_type": "BUILD",
         "reference_object": {
-            "filters": {"location": SPEAKERLOOK},
+            "filters": {"selector": {"location": SPEAKERLOOK}},
             "text_span": "where I'm looking",
         },
         "location": {
@@ -243,7 +251,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "fill_all_holes_speaker_look": {
         "action_type": "FILL",
         "reference_object": {
-            "filters": {"location": SPEAKERLOOK},
+            "filters": {"selector": {"location": SPEAKERLOOK}},
             "text_span": "where I'm looking",
         },
         "repeat": {"repeat_key": "ALL"},
@@ -273,7 +281,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
     "fill_speaker_look": {
         "action_type": "FILL",
         "reference_object": {
-            "filters": {"location": SPEAKERLOOK},
+            "filters": {"selector": {"location": SPEAKERLOOK}},
             "text_span": "where I'm looking",
         },
     },
@@ -283,7 +291,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
             "filters": {"triples": [{"pred_text": "has_block_type", "obj_text": "gold"}]}
         },
         "reference_object": {
-            "filters": {"location": SPEAKERLOOK},
+            "filters": {"selector": {"location": SPEAKERLOOK}},
             "text_span": "where I'm looking",
         },
     },
@@ -637,6 +645,21 @@ FILL_COMMANDS = {
     },
 }
 
+DIG_COMMANDS = {
+    "dig a hole": {
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+        "action_sequence": [
+            {
+                "schematic": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "hole"}]}
+                },
+                "action_type": "DIG",
+            }
+        ],
+    }
+}
+
+
 DANCE_COMMANDS = {
     "dance": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -693,7 +716,7 @@ GET_MEMORY_COMMANDS = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "memory_type": "REFERENCE_OBJECT",
-            "location": SPEAKERLOOK,
+            "selector": {"location": SPEAKERLOOK},
             "output": {"attribute": "NAME"},
         },
     },
@@ -742,11 +765,13 @@ GET_MEMORY_COMMANDS = {
         "filters": {
             "output": {"attribute": "NAME"},
             "memory_type": "REFERENCE_OBJECT",
-            "location": {
-                "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
-                },
-                "relative_direction": "LEFT",
+            "selector": {
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]}
+                    },
+                    "relative_direction": "LEFT",
+                }
             },
         },
     },
@@ -845,7 +870,7 @@ GET_MEMORY_COMMANDS = {
 PUT_MEMORY_COMMANDS = {
     "that is fluff": {
         "dialogue_type": "PUT_MEMORY",
-        "filters": {"location": SPEAKERLOOK},
+        "filters": {"selector": {"location": SPEAKERLOOK}},
         "upsert": {
             "memory_data": {
                 "memory_type": "TRIPLE",
@@ -859,7 +884,7 @@ PUT_MEMORY_COMMANDS = {
     },
     "that is fluffy": {
         "dialogue_type": "PUT_MEMORY",
-        "filters": {"location": SPEAKERLOOK},
+        "filters": {"selector": {"location": SPEAKERLOOK}},
         "upsert": {
             "memory_data": {
                 "memory_type": "TRIPLE",

@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
+import numpy as np
 
 from copy import deepcopy
 from base_craftassist_test_case import BaseCraftassistTestCase
@@ -39,15 +40,27 @@ class MoveDirectionUntilTest(BaseCraftassistTestCase):
 
         add_sequence_mob(self, "cow", cow_move_sequence)
         cow = self.agent.world.mobs[0]
-        self.set_looking_at((1, 63, -2))
+        look_at_target = (1, 63, -2)
+        self.set_looking_at(look_at_target)
+
         d = STOP_CONDITION_COMMANDS["go left until that cow is closer than 2 steps to me"]
         self.handle_logical_form(d, max_steps=1000)
+
+        # check stopped when cow was close:
         self.assertLessEqual(((5 - cow.pos[0]) ** 2 + (5 - cow.pos[2]) ** 2) ** 0.5, 2)
-        self.assertLessEqual(self.agent.pos[2], -10)
-        self.assertLessEqual(abs(self.agent.pos[0]), 1)
 
+        # check agent went left:
+        player_lv = np.array(look_at_target) - np.array((5, 63, 5))
+        player_lv = player_lv / np.linalg.norm(player_lv)
+        player_left = player_lv.copy()
+        player_left[0] = player_lv[2]
+        player_left[2] = -player_lv[0]
+        agent_mv = self.agent.pos - np.array((0, 63, 0))
+        agent_mv_n = agent_mv / np.linalg.norm(agent_mv)
+        self.assertGreaterEqual(agent_mv_n @ player_left, 0.8)
 
-#        self.assertLessEqual(abs(self.agent.pos[0] - 5), 1.01)
+        # check that player stopped first time cow was close:
+        self.assertLessEqual(self.agent.world.count, 30)
 
 
 class FollowUntilTest(BaseCraftassistTestCase):

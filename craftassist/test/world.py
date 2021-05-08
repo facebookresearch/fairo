@@ -87,7 +87,10 @@ class World:
             i.add_to_world(self)
         self.players = []
         for p in spec["players"]:
-            self.players.append(p)
+            if hasattr(p, "add_to_world"):
+                p.add_to_world(self)
+            else:
+                self.players.append(p)
         self.agent_data = spec["agent"]
         self.chat_log = []
 
@@ -103,6 +106,9 @@ class World:
     def step(self):
         for m in self.mobs:
             m.step()
+        for p in self.players:
+            if hasattr(p, "step"):
+                p.step()
         self.count += 1
 
     def build_ground(self):
@@ -198,6 +204,9 @@ class World:
 
     def get_mobs(self):
         return [m.get_info() for m in self.mobs]
+
+    def get_players(self):
+        return [p.get_info() if hasattr(p, "get_info") else p for p in self.players]
 
     def get_item_stacks(self):
         return [i.get_info() for i in self.item_stacks]

@@ -9,10 +9,9 @@ import numpy as np
 import logging
 from torchvision import transforms
 
-class ObjectDeduplicationHandler(AbstractHandler):
-    """Class for deduplicating a given set of objects from a given set of existing objects
 
-    """
+class ObjectDeduplicationHandler(AbstractHandler):
+    """Class for deduplicating a given set of objects from a given set of existing objects"""
 
     def __init__(self):
         self.object_id_counter = 1
@@ -20,13 +19,14 @@ class ObjectDeduplicationHandler(AbstractHandler):
         self.layer = self.dedupe_model._modules.get("avgpool")
         self.dedupe_model.eval()
         self.transforms = [
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                              std=[0.229, 0.224, 0.225]),
-            transforms.ToTensor()
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.ToTensor(),
         ]
         self._temp_buffer = torch.zeros(512).pin_memory()
+
         def copy_data(m, i, o):
             self._temp_buffer.copy_(torch.flatten(o).data)
+
         self.layer.register_forward_hook(copy_data)
 
     def get_feature_repr(self, img):
@@ -59,7 +59,7 @@ class ObjectDeduplicationHandler(AbstractHandler):
         Args:
             current_object (WorldObject): current object to compare
             previous_objects (List[WorldObject]): all previous objects to compare to
-            
+
 
         """
         current_object.feature_repr = self.get_feature_repr(current_object.get_masked_img())
@@ -70,11 +70,21 @@ class ObjectDeduplicationHandler(AbstractHandler):
         for previous_object in previous_objects:
             if isinstance(previous_object, dict):
                 previous_object = AttributeDict(previous_object)
-            if previous_object.feature_repr is not None and current_object.feature_repr is not None:
-                score = cos(previous_object.feature_repr.unsqueeze(0), current_object.feature_repr.unsqueeze(0))
-                dist = np.linalg.norm(np.asarray(current_object.xyz[:2]) - np.asarray(previous_object.xyz[:2]))
+            if (
+                previous_object.feature_repr is not None
+                and current_object.feature_repr is not None
+            ):
+                score = cos(
+                    previous_object.feature_repr.unsqueeze(0),
+                    current_object.feature_repr.unsqueeze(0),
+                )
+                dist = np.linalg.norm(
+                    np.asarray(current_object.xyz[:2]) - np.asarray(previous_object.xyz[:2])
+                )
                 logging.debug(
-                    "Similarity {}.{} = {}, {}".format(current_object.label, previous_object.label, score.item(), dist)
+                    "Similarity {}.{} = {}, {}".format(
+                        current_object.label, previous_object.label, score.item(), dist
+                    )
                 )
                 # FIXME pick best match?
                 if self.is_match(score.item(), dist):
@@ -104,7 +114,7 @@ class ObjectDeduplicationHandler(AbstractHandler):
                 logging.info(
                     f"Instance ({current_object.label}) is at location: "
                     f"({np.around(np.array(current_object.xyz), 2)}),"
-                    " Center:({current_object.center})"
+                    f" Center:({current_object.center})"
                 )
             else:
                 updated_objects.append(current_object)

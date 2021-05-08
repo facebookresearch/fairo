@@ -1,8 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from memory_filters import BasicMemorySearcher
-from base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
+from .memory_filters import BasicMemorySearcher
+from .base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
 
 
 # a value has a get_value() method; and get_value should not have
@@ -57,7 +57,7 @@ class FixedValue(ComparisonValue):
 # make some TimeNodes as side effects
 # WARNING:  elapsed mode uses get_time at construction as 0
 class TimeValue(ComparisonValue):
-    """ 
+    """
     modes are elapsed, time, and world_time.
     if "elapsed" or "time" uses memory.get_time as timer
     if "elapsed", value is offset by time at creation

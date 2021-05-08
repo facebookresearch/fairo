@@ -1,6 +1,7 @@
 from base_agent.base_util import ErrorWithResponse
 from base_agent.dialogue_objects import interpret_relative_direction
 
+
 class PointTargetInterpreter:
     def __call__(self, interpreter, speaker, d):
         if d.get("location") is None:
@@ -19,4 +20,4 @@ class PointTargetInterpreter:
 
     def point_to_region(self, loc):
         assert len(loc) == 3, "point_to_region expects a triple"
-        return (loc[0], loc[1]+1, loc[2], loc[0], loc[1]+1, loc[2])
+        return (loc[0], loc[1] + 1, loc[2], loc[0], loc[1] + 1, loc[2])

@@ -44,10 +44,10 @@ def format_for_printing_data(data):
     )
 
     inputs = contents["inputs"]
-    inputs_string = f"Character: {inputs['character_name']}\nDescription: {inputs['character_description']}\n"
+    inputs_string = f"Domain: {inputs['subdomain']}\n"
 
     outputs = contents["outputs"]
-    output_string = f"   Rating: {outputs['rating']}\n"
+    output_string = f"   \n"
     found_files = outputs.get("files")
     if found_files is not None:
         file_dir = Unit(db, data["unit_id"]).get_assigned_agent().get_data_dir()
@@ -73,9 +73,7 @@ for unit in units:
             # the worker from working on more of these tasks
             agent = unit.get_assigned_agent()
             agent.soft_reject_work()
-            should_soft_block = input(
-                "Do you want to soft block this worker? (y)es/(n)o: "
-            )
+            should_soft_block = input("Do you want to soft block this worker? (y)es/(n)o: ")
             if should_soft_block.lower() in ["y", "yes"]:
                 if disqualification_name == None:
                     disqualification_name = input(

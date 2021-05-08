@@ -5,6 +5,7 @@ and generates config files to be used in slurm jobs.
 import argparse
 import os
 
+
 def generate_config_pair(arr1, arr2):
     configs = []
     for x in arr1:
@@ -36,6 +37,7 @@ def generate_configs_from_file(input_file):
     print(len(configs))
     return configs
 
+
 def write_config_to_file(config, idx, output_dir, sweep_output_dir, data_dir):
     output_path = "{}config_{}.txt".format(output_dir, idx)
     with open(output_path, "w") as fd:
@@ -50,9 +52,13 @@ def write_config_to_file(config, idx, output_dir, sweep_output_dir, data_dir):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # Path to sweep config, i.e. which parameters to run and their ranges for grid search
-    parser.add_argument("--sweep_params_path", help="path to sweep params and values to search over")
+    parser.add_argument(
+        "--sweep_params_path", help="path to sweep params and values to search over"
+    )
     # Name of sweep, to identify
-    parser.add_argument("--data_dir", help="path to training data directory containing train/test/valid split")
+    parser.add_argument(
+        "--data_dir", help="path to training data directory containing train/test/valid split"
+    )
     parser.add_argument("--output_dir", help="where to write configs to")
     parser.add_argument("--sweep_output_dir", help="where to save models to during sweeps")
 

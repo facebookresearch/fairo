@@ -10,10 +10,10 @@ import torch
 
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
-from utils_parsing import *
-from utils_parsing import beam_search
-from utils_caip import *
-from train_model import *
+from .utils_parsing import *
+from .utils_parsing import beam_search
+from .utils_caip import *
+from .train_model import *
 
 
 class TTADBertModel(object):
@@ -41,7 +41,7 @@ class TTADBertModel(object):
         model_name = os.path.join(model_dir, model_name)
         with open(model_name + "_args.pk", "rb") as fd:
             args = pickle.load(fd)
-        
+
         args.data_dir = data_dir
 
         self.tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)

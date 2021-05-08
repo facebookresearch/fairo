@@ -89,7 +89,7 @@ def fake_embedding_fwd(x, embedding_weights):
 
 def compressed_onehot_distribution(x, allowed_idxs, pool=False):
     """x is a B x H x W x D LongTensor of indices;
-    if not pool, returns a tensor of the same size, with indices mapped to 0:len(allowed_idxs)-1 
+    if not pool, returns a tensor of the same size, with indices mapped to 0:len(allowed_idxs)-1
     if pool, maps to onehot, and pools, returning B x len(allowed_idxs) x H x W x D"""
 
     k = len(allowed_idxs)

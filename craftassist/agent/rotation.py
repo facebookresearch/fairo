@@ -19,8 +19,8 @@ DIRECTIONS = {
 
 def transform(coords, yaw, pitch, inverted=False):
     """Coordinate transforms with respect to yaw/pitch of the viewer
-       coords should be relative to the viewer *before* pitch/yaw transform
-       If we want to transform any of DIRECTIONS back, then it would be inverted=True
+    coords should be relative to the viewer *before* pitch/yaw transform
+    If we want to transform any of DIRECTIONS back, then it would be inverted=True
     """
     # our yaw and pitch are clockwise in the standard coordinate system
     theta = deg2rad(-yaw)
@@ -54,10 +54,18 @@ def transform(coords, yaw, pitch, inverted=False):
     return [-b, c, -a]
 
 
+def yaw_pitch(look_vec):
+    v = look_vec / np.linalg.norm(look_vec)
+    pitch = -np.rad2deg(np.arcsin(v[1]))
+    yaw = -np.rad2deg(np.arctan2(v[0], v[2]))
+
+    return yaw, pitch
+
+
 def look_vec(yaw, pitch):
-    """Takes yaw and pitch and 
+    """Takes yaw and pitch and
     Returns:
-        the look vector representing the coordinates of where the 
+        the look vector representing the coordinates of where the
     entity is looking"""
     yaw = deg2rad(yaw)
     pitch = deg2rad(pitch)
@@ -224,3 +232,20 @@ if __name__ == "__main__":
     batched_rotated_coords = batched_rotate(look_vecs_expanded, input_vecs_expanded)
     assert (~batched_rotated_coords.eq(expected_outputs)).int().sum() == 0
     print(">> TEST PASSED")
+
+    print("yaw_pitch(look_vec(170, -57))")
+    print(yaw_pitch(look_vec(170.0, -57.0)))
+    print("look_vec(*yaw_pitch(np.array((-2,1,1))))")
+    print(look_vec(*yaw_pitch(np.array((-2, 1, 1)))))
+
+    def check():
+        for i in range(20):
+            y = float(np.random.randint(-180, 180))
+            p = float(np.random.randint(-90, 90))
+            yn, pn = yaw_pitch(look_vec(y, p))
+            assert (y - yn) ** 2 + (p - pn) ** 2 < 0.001
+        for i in range(20):
+            x = np.random.randn(3)
+            xr = np.array(look_vec(*yaw_pitch(x)))
+            xn = x / np.linalg.norm(x)
+            assert abs(1 - xr @ xn) < 0.001

@@ -41,7 +41,7 @@ import random
 
 from collections import OrderedDict
 
-from generate_utils import *
+from .generate_utils import *
 
 
 SUBCOMPONENT_LABELS = [
@@ -960,8 +960,7 @@ class TowerShape(Shape):
 
 
 class Schematic(ComponentNode):
-    """A Schematic can be either a Shape or a CategoryObject
-    """
+    """A Schematic can be either a Shape or a CategoryObject"""
 
     def __init__(
         self,

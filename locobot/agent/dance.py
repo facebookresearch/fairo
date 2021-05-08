@@ -54,32 +54,6 @@ head_bob = [
 ]
 
 
-class DanceMovement(object):
-    def __init__(self, agent, move_fn, dance_location=None):
-        self.agent = agent
-        self.bot = agent.mover.bot
-        self.move_fn = move_fn
-        self.dance_location = dance_location
-        self.tick = 0
-
-    def wave(self):
-        for _ in range(3):
-            self.bot.set_joint_positions([0.4, 0.0, -1, 0.5, -0.1], plan=False)
-            while not self.bot.command_finished():
-                time.sleep(0.5)
-            self.bot.set_joint_positions([-0.4, 0.0, -1, -0.5, -0.1])
-            while not self.bot.command_finished():
-                time.sleep(0.5)
-        self.bot.set_joint_positions([0.0, -math.pi / 4.0, math.pi / 2.0, 0.0, 0.0], plan=False)
-
-    def get_move(self):
-        # move_fn should output a tuple (dx, dy, dz) corresponding to a
-        # change in Movement or None
-        # if None then Movement is finished
-        # can output
-        return self.move_fn(self, self.agent)
-
-
 def add_default_dances(memory):
     memory.add_dance(
         generate_sequential_move_fn(konami_dance), name="konami_dance", tags=["dance"]

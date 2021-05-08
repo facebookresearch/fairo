@@ -1,9 +1,9 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from attribute_helper import AttributeInterpreter, maybe_specific_mem
-from memory_attributes import LinearExtentAttribute
-from memory_filters import (
+from .attribute_helper import AttributeInterpreter, maybe_specific_mem
+from base_agent.memory_attributes import LinearExtentAttribute
+from base_agent.memory_filters import (
     MemoryFilter,
     NotFilter,
     MemidList,
@@ -12,46 +12,14 @@ from memory_filters import (
     ApplyAttribute,
     CountTransform,
     ExtremeValueMemorySelector,
+    RandomMemorySelector,
 )
-from base_agent.base_util import ErrorWithResponse
-from location_helpers import interpret_relative_direction
-from comparator_helper import interpret_comparator
-from dialogue_object_utils import tags_from_dict
+from base_agent.base_util import ErrorWithResponse, number_from_span
+from .location_helpers import interpret_relative_direction
+from .comparator_helper import interpret_comparator
+from .dialogue_object_utils import tags_from_dict
 
 CARDINAL_RADIUS = 20
-
-
-def build_linear_extent_selector(interpreter, speaker, location_d):
-    """ 
-    builds a MemoryFilter that selects by a linear_extent dict 
-    chooses memory location nearest to 
-    the linear_extent dict interpreted as a location
-    """
-
-    # FIXME this is being done at construction time, rather than execution
-    mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location_d)
-    steps, reldir = interpret_relative_direction(interpreter, location_d)
-    pos, _ = interpreter.subinterpret["specify_locations"](
-        interpreter, speaker, mems, steps, reldir
-    )
-
-    class dummy_loc_mem:
-        def get_pos(self):
-            return pos
-
-    selector_attribute = LinearExtentAttribute(
-        interpreter.agent, {"relative_direction": "AWAY"}, mem=dummy_loc_mem()
-    )
-    polarity = "argmin"
-    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-    selector = ExtremeValueMemorySelector(interpreter.agent.memory, polarity=polarity, ordinal=1)
-    selector.append(sa)
-    mems_filter = MemidList(interpreter.agent.memory, [mems[0].memid])
-    not_mems_filter = NotFilter(interpreter.agent.memory, [mems_filter])
-    selector.append(not_mems_filter)
-    #    selector.append(build_radius_comparator(interpreter, speaker, location_d))
-
-    return selector
 
 
 def get_val_map(interpreter, speaker, filters_d, get_all=False):
@@ -127,11 +95,9 @@ def interpret_random_selector(interpreter, speaker, selector_d):
                 selector_d
             )
         )
+    n = number_from_span(random_num)
     try:
-        if type(random_num) is int:
-            n = random_num
-        else:
-            n = word_to_num(random_num)
+        n = int(n)
     except:
         raise Exception(
             "malformed selector dict {}, tried to get random number {} ".format(
@@ -167,8 +133,43 @@ def interpret_argval_selector(interpreter, speaker, selector_d):
     return selector
 
 
+def build_linear_extent_selector(interpreter, speaker, location_d):
+    """
+    builds a MemoryFilter that selects by a linear_extent dict
+    chooses memory location nearest to
+    the linear_extent dict interpreted as a location
+    """
+
+    # FIXME this is being done at construction time, rather than execution
+    mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location_d)
+    steps, reldir = interpret_relative_direction(interpreter, location_d)
+    pos, _ = interpreter.subinterpret["specify_locations"](
+        interpreter, speaker, mems, steps, reldir
+    )
+
+    class dummy_loc_mem:
+        def get_pos(self):
+            return pos
+
+    selector_attribute = LinearExtentAttribute(
+        interpreter.agent, {"relative_direction": "AWAY"}, mem=dummy_loc_mem()
+    )
+    polarity = "argmin"
+    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
+    selector = ExtremeValueMemorySelector(interpreter.agent.memory, polarity=polarity, ordinal=1)
+    selector.append(sa)
+    mems_filter = MemidList(interpreter.agent.memory, [mems[0].memid])
+    not_mems_filter = NotFilter(interpreter.agent.memory, [mems_filter])
+    selector.append(not_mems_filter)
+    #    selector.append(build_radius_comparator(interpreter, speaker, location_d))
+
+    return selector
+
+
 def interpret_selector(interpreter, speaker, selector_d):
     selector = None
+    if selector_d.get("location"):
+        return build_linear_extent_selector(interpreter, speaker, selector_d["location"])
     return_d = selector_d.get("return_quantity", "ALL")
     if type(return_d) is str:
         if return_d == "ALL":
@@ -250,11 +251,11 @@ def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
 class FilterInterpreter:
     def __call__(self, interpreter, speaker, filters_d, get_all=False):
         """
-        This is a subinterpreter to handle FILTERS dictionaries 
+        This is a subinterpreter to handle FILTERS dictionaries
 
         Args:
         interpreter:  root interpreter.
-        speaker (str): The name of the player/human/agent who uttered 
+        speaker (str): The name of the player/human/agent who uttered
             the chat resulting in this interpreter
         filters_d: FILTERS logical form from semantic parser
         get_all (bool): if True, output attributes are set with get_all=True

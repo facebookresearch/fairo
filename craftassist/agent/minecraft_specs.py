@@ -15,48 +15,24 @@ assert os.path.isdir(PATH), (
 )
 
 
-_BLOCK_DATA = None
-
-
 def get_block_data():
     """Get the block data from the file"""
-    global _BLOCK_DATA
-    if _BLOCK_DATA is None:
-        _BLOCK_DATA = _pickle_load("block_images/block_data")
-    return _BLOCK_DATA
-
-
-_COLOUR_DATA = None
+    return _pickle_load("block_images/block_data")
 
 
 def get_colour_data():
     """Get colour data for all block types"""
-    global _COLOUR_DATA
-    if _COLOUR_DATA is None:
-        _COLOUR_DATA = _pickle_load("block_images/color_data")
-    return _COLOUR_DATA
-
-
-_BLOCK_PROPERTY_DATA = None
+    return _pickle_load("block_images/color_data")
 
 
 def get_block_property_data():
     """Get block properties data for all block types"""
-    global _BLOCK_PROPERTY_DATA
-    if _BLOCK_PROPERTY_DATA is None:
-        _BLOCK_PROPERTY_DATA = _pickle_load("block_images/block_property_data")
-    return _BLOCK_PROPERTY_DATA
-
-
-_MOB_PROPERTY_DATA = None
+    return _pickle_load("block_images/block_property_data")
 
 
 def get_mob_property_data():
     """Get properties data for all mobs"""
-    global _MOB_PROPERTY_DATA
-    if _MOB_PROPERTY_DATA is None:
-        _MOB_PROPERTY_DATA = _pickle_load("block_images/mob_property_data")
-    return _MOB_PROPERTY_DATA
+    return _pickle_load("block_images/mob_property_data")
 
 
 def get_bid_to_colours():

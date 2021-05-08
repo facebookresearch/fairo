@@ -41,7 +41,9 @@
       "type": "object",
       "properties": {
         "fixed_value": {
-          "enum": ["THIS"]
+          "enum": [
+            "THIS"
+          ]
         }
       }
     },
@@ -50,54 +52,71 @@
     },
     "has_measure": {
       "oneOf": [
-        {"$ref": "#/definitions/span"},
+        {
+          "$ref": "#/definitions/span"
+        },
         {
           "type": "object",
           "properties": {
-            "fixed_value": {"$ref": "#/definitions/fixed_value"}
+            "fixed_value": {
+              "$ref": "#/definitions/fixed_value"
+            }
           }
         }
       ]
     },
     "location": {
-      "type": "object",
-      "properties": {
-        "text_span": {
-          "$ref": "#/definitions/span"
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "text_span": {
+              "$ref": "#/definitions/span"
+            },
+            "steps": {
+              "$ref": "#/definitions/span"
+            },
+            "has_measure": {
+              "$ref": "#/definitions/has_measure"
+            },
+            "contains_coreference": {
+              "enum": [
+                "yes"
+              ]
+            },
+            "relative_direction": {
+              "enum": [
+                "LEFT",
+                "RIGHT",
+                "UP",
+                "DOWN",
+                "FRONT",
+                "BACK",
+                "AWAY",
+                "INSIDE",
+                "NEAR",
+                "OUTSIDE",
+                "AROUND",
+                "BETWEEN",
+                "ANTICLOCKWISE",
+                "CLOCKWISE"
+              ]
+            },
+            "reference_object": {
+              "$ref": "#/definitions/reference_object"
+            },
+            "reference_object_1": {
+              "$ref": "#/definitions/reference_object"
+            },
+            "reference_object_2": {
+              "$ref": "#/definitions/reference_object"
+            }
+          }
         },
-        "steps": {
-          "$ref": "#/definitions/span"
-        },
-        "has_measure": {
-          "$ref": "#/definitions/has_measure"
-        },
-        "contains_coreference": {
-          "enum": [
-            "yes"
-          ]
-        },
-        "relative_direction": {
-          "enum": [
-            "LEFT",
-            "RIGHT",
-            "UP",
-            "DOWN",
-            "FRONT",
-            "BACK",
-            "AWAY",
-            "INSIDE",
-            "NEAR",
-            "OUTSIDE",
-            "AROUND",
-            "BETWEEN",
-            "ANTICLOCKWISE",
-            "CLOCKWISE"
-          ]
-        },
-        "reference_object": {
-          "$ref": "#/definitions/reference_object"
+        {
+          "type": "string"
         }
-      }
+      ]
     },
     "reference_object": {
       "type": "object",

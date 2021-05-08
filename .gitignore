@@ -1,4 +1,13 @@
-python/*.so
+craftassist/agent/*.so
+craftassist/bin
+craftassist/dashboard_data.db
+craftassist/nsp_outputs.csv
+craftassist/test/dashboard_data.db
+craftassist/test/nsp_outputs.csv
+locobot/agent/nsp_outputs.csv
+locobot/test/nsp_outputs.csv
+.coverage
+droidlet.egg-info
 logs
 __pycache__
 *.pyc

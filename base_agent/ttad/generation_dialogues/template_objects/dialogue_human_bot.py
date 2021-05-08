@@ -3,8 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 This file contains template objects associated with human-bot dialogues.
 """
-from generate_utils import *
-from tree_components import *
+from ..generate_utils import *
+from ..tree_components import *
 from .template_object import *
 
 action_reference_object_map = {

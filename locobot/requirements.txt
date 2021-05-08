@@ -3,6 +3,7 @@ pyro4
 scikit-build
 webcolors==1.10
 dlib==19.19.0
+opencv-python
 face_recognition
 norfair
 facenet-pytorch
@@ -15,3 +16,4 @@ tenacity
 wordcloud
 fuzzywuzzy
 krovetz
+open3d

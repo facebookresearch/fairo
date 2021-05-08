@@ -5,13 +5,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 from typing import Tuple, Dict, Any, Optional
 
-from dialogue_object import DialogueObject, ConfirmTask
-from dialogue_object_utils import SPEAKERLOOK
+from .dialogue_object import DialogueObject, ConfirmTask
+from .dialogue_object_utils import SPEAKERLOOK
 
 # point target should be subinterpret, dance should be in agents subclassed interpreters
-from reference_object_helpers import ReferenceObjectInterpreter, interpret_reference_object
-from location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
-from filter_helper import FilterInterpreter
+from .reference_object_helpers import ReferenceObjectInterpreter, interpret_reference_object
+from .location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
+from .filter_helper import FilterInterpreter
 
 from base_agent.base_util import ErrorWithResponse, NextDialogueStep
 from base_agent.task import ControlBlock, maybe_task_list_to_control_block
