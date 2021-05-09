@@ -87,8 +87,9 @@ class TestDialogueManager(unittest.TestCase):
             )
 
     def test_validate_bad_json(self):
+        # Don't print debug info on failure since it will be misleading
         is_valid_json = (
-            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree({})
+            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(parse_tree={}, debug=False)
         )
         self.assertFalse(is_valid_json)
 

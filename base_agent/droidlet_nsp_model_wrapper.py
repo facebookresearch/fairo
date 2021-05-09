@@ -167,14 +167,22 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
             speaker=speaker, logical_form=updated_logical_form, chat=chat
         )
 
-    def validate_parse_tree(self, parse_tree: Dict) -> bool:
-        """Validate the parse tree against current grammar."""
+    def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
+        """Validate the parse tree against current grammar.
+        
+        Args:
+            parse_tree (Dict): logical form to be validated.
+            debug (bool): whether to print error trace for debugging.
+
+        Returns:
+            True if parse tree is valid, False if not.
+        """
         # RefResolver initialization requires a base schema and URI
         schema_dir = "{}/".format(
             pkg_resources.resource_filename("base_agent.documents", "json_schema")
         )
         json_validator = JSONValidator(schema_dir, span_type="all")
-        is_valid_json = json_validator.validate_instance(parse_tree)
+        is_valid_json = json_validator.validate_instance(parse_tree, debug)
         return is_valid_json
 
     def postprocess_logical_form(self, speaker: str, chat: str, logical_form: Dict) -> Dict:
