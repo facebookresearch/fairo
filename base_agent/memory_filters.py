@@ -26,7 +26,7 @@ def maybe_or(sql, a):
 def get_property_value(agent_memory, mem, prop, get_all=False):
     """
     Tries to get property value from a memory.
-    
+
     Args:
         agent_memory: an AgentMemory object
         mem: a MemoryNode object
@@ -90,8 +90,8 @@ class BasicMemorySearcher:
         return True
 
     def range_queries(self, r, table, a=False):
-        """ this does x, y, z, pitch, yaw, etc.
-        input format for generates is 
+        """this does x, y, z, pitch, yaw, etc.
+        input format for generates is
         {"xmin": float, xmax: float, ... , yawmin: float, yawmax: float}
         """
         sql = ""
@@ -219,11 +219,11 @@ class BasicMemorySearcher:
         search_data has children:
             "base_table", value is a string with a table name.  if not specified, the
                   base table is ReferenceObjects
-            "base_range", dict, with keys "min<column_name>" or "max<column_name>", 
+            "base_range", dict, with keys "min<column_name>" or "max<column_name>",
                   (that is the string "min" prepended to the column name)
-                  and float values vmin and vmax respectively.  
+                  and float values vmin and vmax respectively.
                   <column_name> is any column in the base table that
-                  is a numerical value.  filters on rows satisfying the inequality 
+                  is a numerical value.  filters on rows satisfying the inequality
                   <column_entry> > vmin or <column_entry> < vmax
             "base_exact", dict,  with keys "<column_name>"
                   <column_name> is any column in the base table
@@ -232,7 +232,7 @@ class BasicMemorySearcher:
             "triples" list [t0, t1, ...,, tm].  each t in the list is a dict
                   with form t = {"pred_text": <pred>, "obj_text": <obj>}
                   or t = {"pred_text": <pred>, "obj": <obj_memid>}
-                  currently returns memories with all triples matched 
+                  currently returns memories with all triples matched
         """
         if not search_data:
             search_data = self.search_data
@@ -264,17 +264,17 @@ class MemoryFilter:
 
         args:
             agent_memory: and AgentMemory object
-            table (str): a base table for the search, defining the "universe".  
-                Should be a table name from the memory schema (and is allowed to be 
+            table (str): a base table for the search, defining the "universe".
+                Should be a table name from the memory schema (and is allowed to be
                 the base memory table)
-            preceding (MemoryFilter): if preceding is not None, this MemoryFilter will 
+            preceding (MemoryFilter): if preceding is not None, this MemoryFilter will
                 operate on the output of preceding
 
         the subclasses of MemoryFilter define three methods, .filter(memids, values)  and .search()
         and a __call__(memids=None, values=None)
         filter returns a subset of the memids and a matching subset of (perhaps transformed) vals
         search takes no input; and instead uses all memories in its table as "input"
-        
+
         The standard interface to the MemoryFilter should be through the __call__
         if the __call__ gets no inputs, its a .search(); otherwise its a .filter on the value and memids
         """
@@ -401,7 +401,7 @@ class RandomMemorySelector(MemoryFilter):
         self.same = same
 
     def get_idxs(self, memids):
-        m = len(self.memids)
+        m = len(memids)
         if m == 0:
             return []
         if self.same == "REQUIRED":
@@ -425,7 +425,7 @@ class RandomMemorySelector(MemoryFilter):
 
     def filter(self, memids, vals):
         idxs = self.get_idxs(memids)
-        return [all_memids[i] for i in idxs], [vals[i] for i in idxs]
+        return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
 
 class ExtremeValueMemorySelector(MemoryFilter):

@@ -14,20 +14,13 @@ from pyglet.gl import *
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
 
-import os
-import sys
-
-sys.path.append(os.path.dirname(__file__))
-
 TICKS_PER_SEC = 60
 PLAYER_HEIGHT = 2
 FLYING_SPEED = 20
 
 
 def cube_vertices(x, y, z, n):
-    """ Return the vertices of the cube at position x, y, z with size 2*n.
-
-    """
+    """Return the vertices of the cube at position x, y, z with size 2*n."""
     return [
         x - n,
         y + n,
@@ -105,9 +98,7 @@ def cube_vertices(x, y, z, n):
 
 
 def tex_coord(x, y, n=4):
-    """ Return the bounding vertices of the texture square.
-
-    """
+    """Return the bounding vertices of the texture square."""
     m = 1.0 / n
     dx = x * m
     dy = y * m
@@ -115,9 +106,7 @@ def tex_coord(x, y, n=4):
 
 
 def tex_coords(top, bottom, side):
-    """ Return a list of the texture squares for the top, bottom and side.
-
-    """
+    """Return a list of the texture squares for the top, bottom and side."""
     top = tex_coord(*top, n=32)
     bottom = tex_coord(*bottom, n=32)
     side = tex_coord(*side, n=32)
@@ -141,7 +130,7 @@ FACES = [(0, 1, 0), (0, -1, 0), (-1, 0, 0), (1, 0, 0), (0, 0, 1), (0, 0, -1)]
 
 
 def normalize(position):
-    """ Accepts `position` of arbitrary precision and returns the block
+    """Accepts `position` of arbitrary precision and returns the block
     containing that position.
 
     Parameters
@@ -181,7 +170,7 @@ class Model(object):
         self.queue = deque()
 
     def hit_test(self, position, vector, max_distance=8):
-        """ Line of sight search from current position. If a block is
+        """Line of sight search from current position. If a block is
         intersected it is returned, along with the block previously in the line
         of sight. If no block is found, return None, None.
 
@@ -208,7 +197,7 @@ class Model(object):
         return None, None
 
     def exposed(self, position):
-        """ Returns False is given `position` is surrounded on all 6 sides by
+        """Returns False is given `position` is surrounded on all 6 sides by
         blocks, True otherwise.
 
         """
@@ -219,7 +208,7 @@ class Model(object):
         return False
 
     def add_block(self, position, texture, immediate=True):
-        """ Add a block with the given `texture` and `position` to the world.
+        """Add a block with the given `texture` and `position` to the world.
 
         Parameters
         ----------
@@ -241,7 +230,7 @@ class Model(object):
             self.check_neighbors(position)
 
     def remove_block(self, position, immediate=True):
-        """ Remove the block at the given `position`.
+        """Remove the block at the given `position`.
 
         Parameters
         ----------
@@ -258,7 +247,7 @@ class Model(object):
             self.check_neighbors(position)
 
     def check_neighbors(self, position):
-        """ Check all blocks surrounding `position` and ensure their visual
+        """Check all blocks surrounding `position` and ensure their visual
         state is current. This means hiding blocks that are not exposed and
         ensuring that all exposed blocks are shown. Usually used after a block
         is added or removed.
@@ -277,7 +266,7 @@ class Model(object):
                     self.hide_block(key)
 
     def show_block(self, position, immediate=True):
-        """ Show the block at the given `position`. This method assumes the
+        """Show the block at the given `position`. This method assumes the
         block has already been added with add_block()
 
         Parameters
@@ -296,7 +285,7 @@ class Model(object):
             self._enqueue(self._show_block, position, texture)
 
     def _show_block(self, position, texture):
-        """ Private implementation of the `show_block()` method.
+        """Private implementation of the `show_block()` method.
 
         Parameters
         ----------
@@ -317,7 +306,7 @@ class Model(object):
         )
 
     def hide_block(self, position, immediate=True):
-        """ Hide the block at the given `position`. Hiding does not remove the
+        """Hide the block at the given `position`. Hiding does not remove the
         block from the world.
 
         Parameters
@@ -335,26 +324,20 @@ class Model(object):
             self._enqueue(self._hide_block, position)
 
     def _hide_block(self, position):
-        """ Private implementation of the 'hide_block()` method.
-
-        """
+        """Private implementation of the 'hide_block()` method."""
         self._shown.pop(position).delete()
 
     def _enqueue(self, func, *args):
-        """ Add `func` to the internal queue.
-
-        """
+        """Add `func` to the internal queue."""
         self.queue.append((func, args))
 
     def _dequeue(self):
-        """ Pop the top function from the internal queue and call it.
-
-        """
+        """Pop the top function from the internal queue and call it."""
         func, args = self.queue.popleft()
         func(*args)
 
     def process_queue(self):
-        """ Process the entire queue while taking periodic breaks. This allows
+        """Process the entire queue while taking periodic breaks. This allows
         the game loop to run smoothly. The queue contains calls to
         _show_block() and _hide_block() so this method should be called if
         add_block() or remove_block() was called with immediate=False
@@ -365,9 +348,7 @@ class Model(object):
             self._dequeue()
 
     def process_entire_queue(self):
-        """ Process the entire queue with no breaks.
-
-        """
+        """Process the entire queue with no breaks."""
         while self.queue:
             self._dequeue()
 
@@ -498,7 +479,7 @@ class Window(pyglet.window.Window):
         self.current_record = {}
 
     def set_exclusive_mouse(self, exclusive):
-        """ If `exclusive` is True, the game will capture the mouse, if False
+        """If `exclusive` is True, the game will capture the mouse, if False
         the game will ignore the mouse.
 
         """
@@ -506,7 +487,7 @@ class Window(pyglet.window.Window):
         self.exclusive = exclusive
 
     def get_sight_vector(self):
-        """ Returns the current line of sight vector indicating the direction
+        """Returns the current line of sight vector indicating the direction
         the player is looking.
 
         """
@@ -523,7 +504,7 @@ class Window(pyglet.window.Window):
         return (dx, dy, dz)
 
     def get_motion_vector(self):
-        """ Returns the current motion vector indicating the velocity of the
+        """Returns the current motion vector indicating the velocity of the
         player.
 
         Returns
@@ -544,7 +525,7 @@ class Window(pyglet.window.Window):
         return (dx, dy, dz)
 
     def update(self, dt):
-        """ This method is scheduled to be called repeatedly by the pyglet
+        """This method is scheduled to be called repeatedly by the pyglet
         clock.
 
         Parameters
@@ -597,7 +578,7 @@ class Window(pyglet.window.Window):
         self.count += 1
 
     def _update(self, dt):
-        """ Private implementation of the `update()` method. This is where most
+        """Private implementation of the `update()` method. This is where most
         of the motion logic lives, along with gravity and collision detection.
 
         Parameters
@@ -621,7 +602,7 @@ class Window(pyglet.window.Window):
         self.position = (x, y, z)
 
     def collide(self, position, height):
-        """ Checks to see if the player at the given `position` and `height`
+        """Checks to see if the player at the given `position` and `height`
         is colliding with any blocks in the world.
 
         Parameters
@@ -667,7 +648,7 @@ class Window(pyglet.window.Window):
         return tuple(p)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        """ Called when a mouse button is pressed. See pyglet docs for button
+        """Called when a mouse button is pressed. See pyglet docs for button
         amd modifier mappings.
 
         Parameters
@@ -698,7 +679,7 @@ class Window(pyglet.window.Window):
             self.set_exclusive_mouse(True)
 
     def on_mouse_motion(self, x, y, dx, dy):
-        """ Called when the player moves the mouse.
+        """Called when the player moves the mouse.
 
         Parameters
         ----------
@@ -717,7 +698,7 @@ class Window(pyglet.window.Window):
             self.rotation = (x, y)
 
     def on_key_press(self, symbol, modifiers):
-        """ Called when the player presses a key. See pyglet docs for key
+        """Called when the player presses a key. See pyglet docs for key
         mappings.
 
         Parameters
@@ -758,7 +739,7 @@ class Window(pyglet.window.Window):
             self.block = self.inventory[index]
 
     def on_key_release(self, symbol, modifiers):
-        """ Called when the player releases a key. See pyglet docs for key
+        """Called when the player releases a key. See pyglet docs for key
         mappings.
 
         Parameters
@@ -783,9 +764,7 @@ class Window(pyglet.window.Window):
             self.strafe[2] += 1
 
     def on_resize(self, width, height):
-        """ Called when the window is resized to a new `width` and `height`.
-
-        """
+        """Called when the window is resized to a new `width` and `height`."""
         # label
         self.label.y = height - 10
         # reticle
@@ -798,9 +777,7 @@ class Window(pyglet.window.Window):
         )
 
     def set_2d(self):
-        """ Configure OpenGL to draw in 2d.
-
-        """
+        """Configure OpenGL to draw in 2d."""
         width, height = self.get_size()
         glDisable(GL_DEPTH_TEST)
         viewport = self.get_viewport_size()
@@ -812,9 +789,7 @@ class Window(pyglet.window.Window):
         glLoadIdentity()
 
     def set_3d(self):
-        """ Configure OpenGL to draw in 3d.
-
-        """
+        """Configure OpenGL to draw in 3d."""
         width, height = self.get_size()
         glEnable(GL_DEPTH_TEST)
         viewport = self.get_viewport_size()
@@ -831,9 +806,7 @@ class Window(pyglet.window.Window):
         glTranslatef(-x, -y, -z)
 
     def on_draw(self):
-        """ Called by pyglet to draw the canvas.
-
-        """
+        """Called by pyglet to draw the canvas."""
         self.clear()
         self.set_3d()
         glColor3d(1, 1, 1)
@@ -879,7 +852,7 @@ class Window(pyglet.window.Window):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
     def draw_focused_block(self):
-        """ Draw black edges around the block that is currently under the
+        """Draw black edges around the block that is currently under the
         crosshairs.
 
         """
@@ -894,9 +867,7 @@ class Window(pyglet.window.Window):
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 
     def draw_label(self):
-        """ Draw the label in the top left of the screen.
-
-        """
+        """Draw the label in the top left of the screen."""
         x, y, z = self.position
         self.label.text = "%02d (%.2f, %.2f, %.2f) %d / %d" % (
             pyglet.clock.get_fps(),
@@ -915,17 +886,13 @@ class Window(pyglet.window.Window):
                 self.lflabel.text = str(self.current_record.get("logical_form"))
 
     def draw_reticle(self):
-        """ Draw the crosshairs in the center of the screen.
-
-        """
+        """Draw the crosshairs in the center of the screen."""
         glColor3d(0, 0, 0)
         self.reticle.draw(GL_LINES)
 
 
 def setup_fog():
-    """ Configure the OpenGL fog properties.
-
-    """
+    """Configure the OpenGL fog properties."""
     # Enable fog. Fog "blends a fog color with each rasterized pixel fragment's
     # post-texturing color."
     glEnable(GL_FOG)
@@ -942,9 +909,7 @@ def setup_fog():
 
 
 def setup():
-    """ Basic OpenGL configuration.
-
-    """
+    """Basic OpenGL configuration."""
     # Set the color of "clear", i.e. the sky, in rgba.
     glClearColor(0.5, 0.69, 1.0, 1)
     # Enable culling (not rendering) of back-facing facets -- facets that aren't

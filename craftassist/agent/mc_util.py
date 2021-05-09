@@ -3,14 +3,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 """This file contains utility functions for the CraftAssist agent"""
 import copy
-import os
-import sys
 
 from math import sin, cos, pi
 from typing import cast
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
-sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.base_util import *
 
@@ -46,8 +41,8 @@ def adjacent(p):
 
 
 def build_safe_diag_adjacent(bounds):
-    """ bounds is [mx, Mx, my, My, mz, Mz],
-    if nothing satisfies, returns empty list """
+    """bounds is [mx, Mx, my, My, mz, Mz],
+    if nothing satisfies, returns empty list"""
 
     def a(p):
         """Return the adjacent positions to p including diagonal adjaceny, within the bounds"""
@@ -71,8 +66,8 @@ def build_safe_diag_adjacent(bounds):
 def cluster_areas(areas):
     """Cluster a list of areas so that intersected ones are unioned
 
-       areas: list of tuple ((x, y, z), radius), each defines a cube
-       where (x, y, z) is the center and radius is half the side length
+    areas: list of tuple ((x, y, z), radius), each defines a cube
+    where (x, y, z) is the center and radius is half the side length
     """
 
     def expand_xyzs(pos, radius):
@@ -187,7 +182,7 @@ def get_locs_from_entity(e):
 
 # this should eventually be replaced with sql query
 def most_common_idm(idms):
-    """ idms is a list of tuples [(id, m) ,.... (id', m')]"""
+    """idms is a list of tuples [(id, m) ,.... (id', m')]"""
     counts = {}
     for idm in idms:
         if not counts.get(idm):

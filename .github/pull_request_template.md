@@ -15,6 +15,8 @@ Please check the options that are relevant.
 - [ ] Breaking change (fix or feature that would break some existing functionality downstream)
 - [ ] This is a unit test
 - [ ] Documentation only change
+- [ ] Datasets Release
+- [ ] Models Release
 
 ## Type of requested review
 

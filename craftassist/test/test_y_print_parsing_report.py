@@ -5,7 +5,8 @@ import os
 import unittest
 import json
 
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from base_agent.loco_mc_agent import LocoMCAgent
 from fake_agent import MockOpt
 from prettytable import PrettyTable
@@ -32,7 +33,12 @@ class FakeAgent(LocoMCAgent):
 
     def init_controller(self):
         dialogue_object_classes = {}
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
 
 class fontcolors:
@@ -274,22 +280,22 @@ common_functional_commands = {
         },
     },
     "what is outside the window": {
-        "dialogue_type": "GET_MEMORY", 
+        "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute": "NAME"}, 
+            "output": {"attribute": "NAME"},
             "selector": {
                 "location": {
-                    "text_span": [0, [2, 4]], 
-                    "relative_direction": "OUTSIDE", 
+                    "text_span": [0, [2, 4]],
+                    "relative_direction": "OUTSIDE",
                     "reference_object": {
-                        "text_span": [0, [4, 4]], 
+                        "text_span": [0, [4, 4]],
                         "filters": {
                             "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
-                        }
-                    }
+                        },
+                    },
                 }
-            }
-        }
+            },
+        },
     },
     "follow me": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -512,12 +518,12 @@ common_functional_commands = {
         ],
     },
     "where am i": {
-        "dialogue_type": "GET_MEMORY", 
+        "dialogue_type": "GET_MEMORY",
         "filters": {
-            "output": {"attribute": "LOCATION"}, 
-            "memory_type": "REFERENCE_OBJECT", 
-            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SPEAKER"}}]
-        }
+            "output": {"attribute": "LOCATION"},
+            "memory_type": "REFERENCE_OBJECT",
+            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SPEAKER"}}],
+        },
     },
     "how many pencils are there": {
         "dialogue_type": "GET_MEMORY",
@@ -921,7 +927,9 @@ class TestDialogueManager(unittest.TestCase):
             else:
                 # else query the model and remove the value for key "text_span"
                 model_prediction = remove_text_span(
-                    self.agent.dialogue_manager.model.model.parse(chat=command)
+                    self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
+                        chat=command
+                    )
                 )
 
             # compute parsing pipeline accuracy
@@ -940,7 +948,9 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             model_output = remove_text_span(
-                self.agent.dialogue_manager.model.model.parse(chat=command)
+                self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
+                    chat=command
+                )
             )
             parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:

@@ -126,22 +126,27 @@ if __name__ == "__main__":
     from question_flow_in_tools.question_flow_for_tool_A import *
 
     # XML: yes, gross, I know. but Turk requires XML for its API, so we deal
-    print("""
+    print(
+        """
     <HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
     <HTMLContent><![CDATA[
-    """)
+    """
+    )
     print(BEFORE)
-    print("""
+    print(
+        """
         <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
         <form name='mturk_form' method='post' id='mturk_form' action='https://workersandbox.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
-    """)
+    """
+    )
     print(render_q(Q_ACTION, "root", show=True))
     with open("span_names.txt", "r") as fd:
-        span_names = fd.read().split('\n')
-    
+        span_names = fd.read().split("\n")
+
     for span_name in span_names:
         # root.action_type.BUILD.COPY.yes.reference_object.span
-        print("""
+        print(
+            """
           <script>
             for (i = 0; i < 40; i++) {{
             div = document.getElementById('{sp}')
@@ -149,9 +154,13 @@ if __name__ == "__main__":
             div.insertAdjacentHTML('beforeend', label);
             }}
           </script>
-          """.format(sp=span_name))
+          """.format(
+                sp=span_name
+            )
+        )
     print(render_q(Q_ACTION_LOOP, "root", show=True))
-    print("""
+    print(
+        """
         <p><input type='submit' id='submitButton' value='Submit' /></p></form>
         <script language='Javascript'>
         turkSetAssignmentID();
@@ -177,14 +186,17 @@ if __name__ == "__main__":
         }
         document.body.appendChild(styleNode);
         </script>
-    """)
+    """
+    )
     print(AFTER)
-    print("""
+    print(
+        """
       ]]>
   </HTMLContent>
   <FrameHeight>600</FrameHeight>
   </HTMLQuestion>
-    """)
+    """
+    )
     # print("""
     # <p><input type='submit' id='submitButton' value='Submit' /></p>
     # """)
@@ -192,4 +204,3 @@ if __name__ == "__main__":
     # <script language='Javascript'>turkSetAssignmentID();</script>
     # """
     # )
-

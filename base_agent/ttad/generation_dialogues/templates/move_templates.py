@@ -27,7 +27,7 @@ Examples:
 '''
 
 
-from template_objects import *
+from base_agent.ttad.generation_dialogues.template_objects import *
 
 MOVE_WITH_CORRECTION = [
     # TODO: add between for BlockObjectThese and BlockObjectThose these as well

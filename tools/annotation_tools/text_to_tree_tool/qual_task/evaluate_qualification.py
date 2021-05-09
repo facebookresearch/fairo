@@ -60,16 +60,16 @@ def compare_dicts(action_dict, allowed_dict):
 
 
 def get_wrong_stats(dict1, dict2):
-    """ {'repeat',
-        'schematic',
-        'dialogue_type',
-        'action_type',
-        'has_block_type',
-        'reference_object',
-        'tag_val',
-        'filters',
-        'location',
-        'target_action_type'}"""
+    """{'repeat',
+    'schematic',
+    'dialogue_type',
+    'action_type',
+    'has_block_type',
+    'reference_object',
+    'tag_val',
+    'filters',
+    'location',
+    'target_action_type'}"""
     st = {}
     for k, v in dict2:
         if k not in dict1:

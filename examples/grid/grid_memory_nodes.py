@@ -2,7 +2,7 @@ from base_agent.memory_nodes import ReferenceObjectNode
 
 
 class BotNode(ReferenceObjectNode):
-    """ a memory node represneting a bot"""
+    """a memory node represneting a bot"""
 
     TABLE_COLUMNS = ["uuid", "eid", "x", "y", "z", "ref_type", "type_name"]
     TABLE = "ReferenceObjects"

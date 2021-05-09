@@ -39,7 +39,7 @@ def get_span_range(text, command):
         text_arr = text.split(" ")
         for i in range(len(words_arr)):
             if words_arr[i] == text_arr[0]:
-                words_arr_set = " ".join(words_arr[i:i + len(text_arr)])
+                words_arr_set = " ".join(words_arr[i : i + len(text_arr)])
                 if words_arr_set == text:
                     return [0, [i, i + len(text_arr) - 1]]
 
@@ -99,10 +99,12 @@ if __name__ == "__main__":
     autocomplete_annotations = {}
     updated_dataset = []
     current_time = datetime.now()
-    existing_annotations_path = "{}/{}".format(pkg_resources.resource_filename(
-        'craftassist.agent', 'datasets'), "full_data/{}".format(args.existing_annotations))
+    existing_annotations_path = "{}/{}".format(
+        pkg_resources.resource_filename("craftassist.agent", "datasets"),
+        "full_data/{}".format(args.existing_annotations),
+    )
     if args.output_file == "":
-        filename = "autocomplete_{}.txt".format(current_time.strftime('%Y-%m-%d-%H-%M-%S'))
+        filename = "autocomplete_{}.txt".format(current_time.strftime("%Y-%m-%d-%H-%M-%S"))
     else:
         filename = args.output_file
     datasets_write_path = "{}/{}".format(pkg_resources.resource_filename(

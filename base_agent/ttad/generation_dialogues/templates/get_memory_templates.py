@@ -20,7 +20,7 @@ Examples:
 - human: where you going
 - human: where are you heading
 """
-from template_objects import *
+from base_agent.ttad.generation_dialogues.template_objects import *
 
 ANSWER_WITH_CORRECTION = [
     ## what is this + the thing at location ##

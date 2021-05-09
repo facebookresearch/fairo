@@ -18,11 +18,11 @@ class ArgumentParser:
         self.agent_parsers[agent_type]()
 
         self.parser.add_argument(
-            "--log_level", 
-            "-log", 
-            default="info", 
-            choices=["info", "debug", "warn", "error"], 
-            help="Logging tier to specify verbosity level, eg. DEBUG."
+            "--log_level",
+            "-log",
+            default="info",
+            choices=["info", "debug", "warn", "error"],
+            help="Logging tier to specify verbosity level, eg. DEBUG.",
         )
         self.parser.add_argument(
             "--no_default_behavior",
@@ -33,6 +33,12 @@ class ArgumentParser:
             "--verify_hash_script_path",
             default="../../tools/data_scripts/try_download.sh",
             help="path to script that checks hash against latest models and tries download",
+        )
+        self.parser.add_argument(
+            "--agent_debug_mode",
+            action="store_true",
+            default=False,
+            help="Support a mode where the agent fails gracefully. Only use this for turk session, etc. ",
         )
 
     def add_nsp_parser(self):
@@ -96,14 +102,9 @@ class ArgumentParser:
             help="path to perception model data dir",
         )
         loco_parser.add_argument(
-            "--use_dslam",
-            action="store_true",
-            help="sets slam_pkg to be used for navigation, otherwise pyrobot slam pkg will be used",
-        )
-        loco_parser.add_argument(
             "--check_controller",
             action="store_true",
-            help="sanity checks the robot's movement, camera, arm."
+            help="sanity checks the robot's movement, camera, arm.",
         )
 
     def fix_path(self, opts):

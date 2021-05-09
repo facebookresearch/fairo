@@ -1,1 +1,1 @@
-![UML Diagram for the memory nodes in base agent](base_agent/base_agent_memory_nodes.jpg?raw=True)
+![UML Diagram for the memory nodes in base agent](base_agent_memory_nodes.jpg?raw=True)

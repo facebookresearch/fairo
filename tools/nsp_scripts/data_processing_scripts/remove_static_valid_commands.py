@@ -6,18 +6,17 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_source",
-        default="base_agent/ttad/generation_dialogues/templated_pre.txt"
+        "--data_source", default="base_agent/ttad/generation_dialogues/templated_pre.txt"
     )
     parser.add_argument(
         "--commands_to_remove",
         help="path to test set commands to remove",
-        default="base_agent/ttad/generation_dialogues/templated_pre.txt"
+        default="base_agent/ttad/generation_dialogues/templated_pre.txt",
     )
     parser.add_argument(
         "--output_path",
         help="path of cleaned dataset to be used in train/valid split",
-        default="base_agent/ttad/generation_dialogues/templated_pre.txt"
+        default="base_agent/ttad/generation_dialogues/templated_pre.txt",
     )
     opts = parser.parse_args()
     with open(opts.commands_to_remove) as fd:

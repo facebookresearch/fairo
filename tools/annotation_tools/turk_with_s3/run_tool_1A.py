@@ -14,7 +14,12 @@ collects results in batches and collates data.
 """
 
 # CSV input
-rc = subprocess.call(["python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file input.txt > turk_input.csv"], shell=True)
+rc = subprocess.call(
+    [
+        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file input.txt > turk_input.csv"
+    ],
+    shell=True,
+)
 if rc != 0:
     print("Error preprocessing. Exiting.")
     sys.exit()
@@ -47,4 +52,3 @@ rc = subprocess.call(["python parse_outputs.py"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
     sys.exit()
-

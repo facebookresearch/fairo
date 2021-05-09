@@ -10,7 +10,8 @@ import math
 from base_agent.base_util import Look, to_player_struct
 from base_agent.memory_nodes import PlayerNode
 from base_agent.loco_mc_agent import LocoMCAgent
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from locobot.agent.loco_memory import LocoAgentMemory
 from locobot.agent.loco_memory_nodes import DetectedObjectNode
 from locobot.agent.locobot_mover_utils import (
@@ -429,7 +430,12 @@ class FakeAgent(LocoMCAgent):
         #        dialogue_object_classes["interpreter"] = Interpreter
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
@@ -453,7 +459,14 @@ class FakeAgent(LocoMCAgent):
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
-            obj = self.dialogue_manager.handle_logical_form(speaker_name, d, chatstr)
+            logical_form = (
+                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                    speaker=speaker_name, chat=chatstr, logical_form=d
+                )
+            )
+            obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
+                speaker=speaker_name, logical_form=logical_form, chat=chatstr
+            )
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None

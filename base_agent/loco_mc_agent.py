@@ -1,21 +1,18 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import sys
-import os
 import logging
-import os
 import random
 import re
 import time
 import numpy as np
 
-from core import BaseAgent
+from .core import BaseAgent
 from base_agent.base_util import ErrorWithResponse
 from dlevent import sio
 
-from base_util import hash_user
-from save_and_fetch_commands import *
+from .base_util import hash_user
+from .save_and_fetch_commands import *
 
 random.seed(0)
 
@@ -167,7 +164,7 @@ class LocoMCAgent(BaseAgent):
         raise NotImplementedError
 
     def init_memory(self):
-        """ something like:
+        """something like:
         self.memory = memory.AgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
@@ -180,7 +177,7 @@ class LocoMCAgent(BaseAgent):
         dialogue_object_classes["interpreter"] = ....
         dialogue_object_classes["get_memory"] = ....
         dialogue_object_classes["put_memory"] = ....
-        self.dialogue_manager = NSPDialogueManager(self,
+        self.dialogue_manager = DialogueManager(self,
                                                    dialogue_object_classes,
                                                    self.opts)
         logging.info("Initialized DialogueManager")
@@ -205,7 +202,7 @@ class LocoMCAgent(BaseAgent):
         else:
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
-            if os.getenv("DROIDLET_DEBUG_MODE"):
+            if self.opts.agent_debug_mode:
                 return
             else:
                 raise e

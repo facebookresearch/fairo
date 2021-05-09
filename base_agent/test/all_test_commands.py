@@ -40,6 +40,14 @@ FILTERS = {
         "selector": {"location": SPEAKERLOOK},
     },
     "a cow": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]},
+    "a random cube": {
+        "selector": {"return_quantity": {"random": "1"}},
+        "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
+    },
+    "two random cubes": {
+        "selector": {"return_quantity": {"random": "2"}},
+        "triples": [{"pred_text": "has_name", "obj_text": "cube"}],
+    },
     "a cube": {"triples": [{"pred_text": "has_name", "obj_text": "cube"}]},
     "where I am looking": {"selector": {"location": SPEAKERLOOK}},
     "my location": {"selector": {"location": AGENTPOS}},

@@ -14,7 +14,8 @@ from craftassist.agent.mc_memory import MCAgentMemory
 from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.craftassist_agent import CraftAssistAgent
 from base_agent.base_util import Time
-from base_agent.nsp_dialogue_manager import NSPDialogueManager
+from base_agent.dialogue_manager import DialogueManager
+from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from craftassist.agent.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,
@@ -41,7 +42,6 @@ class MockOpt:
         self.nsp_data_dir = ""
         self.ground_truth_data_dir = ""
         self.semseg_model_path = ""
-        self.geoscorer_model_path = ""
         self.no_ground_truth = True
         # test does not instantiate cpp client
         self.port = -1
@@ -289,7 +289,6 @@ class FakeAgent(LocoMCAgent):
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(self)
         self.on_demand_perception = {}
-        self.on_demand_perception["geoscorer"] = None
         self.on_demand_perception["check_inside"] = check_inside
 
     def init_physical_interfaces(self):
@@ -320,7 +319,12 @@ class FakeAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+        self.dialogue_manager = DialogueManager(
+            agent=self,
+            dialogue_object_classes=dialogue_object_classes,
+            opts=self.opts,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        )
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
@@ -347,7 +351,14 @@ class FakeAgent(LocoMCAgent):
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             # force to get objects, speaker info
             self.perceive(force=True)
-            obj = self.dialogue_manager.handle_logical_form(speaker_name, d, chatstr)
+            logical_form = (
+                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                    speaker=speaker_name, chat=chatstr, logical_form=d
+                )
+            )
+            obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
+                speaker=speaker_name, logical_form=logical_form, chat=chatstr
+            )
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
@@ -552,7 +563,7 @@ class FakeAgent(LocoMCAgent):
 
 
 class FakePlayer(FakeAgent):
-    """ 
+    """
     a fake player that can do actions, but does not currently interact with agent.
     """
 
@@ -619,10 +630,16 @@ class FakePlayer(FakeAgent):
             # use the logical form as given...
             # force to get objects, speaker info
             self.perceive(force=True)
+            speaker = self.logical_form["speaker"]
+            logical_form = self.logical_form["logical_form"]
+            chatstr = self.logical_form["chatstr"]
+            updated_logical_form = (
+                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                    speaker=speaker, chat=chatstr, logical_form=logical_form
+                )
+            )
             obj = self.dialogue_manager.handle_logical_form(
-                self.logical_form["speaker"],
-                self.logical_form["logical_form"],
-                self.logical_form["chatstr"],
+                speaker=speaker, logical_form=updated_logical_form, chat=chatstr
             )
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)

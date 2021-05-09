@@ -2,8 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-import rotation
-from shape_transforms import (
+from .. import rotation
+from ..shape_transforms import (
     scale,
     thicker,
     shrink_sample,

@@ -10,24 +10,21 @@ import time
 
 from random import randint
 
-from block_data import (
+from .block_data import (
     PASSABLE_BLOCKS,
     BUILD_BLOCK_REPLACE_MAP,
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from build_utils import blocks_list_to_npy, npy_to_blocks_list
-from entities import MOBS_BY_ID
-import search
-from heuristic_perception import ground_height
-from mc_util import to_block_pos, manhat_dist, strip_idmeta
-
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
-sys.path.append(BASE_AGENT_ROOT)
+from .build_utils import blocks_list_to_npy, npy_to_blocks_list
+from .entities import MOBS_BY_ID
+from . import search
+from .heuristic_perception import ground_height
+from .mc_util import to_block_pos, manhat_dist, strip_idmeta
 
 from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode, TripleNode
-from mc_memory_nodes import MobNode
+from .mc_memory_nodes import MobNode
 
 # tasks should be interruptible; that is, if they
 # store state, stopping the task and doing something
@@ -44,7 +41,7 @@ class Dance(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> m = Movement(agent, move_fn)
@@ -130,14 +127,14 @@ class DanceMove(Task):
 
 
 class Point(Task):
-    """Perform a Point task. 
+    """Perform a Point task.
 
     The pointed target is added to a queue for and agent will wait 200 ms to let pointing happen.
 
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> target = [0, 0, 0, 2, 3, 4]
@@ -174,11 +171,11 @@ class Move(BaseMovementTask):
         - negative of y axis
         - positive of z axis
         - negative of z axis
-    
+
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> target = (3, 7, 1)
@@ -274,11 +271,11 @@ class Move(BaseMovementTask):
 class Build(Task):
     """Perform a Build task.
 
-    Agent will first clean up all blocks that needed to be removed, then start 
+    Agent will first clean up all blocks that needed to be removed, then start
     to build blocks. Both destroying and building operations are stepped one block
     at a time.
 
-    The farthest block agent can destroy/build a three blocks away (by default). 
+    The farthest block agent can destroy/build a three blocks away (by default).
     If a block is out of reach, a child move task will be added to task stack first.
 
     Args:
@@ -642,7 +639,7 @@ class Fill(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> schematic = [(0, 0, 1), (0, 0, 2)]
@@ -695,7 +692,7 @@ class Destroy(Task):
     Args:
         agent (Agent): the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> schematic = [((2, 1, 0), (3, 0)), ((2, 2, 0), (3, 0))]
@@ -769,7 +766,7 @@ class Undo(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"memid": 2}
@@ -802,7 +799,7 @@ class Spawn(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> object_idm = (383, 90)
@@ -880,7 +877,7 @@ class Dig(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"ORIGIN": (0, 0, 1), "length": 3, "width": 2, "depth": 1}
@@ -939,7 +936,7 @@ class Get(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"idm": (319, 0), "pos": (1, 0, 1), "eid": 11, "memid": 99}
@@ -994,7 +991,7 @@ class Drop(Task):
     Args:
         agent: the agent who will perform this task
         task_data (dict): a dictionary stores all task related data
-    
+
     Examples::
 
         >>> task_data = {"eid": 11, "idm": (182, 0), "memid": 99}

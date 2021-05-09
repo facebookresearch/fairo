@@ -48,7 +48,7 @@ jobs:
           name: Base Agent Python unit tests
           command: |
               mkdir shared
-              docker run --name base-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/base_agent/test.sh craftassist
+              docker run --name base-tests -v $(pwd):/shared -w /droidlet craftassist bash -c "python setup.py develop && cd /shared && /droidlet/base_agent/test/test.sh"
               docker cp base-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
@@ -57,7 +57,7 @@ jobs:
       - run:
           name: CraftAssist Python unit tests
           command: |
-              docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
+              docker run --name mc-tests -v $(pwd):/shared -w /droidlet craftassist bash -c "python setup.py develop && cd /shared && /droidlet/craftassist/test/test.sh"
               docker cp mc-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
@@ -109,11 +109,11 @@ jobs:
           curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
           curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 
-          export NVIDIA_CONTAINER_VERSION="1.0.3-1"
+          export NVIDIA_CONTAINER_VERSION="1.3.0-1"
           sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit=${NVIDIA_CONTAINER_VERSION}
           sudo systemctl restart docker
 
-          DRIVER_FN="NVIDIA-Linux-x86_64-440.59.run"
+          DRIVER_FN="NVIDIA-Linux-x86_64-460.39.run"
           wget "https://s3.amazonaws.com/ossci-linux/nvidia_driver/$DRIVER_FN"
           sudo /bin/bash "$DRIVER_FN" -s --no-drm || (sudo cat /var/log/nvidia-installer.log && false)
           nvidia-smi
@@ -122,7 +122,7 @@ jobs:
         name: Pull docker image
         command: |
           set -ex
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:segm
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:7.0
           echo Pulling docker image $DOCKER_IMAGE
           docker pull $DOCKER_IMAGE >/dev/null
 
@@ -132,7 +132,7 @@ jobs:
           set -ex
 
           cd ${HOME}/project/
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:segm
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:7.0
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           docker cp loco-img:/shared shared

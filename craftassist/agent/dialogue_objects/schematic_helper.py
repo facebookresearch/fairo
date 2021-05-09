@@ -9,14 +9,14 @@ from typing import cast, List, Tuple, Union, Optional
 
 # TODO with subinterpret
 from base_agent.dialogue_objects import get_repeat_num
-import block_data
-import size_words
+from .. import block_data
+from .. import size_words
 from .block_helpers import get_block_type
 from base_agent.base_util import ErrorWithResponse, number_from_span
-from mc_util import Block, most_common_idm
+from ..mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
-from word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
+from ..word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
 
 
 def get_properties_from_triples(triples_list, p):

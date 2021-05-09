@@ -3,14 +3,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import random
 import Levenshtein
-import block_data
-import minecraft_specs
-from mc_util import IDM
+from .. import block_data
+from .. import minecraft_specs
+from ..mc_util import IDM
 
 # TODO FILTERS!
 def get_block_type(s) -> IDM:
     """string -> (id, meta)
-    or  {"has_x": span} -> (id, meta) """
+    or  {"has_x": span} -> (id, meta)"""
 
     name_to_bid = minecraft_specs.get_block_data()["name_to_bid"]
     if type(s) is str:

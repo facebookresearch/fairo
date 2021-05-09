@@ -3,8 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 
-import sys
-import os
 import numpy as np
 
 from locobot.test.base_fakeagent_test_case import BaseFakeAgentTestCase

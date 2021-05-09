@@ -5,9 +5,8 @@ import random
 import sys
 import argparse
 
-sys.path.append("/private/home/rebeccaqian/minecraft/python/craftassist/")
-import minecraft_specs
-from shape_helpers import SHAPE_NAMES
+from .. import minecraft_specs
+from ..shape_helpers import SHAPE_NAMES
 
 ID_DELIM = "^"
 BLOCK_NAMES = [v for k, v in minecraft_specs.get_block_data()["bid_to_name"].items() if k[0] < 256]

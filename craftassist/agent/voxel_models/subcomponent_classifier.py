@@ -6,18 +6,12 @@ import logging
 from multiprocessing import Queue, Process
 import sys
 import os
-from mc_memory_nodes import InstSegNode
-from heuristic_perception import all_nearby_objects
-from shapes import get_bounds
+from ..mc_memory_nodes import InstSegNode
+from ..heuristic_perception import all_nearby_objects
+from ..shapes import get_bounds
 
-VISION_DIR = os.path.dirname(os.path.realpath(__file__))
-CRAFTASSIST_DIR = os.path.join(VISION_DIR, "../")
-SEMSEG_DIR = os.path.join(VISION_DIR, "semantic_segmentation/")
-sys.path.append(CRAFTASSIST_DIR)
-sys.path.append(SEMSEG_DIR)
-
-import build_utils as bu
-from semseg_models import SemSegWrapper
+from .. import build_utils as bu
+from .semantic_segmentation.semseg_models import SemSegWrapper
 
 
 # TODO all "subcomponent" operations are replaced with InstSeg
@@ -33,6 +27,7 @@ class SubcomponentClassifierWrapper:
         perceive_freq (int): if not forced, how many Agent steps between perception.
             If 0, does not run unless forced
     """
+
     def __init__(self, agent, model_path, perceive_freq=0):
         self.agent = agent
         self.memory = self.agent.memory
