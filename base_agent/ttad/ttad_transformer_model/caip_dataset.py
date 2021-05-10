@@ -7,8 +7,8 @@ import re
 from os.path import isfile, isdir
 from os.path import join as pjoin
 from torch.utils.data import Dataset
-from .tokenization_utils import fixed_span_values
-from .utils_caip import *
+from tokenization_utils import fixed_span_values
+from utils_caip import *
 
 
 class CAIPDataset(Dataset):
@@ -111,7 +111,8 @@ class CAIPDataset(Dataset):
         try:
             t = self.data[dtype][idx % len(self.data[dtype])]
             p_text, p_tree = t
-        except ValueError as e:
+        except Exception as e:
+            import ipdb; ipdb.set_trace()
             print(e)
         text, tree = tokenize_linearize(
             p_text, p_tree, self.tokenizer, self.full_tree, self.word_noise

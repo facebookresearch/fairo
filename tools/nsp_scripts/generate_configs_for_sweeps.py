@@ -68,7 +68,7 @@ if __name__ == "__main__":
     output_dir = opts.output_dir
     sweep_output_dir = opts.sweep_output_dir
     for i in range(len(configs)):
-        write_config_to_file(configs[i], i, output_dir, sweep_output_dir, data_dir)
+        write_config_to_file(configs[i], i, output_dir, sweep_output_dir, opts.data_dir)
         # create sweep directories
         sweep_dir_path = "{}sweep{}/".format(sweep_output_dir, i)
         if not os.path.isdir(sweep_dir_path):
