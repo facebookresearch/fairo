@@ -17,12 +17,12 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
-from .utils_parsing import *
-from .utils_caip import *
-from .decoder_with_loss import *
-from .encoder_decoder import *
-from .optimizer_warmup import *
-from .caip_dataset import *
+from utils_parsing import *
+from utils_caip import *
+from decoder_with_loss import *
+from encoder_decoder import *
+from optimizer_warmup import *
+from caip_dataset import *
 
 
 class ModelTrainer:
