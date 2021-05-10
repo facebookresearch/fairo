@@ -83,18 +83,24 @@ class JSONValidator:
         if test_mode:
             return True
 
-    def validate_instance(self, parse_tree):
+    def validate_instance(self, parse_tree, debug):
         """
         Validates a parse tree instance.
 
         Args:
-        parse_tree (dict) -- dictionary we want to validate
+            parse_tree (dict) -- dictionary we want to validate
+            debug (bool) -- whether to print debug information
+
+        Returns:
+            True if logical form passes the schema validation, else returns False.
         """
         try:
             validate(instance=parse_tree, schema=self.base_schema, resolver=self.resolver)
         except exceptions.ValidationError as e:
-            print("Error validating:\n{}\n".format(parse_tree))
-            print(e)
+            # Option to print debug information
+            if debug:
+                print("Error validating:\n{}\n".format(parse_tree))
+                print(e)
             return False
         return True
 
