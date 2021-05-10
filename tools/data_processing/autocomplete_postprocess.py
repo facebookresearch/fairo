@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 import copy
 import pprint as pp
 import argparse
@@ -58,21 +59,24 @@ def traverse_subtree(command, action_dict):
         # Check if the value is a substring of the command
         # hacky way to map spans
         elif type(value) == str and value in command:
-            # Get the span ranges
-            command_word_tokens = command.split(" ")
-            span_tokens = value.split(" ")
-            for i in range(len(command_word_tokens)):
-                if command_word_tokens[i] == span_tokens[0]:
-                    span_start = i
-                    span_end = i
-                    # begin checking for equality
-                    for j in range(1, len(span_tokens)):
-                        if command_word_tokens[i + j] != span_tokens[j]:
-                            break
-                        else:
-                            span_end += 1
-            span_idxs = [0, [span_start, span_end]]
-            action_dict[key] = span_idxs
+            try:
+                # Get the span ranges
+                command_word_tokens = command.split(" ")
+                span_tokens = value.split(" ")
+                for i in range(len(command_word_tokens)):
+                    if command_word_tokens[i] == span_tokens[0]:
+                        span_start = i
+                        span_end = i
+                        # begin checking for equality
+                        for j in range(1, len(span_tokens)):
+                            if command_word_tokens[i + j] != span_tokens[j]:
+                                break
+                            else:
+                                span_end += 1
+                span_idxs = [0, [span_start, span_end]]
+                action_dict[key] = span_idxs
+            except Exception as e:
+                raise e
     return action_dict
 
 
@@ -103,15 +107,26 @@ if __name__ == "__main__":
         filename = "autocomplete_{}.txt".format(current_time.strftime("%Y-%m-%d-%H-%M-%S"))
     else:
         filename = args.output_file
-    datasets_write_path = "{}/{}".format(
-        pkg_resources.resource_filename("craftassist.agent", "datasets"),
-        "full_data/{}".format(filename),
-    )
+    datasets_write_path = "{}/{}".format(pkg_resources.resource_filename(
+        'craftassist.agent', 'datasets'), "full_data/{}".format(filename))
 
     # Read the file, update
-    for command in dataset:
-        action_dict = dataset[command]
-        updated_tree = traverse_tree(command, action_dict)
+    for annotation_name in dataset:
+        annotation_dict = dataset[annotation_name]
+        # do extra processing for templated generations
+        try:
+            if "logical_form" in annotation_dict:
+                # Skip templates that are not generations
+                if annotation_dict["command"] == "" or re.match(".*<.+>.*", annotation_dict["command"]):
+                    continue
+                logical_form = annotation_dict["logical_form"]
+                command = annotation_dict["command"]
+            else:
+                command = annotation_name
+                logical_form = annotation_dict
+        except Exception as e:
+            raise e
+        updated_tree = traverse_tree(command, logical_form)
         autocomplete_annotations[command] = updated_tree
     # Load all the existing action dictionaries
     if os.path.isfile(existing_annotations_path):
@@ -123,9 +138,8 @@ if __name__ == "__main__":
                     autocomplete_annotations[command] = json.loads(action_dict)
 
     for command in autocomplete_annotations:
-        updated_dataset.append(
-            "{}|{}".format(command, json.dumps(autocomplete_annotations[command]))
-        )
+        updated_dataset.append("{}|{}".format(
+            command, json.dumps(autocomplete_annotations[command])))
 
     with open(datasets_write_path, "w") as fd:
         write_file(updated_dataset, datasets_write_path)
