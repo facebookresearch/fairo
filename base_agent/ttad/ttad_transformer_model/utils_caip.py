@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import json
 import random
 import torch
-from .tokenization_utils import fixed_span_values
+from tokenization_utils import fixed_span_values
 
 #########
 # Node typing: checking the type of a specific sub-tree (dict value)
@@ -166,6 +166,7 @@ def tree_to_seq(full_tree, tree, idx_map=None):
                 print(k)
                 raise NotImplementedError
     except IndexError as e:
+        import ipdb; ipdb.set_trace()
         raise e
     return res
 
@@ -231,7 +232,6 @@ def seq_to_tree(full_tree, seq, idx_rev_map=None, span_dct=None, start_id=0):
             res[cat] = val
             idx += 1
         elif t == "FS":
-            # import ipdb; ipdb.set_trace()
             res["fixed_value"] = seq[idx][-1]
             idx += 1
         # span node
@@ -383,6 +383,7 @@ def tokenize_linearize(text, tree, tokenizer, full_tree, word_noise=0.0):
     try:
         lin_tree = tree_to_seq(full_tree, tree, idx_maps)
     except IndexError as e:
+        # import ipdb; ipdb.set_trace()
         raise e
     return (tokenized, lin_tree)
 

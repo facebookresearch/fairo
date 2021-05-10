@@ -2,8 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import torch
-from .utils_caip import *
-from .tokenization_utils import fixed_span_values_voc
+from utils_caip import *
+from tokenization_utils import fixed_span_values_voc
 
 
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
