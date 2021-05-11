@@ -43,11 +43,10 @@ from .mc_memory_nodes import (  # noqa
 
 from .word_maps import SPAWN_OBJECTS
 
-ROOT_DIR = os.path.join(os.path.dirname(__file__), "../../")
 
 # TODO: ship these schemas via setup.py and fix these directory references
 SCHEMAS = [
-    os.path.join(os.path.join(ROOT_DIR, "droidlet", "memory"), "base_memory_schema.sql"),
+    os.path.join(os.path.dirname(__file__), "..", "base_memory_schema.sql"),
     os.path.join(os.path.dirname(__file__), "mc_memory_schema.sql"),
 ]
 
