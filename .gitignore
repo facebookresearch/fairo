@@ -14,7 +14,7 @@ __pycache__
 *.DS_Store
 *.log
 *.sql
-!memory_schema.sql
+!*memory_schema.sql
 *~
 base_agent/documents/internal/*
 bin/*
