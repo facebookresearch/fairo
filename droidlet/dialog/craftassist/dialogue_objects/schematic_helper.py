@@ -9,11 +9,10 @@ from typing import cast, List, Tuple, Union, Optional
 
 # TODO with subinterpret
 from droidlet.dialog.dialogue_objects import get_repeat_num
-from .. import block_data
-from .. import size_words
+from droidlet.lowlevel.minecraft import block_data, size_words
 from .block_helpers import get_block_type
 from droidlet.base_util import ErrorWithResponse, number_from_span
-from ..mc_util import Block, most_common_idm
+from droidlet.lowlevel.minecraft.mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
 from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE

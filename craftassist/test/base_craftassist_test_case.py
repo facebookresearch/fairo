@@ -6,9 +6,9 @@ from unittest.mock import Mock
 import numpy as np
 from typing import List, Sequence, Dict
 
-from craftassist.agent.build_utils import to_relative_pos
+from droidlet.lowlevel.minecraft.build_utils import to_relative_pos
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
-from craftassist.agent.mc_util import XYZ, Block, IDM
+from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.perception.craftassist.rotation import yaw_pitch
 from droidlet.dialog.dialogue_objects import AwaitResponse
 

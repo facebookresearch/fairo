@@ -50,7 +50,7 @@ from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 from droidlet.interpreter.craftassist import tasks, dance
 from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
-from ..mc_util import to_block_pos, XYZ
+from droidlet.lowlevel.minecraft.mc_util import to_block_pos, XYZ
 
 
 class MCInterpreter(Interpreter):

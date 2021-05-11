@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import droidlet.perception.craftassist.shapes as shapes
 from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.dialog.dialogue_stack import DialogueStack
-from craftassist.agent.dialogue_objects import DummyInterpreter
+from droidlet.dialog.craftassist.dialogue_objects import DummyInterpreter
 
 
 def add_many_objects(test):

@@ -9,9 +9,9 @@ import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
 
-from craftassist.agent.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-from craftassist.agent import minecraft_specs
-from craftassist.agent.entities import MOBS_BY_ID
+from droidlet.lowlevel.minecraft.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
+from droidlet.lowlevel.minecraft import minecraft_specs
+from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 
 
 from droidlet.memory.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST

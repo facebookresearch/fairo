@@ -9,7 +9,7 @@ import random
 from droidlet.perception.craftassist import shape_helpers as sh
 from droidlet.interpreter.craftassist import tasks
 
-from craftassist.agent.mc_util import pos_to_np
+from droidlet.lowlevel.minecraft.mc_util import pos_to_np
 
 
 from droidlet.dialog.dialogue_objects import Say

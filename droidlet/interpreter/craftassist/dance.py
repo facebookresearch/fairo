@@ -8,7 +8,7 @@ agent can perform in game.
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
 from droidlet.perception.craftassist import search, shapes
-from craftassist.agent.mc_util import ErrorWithResponse
+from droidlet.lowlevel.minecraft.mc_util import ErrorWithResponse
 
 # FIXME! actual jump on client
 jump = [{"translate": (0, 1, 0)}, {"translate": (0, -1, 0)}]

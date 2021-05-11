@@ -10,9 +10,9 @@ from scipy.optimize import linprog
 from copy import deepcopy
 
 import logging
-from craftassist.agent import minecraft_specs
+from droidlet.lowlevel.minecraft import minecraft_specs
 
-from craftassist.agent.mc_util import (
+from droidlet.lowlevel.minecraft.mc_util import (
     manhat_dist,
     get_locs_from_entity,
     build_safe_diag_adjacent,
@@ -20,7 +20,7 @@ from craftassist.agent.mc_util import (
     to_block_pos,
     fill_idmeta,
 )
-from craftassist.agent.block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
+from droidlet.lowlevel.minecraft.block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
 from droidlet.perception.craftassist.search import depth_first_search
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 

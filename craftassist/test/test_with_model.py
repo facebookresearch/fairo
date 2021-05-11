@@ -6,7 +6,7 @@ import os
 import unittest
 
 import droidlet.perception.craftassist.shapes as shapes
-from craftassist.agent.mc_util import euclid_dist
+from droidlet.lowlevel.minecraft.mc_util import euclid_dist
 from .base_craftassist_test_case import BaseCraftassistTestCase
 from .fake_agent import MockOpt
 
