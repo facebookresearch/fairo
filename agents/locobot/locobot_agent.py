@@ -14,11 +14,11 @@ import logging
 import faulthandler
 from multiprocessing import set_start_method
 
-from droidlet import dldashboard
+from droidlet import dashboard
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
-    dldashboard.start()
+    dashboard.start()
 
 from base_agent.dialogue_manager import DialogueManager
 from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
@@ -39,7 +39,7 @@ from droidlet.dialog.dialogue_objects import (
 )
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
-from droidlet.dlevent import sio
+from droidlet.event import sio
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 SCHEMAS = [os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql")]
