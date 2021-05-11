@@ -3,7 +3,7 @@ import threading
 from flask import Flask
 import socketio
 from flask_cors import cross_origin, CORS
-from droidlet import dlevent
+from droidlet import event
 import logging
 import json
 import random
@@ -33,7 +33,7 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
     app = Flask(__name__, static_folder=static_folder, static_url_path="")
     sio = socketio.Server(async_mode="threading", cors_allowed_origins="*")
     app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
-    dlevent.sio = sio
+    event.sio = sio
 
     CORS(app, resources={r"*": {"origins": "*"}})
 
