@@ -10,7 +10,7 @@ cd "${0%/*}"/../..
 
 echo '==== Black ====='
 
-CHECK_FILES="base_agent craftassist droidlet"
+CHECK_FILES="craftassist droidlet"
 
 black $CHECK_FILES
 
