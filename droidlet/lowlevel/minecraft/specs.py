@@ -6,12 +6,12 @@ import numpy as np
 import os
 import pickle
 
-PATH = os.path.join(os.path.dirname(__file__), "../minecraft_specs")
+PATH = os.path.join(os.path.dirname(__file__), "minecraft_specs")
 assert os.path.isdir(PATH), (
     "Not found: "
     + PATH
     + "\n\nDid you follow the instructions at "
-    + "https://github.com/fairinternal/minecraft#getting-started"
+    + "https://github.com/facebookresearch/droidlet#getting-started"
 )
 
 
