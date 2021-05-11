@@ -46,8 +46,8 @@ class Question extends Component {
       feedback: this.state.feedback,
     };
 
-    // socket.io to save data to database
-    this.props.stateManager.socket.emit("saveErrorDetailsToDb", data);
+    // Emit socket.io event to save data to error logs
+    this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
 
     // go back to message page after writing to database
     this.props.goToMessage();

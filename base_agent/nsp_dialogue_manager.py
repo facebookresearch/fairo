@@ -134,6 +134,23 @@ class NSPDialogueManager(DialogueManager):
             payload = {"action_dict": x}
             sio.emit("renderActionDict", payload)
 
+        @sio.on("saveErrorDetailsToCSV")
+        def save_error_details(sid, data):
+            """Save error details to error logs.
+
+            The fields are
+                ["command", "action_dict", "source", "agent", "time", "parser_error", "other_error", "other_error_description"]
+            """
+            logging.info("Saving error details: %r" % (data))
+            if "action_dict" not in data or "msg" not in data:
+                logging.info("Could not save error details due to error in dashboard backend.")
+                return
+            is_parser_error = data["parsing_error"]
+            if is_parser_error:
+                self.model.NSPLogger.log_dialogue_outputs([data["msg"], data["action_dict"], "craftassist", None, is_parser_error, None, None])
+            else:
+                self.model.NSPLogger.log_dialogue_outputs([data["msg"], data["action_dict"], "craftassist", None, False, True, data["feedback"]])
+
 
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack.
@@ -284,7 +301,7 @@ class DialogModel:
             self.model = Model(model_dir=ttad_model_dir, data_dir=data_dir)
         else:
             raise NotADirectoryError
-        self.NSPLogger = NSPLogger("nsp_outputs.csv", ["command", "action_dict", "source", "agent", "time"])
+        self.NSPLogger = NSPLogger("nsp_outputs.csv", ["command", "action_dict", "source", "agent", "time", "parser_error", "other_error", "other_error_description"])
 
     def validate_parse_tree(self, parse_tree: dict) -> bool:
         """Validate the parse tree against current grammar.
@@ -328,7 +345,7 @@ class DialogModel:
             logging.info('Found ground truth action for "{}"'.format(s))
             # log the current UTC time
             time_now = time()
-            self.NSPLogger.log_dialogue_outputs([s, d, "ground_truth", "craftassist", time_now])
+            self.NSPLogger.log_dialogue_outputs([s, d, "ground_truth", "craftassist", time_now, None, None, None])
         else:
             logging.info("Querying the semantic parsing model")
             if chat_as_list:
@@ -337,7 +354,7 @@ class DialogModel:
                 d = self.model.parse(chat=s)
             # log the current UTC time
             time_now = time()
-            self.NSPLogger.log_dialogue_outputs([s, d, "semantic_parser", "craftassist", time_now])
+            self.NSPLogger.log_dialogue_outputs([s, d, "semantic_parser", "craftassist", time_now, None, None, None])
 
         # Validate parse tree against grammar
         is_valid_json = self.validate_parse_tree(d)
