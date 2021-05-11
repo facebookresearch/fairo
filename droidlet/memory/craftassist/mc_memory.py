@@ -6,9 +6,9 @@ import random
 import sys
 from typing import Optional, List
 
-from .build_utils import npy_to_blocks_list
-from . import minecraft_specs
-from . import dance
+from craftassist.agent.build_utils import npy_to_blocks_list
+from craftassist.agent import minecraft_specs
+from ...interpreter.craftassist import dance
 
 PERCEPTION_RANGE = 64
 
@@ -41,7 +41,7 @@ from .mc_memory_nodes import (  # noqa
     NODELIST,
 )
 
-from .word_maps import SPAWN_OBJECTS
+from droidlet.interpreter.craftassist.word_maps import SPAWN_OBJECTS
 
 ROOT_DIR = os.path.join(os.path.dirname(__file__), "../../")
 

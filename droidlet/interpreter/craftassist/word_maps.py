@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 names of shapes to their functions"""
 from typing import Dict, Callable
 
-from . import shapes
+from droidlet.perception.craftassist import shapes
 
 # mapping from mob names to id
 SPAWN_OBJECTS = {

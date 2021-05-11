@@ -4,8 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 
-import craftassist.agent.shapes as shapes
-from craftassist.agent.mc_memory import MCAgentMemory
+import droidlet.perception.craftassist.shapes as shapes
+from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from craftassist.agent.entities import MOBS_BY_ID
 from droidlet.interpreter.tests.all_test_commands import *
 from .base_craftassist_test_case import BaseCraftassistTestCase

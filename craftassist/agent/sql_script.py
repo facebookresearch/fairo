@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from base_sql_mock_environment import BaseSQLMockEnvironment
+from droidlet.memory.craftassist.base_sql_mock_environment import BaseSQLMockEnvironment
 from typing import Dict
 
 

@@ -6,11 +6,11 @@ import logging
 from multiprocessing import Queue, Process
 import sys
 import os
-from ..mc_memory_nodes import InstSegNode
-from ..heuristic_perception import all_nearby_objects
-from ..shapes import get_bounds
+from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
+from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
+from droidlet.perception.craftassist.shapes import get_bounds
 
-from .. import build_utils as bu
+from craftassist.agent import build_utils as bu
 from .semantic_segmentation.semseg_models import SemSegWrapper
 
 

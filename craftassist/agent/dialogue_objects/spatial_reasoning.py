@@ -3,10 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import numpy as np
-from .. import rotation
-from .. import shapes
+from droidlet.perception.craftassist import rotation, shapes, heuristic_perception
 
-from .. import heuristic_perception
 from ..mc_util import pos_to_np, to_block_center, to_block_pos, ErrorWithResponse
 
 DEFAULT_NUM_STEPS = 5

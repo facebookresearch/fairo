@@ -6,10 +6,10 @@ import os
 
 import numpy as np
 import random
-from . import shape_helpers as sh
-from . import tasks
+from droidlet.perception.craftassist import shape_helpers as sh
+from droidlet.interpreter.craftassist import tasks
 
-from .mc_util import pos_to_np
+from craftassist.agent.mc_util import pos_to_np
 
 
 from droidlet.dialog.dialogue_objects import Say

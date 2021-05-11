@@ -2,8 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-from .. import rotation
-from ..shape_transforms import (
+from droidlet.perception.craftassist import rotation
+from droidlet.perception.craftassist.shape_transforms import (
     scale,
     thicker,
     shrink_sample,

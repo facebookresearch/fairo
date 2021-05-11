@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
-import craftassist.agent.shapes as shapes
+import droidlet.perception.craftassist.shapes as shapes
 from craftassist.agent.mc_util import euclid_dist
 from .base_craftassist_test_case import BaseCraftassistTestCase
 from .fake_agent import MockOpt

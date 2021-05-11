@@ -10,9 +10,9 @@ from scipy.optimize import linprog
 from copy import deepcopy
 
 import logging
-from . import minecraft_specs
+from craftassist.agent import minecraft_specs
 
-from .mc_util import (
+from craftassist.agent.mc_util import (
     manhat_dist,
     get_locs_from_entity,
     build_safe_diag_adjacent,
@@ -20,9 +20,9 @@ from .mc_util import (
     to_block_pos,
     fill_idmeta,
 )
-from .block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
-from .search import depth_first_search
-from .mc_memory_nodes import InstSegNode, BlockObjectNode
+from craftassist.agent.block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
+from droidlet.perception.craftassist.search import depth_first_search
+from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20

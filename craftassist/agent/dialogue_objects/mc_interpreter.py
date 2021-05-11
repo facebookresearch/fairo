@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 import random
-from .. import heuristic_perception
+from droidlet.perception.craftassist import heuristic_perception
 from typing import Tuple, Dict, Any, Optional, List
 from copy import deepcopy
 from word2number.w2n import word_to_num
@@ -47,9 +47,8 @@ from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import ErrorWithResponse, number_from_span
 from droidlet.memory.memory_nodes import PlayerNode
-from ..mc_memory_nodes import MobNode, ItemStackNode
-from .. import dance
-from .. import tasks
+from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
+from droidlet.interpreter.craftassist import tasks, dance
 from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
 from ..mc_util import to_block_pos, XYZ
 

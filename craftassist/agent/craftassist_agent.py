@@ -15,12 +15,9 @@ import subprocess
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from craftassist.agent import default_behaviors
-from craftassist.agent import heuristic_perception
-from craftassist.agent import inventory
-from craftassist.agent import mc_memory
-from craftassist.agent import rotation
-
+from droidlet.interpreter.craftassist import default_behaviors, inventory
+from droidlet.memory.craftassist import mc_memory
+from droidlet.perception.craftassist import rotation, heuristic_perception
 
 import droidlet.dashboard as dashboard
 
@@ -42,11 +39,11 @@ from craftassist.agent.dialogue_objects import (
     PutMemoryHandler,
     MCInterpreter,
 )
-from craftassist.agent.low_level_perception import LowLevelMCPerception
+from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
 from droidlet.event import sio
 from craftassist.agent.mc_util import cluster_areas, MCTime
-from craftassist.agent.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
+from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 
 faulthandler.register(signal.SIGUSR1)
 

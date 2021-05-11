@@ -16,7 +16,7 @@ from droidlet.base_util import ErrorWithResponse, number_from_span
 from ..mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
-from ..word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
+from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
 
 
 def get_properties_from_triples(triples_list, p):

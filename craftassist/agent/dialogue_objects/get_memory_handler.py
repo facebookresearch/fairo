@@ -15,7 +15,7 @@ from .attribute_helper import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import ErrorWithResponse
-from ..tasks import Build, Point
+from droidlet.interpreter.craftassist.tasks import Build, Point
 from droidlet.dialog.ttad.generation_dialogues.generate_utils import prepend_a_an
 
 

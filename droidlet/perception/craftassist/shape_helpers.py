@@ -6,7 +6,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import numpy as np
 
-from . import shapes
+from droidlet.perception.craftassist import shapes
 
 FORCE_SMALL = 10  # for debug
 

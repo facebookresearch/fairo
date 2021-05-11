@@ -7,8 +7,8 @@ import logging
 import numpy as np
 import time
 
-from .block_data import PASSABLE_BLOCKS
-from .mc_util import adjacent, manhat_dist
+from craftassist.agent.block_data import PASSABLE_BLOCKS
+from craftassist.agent.mc_util import adjacent, manhat_dist
 
 
 def depth_first_search(blocks_shape, pos, fn, adj_fn=adjacent):

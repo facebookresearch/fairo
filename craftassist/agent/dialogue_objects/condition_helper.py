@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from droidlet.dialog.dialogue_objects import ConditionInterpreter
-from ..mc_stop_condition import AgentAdjacentStopCondition
+from droidlet.interpreter.craftassist.mc_stop_condition import AgentAdjacentStopCondition
 from .block_helpers import get_block_type
 
 # this will become unnecessary with distance between
