@@ -7,8 +7,14 @@ import sys
 import subprocess
 import re
 import numpy as np
-import dldashboard
+import time
+import signal
+import random
+import logging
+import faulthandler
+from multiprocessing import set_start_method
 
+from droidlet import dldashboard
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
@@ -16,28 +22,24 @@ if __name__ == "__main__":
 
 from base_agent.dialogue_manager import DialogueManager
 from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from locobot.agent.loco_memory import LocoAgentMemory
 from base_agent.base_util import to_player_struct, Pos, Look, Player, hash_user
 from base_agent.memory_nodes import PlayerNode
 from base_agent.loco_mc_agent import LocoMCAgent
-from locobot.agent.perception import Perception, SelfPerception
 from base_agent.argument_parser import ArgumentParser
-import locobot.agent.default_behaviors as default_behaviors
-from locobot.agent.dialogue_objects import (
+
+from droidlet.memory.loco_memory import LocoAgentMemory
+from droidlet.perception import Perception, SelfPerception
+from droidlet.interpreter import default_behaviors
+
+from droidlet.dialog.dialogue_objects import (
     LocoBotCapabilities,
     LocoGetMemoryHandler,
     PutMemoryHandler,
     LocoInterpreter,
 )
-import locobot.agent.rotation as rotation
-from locobot.agent.locobot_mover import LoCoBotMover
-from multiprocessing import set_start_method
-import time
-import signal
-import random
-import logging
-import faulthandler
-from dlevent import sio
+import droidlet.perception.rotation as rotation
+from droidlet.lowlevel.locobot_mover import LoCoBotMover
+from droidlet.dlevent import sio
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
 SCHEMAS = [os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql")]

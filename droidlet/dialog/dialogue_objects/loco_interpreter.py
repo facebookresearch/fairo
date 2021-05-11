@@ -20,8 +20,8 @@ from .spatial_reasoning import ComputeLocations
 from .facing_helper import FacingInterpreter
 from .point_target import PointTargetInterpreter
 
-import locobot.agent.dance as dance
-import locobot.agent.tasks as tasks
+import droidlet.interpreter.dance as dance
+import droidlet.interpreter.tasks as tasks
 
 
 def post_process_loc(loc, interpreter):

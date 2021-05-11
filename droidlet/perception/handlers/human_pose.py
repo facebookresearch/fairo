@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import cv2
 import os
 import logging
-import locobot.agent.loco_memory as loco_memory
+import droidlet.memory.loco_memory as loco_memory
 import numpy as np
 from .core import AbstractHandler, WorldObject, RGBDepth
 from detectron2.config import get_cfg
@@ -88,7 +88,7 @@ class HumanPose:
 
     def __init__(self, model_data_dir):
         cfg = get_cfg()
-        yaml_path = os.path.abspath(os.path.join(file_root, "../..", keypoints_yaml))
+        yaml_path = os.path.abspath(os.path.join(file_root, "..", keypoints_yaml))
         cfg.merge_from_file(yaml_path)
         weights = os.path.join(model_data_dir, keypoints_weights)
         cfg.MODEL.WEIGHTS = weights
