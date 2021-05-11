@@ -11,6 +11,9 @@ function pyabspath() {
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "Rootdir ${ROOTDIR}"
 
+# Optionally fetch secure resources for internal users and prod systems
+python ${ROOTDIR}/tools/data_scripts/fetch_internal_resources.py ${ROOTDIR}/base_agent/documents/internal/
+
 . ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
 if [ -z $1 ]

@@ -8,7 +8,7 @@ import unittest
 from base_craftassist_test_case import BaseCraftassistTestCase
 from fake_agent import MockOpt
 
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/")
+TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/annotated_data/")
 
 """This class tests safety checks using a preset list of blacklisted words.
 """
@@ -17,9 +17,10 @@ GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datase
 class SafetyTest(BaseCraftassistTestCase):
     def setUp(self):
         opts = MockOpt()
-        opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
+        opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         opts.no_ground_truth = False
         super().setUp(agent_opts=opts)
+
 
     def test_unsafe_word(self):
         is_safe = self.agent.dialogue_manager.semantic_parsing_model_wrapper.is_safe("bad Clinton")
