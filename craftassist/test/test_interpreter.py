@@ -9,7 +9,7 @@ import droidlet.perception.craftassist.heuristic_perception as heuristic_percept
 import droidlet.perception.craftassist.shapes as shapes
 from droidlet.dialog.dialogue_objects import SPEAKERLOOK
 from droidlet.base_util import NextDialogueStep
-from craftassist.agent.mc_util import Block, strip_idmeta, euclid_dist
+from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
 from .base_craftassist_test_case import BaseCraftassistTestCase
 

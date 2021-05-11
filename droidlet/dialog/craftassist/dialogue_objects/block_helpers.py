@@ -3,9 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import random
 import Levenshtein
-from .. import block_data
-from .. import minecraft_specs
-from ..mc_util import IDM
+from droidlet.lowlevel.minecraft import block_data, minecraft_specs
+from droidlet.lowlevel.minecraft.mc_util import IDM
 
 # TODO FILTERS!
 def get_block_type(s) -> IDM:

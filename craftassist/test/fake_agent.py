@@ -6,17 +6,17 @@ import logging
 import numpy as np
 from typing import List
 
-from craftassist.agent.mc_util import XYZ, IDM, Block
+from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from .utils import Look, Pos, Item, Player
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.base_util import TICKS_PER_SEC
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
-from craftassist.agent.craftassist_agent import CraftAssistAgent
+from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.base_util import Time
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from craftassist.agent.dialogue_objects import (
+from droidlet.dialog.craftassist.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,
     PutMemoryHandler,

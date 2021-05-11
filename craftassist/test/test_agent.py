@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 from .fake_agent import MockOpt
 
-from craftassist.agent.craftassist_agent import CraftAssistAgent
+from agents.craftassist.craftassist_agent import CraftAssistAgent
 
 
 class Opt:

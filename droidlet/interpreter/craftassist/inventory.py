@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import Tuple, List
-from craftassist.agent.mc_util import IDM
+from droidlet.lowlevel.minecraft.mc_util import IDM
 
 ITEM_STACK_NODE = Tuple[str, int]  # (memid, count)
 ITEM_QUEUE = Tuple[

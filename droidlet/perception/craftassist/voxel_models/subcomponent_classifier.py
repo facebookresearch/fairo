@@ -10,7 +10,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
 from droidlet.perception.craftassist.shapes import get_bounds
 
-from craftassist.agent import build_utils as bu
+from droidlet.lowlevel.minecraft import build_utils as bu
 from .semantic_segmentation.semseg_models import SemSegWrapper
 
 

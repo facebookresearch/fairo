@@ -33,7 +33,7 @@ from droidlet.base_util import Pos, Look
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.argument_parser import ArgumentParser
-from craftassist.agent.dialogue_objects import (
+from droidlet.dialog.craftassist.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,
     PutMemoryHandler,
@@ -42,7 +42,7 @@ from craftassist.agent.dialogue_objects import (
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
 from droidlet.event import sio
-from craftassist.agent.mc_util import cluster_areas, MCTime
+from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 
 faulthandler.register(signal.SIGUSR1)
