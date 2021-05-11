@@ -61,8 +61,8 @@ class FiltersTest(BaseCraftassistTestCase):
         self.assertEqual(vals[0], 64)
 
     def test_random(self):
-        o = base_agent.test.all_test_commands.FILTERS["a random cube"]
-        t = base_agent.test.all_test_commands.FILTERS["two random cubes"]
+        o = droidlet.interpreter.tests.all_test_commands.FILTERS["a random cube"]
+        t = droidlet.interpreter.tests.all_test_commands.FILTERS["two random cubes"]
 
         DI = self.dummy_interpreter
 

@@ -570,7 +570,7 @@ class FakePlayer(FakeAgent):
     def __init__(
         self,
         struct=None,
-        opts=None,
+        opts=(),
         do_heuristic_perception=False,
         get_world_pos=False,
         name="",
