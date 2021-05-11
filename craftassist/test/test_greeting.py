@@ -4,8 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 import os
-from fake_agent import MockOpt
-from base_craftassist_test_case import BaseCraftassistTestCase
+from .fake_agent import MockOpt
+from .base_craftassist_test_case import BaseCraftassistTestCase
 
 GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/")
 

@@ -3,15 +3,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 from unittest.mock import Mock
+from typing import List
 
 import craftassist.agent.heuristic_perception as heuristic_perception
 import craftassist.agent.shapes as shapes
 from droidlet.dialog.dialogue_objects import SPEAKERLOOK
-from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.base_util import NextDialogueStep
-from typing import List
 from craftassist.agent.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
+from .base_craftassist_test_case import BaseCraftassistTestCase
 
 
 def add_two_cubes(test):
@@ -331,6 +331,8 @@ class FillTest(BaseCraftassistTestCase):
         self.hole_poss = [(x, 62, z) for x in (8, 9) for z in (10, 11)]
         self.set_blocks([(pos, (0, 0)) for pos in self.hole_poss])
         self.set_looking_at(self.hole_poss[0])
+
+    def test_looking_at(self):
         self.assertEqual(set(self.get_idm_at_locs(self.hole_poss).values()), set([(0, 0)]))
 
     def test_fill_that(self):

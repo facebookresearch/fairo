@@ -7,7 +7,7 @@ import numpy as np
 from typing import List
 
 from craftassist.agent.mc_util import XYZ, IDM, Block
-from utils import Look, Pos, Item, Player
+from .utils import Look, Pos, Item, Player
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.base_util import TICKS_PER_SEC
 from craftassist.agent.mc_memory import MCAgentMemory
