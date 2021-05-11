@@ -5,6 +5,7 @@ proposed in : https://github.com/facebookresearch/droidlet/pull/276
 issue: https://github.com/facebookresearch/droidlet/issues/219
 changeset: https://www.internalfb.com/phabricator/paste/view/P359634791
 """
+import argparse
 import json
 import copy
 from pprint import pprint

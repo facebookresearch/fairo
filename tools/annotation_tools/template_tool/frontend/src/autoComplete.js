@@ -46,11 +46,8 @@ class AutocompleteAnnotator extends React.Component {
   render() {
     return (
       <div>
-        <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <TemplateAnnotator title="Add New Command" fullText={this.state.fragmentsText} schema={this.state.schema} />
-        </div>
-        <div style={{ float: 'left', width: '45%', padding: 5}}>
-          <ParseTreeAnnotator title="Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
+        <div style={{ float: 'left', width: '65%', padding: 5 }}>
+          <TemplateAnnotator title="Add New Command" fullText={this.state.fullText} updateFullText={this.updateFullText} schema={this.state.schema} />
         </div>
       </div>
     )
@@ -75,7 +72,6 @@ class ParseTreeAnnotator extends React.Component {
     this.incrementIndex = this.incrementIndex.bind(this);
     this.decrementIndex = this.decrementIndex.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
-    this.callAPI = this.callAPI.bind(this);
     this.goToIndex = this.goToIndex.bind(this);
     this.updateLabels = this.updateLabels.bind(this);
     this.updateCommand = this.updateCommand.bind(this);
@@ -86,25 +82,6 @@ class ParseTreeAnnotator extends React.Component {
       .then(res => res.json())
       .then((data) => { this.setState({ dataset: data }) })
       .then(() => console.log(this.state.dataset))
-  }
-
-  callAPI(data) {
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    };
-    fetch("http://localhost:9000/readAndSaveToFile/append", requestOptions)
-      .then(
-        (result) => {
-          console.log(result)
-          this.setState({ value: "" })
-          alert("saved!")
-        },
-        (error) => {
-          console.log(error)
-        }
-      )
   }
 
   writeLabels(data) {
@@ -154,7 +131,6 @@ class ParseTreeAnnotator extends React.Component {
   goToIndex(i) {
     console.log("Fetching index " + i)
     this.setState({ currIndex: Number(i), value: JSON.stringify(this.state.dataset[this.props.fullText[i]] ?? {}) });
-    console.log(this.state.dataset)
   }
 
   updateLabels(e) {
@@ -224,7 +200,7 @@ class ParseTreeAnnotator extends React.Component {
       <div style={{ padding: 10 }}>
         <b> {this.props.title} </b>
         <TextCommand fullText={this.props.fullText} currIndex={this.state.currIndex} incrementIndex={this.incrementIndex} decrementIndex={this.decrementIndex} prevCommand={this.incrementIndex} goToIndex={this.goToIndex} />
-        <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} updateCommand={this.updateCommand} schema={this.props.schema} dataset={this.state.dataset} />
+        <LogicalForm title="Action Dictionary" currIndex={this.state.fragmentsIndex} value={this.state.value} onChange={this.handleChange} schema={this.props.schema} dataset={this.state.dataset} />
         <div style={{ padding: 10 }} onClick={this.logSerialized}>
           <button>Save Annotations</button>
         </div>

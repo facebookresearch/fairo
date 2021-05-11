@@ -341,11 +341,18 @@
         },
         "return_quantity": {
             "type": "object",
-            "properties": {
-                "random": {
-                    "$ref": "action_dict_components.schema.json#/definitions/span"
+            "oneOf": [
+                {
+                    "properties": {
+                        "random": {
+                            "$ref": "action_dict_components.schema.json#/definitions/span"
+                        }
+                    }
+                },
+                {
+                    "const": "ALL"
                 }
-            }
+            ]
         },
         "selector": {
             "oneOf": [
