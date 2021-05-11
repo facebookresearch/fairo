@@ -13,7 +13,7 @@ from word2number.w2n import word_to_num
 import sys
 import os
 
-from base_agent.dialogue_objects import (
+from droidlet.dialog.dialogue_objects import (
     Interpreter,
     Say,
     SPEAKERLOOK,
@@ -45,12 +45,12 @@ from .block_helpers import get_block_type
 from .condition_helper import MCConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from base_agent.base_util import ErrorWithResponse, number_from_span
-from base_agent.memory_nodes import PlayerNode
+from droidlet.base_util import ErrorWithResponse, number_from_span
+from droidlet.memory.memory_nodes import PlayerNode
 from ..mc_memory_nodes import MobNode, ItemStackNode
 from .. import dance
 from .. import tasks
-from base_agent.task import ControlBlock, maybe_task_list_to_control_block
+from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
 from ..mc_util import to_block_pos, XYZ
 
 

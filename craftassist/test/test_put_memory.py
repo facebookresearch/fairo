@@ -6,7 +6,7 @@ import unittest
 
 import craftassist.agent.shapes as shapes
 from base_craftassist_test_case import BaseCraftassistTestCase
-from base_agent.test.all_test_commands import *
+from droidlet.interpreter.tests.all_test_commands import *
 
 
 class PutMemoryTestCase(BaseCraftassistTestCase):

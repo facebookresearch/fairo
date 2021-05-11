@@ -9,7 +9,7 @@ from .mc_util import XYZ, IDM, to_block_pos, pos_to_np, euclid_dist, diag_adjace
 from typing import Tuple, List
 from .block_data import BORING_BLOCKS
 
-from base_agent.memory_nodes import PlayerNode, AttentionNode
+from droidlet.memory.memory_nodes import PlayerNode, AttentionNode
 from .mc_memory_nodes import BlockObjectNode
 
 
