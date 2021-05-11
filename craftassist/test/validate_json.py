@@ -116,7 +116,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--schema_dir",
         type=str,
-        default="base_agent/documents/json_schema/",
+        default="droidlet/memory/documents/json_schema/",
         help="path to directory containing JSON schemas we want to load",
     )
     parser.add_argument(
