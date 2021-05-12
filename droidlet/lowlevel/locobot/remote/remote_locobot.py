@@ -50,7 +50,7 @@ class RemoteLocobot(object):
         elif backend == "habitat":
             if backend_config["physics_config"] == "DEFAULT":
                 assets_path = os.path.abspath(
-                    os.path.join(os.path.dirname(__file__), "../test/test_assets")
+                    os.path.join(os.path.dirname(__file__), "../tests/test_assets")
                 )
                 backend_config["physics_config"] = os.path.join(
                     assets_path, "default.phys_scene_config.json"
