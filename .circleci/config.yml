@@ -48,7 +48,7 @@ jobs:
           name: Base Agent Python unit tests
           command: |
               mkdir shared
-              docker run --name base-tests -v $(pwd):/shared -w /droidlet craftassist bash -c "python setup.py develop && cd /shared && /droidlet/base_agent/test/test.sh"
+              docker run --name base-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd /shared && /droidlet/base_agent/test/test.sh"
               docker cp base-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
@@ -57,7 +57,7 @@ jobs:
       - run:
           name: CraftAssist Python unit tests
           command: |
-              docker run --name mc-tests -v $(pwd):/shared -w /droidlet craftassist bash -c "python setup.py develop && cd /shared && /droidlet/craftassist/test/test.sh"
+              docker run --name mc-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd /shared && /droidlet/craftassist/test/test.sh"
               docker cp mc-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
