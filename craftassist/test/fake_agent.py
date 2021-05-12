@@ -6,25 +6,25 @@ import logging
 import numpy as np
 from typing import List
 
-from craftassist.agent.mc_util import XYZ, IDM, Block
+from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from .utils import Look, Pos, Item, Player
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.base_util import TICKS_PER_SEC
-from craftassist.agent.mc_memory import MCAgentMemory
-from craftassist.agent.mc_memory_nodes import VoxelObjectNode
-from craftassist.agent.craftassist_agent import CraftAssistAgent
+from droidlet.memory.craftassist.mc_memory import MCAgentMemory
+from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
+from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.base_util import Time
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from craftassist.agent.dialogue_objects import (
+from droidlet.dialog.craftassist.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,
     PutMemoryHandler,
     MCInterpreter,
 )
-from craftassist.agent.low_level_perception import LowLevelMCPerception
-from craftassist.agent.heuristic_perception import PerceptionWrapper, check_inside
-from craftassist.agent.rotation import look_vec, yaw_pitch
+from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
+from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
+from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 
 
 # how many internal, non-world-interacting steps agent takes before world steps:

@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 import time
-import craftassist.agent.shapes as shapes
+import droidlet.perception.craftassist.shapes as shapes
 from droidlet.dialog.dialogue_objects import AwaitResponse
 from droidlet.interpreter.tests.all_test_commands import *
 from .base_craftassist_test_case import BaseCraftassistTestCase
