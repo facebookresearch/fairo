@@ -6,4 +6,4 @@
 # cd to parent of script's directory (i.e. project root)
 cd "${0%/*}"/../..
 
-black base_agent craftassist locobot dldashboard dlevent
+black base_agent craftassist droidlet
