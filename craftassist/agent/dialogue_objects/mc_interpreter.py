@@ -283,10 +283,7 @@ class MCInterpreter(Interpreter):
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
         if holes is None:
-            self.dialogue_stack.append_new(
-                Say, "I don't understand what holes you want me to fill."
-            )
-            return None, None, None
+            raise ErrorWithResponse("I don't understand what holes you want me to fill.")
         tasks = []
         for hole in holes:
             poss = list(hole.blocks.keys())
@@ -496,8 +493,7 @@ class MCInterpreter(Interpreter):
                         tasks_to_do.append(t)
                 else:
                     # dance out of scope
-                    self.dialogue_stack.append_new(Say, "I don't know how to do that movement yet.")
-                    return None
+                    raise ErrorWithResponse("I don't know how to do that movement yet.")
             return maybe_task_list_to_control_block(tasks_to_do, self.agent)
 
         if "stop_condition" in d:
