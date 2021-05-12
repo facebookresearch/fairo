@@ -1,7 +1,0 @@
-Makefile
-CMakeFiles
-CMakeCache.txt
-bin
-cmake_install.cmake
-*.so
-*.swp
