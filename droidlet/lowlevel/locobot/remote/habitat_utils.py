@@ -46,7 +46,7 @@ def reconfigure_scene(env, scene_path):
         print("Scene {} not in supported scenes, so skipping adding objects".format(scene_name))
         return
 
-    assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../test/test_assets"))
+    assets_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../tests/test_assets"))
 
     if hasattr(sim, "get_object_template_manager"):
         load_object_configs = sim.get_object_template_manager().load_object_configs
