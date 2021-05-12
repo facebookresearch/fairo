@@ -4,8 +4,10 @@
 
 
 cd $(dirname $0)
-coverage run --source . -m unittest discover
+
+SHARED_PATH=/shared
+COV_RELATIVE=craftassist
+
+pytest --cov-report=xml:$SHARED_PATH/test_MC.xml --cov=$COV_RELATIVE craftassist/test/ --disable-pytest-warnings
 status=$?
-coverage report
-coverage xml -o /shared/test_MC.xml
 exit $status
