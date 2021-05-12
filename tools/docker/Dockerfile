@@ -33,7 +33,7 @@ RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.
     rm -rf client_ccache.tar.gz /cache/.ccache /client_ccache.tar.gz
 
 RUN npm install -g yarn
-RUN cd /droidlet/dldashboard/web && yarn install
+RUN cd /droidlet/droidlet/dashboard/web && yarn install
 
 RUN mkdir workdir
 WORKDIR workdir
