@@ -12,7 +12,7 @@ import time
 import traceback
 import uuid
 
-import rotation
+from . import rotation
 
 from typing import Tuple, List, TypeVar, Sequence
 

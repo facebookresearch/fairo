@@ -17,6 +17,6 @@ setup(
     long_description=readme,
     license="MIT",
     # Package info
-    packages=find_packages(exclude=("test", "craftassist/test", "locobot/test")),
+    packages=find_packages(exclude=("test", "craftassist/test")),
     zip_safe=True,
 )
