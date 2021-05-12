@@ -1,13 +1,14 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from .core import AbstractHandler
-from locobot.agent.objects import AttributeDict
+import logging
+import numpy as np
 import torch
 import torchvision.models as models
-import numpy as np
-import logging
 from torchvision import transforms
+
+from .core import AbstractHandler
+from droidlet.interpreter.objects import AttributeDict
 
 
 class ObjectDeduplicationHandler(AbstractHandler):
