@@ -17,7 +17,7 @@ from .point_target import PointTargetInterpreter
 from droidlet.base_util import ErrorWithResponse
 from droidlet.memory.memory_nodes import MemoryNode, ReferenceObjectNode
 from droidlet.interpreter.string_lists import ACTION_ING_MAPPING
-from droidlet.dialog.ttad.generation_dialogues import prepend_a_an
+from droidlet.dialog.ttad.generation_dialogues.generate_utils import prepend_a_an
 from copy import deepcopy
 from droidlet.interpreter.robot.tasks import Point
 
