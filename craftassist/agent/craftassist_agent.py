@@ -44,7 +44,7 @@ from craftassist.agent.dialogue_objects import (
 )
 from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
-from dlevent import sio
+from event import sio
 from craftassist.agent.mc_util import cluster_areas, MCTime
 from craftassist.agent.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 

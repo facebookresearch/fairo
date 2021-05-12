@@ -9,7 +9,7 @@ from torchvision import transforms
 
 from .core import AbstractHandler
 import droidlet.memory.loco_memory as loco_memory
-from droidlet.dlevent import sio
+from droidlet.event import sio
 
 
 class MemoryHandler(AbstractHandler):
