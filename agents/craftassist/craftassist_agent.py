@@ -40,7 +40,7 @@ from droidlet.dialog.craftassist.dialogue_objects import (
     MCInterpreter,
 )
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from craftassist.agent.mc_agent import Agent as MCAgent
+from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.event import sio
 from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper

@@ -7,7 +7,7 @@ import sys
 from typing import Optional, List
 
 from droidlet.lowlevel.minecraft.build_utils import npy_to_blocks_list
-from ...lowlevel.minecraft import minecraft_specs
+from ...lowlevel.minecraft import specs as minecraft_specs
 from ...interpreter.craftassist import dance
 
 PERCEPTION_RANGE = 64
