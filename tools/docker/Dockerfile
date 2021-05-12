@@ -26,7 +26,7 @@ RUN tar -cvzf client_ccache.tar.gz /cache/.ccache
 RUN aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz
 
 RUN npm install -g yarn
-RUN cd /droidlet/dldashboard/web && yarn install
+RUN cd /droidlet/droidlet/dashboard/web && yarn install
 
 RUN mkdir workdir
 WORKDIR workdir
