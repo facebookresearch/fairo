@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import unittest
-from fake_agent import MockOpt
+from .fake_agent import MockOpt
 
 from craftassist.agent.craftassist_agent import CraftAssistAgent
 

@@ -5,7 +5,7 @@ import numpy as np
 from typing import Sequence, Dict
 from craftassist.agent.mc_util import Block, XYZ, IDM
 from craftassist.agent.rotation import look_vec
-from fake_mobs import make_mob_opts, MOB_META, SimpleMob
+from .fake_mobs import make_mob_opts, MOB_META, SimpleMob
 
 FLAT_GROUND_DEPTH = 8
 
