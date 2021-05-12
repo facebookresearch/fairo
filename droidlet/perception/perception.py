@@ -15,7 +15,7 @@ from .handlers import (
     ObjectDeduplicationHandler,
 )
 from droidlet.interpreter.objects import AttributeDict
-from droidlet.dlevent import sio
+from droidlet.event import sio
 
 from torch import multiprocessing as mp
 multiprocessing = mp.get_context("spawn")

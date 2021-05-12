@@ -27,7 +27,7 @@ from base_agent.base_util import hash_user
 # TODO: move JSONValidator into base
 from craftassist.test.validate_json import JSONValidator
 from base_agent.dialogue_model import DroidletSemanticParsingModel
-from droidlet.dlevent import sio
+from droidlet.event import sio
 from .nsp_logger import NSPLogger
 
 spacy_model = spacy.load("en_core_web_sm")
