@@ -52,7 +52,7 @@ There might be several errors depending on your compiler version. We list some c
  
 - **'glog header file can not be found'** when build C++ Minecraft client
 
-    Replace the content of [client/CMakeLists.txt](client/CMakeLists.txt) with the following content:
+    Replace the content of [client/CMakeLists.txt](../droidlet/lowlevel/minecraft/client/CMakeLists.txt) with the following content:
     
     ```
     cmake_minimum_required (VERSION 2.8)
