@@ -1,4 +1,4 @@
-from base_agent.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import PlayerNode
 
 
 class HeuristicPerception:

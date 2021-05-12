@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from base_agent.dialogue_objects import ConditionInterpreter
+from droidlet.dialog.dialogue_objects import ConditionInterpreter
 from ..mc_stop_condition import AgentAdjacentStopCondition
 from .block_helpers import get_block_type
 

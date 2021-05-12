@@ -1,5 +1,5 @@
 import numpy as np
-from base_agent.task import Task
+from droidlet.interpreter.task import Task
 
 
 class Move(Task):

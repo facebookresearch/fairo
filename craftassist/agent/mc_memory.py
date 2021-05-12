@@ -13,11 +13,11 @@ from . import dance
 PERCEPTION_RANGE = 64
 
 
-from base_agent.base_util import XYZ, Block
+from droidlet.base_util import XYZ, Block
 
-from base_agent.sql_memory import AgentMemory
+from droidlet.memory.sql_memory import AgentMemory
 
-from base_agent.memory_nodes import (  # noqa
+from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     PlayerNode,
     MemoryNode,

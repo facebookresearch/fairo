@@ -8,7 +8,7 @@ import torchvision.models as models
 from torchvision import transforms
 
 from .core import AbstractHandler
-import droidlet.memory.loco_memory as loco_memory
+import droidlet.memory.robot.loco_memory as loco_memory
 from droidlet.event import sio
 
 

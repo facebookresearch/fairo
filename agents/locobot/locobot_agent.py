@@ -20,18 +20,18 @@ if __name__ == "__main__":
     # or else, those @sio.on calls become no-ops
     dashboard.start()
 
-from base_agent.dialogue_manager import DialogueManager
-from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from base_agent.base_util import to_player_struct, Pos, Look, Player, hash_user
-from base_agent.memory_nodes import PlayerNode
-from base_agent.loco_mc_agent import LocoMCAgent
-from base_agent.argument_parser import ArgumentParser
+from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.base_util import to_player_struct, Pos, Look, Player, hash_user
+from droidlet.memory.memory_nodes import PlayerNode
+from agents.loco_mc_agent import LocoMCAgent
+from agents.argument_parser import ArgumentParser
 
-from droidlet.memory.loco_memory import LocoAgentMemory
+from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.perception import Perception, SelfPerception
-from droidlet.interpreter import default_behaviors
+from droidlet.interpreter.robot import default_behaviors
 
-from droidlet.dialog.dialogue_objects import (
+from droidlet.dialog.robot.dialogue_objects import (
     LocoBotCapabilities,
     LocoGetMemoryHandler,
     PutMemoryHandler,

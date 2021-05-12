@@ -8,14 +8,14 @@ from typing import List
 
 from craftassist.agent.mc_util import XYZ, IDM, Block
 from utils import Look, Pos, Item, Player
-from base_agent.loco_mc_agent import LocoMCAgent
-from base_agent.base_util import TICKS_PER_SEC
+from agents.loco_mc_agent import LocoMCAgent
+from droidlet.base_util import TICKS_PER_SEC
 from craftassist.agent.mc_memory import MCAgentMemory
 from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.craftassist_agent import CraftAssistAgent
-from base_agent.base_util import Time
-from base_agent.dialogue_manager import DialogueManager
-from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.base_util import Time
+from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from craftassist.agent.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,

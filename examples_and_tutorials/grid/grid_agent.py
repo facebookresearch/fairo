@@ -4,10 +4,10 @@ import logging
 import time
 import numpy as np
 
-from base_agent.argument_parser import ArgumentParser
+from agents.argument_parser import ArgumentParser
 
-from base_agent.core import BaseAgent
-from base_agent.sql_memory import AgentMemory
+from agents.core import BaseAgent
+from droidlet.memory.sql_memory import AgentMemory
 from heuristic_perception import HeuristicPerception
 
 from world import World

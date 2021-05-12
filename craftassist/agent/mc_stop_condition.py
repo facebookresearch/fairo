@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import sys
 
-from base_agent.stop_condition import StopCondition
+from droidlet.interpreter.stop_condition import StopCondition
 
 
 class AgentAdjacentStopCondition(StopCondition):
