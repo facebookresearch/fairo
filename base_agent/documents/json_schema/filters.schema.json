@@ -340,17 +340,17 @@
             "additionalProperties": false
         },
         "return_quantity": {
-            "type": "object",
             "oneOf": [
                 {
+                    "const": "ALL"
+                },
+                {
+                    "type": "object",
                     "properties": {
                         "random": {
                             "$ref": "action_dict_components.schema.json#/definitions/span"
                         }
                     }
-                },
-                {
-                    "const": "ALL"
                 }
             ]
         },
