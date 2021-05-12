@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 from typing import Dict, Tuple, Any, Optional
 
-from base_agent.dialogue_objects import (
+from droidlet.dialog.dialogue_objects import (
     DialogueObject,
     FilterInterpreter,
     ReferenceObjectInterpreter,
@@ -14,7 +14,7 @@ from base_agent.dialogue_objects import (
 )
 from .spatial_reasoning import ComputeLocations
 from ..mc_memory_nodes import VoxelObjectNode, RewardNode
-from base_agent.base_util import ErrorWithResponse
+from droidlet.base_util import ErrorWithResponse
 
 
 class PutMemoryHandler(DialogueObject):

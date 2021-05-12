@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 from typing import Dict, Sequence
 
-from base_agent.dialogue_objects import (
+from droidlet.dialog.dialogue_objects import (
     FilterInterpreter,
     ReferenceObjectInterpreter,
     interpret_reference_object,
@@ -14,9 +14,9 @@ from base_agent.dialogue_objects import (
 from .attribute_helper import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
-from base_agent.base_util import ErrorWithResponse
+from droidlet.base_util import ErrorWithResponse
 from ..tasks import Build, Point
-from base_agent.ttad.generation_dialogues.generate_utils import prepend_a_an
+from droidlet.dialog.ttad.generation_dialogues import prepend_a_an
 
 
 class MCGetMemoryHandler(GetMemoryHandler):

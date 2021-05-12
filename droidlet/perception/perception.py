@@ -14,7 +14,7 @@ from .handlers import (
     LaserPointerHandler,
     ObjectDeduplicationHandler,
 )
-from droidlet.interpreter.objects import AttributeDict
+from droidlet.interpreter.robot.objects import AttributeDict
 from droidlet.event import sio
 
 from torch import multiprocessing as mp

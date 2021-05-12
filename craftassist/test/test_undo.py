@@ -5,9 +5,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 import time
 import craftassist.agent.shapes as shapes
-from base_agent.dialogue_objects import AwaitResponse
+from droidlet.dialog.dialogue_objects import AwaitResponse
 from base_craftassist_test_case import BaseCraftassistTestCase
-from base_agent.test.all_test_commands import *
+from droidlet.interpreter.tests.all_test_commands import *
 
 
 class UndoTest(BaseCraftassistTestCase):

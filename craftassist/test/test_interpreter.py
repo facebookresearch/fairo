@@ -6,12 +6,12 @@ from unittest.mock import Mock
 
 import craftassist.agent.heuristic_perception as heuristic_perception
 import craftassist.agent.shapes as shapes
-from base_agent.dialogue_objects import SPEAKERLOOK
+from droidlet.dialog.dialogue_objects import SPEAKERLOOK
 from base_craftassist_test_case import BaseCraftassistTestCase
-from base_agent.base_util import NextDialogueStep
+from droidlet.base_util import NextDialogueStep
 from typing import List
 from craftassist.agent.mc_util import Block, strip_idmeta, euclid_dist
-from base_agent.test.all_test_commands import *
+from droidlet.interpreter.tests.all_test_commands import *
 
 
 def add_two_cubes(test):

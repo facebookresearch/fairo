@@ -7,7 +7,7 @@ import numpy as np
 from typing import List, Sequence, Dict
 
 from craftassist.agent.build_utils import to_relative_pos
-from base_agent.dialogue_objects import AwaitResponse
+from droidlet.dialog.dialogue_objects import AwaitResponse
 from fake_agent import FakeAgent, FakePlayer
 from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.mc_util import XYZ, Block, IDM
