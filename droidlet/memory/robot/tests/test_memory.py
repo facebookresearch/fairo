@@ -8,7 +8,7 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_canonical_coords_t
 from droidlet.perception import Detection, RGBDepth
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
-from droidlet.perception.tests.utils import get_fake_detection, get_fake_humanpose
+from droidlet.perception.tests.utils import get_fake_detection, get_fake_humanpose, get_fake_bbox
 
 
 class MemoryTests(unittest.TestCase):
