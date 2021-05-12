@@ -1,0 +1,9 @@
+# Visual Studio project files:
+*.vcxproj
+*.user
+*.filters
+*.sln
+
+# CMake temporary files:
+CMakeFiles/
+cmake_install.cmake
