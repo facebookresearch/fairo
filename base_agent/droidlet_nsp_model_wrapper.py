@@ -49,7 +49,8 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
                 opts.nsp_models_dir, opts.nsp_data_dir
             )
         except NotADirectoryError:
-            pass
+            # No parsing model
+            self.parsing_model = None
 
         # Socket event listener
         # TODO(kavyas): I might want to move this to SemanticParserWrapper
@@ -262,10 +263,15 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
             logging.info('Found ground truth action for "{}"'.format(chat))
             # log the current UTC time
             time_now = time()
-        else:
+        elif self.parsing_model:
             logical_form = parsing_model.query_for_logical_form(chat)
             time_now = time()
             logical_form_source = "semantic_parser"
+        else:
+            logical_form = {"dialogue_type": "NOOP"}
+            logging.info("Not found in ground truth, no parsing model initiated. Returning NOOP.")
+            time_now = time()
+            logical_form_source = "not_found_in_gt_no_model"
         # log the logical form and chat with source
         self.NSPLogger.log_dialogue_outputs(
             [chat, logical_form, logical_form_source, "craftassist", time_now]
