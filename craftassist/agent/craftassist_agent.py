@@ -22,13 +22,13 @@ from craftassist.agent import mc_memory
 from craftassist.agent import rotation
 
 
-import dldashboard
+import dashboard
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
     print("starting dashboard...")
-    dldashboard.start()
+    dashboard.start()
 
 from base_agent.dialogue_manager import DialogueManager
 from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
