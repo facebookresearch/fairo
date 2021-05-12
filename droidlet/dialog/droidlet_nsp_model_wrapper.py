@@ -71,7 +71,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         # Extract the set of safety words from safety file
         self.safety_words = set()
         safety_words_path = "{}/{}".format(
-            pkg_resources.resource_filename("base_agent.documents", "internal"),
+            pkg_resources.resource_filename("droidlet.memory.documents", "internal"),
             "safety.txt",
         )
         if os.path.isfile(safety_words_path):

@@ -22,7 +22,7 @@ from craftassist.agent import mc_memory
 from craftassist.agent import rotation
 
 
-import droidlet.dashboard
+import droidlet.dashboard as dashboard
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
