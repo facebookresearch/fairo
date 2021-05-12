@@ -9,6 +9,7 @@ from .base_craftassist_test_case import BaseCraftassistTestCase
 from .fake_agent import MockOpt
 
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/annotated_data/")
+TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../agent/models/semantic_parser/")
 
 """This class tests safety checks using a preset list of blacklisted words.
 """
@@ -18,6 +19,7 @@ class SafetyTest(BaseCraftassistTestCase):
     def setUp(self):
         opts = MockOpt()
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
+        opts.nsp_models_dir = TTAD_BERT_MODEL_DIR
         opts.no_ground_truth = False
         super().setUp(agent_opts=opts)
 
