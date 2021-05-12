@@ -12,23 +12,23 @@ from base_agent.memory_nodes import PlayerNode
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.dialogue_manager import DialogueManager
 from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from locobot.agent.loco_memory import LocoAgentMemory
-from locobot.agent.loco_memory_nodes import DetectedObjectNode
-from locobot.agent.locobot_mover_utils import (
+from droidlet.memory.loco_memory import LocoAgentMemory
+from droidlet.memory.loco_memory_nodes import DetectedObjectNode
+from droidlet.lowlevel.locobot.locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
     CAMERA_HEIGHT,
     MAX_PAN_RAD,
 )
-from locobot.agent.perception import SelfPerception
-import locobot.agent.rotation as rotation
-from locobot.test.utils import get_fake_detection
+from droidlet.perception import SelfPerception
+import droidlet.lowlevel.locobot.rotation as rotation
+from droidlet.perception.tests.utils import get_fake_detection
 
 # these should go in utils
-from locobot.agent.objects import Pos
+from droidlet.interpreter.objects import Pos
 
 # marker creation should be somewhwere else....
-from locobot.agent.dialogue_objects import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from droidlet.dialog.dialogue_objects import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
 
 # from locobot.perception import Detection
 

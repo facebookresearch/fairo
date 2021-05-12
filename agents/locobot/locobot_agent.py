@@ -37,8 +37,8 @@ from droidlet.dialog.dialogue_objects import (
     PutMemoryHandler,
     LocoInterpreter,
 )
-import droidlet.perception.rotation as rotation
-from droidlet.lowlevel.locobot_mover import LoCoBotMover
+import droidlet.lowlevel.locobot.rotation as rotation
+from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.dlevent import sio
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
