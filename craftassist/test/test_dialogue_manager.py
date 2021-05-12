@@ -5,10 +5,10 @@ import os
 import unittest
 import logging
 
-from base_agent.dialogue_manager import DialogueManager
-from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from base_agent.loco_mc_agent import LocoMCAgent
-from base_agent.test.all_test_commands import *
+from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from agents.loco_mc_agent import LocoMCAgent
+from droidlet.interpreter.tests.all_test_commands import *
 from fake_agent import MockOpt
 
 

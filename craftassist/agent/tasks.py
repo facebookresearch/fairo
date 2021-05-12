@@ -22,8 +22,8 @@ from . import search
 from .heuristic_perception import ground_height
 from .mc_util import to_block_pos, manhat_dist, strip_idmeta
 
-from base_agent.task import Task, BaseMovementTask
-from base_agent.memory_nodes import TaskNode, TripleNode
+from droidlet.interpreter.task import Task, BaseMovementTask
+from droidlet.memory.memory_nodes import TaskNode, TripleNode
 from .mc_memory_nodes import MobNode
 
 # tasks should be interruptible; that is, if they

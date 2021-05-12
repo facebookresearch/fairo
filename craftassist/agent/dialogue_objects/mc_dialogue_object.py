@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from base_agent.dialogue_objects import BotCapabilities
+from droidlet.dialog.dialogue_objects import BotCapabilities
 
 
 class MCBotCapabilities(BotCapabilities):

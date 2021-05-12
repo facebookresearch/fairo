@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import Tuple, Dict, Any, Optional
 
-from base_agent.dialogue_objects import (
+from droidlet.dialog.dialogue_objects import (
     DialogueObject,
     ReferenceObjectInterpreter,
     FilterInterpreter,

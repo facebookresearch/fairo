@@ -8,7 +8,7 @@ import torchvision.models as models
 from torchvision import transforms
 
 from .core import AbstractHandler
-from droidlet.interpreter.objects import AttributeDict
+from droidlet.interpreter.robot.objects import AttributeDict
 
 
 class ObjectDeduplicationHandler(AbstractHandler):
