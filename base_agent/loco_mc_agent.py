@@ -6,11 +6,12 @@ import os
 import random
 import re
 import time
+import os
 import numpy as np
 
 from .core import BaseAgent
 from base_agent.base_util import ErrorWithResponse
-from dlevent import sio
+from droidlet.dlevent import sio
 
 from .base_util import hash_user
 from .save_and_fetch_commands import *

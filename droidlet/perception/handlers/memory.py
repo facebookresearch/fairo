@@ -1,14 +1,15 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from .core import AbstractHandler
+import logging
+import numpy as np
 import torch
 import torchvision.models as models
-import numpy as np
-import locobot.agent.loco_memory as loco_memory
-import logging
 from torchvision import transforms
-from dlevent import sio
+
+from .core import AbstractHandler
+import droidlet.memory.loco_memory as loco_memory
+from droidlet.dlevent import sio
 
 
 class MemoryHandler(AbstractHandler):

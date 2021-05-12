@@ -3,7 +3,7 @@ import threading
 from flask import Flask
 import socketio
 from flask_cors import cross_origin, CORS
-import dlevent
+from droidlet import dlevent
 import logging
 import json
 import random
