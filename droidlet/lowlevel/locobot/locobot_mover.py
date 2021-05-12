@@ -23,7 +23,7 @@ from base_agent.base_util import ErrorWithResponse
 from base_agent.argument_parser import ArgumentParser
 from droidlet.perception import RGBDepth
 from droidlet.interpreter.objects import Marker, Pos
-from droidlet.lowlevel.locobot_mover_utils import (
+from .locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
     MAX_PAN_RAD,
