@@ -41,9 +41,6 @@ import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
 
-BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../../")
-# SCHEMAS = [os.path.join(os.path.join(BASE_AGENT_ROOT, "base_agent"), "base_memory_schema.sql")]
-
 faulthandler.register(signal.SIGUSR1)
 
 random.seed(0)

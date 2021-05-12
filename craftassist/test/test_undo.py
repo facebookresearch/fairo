@@ -6,8 +6,8 @@ import unittest
 import time
 import craftassist.agent.shapes as shapes
 from droidlet.dialog.dialogue_objects import AwaitResponse
-from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
+from .base_craftassist_test_case import BaseCraftassistTestCase
 
 
 class UndoTest(BaseCraftassistTestCase):

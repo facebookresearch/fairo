@@ -5,8 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
-from base_craftassist_test_case import BaseCraftassistTestCase
-from fake_agent import MockOpt
+from .base_craftassist_test_case import BaseCraftassistTestCase
+from .fake_agent import MockOpt
 
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/annotated_data/")
 
