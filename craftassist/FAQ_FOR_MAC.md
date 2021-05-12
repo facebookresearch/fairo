@@ -6,7 +6,7 @@ This section is mainly used as a workaround if you are using mac and having diff
 
 1. Build Cuberite server
 2. Build C++ Minecraft client
-3. Build the rest of the system (log_render, render_view and schematic_convert)
+3. Build the rest of the system (log_render and render_view)
 
 ### Build Cuberite server
 
@@ -31,13 +31,13 @@ cmake . && make
 Remove the first two targets from ```all``` in [Makefile](Makefile) since they are used to build Cuberite server and C++ Minecraft client which are already built in step 1 & 2. To be specific, replace line#10 of [Makefile](Makefile) from:
  
 ```
-all: cuberite client log_render render_view schematic_convert
+all: cuberite client log_render render_view
 ```
  
 to:
- 
+
 ```
-all: log_render render_view schematic_convert
+all: log_render render_view
 ```
  
 Then run
