@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-from utils import Pos, Look
+from .utils import Pos, Look
 from craftassist.agent.entities import MOBS_BY_ID
 
 FLAT_GROUND_DEPTH = 8

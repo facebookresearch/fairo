@@ -8,7 +8,7 @@ import json
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
-from fake_agent import MockOpt
+from .fake_agent import MockOpt
 from prettytable import PrettyTable
 
 
