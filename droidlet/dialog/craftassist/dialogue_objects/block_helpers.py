@@ -3,7 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import random
 import Levenshtein
-from droidlet.lowlevel.minecraft import block_data, minecraft_specs
+from droidlet.lowlevel.minecraft import block_data
+from droidlet.lowlevel.minecraft import specs as minecraft_specs
 from droidlet.lowlevel.minecraft.mc_util import IDM
 
 # TODO FILTERS!
