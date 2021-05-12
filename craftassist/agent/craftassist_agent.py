@@ -30,12 +30,12 @@ if __name__ == "__main__":
     print("starting dashboard...")
     dashboard.start()
 
-from base_agent.dialogue_manager import DialogueManager
-from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from base_agent.base_util import Pos, Look
-from base_agent.loco_mc_agent import LocoMCAgent
-from base_agent.memory_nodes import PlayerNode
-from base_agent.argument_parser import ArgumentParser
+from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.base_util import Pos, Look
+from agents.loco_mc_agent import LocoMCAgent
+from droidlet.memory.memory_nodes import PlayerNode
+from agents.argument_parser import ArgumentParser
 from craftassist.agent.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,

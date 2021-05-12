@@ -5,7 +5,7 @@ import sys
 import re
 import unittest
 from copy import deepcopy
-from base_agent.dialogue_objects.dialogue_object_utils import process_spans_and_remove_fixed_value
+from droidlet.dialog.dialogue_objects import process_spans_and_remove_fixed_value
 from test_y_print_parsing_report import common_functional_commands, compare_full_dictionaries
 
 logical_form_before_processing = {

@@ -14,7 +14,7 @@ from . import minecraft_specs
 from .entities import MOBS_BY_ID
 
 
-from base_agent.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
+from droidlet.memory.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
 
 
 class VoxelObjectNode(ReferenceObjectNode):

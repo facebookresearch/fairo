@@ -15,7 +15,7 @@ from detectron2.utils.visualizer import ColorMode
 from detectron2.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 
-import droidlet.memory.loco_memory as loco_memory
+import droidlet.memory.robot.loco_memory as loco_memory
 
 from .core import AbstractHandler, WorldObject, RGBDepth
 from ..detectron.detector.utils import get_predictor

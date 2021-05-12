@@ -9,7 +9,7 @@ from craftassist.agent.mc_memory import MCAgentMemory
 from utils import Mob, Pos, Look
 from craftassist.agent.entities import MOBS_BY_ID
 from base_craftassist_test_case import BaseCraftassistTestCase
-from base_agent.test.all_test_commands import *
+from droidlet.interpreter.tests.all_test_commands import *
 
 
 class ObjectsTest(BaseCraftassistTestCase):

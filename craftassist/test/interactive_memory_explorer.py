@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import craftassist.agent.shapes as shapes
 from base_craftassist_test_case import BaseCraftassistTestCase
-from base_agent.dialogue_stack import DialogueStack
+from droidlet.dialog.dialogue_stack import DialogueStack
 from craftassist.agent.dialogue_objects import DummyInterpreter
 
 
@@ -44,7 +44,7 @@ class MemoryExplorer(BaseCraftassistTestCase):
 
 
 if __name__ == "__main__":
-    import base_agent.test.all_test_commands  # noqa
+    import droidlet.interpreter.tests.all_test_commands  # noqa
     import memory_filters as mf  # noqa
 
     M = MemoryExplorer()
