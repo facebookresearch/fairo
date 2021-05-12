@@ -5,11 +5,11 @@ import unittest
 from unittest.mock import Mock
 from typing import List
 
-import craftassist.agent.heuristic_perception as heuristic_perception
-import craftassist.agent.shapes as shapes
+import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
+import droidlet.perception.craftassist.shapes as shapes
 from droidlet.dialog.dialogue_objects import SPEAKERLOOK
 from droidlet.base_util import NextDialogueStep
-from craftassist.agent.mc_util import Block, strip_idmeta, euclid_dist
+from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
 from .base_craftassist_test_case import BaseCraftassistTestCase
 
