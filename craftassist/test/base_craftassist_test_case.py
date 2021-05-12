@@ -7,13 +7,14 @@ import numpy as np
 from typing import List, Sequence, Dict
 
 from craftassist.agent.build_utils import to_relative_pos
-from droidlet.dialog.dialogue_objects import AwaitResponse
-from fake_agent import FakeAgent, FakePlayer
 from craftassist.agent.mc_memory_nodes import VoxelObjectNode
 from craftassist.agent.mc_util import XYZ, Block, IDM
-from utils import Player, Pos, Look, Item, Look
-from world import World, Opt, flat_ground_generator
 from craftassist.agent.rotation import yaw_pitch
+from droidlet.dialog.dialogue_objects import AwaitResponse
+
+from .fake_agent import FakeAgent, FakePlayer
+from .utils import Player, Pos, Look, Item, Look
+from .world import World, Opt, flat_ground_generator
 
 
 class BaseCraftassistTestCase(unittest.TestCase):

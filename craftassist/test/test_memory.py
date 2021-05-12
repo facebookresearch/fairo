@@ -6,10 +6,10 @@ import unittest
 
 import craftassist.agent.shapes as shapes
 from craftassist.agent.mc_memory import MCAgentMemory
-from utils import Mob, Pos, Look
 from craftassist.agent.entities import MOBS_BY_ID
-from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
+from .base_craftassist_test_case import BaseCraftassistTestCase
+from .utils import Mob, Pos, Look
 
 
 class ObjectsTest(BaseCraftassistTestCase):
