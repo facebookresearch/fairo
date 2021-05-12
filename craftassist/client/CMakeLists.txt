@@ -26,7 +26,7 @@ file(GLOB SOURCES "src/*.cpp")
 add_subdirectory(pybind11)
 pybind11_add_module(mc_agent ${SOURCES})
 target_link_libraries(mc_agent PUBLIC ${GFLAGS_LIBRARY} ${GLOG_LIBRARY} ${LIBZ_LIBRARY})
-set_target_properties(mc_agent PROPERTIES OUTPUT_NAME ../agent/mc_agent)
+set_target_properties(mc_agent PROPERTIES OUTPUT_NAME ../../droidlet/lowlevel/minecraft/mc_agent)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLASG} -Wno-sign-compare -Wno-deprecated-copy")
 
 add_custom_target(run
