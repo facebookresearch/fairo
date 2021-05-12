@@ -9,7 +9,7 @@ from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.interpreter.tests.all_test_commands import *
-from fake_agent import MockOpt
+from .fake_agent import MockOpt
 
 
 class AttributeDict(dict):

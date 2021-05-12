@@ -5,10 +5,10 @@ import unittest
 import numpy as np
 
 from copy import deepcopy
-from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
-from fake_mobs import LoopMob, make_mob_opts
 from droidlet.base_util import TICKS_PER_SEC
+from .base_craftassist_test_case import BaseCraftassistTestCase
+from .fake_mobs import LoopMob, make_mob_opts
 
 
 def add_sequence_mob(test, mobname, sequence):

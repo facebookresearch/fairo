@@ -22,7 +22,7 @@ from craftassist.agent import mc_memory
 from craftassist.agent import rotation
 
 
-import dashboard
+import droidlet.dashboard
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -44,7 +44,7 @@ from craftassist.agent.dialogue_objects import (
 )
 from craftassist.agent.low_level_perception import LowLevelMCPerception
 from craftassist.agent.mc_agent import Agent as MCAgent
-from event import sio
+from droidlet.event import sio
 from craftassist.agent.mc_util import cluster_areas, MCTime
 from craftassist.agent.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 

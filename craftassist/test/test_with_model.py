@@ -7,8 +7,8 @@ import unittest
 
 import craftassist.agent.shapes as shapes
 from craftassist.agent.mc_util import euclid_dist
-from base_craftassist_test_case import BaseCraftassistTestCase
-from fake_agent import MockOpt
+from .base_craftassist_test_case import BaseCraftassistTestCase
+from .fake_agent import MockOpt
 
 
 TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../agent/models/semantic_parser/")
