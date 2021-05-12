@@ -14,7 +14,7 @@ def fetch_safety_words():
         s3 = boto3.client('s3')
         response = s3.head_bucket(Bucket='droidlet-internal')
         if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
-            print("Authenticated user, fetching safety words list.")
+            print("Authenticated user via AWS CLI configs, fetching safety words list.")
             path_to_root = os.path.realpath(sys.argv[1])
             return subprocess.run(
                 "aws s3 cp s3://droidlet-internal/safety.txt {}".format(path_to_root), shell=True
@@ -28,11 +28,13 @@ def fetch_safety_words():
             aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
         )
-        return s3.download_file(
+        resource_file = s3.download_file(
             'droidlet-internal',
             'safety.txt',
             os.path.realpath(sys.argv[1])
         )
+        print("Authenticated user via AWS access keys, fetching safety words list.")
+        return resource_file
     except Exception as e:
         print(e)
 
