@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import os
 from typing import Dict
-from droidlet.dialog.ttad.ttad_transformer_model import TTADBertModel as Model
+from droidlet.dialog.ttad.ttad_transformer_model.query_model import TTADBertModel as Model
 
 
 class DroidletSemanticParsingModel:
