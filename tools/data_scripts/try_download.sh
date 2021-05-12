@@ -24,7 +24,7 @@ else
     AGENT=$1
 fi
 
-AGENT_PATH="${ROOTDIR}/${AGENT}/agent/"
+AGENT_PATH="${ROOTDIR}/agents/${AGENT}/"
 echo "agent path ${AGENT_PATH}"
 
 # in case directories don't even exist, create them

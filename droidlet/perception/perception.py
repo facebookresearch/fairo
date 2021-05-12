@@ -1,6 +1,9 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import time
+import queue
+
 from .handlers import (
     InputHandler,
     DetectionHandler,
@@ -11,14 +14,11 @@ from .handlers import (
     LaserPointerHandler,
     ObjectDeduplicationHandler,
 )
-import time
-from locobot.agent.objects import AttributeDict
-from dlevent import sio
+from droidlet.interpreter.objects import AttributeDict
+from droidlet.dlevent import sio
 
 from torch import multiprocessing as mp
-
 multiprocessing = mp.get_context("spawn")
-import queue
 
 
 class SlowPerception:

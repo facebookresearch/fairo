@@ -19,7 +19,7 @@ from base_agent.memory_nodes import MemoryNode, ReferenceObjectNode
 from base_agent.string_lists import ACTION_ING_MAPPING
 from base_agent.ttad.generation_dialogues.generate_utils import prepend_a_an
 from copy import deepcopy
-from locobot.agent.tasks import Point
+from droidlet.interpreter.tasks import Point
 
 
 class LocoGetMemoryHandler(GetMemoryHandler):

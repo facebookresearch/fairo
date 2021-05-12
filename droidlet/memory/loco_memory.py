@@ -5,10 +5,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import logging
 from typing import List
-from locobot.agent.dance import add_default_dances
-from locobot.agent.loco_memory_nodes import *
+
 from base_agent.memory_nodes import PlayerNode
 from base_agent.sql_memory import AgentMemory
+
+from droidlet.interpreter.dance import add_default_dances
+from droidlet.memory.loco_memory_nodes import *
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 SCHEMAS = [
