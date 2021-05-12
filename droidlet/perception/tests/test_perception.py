@@ -18,8 +18,8 @@ from droidlet.perception import (
     RGBDepth,
     Human,
 )
-from droidlet.memory.loco_memory import LocoAgentMemory
-from droidlet.memory.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
+from droidlet.memory.robot.loco_memory import LocoAgentMemory
+from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 import cv2
 import torch

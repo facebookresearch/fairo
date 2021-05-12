@@ -2,7 +2,7 @@ import numpy as np
 import random
 from collections import namedtuple
 
-from base_agent.base_util import Pos, Look
+from droidlet.base_util import Pos, Look
 
 Bot = namedtuple("Bot", "entityId, name, pos, look")
 import matplotlib

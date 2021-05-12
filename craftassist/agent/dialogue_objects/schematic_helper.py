@@ -8,11 +8,11 @@ import numpy as np
 from typing import cast, List, Tuple, Union, Optional
 
 # TODO with subinterpret
-from base_agent.dialogue_objects import get_repeat_num
+from droidlet.dialog.dialogue_objects import get_repeat_num
 from .. import block_data
 from .. import size_words
 from .block_helpers import get_block_type
-from base_agent.base_util import ErrorWithResponse, number_from_span
+from droidlet.base_util import ErrorWithResponse, number_from_span
 from ..mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num

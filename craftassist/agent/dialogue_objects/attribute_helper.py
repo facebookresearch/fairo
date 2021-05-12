@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from base_agent.dialogue_objects import AttributeInterpreter
+from droidlet.dialog.dialogue_objects import AttributeInterpreter
 from ..mc_attributes import VoxelCounter
 
 

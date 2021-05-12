@@ -1,4 +1,4 @@
-from base_agent.memory_nodes import ReferenceObjectNode
+from droidlet.memory.memory_nodes import ReferenceObjectNode
 
 
 class BotNode(ReferenceObjectNode):
