@@ -7,7 +7,7 @@ import unittest
 import logging
 from timeit import Timer
 from unittest.mock import MagicMock, Mock
-from locobot.agent.perception import (
+from droidlet.perception import (
     InputHandler,
     DetectionHandler,
     FaceRecognitionHandler,
@@ -18,13 +18,13 @@ from locobot.agent.perception import (
     RGBDepth,
     Human,
 )
-from locobot.agent.loco_memory import LocoAgentMemory
-from locobot.agent.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
-from locobot.agent.locobot_mover import LoCoBotMover
+from droidlet.memory.loco_memory import LocoAgentMemory
+from droidlet.memory.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
+from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 import cv2
 import torch
 from PIL import Image
-from locobot.test.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+from .utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -34,17 +34,19 @@ if os.getenv("LOCOBOT_IP"):
 
 PERCEPTION_MODELS_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "../agent/models/perception",
+    "../../../agents/locobot/models/perception",
 )
 
 OFFICE_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "test_assets/perception_handlers",
+    "test_assets",
+    "perception_handlers",
     "office_chair.jpg",
 )
 GROUP_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "test_assets/perception_handlers",
+    "test_assets",
+    "perception_handlers",
     "obama_trump.jpg",
 )
 FACES_IDS_DIR = os.path.join(os.path.dirname(__file__), "test_assets/perception_handlers/faces")
