@@ -2,17 +2,18 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
-import numpy as np
+import time
 import logging
+import numpy as np
 
 from base_agent.task import Task, BaseMovementTask
 from base_agent.memory_nodes import TaskNode
 from base_agent.task import Task
-from locobot.agent.objects import DanceMovement
-from locobot.agent.rotation import yaw_pitch
 
-import time
-from locobot.agent.locobot_mover_utils import (
+from droidlet.interpreter.objects import DanceMovement
+from droidlet.perception.rotation import yaw_pitch
+
+from droidlet.lowlevel.locobot_mover_utils import (
     get_move_target_for_point,
     CAMERA_HEIGHT,
     ARM_HEIGHT,

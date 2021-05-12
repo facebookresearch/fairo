@@ -3,19 +3,19 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
-import numpy as np
 import sys
 import os
 import open3d as o3d
+from abc import abstractmethod
+import numpy as np
+from PIL import Image
 
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 import cv2
-from abc import abstractmethod
-from PIL import Image
-from locobot.agent.perception import get_color_tag
-from locobot.agent.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
 
+from ..perception_helpers import get_color_tag
+from droidlet.lowlevel.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
 
 class AbstractHandler:
     """Interface for implementing perception handlers.

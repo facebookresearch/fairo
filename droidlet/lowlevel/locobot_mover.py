@@ -1,28 +1,29 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import Pyro4
-import logging
-import numpy as np
-
 import os
 import sys
+import math
+import copy
+import time
+import logging
+from collections.abc import Iterable
+
+import Pyro4
+import numpy as np
+
 
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 
 import cv2
-import os
-import math
-import copy
-import time
+from prettytable import PrettyTable
+
 from base_agent.base_util import ErrorWithResponse
 from base_agent.argument_parser import ArgumentParser
-from prettytable import PrettyTable
-from locobot.agent.perception import RGBDepth
-from locobot.agent.objects import Marker, Pos
-from collections.abc import Iterable
-from locobot.agent.locobot_mover_utils import (
+from droidlet.perception import RGBDepth
+from droidlet.interpreter.objects import Marker, Pos
+from droidlet.lowlevel.locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
     MAX_PAN_RAD,
