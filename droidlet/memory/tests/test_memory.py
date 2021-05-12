@@ -4,11 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 import numpy as np
 from numpy.testing import assert_allclose
-from locobot.agent.loco_memory import LocoAgentMemory
-from locobot.agent.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
-from locobot.test.utils import get_fake_detection, get_fake_humanpose, get_fake_bbox
-from locobot.agent.locobot_mover_utils import xyz_canonical_coords_to_pyrobot_coords
-from locobot.agent.perception import Detection, RGBDepth
+from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_canonical_coords_to_pyrobot_coords
+from droidlet.perception import Detection, RGBDepth
+from droidlet.memory.loco_memory import LocoAgentMemory
+from droidlet.memory.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
+from droidlet.perception.tests.utils import get_fake_detection, get_fake_humanpose
+
 
 class MemoryTests(unittest.TestCase):
     def __init__(self, *args, **kwargs):

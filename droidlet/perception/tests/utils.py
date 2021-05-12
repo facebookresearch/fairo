@@ -6,7 +6,7 @@ import numpy as np
 from base_agent.dialogue_manager import DialogueManager
 from base_agent.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from base_agent.loco_mc_agent import LocoMCAgent
-from locobot.agent.perception import Detection, RGBDepth, Human, HumanKeypoints
+from droidlet.perception import Detection, RGBDepth, Human, HumanKeypoints
 
 
 class FakeAgent(LocoMCAgent):

@@ -11,9 +11,9 @@ from base_agent.memory_nodes import TaskNode
 from base_agent.task import Task
 
 from droidlet.interpreter.objects import DanceMovement
-from droidlet.perception.rotation import yaw_pitch
+from droidlet.lowlevel.locobot.rotation import yaw_pitch
 
-from droidlet.lowlevel.locobot_mover_utils import (
+from droidlet.lowlevel.locobot.locobot_mover_utils import (
     get_move_target_for_point,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
