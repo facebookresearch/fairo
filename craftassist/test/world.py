@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 from typing import Sequence, Dict
 from droidlet.lowlevel.minecraft.mc_util import Block, XYZ, IDM
-from droidlet.perception import look_vec
+from droidlet.perception.craftassist.rotation import look_vec
 from .fake_mobs import make_mob_opts, MOB_META, SimpleMob
 
 FLAT_GROUND_DEPTH = 8

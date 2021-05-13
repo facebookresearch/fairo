@@ -13,6 +13,7 @@ __pycache__
 *.pyc
 *.DS_Store
 *.log
+*.so
 *.sql
 !*memory_schema.sql
 *~
