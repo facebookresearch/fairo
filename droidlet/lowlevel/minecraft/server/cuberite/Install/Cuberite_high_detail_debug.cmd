@@ -1,1 +1,0 @@
-Cuberite --crash-dump-full
