@@ -8,13 +8,15 @@ ARG current_branch
 
 # Clone/make repo
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
+ENV AWS_ACCESS_KEY_ID $(cat /AWS_S3_ACCESS_KEY_ID.txt)
+ENV AWS_SECRET_ACCESS_KEY $(cat /AWS_S3_SECRET_ACCESS_KEY.txt)
+
 RUN git clone --recursive git@github.com:facebookresearch/droidlet.git
 WORKDIR droidlet
 RUN git checkout ${current_branch}
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -U setuptools
-RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt)
 RUN tools/data_scripts/try_download.sh craftassist
 
 RUN mkdir -p /cache/.ccache
