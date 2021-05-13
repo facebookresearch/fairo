@@ -20,7 +20,7 @@ import droidlet.memory.robot.loco_memory as loco_memory
 from .core import AbstractHandler, WorldObject, RGBDepth
 from ..detectron.detector.utils import get_predictor
 from ..detectron.detector.visualizer import LocobotVisualizer
-from ..perception_helpers import get_color_tag
+from droidlet.perception.robot.perception_helpers import get_color_tag
 
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"

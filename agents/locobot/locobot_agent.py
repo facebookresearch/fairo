@@ -28,7 +28,7 @@ from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.perception import Perception, SelfPerception
+from droidlet.perception.robot import Perception, SelfPerception
 from droidlet.interpreter.robot import default_behaviors
 
 from droidlet.dialog.robot.dialogue_objects import (

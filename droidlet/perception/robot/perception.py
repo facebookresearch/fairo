@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import time
 import queue
 
-from .handlers import (
+from droidlet.perception.robot.handlers import (
     InputHandler,
     DetectionHandler,
     FaceRecognitionHandler,

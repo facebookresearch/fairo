@@ -20,9 +20,9 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
     CAMERA_HEIGHT,
     MAX_PAN_RAD,
 )
-from droidlet.perception import SelfPerception
+from droidlet.perception.robot import SelfPerception
 import droidlet.lowlevel.locobot.rotation as rotation
-from droidlet.perception.tests.utils import get_fake_detection
+from droidlet.perception.robot.tests.utils import get_fake_detection
 
 # these should go in utils
 from droidlet.interpreter.robot.objects import Pos
@@ -30,7 +30,6 @@ from droidlet.interpreter.robot.objects import Pos
 # marker creation should be somewhwere else....
 from droidlet.dialog.robot.dialogue_objects import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
 
-# from locobot.perception import Detection
 
 MV_SPEED = 0.2
 ROT_SPEED = 1.0  # rad/tick
