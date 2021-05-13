@@ -1,0 +1,16 @@
+[submodule "client/pybind11"]
+	path = droidlet/lowlevel/minecraft/client/pybind11
+	url = https://github.com/pybind/pybind11.git
+	branch = master
+[submodule "client/lib/rapidjson"]
+	path = droidlet/lowlevel/minecraft/client/lib/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "cuberite"]
+	path = droidlet/lowlevel/minecraft/server/cuberite
+	url = https://github.com/cuberite/cuberite.git
+[submodule "cuberite_plugins/lib/lua-struct"]
+	path = droidlet/lowlevel/minecraft/server/cuberite_plugins/lib/lua-struct
+	url = https://github.com/iryont/lua-struct.git
+[submodule "client/lib/argparse"]
+	path = droidlet/lowlevel/minecraft/logging/lib/argparse
+	url = https://github.com/jonathathan/argparse.git
