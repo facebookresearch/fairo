@@ -33,6 +33,11 @@ jobs:
             echo ${AWS_S3_ACCESS_KEY_ID} > tools/docker/AWS_S3_ACCESS_KEY_ID.txt
             echo ${AWS_S3_SECRET_ACCESS_KEY} > tools/docker/AWS_S3_SECRET_ACCESS_KEY.txt
 
+      - run:
+          name: Python style checks (black and awscli)
+          command: |
+            pip3 install boto3
+
       - setup_remote_docker
       - run:
           name: Build docker containers
