@@ -14,11 +14,11 @@ RUN git checkout ${current_branch}
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -U setuptools
-
+RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt)
 RUN tools/data_scripts/try_download.sh craftassist
 
 RUN mkdir -p /cache/.ccache
-RUN (AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && tar -xvf /client_ccache.tar.gz -C /cache) || echo "Pulling ccache from S3"
+RUN (curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && tar -xvf /client_ccache.tar.gz -C /cache) || echo "Pulling ccache from S3"
 RUN export CCACHE_DIR="/cache/.ccache"
 RUN git submodule update --init --recursive
 RUN cd craftassist && make && cd ..
