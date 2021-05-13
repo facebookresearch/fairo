@@ -31,7 +31,7 @@ jobs:
           name: Base Agent Python unit tests
           command: |
               mkdir shared
-              docker run --name base-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd /shared && pytest --cov-report=xml:$SHARED_PATH/test_base.xml --cov=$COV_RELATIVE droidlet/memory/tests/ --disable-pytest-warnings"
+              docker run --name base-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && cd /shared && pytest --cov-report=xml:$SHARED_PATH/test_base.xml --cov=$COV_RELATIVE /droidlet/droidlet/memory/tests/ --disable-pytest-warnings"
               docker cp base-tests:/shared shared
               pip3 install codecov
               CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
