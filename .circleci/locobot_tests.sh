@@ -59,7 +59,7 @@ sleep 30
 deactivate
 source activate /root/miniconda3/envs/droidlet_env
 
-pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE droidlet/perception/tests/test_perception.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=$COV_RELATIVE droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
 
 kill -9 $BGPID
 pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE droidlet/memory/robot/tests/test_memory.py --disable-pytest-warnings

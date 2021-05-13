@@ -50,6 +50,6 @@ if [ $AGENT == "locobot" ]; then
     curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models.tar.gz -o locobot_models.tar.gz
     tar -xzvf locobot_models.tar.gz -C agents/${AGENT}/models
 
-    mkdir -p droidlet/perception/tests/test_assets/
-    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz | tar -xzv -C droidlet/perception/tests/test_assets/
+    mkdir -p droidlet/perception/robot/tests/test_assets/
+    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz | tar -xzv -C droidlet/perception/robot/tests/test_assets/
 fi
