@@ -25,10 +25,11 @@ def fetch_safety_words():
     # If awscli is not setup, eg. in one time use containers, read access tokens from environment   
     try:
         s3 = boto3.client('s3',
-            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+            aws_access_key_id=os.getenv("AWS_S3_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_S3_SECRET_ACCESS_KEY")
         )
-        return s3.download_file(
+        print("Set up boto3 s3 client, attempting to download internal resources.")
+        s3.download_file(
             'droidlet-internal',
             'safety.txt',
             os.path.realpath(sys.argv[1])
