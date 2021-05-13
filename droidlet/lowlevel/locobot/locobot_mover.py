@@ -21,7 +21,7 @@ from prettytable import PrettyTable
 
 from droidlet.base_util import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
-from droidlet.perception import RGBDepth
+from droidlet.perception.robot import RGBDepth
 from droidlet.interpreter.robot.objects import Marker, Pos
 from .locobot_mover_utils import (
     get_camera_angles,
