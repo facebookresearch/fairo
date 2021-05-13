@@ -1,5 +1,5 @@
 craftassist/agent/*.so
-craftassist/bin
+droidlet/lowlevel/minecraft/bin
 craftassist/dashboard_data.db
 craftassist/nsp_outputs.csv
 craftassist/test/dashboard_data.db
