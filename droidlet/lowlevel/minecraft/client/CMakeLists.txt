@@ -23,7 +23,7 @@ file(GLOB SOURCES "src/*.cpp")
 add_subdirectory(pybind11)
 pybind11_add_module(mc_agent ${SOURCES})
 target_link_libraries(mc_agent ${LINKS})
-set_target_properties(mc_agent PROPERTIES OUTPUT_NAME ../../droidlet/lowlevel/minecraft/mc_agent)
+set_target_properties(mc_agent PROPERTIES OUTPUT_NAME mc_agent)
 
 add_custom_target(run
 	COMMAND python agent/mc_agent.py
