@@ -1,9 +1,0 @@
-name: Cuberite
-image: ubuntu-15-04-x64
-config:
-  #cloud-config
-  packages:
-    - git
-  runcmd:
-    - cd /tmp && git clone https://github.com/cuberite/cuberite-ocean.git
-    - cd /tmp/cuberite-ocean && ./initialinstall.sh
