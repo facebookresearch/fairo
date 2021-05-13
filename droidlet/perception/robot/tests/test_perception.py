@@ -7,7 +7,7 @@ import unittest
 import logging
 from timeit import Timer
 from unittest.mock import MagicMock, Mock
-from droidlet.perception import (
+from droidlet.perception.robot import (
     InputHandler,
     DetectionHandler,
     FaceRecognitionHandler,
@@ -34,7 +34,7 @@ if os.getenv("LOCOBOT_IP"):
 
 PERCEPTION_MODELS_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "../../../agents/locobot/models/perception",
+    "../../../../agents/locobot/models/perception",
 )
 
 OFFICE_IMG_PATH = os.path.join(
