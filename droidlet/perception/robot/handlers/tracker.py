@@ -56,7 +56,7 @@ class TrackingHandler(AbstractHandler):
             tf = tempfile.NamedTemporaryFile(
                 prefix="norfair_" + str(datetime.now()) + "_locobot_capture_" + "_",
                 suffix=".jpg",
-                dir=".",
+                dir="",
                 delete=False,
             )
             cv2.imwrite(tf.name, img)

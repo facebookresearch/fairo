@@ -46,5 +46,5 @@ nsp_outputs.csv
 agents/locobot/models
 agents/locobot/datasets
 agents/locobot/dashboard_data.db
-droidlet/perception/tests/test_assets/perception_handlers
+droidlet/perception/robot/tests/test_assets/perception_handlers
 .ropeproject

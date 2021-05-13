@@ -22,9 +22,9 @@ from droidlet.dialog.craftassist.dialogue_objects import (
     PutMemoryHandler,
     MCInterpreter,
 )
-from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
-from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
+from droidlet.perception import LowLevelMCPerception
+from droidlet.perception import PerceptionWrapper, check_inside
+from droidlet.perception import look_vec, yaw_pitch
 
 
 # how many internal, non-world-interacting steps agent takes before world steps:
