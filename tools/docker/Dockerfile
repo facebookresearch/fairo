@@ -6,8 +6,8 @@ ARG current_branch
 
 # Clone/make repo
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
-ARG AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-ARG AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
 
 RUN git clone --recursive git@github.com:facebookresearch/droidlet.git
 WORKDIR droidlet
