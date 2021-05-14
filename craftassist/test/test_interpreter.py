@@ -27,7 +27,7 @@ def add_two_cubes(test):
     test.set_looking_at(test.cube_right[0][0])
 
 
-class ATwoCubesInterpreterTest(BaseCraftassistTestCase):
+class TwoCubesInterpreterTest(BaseCraftassistTestCase):
     """A basic general-purpose test suite in a world which begins with two cubes.
 
     N.B. by default, the agent is looking at cube_right
