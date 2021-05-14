@@ -103,11 +103,6 @@ class TwoCubesInterpreterTest(BaseCraftassistTestCase):
         self.assertGreater(len(changes), 0)
         self.assertEqual(set(changes.values()), set([(41, 0)]))
 
-    def test_fill_all_holes_no_holes(self):
-        d = FILL_COMMANDS["fill all holes where I am looking"]
-        heuristic_perception.get_all_nearby_holes = Mock(return_value=[])  # no holes
-        self.handle_logical_form(d)
-
     def test_go_to_the_tree(self):
         d = MOVE_COMMANDS["go to the tree"]
         try:
@@ -348,6 +343,11 @@ class FillTest(BaseCraftassistTestCase):
 
         # Make sure hole is filled with gold
         self.assertEqual(set(self.get_idm_at_locs(self.hole_poss).values()), set([(41, 0)]))
+
+    def test_fill_all_holes_no_holes(self):
+        self.set_blocks([(pos, (3, 0)) for pos in self.hole_poss])
+        d = FILL_COMMANDS["fill all holes where I am looking"]
+        self.handle_logical_form(d)
 
 
 if __name__ == "__main__":
