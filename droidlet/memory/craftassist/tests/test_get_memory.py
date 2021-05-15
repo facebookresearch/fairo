@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 import droidlet.perception.craftassist.shapes as shapes
-from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
 
 

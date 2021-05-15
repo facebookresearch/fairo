@@ -8,8 +8,8 @@ import droidlet.perception.craftassist.shapes as shapes
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 from droidlet.interpreter.tests.all_test_commands import *
-from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
-from craftassist.test.utils import Mob, Pos, Look
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.utils import Mob, Pos, Look
 
 
 class ObjectsTest(BaseCraftassistTestCase):
