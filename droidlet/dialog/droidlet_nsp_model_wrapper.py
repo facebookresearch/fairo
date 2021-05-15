@@ -25,7 +25,7 @@ from droidlet.dialog.dialogue_objects import (
 from droidlet.base_util import hash_user
 
 # TODO: move JSONValidator into base
-from craftassist.test.validate_json import JSONValidator
+from droidlet.dialog.craftassist.tests.validate_json import JSONValidator
 from droidlet.dialog.dialogue_model import DroidletSemanticParsingModel
 from droidlet.event import sio
 from droidlet.dialog.nsp_logger import NSPLogger
