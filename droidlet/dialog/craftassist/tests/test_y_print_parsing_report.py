@@ -8,7 +8,7 @@ import json
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
-from .fake_agent import MockOpt
+from craftassist.test.fake_agent import MockOpt
 from prettytable import PrettyTable
 
 
@@ -828,9 +828,9 @@ common_functional_commands = {
     },
 }
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../agent/models/semantic_parser/")
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/annotated_data/")
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/")
+TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/models/semantic_parser/")
+TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/annotated_data/")
+GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/ground_truth/")
 
 
 def remove_key_text_span(dictionary):
