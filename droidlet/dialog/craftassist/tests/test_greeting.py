@@ -4,10 +4,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 import os
-from .fake_agent import MockOpt
-from .base_craftassist_test_case import BaseCraftassistTestCase
+from craftassist.test.fake_agent import MockOpt
+from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
 
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/ground_truth/")
+GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/ground_truth/")
 
 """This class tests common greetings. Tests check whether the command executed successfully 
 without world state changes; for correctness inspect chat dialogues in logging.

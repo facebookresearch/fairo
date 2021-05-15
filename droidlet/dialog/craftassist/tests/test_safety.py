@@ -5,11 +5,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
-from .base_craftassist_test_case import BaseCraftassistTestCase
-from .fake_agent import MockOpt
+from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
+from craftassist.test.fake_agent import MockOpt
 
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/annotated_data/")
-TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../agent/models/semantic_parser/")
+TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/annotated_data/")
+TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/models/semantic_parser/")
 
 """This class tests safety checks using a preset list of blacklisted words.
 """
