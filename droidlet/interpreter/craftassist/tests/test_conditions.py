@@ -7,8 +7,8 @@ import numpy as np
 from copy import deepcopy
 from droidlet.interpreter.tests.all_test_commands import *
 from droidlet.base_util import TICKS_PER_SEC
-from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
-from craftassist.test.fake_mobs import LoopMob, make_mob_opts
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.fake_mobs import LoopMob, make_mob_opts
 
 
 def add_sequence_mob(test, mobname, sequence):

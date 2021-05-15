@@ -7,8 +7,8 @@ import unittest
 
 import droidlet.perception.craftassist.shapes as shapes
 from droidlet.lowlevel.minecraft.mc_util import euclid_dist
-from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
-from craftassist.test.fake_agent import MockOpt
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.fake_agent import MockOpt
 
 
 TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/models/semantic_parser/")

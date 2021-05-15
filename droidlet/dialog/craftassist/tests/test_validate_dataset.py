@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
-from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.dialog.craftassist.tests.validate_json import JSONValidator
 
 FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/full_data/")
