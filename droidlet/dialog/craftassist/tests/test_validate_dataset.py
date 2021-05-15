@@ -5,11 +5,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
-from .base_craftassist_test_case import BaseCraftassistTestCase
-from .validate_json import JSONValidator
+from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
+from droidlet.dialog.craftassist.tests.validate_json import JSONValidator
 
-FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../agent/datasets/full_data/")
-SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../droidlet/memory/documents/json_schema/")
+FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/full_data/")
+SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../../memory/documents/json_schema/")
 
 
 class DataValidationTest(BaseCraftassistTestCase):
