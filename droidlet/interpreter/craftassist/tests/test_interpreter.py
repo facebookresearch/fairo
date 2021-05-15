@@ -11,7 +11,7 @@ from droidlet.dialog.dialogue_objects import SPEAKERLOOK
 from droidlet.base_util import NextDialogueStep
 from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
-from craftassist.test.base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 
 
 def add_two_cubes(test):
