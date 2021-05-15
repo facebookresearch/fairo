@@ -6,7 +6,7 @@ import re
 import unittest
 from copy import deepcopy
 from droidlet.dialog.dialogue_objects import process_spans_and_remove_fixed_value
-from craftassist.test.test_y_print_parsing_report import common_functional_commands, compare_full_dictionaries
+from droidlet.dialog.craftassist.tests.test_y_print_parsing_report import common_functional_commands, compare_full_dictionaries
 
 logical_form_before_processing = {
     "turn right": common_functional_commands["turn right"],
