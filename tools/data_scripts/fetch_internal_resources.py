@@ -28,7 +28,8 @@ def fetch_safety_words():
             aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
             aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
         )
-        return s3.download_file(
+        print("Set up boto3 s3 client, attempting to download internal resources.")
+        s3.download_file(
             'droidlet-internal',
             'safety.txt',
             os.path.realpath(sys.argv[1])
