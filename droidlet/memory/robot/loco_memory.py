@@ -5,11 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import logging
 from typing import List
-
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.sql_memory import AgentMemory
-
-from droidlet.interpreter.robot.dance import add_default_dances
 from droidlet.memory.robot.loco_memory_nodes import *
 
 SCHEMAS = [
@@ -26,12 +23,9 @@ class LocoAgentMemory(AgentMemory):
         super(LocoAgentMemory, self).__init__(
             db_file=db_file, schema_paths=schema_paths, db_log_path=db_log_path, nodelist=NODELIST
         )
-
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}
-
         self.dances = {}
-        add_default_dances(self)
 
     def update(self, agent):
         pass
