@@ -10,7 +10,7 @@ from scipy.optimize import linprog
 from copy import deepcopy
 
 import logging
-from droidlet.lowlevel.minecraft import specs as minecraft_specs
+from droidlet import minecraft_specs
 
 from droidlet.lowlevel.minecraft.mc_util import (
     manhat_dist,
