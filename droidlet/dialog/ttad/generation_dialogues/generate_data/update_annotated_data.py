@@ -59,10 +59,10 @@ if __name__ == "__main__":
     print("*** Applying grammar updates ***")
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--source_path", default="craftassist/agent/datasets/full_data/templated.txt"
+        "--source_path", default="agents/craftassist/datasets/full_data/templated.txt"
     )
     parser.add_argument(
-        "--dest_path", default="craftassist/agent/datasets/full_data/templated.txt"
+        "--dest_path", default="agents/craftassist/datasets/full_data/templated.txt"
     )
     args = parser.parse_args()
     # load the annotated dataset

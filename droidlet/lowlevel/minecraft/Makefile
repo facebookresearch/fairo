@@ -29,7 +29,10 @@ cuberite:
 
 client:
 	cd client && \
-	cmake . && \
+	rm -rf build && \
+	mkdir -p build && \
+        cd build && \
+	cmake .. && \
 	make
 
 log_render:

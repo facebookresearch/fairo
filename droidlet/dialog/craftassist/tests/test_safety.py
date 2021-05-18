@@ -8,8 +8,8 @@ import unittest
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from agents.craftassist.tests.fake_agent import MockOpt
 
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/annotated_data/")
-TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/models/semantic_parser/")
+TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
+TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/")
 
 """This class tests safety checks using a preset list of blacklisted words.
 """

@@ -323,20 +323,20 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_dir",
-        default="craftassist/agent/datasets/annotated_data/",
+        default="agents/craftassist/datasets/annotated_data/",
         type=str,
         help="train/valid/test data",
     )
     parser.add_argument(
         "--output_dir",
-        default="craftassist/agent/models/semantic_parser/ttad_bert_updated/",
+        default="agents/craftassist/models/semantic_parser/ttad_bert_updated/",
         type=str,
         help="Where we save the model",
     )
     parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
     parser.add_argument(
         "--tree_voc_file",
-        default="craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model_tree.json",
+        default="agents/craftassist/models/semantic_parser/ttad_bert_updated/caip_test_model_tree.json",
         type=str,
         help="Pre-computed grammar and output vocabulary",
     )

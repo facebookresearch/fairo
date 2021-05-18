@@ -14,3 +14,7 @@ exclude = '''
   | python/craftassist/ttad/generation_dialogues
 )/
 '''
+
+[tool.pytest.ini_options]
+addopts = "--ignore 'droidlet/lowlevel/minecraft/server' --ignore 'droidlet/lowlevel/minecraft/client'"
+
