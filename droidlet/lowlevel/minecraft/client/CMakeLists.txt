@@ -2,8 +2,8 @@ cmake_minimum_required (VERSION 3.0)
 project (minecraft_client)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules)
-include(${CMAKE_SOURCE_DIR}/cmake/Modules/FindGlog.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/Modules/FindGFlags.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/Modules/Findglog.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/Modules/Findgflags.cmake)
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
