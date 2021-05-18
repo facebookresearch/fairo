@@ -6,7 +6,7 @@ import numpy as np
 
 from copy import deepcopy
 from droidlet.interpreter.tests.all_test_commands import *
-from droidlet.base_util import TICKS_PER_SEC
+from droidlet.shared_data_struct.base_util import TICKS_PER_SEC
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from agents.craftassist.tests.fake_mobs import LoopMob, make_mob_opts
 

@@ -10,10 +10,10 @@ import os
 import numpy as np
 
 from agents.core import BaseAgent
-from droidlet.base_util import ErrorWithResponse
+from droidlet.shared_data_struct.base_util import ErrorWithResponse
 from droidlet.event import sio
 
-from droidlet.base_util import hash_user
+from droidlet.shared_data_struct.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 
 random.seed(0)

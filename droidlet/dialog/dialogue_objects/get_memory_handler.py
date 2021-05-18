@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Dict, Tuple, Any, Optional, Sequence
 
 from . import DialogueObject, convert_location_to_selector
-from droidlet.base_util import ErrorWithResponse
+from droidlet.shared_data_struct.base_util import ErrorWithResponse
 from droidlet.memory.memory_nodes import MemoryNode
 from droidlet.interpreter.string_lists import ACTION_ING_MAPPING
 from copy import deepcopy

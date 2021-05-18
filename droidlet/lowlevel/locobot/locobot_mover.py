@@ -19,7 +19,7 @@ if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
 import cv2
 from prettytable import PrettyTable
 
-from droidlet.base_util import ErrorWithResponse
+from droidlet.shared_data_struct.base_util import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.perception.robot import RGBDepth
 from droidlet.interpreter.robot.objects import Marker, Pos

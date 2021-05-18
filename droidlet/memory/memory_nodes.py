@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import uuid
 import ast
 from typing import Optional, List, Dict, cast
-from droidlet.base_util import XYZ, POINT_AT_TARGET, to_player_struct
+from droidlet.shared_data_struct.base_util import XYZ, POINT_AT_TARGET, to_player_struct
 
 
 class MemoryNode:

@@ -1,5 +1,5 @@
-from .interpreter.condition import AlwaysCondition, NeverCondition, NotCondition, TaskStatusCondition
-from .memory.memory_nodes import TaskNode, TripleNode
+from droidlet.interpreter.condition import AlwaysCondition, NeverCondition, NotCondition, TaskStatusCondition
+from droidlet.memory.memory_nodes import TaskNode, TripleNode
 
 
 class Task(object):
