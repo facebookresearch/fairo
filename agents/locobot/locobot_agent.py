@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from droidlet.base_util import to_player_struct, Pos, Look, Player, hash_user
+from droidlet.shared_data_struct.base_util import to_player_struct, Pos, Look, Player, hash_user
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
