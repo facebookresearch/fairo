@@ -31,7 +31,7 @@ Note: Assumed data storage format
 ```
 To run the label propogation, intall [ray](https://pypi.org/project/ray/)
 ```
-python label_propogation.py --scene_path /checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data --freq 60 --propogation_step 30 --out_dir pred_label_using_traj 
+python label_propagation.py --scene_path /checkpoint/apratik/ActiveVision/active_vision/replica_random_exploration_data --freq 60 --propogation_step 5 --out_dir pred_label_using_traj_test 
 ```
 
 ## Create COCO dataset 

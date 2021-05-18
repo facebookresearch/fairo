@@ -302,7 +302,8 @@ if __name__ == "__main__":
     start = time.time()
     # load the file for train images to be used for label propogation
     scene_stored_path = args.scene_path
-    for scene in os.listdir(scene_stored_path):
+    for scene in ['apartment_0', 'frl_apartment_4']:
+    # for scene in os.listdir(scene_stored_path):
         root_path = os.path.join(scene_stored_path, scene)
         out_dir = os.path.join(root_path, args.out_dir)
         ray.shutdown()
