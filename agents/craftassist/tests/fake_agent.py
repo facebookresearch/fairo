@@ -9,11 +9,11 @@ from typing import List
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from .utils import Look, Pos, Item, Player
 from agents.loco_mc_agent import LocoMCAgent
-from droidlet.base_util import TICKS_PER_SEC
+from droidlet.shared_data_struct.base_util import TICKS_PER_SEC
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from droidlet.base_util import Time
+from droidlet.shared_data_struct.base_util import Time
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.dialog.craftassist.dialogue_objects import (

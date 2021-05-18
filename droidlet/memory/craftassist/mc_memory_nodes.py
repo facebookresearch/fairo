@@ -10,7 +10,7 @@ from collections import Counter
 from typing import cast, List, Sequence, Dict
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-from droidlet import minecraft_specs
+from droidlet.shared_data_struct import craftassist_specs as minecraft_specs
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 
 

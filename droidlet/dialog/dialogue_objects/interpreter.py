@@ -13,7 +13,7 @@ from .reference_object_helpers import ReferenceObjectInterpreter, interpret_refe
 from .location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
 from .filter_helper import FilterInterpreter
 
-from droidlet.base_util import ErrorWithResponse, NextDialogueStep
+from droidlet.shared_data_struct.base_util import ErrorWithResponse, NextDialogueStep
 from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
 from droidlet.memory.memory_nodes import TripleNode, TaskNode
 from droidlet.interpreter.condition import NTimesCondition

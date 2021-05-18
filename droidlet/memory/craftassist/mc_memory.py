@@ -6,15 +6,13 @@ import random
 import sys
 from typing import Optional, List
 
-from droidlet import minecraft_specs
+from ...shared_data_struct import craftassist_specs as minecraft_specs
 from ...interpreter.craftassist import dance
 
 PERCEPTION_RANGE = 64
 
-
-from droidlet.base_util import XYZ, Block, npy_to_blocks_list
-
 from droidlet.memory.sql_memory import AgentMemory
+from droidlet.shared_data_struct.base_util import XYZ, Block, npy_to_blocks_list, SPAWN_OBJECTS
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -39,8 +37,6 @@ from .mc_memory_nodes import (  # noqa
     SchematicNode,
     NODELIST,
 )
-
-from droidlet.interpreter.craftassist.word_maps import SPAWN_OBJECTS
 
 
 # TODO: ship these schemas via setup.py and fix these directory references
