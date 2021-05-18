@@ -9,7 +9,7 @@ from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistT
 from droidlet.dialog.craftassist.tests.validate_json import JSONValidator
 
 FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/full_data/")
-SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../../memory/documents/json_schema/")
+SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../../documents/json_schema/")
 
 
 class DataValidationTest(BaseCraftassistTestCase):
