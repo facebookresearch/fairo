@@ -7,7 +7,7 @@ import os
 from agents.craftassist.tests.fake_agent import MockOpt
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/ground_truth/")
+GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/")
 
 """This class tests common greetings. Tests check whether the command executed successfully 
 without world state changes; for correctness inspect chat dialogues in logging.

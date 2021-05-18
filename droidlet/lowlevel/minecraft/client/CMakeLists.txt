@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 3.0)
 project (minecraft_client)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/Modules)
+include(${CMAKE_SOURCE_DIR}/cmake/Modules/FindGlog.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/Modules/FindGFlags.cmake)
 
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -23,10 +25,12 @@ include_directories(${GFLAGS_INCLUDE_DIR})
 
 file(GLOB SOURCES "src/*.cpp")
 
+MESSAGE(STATUS "LIBS: ${GLOG_LIBRARY} ${GFLAGS_LIBRARY} ${LIBZ_LIBRARY}")
+
 add_subdirectory(pybind11)
 pybind11_add_module(mc_agent ${SOURCES})
 target_link_libraries(mc_agent PUBLIC ${GFLAGS_LIBRARY} ${GLOG_LIBRARY} ${LIBZ_LIBRARY})
-set_target_properties(mc_agent PROPERTIES OUTPUT_NAME ../mc_agent)
+set_target_properties(mc_agent PROPERTIES OUTPUT_NAME ${CMAKE_CURRENT_LIST_DIR}/../mc_agent)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare -Wno-deprecated-copy")
 
 add_custom_target(run
