@@ -21,6 +21,7 @@ IDM = Tuple[int, int]
 Block = Tuple[XYZ, IDM]
 Hole = Tuple[List[XYZ], IDM]
 T = TypeVar("T")  # generic type
+
 #####FIXME!!!!!!  make all these dicts all through code
 Pos = namedtuple("pos", ["x", "y", "z"])
 Look = namedtuple("look", "yaw, pitch")
@@ -32,32 +33,9 @@ TICKS_PER_HOUR = 60 * TICKS_PER_MINUTE
 TICKS_PER_DAY = 24 * TICKS_PER_HOUR
 
 
-class Time:
-    def __init__(self):
-        self.init_time_raw = time.time()
-
-    # converts from seconds to internal tick
-    def round_time(self, t):
-        return int(TICKS_PER_SEC * t)
-
-    def get_time(self):
-        return self.round_time(time.time() - self.init_time_raw)
-
-    def get_world_hour(self):
-        # returns a fraction of a day.  0 is sunrise, .5 is sunset, 1.0 is next day
-        return (time.localtime()[3] - 8 + time.localtime()[4] / 60) / 24
-
-    def add_tick(self, ticks=1):
-        time.sleep(ticks / TICKS_PER_SEC)
-
-
 class ErrorWithResponse(Exception):
     def __init__(self, chat):
         self.chat = chat
-
-
-class NextDialogueStep(Exception):
-    pass
 
 
 class TimingWarn(object):
@@ -217,3 +195,7 @@ SPAWN_OBJECTS = {
     "parrot": 105,
     "villager": 120,
 }
+
+
+class NextDialogueStep(Exception):
+    pass

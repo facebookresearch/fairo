@@ -1,6 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from droidlet.shared_data_struct.shared_data_structs import Time
+
 """This file contains utility functions for the CraftAssist agent"""
 import copy
 
