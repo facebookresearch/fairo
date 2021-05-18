@@ -6,7 +6,8 @@ import time
 import logging
 import numpy as np
 
-from droidlet.interpreter.task import Task, BaseMovementTask
+from droidlet.interpreter.task import BaseMovementTask
+from droidlet.shared_data_structs import Task
 from droidlet.memory.memory_nodes import TaskNode
 from droidlet.interpreter.task import Task
 
