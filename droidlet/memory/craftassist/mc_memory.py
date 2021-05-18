@@ -6,7 +6,7 @@ import random
 import sys
 from typing import Optional, List
 
-from ...lowlevel.minecraft import specs as minecraft_specs
+from droidlet import minecraft_specs
 from ...interpreter.craftassist import dance
 
 PERCEPTION_RANGE = 64
