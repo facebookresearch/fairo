@@ -828,9 +828,9 @@ common_functional_commands = {
     },
 }
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/models/semantic_parser/")
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/annotated_data/")
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../craftassist/agent/datasets/ground_truth/")
+TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/")
+TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
+GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/")
 
 
 def remove_key_text_span(dictionary):
