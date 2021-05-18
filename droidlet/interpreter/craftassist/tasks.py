@@ -16,7 +16,8 @@ from droidlet.lowlevel.minecraft.block_data import (
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from droidlet.lowlevel.minecraft.build_utils import blocks_list_to_npy, npy_to_blocks_list
+from droidlet.lowlevel.minecraft.build_utils import blocks_list_to_npy
+from droidlet.base_util import npy_to_blocks_list
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 from droidlet.perception.craftassist import search
 from droidlet.perception.craftassist.heuristic_perception import ground_height
