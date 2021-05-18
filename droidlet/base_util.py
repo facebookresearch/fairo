@@ -155,3 +155,18 @@ def to_player_struct(pos, yaw, pitch, eid, name):
         pos = Pos(pos[0], pos[1], pos[2])
     look = Look(yaw, pitch)
     return Player(eid, name, pos, look)
+
+
+def npy_to_blocks_list(npy, origin=(0, 0, 0)):
+    """Convert a numpy array to block list ((x, y, z), (id, meta))"""
+    blocks = []
+    sy, sz, sx, _ = npy.shape
+    for ry in range(sy):
+        for rz in range(sz):
+            for rx in range(sx):
+                idm = tuple(npy[ry, rz, rx, :])
+                if idm[0] == 0:
+                    continue
+                xyz = tuple(np.array([rx, ry, rz]) + origin)
+                blocks.append((xyz, idm))
+    return blocks
