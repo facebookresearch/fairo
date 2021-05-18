@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 
-from droidlet.shared_data_struct.base_util import NextDialogueStep, ErrorWithResponse
+from droidlet.shared_data_struct.base_util import ErrorWithResponse, NextDialogueStep
 
 
 class DialogueStack(object):
