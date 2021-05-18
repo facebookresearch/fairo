@@ -5,15 +5,9 @@ import os
 import random
 import sys
 from typing import Optional, List
-
 from ...shared_data_struct import craftassist_specs as minecraft_specs
-from ...interpreter.craftassist import dance
-
-PERCEPTION_RANGE = 64
-
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.shared_data_struct.base_util import XYZ, Block, npy_to_blocks_list, SPAWN_OBJECTS
-
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     PlayerNode,
@@ -24,7 +18,6 @@ from droidlet.memory.memory_nodes import (  # noqa
     SetNode,
     ReferenceObjectNode,
 )
-
 from .mc_memory_nodes import (  # noqa
     DanceNode,
     VoxelObjectNode,
@@ -38,6 +31,7 @@ from .mc_memory_nodes import (  # noqa
     NODELIST,
 )
 
+PERCEPTION_RANGE = 64
 
 # TODO: ship these schemas via setup.py and fix these directory references
 SCHEMAS = [
@@ -81,10 +75,7 @@ class MCAgentMemory(AgentMemory):
         self._load_schematics(load_minecraft_specs)
         self._load_block_types(load_block_types)
         self._load_mob_types(load_mob_types)
-
         self.dances = {}
-        dance.add_default_dances(self)
-
         self.perception_range = preception_range
 
     ########################
@@ -107,10 +98,8 @@ class MCAgentMemory(AgentMemory):
     ###############
 
     # FIXME: move these to VoxelObjectNode
-
     # count updates are done by hand to not need to count all voxels every time
     # use these functions, don't add/delete/modify voxels with raw sql
-
     def update_voxel_count(self, memid, dn):
         """Update voxel count of a reference object with an amount
         equal to : dn"""

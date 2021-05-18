@@ -9,12 +9,14 @@ from droidlet.perception.robot import Detection, RGBDepth
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
 from droidlet.perception.robot.tests.utils import get_fake_detection, get_fake_humanpose, get_fake_bbox
+from droidlet.interpreter.robot import dance
 
 
 class MemoryTests(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(MemoryTests, self).__init__(*args, **kwargs)
         self.memory = LocoAgentMemory()
+        dance.add_default_dances(self.memory)
 
     def test_detected_object_node_creation(self):
         d = get_fake_detection(
