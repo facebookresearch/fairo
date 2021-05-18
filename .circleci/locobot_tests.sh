@@ -38,7 +38,7 @@ popd
 kill -9 $BGPID
 sleep 5
 
-COV_RELATIVE=locobot
+COV_RELATIVE=droidlet
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
