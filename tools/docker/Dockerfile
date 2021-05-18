@@ -22,9 +22,9 @@ RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.
     ccache -s && \
     ls -alh /client_ccache.tar.gz && \
     ls -alh /cache/.ccache && \
-    cd craftassist && \
+    cd droidlet/lowlevel/minecraft && \
     CC="/usr/local/bin/gcc" CXX="/usr/local/bin/g++" make && \
-    cd .. && \
+    cd ../../../ && \
     tar -cvzf client_ccache.tar.gz -C /cache/.ccache . && \
     ls -alh client_ccache.tar.gz && \
     aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz --acl public-read && \
