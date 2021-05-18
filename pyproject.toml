@@ -4,14 +4,11 @@ exclude = '''
 /(
     \.git
   | __pycache__
-  | bin
-  | client
-  | cuberite
-  | cuberite_config
-  | cuberite_plugins
-  | writeups
-  | python/craftassist/ttad/generation
-  | python/craftassist/ttad/generation_dialogues
+  | droidlet/lowlevel/minecraft/bin
+  | droidlet/lowlevel/minecraft/client
+  | droidlet/lowlevel/minecraft/server/cuberite
+  | droidlet/lowlevel/minecraft/server/cuberite_config
+  | droidlet/lowlevel/minecraft/server/cuberite_plugins
 )/
 '''
 
