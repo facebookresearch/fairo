@@ -6,14 +6,13 @@ import random
 import sys
 from typing import Optional, List
 
-from droidlet.lowlevel.minecraft.build_utils import npy_to_blocks_list
 from ...lowlevel.minecraft import specs as minecraft_specs
 from ...interpreter.craftassist import dance
 
 PERCEPTION_RANGE = 64
 
 
-from droidlet.base_util import XYZ, Block
+from droidlet.base_util import XYZ, Block, npy_to_blocks_list
 
 from droidlet.memory.sql_memory import AgentMemory
 
