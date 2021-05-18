@@ -45,7 +45,7 @@ from .block_helpers import get_block_type
 from .condition_helper import MCConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from droidlet.base_util import ErrorWithResponse, number_from_span
+from droidlet.shared_data_struct.base_util import ErrorWithResponse, number_from_span
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 from droidlet.interpreter.craftassist import tasks, dance

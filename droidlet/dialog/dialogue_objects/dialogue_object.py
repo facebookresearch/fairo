@@ -7,7 +7,7 @@ import numpy as np
 import random
 
 from droidlet.interpreter.string_lists import MAP_YES, MAP_NO
-from droidlet.base_util import pos_to_np
+from droidlet.shared_data_struct.base_util import pos_to_np
 from enum import Enum
 from droidlet.memory.memory_nodes import TaskNode
 

@@ -12,8 +12,8 @@ import sqlite3
 import uuid
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
-from droidlet.base_util import XYZ, Time
-from droidlet.shared_data_structs import Task
+from droidlet.shared_data_struct.base_util import XYZ, Time
+from droidlet.shared_data_struct.shared_data_structs import Task
 from droidlet.memory.memory_filters import BasicMemorySearcher
 
 from droidlet.memory.memory_nodes import (  # noqa

@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import Optional, Union
 from word2number.w2n import word_to_num
-from droidlet.base_util import ErrorWithResponse
+from droidlet.shared_data_struct.base_util import ErrorWithResponse
 from droidlet.interpreter.condition import (
     Condition,
     NeverCondition,
