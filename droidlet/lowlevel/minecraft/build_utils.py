@@ -78,21 +78,6 @@ def blocks_list_to_npy(blocks, xyz=False):
     return npy, offsets
 
 
-def npy_to_blocks_list(npy, origin=(0, 0, 0)):
-    """Convert a numpy array to block list ((x, y, z), (id, meta))"""
-    blocks = []
-    sy, sz, sx, _ = npy.shape
-    for ry in range(sy):
-        for rz in range(sz):
-            for rx in range(sx):
-                idm = tuple(npy[ry, rz, rx, :])
-                if idm[0] == 0:
-                    continue
-                xyz = tuple(np.array([rx, ry, rz]) + origin)
-                blocks.append((xyz, idm))
-    return blocks
-
-
 def blocks_list_add_offset(blocks, origin):
     """Offset all blocks in block list by a constant xyz
 
