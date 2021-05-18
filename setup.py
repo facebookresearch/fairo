@@ -13,7 +13,7 @@ setup(
     name="droidlet",
     author="Facebook AI",
     author_email="apratik@fb.com",
-    description="image and video datasets and models for torch deep learning",
+    description="modular embodied agent architecture and platform for building embodied agents",
     long_description=readme,
     license="MIT",
     # Package info
