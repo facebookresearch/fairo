@@ -71,7 +71,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         # Extract the set of safety words from safety file
         self.safety_words = set()
         safety_words_path = "{}/{}".format(
-            pkg_resources.resource_filename("droidlet.memory.documents", "internal"),
+            pkg_resources.resource_filename("droidlet.documents", "internal"),
             "safety.txt",
         )
         if os.path.isfile(safety_words_path):
@@ -183,7 +183,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         """
         # RefResolver initialization requires a base schema and URI
         schema_dir = "{}/".format(
-            pkg_resources.resource_filename("droidlet.memory.documents", "json_schema")
+            pkg_resources.resource_filename("droidlet.documents", "json_schema")
         )
         json_validator = JSONValidator(schema_dir, span_type="all")
         is_valid_json = json_validator.validate_instance(parse_tree, debug)

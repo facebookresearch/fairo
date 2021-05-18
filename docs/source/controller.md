@@ -5,7 +5,7 @@
 
 In the "abstract" droidlet agent, the controller chooses whether to put Tasks on the Task Stack based on the memory state.   In the locobot agent and the craftassist agent subclasses, it consists of
 
-* a [DSL](https://github.com/facebookresearch/droidlet/blob/main/droidlet/memory/documents/Action_Dictionary_Spec.md)
+* a [DSL](https://github.com/facebookresearch/droidlet/blob/main/droidlet/documents/Action_Dictionary_Spec.md)
 * a neural semantic parser, which translates natural language into partially specified programs over the DSL
 * a Dialogue Manager, Dialogue Stack, and Dialogue objects.
 * the Intepreter, a special Dialogue Object that takes partially specified programs from the DSL and fully specifies them using the Memory
