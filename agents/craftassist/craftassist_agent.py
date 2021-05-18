@@ -15,10 +15,9 @@ import subprocess
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
-from droidlet.interpreter.craftassist import default_behaviors, inventory
+from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.perception.craftassist import rotation, heuristic_perception
-
 import droidlet.dashboard as dashboard
 
 if __name__ == "__main__":
@@ -132,6 +131,7 @@ class CraftAssistAgent(LocoMCAgent):
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
         )
+        dance.add_default_dances(self.memory)
         file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)

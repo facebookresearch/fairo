@@ -25,7 +25,7 @@ from droidlet.dialog.craftassist.dialogue_objects import (
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
-
+from droidlet.interpreter.craftassist import dance
 
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
@@ -312,6 +312,7 @@ class FakeAgent(LocoMCAgent):
     def init_memory(self):
         T = FakeMCTime(self.world)
         self.memory = MCAgentMemory(load_minecraft_specs=False, agent_time=T)
+        dance.add_default_dances(self.memory)
 
     def init_controller(self):
         dialogue_object_classes = {}

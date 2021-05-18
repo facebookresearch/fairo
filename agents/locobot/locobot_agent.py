@@ -26,10 +26,9 @@ from droidlet.shared_data_struct.base_util import to_player_struct, Pos, Look, P
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
-
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.perception.robot import Perception, SelfPerception
-from droidlet.interpreter.robot import default_behaviors
+from droidlet.interpreter.robot import dance, default_behaviors
 
 from droidlet.dialog.robot.dialogue_objects import (
     LocoBotCapabilities,
@@ -122,6 +121,7 @@ class LocobotAgent(LocoMCAgent):
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path=None,
         )
+        dance.add_default_dances(self.memory)
         logging.info("Initialized agent memory")
 
     def init_perception(self):

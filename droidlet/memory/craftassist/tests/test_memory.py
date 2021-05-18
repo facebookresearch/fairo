@@ -7,6 +7,7 @@ import unittest
 import droidlet.perception.craftassist.shapes as shapes
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
+from droidlet.interpreter.craftassist import dance
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from agents.craftassist.tests.utils import Mob, Pos, Look
@@ -57,6 +58,7 @@ class TriggersTests(BaseCraftassistTestCase):
 class MethodsTests(unittest.TestCase):
     def setUp(self):
         self.memory = MCAgentMemory(load_minecraft_specs=False)
+        dance.add_default_dances(self.memory)
 
     def test_peek_empty(self):
         self.assertEqual(self.memory.task_stack_peek(), None)
