@@ -5,7 +5,7 @@ import os
 import random
 import sys
 from typing import Optional, List
-from ...shared_data_struct import craftassist_specs as minecraft_specs
+from droidlet.shared_data_struct import craftassist_specs
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.shared_data_struct.base_util import XYZ, Block, npy_to_blocks_list, SPAWN_OBJECTS
 from droidlet.memory.memory_nodes import (  # noqa
@@ -347,7 +347,7 @@ class MCAgentMemory(AgentMemory):
     def _load_schematics(self, load_minecraft_specs=True):
         """Load all Minecraft schematics into agent memory"""
         if load_minecraft_specs:
-            for premem in minecraft_specs.get_schematics():
+            for premem in craftassist_specs.get_schematics():
                 npy = premem["schematic"]
 
                 # lazy loading, only store memid in db, ((0, 0, 0), (0, 0)) as a placeholder
@@ -363,7 +363,7 @@ class MCAgentMemory(AgentMemory):
                         self.add_triple(subj=memid, pred_text="has_tag", obj_text=t)
 
         # load single blocks as schematics
-        bid_to_name = minecraft_specs.get_block_data()["bid_to_name"]
+        bid_to_name = craftassist_specs.get_block_data()["bid_to_name"]
         for (d, m), name in bid_to_name.items():
             if d >= 256:
                 continue
@@ -387,15 +387,15 @@ class MCAgentMemory(AgentMemory):
         """Load all block types into agent memory"""
         if not load_block_types:
             return
-        bid_to_name = minecraft_specs.get_block_data()["bid_to_name"]
+        bid_to_name = craftassist_specs.get_block_data()["bid_to_name"]
 
-        color_data = minecraft_specs.get_colour_data()
+        color_data = craftassist_specs.get_colour_data()
         if simple_color:
             name_to_colors = color_data["name_to_simple_colors"]
         else:
             name_to_colors = color_data["name_to_colors"]
 
-        block_property_data = minecraft_specs.get_block_property_data()
+        block_property_data = craftassist_specs.get_block_property_data()
         block_name_to_properties = block_property_data["name_to_properties"]
 
         for (b, m), type_name in bid_to_name.items():
@@ -423,7 +423,7 @@ class MCAgentMemory(AgentMemory):
         if not load_mob_types:
             return
 
-        mob_property_data = minecraft_specs.get_mob_property_data()
+        mob_property_data = craftassist_specs.get_mob_property_data()
         mob_name_to_properties = mob_property_data["name_to_properties"]
         for (name, m) in SPAWN_OBJECTS.items():
             type_name = "spawn " + name
