@@ -18,6 +18,7 @@ from droidlet.perception.robot import (
     RGBDepth,
     Human,
 )
+from droidlet.interpreter.robot import dance
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
@@ -105,6 +106,7 @@ class MemoryHandlerTest(unittest.TestCase):
         self.detect_handler = DetectionHandler(PERCEPTION_MODELS_DIR)
         self.agent = MagicMock()
         self.agent.memory = LocoAgentMemory()
+        dance.add_default_dances(self.agent.memory)
         self.memory = MemoryHandler(self.agent)
         self.deduplicator = ObjectDeduplicationHandler()
 

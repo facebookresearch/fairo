@@ -8,6 +8,7 @@ import logging
 import math
 
 from droidlet.shared_data_struct.base_util import Look, to_player_struct
+from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.dialog.dialogue_manager import DialogueManager
@@ -422,6 +423,7 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         self.memory = LocoAgentMemory()
+        dance.add_default_dances(self.memory)
 
     def init_controller(self):
         dialogue_object_classes = {}
