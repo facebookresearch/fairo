@@ -49,7 +49,3 @@ def size_str_to_range(s, ranges=RANGES):
                 return list(ranges.values())[i]
 
     return ranges["medium"]
-
-
-def size_int_to_str(x):
-    raise NotImplementedError()
