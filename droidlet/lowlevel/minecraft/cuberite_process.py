@@ -16,7 +16,7 @@ import place_blocks
 import repo
 
 from wait_for_cuberite import wait_for_cuberite
-from droidlet.perception import build_shape_scene
+from droidlet.shared_data_struct.base_util import build_shape_scene
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
