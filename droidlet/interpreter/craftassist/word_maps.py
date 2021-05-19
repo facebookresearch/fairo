@@ -4,10 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """This file has mappings from mob names to their ids and 
 names of shapes to their functions"""
 from typing import Dict, Callable
-
 from droidlet.perception.craftassist import shapes
-
-# mapping from mob names to id
 
 # mapping from canonicalized shape names to the corresponding functions
 SPECIAL_SHAPE_FNS: Dict[str, Callable] = {

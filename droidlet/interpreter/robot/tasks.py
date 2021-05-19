@@ -7,16 +7,13 @@ import logging
 import numpy as np
 
 from droidlet.interpreter.task import BaseMovementTask
-from droidlet.shared_data_struct.shared_data_structs import Task
 from droidlet.memory.memory_nodes import TaskNode
 from droidlet.interpreter.task import Task
 
 from droidlet.interpreter.robot.objects import DanceMovement
-from droidlet.lowlevel.locobot.rotation import yaw_pitch
 
 from droidlet.lowlevel.locobot.locobot_mover_utils import (
     get_move_target_for_point,
-    CAMERA_HEIGHT,
     ARM_HEIGHT,
     get_camera_angles,
 )

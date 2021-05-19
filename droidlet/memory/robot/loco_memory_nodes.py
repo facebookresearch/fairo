@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.shared_data_struct.base_util import XYZ, Pos
+from droidlet.base_util import XYZ, Pos
 from droidlet.memory.memory_nodes import ReferenceObjectNode, MemoryNode, NODELIST
 import pickle
 

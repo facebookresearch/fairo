@@ -7,7 +7,7 @@ print(sys.path)
 import unittest
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.sql_memory import AgentMemory
-from droidlet.shared_data_struct.base_util import Pos, Look, Player
+from droidlet.base_util import Pos, Look, Player
 
 
 class IncrementTime:

@@ -11,10 +11,10 @@ from typing import cast, List, Tuple, Dict
 from .dialogue_object_utils import SPEAKERLOOK
 from .dialogue_object import ConfirmReferenceObject
 from .location_helpers import interpret_relative_direction
-from droidlet.shared_data_struct.base_util import euclid_dist, number_from_span, NextDialogueStep
+from droidlet.base_util import euclid_dist, number_from_span, NextDialogueStep
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
-from droidlet.shared_data_struct.base_util import T, XYZ, ErrorWithResponse
+from droidlet.base_util import T, XYZ, ErrorWithResponse
 from droidlet.dialog.dialogue_objects.filter_helper import interpret_selector
 
 
