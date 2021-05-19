@@ -9,9 +9,8 @@ from scipy.ndimage import imread
 import visdom
 import pickle
 
-# vis = visdom.Visdom(server ='http://localhost')
-
-home_dir = "/private/home/aszlam"
+# Update this when running this file
+home_dir = ""
 
 f = open(home_dir + "/minecraft_specs/block_images/css_chunk.txt")
 r = f.readlines()
