@@ -5,9 +5,8 @@ ARG current_branch
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 
-
 # Clone/make repo
-RUN git clone --recursive -b ${current_branch} https://github.com/facebookresearch/droidlet
+RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/droidlet
 WORKDIR droidlet
 
 RUN pip3 install -r requirements.txt

@@ -3,15 +3,20 @@
 FROM ubuntu:20.04
 
 RUN apt-get -y update
+RUN apt-get install -y software-properties-common  # for add-apt-repository
+RUN add-apt-repository ppa:git-core/ppa -y
+RUN apt-get -y update
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
     ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && \
     dpkg-reconfigure --frontend noninteractive tzdata
+
 RUN apt-get install -y \
 	curl \
 	lld \
         g++ \
         clang-format \
         git \
+	time \
         htop \
         libboost-all-dev \
         libeigen3-dev \
@@ -33,7 +38,6 @@ RUN pip3 install torch
 
 # Install Git LFS
 COPY gitlfs_install.sh /gitlfs_install.sh
-RUN apt-get install -y software-properties-common  # for add-apt-repository
 RUN add-apt-repository ppa:git-core/ppa \
         && bash /gitlfs_install.sh \
         && apt-get install -y git-lfs \
