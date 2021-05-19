@@ -5,11 +5,11 @@ import random
 import sys
 import argparse
 
-from .. import minecraft_specs
+from droidlet.shared_data_struct import craftassist_specs
 from ..shape_helpers import SHAPE_NAMES
 
 ID_DELIM = "^"
-BLOCK_NAMES = [v for k, v in minecraft_specs.get_block_data()["bid_to_name"].items() if k[0] < 256]
+BLOCK_NAMES = [v for k, v in craftassist_specs.get_block_data()["bid_to_name"].items() if k[0] < 256]
 COLOR_NAMES = [
     "aqua",
     "black",
@@ -37,7 +37,7 @@ COLOR_NAMES = [
     "gold",
     "gold",
 ]
-# COLOR_DATA = minecraft_specs.get_colour_data()
+# COLOR_DATA = craftassist_specs.get_colour_data()
 
 
 def build_lf(ref_obj_dict, modify_dict):

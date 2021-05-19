@@ -39,7 +39,7 @@ def model_filename_from_opts(opts, savedir=None, uid=None):
 
 
 def get_colors():
-    ims = pickle.load(open(os.path.join(MC_DIR, "minecraft_specs/block_images/block_data"), "rb"))
+    ims = pickle.load(open(os.path.join(MC_DIR, "lowlevel/minecraft/minecraft_specs/block_images/block_data"), "rb"))
     colors = {}
     for b, I in ims["bid_to_image"].items():
         I = I.reshape(1024, 4)
