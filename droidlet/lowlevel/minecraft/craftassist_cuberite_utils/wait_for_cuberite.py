@@ -1,10 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
 import socket
 import time
-
 import ping_cuberite
 
 

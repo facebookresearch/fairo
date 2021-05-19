@@ -8,14 +8,13 @@ import time
 
 from random import randint
 
-from droidlet.lowlevel.minecraft.block_data import (
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     PASSABLE_BLOCKS,
     BUILD_BLOCK_REPLACE_MAP,
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from droidlet.lowlevel.minecraft.build_utils import blocks_list_to_npy
-from droidlet.base_util import npy_to_blocks_list, MOBS_BY_ID
+from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID
 from droidlet.perception.craftassist import search
 from droidlet.perception.craftassist.heuristic_perception import ground_height
 from droidlet.lowlevel.minecraft.mc_util import to_block_pos, manhat_dist, strip_idmeta
