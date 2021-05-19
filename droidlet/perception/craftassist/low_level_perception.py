@@ -7,7 +7,7 @@ import numpy as np
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, to_block_pos, pos_to_np, euclid_dist, diag_adjacent
 from typing import Tuple, List
-from droidlet.lowlevel.minecraft.block_data import BORING_BLOCKS
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS
 
 from droidlet.memory.memory_nodes import PlayerNode, AttentionNode
 from droidlet.memory.craftassist.mc_memory_nodes import BlockObjectNode
@@ -29,7 +29,7 @@ class LowLevelMCPerception:
     memory.
 
     updates positions of other players, mobs, self, and changed blocks,
-    takes this information directly from the craftassist_cuberite server
+    takes this information directly from the craftassist_cuberite_utils server
 
     Args:
         agent (LocoMCAgent): reference to the minecraft Agent
