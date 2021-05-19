@@ -8,10 +8,8 @@ import numpy as np
 from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
-
 from droidlet.perception.craftassist.shapes import DEFAULT_IDM, rectanguloid
 
-"""FIXME!!!! arrange utils properly, put things in one place"""
 XYZ = Tuple[int, int, int]
 # two points p0(x0, y0, z0), p1(x1, y1, z1) determine a 3d cube(point_at_target)
 POINT_AT_TARGET = Tuple[int, int, int, int, int, int]
