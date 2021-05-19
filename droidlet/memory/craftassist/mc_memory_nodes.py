@@ -10,7 +10,7 @@ from collections import Counter
 from typing import cast, List, Sequence, Dict
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-from droidlet.shared_data_struct import craftassist_specs as minecraft_specs
+from droidlet.shared_data_struct import craftassist_specs
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 
 
@@ -452,7 +452,7 @@ class ItemStackNode(ReferenceObjectNode):
             >>> item_stack = ItemStack(12345678, Pos(0.0, 0.0, 0.0))
             >>> create(memory, item_stack)
         """
-        bid_to_name = minecraft_specs.get_block_data()["bid_to_name"]
+        bid_to_name = craftassist_specs.get_block_data()["bid_to_name"]
         type_name = bid_to_name[(item_stack.item.id, item_stack.item.meta)]
         memid = cls.new(memory)
         memory.db_write(

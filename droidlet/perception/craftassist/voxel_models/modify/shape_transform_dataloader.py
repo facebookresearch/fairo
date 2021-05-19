@@ -9,10 +9,10 @@ import pickle
 import shape_transforms
 import shape_helpers as sh
 from build_utils import blocks_list_to_npy
-import minecraft_specs
+from droidlet.shared_data_struct import craftassist_specs
 from block_data import COLOR_BID_MAP
 
-BLOCK_DATA = minecraft_specs.get_block_data()
+BLOCK_DATA = craftassist_specs.get_block_data()
 # FIXME....
 NEW_BLOCK_CHOICES = [idm for v in COLOR_BID_MAP.values() for idm in v]
 BID_TO_COLOR = {idm: c for c in COLOR_BID_MAP.keys() for idm in COLOR_BID_MAP[c]}

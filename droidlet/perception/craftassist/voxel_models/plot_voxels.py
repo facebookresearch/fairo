@@ -122,7 +122,7 @@ class SchematicPlotter:
     def __init__(self, viz):
         self.viz = viz
         ims = pickle.load(
-            open(os.path.join(MC_DIR, "minecraft_specs/block_images/block_data"), "rb")
+            open(os.path.join(MC_DIR, "lowlevel/minecraft/minecraft_specs/block_images/block_data"), "rb")
         )
         colors = []
         alpha = []
