@@ -9,7 +9,7 @@ import time
 import numpy as np
 
 from agents.core import BaseAgent
-from droidlet.base_util import ErrorWithResponse
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
 
 from droidlet.base_util import hash_user

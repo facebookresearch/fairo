@@ -6,7 +6,7 @@ from typing import List
 
 import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
 import droidlet.perception.craftassist.shapes as shapes
-from droidlet.base_util import NextDialogueStep
+from droidlet.shared_data_structs import NextDialogueStep
 from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
