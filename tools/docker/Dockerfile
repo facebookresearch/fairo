@@ -14,6 +14,8 @@ RUN pip3 install -r requirements.txt
 
 RUN tools/data_scripts/try_download.sh craftassist
 
+# use the much faster lld linker
+RUN rm -f /usr/bin/ld && ln -s /usr/bin/ld.lld /usr/bin/ld
 
 RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && \
       tar -xvf /client_ccache.tar.gz -C /cache/.ccache) \
