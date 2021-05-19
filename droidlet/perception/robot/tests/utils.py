@@ -6,7 +6,8 @@ import numpy as np
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
-from droidlet.perception.robot import Detection, RGBDepth, Human, HumanKeypoints
+from droidlet.perception.robot import Detection, Human, HumanKeypoints
+from droidlet.shared_data_struct.shared_data_structs import RGBDepth
 
 
 class FakeAgent(LocoMCAgent):
