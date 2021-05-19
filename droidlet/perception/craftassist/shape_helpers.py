@@ -210,35 +210,6 @@ def shape_to_dicts(S):
     return blocks
 
 
-def build_shape_scene():
-    """Build a scene in-game using the shapes"""
-    offset_range = (14, 0, 14)
-    num_shapes = 5
-    blocks = []
-    block_xyz_set = set()
-    for t in range(num_shapes):
-        offsets = [0, 63, 0]
-        for i in range(3):
-            offsets[i] += np.random.randint(-offset_range[i], offset_range[i] + 1)
-        shape = random.choice(SHAPE_NAMES)
-        opts = SHAPE_HELPERS[shape]()
-        opts["bid"] = bid()
-        S = SHAPE_FNS[shape](**opts)
-        S = [
-            (
-                (x[0][0] + offsets[0], x[0][1] + offsets[1], x[0][2] + offsets[2]),
-                (x[1][0], x[1][1]),
-            )
-            for x in S
-        ]
-        s = set([x[0] for x in S])
-        if not set.intersection(s, block_xyz_set):
-            block_xyz_set = set.union(block_xyz_set, s)
-            blocks.extend(shape_to_dicts(S))
-
-    return blocks
-
-
 # Map shape name to option function
 SHAPE_HELPERS = {
     "CUBE": options_cube,
