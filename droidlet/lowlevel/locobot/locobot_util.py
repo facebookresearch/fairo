@@ -12,7 +12,7 @@ import time
 import traceback
 import uuid
 from . import rotation
-from droidlet.shared_data_struct.base_util import XYZ, euclid_dist, manhat_dist
+from droidlet.shared_data_struct.base_util import XYZ, euclid_dist
 from typing import Tuple, List, TypeVar, Sequence
 
 
@@ -30,36 +30,10 @@ def pos_to_np(pos):
     return np.array((pos.x, pos.y, pos.z))
 
 
-def group_by(items, key_fn):
-    """Return a dict of {k: list[x]}, where key_fn(x) == k."""
-    d = defaultdict(list)
-    for x in items:
-        d[key_fn(x)].append(x)
-    return d
-
-
-def hash_user(username):
-    """Encrypt username."""
-    # uuid is used to generate a random number
-    salt = uuid.uuid4().hex
-    return hashlib.sha256(salt.encode() + username.encode()).hexdigest() + ":" + salt
-
-
 def check_username(hashed_username, username):
     """Compare the username with the hash to check if they are same."""
     user, salt = hashed_username.split(":")
     return user == hashlib.sha256(salt.encode() + username.encode()).hexdigest()
-
-
-def shasum_file(path):
-    """Retrn shasum of the file at path."""
-    sha = hashlib.sha1()
-    with open(path, "rb") as f:
-        block = f.read(2 ** 16)
-        while len(block) != 0:
-            sha.update(block)
-            block = f.read(2 ** 16)
-    return binascii.hexlify(sha.digest())
 
 
 def base_distance(x, y):
@@ -73,12 +47,12 @@ def base_distance(x, y):
 # TODO move this to "reasoning"
 # THIS NEEDS TO BE REWRITTEN TO MATCH LOCOBOT
 def object_looked_at(
-    agent,
-    candidates: Sequence[Tuple[XYZ, T]],
-    player_struct,
-    limit=1,
-    max_distance=30,
-    loose=False,
+        agent,
+        candidates: Sequence[Tuple[XYZ, T]],
+        player_struct,
+        limit=1,
+        max_distance=30,
+        loose=False,
 ) -> List[Tuple[XYZ, T]]:
     """Return the object that `player` is looking at.
 
@@ -124,7 +98,7 @@ def object_looked_at(
             (p, o, r)
             for (p, o, r) in candidates_
             if xsect in getattr(o, "blocks", {})
-            or r @ FRONT > ((r @ LEFT) ** 2 + (r @ UP) ** 2) ** 0.5
+               or r @ FRONT > ((r @ LEFT) ** 2 + (r @ UP) ** 2) ** 0.5
         ]
 
     # if looking directly at an object, sort by proximity to look intersection
@@ -153,23 +127,3 @@ def capped_line_of_sight(agent, player_struct, cap=20):
     # default to cap blocks in front of entity
     vec = rotation.look_vec(player_struct.look.yaw, player_struct.look.pitch)
     return cap * np.array(vec) + pos_to_np(player_struct.pos)
-
-
-class TimingWarn(object):
-    """Context manager which logs a warning if elapsed time exceeds some
-    threshold."""
-
-    def __init__(self, max_time: float):
-        self.max_time = max_time
-
-    def __enter__(self):
-        self.start_time = time.time()
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.elapsed_time = time.time() - self.start_time
-        if self.elapsed_time >= self.max_time:
-            logging.warn(
-                "Timing exceeded threshold: {}".format(self.elapsed_time)
-                + "\n"
-                + "".join(traceback.format_stack(limit=2))
-            )
