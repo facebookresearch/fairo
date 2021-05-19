@@ -12,7 +12,7 @@ import time
 import traceback
 import uuid
 from . import rotation
-from droidlet.shared_data_struct.base_util import XYZ
+from droidlet.shared_data_struct.base_util import XYZ, euclid_dist, manhat_dist
 from typing import Tuple, List, TypeVar, Sequence
 
 
@@ -28,16 +28,6 @@ def pos_to_np(pos):
     if pos is None:
         return None
     return np.array((pos.x, pos.y, pos.z))
-
-
-def euclid_dist(a, b):
-    """Return euclidean distance between a and b."""
-    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2) ** 0.5
-
-
-def manhat_dist(a, b):
-    """Return mahattan ditance between a and b."""
-    return abs(a[0] - b[0]) + abs(a[1] - b[1]) + abs(a[2] - b[2])
 
 
 def group_by(items, key_fn):
