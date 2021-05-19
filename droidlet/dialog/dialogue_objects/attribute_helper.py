@@ -11,7 +11,8 @@ from droidlet.memory.memory_attributes import (
     BBoxSize,
 )
 from droidlet.memory.memory_values import LinearExtentValue, FixedValue, convert_comparison_value
-from droidlet.base_util import ErrorWithResponse, number_from_span
+from droidlet.base_util import number_from_span
+from ...shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import ReferenceObjectNode
 from .dialogue_object_utils import tags_from_dict
 

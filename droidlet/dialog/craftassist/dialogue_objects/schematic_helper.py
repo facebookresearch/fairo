@@ -10,7 +10,8 @@ from typing import List, Tuple, Union, Optional
 # TODO with subinterpret
 from droidlet.lowlevel.minecraft import block_data, size_words
 from .block_helpers import get_block_type
-from droidlet.base_util import ErrorWithResponse, number_from_span
+from droidlet.base_util import number_from_span
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.lowlevel.minecraft.mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
