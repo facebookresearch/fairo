@@ -10,8 +10,8 @@ import shutil
 import subprocess
 import tempfile
 import time
-from droidlet.lowlevel.minecraft import place_blocks, edit_cuberite_config
-from wait_for_cuberite import wait_for_cuberite
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import place_blocks, edit_cuberite_config
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.wait_for_cuberite import wait_for_cuberite
 from droidlet.shared_data_struct.base_util import build_shape_scene
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
@@ -23,7 +23,7 @@ DEFAULT_PORT = 25565
 
 
 def add_plugins(workdir, plugins):
-    """Add plugins to craftassist_cuberite's config"""
+    """Add plugins to craftassist_cuberite_utils's config"""
     for p in plugins:
         edit_cuberite_config.add_plugin(workdir + "/settings.ini", p)
 
@@ -34,7 +34,7 @@ def create_workdir(
     if workdir_root is None:
         workdir_root = tempfile.mkdtemp()
     os.makedirs(workdir_root, exist_ok=True)
-    workdir = os.path.join(workdir_root, "craftassist_cuberite")
+    workdir = os.path.join(workdir_root, "craftassist_cuberite_utils")
     config_dir = os.path.join(repo_home, "server/cuberite_config", config_name)
     plugins_dir = os.path.join(repo_home, "server/cuberite_plugins")
     shutil.copytree(config_dir, workdir)

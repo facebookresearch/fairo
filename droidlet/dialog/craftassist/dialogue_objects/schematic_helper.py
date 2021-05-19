@@ -9,7 +9,7 @@ from typing import List, Tuple, Union, Optional
 
 # TODO with subinterpret
 from droidlet.dialog.dialogue_objects import get_repeat_num
-from droidlet.lowlevel.minecraft import block_data
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import block_data
 from droidlet.interpreter.craftassist import size_words
 from .block_helpers import get_block_type
 from droidlet.base_util import number_from_span

@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import time
 
-from droidlet.lowlevel.minecraft.block_data import PASSABLE_BLOCKS
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 from droidlet.lowlevel.minecraft.mc_util import adjacent, manhat_dist
 
 
