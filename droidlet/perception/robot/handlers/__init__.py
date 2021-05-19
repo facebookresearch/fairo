@@ -8,7 +8,6 @@ from .memory import MemoryHandler
 from .core import WorldObject
 from droidlet.shared_data_struct.shared_data_structs import RGBDepth
 from .deduplicater import ObjectDeduplicationHandler
-from .core import RGBDepth
 
 __all__ = [
     InputHandler,
