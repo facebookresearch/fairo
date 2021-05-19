@@ -14,7 +14,8 @@ from droidlet.memory.memory_filters import (
     ExtremeValueMemorySelector,
     RandomMemorySelector,
 )
-from droidlet.base_util import ErrorWithResponse, number_from_span
+from droidlet.base_util import number_from_span
+from ...shared_data_structs import ErrorWithResponse
 from .location_helpers import interpret_relative_direction
 from .comparator_helper import interpret_comparator
 from .dialogue_object_utils import tags_from_dict

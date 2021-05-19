@@ -6,7 +6,7 @@ import random
 from typing import Optional, List
 from ... import craftassist_specs
 from droidlet.memory.sql_memory import AgentMemory
-from droidlet.base_util import XYZ, Block, npy_to_blocks_list, SPAWN_OBJECTS
+from droidlet.base_util import XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     PlayerNode,
@@ -57,7 +57,6 @@ class MCAgentMemory(AgentMemory):
         schema_paths=SCHEMAS,
         load_minecraft_specs=True,
         load_block_types=True,
-        load_mob_types=True,
         preception_range=PERCEPTION_RANGE,
         agent_time=None,
     ):
@@ -73,7 +72,6 @@ class MCAgentMemory(AgentMemory):
         self.schematics = {}
         self._load_schematics(load_minecraft_specs)
         self._load_block_types(load_block_types)
-        self._load_mob_types(load_mob_types)
         self.dances = {}
         self.perception_range = preception_range
 
@@ -417,14 +415,14 @@ class MCAgentMemory(AgentMemory):
                     for property in block_name_to_properties[type_name]:
                         self.add_triple(subj_text=memid, pred_text="has_name", obj_text=property)
 
-    def _load_mob_types(self, load_mob_types=True):
+    def load_mob_types(self, load_mob_types=True, spawn_objects={}):
         """Load all mob types into agent memory"""
         if not load_mob_types:
             return
 
         mob_property_data = craftassist_specs.get_mob_property_data()
         mob_name_to_properties = mob_property_data["name_to_properties"]
-        for (name, m) in SPAWN_OBJECTS.items():
+        for (name, m) in spawn_objects.items():
             type_name = "spawn " + name
 
             # load single mob as schematics

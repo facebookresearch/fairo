@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import math
-from droidlet.base_util import ErrorWithResponse
+from ...shared_data_structs import ErrorWithResponse
 from .dialogue_object_utils import SPEAKERLOOK, tags_from_dict
 
 

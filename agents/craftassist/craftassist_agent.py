@@ -39,7 +39,7 @@ from droidlet.dialog.craftassist.dialogue_objects import (
 )
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
-from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime
+from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 
 faulthandler.register(signal.SIGUSR1)
@@ -129,6 +129,9 @@ class CraftAssistAgent(LocoMCAgent):
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
         )
+        # Load mob types to memory
+        self.memory.load_mob_types(load_mob_types=True, spawn_objects=SPAWN_OBJECTS)
+        # Add all dances to memory
         dance.add_default_dances(self.memory)
         file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
         file_log_handler.setFormatter(log_formatter)

@@ -29,8 +29,6 @@ MAX_RADIUS = 20
 BLOCK_DATA = craftassist_specs.get_block_data()
 COLOUR_DATA = craftassist_specs.get_colour_data()
 BLOCK_PROPERTY_DATA = craftassist_specs.get_block_property_data()
-MOB_PROPERTY_DATA = craftassist_specs.get_mob_property_data()
-BID_COLOR_DATA = craftassist_specs.get_bid_to_colours()
 COLOUR_LIST = list(COLOR_BID_MAP.keys())
 
 # Taken from : stackoverflow.com/questions/16750618/
