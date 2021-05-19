@@ -6,14 +6,13 @@ from unittest.mock import Mock
 import numpy as np
 from typing import List, Sequence, Dict
 
-from droidlet.shared_data_struct.base_util import to_relative_pos
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.perception.craftassist.rotation import yaw_pitch
 from droidlet.dialog.dialogue_objects import AwaitResponse
 
 from .fake_agent import FakeAgent, FakePlayer
-from .utils import Player, Pos, Look, Item, Look
+from .utils import Player, Pos, Look, Item, Look, to_relative_pos
 from .world import World, Opt, flat_ground_generator
 
 

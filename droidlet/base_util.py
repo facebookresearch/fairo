@@ -4,11 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict, namedtuple
 import binascii
 import hashlib
+import random
 import numpy as np
 from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
 from droidlet.perception.craftassist.shapes import DEFAULT_IDM, rectanguloid
+from droidlet.perception.craftassist.shape_helpers import SHAPE_NAMES, SHAPE_HELPERS, bid, SHAPE_FNS, shape_to_dicts
 
 XYZ = Tuple[int, int, int]
 # two points p0(x0, y0, z0), p1(x1, y1, z1) determine a 3d cube(point_at_target)
@@ -159,57 +161,6 @@ MOBS_BY_ID = {
     101: "rabbit",
     120: "villager",
 }
-=======
-SPAWN_OBJECTS = {
-    "elder guardian": 4,
-    "wither skeleton": 5,
-    "stray": 6,
-    "husk": 23,
-    "zombie villager": 27,
-    "skeleton horse": 28,
-    "zombie horse": 29,
-    "donkey": 31,
-    "mule": 32,
-    "evoker": 34,
-    "vex": 35,
-    "vindicator": 36,
-    "creeper": 50,
-    "skeleton": 51,
-    "spider": 52,
-    "zombie": 54,
-    "slime": 55,
-    "ghast": 56,
-    "zombie pigman": 57,
-    "enderman": 58,
-    "cave spider": 59,
-    "silverfish": 60,
-    "blaze": 61,
-    "magma cube": 62,
-    "bat": 65,
-    "witch": 66,
-    "endermite": 67,
-    "guardian": 68,
-    "shulker": 69,
-    "pig": 90,
-    "sheep": 91,
-    "cow": 92,
-    "chicken": 93,
-    "squid": 94,
-    "wolf": 95,
-    "mooshroom": 96,
-    "ocelot": 98,
-    "horse": 100,
-    "rabbit": 101,
-    "polar bear": 102,
-    "llama": 103,
-    "parrot": 105,
-    "villager": 120,
-}
-
-
-class NextDialogueStep(Exception):
-    pass
-
 
 def build_shape_scene():
     """Build a scene in-game using the shapes"""
@@ -258,33 +209,3 @@ def blocks_list_to_npy(blocks, xyz=False):
         offsets = (mx, my, mz)
 
     return npy, offsets
-
-
-def to_relative_pos(block_list):
-    """Convert absolute block positions to their relative positions
-
-    Find the "origin", i.e. the minimum (x, y, z), and subtract this from all
-    block positions.
-
-    Args:
-    - block_list: a list of ((x,y,z), (id, meta))
-
-    Returns:
-    - a block list where positions are shifted by `origin`
-    - `origin`, the (x, y, z) offset by which the positions were shifted
-    """
-    try:
-        locs, idms = zip(*block_list)
-    except ValueError:
-        raise ValueError("to_relative_pos invalid input: {}".format(block_list))
-
-    locs = np.array([loc for (loc, idm) in block_list])
-    origin = np.min(locs, axis=0)
-    locs -= origin
-    S = [(tuple(loc), idm) for (loc, idm) in zip(locs, idms)]
-    if type(block_list) is not list:
-        S = tuple(S)
-    if type(block_list) is frozenset:
-        S = frozenset(S)
-    return S, origin
->>>>>>> delete base util, move functions:droidlet/shared_data_struct/base_util.py

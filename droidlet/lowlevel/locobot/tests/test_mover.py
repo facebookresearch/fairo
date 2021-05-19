@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 import os
-import sys
 from .test_utils import assert_distance_moved, assert_turn_degree
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 

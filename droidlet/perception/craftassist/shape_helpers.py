@@ -1,19 +1,17 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import droidlet.base_util
-
 """This file has helper functions for shapes.py"""
 import random
 import numpy as np
-
+from droidlet.base_util import cube
 from droidlet.perception.craftassist import shapes
 
 FORCE_SMALL = 10  # for debug
 
 # Map shape name to function in shapes.py
 SHAPE_FNS = {
-    "CUBE": droidlet.base_util.cube,
+    "CUBE": cube,
     "HOLLOW_CUBE": shapes.hollow_cube,
     "RECTANGULOID": shapes.rectanguloid,
     "HOLLOW_RECTANGULOID": shapes.hollow_rectanguloid,
