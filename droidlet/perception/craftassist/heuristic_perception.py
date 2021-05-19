@@ -13,7 +13,6 @@ import logging
 from droidlet.lowlevel.minecraft.mc_util import (
     manhat_dist,
     get_locs_from_entity,
-    build_safe_diag_adjacent,
     euclid_dist,
     to_block_pos,
     fill_idmeta,
@@ -613,3 +612,26 @@ class PerceptionWrapper:
                                           self.color_data,
                                           self.block_property_data,
                                           radius=self.radius)
+
+
+def build_safe_diag_adjacent(bounds):
+    """bounds is [mx, Mx, my, My, mz, Mz],
+    if nothing satisfies, returns empty list"""
+
+    def a(p):
+        """Return the adjacent positions to p including diagonal adjaceny, within the bounds"""
+        mx = max(bounds[0], p[0] - 1)
+        my = max(bounds[2], p[1] - 1)
+        mz = max(bounds[4], p[2] - 1)
+        Mx = min(bounds[1] - 1, p[0] + 1)
+        My = min(bounds[3] - 1, p[1] + 1)
+        Mz = min(bounds[5] - 1, p[2] + 1)
+        return [
+            (x, y, z)
+            for x in range(mx, Mx + 1)
+            for y in range(my, My + 1)
+            for z in range(mz, Mz + 1)
+            if (x, y, z) != p
+        ]
+
+    return a

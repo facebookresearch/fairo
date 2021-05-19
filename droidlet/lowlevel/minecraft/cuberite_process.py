@@ -10,14 +10,14 @@ import shutil
 import subprocess
 import tempfile
 import time
-from droidlet.lowlevel.minecraft.craftassist_cuberite import place_blocks, edit_cuberite_config
+from droidlet.lowlevel.minecraft import place_blocks, edit_cuberite_config
 from wait_for_cuberite import wait_for_cuberite
 from droidlet.shared_data_struct.base_util import build_shape_scene
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
 
-repo_home = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../")
+repo_home = os.path.dirname(os.path.realpath(__file__))
 
 DEFAULT_PORT = 25565
 
