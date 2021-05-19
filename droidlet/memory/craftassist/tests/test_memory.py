@@ -11,6 +11,7 @@ from droidlet.interpreter.craftassist import dance
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from agents.craftassist.tests.utils import Mob, Pos, Look
+from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 
 
 class ObjectsTest(BaseCraftassistTestCase):
@@ -58,6 +59,9 @@ class TriggersTests(BaseCraftassistTestCase):
 class MethodsTests(unittest.TestCase):
     def setUp(self):
         self.memory = MCAgentMemory(load_minecraft_specs=False)
+        # Load mob types to memory
+        self.memory.load_mob_types(load_mob_types=True, spawn_objects=SPAWN_OBJECTS)
+        # Add dances to memory
         dance.add_default_dances(self.memory)
 
     def test_peek_empty(self):

@@ -1,4 +1,5 @@
-from droidlet.base_util import ErrorWithResponse, POINT_AT_TARGET
+from droidlet.base_util import POINT_AT_TARGET
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.dialog.dialogue_objects import interpret_relative_direction
 
 

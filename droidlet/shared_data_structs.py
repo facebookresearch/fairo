@@ -36,7 +36,7 @@ class Task(object):
         self.memid = TaskNode.create(self.agent.memory, self)
         # TODO put these in memory in a new table?
         # TODO methods for safely changing these
-        i, s, ru, re = self.get_default_conditions(task_data, agent, self)
+        i, s, ru, re = self.get_default_conditions(task_data, agent)
         self.init_condition = i
         self.stop_condition = s
         self.run_condition = ru
@@ -143,3 +143,12 @@ class Time:
 
     def add_tick(self, ticks=1):
         time.sleep(ticks / TICKS_PER_SEC)
+
+
+class ErrorWithResponse(Exception):
+    def __init__(self, chat):
+        self.chat = chat
+
+
+class NextDialogueStep(Exception):
+    pass
