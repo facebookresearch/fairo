@@ -1,9 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
 # python -m Pyro4.naming -n <MYIP>
-
 import Pyro4
 from pyrobot import Robot
 import numpy as np
@@ -159,6 +157,8 @@ class RemoteLocobot(object):
                            account of odometry.
         :param smooth: When set to "True", ensures that the motion
                        leading to the goal is a smooth one.
+        :param use_dslam: When set to "True", the robot uses slam for
+                          the navigation.
 
         :type xyt_position: list or np.ndarray
         :type use_map: bool
@@ -194,6 +194,8 @@ class RemoteLocobot(object):
                            account of odometry.
         :param smooth: When set to "True", ensures that the
                        motion leading to the goal is a smooth one.
+        :param use_dslam: When set to "True", the robot uses slam for
+                          the navigation.
 
         :type xyt_position: list or np.ndarray
         :type use_map: bool
@@ -543,10 +545,10 @@ class RemoteLocobot(object):
         """Return the transform from the src_frame to dest_frame.
 
         :param src_frame: source frame
-        :param dest_frame: destination frame
+        :param dst_frame: destination frame
 
         :type src_frame: str
-        :type dest_frame: str
+        :type dst_frame: str
 
         :return:tuple (trans, rot_mat, quat )
                 trans: translational vector (shape: :math:`[3, 1]`)
