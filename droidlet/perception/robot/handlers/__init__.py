@@ -5,7 +5,8 @@ from .face_recognition import FaceRecognitionHandler
 from .laser_pointer import LaserPointerHandler
 from .tracker import TrackingHandler
 from .memory import MemoryHandler
-from .core import RGBDepth, WorldObject
+from .core import WorldObject
+from droidlet.shared_data_struct.shared_data_structs import RGBDepth
 from .deduplicater import ObjectDeduplicationHandler
 from .core import RGBDepth
 
