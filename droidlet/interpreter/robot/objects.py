@@ -10,9 +10,7 @@ class AttributeDict(dict):
     __setattr__ = dict.__setitem__
 
 
-Pos = namedtuple("pos", ["x", "y", "z"])
 Properties = namedtuple("properties", ["x", "y", "z"])
-Marker = namedtuple("Marker", "markerId pos color category properties")
 
 
 class DanceMovement(object):

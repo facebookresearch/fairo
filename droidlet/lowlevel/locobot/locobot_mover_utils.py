@@ -5,7 +5,7 @@ import numpy as np
 import logging
 from scipy.spatial.transform import Rotation
 
-from droidlet.lowlevel.locobot.rotation import yaw_pitch
+from .rotation import yaw_pitch
 
 MAX_PAN_RAD = np.pi / 4
 CAMERA_HEIGHT = 0.6
