@@ -8,19 +8,19 @@ import copy
 import time
 import logging
 from collections.abc import Iterable
-
+import cv2
+from prettytable import PrettyTable
 import Pyro4
 import numpy as np
-
 
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 
-from prettytable import PrettyTable
-
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
-from droidlet.perception.robot import RGBDepth
+from droidlet.shared_data_structs import RGBDepth
+
+
 from .locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
