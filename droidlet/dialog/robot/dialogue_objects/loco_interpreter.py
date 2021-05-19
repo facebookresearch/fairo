@@ -15,7 +15,7 @@ from droidlet.dialog.dialogue_objects import (
     interpret_dance_filter,
 )
 
-from droidlet.shared_data_struct.base_util import ErrorWithResponse
+from droidlet.base_util import ErrorWithResponse
 from .spatial_reasoning import ComputeLocations
 from .facing_helper import FacingInterpreter
 from .point_target import PointTargetInterpreter

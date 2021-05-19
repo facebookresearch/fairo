@@ -2,18 +2,14 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
-import sys
 
 import numpy as np
 import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
-
 from droidlet.lowlevel.minecraft.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-from droidlet.shared_data_struct import craftassist_specs
+from droidlet import craftassist_specs
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
-
-
 from droidlet.memory.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
 
 

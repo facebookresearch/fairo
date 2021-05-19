@@ -3,8 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
-import os
-import sys
 import numpy as np
 import time
 
@@ -17,14 +15,14 @@ from droidlet.lowlevel.minecraft.block_data import (
     BUILD_INTERCHANGEABLE_PAIRS,
 )
 from droidlet.lowlevel.minecraft.build_utils import blocks_list_to_npy
-from droidlet.shared_data_struct.base_util import npy_to_blocks_list
+from droidlet.base_util import npy_to_blocks_list
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 from droidlet.perception.craftassist import search
 from droidlet.perception.craftassist.heuristic_perception import ground_height
 from droidlet.lowlevel.minecraft.mc_util import to_block_pos, manhat_dist, strip_idmeta
 
 from droidlet.interpreter.task import BaseMovementTask
-from droidlet.shared_data_struct.shared_data_structs import Task
+from droidlet.shared_data_structs import Task
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode
 

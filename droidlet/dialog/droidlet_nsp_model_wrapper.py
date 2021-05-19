@@ -22,7 +22,7 @@ from droidlet.dialog.dialogue_objects import (
     coref_resolve,
     process_spans_and_remove_fixed_value,
 )
-from droidlet.shared_data_struct.base_util import hash_user
+from droidlet.base_util import hash_user
 
 # TODO: move JSONValidator into base
 from droidlet.dialog.craftassist.tests.validate_json import JSONValidator

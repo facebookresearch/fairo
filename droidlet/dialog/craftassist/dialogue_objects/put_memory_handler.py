@@ -14,7 +14,7 @@ from droidlet.dialog.dialogue_objects import (
 )
 from .spatial_reasoning import ComputeLocations
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode, RewardNode
-from droidlet.shared_data_struct.base_util import ErrorWithResponse
+from droidlet.base_util import ErrorWithResponse
 
 
 class PutMemoryHandler(DialogueObject):

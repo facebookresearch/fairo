@@ -2,7 +2,6 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
-import sys
 import logging
 import faulthandler
 import signal
@@ -28,7 +27,7 @@ if __name__ == "__main__":
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from droidlet.shared_data_struct.base_util import Pos, Look
+from droidlet.base_util import Pos, Look
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.argument_parser import ArgumentParser
@@ -40,7 +39,6 @@ from droidlet.dialog.craftassist.dialogue_objects import (
 )
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
-from droidlet.event import sio
 from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
 

@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import Levenshtein
 from droidlet.lowlevel.minecraft import block_data
-from droidlet.shared_data_struct import craftassist_specs
+from droidlet import craftassist_specs
 from droidlet.lowlevel.minecraft.mc_util import IDM
 
 # TODO FILTERS!
