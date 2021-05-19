@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 
-import droidlet.lowlevel.minecraft.size_words as size_words
+import droidlet.interpreter.craftassist.size_words as size_words
 
 
 class TestSizeWords(unittest.TestCase):
