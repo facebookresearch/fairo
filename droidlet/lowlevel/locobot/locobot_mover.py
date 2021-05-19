@@ -20,7 +20,6 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
-
 from .locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
