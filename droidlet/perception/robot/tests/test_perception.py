@@ -15,9 +15,9 @@ from droidlet.perception.robot import (
     MemoryHandler,
     SlowPerception,
     Detection,
-    RGBDepth,
     Human,
 )
+from droidlet.shared_data_struct.shared_data_structs import RGBDepth
 from droidlet.interpreter.robot import dance
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
