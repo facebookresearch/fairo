@@ -11,18 +11,9 @@ import numpy as np
 import time
 import traceback
 import uuid
-
 from . import rotation
-
+from droidlet.shared_data_struct.base_util import XYZ
 from typing import Tuple, List, TypeVar, Sequence
-
-XYZ = Tuple[int, int, int]
-# two points p0(x0, y0, z0), p1(x1, y1, z1) determine a 3d cube(point_at_target)
-POINT_AT_TARGET = Tuple[int, int, int, int, int, int]
-IDM = Tuple[int, int]
-Block = Tuple[XYZ, IDM]
-Hole = Tuple[List[XYZ], IDM]
-T = TypeVar("T")  # generic type
 
 
 class Pos:
