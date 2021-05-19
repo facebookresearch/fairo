@@ -1,11 +1,14 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 # This is pre-built and is imported in ./Dockerfile as base
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 RUN apt-get -y update
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata && \
+    ln -fs /usr/share/zoneinfo/America/New_York /etc/localtime && \
+    dpkg-reconfigure --frontend noninteractive tzdata
 RUN apt-get install -y \
-        cmake \
 	curl \
+	lld \
         g++ \
         clang-format \
         git \
@@ -20,6 +23,8 @@ RUN apt-get install -y \
         zlib1g-dev \
         ;
 
+RUN pip3 install -U setuptools cmake
+
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash
 RUN apt-get -y install nodejs
 
@@ -33,3 +38,23 @@ RUN add-apt-repository ppa:git-core/ppa \
         && bash /gitlfs_install.sh \
         && apt-get install -y git-lfs \
         && git lfs install
+
+
+# get latest ccache instead of system-packaged one
+RUN apt remove -y ccache
+RUN apt install -y libzstd-dev
+RUN cd /tmp && curl -L https://github.com/ccache/ccache/releases/download/v4.3/ccache-4.3.tar.gz -o ccache-4.3.tar.gz && \
+    tar -xvf ccache-4.3.tar.gz && \
+    cd ccache-4.3 && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release .. && \
+    make && \
+    make install && \
+    ln -s ccache /usr/local/bin/gcc && \
+    ln -s ccache /usr/local/bin/g++ && \
+    ln -s ccache /usr/local/bin/cc && \
+    ln -s ccache /usr/local/bin/c++
+ENV PATH "/usr/local/bin:$PATH"
+ENV CCACHE_DIR "/cache/.ccache"
+RUN mkdir -p /cache/.ccache

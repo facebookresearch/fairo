@@ -1,29 +1,35 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 FROM shaomai/craftassist:latest as base
 
-COPY mcdeploy.key /mcdeploy.key
 ARG current_branch
-
-# Clone/make repo
-ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 
-RUN git clone --recursive git@github.com:facebookresearch/droidlet.git
+
+# Clone/make repo
+RUN git clone --recursive -b ${current_branch} https://github.com/facebookresearch/droidlet
 WORKDIR droidlet
-RUN git checkout ${current_branch}
 
 RUN pip3 install -r requirements.txt
-RUN pip3 install -U setuptools
+
 RUN tools/data_scripts/try_download.sh craftassist
 
-RUN mkdir -p /cache/.ccache
-RUN (curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && tar -xvf /client_ccache.tar.gz -C /cache) || echo "Pulling ccache from S3"
-RUN export CCACHE_DIR="/cache/.ccache"
-RUN git submodule update --init --recursive
-RUN cd craftassist && make && cd ..
-RUN tar -cvzf client_ccache.tar.gz /cache/.ccache
-RUN aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz
+
+RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.gz -o /client_ccache.tar.gz -f && \
+      tar -xvf /client_ccache.tar.gz -C /cache/.ccache) \
+      || echo "Failed pulling ccache from S3") && \
+    ccache -s && \
+    ls -alh /client_ccache.tar.gz && \
+    ls -alh /cache/.ccache && \
+    cd craftassist && \
+    CC="/usr/local/bin/gcc" CXX="/usr/local/bin/g++" make && \
+    cd .. && \
+    tar -cvzf client_ccache.tar.gz -C /cache/.ccache . && \
+    ls -alh client_ccache.tar.gz && \
+    aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz --acl public-read && \
+    ls -alh /cache/.ccache && \
+    ccache -s && \
+    rm -rf client_ccache.tar.gz /cache/.ccache /client_ccache.tar.gz
 
 RUN npm install -g yarn
 RUN cd /droidlet/dldashboard/web && yarn install
