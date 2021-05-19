@@ -1,7 +1,7 @@
 import time
 from droidlet.interpreter.condition import AlwaysCondition, NeverCondition, NotCondition, TaskStatusCondition
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
-from droidlet.shared_data_struct.base_util import TICKS_PER_SEC
+from droidlet.base_util import TICKS_PER_SEC
 
 
 class Task(object):
@@ -36,7 +36,7 @@ class Task(object):
         self.memid = TaskNode.create(self.agent.memory, self)
         # TODO put these in memory in a new table?
         # TODO methods for safely changing these
-        i, s, ru, re = get_default_conditions(task_data, agent, self)
+        i, s, ru, re = self.get_default_conditions(task_data, agent, self)
         self.init_condition = i
         self.stop_condition = s
         self.run_condition = ru
@@ -78,6 +78,33 @@ class Task(object):
         """The actual execution of a single step of the task is defined here."""
         pass
 
+    def get_default_conditions(self, task_data, agent):
+        """
+        takes a task_data dict and fills in missing conditions with defaults
+
+        Args:
+            task_data (dict):  this function will try to use the values of "init_condition",
+                               "stop_condition", "run_condition", and "remove_condition"
+            agent (Droidlet Agent): the agent that is going to be doing the Task controlled by
+                                    condition
+            task (droidlet.shared_data_structs.Task):  the task to be controlled by the conditions
+        """
+        init_condition = task_data.get("init_condition", AlwaysCondition(None))
+
+        run_condition = task_data.get("run_condition")
+        stop_condition = task_data.get("stop_condition")
+        if stop_condition is None:
+            if run_condition is None:
+                stop_condition = NeverCondition(None)
+                run_condition = AlwaysCondition(None)
+            else:
+                stop_condition = NotCondition(run_condition)
+        elif run_condition is None:
+            run_condition = NotCondition(stop_condition)
+
+        remove_condition = task_data.get("remove_condition", TaskStatusCondition(agent, self.memid))
+        return init_condition, stop_condition, run_condition, remove_condition
+
     # FIXME remove all this its dead now...
     def interrupt(self):
         """Interrupt the task and set the flag"""
@@ -97,34 +124,6 @@ class Task(object):
 
     def __repr__(self):
         return str(type(self))
-
-
-def get_default_conditions(task_data, agent, task):
-    """
-    takes a task_data dict and fills in missing conditions with defaults
-
-    Args:
-        task_data (dict):  this function willtry to use the values of "init_condition",
-                           "stop_condition", "run_condition", and "remove_condition"
-        agent (Droidlet Agent): the agent that is going to be doing the Task controlled by
-                                condition
-        task (droidlet.shared_data_structs.Task):  the task to be controlled by the conditions
-    """
-    init_condition = task_data.get("init_condition", AlwaysCondition(None))
-
-    run_condition = task_data.get("run_condition")
-    stop_condition = task_data.get("stop_condition")
-    if stop_condition is None:
-        if run_condition is None:
-            stop_condition = NeverCondition(None)
-            run_condition = AlwaysCondition(None)
-        else:
-            stop_condition = NotCondition(run_condition)
-    elif run_condition is None:
-        run_condition = NotCondition(stop_condition)
-
-    remove_condition = task_data.get("remove_condition", TaskStatusCondition(agent, task.memid))
-    return init_condition, stop_condition, run_condition, remove_condition
 
 
 class Time:

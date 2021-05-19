@@ -5,13 +5,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import re
 import numpy as np
-from typing import cast, List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional
 
 # TODO with subinterpret
-from droidlet.dialog.dialogue_objects import get_repeat_num
 from droidlet.lowlevel.minecraft import block_data, size_words
 from .block_helpers import get_block_type
-from droidlet.shared_data_struct.base_util import ErrorWithResponse, number_from_span
+from droidlet.base_util import ErrorWithResponse, number_from_span
 from droidlet.lowlevel.minecraft.mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num

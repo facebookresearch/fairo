@@ -3,11 +3,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
 import random
-import sys
 from typing import Optional, List
-from droidlet.shared_data_struct import craftassist_specs
+from ... import craftassist_specs
 from droidlet.memory.sql_memory import AgentMemory
-from droidlet.shared_data_struct.base_util import XYZ, Block, npy_to_blocks_list, SPAWN_OBJECTS
+from droidlet.base_util import XYZ, Block, npy_to_blocks_list, SPAWN_OBJECTS
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     PlayerNode,

@@ -2,11 +2,10 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import random
-import sys
 import argparse
 
-from droidlet.shared_data_struct import craftassist_specs
-from ..shape_helpers import SHAPE_NAMES
+from droidlet import craftassist_specs
+from droidlet.perception.craftassist.shape_helpers import SHAPE_NAMES
 
 ID_DELIM = "^"
 BLOCK_NAMES = [v for k, v in craftassist_specs.get_block_data()["bid_to_name"].items() if k[0] < 256]

@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from .memory_filters import BasicMemorySearcher
-from droidlet.shared_data_struct.base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
+from droidlet.base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
 
 
 # a value has a get_value() method; and get_value should not have

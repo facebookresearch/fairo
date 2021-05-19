@@ -22,9 +22,8 @@ from geometry_msgs.msg import Quaternion, PointStamped
 from pyrobot import Robot
 from tf import TransformListener
 from visualization_msgs.msg import Marker
-from sensor_msgs.msg import Image
 
-import droidlet.shared_data_struct.shared_data_structs
+import droidlet.shared_data_structs
 from .grasp_model import GraspModel
 
 MODEL_URL = "https://www.dropbox.com/s/jb9h6lmh9hlyslx/model.pth?dl=0"
@@ -171,7 +170,7 @@ class Grasper(object):
         base_ps = self._transform_listener.transformPoint(BASE_FRAME, ps)
         rospy.loginfo(
             "transform : {}".format(
-                self._transform_listener.lookupTransform(BASE_FRAME, KINECT_FRAME, droidlet.shared_data_struct.shared_data_structs.Time(0))
+                self._transform_listener.lookupTransform(BASE_FRAME, KINECT_FRAME, droidlet.shared_data_structs.Time(0))
             )
         )
         base_pt = np.array([base_ps.point.x, base_ps.point.y, base_ps.point.z])
@@ -239,7 +238,7 @@ class Grasper(object):
             if (
                 self.marker_data is None
                 or (
-                    droidlet.shared_data_struct.shared_data_structs.Time.now().secs - self.marker_data.header.stamp.secs) > 1.0
+                    droidlet.shared_data_structs.Time.now().secs - self.marker_data.header.stamp.secs) > 1.0
             ):
                 rospy.loginfo("AR marker not visible, Waiting for it to come")
                 joint_angles[0] -= np.deg2rad(2) * np.sign(joint_angles[0])
@@ -261,7 +260,7 @@ class Grasper(object):
 
         # get the ar_link frame position from model
         (ar_tag_pose_from_model, _) = self._transform_listener.lookupTransform(
-            BASE_FRAME, "ar_tag", droidlet.shared_data_struct.shared_data_structs.Time(0)
+            BASE_FRAME, "ar_tag", droidlet.shared_data_structs.Time(0)
         )
 
         # calculate the error

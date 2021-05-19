@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.shared_data_struct.shared_data_structs import Time
+from droidlet.shared_data_structs import Time
 
 """This file contains utility functions for the CraftAssist agent"""
 import copy
@@ -9,7 +9,7 @@ import copy
 from math import sin, cos, pi
 from typing import cast
 
-from droidlet.shared_data_struct.base_util import *
+from droidlet.base_util import *
 
 TICKS_PER_MC_DAY = 24000
 LOOK = Tuple[float, float]

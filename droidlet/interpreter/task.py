@@ -2,10 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from droidlet.interpreter.condition import (
-    NeverCondition,
-    AlwaysCondition,
     TaskStatusCondition,
-    NotCondition,
     SwitchCondition,
     AndCondition,
 )
@@ -14,7 +11,7 @@ from droidlet.memory.memory_nodes import TaskNode, LocationNode, TripleNode
 # FIXME TODO store conditions in memory (new table)
 # TaskNode method to update a tasks conditions
 # dsl/put_memory for commands to do so
-from droidlet.shared_data_struct.shared_data_structs import Task
+from droidlet.shared_data_structs import Task
 
 
 # put a counter and a max_count so can't get stuck?
