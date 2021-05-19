@@ -7,7 +7,7 @@ import re
 import logging
 import math
 
-from droidlet.shared_data_struct.base_util import Look, to_player_struct
+from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent

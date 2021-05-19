@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
-from droidlet.shared_data_struct.base_util import ErrorWithResponse
+from droidlet.base_util import ErrorWithResponse
 from droidlet.dialog.dialogue_objects import interpret_relative_direction
 from word2number.w2n import word_to_num
 

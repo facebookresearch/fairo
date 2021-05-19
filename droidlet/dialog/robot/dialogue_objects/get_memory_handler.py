@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
-from typing import Dict, Tuple, Any, Optional, Sequence
+from typing import Dict
 
 from droidlet.dialog.dialogue_objects import (
     FilterInterpreter,
@@ -14,11 +14,8 @@ from droidlet.dialog.dialogue_objects import (
 )
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
-from droidlet.shared_data_struct.base_util import ErrorWithResponse
-from droidlet.memory.memory_nodes import MemoryNode, ReferenceObjectNode
-from droidlet.interpreter.string_lists import ACTION_ING_MAPPING
+from droidlet.base_util import ErrorWithResponse
 from droidlet.dialog.ttad.generation_dialogues.generate_utils import prepend_a_an
-from copy import deepcopy
 from droidlet.interpreter.robot.tasks import Point
 
 

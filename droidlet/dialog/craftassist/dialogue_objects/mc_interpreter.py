@@ -6,12 +6,9 @@ import logging
 import numpy as np
 import random
 from droidlet.perception.craftassist import heuristic_perception
-from typing import Tuple, Dict, Any, Optional, List
+from typing import Tuple, Dict, Any, Optional
 from copy import deepcopy
 from word2number.w2n import word_to_num
-
-import sys
-import os
 
 from droidlet.dialog.dialogue_objects import (
     Interpreter,
@@ -41,16 +38,14 @@ from .modify_helpers import (
     handle_thicken,
 )
 from .spatial_reasoning import ComputeLocations
-from .block_helpers import get_block_type
 from .condition_helper import MCConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from droidlet.shared_data_struct.base_util import ErrorWithResponse, number_from_span
+from droidlet.base_util import ErrorWithResponse, number_from_span
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 from droidlet.interpreter.craftassist import tasks, dance
 from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
-from droidlet.lowlevel.minecraft.mc_util import to_block_pos, XYZ
 
 
 class MCInterpreter(Interpreter):

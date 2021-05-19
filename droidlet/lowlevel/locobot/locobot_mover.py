@@ -16,13 +16,11 @@ import numpy as np
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 
-import cv2
 from prettytable import PrettyTable
 
-from droidlet.shared_data_struct.base_util import ErrorWithResponse
+from droidlet.base_util import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.perception.robot import RGBDepth
-from droidlet.interpreter.robot.objects import Marker, Pos
 from .locobot_mover_utils import (
     get_camera_angles,
     angle_diff,
@@ -32,8 +30,6 @@ from .locobot_mover_utils import (
     transform_pose,
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
-    xyz_canonical_coords_to_pyrobot_coords,
-    get_move_target_for_point,
 )
 from tenacity import retry, stop_after_attempt, wait_fixed
 
