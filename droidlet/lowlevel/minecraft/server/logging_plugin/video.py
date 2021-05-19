@@ -51,7 +51,6 @@ if __name__ == "__main__":
     import tempfile
     import subprocess
     from recover_initial_blockmap import recover_initial_blockmap
-    from repo import repo_home
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--logdir", required=True, help="Directory containing logging.bin")
@@ -60,6 +59,7 @@ if __name__ == "__main__":
         "--player-name", required=True, help='Name of player whose eyes to "see" through'
     )
     args = parser.parse_args()
+    repo_home = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../")
 
     # Using the seed/config, recover the block map as it was at the start of
     # the world, including all chunks ever loaded by any player

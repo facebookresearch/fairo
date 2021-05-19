@@ -12,7 +12,7 @@ PONG = b"\x09\x01\x00\x00\x00\x00\x00\x00\x00\x2a"
 
 
 def ping(host, port, timeout=10):
-    """Ping cuberite using a socket connection"""
+    """Ping craftassist_cuberite using a socket connection"""
     s = socket.socket()
     s.connect((host, port))
     s.settimeout(timeout)

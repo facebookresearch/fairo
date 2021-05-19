@@ -159,3 +159,132 @@ MOBS_BY_ID = {
     101: "rabbit",
     120: "villager",
 }
+=======
+SPAWN_OBJECTS = {
+    "elder guardian": 4,
+    "wither skeleton": 5,
+    "stray": 6,
+    "husk": 23,
+    "zombie villager": 27,
+    "skeleton horse": 28,
+    "zombie horse": 29,
+    "donkey": 31,
+    "mule": 32,
+    "evoker": 34,
+    "vex": 35,
+    "vindicator": 36,
+    "creeper": 50,
+    "skeleton": 51,
+    "spider": 52,
+    "zombie": 54,
+    "slime": 55,
+    "ghast": 56,
+    "zombie pigman": 57,
+    "enderman": 58,
+    "cave spider": 59,
+    "silverfish": 60,
+    "blaze": 61,
+    "magma cube": 62,
+    "bat": 65,
+    "witch": 66,
+    "endermite": 67,
+    "guardian": 68,
+    "shulker": 69,
+    "pig": 90,
+    "sheep": 91,
+    "cow": 92,
+    "chicken": 93,
+    "squid": 94,
+    "wolf": 95,
+    "mooshroom": 96,
+    "ocelot": 98,
+    "horse": 100,
+    "rabbit": 101,
+    "polar bear": 102,
+    "llama": 103,
+    "parrot": 105,
+    "villager": 120,
+}
+
+
+class NextDialogueStep(Exception):
+    pass
+
+
+def build_shape_scene():
+    """Build a scene in-game using the shapes"""
+    offset_range = (14, 0, 14)
+    num_shapes = 5
+    blocks = []
+    block_xyz_set = set()
+    for t in range(num_shapes):
+        offsets = [0, 63, 0]
+        for i in range(3):
+            offsets[i] += np.random.randint(-offset_range[i], offset_range[i] + 1)
+        shape = random.choice(SHAPE_NAMES)
+        opts = SHAPE_HELPERS[shape]()
+        opts["bid"] = bid()
+        S = SHAPE_FNS[shape](**opts)
+        S = [
+            (
+                (x[0][0] + offsets[0], x[0][1] + offsets[1], x[0][2] + offsets[2]),
+                (x[1][0], x[1][1]),
+            )
+            for x in S
+        ]
+        s = set([x[0] for x in S])
+        if not set.intersection(s, block_xyz_set):
+            block_xyz_set = set.union(block_xyz_set, s)
+            blocks.extend(shape_to_dicts(S))
+
+    return blocks
+
+
+def blocks_list_to_npy(blocks, xyz=False):
+    """Convert a list of blockid meta (x, y, z), (id, meta) to numpy"""
+    xyzbm = np.array([(x, y, z, b, m) for ((x, y, z), (b, m)) in blocks])
+    mx, my, mz = np.min(xyzbm[:, :3], axis=0)
+    Mx, My, Mz = np.max(xyzbm[:, :3], axis=0)
+
+    npy = np.zeros((My - my + 1, Mz - mz + 1, Mx - mx + 1, 2), dtype="int32")
+
+    for x, y, z, b, m in xyzbm:
+        npy[y - my, z - mz, x - mx] = (b, m)
+
+    offsets = (my, mz, mx)
+
+    if xyz:
+        npy = np.swapaxes(np.swapaxes(npy, 1, 2), 0, 1)
+        offsets = (mx, my, mz)
+
+    return npy, offsets
+
+
+def to_relative_pos(block_list):
+    """Convert absolute block positions to their relative positions
+
+    Find the "origin", i.e. the minimum (x, y, z), and subtract this from all
+    block positions.
+
+    Args:
+    - block_list: a list of ((x,y,z), (id, meta))
+
+    Returns:
+    - a block list where positions are shifted by `origin`
+    - `origin`, the (x, y, z) offset by which the positions were shifted
+    """
+    try:
+        locs, idms = zip(*block_list)
+    except ValueError:
+        raise ValueError("to_relative_pos invalid input: {}".format(block_list))
+
+    locs = np.array([loc for (loc, idm) in block_list])
+    origin = np.min(locs, axis=0)
+    locs -= origin
+    S = [(tuple(loc), idm) for (loc, idm) in zip(locs, idms)]
+    if type(block_list) is not list:
+        S = tuple(S)
+    if type(block_list) is frozenset:
+        S = frozenset(S)
+    return S, origin
+>>>>>>> delete base util, move functions:droidlet/shared_data_struct/base_util.py

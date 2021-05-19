@@ -3,7 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 from collections import Counter
-from droidlet.lowlevel.minecraft.build_utils import blocks_list_to_npy
+from droidlet.shared_data_struct.base_util import blocks_list_to_npy
+
 
 ##############################################
 # WARNING: all npy arrays in this file are xyz

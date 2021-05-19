@@ -13,7 +13,6 @@ python_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, python_dir)
 
 import edit_cuberite_config
-from repo import repo_home
 from base_log_reader import BaseLogReader
 
 PLUGIN_NAME = "recover_initial"
@@ -26,6 +25,7 @@ def recover_initial_blockmap(old_workdir):
 
     workdir = tempfile.mkdtemp()
     print("Workdir:", workdir, flush=True)
+    repo_home = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../")
 
     # Copy files from old workdir
     paths = ["Plugins", "settings.ini", "blocks.json", "world/world.ini"]
@@ -58,8 +58,8 @@ def recover_initial_blockmap(old_workdir):
     with open(os.path.join(recovery_plugin_dir, "recover_initial.lua"), "w") as f:
         f.write(recovery_lua)
 
-    # Start cuberite and wait until the plugin kills it
-    p = subprocess.Popen([repo_home + "/server/cuberite/Server/Cuberite"], cwd=workdir)
+    # Start craftassist_cuberite and wait until the plugin kills it
+    p = subprocess.Popen([repo_home + "/server/craftassist_cuberite/Server/Cuberite"], cwd=workdir)
     p.wait()
 
     # Return folder containing region files

@@ -335,7 +335,7 @@ if __name__ == "__main__":
     # Also fetches additional resources for internal users.
     if not opts.dev:
         rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
-    
+
     set_start_method("spawn", force=True)
 
     sa = CraftAssistAgent(opts)
