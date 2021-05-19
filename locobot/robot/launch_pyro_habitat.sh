@@ -3,6 +3,9 @@
 export PYRO_SERIALIZER='pickle'
 export PYRO_SERIALIZERS_ACCEPTED='pickle'
 
+roscore &
+source /root/pyenv_pyrobot_python3/bin/activate && source /root/pyrobot_catkin_ws/devel/setup.bash
+
 default_ip=$(hostname -I)
 ip=${LOCOBOT_IP:-$default_ip}
 echo "Binding to Host IP" $ip
