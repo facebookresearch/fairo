@@ -8,7 +8,6 @@ import copy
 import time
 import logging
 from collections.abc import Iterable
-import cv2
 from prettytable import PrettyTable
 import Pyro4
 import numpy as np

@@ -8,6 +8,7 @@ import copy
 from math import sin, cos, pi
 from typing import cast
 from droidlet.base_util import *
+from droidlet.shared_data_structs import Time
 
 TICKS_PER_MC_DAY = 24000
 LOOK = Tuple[float, float]
