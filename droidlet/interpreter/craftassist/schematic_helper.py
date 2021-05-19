@@ -8,7 +8,8 @@ import numpy as np
 from typing import List, Tuple, Union, Optional
 
 # TODO with subinterpret
-from droidlet.lowlevel.minecraft import block_data, size_words
+from droidlet.lowlevel.minecraft import block_data
+from droidlet.interpreter.craftassist import size_words
 from .block_helpers import get_block_type
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse

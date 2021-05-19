@@ -29,7 +29,7 @@ class LowLevelMCPerception:
     memory.
 
     updates positions of other players, mobs, self, and changed blocks,
-    takes this information directly from the cuberite server
+    takes this information directly from the craftassist_cuberite server
 
     Args:
         agent (LocoMCAgent): reference to the minecraft Agent

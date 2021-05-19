@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 """This file has functions that an help edit the config
-got cuberite."""
+got craftassist_cuberite."""
 import config_parser
 
 
