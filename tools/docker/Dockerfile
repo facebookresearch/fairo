@@ -9,7 +9,6 @@ ARG AWS_SECRET_ACCESS_KEY
 RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/droidlet
 WORKDIR droidlet
 
-RUN apt remove -y cmake
 RUN pip3 install -r requirements.txt
 RUN tools/data_scripts/try_download.sh craftassist
 
