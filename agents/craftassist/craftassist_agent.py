@@ -41,7 +41,7 @@ from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerce
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
-from droidlet import craftassist_specs
+from droidlet.lowlevel.minecraft import craftassist_specs
 
 faulthandler.register(signal.SIGUSR1)
 
