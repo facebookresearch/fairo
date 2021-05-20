@@ -434,7 +434,8 @@ class FakeAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            opts=self.opts
         )
 
     def set_logical_form(self, lf, chatstr, speaker):

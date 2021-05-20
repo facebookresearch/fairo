@@ -37,7 +37,7 @@ class DialogueManager(object):
 
     """
 
-    def __init__(self, agent, dialogue_object_classes, semantic_parsing_model_wrapper, opts=None):
+    def __init__(self, agent, dialogue_object_classes, semantic_parsing_model_wrapper, opts):
         self.agent = agent
         self.dialogue_stack = DialogueStack(agent, agent.memory)
         self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
