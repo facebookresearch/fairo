@@ -2,7 +2,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
 function pyabspath() {
-    python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
+    python3 -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
 ROOTDIR=$(pyabspath $(dirname "$0")/../../)

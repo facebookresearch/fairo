@@ -509,15 +509,20 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     hole_mems = []
     for hole in holes:
         memid = InstSegNode.create(agent.memory, hole[0], tags=["hole", "pit", "mine"])
-        fill_block_name = BLOCK_DATA["bid_to_name"][hole[1]]
-        fill_block_mems = agent.memory.basic_search(
-            {
-                "base_table": "BlockTypes",
-                "triples": [{"pred_text": "has_name", "obj_text": fill_block_name}],
-            }
-        )
-        fill_block_memid = fill_block_mems[0].memid
-        agent.memory.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
+        try:
+            fill_block_name = BLOCK_DATA["bid_to_name"][hole[1]]
+        except:
+            idm = (hole[1][0], 0)
+            fill_block_name = BLOCK_DATA["bid_to_name"].get(idm)
+        if fill_block_name:
+            fill_block_mems = agent.memory.basic_search(
+                {
+                    "base_table": "BlockTypes",
+                    "triples": [{"pred_text": "has_name", "obj_text": fill_block_name}],
+                }
+            )
+            fill_block_memid = fill_block_mems[0].memid
+            agent.memory.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
         hole_mems.append(agent.memory.get_mem_by_id(memid))
     return hole_mems
 

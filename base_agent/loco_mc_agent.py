@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
+import os
 import random
 import re
 import time
