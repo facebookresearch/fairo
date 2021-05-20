@@ -142,8 +142,7 @@ class LocobotAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
-            opts=self.opts,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            semantic_parsing_model_wrapper=DroidletNSPModelWrapper
         )
 
     def init_physical_interfaces(self):

@@ -55,12 +55,13 @@ class MCInterpreter(Interpreter):
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, **kwargs):
+    def __init__(self, speaker: str, action_dict: Dict, block_data: Dict, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
+        self.block_data = block_data
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
-        self.subinterpret["condition"] = MCConditionInterpreter()
+        self.subinterpret["condition"] = MCConditionInterpreter(block_data=self.block_data)
         self.subinterpret["specify_locations"] = ComputeLocations()
         self.subinterpret["facing"] = FacingInterpreter()
         self.subinterpret["dances_filters"] = interpret_dance_filter
@@ -122,13 +123,13 @@ class MCInterpreter(Interpreter):
             if m_d["modify_type"] == "THINNER" or m_d["modify_type"] == "THICKER":
                 destroy_task_data, build_task_data = handle_thicken(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "REPLACE":
-                destroy_task_data, build_task_data = handle_replace(self, speaker, m_d, obj)
+                destroy_task_data, build_task_data = handle_replace(self, speaker, m_d, obj, block_data=self.block_data)
             elif m_d["modify_type"] == "SCALE":
                 destroy_task_data, build_task_data = handle_scale(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "RIGIDMOTION":
                 destroy_task_data, build_task_data = handle_rigidmotion(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "FILL" or m_d["modify_type"] == "HOLLOW":
-                destroy_task_data, build_task_data = handle_fill(self, speaker, m_d, obj)
+                destroy_task_data, build_task_data = handle_fill(self, speaker, m_d, obj, block_data=self.block_data)
             else:
                 raise ErrorWithResponse(
                     "I think you want me to modify an object but am not sure what to do (parse error)"
@@ -292,7 +293,7 @@ class MCInterpreter(Interpreter):
                 # FIXME use a constant name
                 fill_idm = (3, 0)
             schematic, tags = interpret_fill_schematic(
-                self, speaker, d.get("schematic", {}), poss, fill_idm
+                self, speaker, d.get("schematic", {}), poss, fill_idm, self.block_data
             )
             origin = np.min([xyz for (xyz, bid) in schematic], axis=0)
             task_data = {

@@ -135,7 +135,7 @@ def handle_scale(interpreter, speaker, modify_dict, obj):
     return destroy_task_data, build_task_data
 
 
-def handle_fill(interpreter, speaker, modify_dict, obj):
+def handle_fill(interpreter, speaker, modify_dict, obj, block_data):
     old_blocks = list(obj.blocks.items())
     bounds = obj.get_bounds()
     mx, my, mz = (bounds[0], bounds[2], bounds[4])
@@ -144,7 +144,7 @@ def handle_fill(interpreter, speaker, modify_dict, obj):
     if modify_dict.get("modify_type") == "FILL":
         if modify_dict.get("new_block"):
             # TODO FILTERS, also in build
-            block_type = get_block_type(modify_dict["new_block"])
+            block_type = get_block_type(modify_dict["new_block"], block_data=block_data)
             new_blocks = fill_flat(old_blocks, fill_material=block_type)
         else:
             new_blocks = fill_flat(old_blocks)
@@ -162,17 +162,17 @@ def handle_fill(interpreter, speaker, modify_dict, obj):
     return destroy_task_data, build_task_data
 
 
-def handle_replace(interpreter, speaker, modify_dict, obj):
+def handle_replace(interpreter, speaker, modify_dict, obj, block_data):
     old_blocks = list(obj.blocks.items())
     bounds = obj.get_bounds()
     mx, my, mz = (bounds[0], bounds[2], bounds[4])
     origin = (mx, my, mz)
-    new_block_type = get_block_type(modify_dict["new_block"])
+    new_block_type = get_block_type(modify_dict["new_block"], block_data=block_data)
     destroy_task_data = None
     if modify_dict.get("old_block"):
         # TODO FILTERS, also in build
         # TODO "make the red blocks green" etc- currently get_block type does not return a list of possibilities
-        old_block_type = get_block_type(modify_dict["old_block"])
+        old_block_type = get_block_type(modify_dict["old_block"], block_data=block_data)
         new_blocks = replace_by_blocktype(
             old_blocks, new_idm=new_block_type, current_idm=old_block_type
         )
