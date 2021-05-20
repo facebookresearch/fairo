@@ -275,7 +275,7 @@ class MCInterpreter(Interpreter):
         location, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
 
         # Get nearby holes
-        holes = heuristic_perception.get_all_nearby_holes(self.agent, location)
+        holes = heuristic_perception.get_all_nearby_holes(self.agent, location, self.block_data)
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
         if holes is None:

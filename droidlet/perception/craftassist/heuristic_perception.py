@@ -8,9 +8,7 @@ import numpy as np
 from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
 from copy import deepcopy
-
 import logging
-from droidlet import craftassist_specs
 
 from droidlet.lowlevel.minecraft.mc_util import (
     manhat_dist,
@@ -26,9 +24,6 @@ from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObject
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
-BLOCK_DATA = craftassist_specs.get_block_data()
-COLOUR_DATA = craftassist_specs.get_colour_data()
-BLOCK_PROPERTY_DATA = craftassist_specs.get_block_property_data()
 COLOUR_LIST = list(COLOR_BID_MAP.keys())
 
 # Taken from : stackoverflow.com/questions/16750618/
@@ -355,7 +350,7 @@ def ground_height(agent, pos, radius, yfilt=5, xzfilt=5):
     return G - offset
 
 
-def get_nearby_airtouching_blocks(agent, location, radius=15):
+def get_nearby_airtouching_blocks(agent, location, block_data, color_data, block_property_data, radius=15):
     """Get all blocks in 'radius' of 'location'
     that are touching air on either side.
     Returns:
@@ -381,17 +376,17 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
                         if xyzb[l[0], l[1], l[2], 0] == 0:
                             try:
                                 blocktypes.append(idm)
-                                type_name = BLOCK_DATA["bid_to_name"][idm]
+                                type_name = block_data["bid_to_name"][idm]
                                 tags = [type_name]
                                 colours = deepcopy(
-                                    COLOUR_DATA["name_to_colors"].get(type_name, [])
+                                    color_data["name_to_colors"].get(type_name, [])
                                 )
                                 colours.extend([c for c in COLOUR_LIST if c in type_name])
                                 if colours:
                                     tags.extend(colours)
                                     tags.extend([{"has_colour": c} for c in colours])
                                 tags.extend(
-                                    BLOCK_PROPERTY_DATA["name_to_properties"].get(type_name, [])
+                                    block_property_data["name_to_properties"].get(type_name, [])
                                 )
                             except:
                                 logging.debug(
@@ -406,7 +401,7 @@ def get_nearby_airtouching_blocks(agent, location, radius=15):
     return blocktypes
 
 
-def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
+def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=True):
     """Returns:
     a list of holes. Each hole is an InstSegNode"""
     sx, sy, sz = location
@@ -508,10 +503,10 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     for hole in holes:
         memid = InstSegNode.create(agent.memory, hole[0], tags=["hole", "pit", "mine"])
         try:
-            fill_block_name = BLOCK_DATA["bid_to_name"][hole[1]]
+            fill_block_name = block_data["bid_to_name"][hole[1]]
         except:
             idm = (hole[1][0], 0)
-            fill_block_name = BLOCK_DATA["bid_to_name"].get(idm)
+            fill_block_name = block_data["bid_to_name"].get(idm)
         if fill_block_name:
             fill_block_mems = agent.memory.basic_search(
                 {
@@ -525,9 +520,9 @@ def get_all_nearby_holes(agent, location, radius=15, store_inst_seg=True):
     return hole_mems
 
 
-def maybe_get_type_name(idm):
+def maybe_get_type_name(idm, block_data):
     try:
-        type_name = BLOCK_DATA["bid_to_name"][idm]
+        type_name = block_data["bid_to_name"][idm]
     except:
         type_name = "UNK"
         logging.debug(
@@ -556,10 +551,14 @@ class PerceptionWrapper:
         perceive_freq (int): if not forced, how many Agent steps between perception
     """
 
-    def __init__(self, agent, perceive_freq=20):
+    def __init__(self, agent, low_level_data, perceive_freq=20):
         self.perceive_freq = perceive_freq
         self.agent = agent
         self.radius = 15
+        self.block_data = low_level_data["block_data"]
+        self.color_data = low_level_data["color_data"]
+        self.block_property_data = low_level_data["block_property_data"]
+
 
     def perceive(self, force=False):
         """Called by the core event loop for the agent to run all perceptual
@@ -580,28 +579,37 @@ class PerceptionWrapper:
                     memid = BlockObjectNode.create(self.agent.memory, obj)
                     color_tags = []
                     for idm in obj:
-                        type_name = maybe_get_type_name(idm)
-                        color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
+                        type_name = maybe_get_type_name(idm, self.block_data)
+                        color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
                     for color_tag in list(set(color_tags)):
                         self.agent.memory.add_triple(
                             subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
 
-                get_all_nearby_holes(self.agent, pos, radius)
-                get_nearby_airtouching_blocks(self.agent, pos, radius)
-
+                get_all_nearby_holes(self.agent, pos, self.block_data, radius)
+                get_nearby_airtouching_blocks(self.agent,
+                                              pos,
+                                              self.block_data,
+                                              self.color_data,
+                                              self.block_property_data,
+                                              radius)
             # perceive blocks near the agent
             for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
                 memid = BlockObjectNode.create(self.agent.memory, objs)
                 color_tags = []
                 for obj in objs:
                     idm = obj[1]
-                    type_name = maybe_get_type_name(idm)
-                    color_tags.extend(COLOUR_DATA["name_to_colors"].get(type_name, []))
+                    type_name = maybe_get_type_name(idm, self.block_data)
+                    color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
                 for color_tag in list(set(color_tags)):
                     self.agent.memory.add_triple(
                         subj=memid, pred_text="has_colour", obj_text=color_tag
                     )
 
-            get_all_nearby_holes(self.agent, self.agent.pos, radius=self.radius)
-            get_nearby_airtouching_blocks(self.agent, self.agent.pos, radius=self.radius)
+            get_all_nearby_holes(self.agent, self.agent.pos, self.block_data, radius=self.radius)
+            get_nearby_airtouching_blocks(self.agent,
+                                          self.agent.pos,
+                                          self.block_data,
+                                          self.color_data,
+                                          self.block_property_data,
+                                          radius=self.radius)
