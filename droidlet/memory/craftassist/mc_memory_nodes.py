@@ -8,7 +8,6 @@ import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
 from droidlet.lowlevel.minecraft.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-from droidlet import craftassist_specs
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
 from droidlet.memory.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
 
@@ -435,7 +434,7 @@ class ItemStackNode(ReferenceObjectNode):
         self.pos = (x, y, z)
 
     @classmethod
-    def create(cls, memory, item_stack) -> str:
+    def create(cls, memory, item_stack, low_level_data) -> str:
         """Creates a new entry into the ReferenceObjects table
 
         Returns:
@@ -448,7 +447,7 @@ class ItemStackNode(ReferenceObjectNode):
             >>> item_stack = ItemStack(12345678, Pos(0.0, 0.0, 0.0))
             >>> create(memory, item_stack)
         """
-        bid_to_name = craftassist_specs.get_block_data()["bid_to_name"]
+        bid_to_name = low_level_data.get("block_data", {}).get("bid_to_name", {})
         type_name = bid_to_name[(item_stack.item.id, item_stack.item.meta)]
         memid = cls.new(memory)
         memory.db_write(
