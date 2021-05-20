@@ -379,7 +379,7 @@ class ExaminedMap:
     @classmethod
     def get_closest(cls, xyz):
         c = None
-        dist = 1
+        dist = 1.5
         for k, v in examined.items():
             if cls.l1(k, xyz) < dist:
                 dist = cls.l1(k, xyz)
@@ -400,16 +400,20 @@ class ExaminedMap:
         loc = x['xyz']
         global last
         k = cls.get_closest(x['xyz'])
-        if last is not None and cls.l1(last, k) < 1:
+        if last is not None and cls.l1(last, k) < 1.5:
             return False
         return examined[k] < 3
 
 import os
-root_path = '/scratch/apratik/active'
+root_path = '/scratch/apratik/active/apartment_0'
 img_folder = os.path.join(root_path, 'img')
 depth_folder = os.path.join(root_path, 'depth')
 seg_folder = os.path.join(root_path, 'seg')
 img_count = 0
+pos_dic = {}
+
+from copy import deepcopy as copy
+import json
 
 def save_state(agent):
     global img_count
@@ -440,7 +444,11 @@ def save_state(agent):
     np.save(seg_folder + "/{:05d}.npy".format(img_count), seg)
 
     # store pos
+    pos_dic[img_count] = copy(pos)
     img_count = img_count+1
+    
+    with open(os.path.join(root_path, "data.json"), "w") as fp:
+        json.dump(pos_dic, fp)
 
 class CuriousExplore(Task):
     """use slam to explore environemt, but also examine detections"""
@@ -456,7 +464,7 @@ class CuriousExplore(Task):
         self.interrupted = False
         self.finished = False
         # save state
-        # save_state(self.agent)
+        save_state(self.agent)
 
         # execute a examine maneuver
         if self.steps[0] == "not_started":
@@ -480,7 +488,7 @@ class CuriousExplore(Task):
             target = pick_random_in_sight(objects, pos)
             global last
             if target is not None:
-                last = ExaminedMap.get_closest(target['xyz'])
+                last = ExaminedMap.get_closest(target['xyz'])                
                 examined_id.add(target['eid'])
                 self.add_child_task(ExamineDetection(
                     self.agent, {"target": target, "start_pos": pos}))
@@ -503,6 +511,7 @@ class ExamineDetection(Task):
         super().__init__(agent)
         self.target = task_data['target']
         self.frontier_center = np.asarray(self.target['xyz'])
+        ExaminedMap.upsert(tuple(self.frontier_center))
         self.start_pos = np.asarray(task_data['start_pos'])
         self.agent = agent
         self.last_base_pos = None
@@ -513,7 +522,7 @@ class ExamineDetection(Task):
         self.interrupted = False
         self.finished = False
 
-        # save_state(self.agent)
+        save_state(self.agent)
 
         # Calculate a path around self.frontier_c and move on it facing the detection
         # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
@@ -524,7 +533,6 @@ class ExamineDetection(Task):
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {target}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
-            # ExaminedMap.upsert(tuple(self.frontier_center))
             self.add_child_task(Move(self.agent, {"target": target}))
             self.last_base_pos = base_pos
             return
