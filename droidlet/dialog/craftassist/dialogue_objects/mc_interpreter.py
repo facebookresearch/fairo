@@ -215,7 +215,7 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            interprets = interpret_schematic(self, speaker, d.get("schematic", {}))
+            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data)
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
