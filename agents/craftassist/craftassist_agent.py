@@ -67,6 +67,13 @@ class CraftAssistAgent(LocoMCAgent):
         self.no_default_behavior = opts.no_default_behavior
         self.point_targets = []
         self.last_chat_time = 0
+        self.low_level_data = {"mobs": SPAWN_OBJECTS,
+                                "mob_property_data": craftassist_specs.get_mob_property_data(),
+                                "schematics": craftassist_specs.get_schematics(),
+                                "block_data": craftassist_specs.get_block_data(),
+                                "block_property_data": craftassist_specs.get_block_property_data(),
+                                "color_data": craftassist_specs.get_colour_data()
+                                }
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
@@ -125,18 +132,11 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
-        agent_low_level_data = {"mobs": SPAWN_OBJECTS,
-                                "mob_property_data": craftassist_specs.get_mob_property_data(),
-                                "schematics": craftassist_specs.get_schematics(),
-                                "block_data": craftassist_specs.get_block_data(),
-                                "block_property_data": craftassist_specs.get_block_property_data(),
-                                "color_data": craftassist_specs.get_colour_data()
-                                }
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
-            agent_low_level_data=agent_low_level_data
+            agent_low_level_data=self.low_level_data
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
@@ -149,7 +149,7 @@ class CraftAssistAgent(LocoMCAgent):
         """Initialize perception modules"""
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
-        self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(self)
+        self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(self, low_level_data=self.low_level_data)
         # set up the SubComponentClassifier model
         if os.path.isfile(self.opts.semseg_model_path):
             self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
