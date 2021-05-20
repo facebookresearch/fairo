@@ -22,7 +22,7 @@ def get_properties_from_triples(triples_list, p):
     return [x.get("obj_text") for x in triples_list if p in x.values()]
 
 
-def get_attrs_from_triples(triples, interpreter, block_data):
+def get_attrs_from_triples(triples, interpreter, block_data_info):
     numeric_keys = {
         "has_thickness": get_properties_from_triples(triples, "has_thickness"),
         "has_radius": get_properties_from_triples(triples, "has_radius"),
@@ -51,7 +51,7 @@ def get_attrs_from_triples(triples, interpreter, block_data):
         attrs["size"] = interpret_size(interpreter, text_keys["has_size"][0])
 
     if any(text_keys["has_block_type"]):
-        block_type = get_block_type(text_keys["has_block_type"][0], block_data=block_data)
+        block_type = get_block_type(text_keys["has_block_type"][0], block_data_info=block_data_info)
         attrs["bid"] = block_type
     elif any(text_keys["has_colour"]):
         c = block_data.COLOR_BID_MAP.get(text_keys["has_colour"][0])
@@ -64,7 +64,7 @@ def get_attrs_from_triples(triples, interpreter, block_data):
 # FIXME merge with shape_schematic
 # FIXME we should be able to do fancy stuff here, like fill the x with (copies of) schematic y
 def interpret_fill_schematic(
-    interpreter, speaker, d, hole_locs, hole_idm, block_data
+    interpreter, speaker, d, hole_locs, hole_idm, block_data_info
 ) -> Tuple[List[Block], List[Tuple[str, str]]]:
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -75,7 +75,7 @@ def interpret_fill_schematic(
 
     filters_d = d.get("filters", {})
     triples = filters_d.get("triples", [])
-    attrs = get_attrs_from_triples(triples, interpreter, block_data)
+    attrs = get_attrs_from_triples(triples, interpreter, block_data_info)
 
     h = attrs.get("height") or attrs.get("depth") or attrs.get("thickness")
     bid = attrs.get("bid") or hole_idm or (1, 0)
@@ -98,7 +98,7 @@ def interpret_fill_schematic(
 
 
 def interpret_shape_schematic(
-    interpreter, speaker, d, shapename=None
+    interpreter, speaker, d, block_data_info, shapename=None
 ) -> Tuple[List[Block], List[Tuple[str, str]]]:
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -122,7 +122,7 @@ def interpret_shape_schematic(
             # see warning above w.r.t. 0
             shape = shapes[0]
 
-    attrs = get_attrs_from_triples(triples, interpreter)
+    attrs = get_attrs_from_triples(triples, interpreter, block_data_info)
 
     tags = []
     for t in triples:
@@ -154,7 +154,7 @@ def interpret_size(interpreter, text) -> Union[int, List[int]]:
 
 
 def interpret_named_schematic(
-    interpreter, speaker, d
+    interpreter, speaker, d, block_data_info
 ) -> Tuple[List[Block], Optional[str], List[Tuple[str, str]]]:
     """Return a tuple of 3 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -180,7 +180,7 @@ def interpret_named_schematic(
     )
     if shapename:
         shape_blocks, tags = interpret_shape_schematic(
-            interpreter, speaker, d, shapename=shapename
+            interpreter, speaker, d, block_data_info, shapename=shapename
         )
         return shape_blocks, None, tags
 
@@ -207,7 +207,7 @@ def interpret_named_schematic(
 
 
 def interpret_schematic(
-    interpreter, speaker, d
+    interpreter, speaker, d, block_data_info
 ) -> List[Tuple[List[Block], Optional[str], List[Tuple[str, str]]]]:
     """Return a list of 3-tuples, each with values:
     - the schematic blocks, list[(xyz, idm)]
@@ -223,10 +223,10 @@ def interpret_schematic(
     repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
     repeat = int(number_from_span(repeat))
     if any(shapes):
-        blocks, tags = interpret_shape_schematic(interpreter, speaker, d)
+        blocks, tags = interpret_shape_schematic(interpreter, speaker, d, block_data_info)
         return [(blocks, None, tags)] * repeat
     else:
-        return [interpret_named_schematic(interpreter, speaker, d)] * repeat
+        return [interpret_named_schematic(interpreter, speaker, d, block_data_info)] * repeat
 
 
 def get_repeat_dir(d):
