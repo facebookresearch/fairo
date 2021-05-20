@@ -406,7 +406,7 @@ class ExaminedMap:
 
 import os
 root_path = '/scratch/apratik/active/apartment_0'
-img_folder = os.path.join(root_path, 'img')
+img_folder = os.path.join(root_path, 'rgb')
 depth_folder = os.path.join(root_path, 'depth')
 seg_folder = os.path.join(root_path, 'seg')
 img_count = 0
