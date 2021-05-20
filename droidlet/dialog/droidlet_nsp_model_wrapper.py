@@ -38,6 +38,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         super(DroidletNSPModelWrapper, self).__init__(
             agent, dialogue_object_classes, opts, dialogue_manager
         )
+        self.opts=opts
         # Read all datasets
         self.read_datasets(opts)
         # instantiate logger and parsing model
@@ -168,7 +169,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
 
         # 7. return the DialogueObject
         return self.handle_logical_form(
-            speaker=speaker, logical_form=updated_logical_form, chat=chat
+            speaker=speaker, logical_form=updated_logical_form, chat=chat, opts=self.opts
         )
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
@@ -288,7 +289,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         return logical_form
 
     def handle_logical_form(
-        self, speaker: str, logical_form: Dict, chat: str
+        self, speaker: str, logical_form: Dict, chat: str, opts=None
     ) -> Optional[DialogueObject]:
         """Return the appropriate DialogueObject to handle an action dict d
         d should have spans filled (via process_spans_and_remove_fixed_value).
@@ -300,8 +301,9 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
             return self.dialogue_objects["bot_capabilities"](**self.dialogue_object_parameters)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
+            block_data = opts.block_data if opts else None
             return self.dialogue_objects["interpreter"](
-                speaker, logical_form, **self.dialogue_object_parameters
+                speaker, logical_form, block_data, **self.dialogue_object_parameters
             )
         elif logical_form["dialogue_type"] == "PUT_MEMORY":
             return self.dialogue_objects["put_memory"](

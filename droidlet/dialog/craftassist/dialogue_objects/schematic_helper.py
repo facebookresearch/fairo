@@ -22,7 +22,7 @@ def get_properties_from_triples(triples_list, p):
     return [x.get("obj_text") for x in triples_list if p in x.values()]
 
 
-def get_attrs_from_triples(triples, interpreter):
+def get_attrs_from_triples(triples, interpreter, block_data):
     numeric_keys = {
         "has_thickness": get_properties_from_triples(triples, "has_thickness"),
         "has_radius": get_properties_from_triples(triples, "has_radius"),
@@ -51,7 +51,7 @@ def get_attrs_from_triples(triples, interpreter):
         attrs["size"] = interpret_size(interpreter, text_keys["has_size"][0])
 
     if any(text_keys["has_block_type"]):
-        block_type = get_block_type(text_keys["has_block_type"][0])
+        block_type = get_block_type(text_keys["has_block_type"][0], block_data=block_data)
         attrs["bid"] = block_type
     elif any(text_keys["has_colour"]):
         c = block_data.COLOR_BID_MAP.get(text_keys["has_colour"][0])
@@ -64,7 +64,7 @@ def get_attrs_from_triples(triples, interpreter):
 # FIXME merge with shape_schematic
 # FIXME we should be able to do fancy stuff here, like fill the x with (copies of) schematic y
 def interpret_fill_schematic(
-    interpreter, speaker, d, hole_locs, hole_idm
+    interpreter, speaker, d, hole_locs, hole_idm, block_data
 ) -> Tuple[List[Block], List[Tuple[str, str]]]:
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -75,7 +75,7 @@ def interpret_fill_schematic(
 
     filters_d = d.get("filters", {})
     triples = filters_d.get("triples", [])
-    attrs = get_attrs_from_triples(triples, interpreter)
+    attrs = get_attrs_from_triples(triples, interpreter, block_data)
 
     h = attrs.get("height") or attrs.get("depth") or attrs.get("thickness")
     bid = attrs.get("bid") or hole_idm or (1, 0)

@@ -41,6 +41,7 @@ from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerce
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
+from droidlet import craftassist_specs
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -124,13 +125,19 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
+        agent_low_level_data = {"mobs": SPAWN_OBJECTS,
+                                "mob_property_data": craftassist_specs.get_mob_property_data(),
+                                "schematics": craftassist_specs.get_schematics(),
+                                "block_data": craftassist_specs.get_block_data(),
+                                "block_property_data": craftassist_specs.get_block_property_data(),
+                                "color_data": craftassist_specs.get_colour_data()
+                                }
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
+            agent_low_level_data=agent_low_level_data
         )
-        # Load mob types to memory
-        self.memory.load_mob_types(load_mob_types=True, spawn_objects=SPAWN_OBJECTS)
         # Add all dances to memory
         dance.add_default_dances(self.memory)
         file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
@@ -159,11 +166,12 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
+        self.opts.block_data = craftassist_specs.get_block_data()
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
-            opts=self.opts,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            opts=self.opts
         )
 
     def perceive(self, force=False):
