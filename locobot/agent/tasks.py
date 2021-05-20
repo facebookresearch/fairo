@@ -363,6 +363,7 @@ class Explore(Task):
 
         if not self.command_sent:
             self.command_sent = True
+            save_state(self.agent)
             self.agent.mover.explore()
         else:
             self.finished = self.agent.mover.bot_step()
@@ -405,7 +406,7 @@ class ExaminedMap:
         return examined[k] < 3
 
 import os
-root_path = '/scratch/apratik/active/apartment_0'
+root_path = '/scratch/apratik/active/apartment_0_default'
 img_folder = os.path.join(root_path, 'rgb')
 depth_folder = os.path.join(root_path, 'depth')
 seg_folder = os.path.join(root_path, 'seg')

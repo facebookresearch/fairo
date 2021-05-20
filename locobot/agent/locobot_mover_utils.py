@@ -89,7 +89,7 @@ def get_move_target_for_point(base_pos, target, eps=1):
     
     return [targetx, targetz, yaw] 
 
-def get_step_target_for_move(base_pos, target, step_size=0.05):
+def get_step_target_for_move(base_pos, target, step_size=0.1):
     """
     For point, we first want to move close to the object and then point to it.
 
