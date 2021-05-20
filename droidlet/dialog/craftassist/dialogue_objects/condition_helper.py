@@ -7,11 +7,12 @@ from .block_helpers import get_block_type
 
 # this will become unnecessary with distance between
 class MCConditionInterpreter(ConditionInterpreter):
-    def __init__(self):
+    def __init__(self, block_data={}):
         super().__init__()
+        self.block_data = block_data
         self.condition_types["ADJACENT_TO_BLOCK_TYPE"] = self.interpret_adjacent_block
 
     def interpret_adjacent_block(self, interpreter, speaker, d):
         block_type = d["block_type"]
-        bid, meta = get_block_type(block_type)
+        bid, meta = get_block_type(block_type, block_data=self.block_data)
         return AgentAdjacentStopCondition(interpreter.agent, bid)

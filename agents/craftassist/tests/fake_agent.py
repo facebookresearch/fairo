@@ -27,7 +27,7 @@ from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapp
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
-
+from droidlet import craftassist_specs
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
 
@@ -272,7 +272,7 @@ class FakeAgent(LocoMCAgent):
         self.pos = np.array(pos, dtype="int")
         self.logical_form = None
         self.world_interaction_occurred = False
-
+        self.opts.block_data = craftassist_specs.get_block_data()
         self._held_item: IDM = (0, 0)
         self._look_vec = (1, 0, 0)
         self._changed_blocks: List[Block] = []
@@ -312,9 +312,16 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         T = FakeMCTime(self.world)
-        self.memory = MCAgentMemory(load_minecraft_specs=False, agent_time=T)
-        # Load mob types to memory
-        self.memory.load_mob_types(load_mob_types=True, spawn_objects=SPAWN_OBJECTS)
+        agent_low_level_data = {"mobs": SPAWN_OBJECTS,
+                                "mob_property_data": craftassist_specs.get_mob_property_data(),
+                                "schematics": craftassist_specs.get_schematics(),
+                                "block_data": craftassist_specs.get_block_data(),
+                                "block_property_data": craftassist_specs.get_block_property_data(),
+                                "color_data": craftassist_specs.get_colour_data()
+                                }
+        self.memory = MCAgentMemory(load_minecraft_specs=False,
+                                    agent_time=T,
+                                    agent_low_level_data=agent_low_level_data)
         # Add dances to memory
         dance.add_default_dances(self.memory)
 
@@ -327,8 +334,8 @@ class FakeAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
-            opts=self.opts,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            opts=self.opts
         )
 
     def set_logical_form(self, lf, chatstr, speaker):
@@ -362,7 +369,7 @@ class FakeAgent(LocoMCAgent):
                 )
             )
             obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
-                speaker=speaker_name, logical_form=logical_form, chat=chatstr
+                speaker=speaker_name, logical_form=logical_form, chat=chatstr, opts=self.opts
             )
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
@@ -644,7 +651,7 @@ class FakePlayer(FakeAgent):
                 )
             )
             obj = self.dialogue_manager.handle_logical_form(
-                speaker=speaker, logical_form=updated_logical_form, chat=chatstr
+                speaker=speaker, logical_form=updated_logical_form, chat=chatstr, opts=self.opts
             )
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)

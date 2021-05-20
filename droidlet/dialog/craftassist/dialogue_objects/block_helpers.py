@@ -4,15 +4,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import Levenshtein
 from droidlet.lowlevel.minecraft import block_data
-from droidlet import craftassist_specs
 from droidlet.lowlevel.minecraft.mc_util import IDM
 
 # TODO FILTERS!
-def get_block_type(s) -> IDM:
+def get_block_type(s, block_data_info) -> IDM:
     """string -> (id, meta)
     or  {"has_x": span} -> (id, meta)"""
 
-    name_to_bid = craftassist_specs.get_block_data()["name_to_bid"]
+    name_to_bid = block_data_info.get("name_to_bid", {})
     if type(s) is str:
         s_aug = s + " block"
         _, closest_match = min(

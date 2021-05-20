@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import random
 from typing import Optional, List
-from ... import craftassist_specs
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.base_util import XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
@@ -59,6 +58,7 @@ class MCAgentMemory(AgentMemory):
         load_block_types=True,
         preception_range=PERCEPTION_RANGE,
         agent_time=None,
+        agent_low_level_data={}
     ):
         super(MCAgentMemory, self).__init__(
             db_file=db_file,
@@ -67,11 +67,15 @@ class MCAgentMemory(AgentMemory):
             nodelist=NODELIST,
             agent_time=agent_time,
         )
+        self.low_level_data = agent_low_level_data
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}
         self.schematics = {}
-        self._load_schematics(load_minecraft_specs)
-        self._load_block_types(load_block_types)
+        self._load_schematics(agent_low_level_data=agent_low_level_data,
+                              load_minecraft_specs=load_minecraft_specs)
+        self._load_block_types(agent_low_level_data=agent_low_level_data,
+                               load_block_types=load_block_types)
+        self._load_mob_types(agent_low_level_data=agent_low_level_data)
         self.dances = {}
         self.perception_range = preception_range
 
@@ -341,10 +345,12 @@ class MCAgentMemory(AgentMemory):
 
             return self.get_schematic_by_id(memid)
 
-    def _load_schematics(self, load_minecraft_specs=True):
+    def _load_schematics(self, agent_low_level_data, load_minecraft_specs=True):
         """Load all Minecraft schematics into agent memory"""
+        schematics = agent_low_level_data.get("schematics", {})
+        block_data = agent_low_level_data.get("block_data", {})
         if load_minecraft_specs:
-            for premem in craftassist_specs.get_schematics():
+            for premem in schematics:
                 npy = premem["schematic"]
 
                 # lazy loading, only store memid in db, ((0, 0, 0), (0, 0)) as a placeholder
@@ -360,7 +366,7 @@ class MCAgentMemory(AgentMemory):
                         self.add_triple(subj=memid, pred_text="has_tag", obj_text=t)
 
         # load single blocks as schematics
-        bid_to_name = craftassist_specs.get_block_data()["bid_to_name"]
+        bid_to_name = block_data.get("bid_to_name", {})
         for (d, m), name in bid_to_name.items():
             if d >= 256:
                 continue
@@ -375,6 +381,7 @@ class MCAgentMemory(AgentMemory):
 
     def _load_block_types(
         self,
+        agent_low_level_data,
         load_block_types=True,
         load_color=True,
         load_block_property=True,
@@ -384,16 +391,18 @@ class MCAgentMemory(AgentMemory):
         """Load all block types into agent memory"""
         if not load_block_types:
             return
-        bid_to_name = craftassist_specs.get_block_data()["bid_to_name"]
+        block_data = agent_low_level_data.get("block_data", {})
+        color_data = agent_low_level_data.get("color_data", {})
+        block_property_data = agent_low_level_data.get("block_property_data", {})
 
-        color_data = craftassist_specs.get_colour_data()
         if simple_color:
-            name_to_colors = color_data["name_to_simple_colors"]
+            name_to_colors = color_data.get("name_to_simple_colors", {})
         else:
-            name_to_colors = color_data["name_to_colors"]
+            name_to_colors = color_data.get("name_to_colors", {})
 
-        block_property_data = craftassist_specs.get_block_property_data()
-        block_name_to_properties = block_property_data["name_to_properties"]
+        block_name_to_properties = block_property_data.get("name_to_properties", {})
+
+        bid_to_name = block_data.get("bid_to_name", {})
 
         for (b, m), type_name in bid_to_name.items():
             if b >= 256:
@@ -415,14 +424,15 @@ class MCAgentMemory(AgentMemory):
                     for property in block_name_to_properties[type_name]:
                         self.add_triple(subj_text=memid, pred_text="has_name", obj_text=property)
 
-    def load_mob_types(self, load_mob_types=True, spawn_objects={}):
+    def _load_mob_types(self, agent_low_level_data, load_mob_types=True):
         """Load all mob types into agent memory"""
         if not load_mob_types:
             return
+        mobs = agent_low_level_data.get("mobs", {})
+        mob_property_data = agent_low_level_data.get("mob_property_data", {})
 
-        mob_property_data = craftassist_specs.get_mob_property_data()
-        mob_name_to_properties = mob_property_data["name_to_properties"]
-        for (name, m) in spawn_objects.items():
+        mob_name_to_properties = mob_property_data.get("name_to_properties", {})
+        for (name, m) in mobs.items():
             type_name = "spawn " + name
 
             # load single mob as schematics
@@ -493,7 +503,7 @@ class MCAgentMemory(AgentMemory):
             )
             (memid,) = r
         else:
-            memid = ItemStackNode.create(self, item_stack)
+            memid = ItemStackNode.create(self, item_stack, self.low_level_data)
         return self.get_mem_by_id(memid)
 
     def get_all_item_stacks(self):
