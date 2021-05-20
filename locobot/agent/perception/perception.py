@@ -60,7 +60,7 @@ class SlowPerception:
         """
         detections = self.vision.detector(rgb_depth)
         humans = self.vision.human_pose(rgb_depth)
-        face_detections = self.vision.face_recognizer(rgb_depth)
+        face_detections = None #self.vision.face_recognizer(rgb_depth)
         if face_detections:
             detections += face_detections
         # laser_detection_obj = self.vision.laser_pointer(rgb_depth)

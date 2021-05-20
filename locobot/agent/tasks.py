@@ -367,8 +367,42 @@ class Explore(Task):
         else:
             self.finished = self.agent.mover.bot_step()
 
-examined = set()
+examined = {}
 examined_id = set()
+last = None
+
+class ExaminedMap:
+    @classmethod
+    def l1(cls, xyz, k):
+        return np.linalg.norm(np.asarray(xyz[:2]) - np.asarray(k[:2]), ord=1)
+
+    @classmethod
+    def get_closest(cls, xyz):
+        c = None
+        dist = 1
+        for k, v in examined.items():
+            if cls.l1(k, xyz) < dist:
+                dist = cls.l1(k, xyz)
+                c = k
+        if c is None:
+            examined[xyz] = 0
+            return xyz
+        return c
+
+    @classmethod
+    def upsert(cls, xyz):
+        sim = False
+        k = cls.get_closest(xyz)
+        examined[k] += 1
+
+    @classmethod
+    def can_examine(cls, x):
+        loc = x['xyz']
+        global last
+        k = cls.get_closest(x['xyz'])
+        if last is not None and cls.l1(last, k) < 1:
+            return False
+        return examined[k] < 3
 
 import os
 root_path = '/scratch/apratik/active'
@@ -429,24 +463,30 @@ class CuriousExplore(Task):
             # Get a list of current detections
             objects = loco_memory.DetectedObjectNode.get_all(self.agent.memory)
             pos = self.agent.mover.get_base_pos_in_canonical_coords()
-            # pick randomly from unexamined, closest object
+            # pick all from unexamined, in-sight object
+                
             def pick_random_in_sight(objects, base_pos):
                 global examined
                 for x in objects:
-                    if x['xyz'] not in examined and x['eid'] not in examined_id:
+                    if ExaminedMap.can_examine(x) and x['label'] != 'person':
                         # check for line of sight and if within a certain distance
                         yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], x['xyz'])
                         dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
-                        if abs(yaw_rad) <= math.pi/4 and dist <= 5:
+                        # if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 5:
+                        if dist <= 5:
                             logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
                             return x
                 return None
             target = pick_random_in_sight(objects, pos)
+            global last
             if target is not None:
-                examined.add(target['xyz'])
+                last = ExaminedMap.get_closest(target['xyz'])
                 examined_id.add(target['eid'])
-                self.add_child_task(ExamineDetection(self.agent, {"target": target}))
+                self.add_child_task(ExamineDetection(
+                    self.agent, {"target": target, "start_pos": pos}))
                 self.last_step_explore = False
+            else:
+                last = None
             self.steps[0] = "finished"
             return
 
@@ -463,6 +503,7 @@ class ExamineDetection(Task):
         super().__init__(agent)
         self.target = task_data['target']
         self.frontier_center = np.asarray(self.target['xyz'])
+        self.start_pos = np.asarray(task_data['start_pos'])
         self.agent = agent
         self.last_base_pos = None
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -476,18 +517,19 @@ class ExamineDetection(Task):
 
         # Calculate a path around self.frontier_c and move on it facing the detection
         # To start with just do slow moves and see if the end to end thing works, then do fancier explorations
-
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
-        if (base_pos != self.last_base_pos).all() and dist > 1:
+        if (base_pos != self.last_base_pos).any() and dist > 1:
             target = get_step_target_for_move(base_pos, self.frontier_center)
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {target}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
+            # ExaminedMap.upsert(tuple(self.frontier_center))
             self.add_child_task(Move(self.agent, {"target": target}))
             self.last_base_pos = base_pos
             return
         else:
+            # self.add_child_task(Move(self.agent, {"target": self.start_pos}))
             self.finished = self.agent.mover.bot_step()
 
 class FrontierExplore(Task):
