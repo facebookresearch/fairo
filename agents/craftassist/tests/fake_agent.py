@@ -262,6 +262,12 @@ class FakeAgent(LocoMCAgent):
         self.chat_count = 0
         if not opts:
             opts = MockOpt()
+        self.low_level_data = {"mobs": SPAWN_OBJECTS,
+                               "mob_property_data": craftassist_specs.get_mob_property_data(),
+                               "schematics": craftassist_specs.get_schematics(),
+                               "block_data": craftassist_specs.get_block_data(),
+                               "block_property_data": craftassist_specs.get_block_property_data(),
+                               "color_data": craftassist_specs.get_colour_data()}
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
         self.no_default_behavior = True
@@ -288,7 +294,7 @@ class FakeAgent(LocoMCAgent):
     def init_perception(self):
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
-        self.perception_modules["heuristic"] = PerceptionWrapper(self)
+        self.perception_modules["heuristic"] = PerceptionWrapper(self, low_level_data=self.low_level_data)
         self.on_demand_perception = {}
         self.on_demand_perception["check_inside"] = check_inside
 
@@ -312,16 +318,9 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         T = FakeMCTime(self.world)
-        agent_low_level_data = {"mobs": SPAWN_OBJECTS,
-                                "mob_property_data": craftassist_specs.get_mob_property_data(),
-                                "schematics": craftassist_specs.get_schematics(),
-                                "block_data": craftassist_specs.get_block_data(),
-                                "block_property_data": craftassist_specs.get_block_property_data(),
-                                "color_data": craftassist_specs.get_colour_data()
-                                }
         self.memory = MCAgentMemory(load_minecraft_specs=False,
                                     agent_time=T,
-                                    agent_low_level_data=agent_low_level_data)
+                                    agent_low_level_data=self.low_level_data)
         # Add dances to memory
         dance.add_default_dances(self.memory)
 
