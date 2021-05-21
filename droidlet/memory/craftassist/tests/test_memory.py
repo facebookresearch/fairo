@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 
+import droidlet.base_util
 import droidlet.perception.craftassist.shapes as shapes
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
@@ -33,8 +34,8 @@ class ObjectsTest(BaseCraftassistTestCase):
 class TriggersTests(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        self.cube_right = self.add_object(shapes.cube(bid=(42, 0)), (9, 63, 4))
-        self.cube_left = self.add_object(shapes.cube(), (9, 63, 10))
+        self.cube_right = self.add_object(droidlet.base_util.cube(bid=(42, 0)), (9, 63, 4))
+        self.cube_left = self.add_object(droidlet.base_util.cube(), (9, 63, 10))
         self.set_looking_at(list(self.cube_right.blocks.keys())[0])
 
     def test_workspace_cleared_on_object_delete(self):

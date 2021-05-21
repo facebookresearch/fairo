@@ -1,6 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import droidlet.base_util
+
 """This file has mappings from mob names to their ids and 
 names of shapes to their functions"""
 from typing import Dict, Callable
@@ -8,7 +10,7 @@ from droidlet.perception.craftassist import shapes
 
 # mapping from canonicalized shape names to the corresponding functions
 SPECIAL_SHAPE_FNS: Dict[str, Callable] = {
-    "CUBE": shapes.cube,
+    "CUBE": droidlet.base_util.cube,
     "HOLLOW_CUBE": shapes.hollow_cube,
     "RECTANGULOID": shapes.rectanguloid,
     "HOLLOW_RECTANGULOID": shapes.hollow_rectanguloid,

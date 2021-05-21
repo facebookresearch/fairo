@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
+
+import droidlet.base_util
 import droidlet.perception.craftassist.shapes as shapes
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
@@ -11,7 +13,7 @@ class GetMemoryTestCase(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         cube_triples = {"has_name": "cube", "has_shape": "cube"}
-        self.cube = self.add_object(shapes.cube(bid=(42, 0)), (9, 63, -2), relations=cube_triples)
+        self.cube = self.add_object(droidlet.base_util.cube(bid=(42, 0)), (9, 63, -2), relations=cube_triples)
         sphere_triples = {"has_name": "sphere", "has_shape": "sphere"}
         self.sphere = self.add_object(
             shapes.sphere(radius=1), (11, 64, 2), relations=sphere_triples
@@ -116,13 +118,13 @@ class GetMemoryCountAndSizeTest(BaseCraftassistTestCase):
         red_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "red"}
         blue_sphere_triples = {"has_name": "sphere", "has_shape": "sphere", "has_colour": "blue"}
         self.cube1 = self.add_object(
-            shapes.cube(size=2, bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
+            droidlet.base_util.cube(size=2, bid=(35, 14)), (19, 63, 14), relations=red_cube_triples
         )
         self.cube2 = self.add_object(
-            shapes.cube(size=2, bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
+            droidlet.base_util.cube(size=2, bid=(35, 14)), (15, 63, 15), relations=red_cube_triples
         )
         self.cube3 = self.add_object(
-            shapes.cube(size=3, bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
+            droidlet.base_util.cube(size=3, bid=(35, 11)), (14, 63, 19), relations=blue_cube_triples
         )
         self.sphere1 = self.add_object(
             shapes.sphere(bid=(35, 14), radius=2), (14, 63, 8), relations=red_sphere_triples
