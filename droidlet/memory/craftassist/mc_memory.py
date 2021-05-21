@@ -79,9 +79,9 @@ class MCAgentMemory(AgentMemory):
         self.dances = {}
         self.perception_range = preception_range
 
-    ########################
-    ### ReferenceObjects ###
-    ########################
+    ###########################
+    ### For Animate objects ###
+    ###########################
 
     def get_entity_by_eid(self, eid) -> Optional["ReferenceObjectNode"]:
         """Find the entity node using the entity id.
@@ -101,7 +101,7 @@ class MCAgentMemory(AgentMemory):
     # FIXME: move these to VoxelObjectNode
     # count updates are done by hand to not need to count all voxels every time
     # use these functions, don't add/delete/modify voxels with raw sql
-    def update_voxel_count(self, memid, dn):
+    def _update_voxel_count(self, memid, dn):
         """Update voxel count of a reference object with an amount
         equal to : dn"""
         c = self._db_read_one("SELECT voxel_count FROM ReferenceObjects WHERE uuid=?", memid)
@@ -112,7 +112,7 @@ class MCAgentMemory(AgentMemory):
         else:
             return None
 
-    def update_voxel_mean(self, memid, count, loc):
+    def _update_voxel_mean(self, memid, count, loc):
         """update the x, y, z entries in ReferenceObjects
         to account for the removal or addition of a block.
         count should be the number of voxels *after* addition if >0
@@ -152,9 +152,9 @@ class MCAgentMemory(AgentMemory):
             # TODO error/warning?
             return
         memid = memids[0]
-        c = self.update_voxel_count(memid, -1)
+        c = self._update_voxel_count(memid, -1)
         if c > 0:
-            self.update_voxel_mean(memid, c, (x, y, z))
+            self._update_voxel_mean(memid, c, (x, y, z))
         self.db_write(
             "DELETE FROM VoxelObjects WHERE x=? AND y=? AND z=? and ref_type=?", x, y, z, ref_type
         )
@@ -182,9 +182,9 @@ class MCAgentMemory(AgentMemory):
             ref_type,
         )
         # add to voxel count
-        new_count = self.update_voxel_count(memid, 1)
+        new_count = self._update_voxel_count(memid, 1)
         assert new_count
-        self.update_voxel_mean(memid, new_count, (x, y, z))
+        self._update_voxel_mean(memid, new_count, (x, y, z))
         if old_memid and update:
             if old_memid != memid:
                 self.remove_voxel(x, y, z, ref_type)
@@ -271,7 +271,7 @@ class MCAgentMemory(AgentMemory):
         """Get the Schematic type memory node using id"""
         return SchematicNode(self, memid)
 
-    def get_schematic_by_property_name(self, name, table_name) -> Optional["SchematicNode"]:
+    def _get_schematic_by_property_name(self, name, table_name) -> Optional["SchematicNode"]:
         """Get the Schematic type memory node using name"""
         r = self._db_read(
             """
@@ -304,7 +304,7 @@ class MCAgentMemory(AgentMemory):
 
     def get_mob_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
         """Get the Mob type memory node using name"""
-        return self.get_schematic_by_property_name(name, "MobTypes")
+        return self._get_schematic_by_property_name(name, "MobTypes")
 
     # TODO call this in get_schematic_by_property_name
     def get_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
@@ -321,7 +321,7 @@ class MCAgentMemory(AgentMemory):
         # if no schematic with exact matched name exists, search for a schematic
         # with matched property name instead
         else:
-            return self.get_schematic_by_property_name(name, "BlockTypes")
+            return self._get_schematic_by_property_name(name, "BlockTypes")
 
     def convert_block_object_to_schematic(self, block_object_memid: str) -> "SchematicNode":
         """Save a BlockObject as a Schematic node along with the link"""
