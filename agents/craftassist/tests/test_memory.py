@@ -5,7 +5,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
 import droidlet.base_util
-import droidlet.perception.craftassist.shapes as shapes
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.base_util import MOBS_BY_ID
 from droidlet.interpreter.craftassist import dance
