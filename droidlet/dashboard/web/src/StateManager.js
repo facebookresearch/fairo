@@ -102,7 +102,6 @@ class StateManager {
     });
 
     socket.on("connect", (msg) => {
-      console.log("test print");
       console.log("connect event");
       this.setConnected(true);
       this.socket.emit("get_memory_objects");

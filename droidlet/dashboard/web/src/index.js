@@ -26,8 +26,8 @@ import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
 import InteractApp from "./components/Interact/InteractApp";
 
-import {isMobile} from 'react-device-detect';
-import { mobileLayout } from './MobileIndex.js'
+import { isMobile } from "react-device-detect";
+import { mobileLayout } from "./MobileIndex.js";
 import "./index.css";
 
 if (isMobile) {
