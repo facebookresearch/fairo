@@ -20,6 +20,7 @@ import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
+import Timeline from "./components/Timeline";
 
 import "./index.css";
 
@@ -76,6 +77,12 @@ var config = {
                   props: { stateManager: stateManager },
                 },
                 {
+                  title: "Timeline",
+                  type: "react-component",
+                  component: "Timeline",
+                  props: { stateManager: stateManager },
+                },
+                {
                   title: "Program the assistant",
                   type: "react-component",
                   component: "TeachApp",
@@ -128,6 +135,7 @@ dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("TeachApp", TeachApp);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
 dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
+dashboardLayout.registerComponent("Timeline", Timeline);
 
 dashboardLayout.init();
 
