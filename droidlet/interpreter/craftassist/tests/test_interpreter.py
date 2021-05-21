@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 from typing import List
 
+import droidlet.base_util
 import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
 import droidlet.perception.craftassist.shapes as shapes
 from droidlet.shared_data_structs import NextDialogueStep
@@ -16,11 +17,11 @@ def add_two_cubes(test):
     triples = {"has_name": "cube", "has_shape": "cube"}
     test.cube_right: List[Block] = list(
         test.add_object(
-            xyzbms=shapes.cube(bid=(42, 0)), origin=(9, 63, 4), relations=triples
+            xyzbms=droidlet.base_util.cube(bid=(42, 0)), origin=(9, 63, 4), relations=triples
         ).blocks.items()
     )
     test.cube_left: List[Block] = list(
-        test.add_object(xyzbms=shapes.cube(), origin=(9, 63, 10), relations=triples).blocks.items()
+        test.add_object(xyzbms=droidlet.base_util.cube(), origin=(9, 63, 10), relations=triples).blocks.items()
     )
     test.set_looking_at(test.cube_right[0][0])
 
@@ -186,7 +187,7 @@ class ModifyTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         self.cube_right: List[Block] = list(
-            self.add_object(shapes.cube(bid=(42, 0)), (9, 63, 4)).blocks.items()
+            self.add_object(droidlet.base_util.cube(bid=(42, 0)), (9, 63, 4)).blocks.items()
         )
         self.set_looking_at(self.cube_right[0][0])
 

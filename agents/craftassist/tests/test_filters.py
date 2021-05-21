@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
 import droidlet.perception.craftassist.shapes as shapes
-from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
+from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.dialog.dialogue_stack import DialogueStack
 from droidlet.dialog.craftassist.dialogue_objects import DummyInterpreter
 import droidlet.interpreter.tests.all_test_commands

@@ -9,6 +9,8 @@ from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
 
+from droidlet.perception.craftassist.shapes import DEFAULT_IDM, rectanguloid
+
 """FIXME!!!! arrange utils properly, put things in one place"""
 XYZ = Tuple[int, int, int]
 # two points p0(x0, y0, z0), p1(x1, y1, z1) determine a 3d cube(point_at_target)
@@ -120,3 +122,9 @@ def npy_to_blocks_list(npy, origin=(0, 0, 0)):
                 xyz = tuple(np.array([rx, ry, rz]) + origin)
                 blocks.append((xyz, idm))
     return blocks
+
+
+def cube(size=3, bid=DEFAULT_IDM, labelme=False, **kwargs):
+    if type(size) not in (tuple, list):
+        size = (size, size, size)
+    return rectanguloid(size=size, bid=bid, labelme=labelme)
