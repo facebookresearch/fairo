@@ -44,20 +44,6 @@ class LocoAgentMemory(AgentMemory):
                 memid = mem.memid
             PlayerNode.update(self, p, memid)
 
-    ####################
-    ###  MarkerObjs  ###
-    ####################
-
-    def get_markers_tagged(self, *tags) -> List["MarkerObjectNode"]:
-        # tags += ("_marker_obj",)
-        memids = set.intersection(*[set(self.get_memids_by_tag(t)) for t in tags])
-        logging.info("get_markers_tagged {}, tags {}".format(memids, tags))
-        return [self.get_marker_by_id(memid) for memid in memids]
-
-    def get_marker_by_id(self, memid) -> "MarkerObjectNode":
-        logging.info("get_marker_by_id {}".format(memid))
-        return MarkerObjectNode(self, memid)
-
     ######################
     ###  DetectedObjs  ###
     ######################
