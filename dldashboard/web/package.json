@@ -20,6 +20,7 @@
     "react": "^16.13.1",
     "react-code-blocks": "^0.0.8",
     "react-console-emulator": "^4.0.1",
+    "react-device-detect": "^1.17.0",
     "react-dom": "^16.13.1",
     "react-konva": "^16.13.0-3",
     "react-rnd": "^10.1.10",

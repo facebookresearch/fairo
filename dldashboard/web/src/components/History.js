@@ -25,6 +25,10 @@ class History extends React.Component {
   }
 
   componentDidMount() {
+    console.log("history props");
+    console.log(this.props);
+    console.log("this.props.stateManager");
+    console.log(this.props.stateManager);
     if (this.props.stateManager) this.props.stateManager.connect(this);
   }
 

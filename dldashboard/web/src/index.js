@@ -20,115 +20,174 @@ import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
+import LiveImage from "./components/LiveImage";
+import LiveObjects from "./components/LiveObjects";
+import LiveHumans from "./components/LiveHumans";
+import InteractApp from "./components/Interact/InteractApp";
+
+import {isMobile} from 'react-device-detect';
 
 import "./index.css";
 
 window.React = React;
 window.ReactDOM = ReactDOM;
 
-var config = {
-  settings: {
-    showPopoutIcon: false,
-  },
-  content: [
-    {
-      type: "row",
-      content: [
-        {
-          title: "Live Viewer",
-          type: "react-component",
-          component: "MainPane",
-          props: { stateManager: stateManager },
-        },
-        {
-          type: "column",
-          content: [
-            {
-              type: "stack",
-              content: [
-                {
-                  title: "Memory 2D",
-                  type: "react-component",
-                  component: "Memory2D",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Memory List",
-                  type: "react-component",
-                  component: "MemoryList",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Console",
-                  type: "react-component",
-                  component: "Console",
-                },
-                {
-                  title: "Chat History",
-                  type: "react-component",
-                  component: "History",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Query the Semantic Parser",
-                  type: "react-component",
-                  component: "QuerySemanticParser",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Program the assistant",
-                  type: "react-component",
-                  component: "TeachApp",
-                  props: {
-                    stateManager: stateManager,
-                  },
-                },
-              ],
-            },
-            {
-              type: "stack",
-              content: [
-                {
-                  title: "Settings",
-                  type: "react-component",
-                  component: "Settings",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Navigator",
-                  type: "react-component",
-                  component: "Navigator",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Object Annotation Fixer",
-                  type: "react-component",
-                  component: "ObjectFixup",
-                  props: { stateManager: stateManager },
-                },
-              ],
-            },
-          ],
-        },
-      ],
+if (isMobile) {
+  console.log('we are mobile');
+  console.log('is mobile statemanager');
+  console.log(stateManager);
+  var config = {
+    settings: {
+      showPopoutIcon: false,
     },
-  ],
-};
-
-var dashboardLayout = new GoldenLayout(config);
-
-dashboardLayout.registerComponent("MainPane", MainPane);
-dashboardLayout.registerComponent("Console", Console);
-dashboardLayout.registerComponent("Settings", Settings);
-dashboardLayout.registerComponent("Navigator", Navigator);
-dashboardLayout.registerComponent("Memory2D", Memory2D);
-dashboardLayout.registerComponent("MemoryList", MemoryList);
-dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
-dashboardLayout.registerComponent("History", History);
-dashboardLayout.registerComponent("TeachApp", TeachApp);
-dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
-dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
-
-dashboardLayout.init();
-
-stateManager.dashboardLayout = dashboardLayout;
+    content: [
+      {
+        type: "column",
+        content: [
+          {
+            type: "row",
+            content: [
+              {
+                title: "rgb",
+                type: "react-component",
+                component: "rgb",
+                props: { 
+                  stateManager: stateManager,
+                  type:"rgb",
+                  height: 320,
+                  width: 320,
+                  offsetH: 0,
+                  offsetW: 0,
+                },
+              },
+              {
+                title: "Memory 2D",
+                type: "react-component",
+                component: "Memory2D",
+                props: { stateManager: stateManager },
+              },
+            ],
+          },
+          {
+            title: "InteractApp",
+            type: "react-component",
+            component: "InteractApp",
+            props: { stateManager: stateManager },
+          }
+        ]
+      },
+    ],
+  };
+  
+  var dashboardLayout = new GoldenLayout(config);
+  dashboardLayout.registerComponent("rgb", LiveImage);
+  dashboardLayout.registerComponent("Memory2D", Memory2D);
+  dashboardLayout.registerComponent("InteractApp", InteractApp);
+  dashboardLayout.init();
+  stateManager.dashboardLayout = dashboardLayout;
+} else {
+  console.log('we are not mobile');
+  var config = {
+    settings: {
+      showPopoutIcon: false,
+    },
+    content: [
+      {
+        type: "row",
+        content: [
+          {
+            title: "Live Viewer",
+            type: "react-component",
+            component: "MainPane",
+            props: { stateManager: stateManager },
+          },
+          {
+            type: "column",
+            content: [
+              {
+                type: "stack",
+                content: [
+                  {
+                    title: "Memory 2D",
+                    type: "react-component",
+                    component: "Memory2D",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Memory List",
+                    type: "react-component",
+                    component: "MemoryList",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Console",
+                    type: "react-component",
+                    component: "Console",
+                  },
+                  {
+                    title: "Chat History",
+                    type: "react-component",
+                    component: "History",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Query the Semantic Parser",
+                    type: "react-component",
+                    component: "QuerySemanticParser",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Program the assistant",
+                    type: "react-component",
+                    component: "TeachApp",
+                    props: {
+                      stateManager: stateManager,
+                    },
+                  },
+                ],
+              },
+              {
+                type: "stack",
+                content: [
+                  {
+                    title: "Settings",
+                    type: "react-component",
+                    component: "Settings",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Navigator",
+                    type: "react-component",
+                    component: "Navigator",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Object Annotation Fixer",
+                    type: "react-component",
+                    component: "ObjectFixup",
+                    props: { stateManager: stateManager },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  
+  var dashboardLayout = new GoldenLayout(config);
+  dashboardLayout.registerComponent("MainPane", MainPane);
+  dashboardLayout.registerComponent("Console", Console);
+  dashboardLayout.registerComponent("Settings", Settings);
+  dashboardLayout.registerComponent("Navigator", Navigator);
+  dashboardLayout.registerComponent("Memory2D", Memory2D);
+  dashboardLayout.registerComponent("MemoryList", MemoryList);
+  dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
+  dashboardLayout.registerComponent("History", History);
+  dashboardLayout.registerComponent("TeachApp", TeachApp);
+  dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
+  dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
+  dashboardLayout.init();
+  stateManager.dashboardLayout = dashboardLayout;
+}
