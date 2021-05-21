@@ -23,7 +23,7 @@ class BasicTest(unittest.TestCase):
         self.time = IncrementTime()
 
     def test_get_recent_entities(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         joe_memid = PlayerNode.create(self.memory, Player(10, "joe", Pos(1, 0, 1), Look(0, 0)))
         players= self.memory.get_recent_entities(memtype='Player')
         assert len(players) == 1
@@ -33,7 +33,7 @@ class BasicTest(unittest.TestCase):
 
 
     def test_get_node_from_memid(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         joe_memid = PlayerNode.create(self.memory, Player(10, "joe", Pos(1, 0, 1), Look(0, 0)))
         assert self.memory.get_node_from_memid(joe_memid) == "Player"
         loc_memid = LocationNode.create(self.memory, (0, 0, 0))
@@ -58,19 +58,19 @@ class BasicTest(unittest.TestCase):
         assert self.memory.get_time_by_id(time_memid).time[0] == 10
 
     def test_get_mem_by_id(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         kavya_memid = PlayerNode.create(self.memory, Player(10, "kavya", Pos(1, 0, 1), Look(0, 0)))
         assert self.memory.get_mem_by_id(kavya_memid).NODE_TYPE == "Player"
 
     def test_check_memid_exists(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         chat_memid = ChatNode.create(self.memory, speaker="dfghjk123445", chat="hi there!")
         loc_memid = LocationNode.create(self.memory, (0, 2, 0))
         assert self.memory.check_memid_exists(chat_memid, 'Chats') == True
         assert self.memory.check_memid_exists(loc_memid, 'ReferenceObjects') == True
 
     def test_forget(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         chat_memid = ChatNode.create(self.memory, speaker="dfghjk123445", chat="hi there!")
         self.memory.forget(chat_memid)
         loc_memid = LocationNode.create(self.memory, (0, 2, 0))
@@ -78,7 +78,7 @@ class BasicTest(unittest.TestCase):
         assert self.memory.check_memid_exists(loc_memid, 'ReferenceObjects') == True
 
     def test_forget_by_query(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         chat_memid = ChatNode.create(self.memory, speaker="dfghjk123445", chat="hellooooo!")
         assert self.memory.check_memid_exists(chat_memid, 'Chats') == True
         query = "SELECT uuid from Chats where chat = 'hellooooo!'"
@@ -87,7 +87,7 @@ class BasicTest(unittest.TestCase):
 
 
     def test_add_triple(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         sheep_memid = NamedAbstractionNode.create(self.memory, "sheep")
         fluff_memid = NamedAbstractionNode.create(self.memory, "fluffy")
 
@@ -98,7 +98,7 @@ class BasicTest(unittest.TestCase):
 
 
     def test_tag(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         sheep_memid = NamedAbstractionNode.create(self.memory, "sheep")
         loc_memid = LocationNode.create(self.memory, (1, 2, 3))
 
@@ -111,7 +111,7 @@ class BasicTest(unittest.TestCase):
 
 
     def test_untag(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         player_memid = PlayerNode.create(self.memory, Player(10, "rachel", Pos(1, 0, 1), Look(0, 0)))
 
         self.memory.tag(subj_memid=player_memid, tag_text="girl")
@@ -121,7 +121,7 @@ class BasicTest(unittest.TestCase):
         assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 0
 
     def test_memids_and_tags(self):
-        self.memory = AgentMemory(agent_time=self.time)
+        self.memory = AgentMemory()
         player_memid = PlayerNode.create(self.memory, Player(10, "rache", Pos(1, 0, 1), Look(0, 0)))
 
         self.memory.tag(subj_memid=player_memid, tag_text="girl")
@@ -155,7 +155,6 @@ class BasicTest(unittest.TestCase):
         self.memory.forget(chat_memid)
         assert self.memory.get_most_recent_incoming_chat().chat_text == "are you around"
 
-
     def test_player_apis_memory(self):
         self.memory = AgentMemory()
         joe_memid = PlayerNode.create(self.memory, Player(10, "joey", Pos(1, 0, 1), Look(0, 0)))
@@ -175,7 +174,6 @@ class BasicTest(unittest.TestCase):
         assert self.memory.get_player_by_id(ann_memid).name == "ann"
 
 
-        # Test
     def test_triggers(self):
         self.memory = AgentMemory(agent_time=self.time)
         joe_memid = PlayerNode.create(self.memory, Player(10, "joe", Pos(1, 0, 1), Look(0, 0)))
