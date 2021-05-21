@@ -315,12 +315,6 @@ def hollow_rectanguloid(size=3, thickness=1, bid=DEFAULT_IDM, labelme=False, **k
         return S, L, insts
 
 
-def cube(size=3, bid=DEFAULT_IDM, labelme=False, **kwargs):
-    if type(size) not in (tuple, list):
-        size = (size, size, size)
-    return rectanguloid(size=size, bid=bid, labelme=labelme)
-
-
 def hollow_cube(size=3, thickness=1, bid=DEFAULT_IDM, labelme=False, **kwargs):
     return hollow_rectanguloid(
         size=(size, size, size), thickness=thickness, bid=bid, labelme=labelme
