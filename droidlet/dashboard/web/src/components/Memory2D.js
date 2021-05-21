@@ -20,6 +20,7 @@ const DEFAULT_SPACING = 12;
 class Memory2D extends React.Component {
   constructor(props) {
     super(props);
+    const { height, width } = this.props;
     this.initialState = {
       height: 400,
       width: 600,

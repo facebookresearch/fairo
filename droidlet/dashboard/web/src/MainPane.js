@@ -20,6 +20,8 @@ class MainPane extends React.Component {
 
   render() {
     const stateManager = this.props.stateManager;
+    console.log("main pane state manager");
+    console.log(stateManager);
 
     return (
       <div>
