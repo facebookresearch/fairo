@@ -4,6 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 import time
+
+import droidlet.base_util
 import droidlet.perception.craftassist.shapes as shapes
 from droidlet.dialog.dialogue_objects import AwaitResponse
 from droidlet.interpreter.tests.all_test_commands import *
@@ -15,7 +17,7 @@ class UndoTest(BaseCraftassistTestCase):
         tag = "fluffy"
 
         # Build something
-        obj = self.add_object(shapes.cube(bid=(41, 0)), (0, 63, 0))
+        obj = self.add_object(droidlet.base_util.cube(bid=(41, 0)), (0, 63, 0))
         self.set_looking_at(list(obj.blocks.keys())[0])
 
         # Tag it
