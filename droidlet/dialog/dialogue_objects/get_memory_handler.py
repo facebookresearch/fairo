@@ -6,7 +6,7 @@ from typing import Dict, Tuple, Any, Optional, Sequence
 
 from . import DialogueObject
 from ...shared_data_structs import ErrorWithResponse
-from droidlet.memory.memory_nodes import MemoryNode
+from droidlet.memory.memory_nodes import MemoryNode, TaskNode
 from copy import deepcopy
 import logging
 from .filter_helper import get_val_map
@@ -125,9 +125,11 @@ class GetMemoryHandler(DialogueObject):
                 attrib = output_type["attribute"]
                 if type(attrib) is str and attrib.lower() == "location":
                     # add a Point task if attribute is a location
-                    target = self.subinterpret["point_target"].point_to_region(vals[0])
-                    t = self.task_objects["point"](self.agent, {"target": target})
-                    self.append_new_task(t)
+                    if self.subinterpret.get("point_target") and self.task_objects.get("point"):
+                        target = self.subinterpret["point_target"].point_to_region(vals[0])
+                        t = self.task_objects["point"](self.agent, {"target": target})
+                        # FIXME? higher pri, make sure this runs now...?
+                        task_mem = TaskNode(self.memory, t.memid)
                 return str(vals[0]), None
             elif type(output_type) is str and output_type.lower() == "memory":
                 return self.handle_exists(mems)

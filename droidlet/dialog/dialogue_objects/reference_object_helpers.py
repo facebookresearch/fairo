@@ -166,7 +166,8 @@ def interpret_reference_object(
             _, mem = objects[0]
             interpreter.provisional["object_mem"] = mem
             interpreter.provisional["filters_d"] = filters_d
-            interpreter.dialogue_stack.append_new(ConfirmReferenceObject, mem)
+            # FIXME agent
+            interpreter.dialogue_stack.append_new(interpreter.agent, ConfirmReferenceObject, mem)
             raise NextDialogueStep()
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
