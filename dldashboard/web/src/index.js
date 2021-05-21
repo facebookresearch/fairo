@@ -20,19 +20,16 @@ import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
-import LiveImage from "./components/LiveImage";
-import LiveObjects from "./components/LiveObjects";
-import LiveHumans from "./components/LiveHumans";
-import InteractApp from "./components/Interact/InteractApp";
 
-import {isMobile} from 'react-device-detect';
-import { mobileLayout } from './MobileIndex.js'
+import { isMobile } from "react-device-detect";
+import { mobileLayout } from "./MobileIndex.js";
 import "./index.css";
 
 if (isMobile) {
   mobileLayout();
 } else {
-  console.log('we are not mobile');
+  window.React = React;
+  window.ReactDOM = ReactDOM;
   var config = {
     settings: {
       showPopoutIcon: false,
@@ -121,7 +118,7 @@ if (isMobile) {
       },
     ],
   };
-  
+
   var dashboardLayout = new GoldenLayout(config);
   dashboardLayout.registerComponent("MainPane", MainPane);
   dashboardLayout.registerComponent("Console", Console);

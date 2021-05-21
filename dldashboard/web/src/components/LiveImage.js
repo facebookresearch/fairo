@@ -7,7 +7,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { Rnd } from "react-rnd";
 import { Stage, Layer, Image as KImage } from "react-konva";
-import stateManager from "../StateManager";
 
 class LiveImage extends React.Component {
   constructor(props) {
