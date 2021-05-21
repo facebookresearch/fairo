@@ -25,6 +25,7 @@ import { isMobile } from "react-device-detect";
 import { mobileLayout } from "./MobileIndex.js";
 import "./index.css";
 
+console.log("test print");
 if (isMobile) {
   mobileLayout();
 } else {
