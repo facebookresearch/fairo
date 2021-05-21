@@ -7,8 +7,7 @@ import numpy as np
 import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
-from droidlet.lowlevel.minecraft.mc_util import XYZ, LOOK, POINT_AT_TARGET, IDM, Block
-from droidlet.lowlevel.minecraft.entities import MOBS_BY_ID
+from droidlet.base_util import XYZ, POINT_AT_TARGET, IDM, Block, MOBS_BY_ID, Look
 from droidlet.memory.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
 
 
@@ -375,7 +374,7 @@ class MobNode(ReferenceObjectNode):
         self.pos = (x, y, z)
         return self.pos
 
-    def get_look(self) -> LOOK:
+    def get_look(self) -> Look:
         yaw, pitch = self.agent_memory._db_read_one(
             "SELECT yaw, pitch FROM ReferenceObjects WHERE uuid=?", self.memid
         )
