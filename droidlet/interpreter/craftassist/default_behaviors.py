@@ -45,8 +45,11 @@ def build_random_shape(agent, rand_range=(10, 0, 10), no_chat=False):
 
     if not no_chat:
         shape_name = prepend_a_an(shape.lower())
-        agent.dialogue_manager.dialogue_stack.append_new(
-            Say, "I am building {} while you decide what you want me to do!".format(shape_name)
+        # FIXME agent , also don't push directly to stack, ask the manager?
+        agent.memory.dialogue_stack.append_new(
+            agent,
+            Say,
+            "I am building {} while you decide what you want me to do!".format(shape_name),
         )
     return schematic
 

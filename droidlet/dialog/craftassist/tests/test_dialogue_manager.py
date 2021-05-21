@@ -6,15 +6,23 @@ import unittest
 import logging
 
 from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.fake_agent import MockOpt
 
+# FIXME agent this test needs to move to the interpreter folder after
+# dialogue_manager is properly split between agent and intepreter
+
 
 class AttributeDict(dict):
     __getattr__ = dict.__getitem__
     __setattr__ = dict.__setitem__
+
+
+class FakeMemory:
+    pass
 
 
 class FakeAgent(LocoMCAgent):
@@ -23,7 +31,10 @@ class FakeAgent(LocoMCAgent):
         self.opts = opts
 
     def init_memory(self):
-        self.memory = "memory"
+        m = FakeMemory()
+        stack = DialogueStack(m)
+        m.dialogue_stack = stack
+        self.memory = m
 
     def init_physical_interfaces(self):
         pass
@@ -37,7 +48,7 @@ class FakeAgent(LocoMCAgent):
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts
+            opts=self.opts,
         )
 
 
@@ -54,9 +65,15 @@ locobot_commands = list(GROUND_TRUTH_PARSES) + [
     "topple the pile of notebooks",
 ]
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/")
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/")
+TTAD_MODEL_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/"
+)
+TTAD_BERT_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"
+)
+GROUND_TRUTH_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/"
+)
 
 
 class TestDialogueManager(unittest.TestCase):
@@ -88,8 +105,8 @@ class TestDialogueManager(unittest.TestCase):
 
     def test_validate_bad_json(self):
         # Don't print debug info on failure since it will be misleading
-        is_valid_json = (
-            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(parse_tree={}, debug=False)
+        is_valid_json = self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
+            parse_tree={}, debug=False
         )
         self.assertFalse(is_valid_json)
 
@@ -108,10 +125,8 @@ class TestDialogueManager(unittest.TestCase):
                 }
             ],
         }
-        is_valid_json = (
-            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
-                action_dict
-            )
+        is_valid_json = self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
+            action_dict
         )
         self.assertTrue(is_valid_json)
 
@@ -135,10 +150,8 @@ class TestDialogueManager(unittest.TestCase):
                 }
             ],
         }
-        is_valid_json = (
-            self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
-                action_dict
-            )
+        is_valid_json = self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
+            action_dict
         )
         self.assertTrue(is_valid_json)
 

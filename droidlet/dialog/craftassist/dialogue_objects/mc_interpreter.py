@@ -123,13 +123,17 @@ class MCInterpreter(Interpreter):
             if m_d["modify_type"] == "THINNER" or m_d["modify_type"] == "THICKER":
                 destroy_task_data, build_task_data = handle_thicken(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "REPLACE":
-                destroy_task_data, build_task_data = handle_replace(self, speaker, m_d, obj, block_data=self.block_data)
+                destroy_task_data, build_task_data = handle_replace(
+                    self, speaker, m_d, obj, block_data=self.block_data
+                )
             elif m_d["modify_type"] == "SCALE":
                 destroy_task_data, build_task_data = handle_scale(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "RIGIDMOTION":
                 destroy_task_data, build_task_data = handle_rigidmotion(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "FILL" or m_d["modify_type"] == "HOLLOW":
-                destroy_task_data, build_task_data = handle_fill(self, speaker, m_d, obj, block_data=self.block_data)
+                destroy_task_data, build_task_data = handle_fill(
+                    self, speaker, m_d, obj, block_data=self.block_data
+                )
             else:
                 raise ErrorWithResponse(
                     "I think you want me to modify an object but am not sure what to do (parse error)"
@@ -215,7 +219,9 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data)
+            interprets = interpret_schematic(
+                self, speaker, d.get("schematic", {}), self.block_data
+            )
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
@@ -278,9 +284,11 @@ class MCInterpreter(Interpreter):
         holes = heuristic_perception.get_all_nearby_holes(self.agent, location, self.block_data)
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
+
         if holes is None:
+            # FIXME: in stage III, replace agent with the lowlevel interface to sending chats
             self.dialogue_stack.append_new(
-                Say, "I don't understand what holes you want me to fill."
+                self.agent, Say, "I don't understand what holes you want me to fill."
             )
             return None, None, None
         tasks = []
@@ -312,9 +320,9 @@ class MCInterpreter(Interpreter):
             tasks.append(self.task_objects["build"](self.agent, task_data))
 
         if len(holes) > 1:
-            self.dialogue_stack.append_new(Say, "Ok. I'll fill up the holes.")
+            self.dialogue_stack.append_new(self.agent, Say, "Ok. I'll fill up the holes.")
         else:
-            self.dialogue_stack.append_new(Say, "Ok. I'll fill that hole up.")
+            self.dialogue_stack.append_new(self.agent, Say, "Ok. I'll fill that hole up.")
 
         return maybe_task_list_to_control_block(tasks, self.agent), None, None
 
