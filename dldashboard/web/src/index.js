@@ -26,65 +26,11 @@ import LiveHumans from "./components/LiveHumans";
 import InteractApp from "./components/Interact/InteractApp";
 
 import {isMobile} from 'react-device-detect';
-
+import { mobileLayout } from './MobileIndex.js'
 import "./index.css";
 
-window.React = React;
-window.ReactDOM = ReactDOM;
-
 if (isMobile) {
-  console.log('we are mobile');
-  console.log('is mobile statemanager');
-  console.log(stateManager);
-  var config = {
-    settings: {
-      showPopoutIcon: false,
-    },
-    content: [
-      {
-        type: "column",
-        content: [
-          {
-            type: "row",
-            content: [
-              {
-                title: "rgb",
-                type: "react-component",
-                component: "rgb",
-                props: { 
-                  stateManager: stateManager,
-                  type:"rgb",
-                  height: 320,
-                  width: 320,
-                  offsetH: 0,
-                  offsetW: 0,
-                },
-              },
-              {
-                title: "Memory 2D",
-                type: "react-component",
-                component: "Memory2D",
-                props: { stateManager: stateManager },
-              },
-            ],
-          },
-          {
-            title: "InteractApp",
-            type: "react-component",
-            component: "InteractApp",
-            props: { stateManager: stateManager },
-          }
-        ]
-      },
-    ],
-  };
-  
-  var dashboardLayout = new GoldenLayout(config);
-  dashboardLayout.registerComponent("rgb", LiveImage);
-  dashboardLayout.registerComponent("Memory2D", Memory2D);
-  dashboardLayout.registerComponent("InteractApp", InteractApp);
-  dashboardLayout.init();
-  stateManager.dashboardLayout = dashboardLayout;
+  mobileLayout();
 } else {
   console.log('we are not mobile');
   var config = {
