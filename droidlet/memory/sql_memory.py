@@ -15,6 +15,7 @@ from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Task, Time
 from droidlet.memory.memory_filters import BasicMemorySearcher
+from .dialogue_stack import DialogueStack
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -87,6 +88,7 @@ class AgentMemory:
         if os.path.isfile(db_file):
             os.remove(db_file)
         self.db = sqlite3.connect(db_file, check_same_thread=False)
+        self.dialogue_stack = DialogueStack(self)
         self.task_db = {}
         self._safe_pickle_saved_attrs = {}
 

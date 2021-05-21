@@ -6,6 +6,7 @@ import unittest
 import json
 
 from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from agents.craftassist.tests.fake_agent import MockOpt
@@ -17,13 +18,20 @@ class AttributeDict(dict):
     __setattr__ = dict.__setitem__
 
 
+class FakeMemory:
+    pass
+
+
 class FakeAgent(LocoMCAgent):
     def __init__(self, opts):
         super(FakeAgent, self).__init__(opts)
         self.opts = opts
 
     def init_memory(self):
-        self.memory = "memory"
+        m = FakeMemory()
+        stack = DialogueStack(m)
+        m.dialogue_stack = stack
+        self.memory = m
 
     def init_physical_interfaces(self):
         pass
@@ -37,7 +45,7 @@ class FakeAgent(LocoMCAgent):
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts
+            opts=self.opts,
         )
 
 
@@ -828,9 +836,15 @@ common_functional_commands = {
     },
 }
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/")
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/")
+TTAD_MODEL_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/"
+)
+TTAD_BERT_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"
+)
+GROUND_TRUTH_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/"
+)
 
 
 def remove_key_text_span(dictionary):

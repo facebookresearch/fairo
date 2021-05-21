@@ -48,6 +48,7 @@ class DialogueObject(object):
 
     """
 
+    # FIXME agent remove agent, memory, stack from init, pass in step
     def __init__(self, agent, memory, dialogue_stack, max_steps=50):
         self.agent = agent
         self.memory = memory
@@ -79,16 +80,6 @@ class DialogueObject(object):
             logging.error("Stepped {} {} times, finishing".format(self, self.max_steps))
             self.finished = True
         return self.finished
-
-    def append_new_task(self, cls, data=None):
-        # this is badly named, FIXME
-        # add a tick to avoid two tasks having same timestamp
-        self.memory.add_tick()
-        if data is None:
-            self.memory.task_stack_push(cls, chat_effect=True)
-        else:
-            task = cls(self.agent, data)
-            self.memory.task_stack_push(task, chat_effect=True)
 
     def __repr__(self):
         return str(type(self))
@@ -251,8 +242,8 @@ class ConfirmTask(DialogueObject):
         """Ask a confirmation question and wait for response."""
         # Step 1: ask the question
         if not self.asked:
-            self.dialogue_stack.append_new(AwaitResponse)
-            self.dialogue_stack.append_new(Say, self.question)
+            self.dialogue_stack.append_new(self.agent, AwaitResponse)
+            self.dialogue_stack.append_new(self.agent, Say, self.question)
             self.asked = True
             return "", None
 
@@ -266,7 +257,7 @@ class ConfirmTask(DialogueObject):
             response_str = "UNK"
         if response_str in MAP_YES:
             for task in self.tasks:
-                mem = TaskNode(self.agent.memory, task.memid)
+                mem = TaskNode(self.memory, task.memid)
                 mem.get_update_status({"prio": 1, "running": 1})
         return None, None
 
@@ -296,12 +287,12 @@ class ConfirmReferenceObject(DialogueObject):
     def step(self):
         """Confirm the block object by pointing and wait for answer."""
         if not self.asked:
-            self.dialogue_stack.append_new(Say, "do you mean this?")
+            self.dialogue_stack.append_new(self.agent, Say, "do you mean this?")
             self.asked = True
             return "", None
         if not self.pointed:
             self.agent.point_at(self.bounds)
-            self.dialogue_stack.append_new(AwaitResponse)
+            self.dialogue_stack.append_new(self.agent, AwaitResponse)
             self.pointed = True
             return "", None
         self.finished = True

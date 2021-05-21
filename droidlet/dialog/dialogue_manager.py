@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from typing import Tuple, Optional
-from .dialogue_stack import DialogueStack
 from droidlet.dialog.dialogue_objects import DialogueObject
 
 
@@ -39,7 +38,8 @@ class DialogueManager(object):
 
     def __init__(self, agent, dialogue_object_classes, semantic_parsing_model_wrapper, opts):
         self.agent = agent
-        self.dialogue_stack = DialogueStack(agent, agent.memory)
+        # FIXME in stage III; need a sensible interface for this
+        self.dialogue_stack = agent.memory.dialogue_stack
         self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
             agent=self.agent,
             dialogue_object_classes=dialogue_object_classes,
@@ -90,4 +90,4 @@ class DialogueManager(object):
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.dialogue_stack) > 0:
-            self.dialogue_stack.step()
+            self.dialogue_stack.step(self.agent)

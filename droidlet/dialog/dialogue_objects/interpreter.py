@@ -145,7 +145,9 @@ class Interpreter(DialogueObject):
         undo_command = old_task.get_chat().chat_text
 
         logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
+        # FIXME agent
         self.dialogue_stack.append_new(
+            self.agent,
             ConfirmTask,
             'Do you want me to undo the command: "{}" ?'.format(undo_command),
             undo_tasks,

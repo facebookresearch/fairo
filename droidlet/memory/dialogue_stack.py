@@ -9,8 +9,7 @@ from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 class DialogueStack(object):
     """This class organizes and steps DialogueObjects."""
 
-    def __init__(self, agent, memory):
-        self.agent = agent
+    def __init__(self, memory):
         self.memory = memory
         self.stack = []
 
@@ -34,13 +33,14 @@ class DialogueStack(object):
         """Append a dialogue_object to stack"""
         self.stack.append(dialogue_object)
 
-    def append_new(self, cls, *args, **kwargs):
+    def append_new(self, agent, cls, *args, **kwargs):
         """Construct a new DialogueObject and append to stack"""
         self.stack.append(
-            cls(agent=self.agent, memory=self.memory, dialogue_stack=self, *args, **kwargs)
+            cls(agent=agent, memory=self.memory, dialogue_stack=self, *args, **kwargs)
         )
 
-    def step(self):
+    # FIXME: in stage III, replace agent with the lowlevel interface to sending chats
+    def step(self, agent):
         """Process and step through the top-of-stack dialogue object."""
         if len(self.stack) > 0:
             # WARNING: check_finished increments the DialogueObject's current_step counter
@@ -53,7 +53,7 @@ class DialogueStack(object):
             try:
                 output_chat, step_data = self.stack[-1].step()
                 if output_chat:
-                    self.agent.send_chat(output_chat)
+                    agent.send_chat(output_chat)
 
                 # Update progeny_data of the current DialogueObject
                 if len(self.stack) > 1 and step_data is not None:
@@ -64,7 +64,7 @@ class DialogueStack(object):
                 return
             except ErrorWithResponse as err:
                 self.stack[-1].finished = True
-                self.agent.send_chat(err.chat)
+                agent.send_chat(err.chat)
                 return
 
     def __len__(self):
