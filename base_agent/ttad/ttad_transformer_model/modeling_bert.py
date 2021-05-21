@@ -511,10 +511,12 @@ class BertEncoder(nn.Module):
         # Init layers
         self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
         # single expert layer for now
-        self.expert_layer = BertLayer(config)
+        self.expert_layer_0 = BertLayer(config)
+        self.expert_layer_1 = BertLayer(config)
 
     def forward(
         self,
+        labels,
         hidden_states,
         attention_mask=None,
         head_mask=None,
@@ -540,10 +542,10 @@ class BertEncoder(nn.Module):
 
             layer_head_mask = head_mask[i] if head_mask is not None else None
             past_key_value = past_key_values[i] if past_key_values is not None else None
-            # import ipdb; ipdb.set_trace()
 
             if i == 5:
-                layer_outputs = self.expert_layer(
+                # For token 6
+                layer_outputs_0 = self.expert_layer_0(
                     hidden_states,
                     attention_mask,
                     layer_head_mask,
@@ -551,7 +553,19 @@ class BertEncoder(nn.Module):
                     encoder_attention_mask,
                     past_key_value,
                     output_attentions,
-                )
+                )[0]
+                # Mask the outputs for token 6
+                mask_token_6 = torch.where(labels == 6, 1, 0)
+                layer_outputs_1 = self.expert_layer_1(
+                    hidden_states,
+                    attention_mask,
+                    layer_head_mask,
+                    encoder_hidden_states,
+                    encoder_attention_mask,
+                    past_key_value,
+                    output_attentions,
+                )[0]
+                mask_token_23 = torch.where(labels == 23, 1, 0)
 
             elif getattr(self.config, "gradient_checkpointing", False) and self.training:
 
@@ -597,7 +611,7 @@ class BertEncoder(nn.Module):
 
         if output_hidden_states:
             all_hidden_states = all_hidden_states + (hidden_states,)
-
+        
         if not return_dict:
             return tuple(
                 v
@@ -874,6 +888,7 @@ class BertModel(BertPreTrainedModel):
     (BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
     def forward(
         self,
+        labels,
         input_ids=None,
         attention_mask=None,
         token_type_ids=None,
@@ -970,6 +985,7 @@ class BertModel(BertPreTrainedModel):
             past_key_values_length=past_key_values_length,
         )
         encoder_outputs = self.encoder(
+            input_ids,
             embedding_output,
             attention_mask=extended_attention_mask,
             head_mask=head_mask,
