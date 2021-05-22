@@ -38,14 +38,14 @@ class BasicTest(unittest.TestCase):
 
     def test_detected_object_apis(self):
         self.memory = LocoAgentMemory()
-        d = DetectedObjectNode.create(self.memory, DO(
+        d = DO(
                   eid=33,
                   label="smaug",
-                  properties = ["red_golden", "dragon", "lonely_mountain"],
-                  color= "mauve",
-                  xyz = [-0.4, -0.08, 0.0],
-                  bounds = [0, 0, 0, 0, 0, 0]
-              ))
+                  properties=["red_golden", "dragon", "lonely_mountain"],
+                  color="mauve",
+                  xyz=[-0.4, -0.08, 0.0],
+                  bounds=[0, 0, 0, 0, 0, 0]
+            )
 
         detected_object_mem_id = DetectedObjectNode.create(self.memory, d)
         # test get_detected_objects_tagged
