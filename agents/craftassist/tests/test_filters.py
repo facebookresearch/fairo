@@ -3,8 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 
-import droidlet.perception.craftassist.shapes as shapes
-from base_craftassist_test_case import BaseCraftassistTestCase
+from droidlet.base_util import cube
+from .base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.dialog.dialogue_stack import DialogueStack
 from droidlet.dialog.craftassist.dialogue_objects import DummyInterpreter
 import droidlet.interpreter.tests.all_test_commands
@@ -22,7 +22,7 @@ def add_many_objects(test):
         list(
             test.agent.add_object_ff_time(
                 cd[3],
-                xyzbms=shapes.cube(size=cd[1], bid=cd[2]),
+                xyzbms=cube(size=cd[1], bid=cd[2]),
                 origin=cd[0],
                 relations=cube_triples,
             ).blocks.items()
