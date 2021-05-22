@@ -63,17 +63,17 @@ class CraftAssistAgent(LocoMCAgent):
     coordinate_transforms = rotation
 
     def __init__(self, opts):
+        self.low_level_data = {"mobs": SPAWN_OBJECTS,
+                               "mob_property_data": craftassist_specs.get_mob_property_data(),
+                               "schematics": craftassist_specs.get_schematics(),
+                               "block_data": craftassist_specs.get_block_data(),
+                               "block_property_data": craftassist_specs.get_block_property_data(),
+                               "color_data": craftassist_specs.get_colour_data()
+                               }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
         self.point_targets = []
         self.last_chat_time = 0
-        self.low_level_data = {"mobs": SPAWN_OBJECTS,
-                                "mob_property_data": craftassist_specs.get_mob_property_data(),
-                                "schematics": craftassist_specs.get_schematics(),
-                                "block_data": craftassist_specs.get_block_data(),
-                                "block_property_data": craftassist_specs.get_block_property_data(),
-                                "color_data": craftassist_specs.get_colour_data()
-                                }
         # areas must be perceived at each step
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
