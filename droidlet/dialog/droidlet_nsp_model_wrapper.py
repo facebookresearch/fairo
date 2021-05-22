@@ -15,13 +15,9 @@ from typing import Dict, Optional
 from droidlet.dialog.semantic_parser_wrapper import SemanticParserWrapper
 from droidlet.memory.memory_nodes import ProgramNode
 
-from droidlet.dialog.dialogue_objects import (
-    BotGreet,
-    DialogueObject,
-    Say,
-    coref_resolve,
-    process_spans_and_remove_fixed_value,
-)
+from droidlet.dialog.dialogue_objects import BotGreet, DialogueObject, Say
+
+from droidlet.interpreter import coref_resolve, process_spans_and_remove_fixed_value
 from droidlet.base_util import hash_user
 
 # TODO: move JSONValidator into base
@@ -38,7 +34,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         super(DroidletNSPModelWrapper, self).__init__(
             agent, dialogue_object_classes, opts, dialogue_manager
         )
-        self.opts=opts
+        self.opts = opts
         # Read all datasets
         self.read_datasets(opts)
         # instantiate logger and parsing model
@@ -72,8 +68,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         # Extract the set of safety words from safety file
         self.safety_words = set()
         safety_words_path = "{}/{}".format(
-            pkg_resources.resource_filename("droidlet.documents", "internal"),
-            "safety.txt",
+            pkg_resources.resource_filename("droidlet.documents", "internal"), "safety.txt"
         )
         if os.path.isfile(safety_words_path):
             """Read a set of safety words to prevent abuse."""

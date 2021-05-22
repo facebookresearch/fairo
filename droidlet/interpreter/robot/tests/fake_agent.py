@@ -21,6 +21,8 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
     CAMERA_HEIGHT,
     MAX_PAN_RAD,
 )
+
+# FXIME!!! everything here should be essentially self-contained
 from droidlet.perception.robot import SelfPerception
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
@@ -29,7 +31,7 @@ from droidlet.perception.robot.tests.utils import get_fake_detection
 from droidlet.interpreter.robot.objects import Pos
 
 # marker creation should be somewhwere else....
-from droidlet.dialog.robot.dialogue_objects import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
+from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
 
 
 MV_SPEED = 0.2
@@ -435,7 +437,7 @@ class FakeAgent(LocoMCAgent):
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts
+            opts=self.opts,
         )
 
     def set_logical_form(self, lf, chatstr, speaker):
@@ -460,10 +462,8 @@ class FakeAgent(LocoMCAgent):
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
-            logical_form = (
-                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
-                    speaker=speaker_name, chat=chatstr, logical_form=d
-                )
+            logical_form = self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                speaker=speaker_name, chat=chatstr, logical_form=d
             )
             obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr

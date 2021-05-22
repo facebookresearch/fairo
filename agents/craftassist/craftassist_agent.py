@@ -31,16 +31,14 @@ from droidlet.base_util import Pos, Look
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.argument_parser import ArgumentParser
-from droidlet.dialog.craftassist.dialogue_objects import (
-    MCBotCapabilities,
-    MCGetMemoryHandler,
-    PutMemoryHandler,
-    MCInterpreter,
-)
+from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
+from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
 from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS
-from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import SubcomponentClassifierWrapper
+from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
+    SubcomponentClassifierWrapper,
+)
 from droidlet.lowlevel.minecraft import craftassist_specs
 
 faulthandler.register(signal.SIGUSR1)
@@ -136,7 +134,7 @@ class CraftAssistAgent(LocoMCAgent):
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
-            agent_low_level_data=self.low_level_data
+            agent_low_level_data=self.low_level_data,
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
@@ -149,7 +147,9 @@ class CraftAssistAgent(LocoMCAgent):
         """Initialize perception modules"""
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
-        self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(self, low_level_data=self.low_level_data)
+        self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
+            self, low_level_data=self.low_level_data
+        )
         # set up the SubComponentClassifier model
         if os.path.isfile(self.opts.semseg_model_path):
             self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
@@ -171,7 +171,7 @@ class CraftAssistAgent(LocoMCAgent):
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts
+            opts=self.opts,
         )
 
     def perceive(self, force=False):
@@ -335,7 +335,7 @@ if __name__ == "__main__":
     # Also fetches additional resources for internal users.
     if not opts.dev:
         rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
-    
+
     set_start_method("spawn", force=True)
 
     sa = CraftAssistAgent(opts)

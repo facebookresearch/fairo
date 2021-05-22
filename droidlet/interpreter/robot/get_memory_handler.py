@@ -4,22 +4,22 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 from typing import Dict
 
-from droidlet.dialog.dialogue_objects import (
+from droidlet.interpreter import (
     FilterInterpreter,
     ReferenceObjectInterpreter,
     interpret_reference_object,
     ReferenceLocationInterpreter,
+    AttributeInterpreter,
     GetMemoryHandler,
 )
-from .attribute_helper import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.interpreter.craftassist.tasks import Build, Point
 from droidlet.dialog.ttad.generation_dialogues.generate_utils import prepend_a_an
+from droidlet.interpreter.robot.tasks import Point
 
 
-class MCGetMemoryHandler(GetMemoryHandler):
+class LocoGetMemoryHandler(GetMemoryHandler):
     """This class handles logical forms that ask questions about the environment or
     the assistant's current state. This requires querying the assistant's memory.
 
@@ -39,22 +39,18 @@ class MCGetMemoryHandler(GetMemoryHandler):
             "reference_objects": ReferenceObjectInterpreter(interpret_reference_object),
             "reference_locations": ReferenceLocationInterpreter(),
             "specify_locations": ComputeLocations(),
+            "attribute": AttributeInterpreter(),
             "point_target": PointTargetInterpreter(),
         }
-        self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.task_objects = {"point": Point}
 
     def handle_task_refobj_string(self, task, refobj_attr):
         if refobj_attr == "name":
-            assert isinstance(task.task, Build), task.task
-            for pred, val in task.task.schematic_tags:
+            for pred, val in task.task.target:
                 if pred == "has_name":
-                    return "I am building " + prepend_a_an(val), None
-                return "I am building something that is {}".format(val), None
+                    return "I am going to the " + prepend_a_an(val), None
         elif refobj_attr == "location":
-            assert task.action_name == "Move", task.action_name
             target = tuple(task.task.target)
             return "I am going to {}".format(target), None
         else:
             raise ErrorWithResponse("trying get attribute {} from action".format(refobj_attr))
-        return None, None
