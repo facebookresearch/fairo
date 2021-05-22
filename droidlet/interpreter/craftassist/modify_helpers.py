@@ -16,7 +16,7 @@ from droidlet.perception.craftassist.shape_transforms import (
     maybe_convert_to_npy,
 )
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.dialog.dialogue_objects import interpret_relative_direction
+from ..interpreter import interpret_relative_direction
 from .block_helpers import get_block_type
 
 

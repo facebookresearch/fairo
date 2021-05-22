@@ -5,8 +5,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 from typing import Dict, Tuple, Any, Optional
 
-from droidlet.dialog.dialogue_objects import (
-    DialogueObject,
+from droidlet.dialog.dialogue_objects import DialogueObject
+
+from droidlet.interpreter import (
     FilterInterpreter,
     ReferenceObjectInterpreter,
     ReferenceLocationInterpreter,

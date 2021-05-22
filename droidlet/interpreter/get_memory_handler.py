@@ -4,8 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 from typing import Dict, Tuple, Any, Optional, Sequence
 
-from . import DialogueObject
-from ...shared_data_structs import ErrorWithResponse
+from droidlet.dialog.dialogue_objects import DialogueObject
+from ..shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import MemoryNode, TaskNode
 from copy import deepcopy
 import logging

@@ -16,12 +16,8 @@ from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import Time
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from droidlet.dialog.craftassist.dialogue_objects import (
-    MCBotCapabilities,
-    MCGetMemoryHandler,
-    PutMemoryHandler,
-    MCInterpreter,
-)
+from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
+from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
@@ -263,12 +259,14 @@ class FakeAgent(LocoMCAgent):
         self.chat_count = 0
         if not opts:
             opts = MockOpt()
-        self.low_level_data = {"mobs": SPAWN_OBJECTS,
-                               "mob_property_data": craftassist_specs.get_mob_property_data(),
-                               "schematics": craftassist_specs.get_schematics(),
-                               "block_data": craftassist_specs.get_block_data(),
-                               "block_property_data": craftassist_specs.get_block_property_data(),
-                               "color_data": craftassist_specs.get_colour_data()}
+        self.low_level_data = {
+            "mobs": SPAWN_OBJECTS,
+            "mob_property_data": craftassist_specs.get_mob_property_data(),
+            "schematics": craftassist_specs.get_schematics(),
+            "block_data": craftassist_specs.get_block_data(),
+            "block_property_data": craftassist_specs.get_block_property_data(),
+            "color_data": craftassist_specs.get_colour_data(),
+        }
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
         self.no_default_behavior = True
@@ -295,7 +293,9 @@ class FakeAgent(LocoMCAgent):
     def init_perception(self):
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
-        self.perception_modules["heuristic"] = PerceptionWrapper(self, low_level_data=self.low_level_data)
+        self.perception_modules["heuristic"] = PerceptionWrapper(
+            self, low_level_data=self.low_level_data
+        )
         self.on_demand_perception = {}
         self.on_demand_perception["check_inside"] = check_inside
 
@@ -319,9 +319,9 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         T = FakeMCTime(self.world)
-        self.memory = MCAgentMemory(load_minecraft_specs=False,
-                                    agent_time=T,
-                                    agent_low_level_data=self.low_level_data)
+        self.memory = MCAgentMemory(
+            load_minecraft_specs=False, agent_time=T, agent_low_level_data=self.low_level_data
+        )
         # Add dances to memory
         dance.add_default_dances(self.memory)
 
@@ -335,7 +335,7 @@ class FakeAgent(LocoMCAgent):
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts
+            opts=self.opts,
         )
 
     def set_logical_form(self, lf, chatstr, speaker):
@@ -363,10 +363,8 @@ class FakeAgent(LocoMCAgent):
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             # force to get objects, speaker info
             self.perceive(force=True)
-            logical_form = (
-                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
-                    speaker=speaker_name, chat=chatstr, logical_form=d
-                )
+            logical_form = self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                speaker=speaker_name, chat=chatstr, logical_form=d
             )
             obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr, opts=self.opts
@@ -645,10 +643,8 @@ class FakePlayer(FakeAgent):
             speaker = self.logical_form["speaker"]
             logical_form = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
-            updated_logical_form = (
-                self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
-                    speaker=speaker, chat=chatstr, logical_form=logical_form
-                )
+            updated_logical_form = self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+                speaker=speaker, chat=chatstr, logical_form=logical_form
             )
             obj = self.dialogue_manager.handle_logical_form(
                 speaker=speaker, logical_form=updated_logical_form, chat=chatstr, opts=self.opts

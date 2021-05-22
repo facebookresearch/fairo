@@ -3,8 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import math
-from ...shared_data_structs import ErrorWithResponse
-from .dialogue_object_utils import SPEAKERLOOK, tags_from_dict
+from droidlet.shared_data_structs import ErrorWithResponse
+from .interpreter_utils import SPEAKERLOOK, tags_from_dict
 
 
 def interpret_relative_direction(interpreter, location_d):

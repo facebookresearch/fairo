@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.dialog.dialogue_objects import SPEAKERLOOK, AGENTPOS
+from droidlet.interpreter import SPEAKERLOOK, AGENTPOS
 from copy import deepcopy
 
 

@@ -20,8 +20,7 @@ from droidlet.perception.craftassist import search
 from droidlet.perception.craftassist.heuristic_perception import ground_height
 from droidlet.lowlevel.minecraft.mc_util import to_block_pos, manhat_dist, strip_idmeta
 
-from droidlet.interpreter.task import BaseMovementTask
-from droidlet.shared_data_structs import Task
+from droidlet.interpreter.task import BaseMovementTask, Task
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode
 

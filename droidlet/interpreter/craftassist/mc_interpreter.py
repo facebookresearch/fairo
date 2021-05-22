@@ -10,9 +10,10 @@ from typing import Tuple, Dict, Any, Optional
 from copy import deepcopy
 from word2number.w2n import word_to_num
 
-from droidlet.dialog.dialogue_objects import (
+from droidlet.dialog.dialogue_objects import Say
+
+from droidlet.interpreter import (
     Interpreter,
-    Say,
     SPEAKERLOOK,
     interpret_relative_direction,
     get_repeat_num,

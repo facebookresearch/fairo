@@ -6,7 +6,7 @@ import logging
 import numpy as np
 import random
 
-from droidlet.interpreter.string_lists import MAP_YES, MAP_NO
+from .string_lists import MAP_YES, MAP_NO
 from enum import Enum
 from droidlet.memory.memory_nodes import TaskNode
 

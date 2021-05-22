@@ -5,8 +5,11 @@ import sys
 import re
 import unittest
 from copy import deepcopy
-from droidlet.dialog.dialogue_objects import process_spans_and_remove_fixed_value
-from droidlet.dialog.craftassist.tests.test_y_print_parsing_report import common_functional_commands, compare_full_dictionaries
+from droidlet.interpreter import process_spans_and_remove_fixed_value
+from droidlet.dialog.craftassist.tests.test_y_print_parsing_report import (
+    common_functional_commands,
+    compare_full_dictionaries,
+)
 
 logical_form_before_processing = {
     "turn right": common_functional_commands["turn right"],
@@ -51,7 +54,7 @@ class TestProcessSpans(unittest.TestCase):
             lemmatized_words = original_words
             process_spans_and_remove_fixed_value(
                 processed, original_words, lemmatized_words
-            )  # process spans and fixed_values. Implemented in: dialogue_object_utils.
+            )  # process spans and fixed_values. Implemented in: interpreter_utils.
             assert compare_full_dictionaries(processed, logical_form_post_processing[k])
 
 
