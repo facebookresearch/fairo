@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from ...shared_data_structs import ErrorWithResponse
+from ..shared_data_structs import ErrorWithResponse
 from .attribute_helper import AttributeInterpreter, maybe_specific_mem, interpret_span_value
 from droidlet.interpreter.condition import Comparator
 from droidlet.memory.memory_values import MemoryColumnValue

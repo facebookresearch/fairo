@@ -6,7 +6,7 @@ from typing import Tuple, Dict, Any, Optional
 
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
-from droidlet.dialog.dialogue_objects import (
+from droidlet.interpreter import (
     AGENTPOS,
     ConditionInterpreter,
     get_repeat_num,

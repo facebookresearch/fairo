@@ -13,7 +13,7 @@ import uuid
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
-from droidlet.shared_data_structs import Task, Time
+from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import BasicMemorySearcher
 from .dialogue_stack import DialogueStack
 
@@ -715,7 +715,7 @@ class AgentMemory:
 
     # TORCH this
     def task_stack_push(
-        self, task: Task, parent_memid: str = None, chat_effect: bool = False
+        self, task, parent_memid: str = None, chat_effect: bool = False
     ) -> "TaskNode":
         """Create a task object in memory, add triples and add to task stack
 
@@ -747,7 +747,7 @@ class AgentMemory:
         return TaskNode(self, memid)
 
     # TORCH this
-    def task_stack_update_task(self, memid: str, task: Task):
+    def task_stack_update_task(self, memid: str, task):
         """Update task in memory
 
         Args:
