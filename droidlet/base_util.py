@@ -41,6 +41,11 @@ def number_from_span(s):
             return
     return n
 
+def hash_user(username):
+    """Encrypt username"""
+    # uuid is used to generate a random number
+    salt = uuid.uuid4().hex
+    return hashlib.sha256(salt.encode() + username.encode()).hexdigest() + ":" + salt
 
 def check_username(hashed_username, username):
     """Compare the username with the hash to check if they
@@ -61,13 +66,6 @@ def group_by(items, key_fn):
     for x in items:
         d[key_fn(x)].append(x)
     return d
-
-
-def hash_user(username):
-    """Encrypt username"""
-    # uuid is used to generate a random number
-    salt = uuid.uuid4().hex
-    return hashlib.sha256(salt.encode() + username.encode()).hexdigest() + ":" + salt
 
 
 def euclid_dist(a, b):
