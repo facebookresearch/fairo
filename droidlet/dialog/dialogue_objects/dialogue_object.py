@@ -35,7 +35,7 @@ class DialogueObject(object):
                     self.speaker_name = speaker_name
                     self.action_dict = action_dict
 
-                def step(self) -> Tuple[Optional[str], Any]:
+                def step(self, agent) -> Tuple[Optional[str], Any]:
                     # check for dialogue type "GET_MEMORY"
                     assert self.action_dict["dialogue_type"] == "GET_MEMORY"
                     memory_type = self.action_dict["filters"]["memory_type"]
@@ -48,9 +48,9 @@ class DialogueObject(object):
 
     """
 
-    # FIXME agent remove agent, memory, stack from init, pass in step
-    def __init__(self, agent, memory, dialogue_stack, max_steps=50):
-        self.agent = agent
+    # FIXME agent remove memory, stack from init, pass in step...
+    # FIXME agent eventaully pass none of them in step for most
+    def __init__(self, memory=None, dialogue_stack=None, max_steps=50):
         self.memory = memory
         self.dialogue_stack = dialogue_stack
         self.finished = False
@@ -61,7 +61,7 @@ class DialogueObject(object):
             []
         )  # this should have more structure and some methods for adding/accessing?
 
-    def step(self):
+    def step(self, agent=None):
         """the Dialogue Stack runs this objects .step();
 
         Returns:
@@ -103,7 +103,7 @@ class AwaitResponse(DialogueObject):
         self.wait_time = wait_time
         self.awaiting_response = True
 
-    def step(self):
+    def step(self, agent=None):
         """Wait for wait_time for an answer. Mark finished when a chat comes in."""
         chatmem = self.memory.get_most_recent_incoming_chat(after=self.init_time + 1)
         if chatmem is not None:
@@ -135,7 +135,7 @@ class Say(DialogueObject):
         else:
             self.response_options = response_options
 
-    def step(self):
+    def step(self, agent=None):
         """Return one of the response_options."""
         self.finished = True
         return random.choice(self.response_options), None
@@ -185,7 +185,7 @@ class GetReward(DialogueObject):
 
     """
 
-    def step(self):
+    def step(self, agent=None):
         """associate pos / neg reward to chat memory."""
         self.finished = True
         chatmem = self.memory.get_most_recent_incoming_chat()
@@ -238,12 +238,12 @@ class ConfirmTask(DialogueObject):
         self.tasks = tasks  # list of Task objects, will be pushed in order
         self.asked = False
 
-    def step(self):
+    def step(self, agent=None):
         """Ask a confirmation question and wait for response."""
         # Step 1: ask the question
         if not self.asked:
-            self.dialogue_stack.append_new(self.agent, AwaitResponse)
-            self.dialogue_stack.append_new(self.agent, Say, self.question)
+            self.dialogue_stack.append_new(AwaitResponse)
+            self.dialogue_stack.append_new(Say, self.question)
             self.asked = True
             return "", None
 
@@ -284,15 +284,16 @@ class ConfirmReferenceObject(DialogueObject):
         self.pointed = False
         self.asked = False
 
-    def step(self):
+    def step(self, agent=None):
         """Confirm the block object by pointing and wait for answer."""
         if not self.asked:
-            self.dialogue_stack.append_new(self.agent, Say, "do you mean this?")
+            self.dialogue_stack.append_new(Say, "do you mean this?")
             self.asked = True
             return "", None
         if not self.pointed:
-            self.agent.point_at(self.bounds)
-            self.dialogue_stack.append_new(self.agent, AwaitResponse)
+            # FIXME agent shouldn't just point, should make a task etc.
+            agent.point_at(self.bounds)
+            self.dialogue_stack.append_new(AwaitResponse)
             self.pointed = True
             return "", None
         self.finished = True

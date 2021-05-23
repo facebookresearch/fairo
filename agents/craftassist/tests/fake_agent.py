@@ -320,7 +320,10 @@ class FakeAgent(LocoMCAgent):
     def init_memory(self):
         T = FakeMCTime(self.world)
         self.memory = MCAgentMemory(
-            load_minecraft_specs=False, agent_time=T, agent_low_level_data=self.low_level_data
+            load_minecraft_specs=False,
+            coordinate_transforms=self.coordinate_transforms,
+            agent_time=T,
+            agent_low_level_data=self.low_level_data,
         )
         # Add dances to memory
         dance.add_default_dances(self.memory)
@@ -332,7 +335,7 @@ class FakeAgent(LocoMCAgent):
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            agent=self,
+            memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
             opts=self.opts,

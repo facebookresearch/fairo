@@ -34,12 +34,12 @@ def interpret_span_value(interpreter, speaker, d, comparison_measure=None):
     """
     num = number_from_span(d)
     if num:
-        v = FixedValue(interpreter.agent, num)
+        v = FixedValue(interpreter.memory, num)
         # always convert everything to internal units
         # FIXME handle this better
         v = convert_comparison_value(v, comparison_measure)
     else:
-        v = FixedValue(interpreter.agent, d)
+        v = FixedValue(interpreter.memory, d)
     return v
 
 
@@ -106,7 +106,7 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     if frame == "AGENT":
         location_data["frame"] = "AGENT"
     else:
-        p = interpreter.agent.memory.get_player_by_name(frame)
+        p = interpreter.memory.get_player_by_name(frame)
         if p:
             location_data["frame"] = p.eid
         else:
@@ -137,7 +137,7 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
     #            )
     #        F = interpreter.subinterpret["filters"](interpreter, speaker, f)
     #        location_data["filter"] = F
-    L = LinearExtentAttribute(interpreter.agent, location_data, mem=mem, fixed_role=fixed_role)
+    L = LinearExtentAttribute(interpreter.memory, location_data, mem=mem, fixed_role=fixed_role)
 
     # TODO some sort of sanity check here, these should be rare:
     if (d.get("source") and d.get("destination")) or force_value:
@@ -146,7 +146,7 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
         sd = None
         if rd:
             mem, sd = maybe_specific_mem(interpreter, speaker, rd["filters"])
-        L = LinearExtentValue(interpreter.agent, L, mem=mem, search_data=sd)
+        L = LinearExtentValue(interpreter.memory, L, mem=mem, search_data=sd)
 
     return L
 
@@ -164,11 +164,11 @@ def interpret_task_info(interpreter, speaker, d):
         raise ValueError("task info malformed: {}".format(task_info))
 
     # we probably should rearrange FILTERS spec so that the task ref obj is the returned memory, not the task...
-    get_refobj = TripleWalk(interpreter.agent, [("task_reference_object", "obj_variable")])
+    get_refobj = TripleWalk(interpreter.memory, [("task_reference_object", "obj_variable")])
     refobj_attr = interpreter.subinterpret["attribute"](
         interpreter, speaker, ref_obj_attr_d["attribute"]
     )
-    return AttributeSequence(interpreter.agent, [get_refobj, refobj_attr])
+    return AttributeSequence(interpreter.memory, [get_refobj, refobj_attr])
 
 
 class AttributeInterpreter:
@@ -180,13 +180,13 @@ class AttributeInterpreter:
                 or d_attribute.lower() == "height"
                 or d_attribute.lower() == "size"
             ):
-                return BBoxSize(interpreter.agent, d_attribute.lower())
+                return BBoxSize(interpreter.memory, d_attribute.lower())
             d_attribute = CANONICALIZE_ATTRIBUTES.get(d_attribute.lower())
             if d_attribute and type(d_attribute) is str:
-                return TableColumn(interpreter.agent, d_attribute, get_all=get_all)
+                return TableColumn(interpreter.memory, d_attribute, get_all=get_all)
             elif d_attribute and type(d_attribute) is list:
                 alist = [self.__call__(interpreter, speaker, a) for a in d_attribute]
-                return ListAttribute(interpreter.agent, alist)
+                return ListAttribute(interpreter.memory, alist)
         elif d_attribute.get("task_info"):
             return interpret_task_info(interpreter, speaker, d_attribute)
         elif d_attribute.get("linear_extent"):

@@ -25,7 +25,9 @@ import droidlet.interpreter.robot.tasks as tasks
 
 
 def post_process_loc(loc, interpreter):
-    return (loc[0], loc[2], interpreter.agent.mover.get_base_pos()[2])
+    self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
+    yaw, _ = self_mem.get_yaw_pitch()
+    return (loc[0], loc[2], yaw)
 
 
 def add_default_locs(interpreter):
@@ -78,7 +80,7 @@ class LocoInterpreter(Interpreter):
             "drop": tasks.Drop,
         }
 
-    def handle_get(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_get(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         default_ref_d = {"filters": {"location": AGENTPOS}}
         ref_d = d.get("reference_object", default_ref_d)
         objs = self.subinterpret["reference_objects"](
@@ -105,11 +107,11 @@ class LocoInterpreter(Interpreter):
         tasks = []
         for obj in objs:
             task_data = {"get_target": obj.memid, "give_target": receiver, "action_dict": d}
-            tasks.append(self.task_objects["get"](self.agent, task_data))
+            tasks.append(self.task_objects["get"](agent, task_data))
         #        logging.info("Added {} Get tasks to stack".format(len(tasks)))
-        return maybe_task_list_to_control_block(tasks, self.agent), None, None
+        return maybe_task_list_to_control_block(tasks, agent), None, None
 
-    def handle_dance(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_dance(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         def new_tasks():
             repeat = get_repeat_num(d)
             tasks_to_do = []
@@ -131,20 +133,20 @@ class LocoInterpreter(Interpreter):
                         ref_obj = objmems[0]
                     for i in range(repeat):
                         refmove = dance.RefObjMovement(
-                            self.agent,
+                            agent,
                             ref_object=ref_obj,
                             relative_direction=location_d["relative_direction"],
                         )
-                        t = self.task_objects["dance"](self.agent, {"movement": refmove})
+                        t = self.task_objects["dance"](agent, {"movement": refmove})
                         tasks_to_do.append(t)
-                    return maybe_task_list_to_control_block(tasks_to_do, self.agent)
+                    return maybe_task_list_to_control_block(tasks_to_do, agent)
 
             dance_type = d.get("dance_type", {})
             dance_filters_d = dance_type.get("filters", {})
             if dance_type.get("point"):
                 target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
                 for i in range(repeat):
-                    t = self.task_objects["point"](self.agent, {"target": target})
+                    t = self.task_objects["point"](agent, {"target": target})
                     tasks_to_do.append(t)
             elif dance_type.get("look_turn") or dance_type.get("body_turn"):
                 lt = dance_type.get("look_turn")
@@ -156,23 +158,23 @@ class LocoInterpreter(Interpreter):
                     f = self.subinterpret["facing"](self, speaker, bt, head_or_body="body")
                     T = self.task_objects["turn"]
                 for i in range(repeat):
-                    tasks_to_do.append(T(self.agent, f))
+                    tasks_to_do.append(T(agent, f))
             else:
                 dance_triples = dance_filters_d.get("triples", [])
                 if any([t.get("obj_text") == "wave" for t in dance_triples]):
-                    new_task = self.task_objects["dance"](self.agent, {"movement_type": "wave"})
+                    new_task = self.task_objects["dance"](agent, {"movement_type": "wave"})
                     tasks_to_do.append(new_task)
                     # FIXME ! merge dances, refactor.  search by name
                 else:
                     raise ErrorWithResponse("I don't know how to do that dance yet!")
-            return maybe_task_list_to_control_block(tasks_to_do, self.agent)
+            return maybe_task_list_to_control_block(tasks_to_do, agent)
 
         if "stop_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
             return (
                 [
                     self.task_objects["control"](
-                        self.agent,
+                        agent,
                         data={
                             "new_tasks_fn": TaskListWrapper(new_tasks),
                             "stop_condition": condition,
@@ -186,9 +188,9 @@ class LocoInterpreter(Interpreter):
         else:
             return new_tasks(), None, None
 
-    def handle_drop(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_drop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         """
         Drops whatever object in hand
         """
 
-        return self.task_objects["drop"](self.agent, {"action_dict": d}), None, None
+        return self.task_objects["drop"](agent, {"action_dict": d}), None, None

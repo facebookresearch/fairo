@@ -10,7 +10,7 @@ class PointTargetInterpreter:
             raise ErrorWithResponse("I am not sure where you want me to point")
         # TODO: We might want to specifically check for BETWEEN/INSIDE, I'm not sure
         mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, d["location"])
-        steps, reldir = interpret_relative_direction(interpreter.agent, d)
+        steps, reldir = interpret_relative_direction(interpreter, d)
         loc, _ = interpreter.subinterpret["specify_locations"](
             interpreter, speaker, mems, steps, reldir
         )

@@ -4,15 +4,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import sys
 
-from droidlet.interpreter.stop_condition import StopCondition
+from droidlet.interpreter.condition import Condition
 
-
-class AgentAdjacentStopCondition(StopCondition):
+# FIXME!!!! this is dead code
+class AgentAdjacentStopCondition(Condition):
     """This condition signifies if the agent is adjacent to
     a specific block type"""
 
-    def __init__(self, agent, bid):
-        super().__init__(agent)
+    def __init__(self, memory, bid):
+        super().__init__(memory)
         self.bid = bid
         self.name = "adjacent_block"
 

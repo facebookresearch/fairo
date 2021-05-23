@@ -424,7 +424,7 @@ class FakeAgent(LocoMCAgent):
         self.send_chat = self.mover.send_chat
 
     def init_memory(self):
-        self.memory = LocoAgentMemory()
+        self.memory = LocoAgentMemory(coordinate_transforms=self.coordinate_transforms)
         dance.add_default_dances(self.memory)
 
     def init_controller(self):
@@ -434,7 +434,7 @@ class FakeAgent(LocoMCAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            agent=self,
+            memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
             opts=self.opts,

@@ -19,9 +19,8 @@ class ComputeLocations:
         objects=[],
         padding=(1, 1, 1),
     ):
-        agent = interpreter.agent
         repeat_num = max(repeat_num, len(objects))
-        origin = compute_location_heuristic(mems, steps, reldir, agent)
+        origin = compute_location_heuristic(mems, steps, reldir, interpreter.memory)
         if repeat_num > 1:
             raise NotImplementedError
         else:
@@ -33,9 +32,9 @@ class ComputeLocations:
 # FIXME this can be merged with the MC version without too much work,
 # main difference is speaker vs agent frame (but that is in agent.default_frame)
 # There will be at least one mem in mems
-def compute_location_heuristic(mems, steps, reldir, agent):
+def compute_location_heuristic(mems, steps, reldir, memory):
     loc = mems[0].get_pos()
-    self_mem = agent.memory.get_mem_by_id(agent.memory.self_memid)
+    self_mem = memory.get_mem_by_id(memory.self_memid)
     if reldir is not None:
         steps = steps or DEFAULT_NUM_STEPS
         if reldir == "BETWEEN":
@@ -47,10 +46,10 @@ def compute_location_heuristic(mems, steps, reldir, agent):
         elif reldir == "AROUND":
             pass
         else:  # LEFT, RIGHT, etc...
-            reldir_vec = agent.coordinate_transforms.DIRECTIONS[reldir]
+            reldir_vec = memory.coordinate_transforms.DIRECTIONS[reldir]
             yaw, _ = self_mem.get_yaw_pitch()  # work in agent frame
             # this should be an inverse transform so we set inverted=True
-            dir_vec = agent.coordinate_transforms.transform(reldir_vec, yaw, 0, inverted=True)
+            dir_vec = memory.coordinate_transforms.transform(reldir_vec, yaw, 0, inverted=True)
             loc = steps * np.array(dir_vec) + np.array(loc)
     elif steps is not None:
         loc = np.add(loc, [0, 0, steps])

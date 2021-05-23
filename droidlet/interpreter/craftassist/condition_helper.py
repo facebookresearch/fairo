@@ -15,4 +15,4 @@ class MCConditionInterpreter(ConditionInterpreter):
     def interpret_adjacent_block(self, interpreter, speaker, d):
         block_type = d["block_type"]
         bid, meta = get_block_type(block_type, block_data_info=self.block_data)
-        return AgentAdjacentStopCondition(interpreter.agent, bid)
+        return AgentAdjacentStopCondition(interpreter.memory, bid)

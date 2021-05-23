@@ -33,12 +33,9 @@ def add_many_objects(test):
 class MemoryExplorer(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        dummy_dialogue_stack = DialogueStack(self.agent, self.agent.memory)
+        dummy_dialogue_stack = DialogueStack(self.agent.memory)
         self.dummy_interpreter = DummyInterpreter(
-            "SPEAKER",
-            agent=self.agent,
-            memory=self.agent.memory,
-            dialogue_stack=dummy_dialogue_stack,
+            "SPEAKER", memory=self.agent.memory, dialogue_stack=dummy_dialogue_stack
         )
 
         add_many_objects(self)
