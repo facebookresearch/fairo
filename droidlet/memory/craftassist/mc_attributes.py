@@ -8,13 +8,13 @@ from droidlet.memory.memory_attributes import Attribute
 # InstSeg objects with given properties;
 # it only gets the tag from the VoxelObject
 class VoxelCounter(Attribute):
-    def __init__(self, agent, block_data=[]):
+    def __init__(self, memory, block_data=[]):
         """Count voxels satisfying the properties in block_data
         block_data is a list of dicts {"pred_text":<pred>, "obj_text", <obj>}
         "pred_text" is optional in each dict
         if the mem is not a voxel, has *all* the tags is counted.
         # TODO FILTERS"""
-        super().__init__(agent)
+        super().__init__(memory)
         self.block_data = block_data
 
     def __call__(self, mems):
@@ -25,7 +25,7 @@ class VoxelCounter(Attribute):
 
         if self.block_data:
             block_type_search_data = {"base_table": "BlockTypes", "triples": self.block_data}
-            block_type_mems = self.agent.memory.basic_search(block_type_search_data)
+            block_type_mems = self.memory.basic_search(block_type_search_data)
             allowed_idm_list = [(b.b, b.m) for b in block_type_mems]
 
             def allowed_idm(idm):  # noqa
@@ -40,7 +40,7 @@ class VoxelCounter(Attribute):
             elif mems[i].NODE_TYPE == "InstSeg":
                 if self.block_data:
                     # FIXME?:
-                    triple_objs = [t[2] for t in self.agent.memory.get_triples(subj=mems[i].memid)]
+                    triple_objs = [t[2] for t in self.memory.get_triples(subj=mems[i].memid)]
                     desired_objs = [t["obj_text"] for t in self.block_data]
                     if all([t in triple_objs for t in desired_objs]):
                         count = len(mems[i].blocks)

@@ -12,6 +12,7 @@ import faulthandler
 from multiprocessing import set_start_method
 
 from droidlet import dashboard
+
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
@@ -117,6 +118,7 @@ class LocobotAgent(LocoMCAgent):
         self.memory = LocoAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path=None,
+            coordinate_transforms=self.coordinate_transforms,
         )
         dance.add_default_dances(self.memory)
         logging.info("Initialized agent memory")
@@ -140,10 +142,10 @@ class LocobotAgent(LocoMCAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            agent=self,
+            memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts
+            opts=self.opts,
         )
 
     def init_physical_interfaces(self):

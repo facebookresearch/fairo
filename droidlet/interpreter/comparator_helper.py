@@ -48,7 +48,7 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
                     search_data[k] = v
             # TODO wrap this in a ScaledValue using condtition.convert_comparison_value
             # and "comparison_measure"
-            value_extractors[inp_pos] = MemoryColumnValue(interpreter.agent, search_data, mem=mem)
+            value_extractors[inp_pos] = MemoryColumnValue(interpreter.memory, search_data, mem=mem)
         else:
             raise ErrorWithResponse(
                 "I don't know understand that condition, looks like a comparator but value is not filters or span"
@@ -60,14 +60,14 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
         )
     if is_condition:
         return Comparator(
-            interpreter.agent,
+            interpreter.memory,
             value_left=value_extractors["input_left"],
             value_right=value_extractors["input_right"],
             comparison_type=comparison_type,
         )
     else:
         return ComparatorAttribute(
-            interpreter.agent,
+            interpreter.memory,
             value_left=value_extractors["input_left"],
             value_right=value_extractors["input_right"],
             comparison_type=comparison_type,

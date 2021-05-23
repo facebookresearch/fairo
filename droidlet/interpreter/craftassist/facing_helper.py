@@ -26,9 +26,8 @@ def number_from_span(span):
 
 class FacingInterpreter:
     def __call__(self, interpreter, speaker, d):
-        # get these from memory, not player struct!!!!! FIXME!!!
-        current_pitch = interpreter.agent.get_player().look.pitch
-        current_yaw = interpreter.agent.get_player().look.yaw
+        self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
+        current_yaw, current_pitch = self_mem.get_yaw_pitch()
         if d.get("yaw_pitch"):
             span = d["yaw_pitch"]
             # for now assumed in (yaw, pitch) or yaw, pitch or yaw pitch formats

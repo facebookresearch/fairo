@@ -30,9 +30,9 @@ def get_val_map(interpreter, speaker, filters_d, get_all=False):
         attr_d = output.get("attribute")
         get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
         a = get_attribute(interpreter, speaker, attr_d, get_all=get_all)
-        val_map = ApplyAttribute(interpreter.agent.memory, a)
+        val_map = ApplyAttribute(interpreter.memory, a)
     elif output and output == "COUNT":
-        val_map = CountTransform(interpreter.agent.memory)
+        val_map = CountTransform(interpreter.memory)
     return val_map
 
 
@@ -49,15 +49,13 @@ def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
     # ... then return
     mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
     if mem:
-        return maybe_append_left(
-            FixedMemFilter(interpreter.agent.memory, mem.memid), to_append=val_map
-        )
+        return maybe_append_left(FixedMemFilter(interpreter.memory, mem.memid), to_append=val_map)
     else:
         return None
 
 
 def interpret_ref_obj_filter(interpreter, speaker, filters_d):
-    F = MemoryFilter(interpreter.agent.memory)
+    F = MemoryFilter(interpreter.memory)
 
     # currently spec intersects all comparators TODO?
     comparator_specs = filters_d.get("comparator")
@@ -79,7 +77,7 @@ def interpret_ref_obj_filter(interpreter, speaker, filters_d):
     # Warning: BasicFilters will filter out agent's self
     # FIXME !! finer control over this ^
     if triples:
-        F.append(BasicFilter(interpreter.agent.memory, {"triples": triples}))
+        F.append(BasicFilter(interpreter.memory, {"triples": triples}))
 
     return F
 
@@ -106,7 +104,7 @@ def interpret_random_selector(interpreter, speaker, selector_d):
             )
         )
     s = selector_d.get("same", "ALLOWED")
-    return RandomMemorySelector(interpreter.agent.memory, same=s, n=n)
+    return RandomMemorySelector(interpreter.memory, same=s, n=n)
 
 
 def interpret_argval_selector(interpreter, speaker, selector_d):
@@ -126,10 +124,8 @@ def interpret_argval_selector(interpreter, speaker, selector_d):
     ordinal = {"first": 1, "second": 2, "third": 3}.get(
         argval_d.get("ordinal", "first").lower(), 1
     )
-    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-    selector = ExtremeValueMemorySelector(
-        interpreter.agent.memory, polarity=polarity, ordinal=ordinal
-    )
+    sa = ApplyAttribute(interpreter.memory, selector_attribute)
+    selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=ordinal)
     selector.append(sa)
     return selector
 
@@ -153,14 +149,14 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
             return pos
 
     selector_attribute = LinearExtentAttribute(
-        interpreter.agent, {"relative_direction": "AWAY"}, mem=dummy_loc_mem()
+        interpreter.memory, {"relative_direction": "AWAY"}, mem=dummy_loc_mem()
     )
     polarity = "argmin"
-    sa = ApplyAttribute(interpreter.agent.memory, selector_attribute)
-    selector = ExtremeValueMemorySelector(interpreter.agent.memory, polarity=polarity, ordinal=1)
+    sa = ApplyAttribute(interpreter.memory, selector_attribute)
+    selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=1)
     selector.append(sa)
-    mems_filter = MemidList(interpreter.agent.memory, [mems[0].memid])
-    not_mems_filter = NotFilter(interpreter.agent.memory, [mems_filter])
+    mems_filter = MemidList(interpreter.memory, [mems[0].memid])
+    not_mems_filter = NotFilter(interpreter.memory, [mems_filter])
     selector.append(not_mems_filter)
     #    selector.append(build_radius_comparator(interpreter, speaker, location_d))
 
@@ -201,7 +197,7 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
 
 
 def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
-    F = MemoryFilter(interpreter.agent.memory)
+    F = MemoryFilter(interpreter.memory)
 
     task_tags = ["currently_running", "running", "paused", "finished"]
 
@@ -221,7 +217,7 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
     search_data["base_range"] = {}
     if "finished" in task_properties:
         search_data["base_range"]["minfinished"] = 0
-    F.append(BasicFilter(interpreter.agent.memory, search_data))
+    F.append(BasicFilter(interpreter.memory, search_data))
 
     # currently spec intersects all comparators TODO?
     comparator_specs = filters_d.get("comparator")
@@ -233,14 +229,14 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
 
 
 def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
-    F = MemoryFilter(interpreter.agent.memory)
+    F = MemoryFilter(interpreter.memory)
     search_data = {}
     triples = []
     for t in filters_d.get("triples"):
         triples.append(t)
     search_data["base_table"] = "Dances"
     search_data["triples"] = triples
-    F.append(BasicFilter(interpreter.agent.memory, search_data))
+    F.append(BasicFilter(interpreter.memory, search_data))
     # currently spec intersects all comparators TODO?
     comparator_specs = filters_d.get("comparator")
     if comparator_specs:

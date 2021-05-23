@@ -28,18 +28,13 @@ class ComputeLocations:
         objects=[],
         padding=(1, 1, 1),
     ):
-        agent = interpreter.agent
         repeat_num = max(repeat_num, len(objects))
-        player_look = agent.perception_modules["low_level"].get_player_struct_by_name(speaker).look
-        player_pos = pos_to_np(agent.get_player().pos)
-        speaker_pos = pos_to_np(
-            agent.perception_modules["low_level"].get_player_struct_by_name(speaker).pos
-        )
-        origin = compute_location_heuristic(player_look, player_pos, mems, steps, reldir)
+        player_mem = interpreter.memory.get_player_by_name(speaker)
+        origin = compute_location_heuristic(player_mem, mems, steps, reldir)
         if repeat_num > 1:
             schematic = None if len(objects) == 0 else objects[0][0]
             offsets = get_repeat_arrangement(
-                player_look, repeat_num, repeat_dir, mems, schematic, padding
+                player_mem, repeat_num, repeat_dir, mems, schematic, padding
             )
         else:
             offsets = [(0, 0, 0)]
@@ -49,7 +44,7 @@ class ComputeLocations:
 
 
 # There will be at least one mem in mems
-def compute_location_heuristic(player_look, player_pos, mems, steps, reldir):
+def compute_location_heuristic(player_mem, mems, steps, reldir):
     loc = mems[0].get_pos()
     if reldir is not None:
         steps = steps or DEFAULT_NUM_STEPS
@@ -59,6 +54,7 @@ def compute_location_heuristic(player_look, player_pos, mems, steps, reldir):
         elif reldir == "INSIDE":
             for i in range(len(mems)):
                 mem = mems[i]
+                # FIXME
                 locs = heuristic_perception.find_inside(mem)
                 if len(locs) > 0:
                     break
@@ -73,7 +69,8 @@ def compute_location_heuristic(player_look, player_pos, mems, steps, reldir):
         else:  # LEFT, RIGHT, etc...
             reldir_vec = rotation.DIRECTIONS[reldir]
             # this should be an inverse transform so we set inverted=True
-            dir_vec = rotation.transform(reldir_vec, player_look.yaw, 0, inverted=True)
+            yaw, _ = player_mem.get_yaw_pitch()
+            dir_vec = rotation.transform(reldir_vec, yaw, 0, inverted=True)
             loc = steps * np.array(dir_vec) + to_block_center(loc)
     elif steps is not None:
         loc = to_block_center(loc) + [0, 0, steps]
@@ -81,7 +78,7 @@ def compute_location_heuristic(player_look, player_pos, mems, steps, reldir):
 
 
 def get_repeat_arrangement(
-    player_look, repeat_num, repeat_dir, ref_mems, schematic=None, padding=(1, 1, 1)
+    player_mem, repeat_num, repeat_dir, ref_mems, schematic=None, padding=(1, 1, 1)
 ):
     shapeparams = {}
     # default repeat dir is LEFT
@@ -101,10 +98,10 @@ def get_repeat_arrangement(
 
         offsets = shapes.arrange("circle", schematic, shapeparams)
     else:
-
         reldir_vec = rotation.DIRECTIONS[repeat_dir]
         # this should be an inverse transform so we set inverted=True
-        dir_vec = rotation.transform(reldir_vec, player_look.yaw, 0, inverted=True)
+        yaw, _ = player_mem.get_yaw_pitch()
+        dir_vec = rotation.transform(reldir_vec, yaw, 0, inverted=True)
         max_ind = np.argmax(dir_vec)
         shapeparams["extra_space"] = padding[max_ind]
         shapeparams["orient"] = dir_vec

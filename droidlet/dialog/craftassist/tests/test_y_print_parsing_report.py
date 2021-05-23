@@ -42,7 +42,7 @@ class FakeAgent(LocoMCAgent):
     def init_controller(self):
         dialogue_object_classes = {}
         self.dialogue_manager = DialogueManager(
-            agent=self,
+            memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
             opts=self.opts,

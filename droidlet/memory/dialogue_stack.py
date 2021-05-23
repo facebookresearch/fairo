@@ -33,11 +33,10 @@ class DialogueStack(object):
         """Append a dialogue_object to stack"""
         self.stack.append(dialogue_object)
 
-    def append_new(self, agent, cls, *args, **kwargs):
+    # FIXME agent
+    def append_new(self, cls, *args, **kwargs):
         """Construct a new DialogueObject and append to stack"""
-        self.stack.append(
-            cls(agent=agent, memory=self.memory, dialogue_stack=self, *args, **kwargs)
-        )
+        self.stack.append(cls(*args, memory=self.memory, dialogue_stack=self, **kwargs))
 
     # FIXME: in stage III, replace agent with the lowlevel interface to sending chats
     def step(self, agent):
@@ -51,7 +50,7 @@ class DialogueStack(object):
                 return
 
             try:
-                output_chat, step_data = self.stack[-1].step()
+                output_chat, step_data = self.stack[-1].step(agent=agent)
                 if output_chat:
                     agent.send_chat(output_chat)
 

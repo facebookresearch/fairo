@@ -36,23 +36,20 @@ class DialogueManager(object):
 
     """
 
-    def __init__(self, agent, dialogue_object_classes, semantic_parsing_model_wrapper, opts):
-        self.agent = agent
+    def __init__(self, memory, dialogue_object_classes, semantic_parsing_model_wrapper, opts):
+        self.memory = memory
         # FIXME in stage III; need a sensible interface for this
-        self.dialogue_stack = agent.memory.dialogue_stack
+        self.dialogue_stack = memory.dialogue_stack
         self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
-            agent=self.agent,
-            dialogue_object_classes=dialogue_object_classes,
-            opts=opts,
-            dialogue_manager=self,
+            dialogue_object_classes=dialogue_object_classes, opts=opts, dialogue_manager=self
         )
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
-        all_chats = self.agent.memory.get_recent_chats(n=m)
+        all_chats = self.memory.get_recent_chats(n=m)
         chat_list_text = []
         for chat in all_chats:
-            speaker = self.agent.memory.get_player_by_id(chat.speaker_id).name
+            speaker = self.memory.get_player_by_id(chat.speaker_id).name
             chat_str = chat.chat_text
             chat_list_text.append((speaker, chat_str))
 
@@ -87,7 +84,3 @@ class DialogueManager(object):
             obj = self.semantic_parsing_model_wrapper.get_dialogue_object()
             if obj is not None:
                 self.dialogue_stack.append(obj)
-
-        # Always call dialogue_stack.step(), even if chat is empty
-        if len(self.dialogue_stack) > 0:
-            self.dialogue_stack.step(self.agent)

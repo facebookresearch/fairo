@@ -28,6 +28,7 @@ from .mc_memory_nodes import (  # noqa
     SchematicNode,
     NODELIST,
 )
+from droidlet.perception.craftassist.heuristic_perception import check_inside
 
 PERCEPTION_RANGE = 64
 
@@ -58,7 +59,8 @@ class MCAgentMemory(AgentMemory):
         load_block_types=True,
         preception_range=PERCEPTION_RANGE,
         agent_time=None,
-        agent_low_level_data={}
+        coordinate_transforms=None,
+        agent_low_level_data={},
     ):
         super(MCAgentMemory, self).__init__(
             db_file=db_file,
@@ -66,6 +68,7 @@ class MCAgentMemory(AgentMemory):
             db_log_path=db_log_path,
             nodelist=NODELIST,
             agent_time=agent_time,
+            coordinate_transforms=coordinate_transforms,
         )
         self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?
@@ -201,6 +204,12 @@ class MCAgentMemory(AgentMemory):
         self.db_write(
             cmd, memid, b, m, self.get_time(), player_placed, agent_placed, ref_type, x, y, z
         )
+
+    def check_inside(self, mems):
+        """ mems is a sequence of two ReferenceObjectNodes.
+        this just wraps the heuristic perception check_inside method
+        """
+        return check_inside(mems)
 
     ######################
     ###  BlockObjects  ###

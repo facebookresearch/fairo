@@ -30,11 +30,17 @@ spacy_model = spacy.load("en_core_web_sm")
 
 
 class DroidletNSPModelWrapper(SemanticParserWrapper):
-    def __init__(self, agent, dialogue_object_classes, opts, dialogue_manager):
+    def __init__(self, dialogue_object_classes, opts, dialogue_manager):
         super(DroidletNSPModelWrapper, self).__init__(
-            agent, dialogue_object_classes, opts, dialogue_manager
+            dialogue_object_classes, opts, dialogue_manager
         )
         self.opts = opts
+
+        self.dialogue_object_parameters = {
+            "memory": self.dialogue_manager.memory,
+            "dialogue_stack": self.dialogue_manager.dialogue_stack,
+        }
+
         # Read all datasets
         self.read_datasets(opts)
         # instantiate logger and parsing model
@@ -131,6 +137,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         Returns:
             DialogueObject or empty if no action is needed.
         """
+
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
         if (len(self.dialogue_manager.dialogue_stack) > 0) and (
@@ -217,7 +224,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
 
         # Resolve any coreferences like "this", "that" "there" using heuristics
         # and make updates in the dictionary in place.
-        coref_resolve(self.agent.memory, logical_form, chat)
+        coref_resolve(self.dialogue_manager.memory, logical_form, chat)
         logging.debug(
             'logical form post-coref "{}" -> {}'.format(hash_user(speaker), logical_form)
         )
@@ -289,24 +296,20 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         """Return the appropriate DialogueObject to handle an action dict d
         d should have spans filled (via process_spans_and_remove_fixed_value).
         """
-        ProgramNode.create(self.agent.memory, logical_form)
-
+        ProgramNode.create(self.dialogue_manager.memory, logical_form)
+        dop = self.dialogue_object_parameters
         if logical_form["dialogue_type"] == "NOOP":
-            return Say("I don't know how to answer that.", **self.dialogue_object_parameters)
+            return Say("I don't know how to answer that.", **dop)
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
-            return self.dialogue_objects["bot_capabilities"](**self.dialogue_object_parameters)
+            return self.dialogue_objects["bot_capabilities"](**dop)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             low_level_interpreter_data = {"block_data": opts.block_data if opts else {}}
             return self.dialogue_objects["interpreter"](
-                speaker, logical_form, low_level_interpreter_data, **self.dialogue_object_parameters
+                speaker, logical_form, low_level_interpreter_data, **dop
             )
         elif logical_form["dialogue_type"] == "PUT_MEMORY":
-            return self.dialogue_objects["put_memory"](
-                speaker, logical_form, **self.dialogue_object_parameters
-            )
+            return self.dialogue_objects["put_memory"](speaker, logical_form, **dop)
         elif logical_form["dialogue_type"] == "GET_MEMORY":
-            return self.dialogue_objects["get_memory"](
-                speaker, logical_form, **self.dialogue_object_parameters
-            )
+            return self.dialogue_objects["get_memory"](speaker, logical_form, **dop)
         else:
             raise ValueError("Bad dialogue_type={}".format(logical_form["dialogue_type"]))

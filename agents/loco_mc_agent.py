@@ -250,6 +250,8 @@ class LocoMCAgent(BaseAgent):
             v.perceive(force=force)
 
     def controller_step(self):
+        # FIXME agent these should be moved to perception
+        # from here ###########################################
         """Process incoming chats and modify task stack"""
         raw_incoming_chats = self.get_incoming_chats()
         if raw_incoming_chats:
@@ -275,6 +277,7 @@ class LocoMCAgent(BaseAgent):
                 self.perceive(force=True)
             # change this to memory.get_time() format?
             self.last_chat_time = time.time()
+            # to here ###########################################
             # for now just process the first incoming chat
             self.dialogue_manager.step(incoming_chats[0])
         else:
@@ -282,6 +285,10 @@ class LocoMCAgent(BaseAgent):
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
             self.dialogue_manager.step((None, ""))
+
+        # Always call dialogue_stack.step(), even if chat is empty
+        if len(self.memory.dialogue_stack) > 0:
+            self.memory.dialogue_stack.step(self)
 
     def maybe_run_slow_defaults(self):
         """Pick a default task task to run

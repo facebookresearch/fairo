@@ -7,8 +7,8 @@ from .memory_filters import get_property_value
 
 # attribute has function signature list(mems) --> list(value)
 class Attribute:
-    def __init__(self, agent):
-        self.agent = agent
+    def __init__(self, memory):
+        self.memory = memory
 
     def __call__(self, mems):
         raise NotImplementedError("Implemented by subclass")
@@ -20,13 +20,13 @@ class TableColumn(Attribute):
     get_property_value
 
     Args:
-         agent (droidlet agent):  the agen whose memory will be queried
+         memory (droidlet memory):  the memory that will be queried
          attribute (str): the name of the column or triple predicate whose value is
                           to be returned
     """
 
-    def __init__(self, agent, attribute, get_all=False):
-        super().__init__(agent)
+    def __init__(self, memory, attribute, get_all=False):
+        super().__init__(memory)
         self.attribute = attribute
         # if this is true, the value will be a list of all outputs
         # for attributes where one mem can have multiple values
@@ -34,7 +34,7 @@ class TableColumn(Attribute):
 
     def __call__(self, mems):
         return [
-            get_property_value(self.agent.memory, mem, self.attribute, get_all=self.get_all)
+            get_property_value(self.memory.memory, mem, self.attribute, get_all=self.get_all)
             for mem in mems
         ]
 
@@ -48,14 +48,14 @@ class TripleWalk(Attribute):
     and returns a MemoryNode corresponding to where the walk ends
 
     Args:
-        agent (droidlet agent):  the agen whose memory will be queried
+        memory (droidlet memory):  the memory that will be queried
         path list(tuple(str, str)): a list of tuples where the first entry in the
                                     tuples is the pred_text and the second is either
                                     "subj_variable" or "obj_variable"
     """
 
-    def __init__(self, agent, path, get_all=False):
-        super().__init__(agent)
+    def __init__(self, memory, path, get_all=False):
+        super().__init__(memory)
         self.path = path
 
     def __call__(self, mems):
@@ -66,16 +66,16 @@ class TripleWalk(Attribute):
                 n = None
                 if mem is not None:
                     if p[1] == "subj_variable":
-                        n = self.agent.memory.get_triples(pred_text=p[0], obj=mem.memid)
+                        n = self.memory.get_triples(pred_text=p[0], obj=mem.memid)
                         if len(n) > 0:
                             # TODO don't just pick the first?
-                            next_step.append(self.agent.memory.get_mem_by_id(n[0][0]))
+                            next_step.append(self.memory.get_mem_by_id(n[0][0]))
                     else:
-                        n = self.agent.memory.get_triples(
+                        n = self.memory.get_triples(
                             pred_text=p[0], subj=mem.memid, return_obj_text="never"
                         )
                         if len(n) > 0:
-                            next_step.append(self.agent.memory.get_mem_by_id(n[0][2]))
+                            next_step.append(self.memory.get_mem_by_id(n[0][2]))
                 if len(n) == 0:
                     next_step.append(None)
         return next_step
@@ -85,7 +85,7 @@ class TripleWalk(Attribute):
 
 
 class AttributeSequence(Attribute):
-    def __init__(self, agent, attributes):
+    def __init__(self, memory, attributes):
         self.attributes = attributes
 
     def __call__(self, mems):
@@ -99,8 +99,8 @@ class AttributeSequence(Attribute):
 
 
 class ListAttribute(Attribute):
-    def __init__(self, agent, attributes):
-        super().__init__(agent)
+    def __init__(self, memory, attributes):
+        super().__init__(memory)
         self.attributes = attributes
 
     def __call__(self, mems):
@@ -123,8 +123,8 @@ class BBoxSize(Attribute):
            if "min_width" will return the smaller of the non-height dims
     """
 
-    def __init__(self, agent, attribute="height"):
-        super().__init__(agent)
+    def __init__(self, memory, attribute="height"):
+        super().__init__(memory)
         self.attribute = attribute
 
     # FIXME in non-MC settings, need to not do +1
@@ -172,9 +172,9 @@ class LinearExtentAttribute(Attribute):
          the extent is divided by distance to the fixed reference
     """
 
-    def __init__(self, agent, location_data, mem=None, fixed_role="source"):
-        super().__init__(agent)
-        self.coordinate_transforms = agent.coordinate_transforms
+    def __init__(self, memory, location_data, mem=None, fixed_role="source"):
+        super().__init__(memory)
+        self.coordinate_transforms = memory.coordinate_transforms
         self.location_data = location_data
         self.fixed_role = fixed_role
 
@@ -190,8 +190,8 @@ class LinearExtentAttribute(Attribute):
         try:
             if self.frame == "AGENT":
                 # TODO handle this appropriately!
-                yaw, pitch = agent.memory._db_read(
-                    "SELECT yaw, pitch FROM ReferenceObjects WHERE uuid=?", agent.memory.self_memid
+                yaw, pitch = memory._db_read(
+                    "SELECT yaw, pitch FROM ReferenceObjects WHERE uuid=?", memory.self_memid
                 )[0]
             elif self.frame == "ABSOLUTE":
                 yaw, pitch = self.coordinate_transforms.yaw_pitch(
@@ -202,7 +202,7 @@ class LinearExtentAttribute(Attribute):
             else:
                 # TODO error if eid not found; but then parent/helper should have caught it?
                 # TODO error properly if eid is a ref object, but pitch or yaw are null
-                yaw, pitch = agent.memory._db_read(
+                yaw, pitch = memory._db_read(
                     "SELECT yaw, pitch FROM ReferenceObjects WHERE eid=?", self.frame
                 )[0]
         except:
@@ -252,8 +252,8 @@ class LinearExtentAttribute(Attribute):
     def __call__(self, mems):
         if not self.mem:
             fixed_mem, _ = self.searcher()
-            fixed_mem = self.agent.memory.get_mem_by_id(fixed_mem[0])
-            # fixed_mem = self.searcher.search(self.agent.memory)
+            fixed_mem = self.memory.get_mem_by_id(fixed_mem[0])
+            # fixed_mem = self.searcher.search(self.memory)
             # FIXME!!! handle mem not found, more than one, etc.
         else:
             fixed_mem = self.mem
@@ -275,7 +275,7 @@ class LookRayDistance(Attribute):
     this attribute)
 
     constructor inputs:
-    agent: the agent this will run in
+    memory: the memory this will run in
     eid:  the entity id of the LookRay owner (the viewing agent/player/person)
           if None, assumes it is the eid from the agent's default_frame
 
@@ -285,11 +285,11 @@ class LookRayDistance(Attribute):
 
     """
 
-    def __init__(self, agent, eid, mode="raw"):
-        super().__init__(agent)
+    def __init__(self, memory, eid, mode="raw"):
+        super().__init__(memory)
         # TODO: currently stores look vecs/orientations at creation,
         try:
-            x, y, z, yaw, pitch = agent.memory._db_read(
+            x, y, z, yaw, pitch = memory._db_read(
                 "SELECT x, y, z yaw, pitch FROM ReferenceObjects WHERE eid=?", eid
             )[0]
         except:
@@ -300,7 +300,7 @@ class LookRayDistance(Attribute):
         self.yaw = yaw
         self.pitch = pitch
         self.pos = np.array([x, y, z])
-        self.coordinate_transforms = agent.coordinate_transforms
+        self.coordinate_transforms = memory.coordinate_transforms
         self.mode = mode
 
     def __call__(self, mems):
@@ -329,9 +329,9 @@ class LookRayDistance(Attribute):
 
 class ComparatorAttribute(Attribute):
     def __init__(
-        self, agent, comparison_type="EQUAL", value_left=None, value_right=None, epsilon=0
+        self, memory, comparison_type="EQUAL", value_left=None, value_right=None, epsilon=0
     ):
-        super().__init__(agent)
+        super().__init__(memory)
         self.comparison_type = comparison_type
         # at least one of these should be an Attribute; the other
         # is allowed to be a Value (but can also be an attribute)

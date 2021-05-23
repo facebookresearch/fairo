@@ -19,9 +19,19 @@ SCHEMAS = [
 
 
 class LocoAgentMemory(AgentMemory):
-    def __init__(self, db_file=":memory:", db_log_path=None, schema_paths=SCHEMAS):
+    def __init__(
+        self,
+        db_file=":memory:",
+        db_log_path=None,
+        schema_paths=SCHEMAS,
+        coordinate_transforms=None,
+    ):
         super(LocoAgentMemory, self).__init__(
-            db_file=db_file, schema_paths=schema_paths, db_log_path=db_log_path, nodelist=NODELIST
+            db_file=db_file,
+            schema_paths=schema_paths,
+            db_log_path=db_log_path,
+            nodelist=NODELIST,
+            coordinate_transforms=coordinate_transforms,
         )
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}

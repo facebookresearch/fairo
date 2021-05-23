@@ -187,12 +187,9 @@ def handle_replace(interpreter, speaker, modify_dict, obj, block_data):
         elif reldir == "BOTTOM":
             reldir = "DOWN"
         reldir_vec = rotation.DIRECTIONS[reldir]
-        look = (
-            interpreter.agent.perception_modules["low_level"]
-            .get_player_struct_by_name(speaker)
-            .look
-        )
-        dir_vec = rotation.transform(reldir_vec, look.yaw, 0, inverted=True)
+        player_mem = interpreter.memory.get_player_by_name(speaker)
+        yaw, pitch = player_mem.get_yaw_pitch()
+        dir_vec = rotation.transform(reldir_vec, yaw, 0, inverted=True)
         geometry["v"] = dir_vec
         projections = []
         for l, idm in old_blocks:

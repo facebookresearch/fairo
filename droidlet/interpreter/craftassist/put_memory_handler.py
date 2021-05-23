@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 from typing import Dict, Tuple, Any, Optional
 
-from droidlet.dialog.dialogue_objects import DialogueObject
+from droidlet.dialog.dialogue_objects import DialogueObject, Say
 
 from droidlet.interpreter import (
     FilterInterpreter,
@@ -14,7 +14,9 @@ from droidlet.interpreter import (
     interpret_reference_object,
 )
 from .spatial_reasoning import ComputeLocations
+from droidlet.memory.memory_nodes import TaskNode
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode, RewardNode
+from droidlet.interpreter.craftassist.tasks import Point
 from droidlet.shared_data_structs import ErrorWithResponse
 
 
@@ -41,8 +43,9 @@ class PutMemoryHandler(DialogueObject):
             "reference_locations": ReferenceLocationInterpreter(),
             "specify_locations": ComputeLocations(),
         }
+        self.task_objects = {"point": Point}
 
-    def step(self) -> Tuple[Optional[str], Any]:
+    def step(self, agent) -> Tuple[Optional[str], Any]:
         """Take immediate actions based on action dictionary and
         mark the dialogueObject as finished.
 
@@ -50,11 +53,11 @@ class PutMemoryHandler(DialogueObject):
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
         """
-        r = self._step()
+        r = self._step(agent)
         self.finished = True
         return r
 
-    def _step(self) -> Tuple[Optional[str], Any]:
+    def _step(self, agent) -> Tuple[Optional[str], Any]:
         """Read the action dictionary and take immediate actions based
         on memory type - either delegate to other handlers or raise an exception.
 
@@ -67,7 +70,7 @@ class PutMemoryHandler(DialogueObject):
         if memory_type == "REWARD":
             return self.handle_reward()
         elif memory_type == "TRIPLE":
-            return self.handle_triple()
+            return self.handle_triple(agent)
         else:
             raise NotImplementedError
 
@@ -87,7 +90,7 @@ class PutMemoryHandler(DialogueObject):
         else:
             return "I'll try to do better in the future.", None
 
-    def handle_triple(self) -> Tuple[Optional[str], Any]:
+    def handle_triple(self, agent) -> Tuple[Optional[str], Any]:
         """Writes a triple of type : (subject, predicate_text, object_text)
         to the memory and returns a confirmation.
 
@@ -124,10 +127,12 @@ class PutMemoryHandler(DialogueObject):
                     self.memory.add_triple(
                         subj=schematic_memid, pred_text=t["pred_text"], obj_text=t["obj_text"]
                     )
-        point_at_target = mem.get_point_at_target()
-        self.agent.send_chat(
-            "OK I'm tagging this %r as %r %r " % (name, t["pred_text"], t["obj_text"])
-        )
-        self.agent.point_at(list(point_at_target))
-
-        return "Done!", None
+            point_at_target = mem.get_point_at_target()
+            # FIXME agent : This is the only place in file using the agent from the .step()
+            task = self.task_objects["point"](agent, {"target": point_at_target})
+            # FIXME? higher pri, make sure this runs now...?
+            TaskNode(self.memory, task.memid)
+            self.dialogue_stack.append_new(
+                Say, "OK I'm tagging this %r as %r %r " % (name, t["pred_text"], t["obj_text"])
+            )
+        return None, None

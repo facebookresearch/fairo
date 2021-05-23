@@ -37,7 +37,7 @@ class GetMemoryHandler(DialogueObject):
         self.subinterpret = {}  # noqa
         self.task_objects = {}  # noqa
 
-    def step(self) -> Tuple[Optional[str], Any]:
+    def step(self, agent) -> Tuple[Optional[str], Any]:
         """Read the action dictionary and take immediate actions based
         on memory type - either delegate to other handlers or raise an exception.
 
@@ -50,12 +50,12 @@ class GetMemoryHandler(DialogueObject):
         if memory_type == "TASKS":
             return self.handle_action()
         elif memory_type == "REFERENCE_OBJECT":
-            return self.handle_reference_object()
+            return self.handle_reference_object(agent)
         else:
             raise ValueError("Unknown memory_type={}".format(memory_type))
         self.finished = True
 
-    def handle_reference_object(self, voxels_only=False) -> Tuple[Optional[str], Any]:
+    def handle_reference_object(self, agent, voxels_only=False) -> Tuple[Optional[str], Any]:
         """This function handles questions about a reference object and generates
         and answer based on the state of the reference object in memory.
 
@@ -85,7 +85,7 @@ class GetMemoryHandler(DialogueObject):
                 f["output"] = {"attribute": "tag"}
                 val_map = get_val_map(self, self.speaker_name, f, get_all=True)
                 mems, vals = val_map([m.memid for m in ref_obj_mems], [] * len(ref_obj_mems))
-        return self.do_answer(mems, vals)
+        return self.do_answer(agent, mems, vals)
 
     def handle_action(self) -> Tuple[Optional[str], Any]:
         """This function handles questions about the attributes and status of
@@ -102,7 +102,9 @@ class GetMemoryHandler(DialogueObject):
         mems, vals = F()
         return str(vals), None
 
-    def do_answer(self, mems: Sequence[Any], vals: Sequence[Any]) -> Tuple[Optional[str], Any]:
+    def do_answer(
+        self, agent, mems: Sequence[Any], vals: Sequence[Any]
+    ) -> Tuple[Optional[str], Any]:
         """This function uses the action dictionary and memory state to return an answer.
 
         Args:
@@ -127,9 +129,10 @@ class GetMemoryHandler(DialogueObject):
                     # add a Point task if attribute is a location
                     if self.subinterpret.get("point_target") and self.task_objects.get("point"):
                         target = self.subinterpret["point_target"].point_to_region(vals[0])
-                        t = self.task_objects["point"](self.agent, {"target": target})
+                        # FIXME agent : This is the only place in file using the agent from the .step()
+                        t = self.task_objects["point"](agent, {"target": target})
                         # FIXME? higher pri, make sure this runs now...?
-                        task_mem = TaskNode(self.memory, t.memid)
+                        TaskNode(self.memory, t.memid)
                 return str(vals[0]), None
             elif type(output_type) is str and output_type.lower() == "memory":
                 return self.handle_exists(mems)

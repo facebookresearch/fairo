@@ -118,7 +118,7 @@ class Task(object):
             run_condition = NotCondition(stop_condition)
 
         remove_condition = task_data.get(
-            "remove_condition", TaskStatusCondition(agent, self.memid)
+            "remove_condition", TaskStatusCondition(agent.memory, self.memid)
         )
         return init_condition, stop_condition, run_condition, remove_condition
 
@@ -170,14 +170,20 @@ class TaskListWrapper:
 
     def append(self, task):
         if self.prev is not None:
-            prev_finished = TaskStatusCondition(self.agent, self.prev.memid, status="finished")
+            prev_finished = TaskStatusCondition(
+                self.agent.memory, self.prev.memid, status="finished"
+            )
             cdict = {
-                "init_condition": AndCondition(self.agent, [task.init_condition, prev_finished])
+                "init_condition": AndCondition(
+                    self.agent.memory, [task.init_condition, prev_finished]
+                )
             }
             TaskNode(self.agent.memory, task.memid).update_condition(cdict)
         else:
-            self.fuse = SwitchCondition(self.agent)
-            cdict = {"init_condition": AndCondition(self.agent, [task.init_condition, self.fuse])}
+            self.fuse = SwitchCondition(self.agent.memory)
+            cdict = {
+                "init_condition": AndCondition(self.agent.memory, [task.init_condition, self.fuse])
+            }
             TaskNode(self.agent.memory, task.memid).update_condition(cdict)
             self.fuse.set_status(False)
         self.prev = task

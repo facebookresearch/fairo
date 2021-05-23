@@ -26,11 +26,14 @@ def number_from_span(span):
 # TODO harmonize with MC... don't need this duplicated
 class FacingInterpreter:
     def __call__(self, interpreter, speaker, d, head_or_body="head"):
-        current_pitch = interpreter.agent.pitch
-        if head_or_body == "head":
-            current_yaw = interpreter.agent.pan
-        else:
-            current_yaw = interpreter.agent.base_yaw
+        self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
+        current_yaw, current_pitch = self_mem.get_yaw_pitch()
+
+        # FIXME!!!! make a proper PoseNode
+        # if head_or_body == "head":
+        #    current_yaw = interpreter.agent.pan
+        # else:
+        #    current_yaw = interpreter.agent.base_yaw
 
         if d.get("yaw_pitch"):
             # make everything relative:
