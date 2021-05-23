@@ -15,7 +15,10 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.lowlevel.minecraft.mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
-from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
+from droidlet.interpreter.craftassist.word_maps import (
+    SPECIAL_SHAPE_FNS,
+    SPECIAL_SHAPES_CANONICALIZE,
+)
 
 
 def get_properties_from_triples(triples_list, p):
@@ -51,7 +54,9 @@ def get_attrs_from_triples(triples, interpreter, block_data_info):
         attrs["size"] = interpret_size(interpreter, text_keys["has_size"][0])
 
     if any(text_keys["has_block_type"]):
-        block_type = get_block_type(text_keys["has_block_type"][0], block_data_info=block_data_info)
+        block_type = get_block_type(
+            text_keys["has_block_type"][0], block_data_info=block_data_info
+        )
         attrs["bid"] = block_type
     elif any(text_keys["has_colour"]):
         c = block_data.COLOR_BID_MAP.get(text_keys["has_colour"][0])
@@ -147,10 +152,7 @@ def interpret_size(interpreter, text) -> Union[int, List[int]]:
         return [word_to_num(n) for n in nums]
     else:
         # handle "big", "really huge", etc.
-        if hasattr(interpreter.agent, "size_str_to_int"):
-            return interpreter.agent.size_str_to_int(text)
-        else:
-            return size_words.size_str_to_int(text)
+        return size_words.size_str_to_int(text)
 
 
 def interpret_named_schematic(

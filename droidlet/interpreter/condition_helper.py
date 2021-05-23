@@ -58,7 +58,7 @@ class ConditionInterpreter:
             return None
 
     def interpret_never(self, interpreter, speaker, d) -> Optional[Condition]:
-        return NeverCondition(interpreter.agent)
+        return NeverCondition(interpreter.memory)
 
     def interpret_or(self, interpreter, speaker, d) -> Optional[Condition]:
         orlist = d["or_condition"]
@@ -67,7 +67,7 @@ class ConditionInterpreter:
             new_condition = self(interpreter, speaker, d)
             if new_condition:
                 conds.append(new_condition)
-        return OrCondition(interpreter.agent, conds)
+        return OrCondition(interpreter.memory, conds)
 
     def interpret_and(self, interpreter, speaker, d) -> Optional[Condition]:
         orlist = d["and_condition"]
@@ -76,13 +76,13 @@ class ConditionInterpreter:
             new_condition = self(interpreter, speaker, d)
             if new_condition:
                 conds.append(new_condition)
-        return AndCondition(interpreter.agent, conds)
+        return AndCondition(interpreter.memory, conds)
 
     def interpret_time(self, interpreter, speaker, d):
         event = None
 
         if d.get("special_time_event"):
-            return TimeCondition(interpreter.agent, d["special_time_event"])
+            return TimeCondition(interpreter.memory, d["special_time_event"])
         else:
             if not d.get("comparator"):
                 raise ErrorWithResponse("I don't know how to interpret this time condition")
@@ -93,7 +93,7 @@ class ConditionInterpreter:
         if d.get("event"):
             event = self(interpreter, speaker, d["event"])
 
-        return TimeCondition(interpreter.agent, comparator, event=event)
+        return TimeCondition(interpreter.memory, comparator, event=event)
 
 
 # FIXME!!!!!

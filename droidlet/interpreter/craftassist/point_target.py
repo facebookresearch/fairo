@@ -11,7 +11,7 @@ class PointTargetInterpreter:
         # what the +1s are in the return value
         mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, d["location"])
         #    mems = interpret_reference_location(interpreter, speaker, d["location"])
-        steps, reldir = interpret_relative_direction(interpreter.agent, d)
+        steps, reldir = interpret_relative_direction(interpreter, d)
         loc, _ = interpreter.subinterpret["specify_locations"](
             interpreter, speaker, mems, steps, reldir
         )

@@ -132,6 +132,7 @@ class CraftAssistAgent(LocoMCAgent):
         """Intialize the agent memory and logging."""
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
+            coordinate_transforms=self.coordinate_transforms,
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
             agent_low_level_data=self.low_level_data,
@@ -168,7 +169,7 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.opts.block_data = craftassist_specs.get_block_data()
         self.dialogue_manager = DialogueManager(
-            agent=self,
+            memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
             opts=self.opts,

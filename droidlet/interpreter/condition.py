@@ -6,16 +6,16 @@ from droidlet.memory.memory_values import TimeValue
 
 
 class Condition:
-    def __init__(self, agent):
-        self.agent = agent
+    def __init__(self, memory):
+        self.memory = memory
 
     def check(self) -> bool:
         raise NotImplementedError("Implemented by subclass")
 
 
 class SwitchCondition(Condition):
-    def __init__(self, agent):
-        super().__init__(agent)
+    def __init__(self, memory):
+        super().__init__(memory)
         self.name = "switch"
         self.status = True
 
@@ -27,8 +27,8 @@ class SwitchCondition(Condition):
 
 
 class NeverCondition(Condition):
-    def __init__(self, agent):
-        super().__init__(agent)
+    def __init__(self, memory):
+        super().__init__(memory)
         self.name = "never"
 
     def check(self):
@@ -36,8 +36,8 @@ class NeverCondition(Condition):
 
 
 class AlwaysCondition(Condition):
-    def __init__(self, agent):
-        super().__init__(agent)
+    def __init__(self, memory):
+        super().__init__(memory)
         self.name = "always"
 
     def check(self):
@@ -45,8 +45,8 @@ class AlwaysCondition(Condition):
 
 
 class NTimesCondition(Condition):
-    def __init__(self, agent, N=1):
-        super().__init__(agent)
+    def __init__(self, memory, N=1):
+        super().__init__(memory)
         self.N = N
         self.count = 0
         self.name = str(self.N) + "times"
@@ -57,8 +57,8 @@ class NTimesCondition(Condition):
 
 
 class NotCondition(Condition):
-    def __init__(self, agent, condition):
-        super().__init__(agent)
+    def __init__(self, memory, condition):
+        super().__init__(memory)
         self.name = "not"
         self.condition = condition
 
@@ -70,8 +70,8 @@ class NotCondition(Condition):
 class AndCondition(Condition):
     """conditions should be an iterable"""
 
-    def __init__(self, agent, conditions):
-        super().__init__(agent)
+    def __init__(self, memory, conditions):
+        super().__init__(memory)
         self.name = "and"
         self.conditions = conditions
 
@@ -85,8 +85,8 @@ class AndCondition(Condition):
 class OrCondition(Condition):
     """conditions should be an iterable"""
 
-    def __init__(self, agent, conditions):
-        super().__init__(agent)
+    def __init__(self, memory, conditions):
+        super().__init__(memory)
         self.name = "or"
         self.conditions = conditions
 
@@ -98,15 +98,15 @@ class OrCondition(Condition):
 
 
 class TaskStatusCondition(Condition):
-    def __init__(self, agent, task_memid, status="finished"):
-        super().__init__(agent)
+    def __init__(self, memory, task_memid, status="finished"):
+        super().__init__(memory)
         self.status = status
         self.task_memid = task_memid
 
     def check(self):
         T = None
-        if self.agent.memory.check_memid_exists(self.task_memid, "Tasks"):
-            T = self.agent.memory.get_mem_by_id(self.task_memid)
+        if self.memory.check_memid_exists(self.task_memid, "Tasks"):
+            T = self.memory.get_mem_by_id(self.task_memid)
         if self.status == "finished":
             # beware:
             # assumption is if we had the memid in hand, and it is no longer a task, task is finished
@@ -126,8 +126,8 @@ class TaskStatusCondition(Condition):
 
 # start_time and end_time are in (0, 1)
 # 0 is sunrise, .5 is sunset
-def build_special_time_condition(agent, start_time, end_time, epsilon=0.01):
-    value_left = TimeValue(agent, mode="world_time")
+def build_special_time_condition(memory, start_time, end_time, epsilon=0.01):
+    value_left = TimeValue(memory, mode="world_time")
     if end_time > 0:
         start = Comparator(
             comparison_type="GREATER_THAN_EQUAL", value_left=value_left, value_right=start_time
@@ -135,7 +135,7 @@ def build_special_time_condition(agent, start_time, end_time, epsilon=0.01):
         end = Comparator(
             comparison_type="LESS_THAN_EQUAL", value_left=value_left, value_right=end_time
         )
-        return AndCondition(agent, [start, end])
+        return AndCondition(memory, [start, end])
     else:
         return Comparator(
             comparison_type="CLOSE_TO",
@@ -158,28 +158,28 @@ class TimeCondition(Condition):
     else it should be built in the parent, and the value_right should be commeasurable (properly scaled)
     """
 
-    def __init__(self, agent, comparator, event=None):
-        super().__init__(agent)
+    def __init__(self, memory, comparator, event=None):
+        super().__init__(memory)
         self.special = None
         self.event = event
         if type(comparator) is str:
             if comparator == "SUNSET":
-                self.special = build_special_time_condition(agent, 0.5, -1)
+                self.special = build_special_time_condition(memory, 0.5, -1)
             elif comparator == "SUNRISE":
-                self.special = build_special_time_condition(agent, 0.0, -1)
+                self.special = build_special_time_condition(memory, 0.0, -1)
             elif comparator == "MORNING":
-                self.special = build_special_time_condition(agent, 0, 0.25)
+                self.special = build_special_time_condition(memory, 0, 0.25)
             elif comparator == "AFTERNOON":
-                self.special = build_special_time_condition(agent, 0.25, 0.5)
+                self.special = build_special_time_condition(memory, 0.25, 0.5)
             elif comparator == "DAY":
-                self.special = build_special_time_condition(agent, 0.0, 0.5)
+                self.special = build_special_time_condition(memory, 0.0, 0.5)
             elif comparator == "NIGHT":
-                self.special = build_special_time_condition(agent, 0.5, 1.0)
+                self.special = build_special_time_condition(memory, 0.5, 1.0)
             else:
                 raise NotImplementedError("unknown special time condition type: " + comparator)
         else:
             if not event:
-                comparator.value_left = TimeValue(agent, mode="elapsed")
+                comparator.value_left = TimeValue(memory, mode="elapsed")
             self.comparator = comparator
 
     def check(self):
@@ -187,16 +187,16 @@ class TimeCondition(Condition):
             return self.comparator.check()
         else:
             if self.event.check():
-                self.comparator.value_left = TimeValue(self.agent, mode="elapsed")
+                self.comparator.value_left = TimeValue(self.memory, mode="elapsed")
                 self.event = None
             return self.comparator.check()
 
 
 class Comparator(Condition):
     def __init__(
-        self, agent, comparison_type="EQUAL", value_left=None, value_right=None, epsilon=0
+        self, memory, comparison_type="EQUAL", value_left=None, value_right=None, epsilon=0
     ):
-        super().__init__(agent)
+        super().__init__(memory)
         self.comparison_type = comparison_type
         self.value_left = value_left
         self.value_right = value_right

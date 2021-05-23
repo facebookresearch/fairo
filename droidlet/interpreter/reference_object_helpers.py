@@ -34,7 +34,7 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
 def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent_memory=None):
     """make a search dictionary for a BasicMemorySearcher to return the special ReferenceObject"""
     # TODO/FIXME! add things to workspace memory
-    agent_memory = agent_memory or interpreter.agent.memory
+    agent_memory = agent_memory or interpreter.memory
     if type(S) is dict:
         coord_span = S["coordinates_span"]
         loc = cast(XYZ, tuple(int(float(w)) for w in re.findall("[-0-9.]+", coord_span)))
@@ -59,7 +59,7 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
     """
 
     # TODO/FIXME! add things to workspace memory
-    agent_memory = agent_memory or interpreter.agent.memory
+    agent_memory = agent_memory or interpreter.memory
     if not eid:
         eid = get_eid_from_special(agent_memory, S, speaker=speaker)
     sd = special_reference_search_data(None, speaker, S, entity_id=eid, agent_memory=agent_memory)
@@ -160,14 +160,14 @@ def interpret_reference_object(
             # TODO: move ttad call to dialogue manager and remove this logic
             interpreter.action_dict_frozen = True
             confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
-            objects = object_looked_at(interpreter.agent, confirm_candidates, speaker=speaker)
+            objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
             if len(objects) == 0:
                 raise ErrorWithResponse("I don't know what you're referring to")
             _, mem = objects[0]
             interpreter.provisional["object_mem"] = mem
             interpreter.provisional["filters_d"] = filters_d
             # FIXME agent
-            interpreter.dialogue_stack.append_new(interpreter.agent, ConfirmReferenceObject, mem)
+            interpreter.dialogue_stack.append_new(ConfirmReferenceObject, mem)
             raise NextDialogueStep()
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
@@ -186,7 +186,7 @@ def apply_memory_filters(interpreter, speaker, filters_d) -> List[ReferenceObjec
     """Return a list of (xyz, memory) tuples encompassing all possible reference objects"""
     F = interpreter.subinterpret["filters"](interpreter, speaker, filters_d)
     memids, _ = F()
-    mems = [interpreter.agent.memory.get_mem_by_id(i) for i in memids]
+    mems = [interpreter.memory.get_mem_by_id(i) for i in memids]
     #    f = {"triples": [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]}
     #    mems = interpreter.memory.basic_search(f)
     return mems
@@ -222,7 +222,9 @@ def filter_by_sublocation(
                 ref_mems = interpret_reference_object(
                     interpreter, speaker, location["reference_object"]
                 )
-                I = interpreter.agent.on_demand_perception.get["check_inside"]
+                # FIXME !!! this should be more clearly delineated
+                # between perception and memory
+                I = getattr(interpreter.memory, "check_inside", None)
                 if I:
                     for candidate_mem in candidates:
                         if I([candidate_mem, ref_mems[0]]):
@@ -253,10 +255,10 @@ def filter_by_sublocation(
 
             # FIXME!!! handle frame better, might want agent's frame instead
             # FIXME use the subinterpreter, don't directly call the attribute
-            eid = interpreter.agent.memory.get_player_by_name(speaker).eid
-            self_mem = interpreter.agent.memory.get_mem_by_id(interpreter.agent.memory.self_memid)
+            eid = interpreter.memory.get_player_by_name(speaker).eid
+            self_mem = interpreter.memory.get_mem_by_id(interpreter.memory.self_memid)
             L = LinearExtentAttribute(
-                interpreter.agent, {"frame": eid, "relative_direction": reldir}, mem=self_mem
+                interpreter.memory, {"frame": eid, "relative_direction": reldir}, mem=self_mem
             )
             c_proj = L(candidates)
             m_proj = L(mems)
@@ -325,17 +327,17 @@ def filter_by_sublocation(
                     [c.memid for c in location_filtered_candidates],
                     [None] * len(location_filtered_candidates),
                 )
-                mems = [interpreter.agent.memory.get_mem_by_id(m) for m in memids]
+                mems = [interpreter.memory.get_mem_by_id(m) for m in memids]
     return mems
 
 
 def object_looked_at(
-    agent, candidates: List[T], speaker=None, eid=None, limit=1, max_distance=30, loose=False
+    memory, candidates: List[T], speaker=None, eid=None, limit=1, max_distance=30, loose=False
 ) -> List[Tuple[XYZ, T]]:
     """Return the object that `player` is looking at
 
     Args:
-    - agent
+    - memory
     - candidates: list of memory objects
     - eid or speaker, who is doing the looking
     - limit: 'ALL' or int; max candidates to return
@@ -347,19 +349,19 @@ def object_looked_at(
         return []
     assert eid or speaker
     if not eid:
-        eid = agent.memory.get_player_by_name(speaker).eid
+        eid = memory.get_player_by_name(speaker).eid
     # TODO wrap in try/catch, handle failures in finding speaker or not having speakers LOS
-    xsect = capped_line_of_sight(agent, eid=eid, cap=25)
-    speaker_mem = agent.memory.basic_search({"special": {"SPEAKER": eid}})[0]
+    xsect = capped_line_of_sight(memory, eid=eid, cap=25)
+    speaker_mem = memory.basic_search({"special": {"SPEAKER": eid}})[0]
     pos = np.array(speaker_mem.get_pos())
     yaw, pitch = speaker_mem.get_yaw_pitch()
 
     def coord(mem):
-        return agent.coordinate_transforms.transform(np.array(mem.get_pos()) - pos, yaw, pitch)
+        return memory.coordinate_transforms.transform(np.array(mem.get_pos()) - pos, yaw, pitch)
 
-    FRONT = agent.coordinate_transforms.DIRECTIONS["FRONT"]
-    LEFT = agent.coordinate_transforms.DIRECTIONS["LEFT"]
-    UP = agent.coordinate_transforms.DIRECTIONS["UP"]
+    FRONT = memory.coordinate_transforms.DIRECTIONS["FRONT"]
+    LEFT = memory.coordinate_transforms.DIRECTIONS["LEFT"]
+    UP = memory.coordinate_transforms.DIRECTIONS["UP"]
 
     # reject objects behind player or not in cone of sight (but always include
     # an object if it's directly looked at)
@@ -378,7 +380,7 @@ def object_looked_at(
         candidates_.sort(key=lambda c: np.linalg.norm(np.array(c.get_pos()) - xsect))
     else:
         # otherwise, sort by closest to look vector
-        raydists = list(zip(candidates_, LookRayDistance(agent, eid)(candidates_)))
+        raydists = list(zip(candidates_, LookRayDistance(memory, eid)(candidates_)))
         raydists.sort(key=lambda x: x[1])
         candidates_ = [c[0] for c in raydists]
     # limit returns of things too far away
@@ -390,22 +392,22 @@ def object_looked_at(
     return [(c.get_pos(), c) for c in candidates_[:limit]]
 
 
-def capped_line_of_sight(agent, speaker=None, eid=None, cap=20):
+def capped_line_of_sight(memory, speaker=None, eid=None, cap=20):
     """Return the location directly in the entity's line of sight, or a point in the distance
     if LOS does not intersect nearby point"""
 
     assert eid or speaker
     if not eid:
-        eid = agent.memory.get_player_by_name(speaker).eid
+        eid = memory.get_player_by_name(speaker).eid
 
     xsect_mem = get_special_reference_object(
-        None, speaker, "SPEAKER_LOOK", agent_memory=agent.memory, eid=eid
+        None, speaker, "SPEAKER_LOOK", agent_memory=memory, eid=eid
     )
-    speaker_mem = agent.memory.basic_search({"special": {"SPEAKER": eid}})[0]
+    speaker_mem = memory.basic_search({"special": {"SPEAKER": eid}})[0]
     pos = speaker_mem.get_pos()
     if xsect_mem and np.linalg.norm(np.subtract(xsect_mem.get_pos(), pos)) <= cap:
         return np.array(xsect_mem.get_pos())
 
     # default to cap blocks in front of entity
-    vec = agent.coordinate_transforms.look_vec(speaker_mem.yaw, speaker_mem.pitch)
+    vec = memory.coordinate_transforms.look_vec(speaker_mem.yaw, speaker_mem.pitch)
     return cap * np.array(vec) + np.array(pos)

@@ -83,7 +83,7 @@ class Interpreter(DialogueObject):
         # fill these in subclasses
         self.task_objects = {}  # noqa
 
-    def step(self) -> Tuple[Optional[str], Any]:
+    def step(self, agent) -> Tuple[Optional[str], Any]:
         assert self.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
             actions = []
@@ -100,7 +100,7 @@ class Interpreter(DialogueObject):
             tasks_to_push = []
             for action_def in actions:
                 action_type = action_def["action_type"]
-                r = self.action_handlers[action_type](self.speaker, action_def)
+                r = self.action_handlers[action_type](agent, self.speaker, action_def)
                 if len(r) == 3:
                     task, response, dialogue_data = r
                 else:
@@ -111,15 +111,12 @@ class Interpreter(DialogueObject):
                     tasks_to_push.append(task)
             task_mem = None
             if tasks_to_push:
-                T = maybe_task_list_to_control_block(tasks_to_push, self.agent)
-                task_mem = TaskNode(self.agent.memory, tasks_to_push[0].memid)
+                T = maybe_task_list_to_control_block(tasks_to_push, agent)
+                task_mem = TaskNode(self.memory, tasks_to_push[0].memid)
             if task_mem:
-                chat = self.agent.memory.get_most_recent_incoming_chat()
+                chat = self.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
-                    self.agent.memory,
-                    subj=chat.memid,
-                    pred_text="chat_effect_",
-                    obj=task_mem.memid,
+                    self.memory, subj=chat.memid, pred_text="chat_effect_", obj=task_mem.memid
                 )
             self.finished = True
             return response, dialogue_data
@@ -129,7 +126,7 @@ class Interpreter(DialogueObject):
             self.finished = True
             return err.chat, None
 
-    def handle_undo(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_undo(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Undo = self.task_objects["undo"]
         task_name = d.get("undo_action")
         if task_name:
@@ -137,18 +134,12 @@ class Interpreter(DialogueObject):
         old_task = self.memory.get_last_finished_root_task(task_name)
         if old_task is None:
             raise ErrorWithResponse("Nothing to be undone ...")
-        undo_tasks = [Undo(self.agent, {"memid": old_task.memid})]
-
-        #        undo_tasks = [
-        #            tasks.Undo(self.agent, {"memid": task.memid})
-        #            for task in old_task.all_descendent_tasks(include_root=True)
-        #        ]
+        undo_tasks = [Undo(agent, {"memid": old_task.memid})]
         undo_command = old_task.get_chat().chat_text
 
         logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
         # FIXME agent
         self.dialogue_stack.append_new(
-            self.agent,
             ConfirmTask,
             'Do you want me to undo the command: "{}" ?'.format(undo_command),
             undo_tasks,
@@ -156,7 +147,7 @@ class Interpreter(DialogueObject):
         self.finished = True
         return None, None
 
-    def handle_move(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_move(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Move = self.task_objects["move"]
         Control = self.task_objects["control"]
 
@@ -178,7 +169,7 @@ class Interpreter(DialogueObject):
                 raise ErrorWithResponse("I don't understand where you want me to move.")
             pos = self.post_process_loc(pos, self)
             task_data = {"target": pos, "action_dict": d}
-            task = Move(self.agent, task_data)
+            task = Move(agent, task_data)
             return task
 
         if "stop_condition" in d:
@@ -195,12 +186,12 @@ class Interpreter(DialogueObject):
                 "remove_condition": condition,  #!!! semantic parser + GT need updating
                 "action_dict": d,
             }
-            return Control(self.agent, loop_task_data), None, None
+            return Control(agent, loop_task_data), None, None
         else:
             return new_tasks(), None, None
 
     # TODO mark in memory it was stopped by command
-    def handle_stop(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_stop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if self.loop_data is not None:
             # TODO if we want to be able stop and resume old tasks, will need to store
@@ -213,7 +204,7 @@ class Interpreter(DialogueObject):
 
     # FIXME this is needs updating...
     # TODO mark in memory it was resumed by command
-    def handle_resume(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_resume(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if self.memory.task_stack_resume():
             if self.archived_loop_data is not None:
@@ -224,6 +215,6 @@ class Interpreter(DialogueObject):
         else:
             return None, "nothing to resume", None
 
-    def handle_otheraction(self, speaker, d) -> Tuple[Optional[str], Any]:
+    def handle_otheraction(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         return None, "I don't know how to do that yet", None

@@ -8,8 +8,8 @@ from droidlet.base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
 # a value has a get_value() method; and get_value should not have
 # any inputs
 class ComparisonValue:
-    def __init__(self, agent):
-        self.agent = agent
+    def __init__(self, memory):
+        self.memory = memory
 
     def get_value(self):
         raise NotImplementedError("Implemented by subclass")
@@ -44,8 +44,8 @@ def convert_comparison_value(comparison_value, unit):
 
 
 class FixedValue(ComparisonValue):
-    def __init__(self, agent, value):
-        super().__init__(agent)
+    def __init__(self, memory, value):
+        super().__init__(memory)
         self.value = value
 
     def get_value(self):
@@ -64,16 +64,16 @@ class TimeValue(ComparisonValue):
     if "world_time" uses memory.get_world_time
     """
 
-    def __init__(self, agent, mode="elapsed"):
+    def __init__(self, memory, mode="elapsed"):
         self.mode = mode
         self.offset = 0.0
         if self.mode == "elapsed":
-            self.offset = agent.memory.get_time()
-            self.get_time = agent.memory.get_time
+            self.offset = memory.get_time()
+            self.get_time = memory.get_time
         elif self.mode == "time":
-            self.get_time = agent.memory.get_time
+            self.get_time = memory.get_time
         else:  # world_time
-            self.get_time = agent.memory.get_world_time
+            self.get_time = memory.get_world_time
 
     def get_value(self):
         return self.get_time() - self.offset
@@ -81,8 +81,8 @@ class TimeValue(ComparisonValue):
 
 # TODO unit conversions?
 class MemoryColumnValue(ComparisonValue):
-    def __init__(self, agent, search_data, mem=None):
-        super().__init__(agent)
+    def __init__(self, memory, search_data, mem=None):
+        super().__init__(memory)
         self.search_data = search_data
         # TODO expand beyond ref objects
         self.mem = mem
@@ -93,7 +93,7 @@ class MemoryColumnValue(ComparisonValue):
     def get_value(self):
         if self.mem:
             return self.search_data["attribute"]([self.mem])[0]
-        mems = self.searcher.search(self.agent.memory)
+        mems = self.searcher.search(self.memory)
         if len(mems) > 0:
             # TODO/FIXME! deal with more than 1 better
             return self.search_data["attribute"](mems)[0]
@@ -106,8 +106,8 @@ class LinearExtentValue(ComparisonValue):
     # e.g. "when you are as far from the house as the cow is from the house"
     # but NOT for "when the cow is 3 steps from the house"
     # in the latter case, one of the two entities will be given by the filters
-    def __init__(self, agent, linear_exent_attribute, mem=None, search_data=None):
-        super().__init__(agent)
+    def __init__(self, memory, linear_exent_attribute, mem=None, search_data=None):
+        super().__init__(memory)
         self.linear_extent_attribute = linear_exent_attribute
         assert mem or search_data
         self.searcher = None
@@ -120,7 +120,7 @@ class LinearExtentValue(ComparisonValue):
         if self.mem:
             mems = [self.mem]
         else:
-            mems = self.searcher.search(self.agent.memory)
+            mems = self.searcher.search(self.memory)
         if len(mems) > 0:
             # TODO/FIXME! deal with more than 1 better
             return self.linear_extent_attribute(mems)[0]
@@ -130,8 +130,8 @@ class LinearExtentValue(ComparisonValue):
 
 # TODO/FIXME! check that the memory_filter outputs a single memid/value pair
 class FilterValue(ComparisonValue):
-    def __init__(self, agent, memory_filter):
-        super().__init__(agent)
+    def __init__(self, memory, memory_filter):
+        super().__init__(memory)
         self.memory_filter = memory_filter
 
     def get_value(self):

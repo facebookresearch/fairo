@@ -77,6 +77,7 @@ class AgentMemory:
         self,
         db_file=":memory:",
         schema_paths=SCHEMAS,
+        coordinate_transforms=None,
         db_log_path=None,
         nodelist=NODELIST,
         agent_time=None,
@@ -95,6 +96,9 @@ class AgentMemory:
         self.on_delete_callback = on_delete_callback
 
         self.init_time_interface(agent_time)
+
+        # FIXME agent : should this be here?  where to put?
+        self.coordinate_transforms = coordinate_transforms
 
         for schema_path in schema_paths:
             with open(schema_path, "r") as f:
