@@ -333,7 +333,7 @@ class MobNode(ReferenceObjectNode):
 
         Examples::
             >>> memory = AgentMemory()
-            >>> from entities import MOBS_BY_ID
+            >>> from droidlet.base_util import MOBS_BY_ID
             >>> chicken = {v: k for k, v in MOBS_BY_ID.items()}["chicken"]
             >>> mob_id, mob_type, pos, look = 42, chicken, Pos(3, 4, 5), Look(0.0, 0.0)
             >>> mob = Mob(mob_id, mob_type, pos, look)) # get an instance of the Mob class
@@ -433,7 +433,7 @@ class ItemStackNode(ReferenceObjectNode):
         self.pos = (x, y, z)
 
     @classmethod
-    def create(cls, memory, item_stack, low_level_data) -> str:
+    def create(cls, memory, item_stack, block_data_info) -> str:
         """Creates a new entry into the ReferenceObjects table
 
         Returns:
@@ -446,7 +446,7 @@ class ItemStackNode(ReferenceObjectNode):
             >>> item_stack = ItemStack(12345678, Pos(0.0, 0.0, 0.0))
             >>> create(memory, item_stack)
         """
-        bid_to_name = low_level_data.get("block_data", {}).get("bid_to_name", {})
+        bid_to_name = block_data_info.get("bid_to_name", {})
         type_name = bid_to_name[(item_stack.item.id, item_stack.item.meta)]
         memid = cls.new(memory)
         memory.db_write(

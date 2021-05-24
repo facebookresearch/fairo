@@ -67,15 +67,20 @@ class MCAgentMemory(AgentMemory):
             nodelist=NODELIST,
             agent_time=agent_time,
         )
-        self.low_level_data = agent_low_level_data
+        self.low_level_block_data = agent_low_level_data.get("block_data", {})
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}
         self.schematics = {}
-        self._load_schematics(agent_low_level_data=agent_low_level_data,
+
+        self._load_schematics(schematics=agent_low_level_data.get("schematics", {}),
+                              block_data=agent_low_level_data.get("block_data", {}),
                               load_minecraft_specs=load_minecraft_specs)
-        self._load_block_types(agent_low_level_data=agent_low_level_data,
+        self._load_block_types(block_data=agent_low_level_data.get("block_data", {}),
+                               color_data=agent_low_level_data.get("color_data", {}),
+                               block_property_data=agent_low_level_data.get("block_property_data", {}),
                                load_block_types=load_block_types)
-        self._load_mob_types(agent_low_level_data=agent_low_level_data)
+        self._load_mob_types(mobs=agent_low_level_data.get("mobs", {}),
+                             mob_property_data=agent_low_level_data.get("mob_property_data", {}))
         self.dances = {}
         self.perception_range = preception_range
 
@@ -345,10 +350,8 @@ class MCAgentMemory(AgentMemory):
 
             return self.get_schematic_by_id(memid)
 
-    def _load_schematics(self, agent_low_level_data, load_minecraft_specs=True):
+    def _load_schematics(self, schematics, block_data, load_minecraft_specs=True):
         """Load all Minecraft schematics into agent memory"""
-        schematics = agent_low_level_data.get("schematics", {})
-        block_data = agent_low_level_data.get("block_data", {})
         if load_minecraft_specs:
             for premem in schematics:
                 npy = premem["schematic"]
@@ -381,7 +384,9 @@ class MCAgentMemory(AgentMemory):
 
     def _load_block_types(
         self,
-        agent_low_level_data,
+        block_data,
+        color_data,
+        block_property_data,
         load_block_types=True,
         load_color=True,
         load_block_property=True,
@@ -391,9 +396,6 @@ class MCAgentMemory(AgentMemory):
         """Load all block types into agent memory"""
         if not load_block_types:
             return
-        block_data = agent_low_level_data.get("block_data", {})
-        color_data = agent_low_level_data.get("color_data", {})
-        block_property_data = agent_low_level_data.get("block_property_data", {})
 
         if simple_color:
             name_to_colors = color_data.get("name_to_simple_colors", {})
@@ -424,12 +426,10 @@ class MCAgentMemory(AgentMemory):
                     for property in block_name_to_properties[type_name]:
                         self.add_triple(subj_text=memid, pred_text="has_name", obj_text=property)
 
-    def _load_mob_types(self, agent_low_level_data, load_mob_types=True):
+    def _load_mob_types(self, mobs, mob_property_data, load_mob_types=True):
         """Load all mob types into agent memory"""
         if not load_mob_types:
             return
-        mobs = agent_low_level_data.get("mobs", {})
-        mob_property_data = agent_low_level_data.get("mob_property_data", {})
 
         mob_name_to_properties = mob_property_data.get("name_to_properties", {})
         for (name, m) in mobs.items():
@@ -503,7 +503,7 @@ class MCAgentMemory(AgentMemory):
             )
             (memid,) = r
         else:
-            memid = ItemStackNode.create(self, item_stack, self.low_level_data)
+            memid = ItemStackNode.create(self, item_stack, self.low_level_block_data)
         return self.get_mem_by_id(memid)
 
     def get_all_item_stacks(self):
