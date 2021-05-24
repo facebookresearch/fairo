@@ -5,8 +5,8 @@ import unittest
 
 from droidlet.base_util import cube
 from .base_craftassist_test_case import BaseCraftassistTestCase
-from droidlet.dialog.dialogue_stack import DialogueStack
-from droidlet.dialog.craftassist.dialogue_objects import DummyInterpreter
+from droidlet.memory.dialogue_stack import DialogueStack
+from droidlet.interpreter.craftassist import DummyInterpreter
 import droidlet.interpreter.tests.all_test_commands
 
 
@@ -21,10 +21,7 @@ def add_many_objects(test):
     test.shapes = [
         list(
             test.agent.add_object_ff_time(
-                cd[3],
-                xyzbms=cube(size=cd[1], bid=cd[2]),
-                origin=cd[0],
-                relations=cube_triples,
+                cd[3], xyzbms=cube(size=cd[1], bid=cd[2]), origin=cd[0], relations=cube_triples
             ).blocks.items()
         )
         for cd in cube_data
@@ -35,19 +32,20 @@ def add_many_objects(test):
 class FiltersTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        dummy_dialogue_stack = DialogueStack(self.agent, self.agent.memory)
+        dummy_dialogue_stack = DialogueStack(self.agent.memory)
         self.dummy_interpreter = DummyInterpreter(
-            "SPEAKER",
-            agent=self.agent,
-            memory=self.agent.memory,
-            dialogue_stack=dummy_dialogue_stack,
+            "SPEAKER", memory=self.agent.memory, dialogue_stack=dummy_dialogue_stack
         )
 
         add_many_objects(self)
 
     def test_first_and_last(self):
-        f = droidlet.interpreter.tests.all_test_commands.FILTERS["number of blocks in the first thing built"]
-        l = droidlet.interpreter.tests.all_test_commands.FILTERS["number of blocks in the last thing built"]
+        f = droidlet.interpreter.tests.all_test_commands.FILTERS[
+            "number of blocks in the first thing built"
+        ]
+        l = droidlet.interpreter.tests.all_test_commands.FILTERS[
+            "number of blocks in the last thing built"
+        ]
         DI = self.dummy_interpreter
 
         b = DI.subinterpret["filters"](DI, "SPEAKER", f)
