@@ -53,6 +53,7 @@ class StateManager {
       { msg: "", failed: false },
       { msg: "", failed: false },
     ],
+    handshake: "",
   };
 
   constructor() {
@@ -66,6 +67,7 @@ class StateManager {
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
+    this.returnHandshake = this.returnHandshake.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -129,6 +131,7 @@ class StateManager {
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("objects", this.processObjects);
+    socket.on("returnHandshake", this.returnHandshake);
   }
 
   updateStateManagerMemory(data) {
@@ -170,6 +173,10 @@ class StateManager {
         ref.forceUpdate();
       }
     });
+  }
+
+  returnHandshake(res) {
+    this.memory.handshake = res;
   }
 
   keyHandler(key_codes) {

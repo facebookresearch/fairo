@@ -138,6 +138,11 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("setChatResponse", payload)
 
+        @sio.on("receiveHandshake")
+        def receive_handshake(sid, handshake):
+            handshake = "Received message!"
+            sio.emit("returnHandshake", handshake)
+
     def init_physical_interfaces(self):
         """
         should define or otherwise set up
