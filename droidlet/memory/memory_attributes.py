@@ -34,7 +34,7 @@ class TableColumn(Attribute):
 
     def __call__(self, mems):
         return [
-            get_property_value(self.memory.memory, mem, self.attribute, get_all=self.get_all)
+            get_property_value(self.memory, mem, self.attribute, get_all=self.get_all)
             for mem in mems
         ]
 
