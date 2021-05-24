@@ -31,11 +31,6 @@ TICKS_PER_HOUR = 60 * TICKS_PER_MINUTE
 TICKS_PER_DAY = 24 * TICKS_PER_HOUR
 
 
-class ErrorWithResponse(Exception):
-    def __init__(self, chat):
-        self.chat = chat
-
-
 def number_from_span(s):
     try:
         n = float(s)
