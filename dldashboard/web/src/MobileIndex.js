@@ -15,6 +15,11 @@ import InteractApp from "./components/Interact/InteractApp";
 
 import "./index.css";
 
+/*
+ * renders 3 panes, one for RGB, another for memory 2d, and another for chat
+ * Uses golden layout, but will later be removed in favor of bootstrap or tailwind
+ */
+
 export function mobileLayout() {
   window.React = React;
   window.ReactDOM = ReactDOM;

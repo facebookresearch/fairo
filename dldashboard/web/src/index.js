@@ -26,6 +26,7 @@ import { mobileLayout } from "./MobileIndex.js";
 import "./index.css";
 
 if (isMobile) {
+  // if user is on mobile device, run different mobile-friendly display
   mobileLayout();
 } else {
   window.React = React;
