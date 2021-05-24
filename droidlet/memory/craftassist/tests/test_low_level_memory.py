@@ -85,10 +85,10 @@ class BasicTest(unittest.TestCase):
 
     def test_items_apis(self):
         self.memory = MCAgentMemory()
-        low_level_data = {"block_data": {"bid_to_name": {
+        low_level_data = {"bid_to_name": {
             (0, 0): "sand",
             (10, 4): "grass"
-        }}}
+        }}
         item_memid = ItemStackNode.create(self.memory, ItemStack(12, Item(0, 0), Pos(0, 0, 0)), low_level_data)
         # test update_item_stack_eid
         assert self.memory.update_item_stack_eid(item_memid, 23).eid == 23
