@@ -2,11 +2,10 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-import os
 
 import numpy as np
 import random
-from droidlet.perception.craftassist import shape_helpers as sh
+from droidlet.lowlevel.minecraft import shape_helpers as sh
 from droidlet.interpreter.craftassist import tasks
 
 from droidlet.lowlevel.minecraft.mc_util import pos_to_np

@@ -17,6 +17,7 @@ import subprocess
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.perception.craftassist import rotation, heuristic_perception
+from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
 
 if __name__ == "__main__":
@@ -168,6 +169,7 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.opts.block_data = craftassist_specs.get_block_data()
+        self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,

@@ -6,7 +6,8 @@ import unittest
 import time
 
 import droidlet.base_util
-import droidlet.perception.craftassist.shapes as shapes
+import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shapes
 from droidlet.dialog.dialogue_objects import AwaitResponse
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
@@ -17,7 +18,7 @@ class UndoTest(BaseCraftassistTestCase):
         tag = "fluffy"
 
         # Build something
-        obj = self.add_object(droidlet.base_util.cube(bid=(41, 0)), (0, 63, 0))
+        obj = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(41, 0)), (0, 63, 0))
         self.set_looking_at(list(obj.blocks.keys())[0])
 
         # Tag it

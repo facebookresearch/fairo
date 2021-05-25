@@ -2,9 +2,9 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
-import hashlib
-import numpy as np
 from droidlet.base_util import *
+from droidlet.lowlevel.minecraft.shapes import cube
+
 
 class BasicTest(unittest.TestCase):
     def test_number_from_span(self):
