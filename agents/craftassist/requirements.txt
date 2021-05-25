@@ -1,2 +1,3 @@
 -r ../requirements.txt
 scipy==1.1.0
+open3d
