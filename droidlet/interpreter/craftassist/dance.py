@@ -1,13 +1,15 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import droidlet.base_util
 
 """This file contain implementations of a collection of dances that the 
 agent can perform in game.
 """
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
-from droidlet.perception.craftassist import search, shapes
+from droidlet.perception.craftassist import search
+from droidlet.lowlevel.minecraft import shapes
 from droidlet.shared_data_structs import ErrorWithResponse
 
 # FIXME! actual jump on client
@@ -128,11 +130,11 @@ class RefObjMovement(Movement):
             center = ref_object.get_pos()
         d = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
         if relative_direction == "CLOCKWISE" or relative_direction == "AROUND":
-            offsets = shapes.arrange(
+            offsets = droidlet.base_util.arrange(
                 "circle", schematic=None, shapeparams={"encircled_object_radius": d}
             )
         elif relative_direction == "ANTICLOCKWISE":
-            offsets = shapes.arrange(
+            offsets = droidlet.base_util.arrange(
                 "circle", schematic=None, shapeparams={"encircled_object_radius": d}
             )
             offsets = offsets[::-1]
