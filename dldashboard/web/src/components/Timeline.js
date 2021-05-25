@@ -17,8 +17,8 @@ class Timeline extends React.Component {
     return (
       <div className="timeline">
         <p>
-          An agent activity visualizer where users can easily view, inspect and
-          search through agent activities interactively.
+          A visualizer where users can easily view, inspect, and search through
+          agent activities interactively.
         </p>
         <p>Handshake status: {this.renderHandshake()}</p>
       </div>

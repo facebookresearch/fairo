@@ -10,6 +10,7 @@ import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
 import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
+import Timeline from "./components/Timeline";
 
 /**
  * The main state manager for the dashboard.
@@ -177,6 +178,11 @@ class StateManager {
 
   returnHandshake(res) {
     this.memory.handshake = res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof Timeline) {
+        ref.forceUpdate();
+      }
+    });
   }
 
   keyHandler(key_codes) {
