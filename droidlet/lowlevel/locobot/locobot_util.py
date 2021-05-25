@@ -1,18 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import os
-import sys
-from collections import defaultdict
-import binascii
 import hashlib
-import logging
 import numpy as np
-import time
-import traceback
-import uuid
 from . import rotation
-from droidlet.shared_data_struct.base_util import XYZ, euclid_dist
+from droidlet.base_util import XYZ, euclid_dist
 from typing import Tuple, List, TypeVar, Sequence
 
 
