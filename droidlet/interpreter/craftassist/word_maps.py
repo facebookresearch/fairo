@@ -1,32 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import droidlet.base_util
-
 """This file has mappings from mob names to their ids and 
 names of shapes to their functions"""
-from typing import Dict, Callable
-from droidlet.perception.craftassist import shapes
-
-# mapping from canonicalized shape names to the corresponding functions
-SPECIAL_SHAPE_FNS: Dict[str, Callable] = {
-    "CUBE": droidlet.base_util.cube,
-    "HOLLOW_CUBE": shapes.hollow_cube,
-    "RECTANGULOID": shapes.rectanguloid,
-    "HOLLOW_RECTANGULOID": shapes.hollow_rectanguloid,
-    "SPHERE": shapes.sphere,
-    "SPHERICAL_SHELL": shapes.spherical_shell,
-    "PYRAMID": shapes.square_pyramid,
-    "SQUARE": shapes.square,
-    "RECTANGLE": shapes.rectangle,
-    "CIRCLE": shapes.circle,
-    "DISK": shapes.disk,
-    "TRIANGLE": shapes.triangle,
-    "DOME": shapes.dome,
-    "ARCH": shapes.arch,
-    "ELLIPSOID": shapes.ellipsoid,
-    "TOWER": shapes.tower,
-}
 
 # mapping from shape names to canonicalized shape names
 SPECIAL_SHAPES_CANONICALIZE = {

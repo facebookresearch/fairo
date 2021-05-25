@@ -301,16 +301,20 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
             return self.dialogue_objects["bot_capabilities"](**self.dialogue_object_parameters)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
-            block_data = opts.block_data if opts else {}
-            # we only need this for MCInterpreter
-            if block_data:
-                return self.dialogue_objects["interpreter"](
-                    speaker, logical_form, block_data, **self.dialogue_object_parameters
-                )
-            else:
-                return self.dialogue_objects["interpreter"](
-                    speaker, logical_form, **self.dialogue_object_parameters
-                )
+            low_level_interpreter_data = {"block_data": opts.block_data if opts else {},
+                                          "special_shape_functions": opts.special_shape_functions if opts else {}}
+            return self.dialogue_objects["interpreter"](
+                speaker, logical_form, low_level_interpreter_data, **self.dialogue_object_parameters
+            )
+            # # we only need this for MCInterpreter
+            # if block_data:
+            #     return self.dialogue_objects["interpreter"](
+            #         speaker, logical_form, block_data, **self.dialogue_object_parameters
+            #     )
+            # else:
+            #     return self.dialogue_objects["interpreter"](
+            #         speaker, logical_form, **self.dialogue_object_parameters
+            #     )
         elif logical_form["dialogue_type"] == "PUT_MEMORY":
             return self.dialogue_objects["put_memory"](
                 speaker, logical_form, **self.dialogue_object_parameters

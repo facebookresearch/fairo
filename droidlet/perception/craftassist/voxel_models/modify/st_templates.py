@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import random
 import argparse
-from droidlet.perception.craftassist.shape_helpers import SHAPE_NAMES
+from droidlet.lowlevel.minecraft.shape_helpers import SHAPE_NAMES
 
 ID_DELIM = "^"
 # Fetch block names from lowlevel/minecraft/craftassist_specs.get_block_data()

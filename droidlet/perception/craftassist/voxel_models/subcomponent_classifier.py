@@ -4,13 +4,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 from multiprocessing import Queue, Process
-import sys
-import os
 
 import droidlet.shared_data_struct.base_util
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
-from droidlet.perception.craftassist.shapes import get_bounds
+from droidlet.lowlevel.minecraft.shapes import get_bounds
 from .semantic_segmentation.semseg_models import SemSegWrapper
 
 

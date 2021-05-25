@@ -6,7 +6,8 @@ import os
 import unittest
 
 import droidlet.base_util
-import droidlet.perception.craftassist.shapes as shapes
+import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shapes
 from droidlet.lowlevel.minecraft.mc_util import euclid_dist
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from agents.craftassist.tests.fake_agent import MockOpt
@@ -23,8 +24,8 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         super().setUp(agent_opts=opts)
 
-        self.cube_right = self.add_object(droidlet.base_util.cube(bid=(42, 0)), (9, 63, 4))
-        self.cube_left = self.add_object(droidlet.base_util.cube(), (9, 63, 10))
+        self.cube_right = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4))
+        self.cube_left = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(), (9, 63, 10))
         self.set_looking_at(list(self.cube_right.blocks.keys())[0])
 
     def test_come_here(self):

@@ -17,7 +17,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.lowlevel.minecraft.mc_util import Block, most_common_idm
 
 from word2number.w2n import word_to_num
-from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPE_FNS, SPECIAL_SHAPES_CANONICALIZE
+from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPES_CANONICALIZE
 
 
 def get_properties_from_triples(triples_list, p):
@@ -100,7 +100,7 @@ def interpret_fill_schematic(
 
 
 def interpret_shape_schematic(
-    interpreter, speaker, d, block_data_info, shapename=None
+    interpreter, speaker, d, block_data_info, special_shape_function, shapename=None
 ) -> Tuple[List[Block], List[Tuple[str, str]]]:
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -135,7 +135,7 @@ def interpret_shape_schematic(
             if val:
                 tags.append((key, stemmed_val))
 
-    return SPECIAL_SHAPE_FNS[shape.upper()](**attrs), tags
+    return special_shape_function[shape.upper()](**attrs), tags
 
 
 def interpret_size(interpreter, text) -> Union[int, List[int]]:
@@ -156,7 +156,7 @@ def interpret_size(interpreter, text) -> Union[int, List[int]]:
 
 
 def interpret_named_schematic(
-    interpreter, speaker, d, block_data_info
+    interpreter, speaker, d, block_data_info, special_shape_function
 ) -> Tuple[List[Block], Optional[str], List[Tuple[str, str]]]:
     """Return a tuple of 3 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -182,7 +182,7 @@ def interpret_named_schematic(
     )
     if shapename:
         shape_blocks, tags = interpret_shape_schematic(
-            interpreter, speaker, d, block_data_info, shapename=shapename
+            interpreter, speaker, d, block_data_info, special_shape_function, shapename=shapename
         )
         return shape_blocks, None, tags
 
@@ -209,7 +209,7 @@ def interpret_named_schematic(
 
 
 def interpret_schematic(
-    interpreter, speaker, d, block_data_info
+    interpreter, speaker, d, block_data_info, special_shape_function
 ) -> List[Tuple[List[Block], Optional[str], List[Tuple[str, str]]]]:
     """Return a list of 3-tuples, each with values:
     - the schematic blocks, list[(xyz, idm)]
@@ -228,7 +228,7 @@ def interpret_schematic(
         blocks, tags = interpret_shape_schematic(interpreter, speaker, d, block_data_info)
         return [(blocks, None, tags)] * repeat
     else:
-        return [interpret_named_schematic(interpreter, speaker, d, block_data_info)] * repeat
+        return [interpret_named_schematic(interpreter, speaker, d, block_data_info, special_shape_function)] * repeat
 
 
 def get_repeat_dir(d):

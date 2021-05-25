@@ -1,9 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import numpy as np
 from collections import Counter
-from droidlet.shared_data_struct.base_util import blocks_list_to_npy
+from droidlet.base_util import blocks_list_to_npy
 
 
 ##############################################
@@ -464,7 +463,7 @@ def hollow(blocks):
 if __name__ == "__main__":
     import torch
     import visdom
-    from shapes import *
+    from droidlet.lowlevel.minecraft.shapes import *
     from voxel_models.plot_voxels import SchematicPlotter
 
     vis = visdom.Visdom(server="http://localhost")

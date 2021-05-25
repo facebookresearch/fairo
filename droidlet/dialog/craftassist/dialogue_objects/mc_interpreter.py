@@ -55,10 +55,11 @@ class MCInterpreter(Interpreter):
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, block_data: Dict, **kwargs):
+    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
-        self.block_data = block_data
+        self.block_data = low_level_data["block_data"]
+        self.special_shape_functions = low_level_data["special_shape_functions"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.subinterpret["condition"] = MCConditionInterpreter(block_data=self.block_data)
@@ -215,7 +216,7 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data)
+            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data, self.special_shape_functions)
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
@@ -433,7 +434,7 @@ class MCInterpreter(Interpreter):
             if location_d is not None:
                 rd = location_d.get("relative_direction")
                 if rd is not None and (
-                    rd == "AROUND" or rd == "CLOCKWISE" or rd == "ANTICLOCKWISE"
+                        rd == "AROUND" or rd == "CLOCKWISE" or rd == "ANTICLOCKWISE"
                 ):
                     ref_obj = None
                     location_reference_object = location_d.get("reference_object")

@@ -674,38 +674,9 @@ def mirror(S, axis=0):
 # arrangement will eventually be handled by relpos model
 # for now it is either a 'circle' or a 'line'
 # schematic is the thing to be built at each location
-def arrange(arrangement, schematic=None, shapeparams={}):
-    """This function arranges an Optional schematic in a given arrangement
-    and returns the offsets"""
-    N = shapeparams.get("N", 7)
-    extra_space = shapeparams.get("extra_space", 1)
-    if schematic is None:
-        bounds = [0, 1, 0, 1, 0, 1]
-    else:
-        bounds = get_bounds(schematic)
-    if N > 0:
-        if arrangement == "circle":
-            orient = shapeparams.get("orient", "xy")
-            encircled_object_radius = shapeparams.get("encircled_object_radius", 1)
-            b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
-            radius = max(((b + extra_space) * N) / (2 * np.pi), encircled_object_radius + b + 1)
-            offsets = [
-                (radius * np.cos(2 * s * np.pi / N), 0, radius * np.sin(2 * s * np.pi / N))
-                for s in range(N)
-            ]
-            if orient == "yz":
-                offsets = [np.round(np.asarray(0, offsets[i][0], offsets[i][2])) for i in range(N)]
-            if orient == "xz":
-                offsets = [
-                    np.round(np.asarray((offsets[i][0], offsets[i][2], 0))) for i in range(N)
-                ]
-        elif arrangement == "line":
-            orient = shapeparams.get("orient")  # this is a vector here
-            b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
-            b += extra_space + 1
-            offsets = [np.round(i * b * np.asarray(orient)) for i in range(N)]
-    if N <= 0:
-        raise NotImplementedError(
-            "TODO arrangement just based on extra space, need to specify number for now"
-        )
-    return offsets
+
+
+def cube(size=3, bid=DEFAULT_IDM, labelme=False, **kwargs):
+    if type(size) not in (tuple, list):
+        size = (size, size, size)
+    return rectanguloid(size=size, bid=bid, labelme=labelme)

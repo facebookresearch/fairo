@@ -14,9 +14,11 @@ import subprocess
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
+from typing import Dict, Callable
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
 from droidlet.perception.craftassist import rotation, heuristic_perception
+from droidlet.lowlevel.minecraft import shapes
 import droidlet.dashboard as dashboard
 
 if __name__ == "__main__":
@@ -167,6 +169,28 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.opts.block_data = craftassist_specs.get_block_data()
+
+
+        # mapping from canonicalized shape names to the corresponding functions
+        SPECIAL_SHAPE_FNS : Dict[str, Callable] =  {
+            "CUBE": shapes.cube,
+            "HOLLOW_CUBE": shapes.hollow_cube,
+            "RECTANGULOID": shapes.rectanguloid,
+            "HOLLOW_RECTANGULOID": shapes.hollow_rectanguloid,
+            "SPHERE": shapes.sphere,
+            "SPHERICAL_SHELL": shapes.spherical_shell,
+            "PYRAMID": shapes.square_pyramid,
+            "SQUARE": shapes.square,
+            "RECTANGLE": shapes.rectangle,
+            "CIRCLE": shapes.circle,
+            "DISK": shapes.disk,
+            "TRIANGLE": shapes.triangle,
+            "DOME": shapes.dome,
+            "ARCH": shapes.arch,
+            "ELLIPSOID": shapes.ellipsoid,
+            "TOWER": shapes.tower,
+        }
+        self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,

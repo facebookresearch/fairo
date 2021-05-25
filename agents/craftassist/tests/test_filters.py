@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 
-from droidlet.base_util import cube
+from droidlet.lowlevel.minecraft.shapes import cube
 from .base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.dialog.dialogue_stack import DialogueStack
 from droidlet.dialog.craftassist.dialogue_objects import DummyInterpreter

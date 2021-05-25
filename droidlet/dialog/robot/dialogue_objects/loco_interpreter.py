@@ -40,7 +40,7 @@ class LocoInterpreter(Interpreter):
     execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, **kwargs):
+    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.speaker = speaker
         self.action_dict = action_dict
