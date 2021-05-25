@@ -1,6 +1,8 @@
 import numpy as np
 import time
 import open3d as o3d
+import cv2
+from PIL import Image
 from droidlet.interpreter.condition import AlwaysCondition, NeverCondition, NotCondition, TaskStatusCondition
 from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
