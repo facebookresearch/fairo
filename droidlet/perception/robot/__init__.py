@@ -16,7 +16,7 @@ from droidlet.perception.robot.handlers import (
     Human,
     HumanKeypoints,
 )
-from droidlet.shared_data_struct.shared_data_structs import RGBDepth
+from droidlet.shared_data_structs import RGBDepth
 from droidlet.perception.robot.perception import Perception, SlowPerception
 from droidlet.perception.robot.self_perception import SelfPerception
 
