@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import unittest
-
 import droidlet.interpreter.craftassist.size_words as size_words
 
 
