@@ -4,13 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict, namedtuple
 import binascii
 import hashlib
-import random
 import numpy as np
 from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
-from droidlet.perception.craftassist.shapes import DEFAULT_IDM, rectanguloid
-from droidlet.perception.craftassist.shape_helpers import SHAPE_NAMES, SHAPE_HELPERS, bid, SHAPE_FNS, shape_to_dicts
+
+from droidlet.lowlevel.minecraft.shapes import get_bounds
 
 XYZ = Tuple[int, int, int]
 # two points p0(x0, y0, z0), p1(x1, y1, z1) determine a 3d cube(point_at_target)
@@ -122,12 +121,6 @@ def npy_to_blocks_list(npy, origin=(0, 0, 0)):
     return blocks
 
 
-def cube(size=3, bid=DEFAULT_IDM, labelme=False, **kwargs):
-    if type(size) not in (tuple, list):
-        size = (size, size, size)
-    return rectanguloid(size=size, bid=bid, labelme=labelme)
-
-
 MOBS_BY_ID = {
     50: "creeper",
     51: "skeleton",
@@ -162,34 +155,6 @@ MOBS_BY_ID = {
     120: "villager",
 }
 
-def build_shape_scene():
-    """Build a scene in-game using the shapes"""
-    offset_range = (14, 0, 14)
-    num_shapes = 5
-    blocks = []
-    block_xyz_set = set()
-    for t in range(num_shapes):
-        offsets = [0, 63, 0]
-        for i in range(3):
-            offsets[i] += np.random.randint(-offset_range[i], offset_range[i] + 1)
-        shape = random.choice(SHAPE_NAMES)
-        opts = SHAPE_HELPERS[shape]()
-        opts["bid"] = bid()
-        S = SHAPE_FNS[shape](**opts)
-        S = [
-            (
-                (x[0][0] + offsets[0], x[0][1] + offsets[1], x[0][2] + offsets[2]),
-                (x[1][0], x[1][1]),
-            )
-            for x in S
-        ]
-        s = set([x[0] for x in S])
-        if not set.intersection(s, block_xyz_set):
-            block_xyz_set = set.union(block_xyz_set, s)
-            blocks.extend(shape_to_dicts(S))
-
-    return blocks
-
 
 def blocks_list_to_npy(blocks, xyz=False):
     """Convert a list of blockid meta (x, y, z), (id, meta) to numpy"""
@@ -209,3 +174,41 @@ def blocks_list_to_npy(blocks, xyz=False):
         offsets = (mx, my, mz)
 
     return npy, offsets
+
+
+def arrange(arrangement, schematic=None, shapeparams={}):
+    """This function arranges an Optional schematic in a given arrangement
+    and returns the offsets"""
+    N = shapeparams.get("N", 7)
+    extra_space = shapeparams.get("extra_space", 1)
+    if schematic is None:
+        bounds = [0, 1, 0, 1, 0, 1]
+    else:
+        bounds = get_bounds(schematic)
+
+    if N <= 0:
+        raise NotImplementedError(
+            "TODO arrangement just based on extra space, need to specify number for now"
+        )
+    offsets = []
+    if arrangement == "circle":
+        orient = shapeparams.get("orient", "xy")
+        encircled_object_radius = shapeparams.get("encircled_object_radius", 1)
+        b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        radius = max(((b + extra_space) * N) / (2 * np.pi), encircled_object_radius + b + 1)
+        offsets = [
+            (radius * np.cos(2 * s * np.pi / N), 0, radius * np.sin(2 * s * np.pi / N))
+            for s in range(N)
+        ]
+        if orient == "yz":
+            offsets = [np.round(np.asarray(0, offsets[i][0], offsets[i][2])) for i in range(N)]
+        if orient == "xz":
+            offsets = [
+                np.round(np.asarray((offsets[i][0], offsets[i][2], 0))) for i in range(N)
+            ]
+    elif arrangement == "line":
+        orient = shapeparams.get("orient")  # this is a vector here
+        b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        b += extra_space + 1
+        offsets = [np.round(i * b * np.asarray(orient)) for i in range(N)]
+    return offsets

@@ -6,7 +6,9 @@ from typing import List
 
 import droidlet.base_util
 import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
-import droidlet.perception.craftassist.shapes as shapes
+import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shapes
+import droidlet.lowlevel.minecraft.shapes as shapes
 from droidlet.shared_data_structs import NextDialogueStep
 from droidlet.lowlevel.minecraft.mc_util import Block, strip_idmeta, euclid_dist
 from droidlet.interpreter.tests.all_test_commands import *
@@ -17,11 +19,11 @@ def add_two_cubes(test):
     triples = {"has_name": "cube", "has_shape": "cube"}
     test.cube_right: List[Block] = list(
         test.add_object(
-            xyzbms=droidlet.base_util.cube(bid=(42, 0)), origin=(9, 63, 4), relations=triples
+            xyzbms=droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), origin=(9, 63, 4), relations=triples
         ).blocks.items()
     )
     test.cube_left: List[Block] = list(
-        test.add_object(xyzbms=droidlet.base_util.cube(), origin=(9, 63, 10), relations=triples).blocks.items()
+        test.add_object(xyzbms=droidlet.lowlevel.minecraft.shapes.cube(), origin=(9, 63, 10), relations=triples).blocks.items()
     )
     test.set_looking_at(test.cube_right[0][0])
 
@@ -187,7 +189,7 @@ class ModifyTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
         self.cube_right: List[Block] = list(
-            self.add_object(droidlet.base_util.cube(bid=(42, 0)), (9, 63, 4)).blocks.items()
+            self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4)).blocks.items()
         )
         self.set_looking_at(self.cube_right[0][0])
 

@@ -16,6 +16,7 @@ from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import Time
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 from droidlet.dialog.craftassist.dialogue_objects import (
     MCBotCapabilities,
     MCGetMemoryHandler,
@@ -280,6 +281,7 @@ class FakeAgent(LocoMCAgent):
         self.logical_form = None
         self.world_interaction_occurred = False
         self.opts.block_data = craftassist_specs.get_block_data()
+        self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
         self._held_item: IDM = (0, 0)
         self._look_vec = (1, 0, 0)
         self._changed_blocks: List[Block] = []

@@ -34,7 +34,6 @@ class Interpreter(DialogueObject):
         memory: the agent's memory
         dialogue_stack: a DialogueStack object where this Interpreter object will live
     """
-
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(**kwargs)
         self.speaker = speaker

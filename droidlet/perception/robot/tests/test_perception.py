@@ -1,12 +1,11 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import sys
 import os
 import unittest
 import logging
 from timeit import Timer
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 from droidlet.perception.robot import (
     InputHandler,
     DetectionHandler,
@@ -17,7 +16,6 @@ from droidlet.perception.robot import (
     Detection,
     Human,
 )
-from droidlet.shared_data_struct.shared_data_structs import RGBDepth
 from droidlet.interpreter.robot import dance
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode

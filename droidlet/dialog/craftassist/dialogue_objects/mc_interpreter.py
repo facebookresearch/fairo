@@ -215,7 +215,7 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data)
+            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data, self.special_shape_functions)
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
@@ -433,7 +433,7 @@ class MCInterpreter(Interpreter):
             if location_d is not None:
                 rd = location_d.get("relative_direction")
                 if rd is not None and (
-                    rd == "AROUND" or rd == "CLOCKWISE" or rd == "ANTICLOCKWISE"
+                        rd == "AROUND" or rd == "CLOCKWISE" or rd == "ANTICLOCKWISE"
                 ):
                     ref_obj = None
                     location_reference_object = location_d.get("reference_object")

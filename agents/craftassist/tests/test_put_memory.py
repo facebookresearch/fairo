@@ -5,7 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
 import droidlet.base_util
-import droidlet.perception.craftassist.shapes as shapes
+import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shapes
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.tests.all_test_commands import *
 
@@ -13,8 +14,8 @@ from droidlet.interpreter.tests.all_test_commands import *
 class PutMemoryTestCase(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        self.cube_right = self.add_object(droidlet.base_util.cube(bid=(42, 0)), (9, 63, 4))
-        self.cube_left = self.add_object(droidlet.base_util.cube(), (9, 63, 10))
+        self.cube_right = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4))
+        self.cube_left = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(), (9, 63, 10))
         self.set_looking_at(list(self.cube_right.blocks.keys())[0])
 
     def test_good_job(self):

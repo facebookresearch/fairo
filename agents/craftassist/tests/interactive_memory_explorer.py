@@ -2,7 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import droidlet.base_util
-import droidlet.perception.craftassist.shapes as shapes
+import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shapes
 from base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.dialog.dialogue_stack import DialogueStack
 from droidlet.dialog.craftassist.dialogue_objects import DummyInterpreter
@@ -20,7 +21,7 @@ def add_many_objects(test):
         list(
             test.agent.add_object_ff_time(
                 cd[3],
-                xyzbms=droidlet.base_util.cube(size=cd[1], bid=cd[2]),
+                xyzbms=droidlet.lowlevel.minecraft.shapes.cube(size=cd[1], bid=cd[2]),
                 origin=cd[0],
                 relations=cube_triples,
             ).blocks.items()

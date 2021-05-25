@@ -4,15 +4,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 from multiprocessing import Queue, Process
-import sys
-import os
-
-import droidlet.shared_data_struct.base_util
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
-from droidlet.perception.craftassist.shapes import get_bounds
+from droidlet.lowlevel.minecraft.shapes import get_bounds
 from .semantic_segmentation.semseg_models import SemSegWrapper
-
+from droidlet.base_util import blocks_list_to_npy
 
 # TODO all "subcomponent" operations are replaced with InstSeg
 class SubcomponentClassifierWrapper:
@@ -146,7 +142,7 @@ class SubComponentClassifier(Process):
             """
             return (cube_loc[0] + offsets[0], cube_loc[1] + offsets[1], cube_loc[2] + offsets[2])
 
-        np_blocks, offsets = droidlet.shared_data_struct.base_util.blocks_list_to_npy(blocks=tuple_blocks, xyz=True)
+        np_blocks, offsets = blocks_list_to_npy(blocks=tuple_blocks, xyz=True)
 
         pred = self.model.segment_object(np_blocks)
 
