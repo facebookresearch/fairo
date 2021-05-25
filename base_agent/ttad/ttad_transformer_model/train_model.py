@@ -369,7 +369,7 @@ def main():
         "--optimizer", default="adam", type=str, help="Optimizer in [adam|adagrad]"
     )
     parser.add_argument("--batch_size", default=56, type=int, help="Batch size")
-    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
+    parser.add_argument("--param_update_freq", default=4, type=int, help="Group N batch updates")
     parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
     parser.add_argument(
         "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
@@ -379,12 +379,12 @@ def main():
     )
     parser.add_argument(
         "--encoder_warmup_steps",
-        default=1,
+        default=1000,
         type=int,
         help="Learning rate warmup steps for the encoder",
     )
     parser.add_argument(
-        "--encoder_learning_rate", default=0.0, type=float, help="Learning rate for the encoder"
+        "--encoder_learning_rate", default=1e-5, type=float, help="Learning rate for the encoder"
     )
     parser.add_argument(
         "--decoder_warmup_steps",
@@ -415,7 +415,7 @@ def main():
     )
     parser.add_argument(
         "--dtype_samples",
-        default='[["templated", 0.55], ["templated_filters", 0.05], ["annotated", 0.4]]',
+        default='[["templated", 0.45], ["templated_filters", 0.05], ["annotated", 0.5]]',
         type=str,
         help="Sampling probabilities for handling different data types",
     )
@@ -440,13 +440,13 @@ def main():
     )
     parser.add_argument(
         "--alpha",
-        default=0.8,
+        default=0.5,
         type=float,
         help="Attenuation factor for text span loss gradient affecting shared layers for tree structure prediction",
     )
     parser.add_argument(
         "--fixed_value_weight",
-        default=0.1,
+        default=0.5,
         type=float,
         help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
