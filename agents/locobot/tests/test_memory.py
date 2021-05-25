@@ -6,7 +6,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_canonical_coords_to_pyrobot_coords
 from droidlet.perception.robot import Detection
-from droidlet.shared_data_struct.shared_data_structs import RGBDepth
+from droidlet.shared_data_structs import RGBDepth
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
 from droidlet.perception.robot.tests.utils import get_fake_detection, get_fake_humanpose, get_fake_bbox

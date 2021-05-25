@@ -6,7 +6,7 @@ from .laser_pointer import LaserPointerHandler
 from .tracker import TrackingHandler
 from .memory import MemoryHandler
 from .core import WorldObject
-from droidlet.shared_data_struct.shared_data_structs import RGBDepth
+from droidlet.shared_data_structs import RGBDepth
 from .deduplicater import ObjectDeduplicationHandler
 
 __all__ = [

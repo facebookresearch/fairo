@@ -7,7 +7,7 @@ import logging
 import droidlet.memory.robot.loco_memory as loco_memory
 import numpy as np
 from .core import AbstractHandler, WorldObject
-from droidlet.shared_data_struct.shared_data_structs import RGBDepth
+from droidlet.shared_data_structs import RGBDepth
 from detectron2.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
 from collections import namedtuple
