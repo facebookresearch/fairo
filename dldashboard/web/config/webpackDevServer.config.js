@@ -97,6 +97,10 @@ module.exports = function(proxy, allowedHost) {
       // Paths with dots should still use the history fallback.
       // See https://github.com/facebook/create-react-app/issues/387.
       disableDotRule: true,
+      verbose: true,
+      rewrites: [
+        {from: /^\/mobile/, to: '/mobile.html'},
+      ],
       index: paths.publicUrlOrPath,
     },
     public: allowedHost,
