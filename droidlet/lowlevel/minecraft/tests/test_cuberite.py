@@ -18,13 +18,13 @@ class CuberiteBasicTest(unittest.TestCase):
                                  plugins=plugins,
                                  place_blocks_yzx=None,
                                  workdir_root=None)
-        assert workdir is not None
-        assert "tmp" in workdir
-        assert "cuberite" in workdir
+        self.assertIsNotNone(workdir)
+        self.assertIn("tmp", workdir)
+        self.assertIn("cuberite", workdir)
 
     def test_check_cuberite_executable(self):
         popen = [repo_home + "/server/cuberite/Server/Cuberite"]
-        assert path.exists(popen[0]) == True
+        self.assertTrue(path.exists(popen[0]))
 
     def test_launch_cuberite_process(self):
         plugins = ["debug", "chatlog", "point_blocks"]
