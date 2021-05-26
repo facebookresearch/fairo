@@ -1,6 +1,6 @@
 import unittest
 import subprocess
-from ..craftassist_agent import CraftAssistAgent, opts
+from ..craftassist_agent import CraftAssistAgent
 
 class MyTestCase(unittest.TestCase):
     def test_agent_with_cuberite(self):
