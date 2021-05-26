@@ -38,7 +38,7 @@ def create_workdir(
     config_dir = os.path.join(repo_home, "server/cuberite_config", config_name)
     plugins_dir = os.path.join(repo_home, "server/cuberite_plugins")
     shutil.copytree(config_dir, workdir)
-    shutil.copytree(plugins_dir, workdir + "/Plugins", symlinks=True)
+    shutil.copytree(plugins_dir, workdir + "/Plugins")
     edit_cuberite_config.set_port(workdir + "/settings.ini", port)
     edit_cuberite_config.set_seed(workdir + "/world/world.ini", seed)
     if game_mode == "survival":
