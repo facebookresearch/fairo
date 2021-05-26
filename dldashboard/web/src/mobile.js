@@ -3,8 +3,7 @@ import ReactDOM from "react-dom";
 
 import "bootstrap/dist/css/bootstrap.css";
 
-import { Navbar, Nav, NavItem, NavDropdown, MenuItem } from "react-bootstrap";
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col, Navbar, Nav, NavItem } from "react-bootstrap";
 
 import LiveImage from "./components/LiveImage";
 import LiveObjects from "./components/LiveObjects";
@@ -13,11 +12,8 @@ import stateManager from "./StateManager";
 import InteractApp from "./components/Interact/InteractApp";
 import Memory2D from "./components/Memory2D";
 
-console.log("new entry point established");
 let width = window.innerWidth;
 let imageWidth = width / 2 - 25;
-console.log("image width is:");
-console.log(imageWidth);
 ReactDOM.render(
   <Container fluid>
     <Row>
@@ -69,23 +65,15 @@ ReactDOM.render(
         />
       </Col>
     </Row>
-    <Navbar>
-      <Navbar.Header>
-        <Navbar.Brand>
-          <a href="#home">My Brand</a>
-        </Navbar.Brand>
-      </Navbar.Header>
-      <Nav>
-        <NavItem href="#">Home</NavItem>
-        <NavItem href="#">About</NavItem>
-        <NavItem href="#">FAQ</NavItem>
-        <NavItem href="#">Contact Us</NavItem>
-      </Nav>
-    </Navbar>
     <Row>
-      <p>Interact App </p>
       <InteractApp stateManager={stateManager} />
     </Row>
+    <Navbar>
+      <Nav>
+        <NavItem href="#">Home</NavItem>
+        <NavItem href="#">Navigation</NavItem>
+      </Nav>
+    </Navbar>
   </Container>,
   document.getElementById("root")
 );
