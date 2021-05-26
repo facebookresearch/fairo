@@ -59,6 +59,7 @@ class MCInterpreter(Interpreter):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
         self.block_data = low_level_data["block_data"]
+        self.special_shape_functions = low_level_data["special_shape_functions"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.subinterpret["condition"] = MCConditionInterpreter(block_data=self.block_data)
@@ -215,7 +216,11 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            interprets = interpret_schematic(self, speaker, d.get("schematic", {}), self.block_data, self.special_shape_functions)
+            interprets = interpret_schematic(self,
+                                             speaker,
+                                             d.get("schematic", {}),
+                                             self.block_data,
+                                             self.special_shape_functions)
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)

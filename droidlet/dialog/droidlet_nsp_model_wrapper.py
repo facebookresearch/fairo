@@ -301,7 +301,8 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
             return self.dialogue_objects["bot_capabilities"](**self.dialogue_object_parameters)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
-            low_level_interpreter_data = {"block_data": opts.block_data if opts else {}}
+            low_level_interpreter_data = {"block_data": opts.block_data if opts else {},
+                                          "special_shape_functions": opts.special_shape_functions if opts else {}}
             return self.dialogue_objects["interpreter"](
                 speaker, logical_form, low_level_interpreter_data, **self.dialogue_object_parameters
             )
