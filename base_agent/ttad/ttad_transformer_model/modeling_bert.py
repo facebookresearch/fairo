@@ -544,7 +544,7 @@ class BertEncoder(nn.Module):
 
             is_expert_layer = False
 
-            if i == 5:
+            if i == 11:
                 is_expert_layer = True
                 # Hidden size is hard coded, probably should make this configurable
                 sum_of_experts = torch.zeros(labels.size() + (768,)).to('cuda')
