@@ -34,11 +34,11 @@ def create_workdir(
     if workdir_root is None:
         workdir_root = tempfile.mkdtemp()
     os.makedirs(workdir_root, exist_ok=True)
-    workdir = os.path.join(workdir_root, "craftassist_cuberite_utils")
+    workdir = os.path.join(workdir_root, "cuberite")
     config_dir = os.path.join(repo_home, "server/cuberite_config", config_name)
     plugins_dir = os.path.join(repo_home, "server/cuberite_plugins")
     shutil.copytree(config_dir, workdir)
-    shutil.copytree(plugins_dir, workdir + "/Plugins")
+    shutil.copytree(plugins_dir, workdir + "/Plugins", symlinks=True)
     edit_cuberite_config.set_port(workdir + "/settings.ini", port)
     edit_cuberite_config.set_seed(workdir + "/world/world.ini", seed)
     if game_mode == "survival":

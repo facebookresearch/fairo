@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 """This file has functions that an help edit the config
 got craftassist_cuberite_utils."""
-import config_parser
+from . import config_parser
 
 
 def set_seed(path, seed):
