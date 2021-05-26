@@ -35,7 +35,7 @@ class Interpreter(DialogueObject):
         dialogue_stack: a DialogueStack object where this Interpreter object will live
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, **kwargs):
+    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(**kwargs)
         self.speaker = speaker
         self.action_dict = action_dict

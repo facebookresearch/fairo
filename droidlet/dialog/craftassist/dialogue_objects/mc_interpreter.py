@@ -55,10 +55,10 @@ class MCInterpreter(Interpreter):
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, block_data: Dict, **kwargs):
+    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
-        self.block_data = block_data
+        self.block_data = low_level_data["block_data"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.subinterpret["condition"] = MCConditionInterpreter(block_data=self.block_data)
