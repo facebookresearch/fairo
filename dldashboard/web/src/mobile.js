@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 
 import "bootstrap/dist/css/bootstrap.css";
 
+import { Navbar, Nav, NavItem, NavDropdown, MenuItem } from "react-bootstrap";
 import { Container, Row, Col } from "react-bootstrap";
 
 import LiveImage from "./components/LiveImage";
@@ -13,6 +14,10 @@ import InteractApp from "./components/Interact/InteractApp";
 import Memory2D from "./components/Memory2D";
 
 console.log("new entry point established");
+let width = window.innerWidth;
+let imageWidth = width / 2 - 25;
+console.log("image width is:");
+console.log(imageWidth);
 ReactDOM.render(
   <Container fluid>
     <Row>
@@ -20,8 +25,8 @@ ReactDOM.render(
         Video Feed 1
         <LiveImage
           type={"rgb"}
-          height={320}
-          width={320}
+          height={imageWidth}
+          width={imageWidth}
           offsetH={0}
           offsetW={0}
           stateManager={stateManager}
@@ -30,9 +35,11 @@ ReactDOM.render(
       </Col>
       <Col>
         Memory 2d
-        {/* <Memory2D
+        <Memory2D
           stateManager={stateManager}
-        /> */}
+          isMobile={true}
+          dimensions={imageWidth}
+        />
       </Col>
     </Row>
     <Row>
@@ -40,8 +47,8 @@ ReactDOM.render(
         Video Feed 2
         <LiveImage
           type={"depth"}
-          height={320}
-          width={320}
+          height={imageWidth}
+          width={imageWidth}
           offsetH={0}
           offsetW={0}
           stateManager={stateManager}
@@ -53,8 +60,8 @@ ReactDOM.render(
         Video Feed 3
         <LiveHumans
           type={"depth"}
-          height={320}
-          width={320}
+          height={imageWidth}
+          width={imageWidth}
           offsetH={0}
           offsetW={0}
           stateManager={stateManager}
@@ -62,13 +69,22 @@ ReactDOM.render(
         />
       </Col>
     </Row>
+    <Navbar>
+      <Navbar.Header>
+        <Navbar.Brand>
+          <a href="#home">My Brand</a>
+        </Navbar.Brand>
+      </Navbar.Header>
+      <Nav>
+        <NavItem href="#">Home</NavItem>
+        <NavItem href="#">About</NavItem>
+        <NavItem href="#">FAQ</NavItem>
+        <NavItem href="#">Contact Us</NavItem>
+      </Nav>
+    </Navbar>
     <Row>
       <p>Interact App </p>
       <InteractApp stateManager={stateManager} />
-    </Row>
-
-    <Row>
-      <Col>Nav Bar</Col>
     </Row>
   </Container>,
   document.getElementById("root")

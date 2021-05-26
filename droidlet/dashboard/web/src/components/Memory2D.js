@@ -38,13 +38,24 @@ class Memory2D extends React.Component {
   }
 
   resizeHandler() {
-    if (this.outer_div != null && this.outer_div.current != null) {
-      let { clientHeight, clientWidth } = this.outer_div.current;
+    if (this.props.isMobile) {
+      let dimensions = this.props.dimensions;
       if (
-        (clientHeight !== undefined && clientHeight !== this.state.height) ||
-        (clientWidth !== undefined && clientWidth !== this.state.width)
+        (dimensions !== undefined && dimensions !== this.state.height) ||
+        (dimensions !== undefined && dimensions !== this.state.width)
       ) {
-        this.setState({ height: clientHeight, width: clientWidth });
+        this.setState({ height: dimensions, width: dimensions });
+      }
+    } else {
+      if (this.outer_div != null && this.outer_div.current != null) {
+        let { clientHeight, clientWidth } = this.outer_div.current;
+        if (
+          (clientHeight !== undefined && clientHeight !== this.state.height) ||
+          (clientWidth !== undefined && clientWidth !== this.state.width)
+        ) {
+          console.log("setting state");
+          this.setState({ height: clientHeight, width: clientWidth });
+        }
       }
     }
   }
@@ -81,6 +92,7 @@ class Memory2D extends React.Component {
     if (state_changed) {
       this.setState({ xmin: xmin, ymin: ymin, xmax: xmax, ymax: ymax });
     }
+    console.log("component updated");
     this.resizeHandler();
   }
 
