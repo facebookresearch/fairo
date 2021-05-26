@@ -53,7 +53,6 @@ class Memory2D extends React.Component {
           (clientHeight !== undefined && clientHeight !== this.state.height) ||
           (clientWidth !== undefined && clientWidth !== this.state.width)
         ) {
-          console.log("setting state");
           this.setState({ height: clientHeight, width: clientWidth });
         }
       }
@@ -92,7 +91,6 @@ class Memory2D extends React.Component {
     if (state_changed) {
       this.setState({ xmin: xmin, ymin: ymin, xmax: xmax, ymax: ymax });
     }
-    console.log("component updated");
     this.resizeHandler();
   }
 
