@@ -1,8 +1,5 @@
 import numpy as np
 import time
-import open3d as o3d
-import cv2
-from PIL import Image
 from droidlet.interpreter.condition import AlwaysCondition, NeverCondition, NotCondition, TaskStatusCondition
 from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
@@ -179,9 +176,11 @@ class RGBDepth:
         self.ptcloud = pts.reshape(rgb.shape)
 
     def get_pillow_image(self):
+        from PIL import Image
         return Image.fromarray(self.rgb, "RGB")
 
     def get_bounds_for_mask(self, mask):
+        import open3d as o3d
         """for all points in the mask, returns the bounds as an axis-aligned bounding box.
         """
         if mask is None:
@@ -202,6 +201,7 @@ class RGBDepth:
         return xyz_pyrobot_to_canonical_coords(xyz_p)
 
     def to_struct(self, size=None, quality=10):
+        import cv2
         import base64
 
         rgb = self.rgb
