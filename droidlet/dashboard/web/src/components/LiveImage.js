@@ -34,11 +34,14 @@ class LiveImage extends React.Component {
 
   render() {
     const { height, width, rgb, depth } = this.state;
-    const { offsetW, offsetH } = this.props;
+    const { offsetW, offsetH, isMobile } = this.props;
 
     let img = rgb;
 
     if (rgb === null && depth == null) {
+      if (isMobile) {
+        return <p>Loading...</p>;
+      }
       return (
         <Rnd
           default={{
@@ -55,6 +58,15 @@ class LiveImage extends React.Component {
       );
     } else if (this.props.type === "depth") {
       img = depth;
+    }
+    if (isMobile) {
+      return (
+        <Stage width={width} height={height}>
+          <Layer>
+            <KImage image={img} width={width} height={height} />
+          </Layer>
+        </Stage>
+      );
     }
     return (
       <Rnd

@@ -55,9 +55,12 @@ class LiveHumans extends React.Component {
 
   render() {
     const { height, width, rgb, humans } = this.state;
-    const { offsetW, offsetH } = this.props;
+    const { offsetW, offsetH, isMobile } = this.props;
 
     if (rgb === null) {
+      if (isMobile) {
+        return <p>Loading... </p>;
+      }
       return (
         <Rnd
           default={{
@@ -117,7 +120,16 @@ class LiveHumans extends React.Component {
         renderedHumans.push(<Line key={j++} points={points} stroke={color} />);
       });
     });
-
+    if (isMobile) {
+      return (
+        <Stage width={width} height={height}>
+          <Layer>
+            <KImage image={rgb} width={width} height={height} />
+            {renderedHumans}
+          </Layer>
+        </Stage>
+      );
+    }
     return (
       <Rnd
         default={{
