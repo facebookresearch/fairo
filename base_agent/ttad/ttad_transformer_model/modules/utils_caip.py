@@ -166,7 +166,6 @@ def tree_to_seq(full_tree, tree, idx_map=None):
                 print(k)
                 raise NotImplementedError
     except IndexError as e:
-        import ipdb; ipdb.set_trace()
         raise e
     return res
 
