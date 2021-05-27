@@ -138,6 +138,12 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("setChatResponse", payload)
 
+        @sio.on("receiveTimelineHandshake")
+        def receive_timeline_handshake(sid, timelineHandshake):
+            if timelineHandshake == "Sent message!":
+                logging.debug("in receive_timeline_handshake, received handshake message")
+                sio.emit("returnTimelineHandshake", "Received message!")
+
     def init_physical_interfaces(self):
         """
         should define or otherwise set up
