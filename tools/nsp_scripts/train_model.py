@@ -23,6 +23,7 @@ from base_agent.ttad.ttad_transformer_model.modules.decoder_with_loss import *
 from base_agent.ttad.ttad_transformer_model.modules.encoder_decoder import *
 from base_agent.ttad.ttad_transformer_model.modules.optimizer_warmup import *
 from base_agent.ttad.ttad_transformer_model.modules.caip_dataset import *
+from base_agent import NSPLogger
 
 
 class ModelTrainer:
@@ -30,6 +31,8 @@ class ModelTrainer:
 
     def __init__(self, args):
         self.args = args
+        # Initialize logger for machine-readable logs
+        self.model_outputs_logger = NSPLogger("training_outputs.csv", ["epoch", "iteration", "loss", "accuracy", "text_span_loss", "text_span_accuracy", "time"])
 
     def train(self, model, dataset, tokenizer, model_identifier, full_tree_voc):
         """Training loop (all epochs at once)
@@ -181,6 +184,8 @@ class ModelTrainer:
                     )
                     logging.info("text span acc: {:.3f}".format(text_span_accuracy / loc_steps))
                     logging.info("text span loss: {:.3f}".format(text_span_loc_loss / loc_steps))
+                    # Log training outputs to CSV
+                    self.model_outputs_logger.log_dialogue_outputs([e, step, loc_loss / loc_steps, loc_full_acc / loc_steps, text_span_accuracy / loc_steps, text_span_loc_loss / loc_steps, time() - st_time])
                     loc_loss = 0
                     loc_steps = 0
                     loc_int_acc = 0.0
@@ -470,6 +475,7 @@ def main():
     logging.info("****** Args ******")
     logging.info(vars(args))
     logging.info("model identifier: {}".format(model_identifier))
+
     if isfile(args.tree_voc_file):
         logging.info("====== Loading Grammar ======")
         with open(args.tree_voc_file) as fd:
