@@ -382,7 +382,6 @@ def tokenize_linearize(text, tree, tokenizer, full_tree, word_noise=0.0):
     try:
         lin_tree = tree_to_seq(full_tree, tree, idx_maps)
     except IndexError as e:
-        # import ipdb; ipdb.set_trace()
         raise e
     return (tokenized, lin_tree)
 
