@@ -15,19 +15,18 @@ from os.path import join as pjoin
 from tqdm import tqdm
 
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from transformers import AutoModel, AutoTokenizer, BertConfig
+from transformers import AutoModel, AutoTokenizer, BartConfig
 
 from utils_parsing import *
 from utils_caip import *
-from decoder_with_loss import *
+from decoder_with_loss_bart import *
 from encoder_decoder import *
 from optimizer_warmup import *
 from caip_dataset import *
 
-
 class ModelTrainer:
-    """Wrapper Class around training model and data loader"""
-
+    """Wrapper Class around training model and data loader
+    """
     def __init__(self, args):
         self.args = args
 
@@ -92,8 +91,9 @@ class ModelTrainer:
             st_time = time()
             for step, batch in enumerate(epoch_iterator):
                 batch_examples = batch[-1]
+                # import ipdb; ipdb.set_trace()
                 batch_tensors = [
-                    t.to(model.decoder.lm_head.predictions.decoder.weight.device)
+                    t.to(model.decoder.lm_head.weight.device)
                     for t in batch[:4]
                 ]
                 x, x_mask, y, y_mask = batch_tensors
@@ -114,20 +114,18 @@ class ModelTrainer:
 
                 loss.backward()
                 # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = (
-                    model.decoder.bert_final_layer_out.grad.add(
-                        text_span_loss_attenuation_factor
-                        * (
-                            model.decoder.text_span_start_hidden_z.grad
-                            + model.decoder.text_span_end_hidden_z.grad
-                        )
+                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
+                    text_span_loss_attenuation_factor
+                    * (
+                        model.decoder.text_span_start_hidden_z.grad
+                        + model.decoder.text_span_end_hidden_z.grad
                     )
                 )
                 # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = (
-                    model.decoder.bert_final_layer_out.grad.add(
-                        fixed_value_loss_attenuation_factor
-                        * (model.decoder.fixed_span_hidden_z.grad)
+                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
+                    fixed_value_loss_attenuation_factor
+                    * (
+                        model.decoder.fixed_span_hidden_z.grad
                     )
                 )
                 if step % self.args.param_update_freq == 0:
@@ -202,7 +200,8 @@ class ModelTrainer:
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
 
     def validate(self, model, dataset, tokenizer, args):
-        """Validation: same as training loop but without back-propagation"""
+        """Validation: same as training loop but without back-propagation
+        """
         # make data sampler
         train_sampler = SequentialSampler(dataset)
         model_collate_fn = functools.partial(
@@ -224,7 +223,7 @@ class ModelTrainer:
         with torch.no_grad():
             for step, batch in enumerate(epoch_iterator):
                 batch_tensors = [
-                    t.to(model.decoder.lm_head.predictions.decoder.weight.device)
+                    t.to(model.decoder.lm_head.weight.device)
                     for t in batch[:4]
                 ]
                 x, x_mask, y, y_mask = batch_tensors
@@ -251,9 +250,7 @@ class ModelTrainer:
             text_span_tot_loss / tot_steps,
         )
 
-    def eval_model_on_dataset(
-        self, encoder_decoder, dtype, full_tree_voc, tokenizer, split="valid"
-    ):
+    def eval_model_on_dataset(self, encoder_decoder, dtype, full_tree_voc, tokenizer, split="valid"):
         """Evaluate model on a given validation dataset
 
         Args:
@@ -287,7 +284,7 @@ def generate_model_name(args, optional_identifier=""):
 
     Returns:
         String
-
+        
     """
     name = ""
     # unix time in seconds, used as a unique identifier
@@ -308,7 +305,7 @@ def generate_model_name(args, optional_identifier=""):
         "word_dropout": "word_drp",
         "alpha": "a",
         "train_encoder": "tr",
-        "fixed_value_weight": "fv",
+        "fixed_value_weight": "fv"
     }
     for k, v in vars(args).items():
         if k in args_keys:
@@ -343,14 +340,14 @@ def main():
     # model arguments
     parser.add_argument(
         "--pretrained_encoder_name",
-        default="distilbert-base-uncased",
+        default="facebook/bart-base",
         type=str,
         help="Pretrained text encoder "
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
     )
     parser.add_argument(
         "--decoder_config_name",
-        default="bert-base-uncased",
+        default="facebook/bart-base",
         type=str,
         help="Name of Huggingface config used to initialize decoder architecture"
         "See full list at https://huggingface.co/transformers/pretrained_models.html",
@@ -369,22 +366,22 @@ def main():
         "--optimizer", default="adam", type=str, help="Optimizer in [adam|adagrad]"
     )
     parser.add_argument("--batch_size", default=56, type=int, help="Batch size")
-    parser.add_argument("--param_update_freq", default=4, type=int, help="Group N batch updates")
-    parser.add_argument("--num_epochs", default=10, type=int, help="Number of training epochs")
+    parser.add_argument("--param_update_freq", default=1, type=int, help="Group N batch updates")
+    parser.add_argument("--num_epochs", default=8, type=int, help="Number of training epochs")
     parser.add_argument(
         "--examples_per_epoch", default=-1, type=int, help="Number of training examples per epoch"
     )
     parser.add_argument(
-        "--train_encoder", default=1, type=int, help="Whether to finetune the encoder"
+        "--train_encoder", default=True, type=bool, help="Whether to finetune the encoder"
     )
     parser.add_argument(
         "--encoder_warmup_steps",
-        default=1000,
+        default=1,
         type=int,
         help="Learning rate warmup steps for the encoder",
     )
     parser.add_argument(
-        "--encoder_learning_rate", default=1e-5, type=float, help="Learning rate for the encoder"
+        "--encoder_learning_rate", default=0.0, type=float, help="Learning rate for the encoder"
     )
     parser.add_argument(
         "--decoder_warmup_steps",
@@ -415,7 +412,7 @@ def main():
     )
     parser.add_argument(
         "--dtype_samples",
-        default='[["templated", 0.45], ["templated_filters", 0.05], ["annotated", 0.5]]',
+        default='[["templated", 0.55], ["templated_filters", 0.05], ["annotated", 0.4]]',
         type=str,
         help="Sampling probabilities for handling different data types",
     )
@@ -436,17 +433,20 @@ def main():
         "--optional_identifier", default="", type=str, help="Optional run info eg. debug or test"
     )
     parser.add_argument(
-        "--hard", default=1, type=int, help="Whether to feed in failed examples during training"
+        "--hard",
+        default=True,
+        type=bool,
+        help="Whether to feed in failed examples during training"
     )
     parser.add_argument(
         "--alpha",
-        default=0.5,
+        default=0.8,
         type=float,
         help="Attenuation factor for text span loss gradient affecting shared layers for tree structure prediction",
     )
     parser.add_argument(
         "--fixed_value_weight",
-        default=0.5,
+        default=0.1,
         type=float,
         help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
@@ -507,7 +507,7 @@ def main():
     # make model
     logging.info("making model")
     enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
-    bert_config = BertConfig.from_pretrained(args.decoder_config_name)
+    bert_config = BartConfig.from_pretrained(args.decoder_config_name)
 
     bert_config.is_decoder = True
     bert_config.add_cross_attention = True

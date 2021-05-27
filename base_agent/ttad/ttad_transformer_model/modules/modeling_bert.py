@@ -36,7 +36,7 @@ from transformers.modeling_utils import (
 )
 from transformers.utils import logging
 from transformers.configuration_bert import BertConfig
-from modeling_outputs import (
+from .modeling_outputs import (
     BaseModelOutputWithPastAndCrossAttentions,
     BaseModelOutputWithPoolingAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
@@ -47,7 +47,7 @@ from modeling_outputs import (
     SequenceClassifierOutput,
     TokenClassifierOutput,
 )
-from model_output import ModelOutput
+from .model_output import ModelOutput
 
 
 logger = logging.get_logger(__name__)
@@ -547,7 +547,7 @@ class BertEncoder(nn.Module):
             if i == 11:
                 is_expert_layer = True
                 # Hidden size is hard coded, probably should make this configurable
-                sum_of_experts = torch.zeros(labels.size() + (768,)).to('cuda')
+                all_expert_layer_outputs = torch.zeros(labels.size() + (768,)).to('cuda')
                 for j, expert_layer_j in enumerate(self.expert_layers):
                     # For token j
                     # B x V x H
@@ -568,9 +568,7 @@ class BertEncoder(nn.Module):
                     # only preserve the corresponding "expert" predictions
                     layer_outputs_j_masked = layer_outputs_j * mask_token_j_expanded
                     # Add the outputs
-                    sum_of_experts += layer_outputs_j_masked
-
-                all_expert_layer_outputs = sum_of_experts
+                    all_expert_layer_outputs += layer_outputs_j_masked
 
             if getattr(self.config, "gradient_checkpointing", False) and self.training:
 
