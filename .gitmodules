@@ -14,6 +14,3 @@
 [submodule "client/lib/argparse"]
 	path = craftassist/logging/lib/argparse
 	url = https://github.com/jonathathan/argparse.git
-[submodule "base_agent/ttad/ttad_transformer_model/transformers"]
-	path = base_agent/ttad/ttad_transformer_model/transformers
-	url = https://github.com/huggingface/transformers.git
