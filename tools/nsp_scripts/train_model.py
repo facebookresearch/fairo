@@ -466,6 +466,7 @@ def main():
     l_root = logging.getLogger()
     l_root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
     l_root.addHandler(l_handler)
+    
     logging.info("****** Args ******")
     logging.info(vars(args))
     logging.info("model identifier: {}".format(model_identifier))
