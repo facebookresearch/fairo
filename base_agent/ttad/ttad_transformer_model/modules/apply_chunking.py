@@ -13,23 +13,7 @@ from torch.nn import functional as F
 
 from transformers.activations import get_activation
 from transformers.configuration_utils import PretrainedConfig
-# from transformers.file_utils import (
-#     CONFIG_NAME,
-#     DUMMY_INPUTS,
-#     FLAX_WEIGHTS_NAME,
-#     TF2_WEIGHTS_NAME,
-#     TF_WEIGHTS_NAME,
-#     WEIGHTS_NAME,
-#     ModelOutput,
-#     PushToHubMixin,
-#     cached_path,
-#     hf_bucket_url,
-#     is_offline_mode,
-#     is_remote_url,
-#     replace_return_docstrings,
-# )
 from transformers.generation_utils import GenerationMixin
-# from transformers.integrations import deepspeed_config, is_deepspeed_zero3_enabled
 from transformers.utils import logging
 
 
@@ -88,7 +72,6 @@ def apply_chunking_to_forward(
             f"forward_chunk_fn expects {num_args_in_forward_chunk_fn} arguments, but only {len(input_tensors)} input "
             "tensors are given"
         )
-    # import ipdb; ipdb.set_trace()
 
     if chunk_size > 0:
         if input_tensors[0].shape[chunk_dim] % chunk_size != 0:
@@ -101,7 +84,6 @@ def apply_chunking_to_forward(
 
         # chunk input tensor into tuples
         input_tensors_chunks = tuple(input_tensor.chunk(num_chunks, dim=chunk_dim) for input_tensor in input_tensors)
-        # import ipdb; ipdb.set_trace()
         # apply forward fn to every tuple
         output_chunks = tuple(forward_fn(*input_tensors_chunk) for input_tensors_chunk in zip(*input_tensors_chunks))
         # concatenate output at same dimension
