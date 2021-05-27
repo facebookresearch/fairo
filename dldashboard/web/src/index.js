@@ -20,7 +20,7 @@ import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
-import Timeline from "./components/Timeline";
+import Timeline from "./components/Timeline/Timeline";
 
 import { isMobile } from "react-device-detect";
 import { mobileLayout } from "./MobileIndex.js";

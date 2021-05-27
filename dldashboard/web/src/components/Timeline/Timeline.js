@@ -5,8 +5,11 @@ import React from "react";
 
 class Timeline extends React.Component {
   renderHandshake() {
-    this.props.stateManager.socket.emit("receiveHandshake", "Sent message!");
-    return this.props.stateManager.memory.handshake;
+    this.props.stateManager.socket.emit(
+      "receiveTimelineHandshake",
+      "Sent message!"
+    );
+    return this.props.stateManager.memory.timelineHandshake;
   }
 
   componentDidMount() {

@@ -10,7 +10,7 @@ import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
 import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
-import Timeline from "./components/Timeline";
+import Timeline from "./components/Timeline/Timeline";
 
 /**
  * The main state manager for the dashboard.
@@ -54,7 +54,7 @@ class StateManager {
       { msg: "", failed: false },
       { msg: "", failed: false },
     ],
-    handshake: "",
+    timelineHandshake: "",
   };
 
   constructor() {
@@ -68,7 +68,7 @@ class StateManager {
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
-    this.returnHandshake = this.returnHandshake.bind(this);
+    this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -132,7 +132,7 @@ class StateManager {
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("objects", this.processObjects);
-    socket.on("returnHandshake", this.returnHandshake);
+    socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
   }
 
   updateStateManagerMemory(data) {
@@ -176,8 +176,8 @@ class StateManager {
     });
   }
 
-  returnHandshake(res) {
-    this.memory.handshake = res;
+  returnTimelineHandshake(res) {
+    this.memory.timelineHandshake = res;
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
