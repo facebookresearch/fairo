@@ -9,9 +9,9 @@ import pickle
 import torch
 import argparse
 from transformers import AutoModel, AutoTokenizer, BertConfig
-from base_agent.ttad.ttad_transformer_model.utils_caip import *
-from base_agent.ttad.ttad_transformer_model.utils_parsing import *
-from base_agent.ttad.ttad_transformer_model.train_model import *
+from base_agent.ttad.ttad_transformer_model.modules.utils_caip import *
+from base_agent.ttad.ttad_transformer_model.modules.utils_parsing import *
+from base_agent.ttad.ttad_transformer_model.modules.train_model import *
 from pprint import pprint
 
 

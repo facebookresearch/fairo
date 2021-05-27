@@ -8,7 +8,10 @@ import math
 import pickle
 import torch
 from transformers import AutoModel, AutoTokenizer, BertConfig
-from base_agent.ttad.ttad_transformer_model.train_model import *
+from base_agent.ttad.ttad_transformer_model.modules.caip_dataset import *
+from base_agent.ttad.ttad_transformer_model.modules.decoder_with_loss import *
+from base_agent.ttad.ttad_transformer_model.modules.encoder_decoder import *
+from base_agent.ttad.ttad_transformer_model.modules.utils_parsing import *
 
 from pprint import pprint
 

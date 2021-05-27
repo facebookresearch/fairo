@@ -13,7 +13,10 @@ from transformers import AutoModel, AutoTokenizer, BertConfig
 from .utils_parsing import *
 from .utils_parsing import beam_search
 from .utils_caip import *
-from .train_model import *
+from .caip_dataset import *
+from .decoder_with_loss import *
+from .encoder_decoder import *
+# from .train_model import *
 
 
 class TTADBertModel(object):
