@@ -112,7 +112,6 @@ class CAIPDataset(Dataset):
             t = self.data[dtype][idx % len(self.data[dtype])]
             p_text, p_tree = t
         except Exception as e:
-            import ipdb; ipdb.set_trace()
             print(e)
         text, tree = tokenize_linearize(
             p_text, p_tree, self.tokenizer, self.full_tree, self.word_noise
