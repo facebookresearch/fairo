@@ -118,13 +118,13 @@ class LocoMCAgent(BaseAgent):
             logical_form = {}
             status = ""
             try:
-                logical_form = dialogue_manager.get_logical_form(
-                    s=command, model=dialogue_manager.model
+                logical_form = dialogue_manager.semantic_parsing_model_wrapper.get_logical_form(
+                    chat=command, parsing_model=dialogue_manager.semantic_parsing_model_wrapper.parsing_model
                 )
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
-            except:
-                logging.error("error in sending chat")
+            except Exception as e:
+                logging.error("error in sending chat", e)
                 status = "Error in sending chat"
             # update server memory
             self.dashboard_memory["chatResponse"][command] = logical_form
