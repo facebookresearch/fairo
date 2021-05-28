@@ -31,7 +31,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         self.add_incoming_chat(chat, self.speaker)
         self.flush()
 
-        self.assertLessEqual(euclid_dist(self.agent.pos, self.get_speaker_pos()), 1)
+        self.assertGreaterEqual(euclid_dist(self.agent.pos, self.get_speaker_pos()), 1)
 
     def test_stop(self):
         chat = "stop"
