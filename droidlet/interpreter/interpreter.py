@@ -64,7 +64,7 @@ class Interpreter(DialogueObject):
             "reference_locations": ReferenceLocationInterpreter(),
             # make sure to do this in subclass
             # "attribute": MCAttributeInterpreter(),
-            # "condition": MCConditionInterpreter(),
+            # "condition": ConditionInterpreter(),
             # "specify_locations": ComputeLocations(),
             # "facing": FacingInterpreter(),
         }
