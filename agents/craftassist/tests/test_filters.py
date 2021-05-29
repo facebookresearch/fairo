@@ -32,10 +32,8 @@ def add_many_objects(test):
 class FiltersTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        dummy_dialogue_stack = DialogueStack(self.agent.memory)
-        self.dummy_interpreter = DummyInterpreter(
-            "SPEAKER", memory=self.agent.memory, dialogue_stack=dummy_dialogue_stack
-        )
+        dummy_dialogue_stack = DialogueStack()
+        self.dummy_interpreter = DummyInterpreter("SPEAKER", memory=self.agent.memory)
 
         add_many_objects(self)
 

@@ -50,9 +50,8 @@ class DialogueObject(object):
 
     # FIXME agent remove memory, stack from init, pass in step...
     # FIXME agent eventaully pass none of them in step for most
-    def __init__(self, memory=None, dialogue_stack=None, max_steps=50):
+    def __init__(self, memory=None, max_steps=50):
         self.memory = memory
-        self.dialogue_stack = dialogue_stack
         self.finished = False
         self.awaiting_response = False
         self.max_steps = max_steps
@@ -242,8 +241,8 @@ class ConfirmTask(DialogueObject):
         """Ask a confirmation question and wait for response."""
         # Step 1: ask the question
         if not self.asked:
-            self.dialogue_stack.append_new(AwaitResponse)
-            self.dialogue_stack.append_new(Say, self.question)
+            self.memory.dialogue_stack_append_new(AwaitResponse)
+            self.memory.dialogue_stack_append_new(Say, self.question)
             self.asked = True
             return "", None
 
@@ -287,13 +286,13 @@ class ConfirmReferenceObject(DialogueObject):
     def step(self, agent=None):
         """Confirm the block object by pointing and wait for answer."""
         if not self.asked:
-            self.dialogue_stack.append_new(Say, "do you mean this?")
+            self.memory.dialogue_stack_append_new(Say, "do you mean this?")
             self.asked = True
             return "", None
         if not self.pointed:
             # FIXME agent shouldn't just point, should make a task etc.
             agent.point_at(self.bounds)
-            self.dialogue_stack.append_new(AwaitResponse)
+            self.memory.dialogue_stack_append_new(AwaitResponse)
             self.pointed = True
             return "", None
         self.finished = True

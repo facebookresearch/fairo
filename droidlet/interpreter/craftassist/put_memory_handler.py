@@ -132,7 +132,7 @@ class PutMemoryHandler(DialogueObject):
             task = self.task_objects["point"](agent, {"target": point_at_target})
             # FIXME? higher pri, make sure this runs now...?
             TaskNode(self.memory, task.memid)
-            self.dialogue_stack.append_new(
+            self.memory.dialogue_stack_append_new(
                 Say, "OK I'm tagging this %r as %r %r " % (name, t["pred_text"], t["obj_text"])
             )
         return None, None
