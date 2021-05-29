@@ -139,7 +139,7 @@ class Interpreter(DialogueObject):
 
         logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
         # FIXME agent
-        self.dialogue_stack.append_new(
+        self.memory.dialogue_stack_append_new(
             ConfirmTask,
             'Do you want me to undo the command: "{}" ?'.format(undo_command),
             undo_tasks,

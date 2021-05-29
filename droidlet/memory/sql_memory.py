@@ -89,7 +89,7 @@ class AgentMemory:
         if os.path.isfile(db_file):
             os.remove(db_file)
         self.db = sqlite3.connect(db_file, check_same_thread=False)
-        self.dialogue_stack = DialogueStack(self)
+        self.dialogue_stack = DialogueStack()
         self.task_db = {}
         self._safe_pickle_saved_attrs = {}
 
@@ -898,6 +898,19 @@ class AgentMemory:
                 continue
 
             return TaskNode(self, memid)
+
+    #########################
+    ###  DialogueObjects  ###
+    #########################
+
+    # THIS SECTION IS TEMPORARY
+    # FIXME!! agent
+    # these are to be removed, and DialogueObjects merged with Tasks
+
+    # FIXME agent
+    def dialogue_stack_append_new(self, cls, *args, **kwargs):
+        """Construct a new DialogueObject and append to stack"""
+        self.dialogue_stack.stack.append(cls(*args, memory=self, **kwargs))
 
     #########################
     ###  Database Access  ###
