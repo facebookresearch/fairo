@@ -32,7 +32,7 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         m = FakeMemory()
-        stack = DialogueStack(m)
+        stack = DialogueStack()
         m.dialogue_stack = stack
         self.memory = m
 

@@ -36,10 +36,7 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         )
         self.opts = opts
 
-        self.dialogue_object_parameters = {
-            "memory": self.dialogue_manager.memory,
-            "dialogue_stack": self.dialogue_manager.dialogue_stack,
-        }
+        self.dialogue_object_parameters = {"memory": self.dialogue_manager.memory}
 
         # Read all datasets
         self.read_datasets(opts)

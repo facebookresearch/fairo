@@ -288,7 +288,7 @@ class MCInterpreter(Interpreter):
 
         if holes is None:
             # FIXME: in stage III, replace agent with the lowlevel interface to sending chats
-            self.dialogue_stack.append_new(
+            self.memory.dialogue_stack_append_new(
                 Say, "I don't understand what holes you want me to fill."
             )
             return None, None, None
@@ -321,9 +321,9 @@ class MCInterpreter(Interpreter):
             tasks.append(self.task_objects["build"](agent, task_data))
 
         if len(holes) > 1:
-            self.dialogue_stack.append_new(Say, "Ok. I'll fill up the holes.")
+            self.memory.dialogue_stack_append_new(Say, "Ok. I'll fill up the holes.")
         else:
-            self.dialogue_stack.append_new(Say, "Ok. I'll fill that hole up.")
+            self.memory.dialogue_stack_append_new(Say, "Ok. I'll fill that hole up.")
 
         return maybe_task_list_to_control_block(tasks, agent), None, None
 

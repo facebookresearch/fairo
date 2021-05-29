@@ -5,12 +5,11 @@ import logging
 
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 
-
+# FIXME!!!  this whole thing will be merged into memories' Task machinery
 class DialogueStack(object):
     """This class organizes and steps DialogueObjects."""
 
-    def __init__(self, memory):
-        self.memory = memory
+    def __init__(self):
         self.stack = []
 
     def __getitem__(self, i):
@@ -32,11 +31,6 @@ class DialogueStack(object):
     def append(self, dialogue_object):
         """Append a dialogue_object to stack"""
         self.stack.append(dialogue_object)
-
-    # FIXME agent
-    def append_new(self, cls, *args, **kwargs):
-        """Construct a new DialogueObject and append to stack"""
-        self.stack.append(cls(*args, memory=self.memory, dialogue_stack=self, **kwargs))
 
     # FIXME: in stage III, replace agent with the lowlevel interface to sending chats
     def step(self, agent):
