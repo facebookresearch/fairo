@@ -36,8 +36,6 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         )
         self.opts = opts
 
-        self.dialogue_object_parameters = {"memory": self.dialogue_manager.memory}
-
         # Read all datasets
         self.read_datasets(opts)
         # instantiate logger and parsing model
@@ -134,7 +132,6 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         Returns:
             DialogueObject or empty if no action is needed.
         """
-
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
         if (len(self.dialogue_manager.dialogue_stack) > 0) and (
@@ -151,12 +148,12 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
 
         # 3. Check against safety phrase list
         if not self.is_safe(chat):
-            return Say("Please don't be rude.", **self.dialogue_object_parameters)
+            return Say("Please don't be rude.", memory=self.dialogue_manager.memory)
 
         # 4. Check if incoming chat is one of the scripted ones in greetings
         for greeting_type, allowed_str in self.botGreetings.items():
             if chat in allowed_str:
-                return BotGreet(greeting_type, **self.dialogue_object_parameters)
+                return BotGreet(greeting_type, memory=self.dialogue_manager.memory)
 
         # 5. Get logical form from either ground truth or query the parsing model
         logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)
@@ -294,19 +291,19 @@ class DroidletNSPModelWrapper(SemanticParserWrapper):
         d should have spans filled (via process_spans_and_remove_fixed_value).
         """
         ProgramNode.create(self.dialogue_manager.memory, logical_form)
-        dop = self.dialogue_object_parameters
+        memory = self.dialogue_manager.memory
         if logical_form["dialogue_type"] == "NOOP":
-            return Say("I don't know how to answer that.", **dop)
+            return Say("I don't know how to answer that.", memory=memory)
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
-            return self.dialogue_objects["bot_capabilities"](**dop)
+            return self.dialogue_objects["bot_capabilities"](memory=memory)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             low_level_interpreter_data = {"block_data": opts.block_data if opts else {}}
             return self.dialogue_objects["interpreter"](
-                speaker, logical_form, low_level_interpreter_data, **dop
+                speaker, logical_form, low_level_interpreter_data, memory=memory
             )
         elif logical_form["dialogue_type"] == "PUT_MEMORY":
-            return self.dialogue_objects["put_memory"](speaker, logical_form, **dop)
+            return self.dialogue_objects["put_memory"](speaker, logical_form, memory=memory)
         elif logical_form["dialogue_type"] == "GET_MEMORY":
-            return self.dialogue_objects["get_memory"](speaker, logical_form, **dop)
+            return self.dialogue_objects["get_memory"](speaker, logical_form, memory=memory)
         else:
             raise ValueError("Bad dialogue_type={}".format(logical_form["dialogue_type"]))
