@@ -39,7 +39,7 @@ from .modify_helpers import (
     handle_thicken,
 )
 from .spatial_reasoning import ComputeLocations
-from .condition_helper import MCConditionInterpreter
+from ..condition_helper import ConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import number_from_span
@@ -62,7 +62,7 @@ class MCInterpreter(Interpreter):
         self.block_data = low_level_data["block_data"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
-        self.subinterpret["condition"] = MCConditionInterpreter(block_data=self.block_data)
+        self.subinterpret["condition"] = ConditionInterpreter()
         self.subinterpret["specify_locations"] = ComputeLocations()
         self.subinterpret["facing"] = FacingInterpreter()
         self.subinterpret["dances_filters"] = interpret_dance_filter
