@@ -4,30 +4,65 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Know-hows of the app
 
-Note: All the commands below should be run from the `droidlet/dldashboard/web` folder.
+**Note: Run all commands from the `droidlet/dashboard/web` folder.**
 
-- To install the app first, do: 
+### Installing dependencies
+
 ```
-npm install -g yarn ; yarn upgrade
+npm install -g yarn
+yarn install
 ```
 
-- Now to start the app, run: `yarn start`.
+### Starting the app for local development
+
+```
+yarn start
+```
 
 This will run the app in development mode.<br />
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.You will also see any lint errors in the console. <br />
 For debugging: you can set up the debugger in your IDE (for example [here](https://code.visualstudio.com/docs/nodejs/reactjs-tutorial#_debugging-react)) or use the developer console on your browser (for example: Command + option + J for Chrome on Macbook)
 
-- To start the storybook to see the individual react components, run : `yarn storybook`
+### Files to check-in
 
-- To run tests, run : `yarn test`. <br />
+Check-in the following files or folders:
 
-This launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+droidlet/dashboard/web/src/
+droidlet/dashboard/web/yarn.lock
+droidlet/dashboard/web/package.json
+droidlet/dashboard/web/build/
+droidlet/dashboard/web/public/
+```
 
-- To add a new package to the project, run : `yarn add [package name]`
-- To remove a package from the project: `yarn remove [package name]`
-- To generate build files, run : `yarn build`
+Do not check-in the following at any stage:
+
+```
+droidlet/dashboard/web/node_modules
+droidlet/dashboard/web/package-lock.json
+node_modules
+yarn.lock # in any other folder than droidlet/dashboard/web/yarn.lock
+```
+
+#### Checking in your changes
+
+Once you've made changes to the project:
+1. Create a Pull Request with all the code changes for review.
+2. Then run `yarn build` to update the `build` folder. Run: `git add -f build/` to check in your `build` files and submit this as a separate PR.
+
+### Adding or removing package dependencies
+
+```
+yarn add [package name]
+yarn remove [package name]
+```
+
+### Creating production builds
+
+```
+yarn build
+```
 
 This builds the app for production to the `build` folder.<br />
 It correctly bundles React in production mode and optimizes the build for the best performance.
@@ -36,7 +71,24 @@ The build is minified and the filenames include the hashes.<br />
 Your app is now ready to be deployed!
 
 
-## Errors 
+### Unit tests and individual component library via Storybook
+
+To start the storybook to see the individual react components, run :
+```
+yarn storybook
+```
+
+
+To run tests, run :
+
+```
+yarn test
+```
+
+This launches the test runner in the interactive watch mode.<br />
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+## Errors FAQ
 
 ### Error on `yarn test`
 
@@ -59,9 +111,9 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/tr
 
 ### New React component
 If you want to add a new React component to the project:
-1. Add the corresponding React component `js` and `css` files to the [components folder under `src`](https://github.com/facebookresearch/droidlet/tree/main/dldashboard/web/src/components).
-2. Add your component to [index.js](https://github.com/facebookresearch/droidlet/blob/main/dldashboard/web/src/index.js) to render it in the layout. If you want to add another stacked column check how `Memory 2D` component is added in the layout to be rendered on top right (or `Navigator` on bottom right). The ordering of components in `index.js` is consistent with how these are rendered in the frontend.
-3. Manage and set the state of your component [in `StateManager`](https://github.com/facebookresearch/droidlet/blob/main/dldashboard/web/src/StateManager.js). 
+1. Add the corresponding React component `js` and `css` files to the [components folder under `src`](https://github.com/facebookresearch/droidlet/tree/main/droidlet/dashboard/web/src/components).
+2. Add your component to [index.js](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/src/index.js) to render it in the layout. If you want to add another stacked column check how `Memory 2D` component is added in the layout to be rendered on top right (or `Navigator` on bottom right). The ordering of components in `index.js` is consistent with how these are rendered in the frontend.
+3. Manage and set the state of your component [in `StateManager`](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/src/StateManager.js). 
   - An example snippet of how to receive and process information from backend on this component :
     1. First define the method in `StateManager` :
        ```
@@ -78,8 +130,8 @@ If you want to add a new React component to the project:
         socket.on("setComponentState", this.setComponent);
         ```
       Your method will now be called when the backend sends the socket event : `"setComponentState"`.
-  - An example of how to send information from this component to backend is [here](https://github.com/facebookresearch/droidlet/blob/main/dldashboard/web/src/components/QuerySemanticParser.js#L29). The individual components should always send socket events via the `StateManager`.  
-4. Add new dependencies introduced by your component to [package.json](https://github.com/facebookresearch/droidlet/blob/main/dldashboard/web/package.json) and [yarn.lock](https://github.com/facebookresearch/droidlet/blob/main/dldashboard/web/yarn.lock) using `yarn add [package name]`.
+  - An example of how to send information from this component to backend is [here](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/src/components/QuerySemanticParser.js#L29). The individual components should always send socket events via the `StateManager`.  
+4. Add new dependencies introduced by your component to [package.json](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/package.json) and [yarn.lock](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/yarn.lock) using `yarn add [package name]`.
 
 ### Frontend changes
 
@@ -87,12 +139,6 @@ Most frontend changes when made should be reflected in the app. The app at [http
 You will also see any errors in the console.
 
 Note that the dashboard serving at : [127.0.0.1:8000](127.0.0.1:8000) by default serves the `build` folder on frontend and will not reflect these local changes until the `build` folder is updated.
-
-### Checking in your changes
-
-Once you've made changes to the project:
-1. Create a Pull Request with all the code changes for review.
-2. Then run `yarn build` to update the `build` folder. Run: `git add -f build/` to check in your `build` files and submit this as a separate PR.
 
 ## Learn More
 
