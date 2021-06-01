@@ -6,6 +6,7 @@ import LiveImage from "./LiveImage";
 import LiveHumans from "./LiveHumans";
 import stateManager from ".././StateManager";
 import Memory2D from "./Memory2D";
+import MobileDirectionButton from "./MobileDirectionButton";
 
 class MobileNavigationPane extends React.Component {
   constructor(props) {
@@ -70,6 +71,7 @@ class MobileNavigationPane extends React.Component {
             />
           </Col>
         </Row>
+        <MobileDirectionButton />
       </div>
     );
   }
