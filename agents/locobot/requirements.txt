@@ -1,4 +1,4 @@
--r ../requirements.txt
+-r ../../requirements.txt
 pyro4
 scikit-build
 webcolors==1.10
