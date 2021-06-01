@@ -21,70 +21,65 @@ import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
 import Timeline from "./components/Timeline/Timeline";
-import LiveImage from "./components/LiveImage";
-import LiveObjects from "./components/LiveObjects";
-import LiveHumans from "./components/LiveHumans";
-import InteractApp from "./components/Interact/InteractApp";
 
+import { isMobile } from "react-device-detect";
+import { mobileLayout } from "./MobileIndex.js";
 import "./index.css";
 
-window.React = React;
-window.ReactDOM = ReactDOM;
-var config = {
-  settings: {
-    showPopoutIcon: false,
-  },
-  content: [
-    {
-      type: "row",
-      content: [
-        {
-          title: "Live Viewer",
-          type: "react-component",
-          component: "MainPane",
-          props: { stateManager: stateManager },
-        },
-        {
-          type: "column",
-          content: [
-            {
-              type: "stack",
-              content: [
-                {
-                  title: "Memory 2D",
-                  type: "react-component",
-                  component: "Memory2D",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Memory List",
-                  type: "react-component",
-                  component: "MemoryList",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Console",
-                  type: "react-component",
-                  component: "Console",
-                },
-                {
-                  title: "Chat History",
-                  type: "react-component",
-                  component: "History",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Query the Semantic Parser",
-                  type: "react-component",
-                  component: "QuerySemanticParser",
-                  props: { stateManager: stateManager },
-                },
-                {
-                  title: "Program the assistant",
-                  type: "react-component",
-                  component: "TeachApp",
-                  props: {
-                    stateManager: stateManager,
+if (isMobile) {
+  // if user is on mobile device, run different mobile-friendly display
+  mobileLayout();
+} else {
+  window.React = React;
+  window.ReactDOM = ReactDOM;
+  var config = {
+    settings: {
+      showPopoutIcon: false,
+    },
+    content: [
+      {
+        type: "row",
+        content: [
+          {
+            title: "Live Viewer",
+            type: "react-component",
+            component: "MainPane",
+            props: { stateManager: stateManager },
+          },
+          {
+            type: "column",
+            content: [
+              {
+                type: "stack",
+                content: [
+                  {
+                    title: "Memory 2D",
+                    type: "react-component",
+                    component: "Memory2D",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Memory List",
+                    type: "react-component",
+                    component: "MemoryList",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Console",
+                    type: "react-component",
+                    component: "Console",
+                  },
+                  {
+                    title: "Chat History",
+                    type: "react-component",
+                    component: "History",
+                    props: { stateManager: stateManager },
+                  },
+                  {
+                    title: "Query the Semantic Parser",
+                    type: "react-component",
+                    component: "QuerySemanticParser",
+                    props: { stateManager: stateManager },
                   },
                   {
                     title: "Timeline",
