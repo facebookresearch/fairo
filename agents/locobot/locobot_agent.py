@@ -26,14 +26,14 @@ from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.perception.robot import Perception, SelfPerception
-from droidlet.interpreter.robot import dance, default_behaviors
-
-from droidlet.dialog.robot.dialogue_objects import (
-    LocoBotCapabilities,
-    LocoGetMemoryHandler,
-    PutMemoryHandler,
+from droidlet.interpreter.robot import (
+    dance, 
+    default_behaviors,
+    LocoGetMemoryHandler, 
+    PutMemoryHandler, 
     LocoInterpreter,
 )
+from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
