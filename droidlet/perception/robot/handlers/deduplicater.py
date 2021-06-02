@@ -11,7 +11,7 @@ from .core import AbstractHandler
 from droidlet.interpreter.robot.objects import AttributeDict
 
 
-class ObjectDeduplicationHandler(AbstractHandler):
+class ObjectDedup(AbstractHandler):
     """Class for deduplicating a given set of objects from a given set of existing objects"""
 
     def __init__(self):
@@ -94,7 +94,7 @@ class ObjectDeduplicationHandler(AbstractHandler):
         logging.info("world object {}, is_novel {}".format(current_object.label, is_novel))
         return is_novel
 
-    def handle(self, current_objects, previous_objects):
+    def forward(self, current_objects, previous_objects):
         """run the deduplication for the current objects detected.
 
         This is also where each WorldObject is assigned a unique entity id (eid).

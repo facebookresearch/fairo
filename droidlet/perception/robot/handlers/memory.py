@@ -12,7 +12,8 @@ import droidlet.memory.robot.loco_memory as loco_memory
 from droidlet.event import sio
 
 
-class MemoryHandler(AbstractHandler):
+# TODO: Delete this class
+class _MemoryHandler(AbstractHandler):
     """Class for saving the state of the world parsed by all perceptual models
     to memory.
 
@@ -39,7 +40,7 @@ class MemoryHandler(AbstractHandler):
     def get_objects(self):
         return loco_memory.DetectedObjectNode.get_all(self.agent.memory)
 
-    def handle(self, new_objects, updated_objects=[]):
+    def forward(self, new_objects, updated_objects=[]):
         """run the memory handler for the current rgb, objects detected.
 
         This is also where each WorldObject is assigned a unique entity id (eid).

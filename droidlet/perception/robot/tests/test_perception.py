@@ -8,9 +8,9 @@ from timeit import Timer
 from unittest.mock import MagicMock
 from droidlet.perception.robot import (
     InputHandler,
-    DetectionHandler,
-    FaceRecognitionHandler,
-    ObjectDeduplicationHandler,
+    ObjectDetection,
+    FaceRecognition,
+    ObjectDedup,
     MemoryHandler,
     SlowPerception,
     Detection,
@@ -61,7 +61,7 @@ class PerceiveTimeTest(unittest.TestCase):
         self.perception = SlowPerception(PERCEPTION_MODELS_DIR)
 
     def test_time(self):
-        rgb_depth = self.input_handler.handle()
+        rgb_depth = self.input_handler.forward()
         t = Timer(lambda: self.perception.perceive(rgb_depth))
         logging.info("SlowPerception runtime {} s".format(t.timeit(number=1)))
 
@@ -74,7 +74,7 @@ class InputHandlerTest(unittest.TestCase):
 
     def test_handler(self):
         # check the type of the returned object from input handler function
-        rgb_depth = self.input_handler.handle()
+        rgb_depth = self.input_handler.forward()
         # check if the returned object can return the actual image
         get_pillow_method = getattr(rgb_depth, "get_pillow_image")
         self.assertEqual(callable(get_pillow_method), True)
@@ -83,14 +83,14 @@ class InputHandlerTest(unittest.TestCase):
 
 class DetectionHandlerTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.detect_handler = DetectionHandler(PERCEPTION_MODELS_DIR)
+        self.detect_handler = ObjectDetection(PERCEPTION_MODELS_DIR)
 
     def test_handler(self):
         # load the image and pass it to detectron2 model
         img = cv2.imread(OFFICE_IMG_PATH, 1)
         rgb_depth_mock = MagicMock()
         rgb_depth_mock.rgb = img
-        detections = self.detect_handler.handle(rgb_depth_mock)
+        detections = self.detect_handler.forward(rgb_depth_mock)
 
         # check that most of the detected objects are detected
         self.assertGreaterEqual(len(detections), 5)  # 9 exactly
@@ -101,12 +101,12 @@ class DetectionHandlerTest(unittest.TestCase):
 
 class MemoryHandlerTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.detect_handler = DetectionHandler(PERCEPTION_MODELS_DIR)
+        self.detect_handler = ObjectDetection(PERCEPTION_MODELS_DIR)
         self.agent = MagicMock()
         self.agent.memory = LocoAgentMemory()
         dance.add_default_dances(self.agent.memory)
         self.memory = MemoryHandler(self.agent)
-        self.deduplicator = ObjectDeduplicationHandler()
+        self.deduplicator = ObjectDedup()
 
     def test_handler_basic_insertion(self):
         # get fake detection
@@ -134,7 +134,7 @@ class MemoryHandlerTest(unittest.TestCase):
         img = cv2.imread(OFFICE_IMG_PATH, 1)
         rgbd = get_fake_rgbd(rgb=img)
         logging.getLogger().disabled = True
-        detections = self.detect_handler.handle(rgbd)
+        detections = self.detect_handler.forward(rgbd)
 
         # check that most of the detected objects are detected
         self.assertGreaterEqual(len(detections), 5)  # 9 exactly
@@ -159,7 +159,7 @@ class MemoryHandlerTest(unittest.TestCase):
 
 class TestFaceRecognition(unittest.TestCase):
     def setUp(self) -> None:
-        self.f_rec = FaceRecognitionHandler(FACES_IDS_DIR)
+        self.f_rec = FaceRecognition(FACES_IDS_DIR)
 
     def test_creation(self):
         """class can be created and faces loaded successfully."""

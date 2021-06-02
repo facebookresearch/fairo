@@ -9,7 +9,7 @@ import logging
 import os
 
 
-class LaserPointerHandler(AbstractHandler):
+class DetectLaserPointer(AbstractHandler):
     """Identifies an especially prepared laser pointer in an image to use it
     for proprioception.
     """
@@ -48,7 +48,7 @@ class LaserPointerHandler(AbstractHandler):
             if radius < 10:
                 return center
 
-    def handle(self, rgb_depth):
+    def forward(self, rgb_depth):
         logging.info("In LaserPointerHandler ... ")
         rgb = rgb_depth.rgb
 
