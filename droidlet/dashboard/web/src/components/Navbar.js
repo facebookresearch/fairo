@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Navbar, Nav, NavItem } from "react-bootstrap";
+import { Navbar, Nav } from "react-bootstrap";
 
 class NavbarComponent extends React.Component {
   constructor(props) {
@@ -12,14 +12,11 @@ class NavbarComponent extends React.Component {
     return (
       <Navbar>
         <Nav>
-          <NavItem onClick={() => this.props.paneHandler("home")}>
-            {" "}
-            Home
-          </NavItem>
-          <NavItem onClick={() => this.props.paneHandler("navigation")}>
+          <button onClick={() => this.props.paneHandler("home")}> Home</button>
+          <button onClick={() => this.props.paneHandler("navigation")}>
             {" "}
             Navigation
-          </NavItem>
+          </button>
         </Nav>
       </Navbar>
     );
