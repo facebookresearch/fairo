@@ -6,13 +6,13 @@ import queue
 
 from droidlet.perception.robot.handlers import (
     InputHandler,
-    DetectionHandler,
-    FaceRecognitionHandler,
-    HumanPoseHandler,
-    TrackingHandler,
+    ObjectDetection,
+    FaceRecognition,
+    HumanPose,
+    ObjectTracking,
     MemoryHandler,
-    LaserPointerHandler,
-    ObjectDeduplicationHandler,
+    DetectLaserPointer,
+    ObjectDeduplicator,
 )
 from droidlet.interpreter.robot.objects import AttributeDict
 from droidlet.event import sio
@@ -38,11 +38,11 @@ class SlowPerception:
         """Setup all vision handlers, by defining an attribute dict of different perception handlers."""
         handlers = AttributeDict(
             {
-                "detector": DetectionHandler(self.model_data_dir),
-                "human_pose": HumanPoseHandler(self.model_data_dir),
-                "face_recognizer": FaceRecognitionHandler(),
-                "laser_pointer": LaserPointerHandler(),
-                "tracker": TrackingHandler(),
+                "detector": ObjectDetection(self.model_data_dir),
+                "human_pose": HumanPose(self.model_data_dir),
+                "face_recognizer": FaceRecognition(),
+                "laser_pointer": DetectLaserPointer(),
+                "tracker": ObjectTracking(),
             }
         )
         return handlers
@@ -164,7 +164,7 @@ class Perception:
         handlers = AttributeDict(
             {
                 "input": InputHandler(self.agent, read_from_camera=True),
-                "deduplicate": ObjectDeduplicationHandler(),
+                "deduplicate": ObjectDedup(),
                 "memory": MemoryHandler(self.agent),
             }
         )
