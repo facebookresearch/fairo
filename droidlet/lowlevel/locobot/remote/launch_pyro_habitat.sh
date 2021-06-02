@@ -17,7 +17,7 @@ default_ip=$(hostname -I)
 ip=${LOCOBOT_IP:-$default_ip}
 echo "Binding to Host IP" $ip
 
-pyro-ns -n $ip &
+python -m Pyro4.naming -n $ip &
 BGPID=$!
 sleep 4
 
