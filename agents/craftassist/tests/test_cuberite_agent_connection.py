@@ -6,15 +6,16 @@ import signal
 import subprocess
 import time
 import unittest
-from agents.craftassist.craftassist_agent import CraftAssistAgent
-from agents.craftassist.tests.fake_agent import MockOpt
+from ..craftassist_agent import CraftAssistAgent
+from .fake_agent import MockOpt
 
 
 class MyTestCase(unittest.TestCase):
     def test_agent_cuberite_connection(self):
         opts = MockOpt()
         opts.port = 25565
-        cuberite_process_path = "droidlet/lowlevel/minecraft/cuberite_process.py"
+        repo_home = os.path.dirname(os.path.realpath(__file__))
+        cuberite_process_path = os.path.join(repo_home, "../../../droidlet/lowlevel/minecraft/cuberite_process.py")
         with open("cuberite_log.txt", "w") as f:
             proc = subprocess.Popen(
                 [f"python3 {cuberite_process_path} --config flat_world"],
