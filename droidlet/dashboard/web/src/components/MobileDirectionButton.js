@@ -8,32 +8,25 @@ class MobileDirectionButton extends React.Component {
     };
   }
 
+  /**
+   * This function is called when a button is pressed.
+   * Adds the corresponding button's command to the list of commands to be executed by the backend
+   */
   addCommand(command) {
-    console.log("added command");
     let prevCommand = this.state.commands;
     prevCommand.push(command);
     this.setState({
       commands: prevCommand,
     });
-    console.log("new state is");
-    console.log(this.state);
   }
 
   render() {
     return (
       <div>
-        <button onClick={() => this.addCommand("MOVE_LEFT")} class="button">
-          LEFT
-        </button>
-        <button onClick={() => this.addCommand("MOVE_FORWARD")} class="button">
-          UP{" "}
-        </button>
-        <button onClick={() => this.addCommand("MOVE_DOWN")} class="button">
-          DOWN{" "}
-        </button>
-        <button onClick={() => this.addCommand("MOVE_RIGHT")} class="button">
-          RIGHT
-        </button>
+        <button onClick={() => this.addCommand("MOVE_LEFT")}>LEFT</button>
+        <button onClick={() => this.addCommand("MOVE_FORWARD")}>UP </button>
+        <button onClick={() => this.addCommand("MOVE_DOWN")}>DOWN </button>
+        <button onClick={() => this.addCommand("MOVE_RIGHT")}>RIGHT</button>
       </div>
     );
   }

@@ -4,8 +4,6 @@ import { Navbar, Nav, NavItem } from "react-bootstrap";
 
 class NavbarComponent extends React.Component {
   constructor(props) {
-    console.log("props");
-    console.log(props);
     super(props);
     this.state = props.state;
   }

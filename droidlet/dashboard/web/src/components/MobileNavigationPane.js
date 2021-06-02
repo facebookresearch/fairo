@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Container, Row, Col } from "react-bootstrap";
+import { Row, Col } from "react-bootstrap";
 
 import LiveImage from "./LiveImage";
 import LiveHumans from "./LiveHumans";
@@ -9,17 +9,7 @@ import Memory2D from "./Memory2D";
 import MobileDirectionButton from "./MobileDirectionButton";
 
 class MobileNavigationPane extends React.Component {
-  constructor(props) {
-    let width = window.innerWidth;
-    super(props);
-    console.log("the props are");
-    console.log(props);
-    let imageWidth = this.props.imageWidth;
-  }
-
   render() {
-    console.log("image width is");
-    console.log(this.props.imageWidth);
     return (
       <div>
         <Row>

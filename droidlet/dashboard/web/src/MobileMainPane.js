@@ -19,7 +19,6 @@ class MobileMainPane extends React.Component {
     this.setState({
       screen: pane,
     });
-    console.log(this.state);
   }
 
   render() {
