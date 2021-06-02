@@ -53,6 +53,10 @@ class LiveHumans extends React.Component {
     if (this.props.stateManager) this.props.stateManager.connect(this);
   }
 
+  componentWillUnmount() {
+    if (this.props.stateManager) this.props.stateManager.disconnect(this);
+  }
+
   render() {
     const { height, width, rgb, humans } = this.state;
     const { offsetW, offsetH, isMobile } = this.props;
