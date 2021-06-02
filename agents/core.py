@@ -12,9 +12,11 @@ class BaseAgent:
         self.init_memory()
         self.init_controller()
         self.init_perception()
+        self._shutdown = False
 
     def start(self):
-        while True:  # count forever
+        # count forever unless the shutdown signal is given
+        while not self._shutdown:
             try:
                 self.step()
             except Exception as e:

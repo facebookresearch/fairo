@@ -70,20 +70,24 @@ class SlowPerception:
         return rgb_depth, detections, humans
 
 
-def slow_vision_process(model_data_dir, input_queue, output_queue):
+def slow_vision_process(model_data_dir, input_queue, output_queue, shutdown_event):
     """Set up slow vision process, consisting of compute intensive perceptual models.
 
     Args:
         model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
         input_queue (multiprocessing.Queue): queue to retrieve input for slow vision process from
         output_queue (multiprocessing.Queue): queue to dump slow vision process output in
+        shutdown_event (multiprocessing.Event): an event to mark that we need to shutdown
     """
     perception = SlowPerception(model_data_dir)
 
-    while True:
-        img, xyz = input_queue.get(block=True)
-        rgb_depth, detections, humans = perception.perceive(img)
-        output_queue.put([rgb_depth, detections, humans, xyz])
+    while not shutdown_event.is_set():
+        try:
+            img, xyz = input_queue.get(block=True, timeout=1)
+            rgb_depth, detections, humans = perception.perceive(img)
+            output_queue.put([rgb_depth, detections, humans, xyz])
+        except queue.Empty:
+            pass
 
 
 import traceback
@@ -133,9 +137,10 @@ class Perception:
         self.vision = self.setup_vision_handlers()
         self.send_queue = multiprocessing.Queue()
         self.recv_queue = multiprocessing.Queue()
+        self.vprocess_shutdown = multiprocessing.Event()
         self.vprocess = Process(
             target=slow_vision_process,
-            args=(self.model_data_dir, self.send_queue, self.recv_queue),
+            args=(self.model_data_dir, self.send_queue, self.recv_queue, self.vprocess_shutdown),
         )
         self.vprocess.daemon = True
         self.vprocess.start()

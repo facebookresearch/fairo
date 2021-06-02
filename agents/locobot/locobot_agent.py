@@ -109,6 +109,10 @@ class LocobotAgent(LocoMCAgent):
                     self.mover.bot.set_tilt(self.mover.bot.get_tilt() + 0.08)
             self.mover.move_relative([movement])
 
+        @sio.on("shutdown")
+        def _shutdown(sid, data):
+            self.shutdown()
+
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -190,6 +194,10 @@ class LocobotAgent(LocoMCAgent):
 
     def task_step(self, sleep_time=0.0):
         super().task_step(sleep_time=sleep_time)
+
+    def shutdown(self):
+        self._shutdown = True
+        self.perception_modules["vision"].vprocess_shutdown.set()
 
 
 if __name__ == "__main__":
