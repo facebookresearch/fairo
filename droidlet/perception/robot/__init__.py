@@ -8,13 +8,13 @@ from droidlet.perception.robot.perception_helpers import (
 from droidlet.perception.robot.handlers import (
     InputHandler,
     MemoryHandler,
-    DetectionHandler,
-    FaceRecognitionHandler,
-    ObjectDeduplicationHandler,
+    ObjectDetection,
+    FaceRecognition,
+    ObjectDeduplicator,
     Detection,
     WorldObject,
     Human,
-    HumanKeypoints,
+    HumanKeypointsOrdering,
 )
 from droidlet.shared_data_structs import RGBDepth
 from droidlet.perception.robot.perception import Perception, SlowPerception
@@ -27,7 +27,7 @@ __all__ = [
     Detection,
     WorldObject,
     Human,
-    HumanKeypoints,
+    HumanKeypointsOrdering,
     RGBDepth,
     random_colors,
     draw_xyz,
@@ -35,8 +35,8 @@ __all__ = [
     get_coords,
     get_color_tag,
     InputHandler,
-    DetectionHandler,
+    ObjectDetection,
     MemoryHandler,
-    FaceRecognitionHandler,
-    ObjectDeduplicationHandler,
+    FaceRecognition,
+    ObjectDeduplicator,
 ]

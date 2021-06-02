@@ -7,7 +7,7 @@ from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
-from droidlet.perception.robot import Detection, Human, HumanKeypoints
+from droidlet.perception.robot import Detection, Human, HumanKeypointsOrdering
 from droidlet.shared_data_structs import RGBDepth
 
 
@@ -81,10 +81,10 @@ def get_fake_human_keypoints(rgb_d):
     # for the category. Each keypoint has a 0-indexed location x,y and a visibility flag
     # v defined as v=0: not labeled (in which case x=y=0), v=1: labeled but not visible,
     # and v=2: labeled and visible. source https://cocodataset.org/#format-data
-    return HumanKeypoints._make(
+    return HumanKeypointsOrdering._make(
         [
             get_rand_pixel(rgb_d) + [np.random.randint(0, 3)]
-            for x in range(len(HumanKeypoints._fields))
+            for x in range(len(HumanKeypointsOrdering._fields))
         ]
     )
 

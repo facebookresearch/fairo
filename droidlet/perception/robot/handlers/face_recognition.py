@@ -12,7 +12,7 @@ from facenet_pytorch import MTCNN
 from .detector import Detection
 
 
-class FaceRecognitionHandler(AbstractHandler):
+class FaceRecognition(AbstractHandler):
     """Class for Face Recognition models.
 
     We use a keypoint estimator.
@@ -140,7 +140,7 @@ class FaceRecognitionHandler(AbstractHandler):
 
             self.face_names.append(name)
 
-    def handle(self, rgb_depth):
+    def __call__(self, rgb_depth):
         self.detect_faces(rgb_depth)
         logging.info("In FaceDetectionHandler ... ")
         detections = []

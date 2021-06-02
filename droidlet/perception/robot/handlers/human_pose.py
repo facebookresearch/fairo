@@ -15,7 +15,7 @@ from collections import namedtuple
 file_root = os.path.dirname(os.path.realpath(__file__))
 
 
-class HumanPoseHandler(AbstractHandler):
+class HumanPose(AbstractHandler):
     """Class for Human Pose estimation.
 
     We use a keypoint estimator.
@@ -25,9 +25,9 @@ class HumanPoseHandler(AbstractHandler):
     """
 
     def __init__(self, model_data_dir):
-        self.detector = HumanPose(model_data_dir)
+        self.detector = HumanKeypoints(model_data_dir)
 
-    def handle(self, rgb_depth):
+    def __call__(self, rgb_depth):
         logging.info("In HumanPoseHandler ... ")
         rgb = rgb_depth.rgb
         keypoints = self.detector(rgb)
@@ -66,7 +66,7 @@ COCO_PERSON_KEYPOINT_ORDERING = [
 ]
 
 
-class HumanPose:
+class HumanKeypoints:
     draw_lines = [
         ("left_ear", "left_eye"),
         ("right_ear", "right_eye"),
@@ -109,7 +109,7 @@ class HumanPose:
                 p_i = {}
                 for point, name in zip(points_indices[i], COCO_PERSON_KEYPOINT_ORDERING):
                     p_i[name] = point.int().tolist()
-                points.append(HumanKeypoints(**p_i))
+                points.append(HumanKeypointsOrdering(**p_i))
 
         logging.info("{} humans detected.".format(len(points)))
         return points
@@ -128,8 +128,8 @@ class HumanPose:
         cv2.waitKey(3)
 
 
-HumanKeypoints = namedtuple(
-    "HumanKeypoints",
+HumanKeypointsOrdering = namedtuple(
+    "HumanKeypointsOrdering",
     [
         "nose",
         "left_eye",
@@ -155,7 +155,7 @@ HumanKeypoints = namedtuple(
 class Human(WorldObject):
     """Instantiation of the WorldObject that is used by the human pose estimator."""
 
-    def __init__(self, rgb_depth: RGBDepth, keypoints: HumanKeypoints):
+    def __init__(self, rgb_depth: RGBDepth, keypoints: HumanKeypointsOrdering):
         WorldObject.__init__(self, label="human_pose", center=keypoints.nose[:2], rgb_depth=rgb_depth)
         self.keypoints = keypoints
 

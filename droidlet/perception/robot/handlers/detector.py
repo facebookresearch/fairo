@@ -34,7 +34,7 @@ things = "things.pickle"
 file_root = os.path.dirname(os.path.realpath(__file__))
 
 
-class DetectionHandler(AbstractHandler):
+class ObjectDetection(AbstractHandler):
     """Class for object detector.
 
     We use a modified Mask R-CNN with an additional head that predicts object properties.
@@ -44,9 +44,9 @@ class DetectionHandler(AbstractHandler):
     """
 
     def __init__(self, model_data_dir):
-        self.detector = Detector(model_data_dir)
+        self.detector = DetectorBase(model_data_dir)
 
-    def handle(self, rgb_depth):
+    def __call__(self, rgb_depth):
         """the inference logic for the handler lives here.
 
         Args:
@@ -80,7 +80,7 @@ class DetectionHandler(AbstractHandler):
         self.detector.draw(rgb_depth.rgb, predictions)
 
 
-class Detector:
+class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
     def __init__(self, model_data_dir):
