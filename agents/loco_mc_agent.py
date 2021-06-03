@@ -2,7 +2,6 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-import os
 import random
 import re
 import time
@@ -11,7 +10,6 @@ import numpy as np
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
-from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 

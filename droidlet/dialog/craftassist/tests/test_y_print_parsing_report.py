@@ -5,7 +5,7 @@ import os
 import unittest
 import json
 
-from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from agents.loco_mc_agent import LocoMCAgent

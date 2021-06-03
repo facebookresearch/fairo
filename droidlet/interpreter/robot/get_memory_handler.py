@@ -15,7 +15,7 @@ from droidlet.interpreter import (
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.dialog.ttad.generation_dialogues.generate_utils import prepend_a_an
+from droidlet.perception.semantic_parsing.nsp_templated_data_generation.generate_utils import prepend_a_an
 from droidlet.interpreter.robot.tasks import Point
 
 

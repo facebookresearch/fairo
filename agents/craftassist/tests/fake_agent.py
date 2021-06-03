@@ -25,7 +25,7 @@ from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 from droidlet.lowlevel.minecraft import craftassist_specs
-from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
 

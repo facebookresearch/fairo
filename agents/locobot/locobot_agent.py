@@ -22,7 +22,7 @@ from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
