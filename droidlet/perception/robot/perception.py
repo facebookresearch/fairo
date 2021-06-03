@@ -116,9 +116,9 @@ class Perception:
                 )
             self.vision.memory(new_objects, updated_objects)
 
-        self.log(rgb_depth, detections, humans, old_image, old_xyz)
+        self.log(rgb_depth, xyz, detections, humans, old_image, old_xyz)
 
-    def log(self, rgb_depth, detections, humans, old_rgb_depth, old_xyz):
+    def log(self, rgb_depth, xyz, detections, humans, old_rgb_depth, old_xyz):
         """Log all relevant data from the perceptual models for the dashboard.
 
         All the data here is sent to the dashboard using a socketio emit event. This data
@@ -127,6 +127,7 @@ class Perception:
 
         Args:
             rgb_depth (RGBDepth): the current RGBDepth frame. This frame might be different from
+            xyz (list[floats]): the (x,y,yaw) of the robot at the time of rgb_depth
             old_rgb_depth, which is the RGBDepth frame for which SlowPerception has been run
             detections (list[Detections]): list of all detections
             humans (list[Human]): list of all humans detected
@@ -140,21 +141,37 @@ class Perception:
 
         sio.emit("image_settings", self.log_settings)
         if old_xyz is None:
-            x, y, yaw = self.agent.mover.get_base_pos_in_canonical_coords()
+            x, y, yaw = xyz
         else:
             x, y, yaw = old_xyz
         resolution = self.log_settings["image_resolution"]
         quality = self.log_settings["image_quality"]
-        payload = {}
-        payload["time"] = time.time()
-        payload["image"] = rgb_depth.to_struct(resolution, quality)
-        payload["object_image"] = (
-            old_rgb_depth.to_struct(resolution, quality) if old_rgb_depth is not None else -1
-        )
-        payload["objects"] = [x.to_struct() for x in detections] if detections is not None else []
-        payload["humans"] = [x.to_struct() for x in humans] if humans is not None else []
-        payload["x"] = x
-        payload["y"] = y
-        payload["yaw"] = yaw
-        payload["map"] = self.agent.mover.get_obstacles_in_canonical_coords()
-        sio.emit("sensor_payload", payload)
+
+
+        serialized_image = rgb_depth.to_struct(resolution, quality)
+
+        if old_rgb_depth is not None:
+            serialized_object_image = old_rgb_depth.to_struct(resolution, quality)
+        else:
+            serialized_object_image = -1
+        serialized_objects = [x.to_struct() for x in detections] if detections is not None else []
+        serialized_humans = [x.to_struct() for x in humans] if humans is not None else []
+
+        sio.emit("rgb", serialized_image["rgb"])
+        sio.emit("depth", serialized_image["depth"])
+
+        sio.emit("objects", {
+            "image": serialized_object_image,
+            "objects": serialized_objects,
+            })
+        sio.emit("humans", {
+            "image": serialized_object_image,
+            "humans": serialized_humans,
+            })
+
+        sio.emit("map", {
+            "x": x,
+            "y": y,
+            "yaw": yaw,
+            "map": self.agent.mover.get_obstacles_in_canonical_coords()
+        })
