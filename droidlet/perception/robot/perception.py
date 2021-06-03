@@ -2,8 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import time
-import queue
 
+from droidlet.multiprocess import BackgroundTask
 from droidlet.perception.robot.handlers import (
     InputHandler,
     ObjectDetection,
@@ -16,108 +16,7 @@ from droidlet.perception.robot.handlers import (
 )
 from droidlet.interpreter.robot.objects import AttributeDict
 from droidlet.event import sio
-
-from torch import multiprocessing as mp
-multiprocessing = mp.get_context("spawn")
-
-
-class SlowPerception:
-    """Home for all slow perceptual modules used by the LocobotAgent.
-
-    It is run as a separate process and has all the compute intensive perceptual models.
-
-    Args:
-        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
-    """
-
-    def __init__(self, model_data_dir):
-        self.model_data_dir = model_data_dir
-        self.vision = self.setup_vision_handlers()
-
-    def setup_vision_handlers(self):
-        """Setup all vision handlers, by defining an attribute dict of different perception handlers."""
-        handlers = AttributeDict(
-            {
-                "detector": ObjectDetection(self.model_data_dir),
-                "human_pose": HumanPose(self.model_data_dir),
-                "face_recognizer": FaceRecognition(),
-                "laser_pointer": DetectLaserPointer(),
-                "tracker": ObjectTracking(),
-            }
-        )
-        return handlers
-
-    def perceive(self, rgb_depth):
-        """run all percetion handlers on the current RGBDepth frame.
-
-        Args:
-            rgb_depth (RGBDepth): input frame to run all perception handlers on.
-
-        Returns:
-            rgb_depth (RGBDepth): input frame that all perception handlers were run on.
-            detections (list[Detections]): list of all detections
-            humans (list[Human]): list of all humans detected
-        """
-        detections = self.vision.detector(rgb_depth)
-        humans = self.vision.human_pose(rgb_depth)
-        face_detections = self.vision.face_recognizer(rgb_depth)
-        if face_detections:
-            detections += face_detections
-        # laser_detection_obj = self.vision.laser_pointer(rgb_depth)
-        # if laser_detection_obj:
-        #     detections += [laser_detection_obj]
-        # self.vision.tracker(rgb_depth, detections)
-        return rgb_depth, detections, humans
-
-
-def slow_vision_process(model_data_dir, input_queue, output_queue, shutdown_event):
-    """Set up slow vision process, consisting of compute intensive perceptual models.
-
-    Args:
-        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
-        input_queue (multiprocessing.Queue): queue to retrieve input for slow vision process from
-        output_queue (multiprocessing.Queue): queue to dump slow vision process output in
-        shutdown_event (multiprocessing.Event): an event to mark that we need to shutdown
-    """
-    perception = SlowPerception(model_data_dir)
-
-    while not shutdown_event.is_set():
-        try:
-            img, xyz = input_queue.get(block=True, timeout=1)
-            rgb_depth, detections, humans = perception.perceive(img)
-            output_queue.put([rgb_depth, detections, humans, xyz])
-        except queue.Empty:
-            pass
-
-
-import traceback
-
-
-class Process(multiprocessing.Process):
-    """
-    Class which returns child Exceptions to Parent.
-    https://stackoverflow.com/a/33599967/4992248
-    """
-
-    def __init__(self, *args, **kwargs):
-        multiprocessing.Process.__init__(self, *args, **kwargs)
-        self._parent_conn, self._child_conn = multiprocessing.Pipe()
-        self._exception = None
-
-    def run(self):
-        try:
-            multiprocessing.Process.run(self)
-            self._child_conn.send(None)
-        except Exception as e:
-            tb = traceback.format_exc()
-            self._child_conn.send((e, tb))
-            # raise e  # You can still raise this exception if you need to
-
-    @property
-    def exception(self):
-        if self._parent_conn.poll():
-            self._exception = self._parent_conn.recv()
-        return self._exception
+import queue
 
 
 class Perception:
@@ -134,19 +33,34 @@ class Perception:
     def __init__(self, agent, model_data_dir):
         self.model_data_dir = model_data_dir
         self.agent = agent
-        self.vision = self.setup_vision_handlers()
-        self.send_queue = multiprocessing.Queue()
-        self.recv_queue = multiprocessing.Queue()
-        self.vprocess_shutdown = multiprocessing.Event()
-        self.vprocess = Process(
-            target=slow_vision_process,
-            args=(self.model_data_dir, self.send_queue, self.recv_queue, self.vprocess_shutdown),
-        )
-        self.vprocess.daemon = True
+
+        def slow_perceive_init(weights_dir):
+            print(weights_dir)
+            return AttributeDict(
+                {
+                    "detector": ObjectDetection(weights_dir),
+                    "human_pose": HumanPose(weights_dir),
+                    "face_recognizer": FaceRecognition(),
+                    "tracker": ObjectTracking(),
+                })
+
+        def slow_perceive(models, rgb_depth, xyz):
+            detections = models.detector(rgb_depth)
+            humans = models.human_pose(rgb_depth)
+            face_detections = models.face_recognizer(rgb_depth)
+            if face_detections:
+                detections += face_detections
+            return rgb_depth, detections, humans, xyz
+
+        self.vprocess = BackgroundTask(init_fn=slow_perceive_init,
+                                   init_args=(model_data_dir,),
+                                   process_fn=slow_perceive)
         self.vprocess.start()
+        self.slow_vision_ready = True
+
+        self.vision = self.setup_vision_handlers()
         self.audio = None
         self.tactile = None
-        self.slow_vision_ready = True
 
         self.log_settings = {
             "image_resolution": 512,  # pixels
@@ -164,7 +78,7 @@ class Perception:
         handlers = AttributeDict(
             {
                 "input": InputHandler(self.agent, read_from_camera=True),
-                "deduplicate": ObjectDedup(),
+                "deduplicate": ObjectDeduplicator(),
                 "memory": MemoryHandler(self.agent),
             }
         )
@@ -184,18 +98,14 @@ class Perception:
 
         if self.slow_vision_ready:
             xyz = self.agent.mover.get_base_pos_in_canonical_coords()
-            self.send_queue.put([rgb_depth, xyz])
+            self.vprocess.put(rgb_depth, xyz)
             self.slow_vision_ready = False
 
         try:
-            old_image, detections, humans, old_xyz = self.recv_queue.get(block=force)
+            old_image, detections, humans, old_xyz = self.vprocess.get(block=force)
             self.slow_vision_ready = True
         except queue.Empty:
             old_image, detections, humans, old_xyz = None, None, None, None
-
-        if self.vprocess.exception:
-            error, _traceback = self.vprocess.exception
-            raise ChildProcessError(_traceback)
 
         if detections is not None:
             previous_objects = self.vision.memory.get_objects()
