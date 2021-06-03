@@ -60,7 +60,6 @@ class StateManager {
   };
 
   constructor() {
-    this.processSensorPayload = this.processSensorPayload.bind(this);
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
     this.setConnected = this.setConnected.bind(this);
@@ -69,7 +68,13 @@ class StateManager {
     this.memory = this.initialMemoryState;
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
+    this.processRGBDepth = this.processRGBDepth.bind(this);
+
     this.processObjects = this.processObjects.bind(this);
+    this.processHumans = this.processHumans.bind(this);
+
+    this.processMap = this.processMap.bind(this);
+
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
@@ -129,12 +134,18 @@ class StateManager {
     });
 
     socket.on("setChatResponse", this.setChatResponse);
-    socket.on("sensor_payload", this.processSensorPayload);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
+
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
+    socket.on("image", this.processRGBDepth); // RGB + Depth
+
     socket.on("objects", this.processObjects);
+    socket.on("humans", this.processHumans);
+
+    socket.on("map", this.processMap);
+
     socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
   }
@@ -299,7 +310,15 @@ class StateManager {
     });
   }
 
+  processRGBDepth(res) {
+    this.processRGB(res.rgb);
+    this.processDepth(res.depth);
+  }
+
   processObjects(res) {
+    if (res.image === -1 || res.image === undefined) {
+      return;
+    }
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
@@ -314,19 +333,25 @@ class StateManager {
     });
   }
 
-  processSensorPayload(res) {
-    let fps_time = performance.now();
-    let fps = 1000 / (fps_time - this.fps_time);
-    this.fps_time = fps_time;
+  processHumans(res) {
+    if (res.image === -1 || res.image === undefined) {
+      return;
+    }
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
-    let depth = new Image();
-    depth.src = "data:image/webp;base64," + res.image.depth;
-    let object_rgb = new Image();
-    if (res.object_image !== -1 && res.object_image !== undefined) {
-      object_rgb.src = "data:image/webp;base64," + res.object_image.rgb;
-    }
 
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveHumans) {
+        ref.setState({
+          isLoaded: true,
+          humans: res.humans,
+          rgb: rgb,
+        });
+      }
+    });
+  }
+
+  processMap(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
         ref.setState({
@@ -335,26 +360,8 @@ class StateManager {
           bot_xyz: [res.x, res.y, res.yaw],
           obstacle_map: res.map,
         });
-      } else if (ref instanceof Settings) {
-        ref.setState({ fps: fps });
-      } else if (ref instanceof LiveImage) {
-        ref.setState({
-          isLoaded: true,
-          rgb: rgb,
-          depth: depth,
-        });
-      } else if (ref instanceof LiveObjects || ref instanceof LiveHumans) {
-        if (res.object_image !== -1 && res.object_image !== undefined) {
-          ref.setState({
-            isLoaded: true,
-            rgb: object_rgb,
-            objects: res.objects,
-            humans: res.humans,
-          });
-        }
       }
     });
-    return "OK";
   }
 
   connect(o) {
