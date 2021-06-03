@@ -329,6 +329,13 @@ class StateManager {
   connect(o) {
     this.refs.push(o);
   }
+
+  disconnect(o) {
+    // remove the passed in parameter from the list of refs to prevent memory leaks
+    this.refs = this.refs.filter(function (item) {
+      return item !== o;
+    });
+  }
 }
 var stateManager = new StateManager();
 

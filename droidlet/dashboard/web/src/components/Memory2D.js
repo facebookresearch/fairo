@@ -94,6 +94,10 @@ class Memory2D extends React.Component {
     this.resizeHandler();
   }
 
+  componentWillUnmount() {
+    if (this.props.stateManager) this.props.stateManager.disconnect(this);
+  }
+
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
     let { height, width, memory, bot_xyz, obstacle_map, tooltip } = this.state;

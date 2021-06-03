@@ -83,6 +83,7 @@ class InteractApp extends Component {
             <Message
               status={this.state.status}
               stateManager={this.props.stateManager}
+              isMobile={this.props.isMobile}
               ref={this.MessageRef}
               chats={this.state.chats}
               agent_reply={this.state.agent_reply}
