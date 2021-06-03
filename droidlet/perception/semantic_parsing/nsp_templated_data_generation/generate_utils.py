@@ -59,14 +59,6 @@ def pick_random(prob=0.5):
     return False
 
 
-def prepend_a_an(name):
-    """Add a/an to a name"""
-    if name[0] in ["a", "e", "i", "o", "u"]:
-        return "an " + name
-    else:
-        return "a " + name
-
-
 def make_plural(word):
     """Make plural of a given lowercase word word.
     # Taken from : http://code.activestate.com/recipes/

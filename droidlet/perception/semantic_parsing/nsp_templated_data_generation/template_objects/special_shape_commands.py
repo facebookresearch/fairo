@@ -4,10 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 This file contains template objects associated with special shape commands
 like : Wall, Stack, Place etc
 """
-import random
-
-from ..generate_utils import *
-from ..tree_components import *
+from droidlet.base_util import prepend_a_an
 from .template_object import *
 
 ##################################

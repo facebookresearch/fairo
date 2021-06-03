@@ -3,10 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 This file contains template objects associated with the Tag action
 """
-import random
-
-from ..generate_utils import *
-from ..tree_components import *
+from droidlet.base_util import prepend_a_an
 from .template_object import *
 
 #####################

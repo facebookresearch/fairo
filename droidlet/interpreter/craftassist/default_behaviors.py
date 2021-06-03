@@ -2,15 +2,13 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-
 import numpy as np
 import random
 from droidlet.lowlevel.minecraft import shape_helpers as sh
 from droidlet.interpreter.craftassist import tasks
 from droidlet.lowlevel.minecraft.mc_util import pos_to_np
 from droidlet.dialog.dialogue_objects import Say
-from droidlet.perception.semantic_parsing.nsp_templated_data_generation import prepend_a_an
-
+from droidlet.base_util import prepend_a_an
 """This file contains functions that the agent can perform 
 at random when not following player instructions or interacting with the
 player"""
