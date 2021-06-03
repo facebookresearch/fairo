@@ -11,7 +11,7 @@ import numpy as np
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
-
+from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 
@@ -114,12 +114,11 @@ class LocoMCAgent(BaseAgent):
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
             logical_form = {}
             status = ""
             try:
-                logical_form = dialogue_manager.semantic_parsing_model_wrapper.get_logical_form(
-                    chat=command, parsing_model=dialogue_manager.semantic_parsing_model_wrapper.parsing_model
+                logical_form = self.chat_parser.get_logical_form(
+                    chat=command, parsing_model=self.chat_parser.parsing_model
                 )
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
@@ -284,14 +283,15 @@ class LocoMCAgent(BaseAgent):
                 self.perceive(force=True)
             # change this to memory.get_time() format?
             self.last_chat_time = time.time()
+            # For now just process the first incoming chat, where chat -> [speaker, chat]
+            chat_parse = self.chat_parser.get_parse(incoming_chats[0][1])
             # to here ###########################################
-            # for now just process the first incoming chat
-            self.dialogue_manager.step(incoming_chats[0])
+            self.dialogue_manager.step(incoming_chats[0], chat_parse)
         else:
             # Maybe add default task
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
-            self.dialogue_manager.step((None, ""))
+            self.dialogue_manager.step((None, ""), "")
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.memory.dialogue_stack) > 0:

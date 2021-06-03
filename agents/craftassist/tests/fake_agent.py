@@ -15,7 +15,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import Time
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
@@ -25,7 +25,7 @@ from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 from droidlet.lowlevel.minecraft import craftassist_specs
-
+from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
 
@@ -293,6 +293,7 @@ class FakeAgent(LocoMCAgent):
         self.look = self.get_look()
 
     def init_perception(self):
+        self.chat_parser = DroidletNSPModelWrapper(self.opts)
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(
@@ -339,7 +340,7 @@ class FakeAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
 
@@ -368,10 +369,10 @@ class FakeAgent(LocoMCAgent):
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             # force to get objects, speaker info
             self.perceive(force=True)
-            logical_form = self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+            logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker_name, chat=chatstr, logical_form=d
             )
-            obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
+            obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr, opts=self.opts
             )
             if obj is not None:
@@ -648,10 +649,10 @@ class FakePlayer(FakeAgent):
             speaker = self.logical_form["speaker"]
             logical_form = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
-            updated_logical_form = self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+            updated_logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker, chat=chatstr, logical_form=logical_form
             )
-            obj = self.dialogue_manager.handle_logical_form(
+            obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
                 speaker=speaker, logical_form=updated_logical_form, chat=chatstr, opts=self.opts
             )
             if obj is not None:

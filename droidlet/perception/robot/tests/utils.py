@@ -4,7 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypoints
 from droidlet.shared_data_structs import RGBDepth
@@ -22,14 +23,14 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
-        pass
+        self.chat_parser = DroidletNSPModelWrapper(self.opts)
 
     def init_controller(self):
         dialogue_object_classes = {}
         self.dialogue_manager = DialogueManager(
             agent=self,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts
         )
 

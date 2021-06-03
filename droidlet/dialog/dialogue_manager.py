@@ -2,9 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-from typing import Tuple, Optional
-from droidlet.dialog.dialogue_objects import DialogueObject
-
+from typing import Tuple, Dict
 
 class DialogueManager(object):
     """
@@ -36,11 +34,11 @@ class DialogueManager(object):
 
     """
 
-    def __init__(self, memory, dialogue_object_classes, semantic_parsing_model_wrapper, opts):
+    def __init__(self, memory, dialogue_object_classes, dialogue_object_mapper, opts):
         self.memory = memory
         # FIXME in stage III; need a sensible interface for this
         self.dialogue_stack = memory.dialogue_stack
-        self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
+        self.dialogue_object_mapper = dialogue_object_mapper(
             dialogue_object_classes=dialogue_object_classes, opts=opts, dialogue_manager=self
         )
 
@@ -55,7 +53,7 @@ class DialogueManager(object):
 
         return chat_list_text
 
-    def step(self, chat: Tuple[str, str]):
+    def step(self, chat: Tuple[str, str], parse: str or Dict):
         """Process a chat and step through the dialogue manager task stack.
 
         The chat is given as input to the model, which returns a logical form.
@@ -81,6 +79,7 @@ class DialogueManager(object):
             # object on the stack if it sees that whatever is on
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
-            obj = self.semantic_parsing_model_wrapper.get_dialogue_object()
+            # TODO: Change this to only take parse and use get_last_m_chats to get chat + speaker
+            obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, parse)
             if obj is not None:
                 self.dialogue_stack.append(obj)

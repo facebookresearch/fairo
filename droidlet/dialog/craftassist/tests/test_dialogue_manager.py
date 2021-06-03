@@ -7,7 +7,8 @@ import logging
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.memory.dialogue_stack import DialogueStack
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.fake_agent import MockOpt
@@ -40,6 +41,7 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
+        self.chat_parser = DroidletNSPModelWrapper(self.opts)
         pass
 
     def init_controller(self):
@@ -47,7 +49,7 @@ class FakeAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
 
@@ -93,9 +95,7 @@ class TestDialogueManager(unittest.TestCase):
 
         for command in locobot_commands:
             ground_truth_parse = GROUND_TRUTH_PARSES.get(command, None)
-            model_prediction = self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
-                command
-            )
+            model_prediction = self.agent.chat_parser.parsing_model.query_for_logical_form(command)
 
             logging.info(
                 "\nCommand -> '{}' \nGround truth -> {} \nParse -> {}\n".format(
@@ -105,9 +105,7 @@ class TestDialogueManager(unittest.TestCase):
 
     def test_validate_bad_json(self):
         # Don't print debug info on failure since it will be misleading
-        is_valid_json = self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
-            parse_tree={}, debug=False
-        )
+        is_valid_json = self.agent.chat_parser.validate_parse_tree(parse_tree={}, debug=False)
         self.assertFalse(is_valid_json)
 
     def test_validate_array_span_json(self):
@@ -125,9 +123,7 @@ class TestDialogueManager(unittest.TestCase):
                 }
             ],
         }
-        is_valid_json = self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
-            action_dict
-        )
+        is_valid_json = self.agent.chat_parser.validate_parse_tree(action_dict)
         self.assertTrue(is_valid_json)
 
     def test_validate_string_span_json(self):
@@ -150,9 +146,7 @@ class TestDialogueManager(unittest.TestCase):
                 }
             ],
         }
-        is_valid_json = self.agent.dialogue_manager.semantic_parsing_model_wrapper.validate_parse_tree(
-            action_dict
-        )
+        is_valid_json = self.agent.chat_parser.validate_parse_tree(action_dict)
         self.assertTrue(is_valid_json)
 
 

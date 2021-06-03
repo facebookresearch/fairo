@@ -11,8 +11,9 @@ from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
+from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.lowlevel.locobot.locobot_mover_utils import (
@@ -415,6 +416,7 @@ class FakeAgent(LocoMCAgent):
         self.inventory = []
 
     def init_perception(self):
+        self.chat_parser = DroidletNSPModelWrapper(self.opts)
         self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self, perceive_freq=1)
         self.perception_modules["vision"] = FakeDetectorPerception(self)
@@ -436,7 +438,7 @@ class FakeAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
 
@@ -462,10 +464,10 @@ class FakeAgent(LocoMCAgent):
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
             self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
-            logical_form = self.dialogue_manager.semantic_parsing_model_wrapper.postprocess_logical_form(
+            logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker_name, chat=chatstr, logical_form=d
             )
-            obj = self.dialogue_manager.semantic_parsing_model_wrapper.handle_logical_form(
+            obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr
             )
             if obj is not None:

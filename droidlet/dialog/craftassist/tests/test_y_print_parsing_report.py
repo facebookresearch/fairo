@@ -5,9 +5,9 @@ import os
 import unittest
 import json
 
-from droidlet.dialog.dialogue_manager import DialogueManager
+from droidlet.perception.semantic_parsing_model.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.memory.dialogue_stack import DialogueStack
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from agents.loco_mc_agent import LocoMCAgent
 from agents.craftassist.tests.fake_agent import MockOpt
 from prettytable import PrettyTable
@@ -37,16 +37,10 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
-        pass
+        self.chat_parser = DroidletNSPModelWrapper(self.opts)
 
     def init_controller(self):
-        dialogue_object_classes = {}
-        self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
-            opts=self.opts,
-        )
+        pass
 
 
 class fontcolors:
@@ -941,9 +935,7 @@ class TestDialogueManager(unittest.TestCase):
             else:
                 # else query the model and remove the value for key "text_span"
                 model_prediction = remove_text_span(
-                    self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
-                        chat=command
-                    )
+                    self.agent.chat_parser.parsing_model.query_for_logical_form(chat=command)
                 )
 
             # compute parsing pipeline accuracy
@@ -962,9 +954,7 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             model_output = remove_text_span(
-                self.agent.dialogue_manager.semantic_parsing_model_wrapper.parsing_model.query_for_logical_form(
-                    chat=command
-                )
+                self.agent.chat_parser.parsing_model.query_for_logical_form(chat=command)
             )
             parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:
