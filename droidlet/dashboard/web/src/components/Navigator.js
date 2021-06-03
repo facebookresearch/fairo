@@ -28,9 +28,8 @@ class Navigator extends React.Component {
   componentDidMount() {
     var map = {};
     var onkey = function (e) {
-      map[e.keyCode] = e.type === "keydown";
+      map[e.keyCode] = true;
     };
-    document.addEventListener("keydown", onkey);
     document.addEventListener("keyup", onkey);
     setInterval(stateManager.keyHandler, 33.33, map);
   }

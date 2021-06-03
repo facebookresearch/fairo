@@ -187,9 +187,11 @@ class StateManager {
 
   keyHandler(key_codes) {
     let commands = [];
+    let keys = [];
     for (var k in key_codes) {
       let val = key_codes[k];
       k = parseInt(k);
+      keys.push(k);
       if (val === true) {
         if (k === 38) {
           // Up
@@ -227,6 +229,11 @@ class StateManager {
     }
     if (commands.length > 0) {
       this.socket.emit("command", commands);
+
+      // Reset keys to prevent duplicates
+      for (let i in keys) {
+        key_codes[keys[i]] = false;
+      }
     }
   }
 
