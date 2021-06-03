@@ -32,12 +32,19 @@ class Message extends Component {
     this.elementRef = React.createRef();
   }
 
-  renderChatHistory() {
+  renderChatHistory(status) {
     //render the HTML for the chatHistory with a unique key value
     return this.props.chats.map((value, idx) =>
       React.cloneElement(
         <ListItem>
-          <ListItemText primary={value.msg} />
+          <ListItemText>
+            {value.msg +
+              (value.msg
+                ? status === "Sent successfully"
+                  ? " ✅"
+                  : " ❌"
+                : "")}
+          </ListItemText>
           <ListItemSecondaryAction>
             {value.msg !== "" ? (
               <IconButton
@@ -132,7 +139,8 @@ class Message extends Component {
           fontSize="large"
           onClick={this.toggleListen.bind(this)}
         ></KeyboardVoiceIcon>
-        <List>{this.renderChatHistory()}</List>
+
+        <List>{this.renderChatHistory(this.props.status)}</List>
         {this.props.isMobile === true ? (
           <div
             style={{ outline: " solid 1px black" }}
@@ -163,7 +171,6 @@ class Message extends Component {
           Submit{" "}
         </Button>
 
-        <p id="callbackMsg">{this.props.status}</p>
         <p id="assistantReply">{this.props.agent_reply} </p>
       </div>
     );

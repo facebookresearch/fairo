@@ -26,14 +26,14 @@ from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.perception.robot import Perception, SelfPerception
-from droidlet.interpreter.robot import dance, default_behaviors
-
-from droidlet.dialog.robot.dialogue_objects import (
-    LocoBotCapabilities,
-    LocoGetMemoryHandler,
-    PutMemoryHandler,
+from droidlet.interpreter.robot import (
+    dance, 
+    default_behaviors,
+    LocoGetMemoryHandler, 
+    PutMemoryHandler, 
     LocoInterpreter,
 )
+from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
@@ -108,6 +108,10 @@ class LocobotAgent(LocoMCAgent):
                 elif command == "TILT_DOWN":
                     self.mover.bot.set_tilt(self.mover.bot.get_tilt() + 0.08)
             self.mover.move_relative([movement])
+
+        @sio.on("shutdown")
+        def _shutdown(sid, data):
+            self.shutdown()
 
     def init_memory(self):
         """Instantiates memory for the agent.
@@ -190,6 +194,10 @@ class LocobotAgent(LocoMCAgent):
 
     def task_step(self, sleep_time=0.0):
         super().task_step(sleep_time=sleep_time)
+
+    def shutdown(self):
+        self._shutdown = True
+        self.perception_modules["vision"].vprocess_shutdown.set()
 
 
 if __name__ == "__main__":

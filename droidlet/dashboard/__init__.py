@@ -20,22 +20,22 @@ except ImportError:
     html_escape = cgi.escape
     del cgi
 
-app = None
+_dashboard_app = None
 
-
-def _dashboard_thread(web_root, ip, port, quiet=True):
-    global app
+def _dashboard_thread(web_root, ip, port, socketio_initialized, quiet=True):
+    global _dashboard_app
     root_dir = os.path.abspath(os.path.dirname(__file__))
     static_folder = os.path.join(root_dir, web_root, "build")
     if not quiet:
         print("static_folder:", static_folder)
 
-    app = Flask(__name__, static_folder=static_folder, static_url_path="")
+    _dashboard_app = Flask(__name__, static_folder=static_folder, static_url_path="")
     sio = socketio.Server(async_mode="threading", cors_allowed_origins="*")
-    app.wsgi_app = socketio.WSGIApp(sio, app.wsgi_app)
+    _dashboard_app.wsgi_app = socketio.WSGIApp(sio, _dashboard_app.wsgi_app)
     event.sio = sio
+    socketio_initialized.set()
 
-    CORS(app, resources={r"*": {"origins": "*"}})
+    CORS(_dashboard_app, resources={r"*": {"origins": "*"}})
 
     if quiet:
         log = logging.getLogger("werkzeug")
@@ -45,12 +45,12 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
         log = logging.getLogger("socketio.server")
         log.setLevel(logging.ERROR)
         log.disabled = True
-        app.logger.disabled = True
+        _dashboard_app.logger.disabled = True
 
-    @app.route("/")
+    @_dashboard_app.route("/")
     @cross_origin(origin="*")
     def index():
-        return app.send_static_file("index.html")
+        return _dashboard_app.send_static_file("index.html")
 
     if os.getenv("MCDASHBOARD_PORT"):
         port = os.getenv("MCDASHBOARD_PORT")
@@ -73,14 +73,13 @@ def _dashboard_thread(web_root, ip, port, quiet=True):
         ssl_context.load_cert_chain(mcdashboard_ssl_cert, mcdashboard_ssl_pkey)
         print("SSL certificate found, enabling https")
 
-    app.run(ip, threaded=True, port=port, ssl_context=ssl_context, debug=False)
+    _dashboard_app.run(ip, threaded=True, port=port, ssl_context=ssl_context, debug=False)
 
 
 def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):
-    t = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port, quiet))
-    t.start()
-    # avoid race conditions, wait for the thread to start and set the socketio object
-    # TODO: rewrite this using thread signaling instead of a dumb sleep
-    import time
+    socketio_initialized = threading.Event()
+    _dashboard_app_thread = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port, socketio_initialized, quiet), daemon=True)
+    _dashboard_app_thread.start()
 
-    time.sleep(3)
+    # avoid race conditions, wait for the thread to start and set the socketio objec
+    socketio_initialized.wait()
