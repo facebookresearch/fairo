@@ -40,3 +40,4 @@ pytest>=6.2.2
 pytest-cov>=2.11.1
 jsonschema>=3.2.0
 cloudflare>=2.8.15
+cloudpickle>=1.6.0
