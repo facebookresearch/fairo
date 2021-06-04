@@ -3,7 +3,6 @@ from .human_pose import HumanPose, Human
 from .face_recognition import FaceRecognition
 from .laser_pointer import DetectLaserPointer
 from .tracker import ObjectTracking
-from .memory import MemoryHandler
 from .core import WorldObject
 from droidlet.shared_data_structs import RGBDepth
 from .deduplicator import ObjectDeduplicator
@@ -14,7 +13,6 @@ __all__ = [
     FaceRecognition,
     DetectLaserPointer,
     ObjectTracking,
-    MemoryHandler,
     ObjectDeduplicator,
     RGBDepth,
     Human,

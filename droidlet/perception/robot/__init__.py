@@ -6,8 +6,6 @@ from droidlet.perception.robot.perception_helpers import (
     get_color_tag,
 )
 from droidlet.perception.robot.handlers import (
-    InputHandler,
-    MemoryHandler,
     ObjectDetection,
     FaceRecognition,
     ObjectDeduplicator,
@@ -32,10 +30,8 @@ __all__ = [
     get_random_color,
     get_coords,
     get_color_tag,
-    InputHandler,
     ObjectDetection,
     HumanPose,
-    MemoryHandler,
     FaceRecognition,
     ObjectDeduplicator,
 ]
