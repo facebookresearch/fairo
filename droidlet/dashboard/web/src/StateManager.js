@@ -230,6 +230,16 @@ class StateManager {
     }
   }
 
+  /**
+   * sends commands to backend for mobile button navigation
+   * similar to keyHandler, but keyHandler is for web and arrow keys
+   */
+  buttonHandler(commands) {
+    if (commands.length > 0) {
+      this.socket.emit("command", commands);
+    }
+  }
+
   processMemoryState(msg) {
     this.refs.forEach((ref) => {
       if (ref instanceof MemoryList) {
