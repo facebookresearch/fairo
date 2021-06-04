@@ -157,27 +157,6 @@ class BotCapabilities(Say):
         super().__init__(response_options, **kwargs)
 
 
-class GreetingType(Enum):
-    """Types of bot greetings."""
-
-    HELLO = "hello"
-    GOODBYE = "goodbye"
-
-
-class BotGreet(Say):
-    """This class represents a sub-type of the Say DialogueObject above to greet
-    the user as a reply to a greeting.
-
-    """
-
-    def __init__(self, greeting_type, **kwargs):
-        if greeting_type == GreetingType.GOODBYE.value:
-            response_options = ["goodbye", "bye", "see you next time!"]
-        else:
-            response_options = ["hi there!", "hello", "hey", "hi"]
-        super().__init__(response_options, **kwargs)
-
-
 class GetReward(DialogueObject):
     """This class represents a sub-type of the DialogueObject to register feedback /
     reward given by the user in the form of chat.

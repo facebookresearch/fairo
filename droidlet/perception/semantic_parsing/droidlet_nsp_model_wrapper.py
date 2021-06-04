@@ -5,7 +5,7 @@ import copy
 import logging
 import random
 import pkg_resources
-
+from enum import Enum
 from time import time
 from typing import Dict
 from .utils import preprocess
@@ -14,6 +14,13 @@ from .nsp_model import DroidletSemanticParsingModel
 from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
+
+
+class GreetingType(Enum):
+    """Types of bot greetings."""
+
+    HELLO = "hello"
+    GOODBYE = "goodbye"
 
 
 class DroidletNSPModelWrapper(object):
@@ -59,10 +66,15 @@ class DroidletNSPModelWrapper(object):
         notsafe = len(cmd_set & self.safety_words) > 0
         return not notsafe
 
-    def is_greeting(self, chat):
+    def get_greeting_reply(self, chat):
+        response_options = []
         for greeting_type, allowed_str in self.greetings.items():
             if chat in allowed_str:
-                return random.choice(greeting_type)
+                if greeting_type == GreetingType.GOODBYE.value:
+                    response_options = ["goodbye", "bye", "see you next time!"]
+                else:
+                    response_options = ["hi there!", "hello", "hey", "hi"]
+                return random.choice(response_options)
         return None
 
     def preprocess_chat(self, chat):
@@ -97,7 +109,7 @@ class DroidletNSPModelWrapper(object):
             return "Please don't be rude."
 
         # 4. Check if incoming chat is one of the scripted ones in greetings
-        reply = self.is_greeting(chat)
+        reply = self.get_greeting_reply(chat)
         if reply:
             return reply
 

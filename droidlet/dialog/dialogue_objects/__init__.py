@@ -1,7 +1,6 @@
 from .dialogue_object import (
     AwaitResponse,
     BotCapabilities,
-    BotGreet,
     DialogueObject,
     GetReward,
     ConfirmTask,
@@ -12,7 +11,6 @@ from .dialogue_object import (
 __all__ = [
     AwaitResponse,
     BotCapabilities,
-    BotGreet,
     DialogueObject,
     GetReward,
     ConfirmTask,
