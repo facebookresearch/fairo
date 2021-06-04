@@ -12,12 +12,16 @@ class NavbarComponent extends React.Component {
 
   render() {
     return (
-      <Navbar className="mainBar">
+      <Navbar className="Navbar">
         <Nav>
-          <button onClick={() => this.props.paneHandler("home")}> Home</button>
+          <button onClick={() => this.props.paneHandler("home")}> Home </button>
           <button onClick={() => this.props.paneHandler("navigation")}>
             {" "}
-            Navigation
+            Navigation{" "}
+          </button>
+          <button onClick={() => this.props.paneHandler("settings")}>
+            {" "}
+            Settings{" "}
           </button>
         </Nav>
       </Navbar>

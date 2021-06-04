@@ -5,6 +5,8 @@ import { Container } from "react-bootstrap";
 import NavbarComponent from "./components/Navbar";
 import MobileHomePane from "./components/MobileHomePane";
 import MobileNavigationPane from "./components/MobileNavigationPane";
+import MobileSettingsPane from "./components/MobileSettingsPane";
+
 class MobileMainPane extends React.Component {
   constructor(props) {
     let width = window.innerWidth;
@@ -25,8 +27,10 @@ class MobileMainPane extends React.Component {
     let displayPane;
     if (this.state.screen === "home") {
       displayPane = <MobileHomePane imageWidth={this.state.imageWidth} />;
-    } else {
+    } else if (this.state.screen === "navigation") {
       displayPane = <MobileNavigationPane imageWidth={this.state.imageWidth} />;
+    } else {
+      displayPane = <MobileSettingsPane imageWidth={this.state.imageWidth} />;
     }
     return (
       <Container fluid>
