@@ -4,43 +4,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
-from droidlet.memory.dialogue_stack import DialogueStack
-from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
-from agents.loco_mc_agent import LocoMCAgent
+from ..droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
-
-
-class AttributeDict(dict):
-    __getattr__ = dict.__getitem__
-    __setattr__ = dict.__setitem__
-
-
-class FakeMemory:
-    pass
-
-
-class FakeAgent(LocoMCAgent):
-    def __init__(self, opts):
-        super(FakeAgent, self).__init__(opts)
-        self.opts = opts
-
-    def init_memory(self):
-        m = FakeMemory()
-        stack = DialogueStack()
-        m.dialogue_stack = stack
-        self.memory = m
-
-    def init_physical_interfaces(self):
-        pass
-
-    def init_perception(self):
-        self.chat_parser = DroidletNSPModelWrapper(self.opts)
-
-    def init_controller(self):
-        pass
 
 
 class fontcolors:
@@ -830,6 +796,240 @@ common_functional_commands = {
     },
 }
 
+GROUND_TRUTH_PARSES = {
+    "go to the gray chair": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {
+                        "filters": {
+                            "triples": [
+                                {"pred_text": "has_colour", "obj_text": "gray"},
+                                {"pred_text": "has_name", "obj_text": "chair"},
+                            ]
+                        }
+                    }
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go to the chair": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                    }
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go forward 0.2 meters": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "FRONT",
+                    "steps": "0.2",
+                    "has_measure": "meters",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go forward one meter": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "FRONT",
+                    "steps": "one",
+                    "has_measure": "meter",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go left 3 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "LEFT",
+                    "steps": "3",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go right 3 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "RIGHT",
+                    "steps": "3",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go left 3 meters": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "LEFT",
+                    "steps": "3",
+                    "has_measure": "meters",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go forward 1 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "FRONT",
+                    "steps": "1",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go back 1 feet": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {"special_reference": "AGENT"},
+                    "relative_direction": "BACK",
+                    "steps": "1",
+                    "has_measure": "feet",
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "turn right 90 degrees": {
+        "action_sequence": [
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "turn left 90 degrees": {
+        "action_sequence": [
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "90"}}}
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "turn right 180 degrees": {
+        "action_sequence": [
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-180"}}}
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "turn right": {
+        "action_sequence": [
+            {"action_type": "DANCE", "dance_type": {"body_turn": {"relative_yaw": "-90"}}}
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "look at where I am pointing": {
+        "action_sequence": [
+            {
+                "action_type": "DANCE",
+                "dance_type": {
+                    "look_turn": {
+                        "location": {"reference_object": {"special_reference": "SPEAKER_LOOK"}}
+                    }
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "wave": {
+        "action_sequence": [
+            {
+                "action_type": "DANCE",
+                "dance_type": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "wave"}]}
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "follow the chair": {
+        "action_sequence": [
+            {
+                "action_type": "MOVE",
+                "location": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                    }
+                },
+                "stop_condition": {"condition_type": "NEVER"},
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "find Laurens": {
+        "action_sequence": [
+            {
+                "action_type": "SCOUT",
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Laurens"}]}
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "bring the cup to Mary": {
+        "action_sequence": [
+            {
+                "action_type": "GET",
+                "receiver": {
+                    "reference_object": {
+                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Mary"}]}
+                    }
+                },
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cup"}]}
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+    "go get me lunch": {
+        "action_sequence": [
+            {
+                "action_type": "GET",
+                "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
+                "reference_object": {
+                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "lunch"}]}
+                },
+            }
+        ],
+        "dialogue_type": "HUMAN_GIVE_COMMAND",
+    },
+}
+common_functional_commands.update(GROUND_TRUTH_PARSES)
+
 TTAD_MODEL_DIR = os.path.join(
     os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/"
 )
@@ -904,14 +1104,13 @@ def compare_full_dictionaries(d1, d2):
 
 
 class TestDialogueManager(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestDialogueManager, self).__init__(*args, **kwargs)
+    def setUp(self) :
         opts = MockOpt()
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.agent = FakeAgent(opts)
+        self.chat_parser = DroidletNSPModelWrapper(opts)
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:
@@ -922,6 +1121,7 @@ class TestDialogueManager(unittest.TestCase):
                         text, logical_form = line.strip().split("|")
                         clean_text = text.strip('"').lower()
                         self.ground_truth_actions[clean_text] = json.loads(logical_form)
+        self.ground_truth_actions.update(GROUND_TRUTH_PARSES)
 
     def test_parses(self):
         table = PrettyTable(["Command", "Overall parsing status", "Parsing model status"])
@@ -935,7 +1135,7 @@ class TestDialogueManager(unittest.TestCase):
             else:
                 # else query the model and remove the value for key "text_span"
                 model_prediction = remove_text_span(
-                    self.agent.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                    self.chat_parser.parsing_model.query_for_logical_form(chat=command)
                 )
 
             # compute parsing pipeline accuracy
@@ -954,7 +1154,7 @@ class TestDialogueManager(unittest.TestCase):
                 ]
             # compute model correctness status
             model_output = remove_text_span(
-                self.agent.chat_parser.parsing_model.query_for_logical_form(chat=command)
+                self.chat_parser.parsing_model.query_for_logical_form(chat=command)
             )
             parsing_model_status = compare_full_dictionaries(ground_truth_parse, model_output)
             if parsing_model_status:

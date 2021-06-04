@@ -3,14 +3,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
 import unittest
-import logging
-
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
-from droidlet.interpreter.tests.all_test_commands import *
 from droidlet.shared_data_structs import MockOpt
 
 
@@ -54,28 +51,14 @@ class FakeAgent(LocoMCAgent):
             opts=self.opts,
         )
 
-
-# NOTE: The following commands in locobot_commands can't be supported
-# right away but we'll attempt them in the next round:
-# "push the chair",
-# "find the closest red thing",
-# "copy this motion",
-# "topple the pile of notebooks",
-locobot_commands = list(GROUND_TRUTH_PARSES) + [
-    "push the chair",
-    "find the closest red thing",
-    "copy this motion",
-    "topple the pile of notebooks",
-]
-
 TTAD_MODEL_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/"
+    os.path.dirname(__file__), "../models/semantic_parser/"
 )
 TTAD_BERT_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"
+    os.path.dirname(__file__), "../datasets/annotated_data/"
 )
 GROUND_TRUTH_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/"
+    os.path.dirname(__file__), "../datasets/ground_truth/"
 )
 
 
@@ -88,21 +71,6 @@ class TestDialogueManager(unittest.TestCase):
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
         self.agent = FakeAgent(opts)
-
-    def test_parses(self):
-        logging.info(
-            "Printing semantic parsing for {} locobot commands".format(len(locobot_commands))
-        )
-
-        for command in locobot_commands:
-            ground_truth_parse = GROUND_TRUTH_PARSES.get(command, None)
-            model_prediction = self.agent.chat_parser.parsing_model.query_for_logical_form(command)
-
-            logging.info(
-                "\nCommand -> '{}' \nGround truth -> {} \nParse -> {}\n".format(
-                    command, ground_truth_parse, model_prediction
-                )
-            )
 
     def test_validate_bad_json(self):
         # Don't print debug info on failure since it will be misleading

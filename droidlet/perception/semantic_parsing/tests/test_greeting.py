@@ -21,12 +21,12 @@ class GreetingTest(unittest.TestCase):
         self.chat_parser = DroidletNSPModelWrapper(opts)
 
     def test_hello(self):
-        self.chat_parser.is_greeting("hello")
-        pass
+        reply = self.chat_parser.get_greeting_reply("hello")
+        self.assertIn(reply, ["hi there!", "hello", "hey", "hi"])
 
     def test_goodbye(self):
-        self.chat_parser.is_greeting("goodbye")
-        pass
+        reply = self.chat_parser.get_greeting_reply("goodbye")
+        self.assertIn(reply, ["goodbye", "bye", "see you next time!"])
 
 
 if __name__ == "__main__":

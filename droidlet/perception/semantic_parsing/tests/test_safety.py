@@ -1,14 +1,3 @@
-import unittest
-
-
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)
-
-
-if __name__ == '__main__':
-    unittest.main()
-
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
@@ -16,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
-from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
+from ..droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.shared_data_structs import MockOpt
 
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
@@ -26,27 +15,22 @@ TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agent
 """
 
 
-class SafetyTest(BaseCraftassistTestCase):
+class SafetyTest(unittest.TestCase):
     def setUp(self):
         opts = MockOpt()
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         opts.nsp_models_dir = TTAD_BERT_MODEL_DIR
         opts.no_ground_truth = False
-        super().setUp(agent_opts=opts)
+        self.chat_parser = DroidletNSPModelWrapper(opts)
 
 
     def test_unsafe_word(self):
-        is_safe = self.agent.chat_parser.is_safe("bad Clinton")
+        is_safe = self.chat_parser.is_safe("bad Clinton")
         self.assertFalse(is_safe)
 
     def test_safe_word(self):
-        is_safe = self.agent.chat_parser.is_safe("build a house")
+        is_safe = self.chat_parser.is_safe("build a house")
         self.assertTrue(is_safe)
-
-    def test_dialogue_manager(self):
-        self.add_incoming_chat("bad Clinton", self.speaker)
-        changes = self.flush()
-        self.assertFalse(changes)
 
 
 if __name__ == "__main__":
