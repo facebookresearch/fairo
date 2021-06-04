@@ -171,9 +171,9 @@ class LocobotAgent(LocoMCAgent):
         if new_state is not None:
             new_objects, updated_objects = new_state
             for obj in new_objects:
-                obj.save_to_memory(self)
+                obj.save_to_memory(self.memory)
             for obj in updated_objects:
-                obj.save_to_memory(self, update=True)
+                obj.save_to_memory(self.memory, update=True)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
