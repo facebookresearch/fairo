@@ -1,5 +1,6 @@
 import os
 import threading
+from droidlet.parallel import PropagatingThread
 from flask import Flask
 import socketio
 from flask_cors import cross_origin, CORS
@@ -82,7 +83,7 @@ def _dashboard_thread(web_root, ip, port, socketio_initialized, quiet=True):
 
 def start(web_root="web", ip="0.0.0.0", port=8000, quiet=True):
     socketio_initialized = threading.Event()
-    _dashboard_app_thread = threading.Thread(target=_dashboard_thread, args=(web_root, ip, port, socketio_initialized, quiet), daemon=True)
+    _dashboard_app_thread = PropagatingThread(target=_dashboard_thread, args=(web_root, ip, port, socketio_initialized, quiet), daemon=True)
     _dashboard_app_thread.start()
 
     # avoid race conditions, wait for the thread to start and set the socketio objec
