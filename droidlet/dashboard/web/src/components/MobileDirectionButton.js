@@ -1,5 +1,6 @@
 import React from "react";
 import stateManager from "../StateManager";
+import "./MobileDirectionButton.css";
 
 class MobileDirectionButton extends React.Component {
   constructor(props) {
@@ -51,11 +52,31 @@ class MobileDirectionButton extends React.Component {
 
   render() {
     return (
-      <div>
-        <button onClick={() => this.addCommand("MOVE_LEFT")}>LEFT</button>
-        <button onClick={() => this.addCommand("MOVE_FORWARD")}>UP </button>
-        <button onClick={() => this.addCommand("MOVE_DOWN")}>DOWN </button>
-        <button onClick={() => this.addCommand("MOVE_RIGHT")}>RIGHT</button>
+      <div className="container">
+        <button
+          className="directionButton left"
+          onClick={() => this.addCommand("MOVE_LEFT")}
+        >
+          LEFT
+        </button>
+        <button
+          className="directionButton up"
+          onClick={() => this.addCommand("MOVE_FORWARD")}
+        >
+          UP{" "}
+        </button>
+        <button
+          className="directionButton down"
+          onClick={() => this.addCommand("MOVE_DOWN")}
+        >
+          DOWN{" "}
+        </button>
+        <button
+          className="directionButton right"
+          onClick={() => this.addCommand("MOVE_RIGHT")}
+        >
+          RIGHT
+        </button>
       </div>
     );
   }

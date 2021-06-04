@@ -6,5 +6,6 @@
 .button {
   background-color: white;
   color: black;
+  border-radius: 12px;
   border: 2px solid #000000;
 }
