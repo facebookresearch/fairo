@@ -1,5 +1,5 @@
 from .detector import ObjectDetection, Detection
-from .human_pose import HumanPose, Human, HumanKeypointsOrdering
+from .human_pose import HumanPose, Human
 from .face_recognition import FaceRecognition
 from .laser_pointer import DetectLaserPointer
 from .tracker import ObjectTracking
@@ -18,7 +18,6 @@ __all__ = [
     ObjectDeduplicator,
     RGBDepth,
     Human,
-    HumanKeypointsOrdering,
     Detection,
     WorldObject,
 ]
