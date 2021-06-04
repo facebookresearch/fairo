@@ -1,12 +1,11 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import sys
 import re
 import unittest
 from copy import deepcopy
 from droidlet.interpreter import process_spans_and_remove_fixed_value
-from droidlet.dialog.craftassist.tests.test_y_print_parsing_report import (
+from droidlet.perception.semantic_parsing.tests.test_y_print_parsing_report import (
     common_functional_commands,
     compare_full_dictionaries,
 )

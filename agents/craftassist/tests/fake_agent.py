@@ -13,7 +13,7 @@ from droidlet.base_util import TICKS_PER_SEC
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from droidlet.shared_data_structs import Time
+from droidlet.shared_data_structs import Time, MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
@@ -32,19 +32,6 @@ WORLD_STEP = 10
 WORLD_STEPS_PER_DAY = 480
 
 HEAD_HEIGHT = 2
-
-
-class MockOpt:
-    def __init__(self):
-        self.no_default_behavior = False
-        self.nsp_models_dir = ""
-        self.nsp_data_dir = ""
-        self.ground_truth_data_dir = ""
-        self.semseg_model_path = ""
-        self.no_ground_truth = True
-        # test does not instantiate cpp client
-        self.port = -1
-        self.no_default_behavior = False
 
 
 class FakeMCTime(Time):

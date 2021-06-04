@@ -11,7 +11,8 @@ from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.interpreter.tests.all_test_commands import *
-from agents.craftassist.tests.fake_agent import MockOpt
+from droidlet.shared_data_structs import MockOpt
+
 
 # FIXME agent this test needs to move to the interpreter folder after
 # dialogue_manager is properly split between agent and intepreter

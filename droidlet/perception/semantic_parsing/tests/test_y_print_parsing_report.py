@@ -9,7 +9,7 @@ from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import Droi
 from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
 from agents.loco_mc_agent import LocoMCAgent
-from agents.craftassist.tests.fake_agent import MockOpt
+from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
 
 

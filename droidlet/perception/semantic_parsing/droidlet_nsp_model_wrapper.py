@@ -36,8 +36,8 @@ class DroidletNSPModelWrapper(object):
         safety.txt, greetings.json, ground_truth/datasets folder
         """
         self.safety_words = get_safety_words()
-        self.greetings = get_greetings(self.opts)
-        self.ground_truth_actions = get_ground_truth(self.opts)
+        self.greetings = get_greetings(self.opts.ground_truth_data_dir)
+        self.ground_truth_actions = get_ground_truth(self.opts.no_ground_truth, self.opts.ground_truth_data_dir)
 
         # Socket event listener
         # TODO(kavya): I might want to move this to SemanticParserWrapper
@@ -58,6 +58,12 @@ class DroidletNSPModelWrapper(object):
         cmd_set = set(chat.lower().split())
         notsafe = len(cmd_set & self.safety_words) > 0
         return not notsafe
+
+    def is_greeting(self, chat):
+        for greeting_type, allowed_str in self.greetings.items():
+            if chat in allowed_str:
+                return random.choice(greeting_type)
+        return None
 
     def preprocess_chat(self, chat):
         """Tokenize the chat and get list of sentences to parse.
@@ -89,13 +95,11 @@ class DroidletNSPModelWrapper(object):
         # 3. Check against safety phrase list
         if not self.is_safe(chat):
             return "Please don't be rude."
-            # return Say(, memory=self.dialogue_manager.memory)
 
         # 4. Check if incoming chat is one of the scripted ones in greetings
-        for greeting_type, allowed_str in self.greetings.items():
-            if chat in allowed_str:
-                return random.choice(greeting_type)
-                # return BotGreet(greeting_type, memory=self.dialogue_manager.memory)
+        reply = self.is_greeting(chat)
+        if reply:
+            return reply
 
         # 5. Get logical form from either ground truth or query the parsing model
         logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)

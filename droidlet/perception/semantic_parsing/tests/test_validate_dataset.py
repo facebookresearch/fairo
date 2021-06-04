@@ -1,20 +1,16 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
 import os
 import unittest
-
-from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.perception.semantic_parsing.utils.validate_json import JSONValidator
 
 FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/full_data/")
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../../documents/json_schema/")
 
 
-class DataValidationTest(BaseCraftassistTestCase):
+class DataValidationTest(unittest.TestCase):
     """This class validates parse trees associated with commonly used commands in ground truth and unit tests.
-
     Note that ground truth files are symlinked to files in the full data directory.
     """
 
