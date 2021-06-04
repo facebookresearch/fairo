@@ -6,6 +6,7 @@ import cloudpickle
 # it's a workaround for https://github.com/pytorch/pytorch/issues/37377
 import numpy 
 from torch import multiprocessing as mp
+from threading import Thread
 
 multiprocessing = mp.get_context("spawn")
 
@@ -96,3 +97,21 @@ class BackgroundTask:
     def get_nowait(self):
         self._raise()
         return self._recv_queue.get_nowait()
+
+
+
+# https://stackoverflow.com/a/31614591
+# CC BY-SA 4.0
+class PropagatingThread(Thread):
+    def run(self):
+        self.exc = None
+        try:
+            self.ret = self._target(*self._args, **self._kwargs)
+        except BaseException as e:
+            self.exc = e
+
+    def join(self):
+        super(PropagatingThread, self).join()
+        if self.exc:
+            raise self.exc
+        return self.ret
