@@ -1,6 +1,8 @@
 import React from "react";
 
 import { Navbar, Nav } from "react-bootstrap";
+// import './Navbar.css'
+import "./Navbar.css";
 
 class NavbarComponent extends React.Component {
   constructor(props) {
@@ -10,7 +12,7 @@ class NavbarComponent extends React.Component {
 
   render() {
     return (
-      <Navbar>
+      <Navbar className="mainBar">
         <Nav>
           <button onClick={() => this.props.paneHandler("home")}> Home</button>
           <button onClick={() => this.props.paneHandler("navigation")}>
