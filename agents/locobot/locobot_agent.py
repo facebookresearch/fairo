@@ -25,8 +25,9 @@ from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.perception.robot import Perception, SelfPerception
+from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
+from droidlet.perception.robot import Perception
+from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance, 
     default_behaviors,
@@ -116,7 +117,7 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("get_memory_objects")
         def objects_in_memory(sid):
-            objects = LocoAgentMemory.DetectedObjectNode.get_all(self.memory)
+            objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
                 del o["feature_repr"] # pickling optimization
             self.dashboard_memory["objects"] = objects
@@ -147,7 +148,7 @@ class LocobotAgent(LocoMCAgent):
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
-        self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
+        self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
 
     def perceive(self, force=False):
         self.perception_modules["self"].perceive(force=force)
@@ -160,10 +161,10 @@ class LocobotAgent(LocoMCAgent):
             "x": x,
             "y": y,
             "yaw": yaw,
-            "map": self.agent.mover.get_obstacles_in_canonical_coords()
+            "map": self.mover.get_obstacles_in_canonical_coords()
         })
 
-        previous_objects = LocoAgentMemory.DetectedObjectNode.get_all(self.memory)
+        previous_objects = DetectedObjectNode.get_all(self.memory)
         new_state = self.perception_modules["vision"].perceive(rgb_depth,
                                                                xyz,
                                                                previous_objects,
