@@ -5,12 +5,10 @@ import time
 
 from droidlet.multiprocess import BackgroundTask
 from droidlet.perception.robot.handlers import (
-    InputHandler,
     ObjectDetection,
     FaceRecognition,
     HumanPose,
     ObjectTracking,
-    MemoryHandler,
     DetectLaserPointer,
     ObjectDeduplicator,
 )
@@ -26,16 +24,13 @@ class Perception:
     models (for example our object detector) as a separate process.
 
     Args:
-        agent (LocoMCAgent): reference to the LocobotAgent
         model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
     """
 
-    def __init__(self, agent, model_data_dir):
+    def __init__(self, model_data_dir):
         self.model_data_dir = model_data_dir
-        self.agent = agent
 
         def slow_perceive_init(weights_dir):
-            print(weights_dir)
             return AttributeDict(
                 {
                     "detector": ObjectDetection(weights_dir),
@@ -44,7 +39,7 @@ class Perception:
                     "tracker": ObjectTracking(),
                 })
 
-        def slow_perceive(models, rgb_depth, xyz):
+        def slow_perceive_run(models, rgb_depth, xyz):
             detections = models.detector(rgb_depth)
             humans = models.human_pose(rgb_depth)
             face_detections = models.face_recognizer(rgb_depth)
@@ -54,7 +49,7 @@ class Perception:
 
         self.vprocess = BackgroundTask(init_fn=slow_perceive_init,
                                    init_args=(model_data_dir,),
-                                   process_fn=slow_perceive)
+                                    process_fn=slow_perceive_run)
         self.vprocess.start()
         self.slow_vision_ready = True
 
@@ -77,14 +72,12 @@ class Perception:
         """Setup all vision handlers, by defining an attribute dict of different perception handlers."""
         handlers = AttributeDict(
             {
-                "input": InputHandler(self.agent, read_from_camera=True),
                 "deduplicate": ObjectDeduplicator(),
-                "memory": MemoryHandler(self.agent),
             }
         )
         return handlers
 
-    def perceive(self, force=False):
+    def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
         models and save their state to memory. It fetches the results of
         SlowPerception if they are ready.
@@ -94,10 +87,7 @@ class Perception:
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
                 (default: False)
         """
-        rgb_depth = self.vision.input()
-
         if self.slow_vision_ready:
-            xyz = self.agent.mover.get_base_pos_in_canonical_coords()
             self.vprocess.put(rgb_depth, xyz)
             self.slow_vision_ready = False
 
@@ -107,18 +97,17 @@ class Perception:
         except queue.Empty:
             old_image, detections, humans, old_xyz = None, None, None, None
 
+        self.log(rgb_depth, detections, humans, old_image)
         if detections is not None:
-            previous_objects = self.vision.memory.get_objects()
             current_objects = detections + humans
             if previous_objects is not None:
                 new_objects, updated_objects = self.vision.deduplicate(
                     current_objects, previous_objects
                 )
-            self.vision.memory(new_objects, updated_objects)
+            return (new_objects, updated_objects)
+        return None
 
-        self.log(rgb_depth, xyz, detections, humans, old_image, old_xyz)
-
-    def log(self, rgb_depth, xyz, detections, humans, old_rgb_depth, old_xyz):
+    def log(self, rgb_depth, detections, humans, old_rgb_depth):
         """Log all relevant data from the perceptual models for the dashboard.
 
         All the data here is sent to the dashboard using a socketio emit event. This data
@@ -127,23 +116,17 @@ class Perception:
 
         Args:
             rgb_depth (RGBDepth): the current RGBDepth frame. This frame might be different from
-            xyz (list[floats]): the (x,y,yaw) of the robot at the time of rgb_depth
             old_rgb_depth, which is the RGBDepth frame for which SlowPerception has been run
             detections (list[Detections]): list of all detections
             humans (list[Human]): list of all humans detected
             old_rgb_depth (RGBDepth): RGBDepth frame for which detections and humans are being sent.
             This is the frame for which SlowPerception has been run.
-            old_xyz (list[floats]): the (x,y,yaw) of the robot at the time of old_rgb_depth
 
         """
         if hasattr(sio, "mock"):
             return
 
         sio.emit("image_settings", self.log_settings)
-        if old_xyz is None:
-            x, y, yaw = xyz
-        else:
-            x, y, yaw = old_xyz
         resolution = self.log_settings["image_resolution"]
         quality = self.log_settings["image_quality"]
 
@@ -168,10 +151,3 @@ class Perception:
             "image": serialized_object_image,
             "humans": serialized_humans,
             })
-
-        sio.emit("map", {
-            "x": x,
-            "y": y,
-            "yaw": yaw,
-            "map": self.agent.mover.get_obstacles_in_canonical_coords()
-        })

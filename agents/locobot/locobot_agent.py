@@ -114,6 +114,15 @@ class LocobotAgent(LocoMCAgent):
         def _shutdown(sid, data):
             self.shutdown()
 
+        @sio.on("get_memory_objects")
+        def objects_in_memory(sid):
+            objects = LocoAgentMemory.DetectedObjectNode.get_all(self.memory)
+            for o in objects:
+                del o["feature_repr"] # pickling optimization
+            self.dashboard_memory["objects"] = objects
+            sio.emit("updateState", {"memory": self.dashboard_memory})
+
+
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -139,6 +148,32 @@ class LocobotAgent(LocoMCAgent):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
         self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
+
+    def perceive(self, force=False):
+        self.perception_modules["self"].perceive(force=force)
+
+
+        rgb_depth = self.mover.get_rgb_depth()
+        xyz = self.mover.get_base_pos_in_canonical_coords()
+        x, y, yaw = xyz
+        sio.emit("map", {
+            "x": x,
+            "y": y,
+            "yaw": yaw,
+            "map": self.agent.mover.get_obstacles_in_canonical_coords()
+        })
+
+        previous_objects = LocoAgentMemory.DetectedObjectNode.get_all(self.memory)
+        new_state = self.perception_modules["vision"].perceive(rgb_depth,
+                                                               xyz,
+                                                               previous_objects,
+                                                               force=force)
+        if new_state is not None:
+            new_objects, updated_objects = new_state
+            for obj in new_objects:
+                obj.save_to_memory(self)
+            for obj in updated_objects:
+                obj.save_to_memory(self, update=True)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
