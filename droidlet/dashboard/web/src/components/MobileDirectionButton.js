@@ -7,13 +7,20 @@ class MobileDirectionButton extends React.Component {
     this.state = {
       commands: [],
     };
+    this.intervalId = undefined;
   }
 
   componentDidMount() {
     // constantly tells stateManager to handle button presses
     // logic is similar to that in ./Navigator.js
     // need to bind this so this.state within sendAndClearCommands refers to the correct this object
-    setInterval(this.sendAndClearCommands.bind(this), 33.33);
+    this.intervalId = setInterval(this.sendAndClearCommands.bind(this), 33.33);
+  }
+
+  componentWillUnmount() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 
   /**

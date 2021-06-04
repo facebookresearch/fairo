@@ -60,7 +60,7 @@ class MobileSettingsPane extends React.Component {
             />
           </Col>
         </Row>
-        <Settings stateManager={stateManager} />
+        <Settings stateManager={stateManager} isMobile={true} />
       </div>
     );
   }

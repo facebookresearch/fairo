@@ -2,3 +2,9 @@
   position: fixed;
   bottom: 0px;
 }
+
+.button {
+  background-color: white;
+  color: black;
+  border: 2px solid #000000;
+}

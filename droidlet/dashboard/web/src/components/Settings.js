@@ -7,7 +7,7 @@ import "status-indicator/styles.css";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 
-const slider_style = { width: 600, margin: 50 };
+let slider_style = { width: 600, margin: 50 };
 const labelStyle = { minWidth: "60px", display: "inline-block" };
 
 class Settings extends React.Component {
@@ -20,6 +20,11 @@ class Settings extends React.Component {
       image_quality: -1,
       image_resolution: -1,
     };
+
+    if (this.props.isMobile) {
+      slider_style = { margin: 50 };
+    }
+
     this.state = this.initialState;
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -54,6 +59,10 @@ class Settings extends React.Component {
         this.setImageSettings
       );
     }
+  }
+
+  componentWillUnmount() {
+    if (this.props.stateManager) this.props.stateManager.disconnect(this);
   }
 
   onImageQualityChange(value) {
