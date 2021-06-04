@@ -12,6 +12,7 @@ from droidlet.perception.robot.handlers import (
     Detection,
     WorldObject,
     Human,
+    HumanKeypointsOrdering,
     HumanPose,
 )
 from droidlet.shared_data_structs import RGBDepth
@@ -22,6 +23,7 @@ __all__ = [
     Detection,
     WorldObject,
     Human,
+    HumanKeypointsOrdering,
     RGBDepth,
     random_colors,
     draw_xyz,
