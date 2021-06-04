@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import time
 
-from droidlet.multiprocess import BackgroundTask
+from droidlet.parallel import BackgroundTask
 from droidlet.perception.robot.handlers import (
     ObjectDetection,
     FaceRecognition,

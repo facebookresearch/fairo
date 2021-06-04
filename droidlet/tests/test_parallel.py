@@ -1,4 +1,4 @@
-from droidlet.multiprocess import BackgroundTask
+from droidlet.parallel import BackgroundTask
 
 
 class Foo:
