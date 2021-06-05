@@ -1,4 +1,4 @@
-# droidlet
+<img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br></br>
 
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
@@ -116,7 +116,6 @@ pip install -r requirements.txt
         </td>
     </tr>
   </table>
-</p>
 
 
 ## Documentation, Tutorials and Papers
