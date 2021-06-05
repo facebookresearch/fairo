@@ -5,7 +5,7 @@ mephisto:
     task_source: ${task_dir}/server_files/craftassist_task.html
     preview_source: ${task_dir}/server_files/craftassist_task_preview.html
     extra_source_dir: ${task_dir}/server_files/extra_refs
-    onboarding_source: ${task_dir}/server_files/craftassist_task_onboarding.html
+    onboarding_source: ${task_dir}/server_files/onboarding_free_form.html
     onboarding_qualification: droidlet-static-onboarding-qual
     units_per_assignment: 1
   task:
