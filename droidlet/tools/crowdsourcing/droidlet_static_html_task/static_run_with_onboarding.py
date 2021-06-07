@@ -22,8 +22,6 @@ from typing import List, Any
 
 TASK_DIRECTORY = "/private/home/rebeccaqian/droidlet/droidlet/tools/crowdsourcing/droidlet_static_html_task/"
 
-CORRECT_ANSWER = "yes"
-
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "local"},
@@ -38,7 +36,6 @@ from mephisto.operations.hydra_config import RunScriptConfig, register_script_co
 class TestScriptConfig(RunScriptConfig):
     defaults: List[Any] = field(default_factory=lambda: defaults)
     task_dir: str = TASK_DIRECTORY
-    correct_answer: str = CORRECT_ANSWER
 
 
 register_script_config(name="scriptconfig", module=TestScriptConfig)
@@ -46,10 +43,8 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 @hydra.main(config_name="scriptconfig")
 def main(cfg: DictConfig) -> None:
-    correct_config_answer = cfg.correct_answer
 
     def onboarding_is_valid(onboarding_data):
-        inputs = onboarding_data["inputs"]
         outputs = onboarding_data["outputs"]
         answer_str = outputs["answer"]
         # NOTE: depending on which OS Turker uses, there could be carriage returns \r or just newlines \n
@@ -63,15 +58,15 @@ def main(cfg: DictConfig) -> None:
         avg_words_in_commands = sum(map(len, commands_split)) / len(commands_split)
         if avg_words_in_commands < 2:
             return False
-        # TODO: Grammar check: Check that there is punctuation, capitals
         # Diversity check: Check that commands are reasonably diverse
         first_words = [x[0] for x in commands_split]
         if len(set(first_words)) == 1:
             return False
+        # TODO: Grammar check: Check that there is punctuation, capitals
         return True
 
     shared_state = SharedStaticTaskState(
-        onboarding_data={"correct_answer": correct_config_answer},
+        onboarding_data={},
         validate_onboarding=onboarding_is_valid,
     )
 
