@@ -69,13 +69,13 @@ conda create -n droidlet_env python=3.7 \
    cudatoolkit=11.0 -c pytorch
 conda activate droidlet_env
 pip install -r \
-    locobot/requirements.txt
+    agents/locobot/requirements.txt
 python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
 pip install -r \
-    craftassist/requirements.txt
+    agents/craftassist/requirements.txt
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
