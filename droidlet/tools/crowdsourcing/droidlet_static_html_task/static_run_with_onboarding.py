@@ -22,7 +22,7 @@ from typing import List, Any
 
 TASK_DIRECTORY = "/private/home/rebeccaqian/droidlet/droidlet/tools/crowdsourcing/droidlet_static_html_task/"
 
-CORRECT_ANSWER = "apple"
+CORRECT_ANSWER = "yes"
 
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
@@ -51,7 +51,24 @@ def main(cfg: DictConfig) -> None:
     def onboarding_is_valid(onboarding_data):
         inputs = onboarding_data["inputs"]
         outputs = onboarding_data["outputs"]
-        return outputs.get("answer") == correct_config_answer
+        answer_str = outputs["answer"]
+        # NOTE: depending on which OS Turker uses, there could be carriage returns \r or just newlines \n
+        # this python module should handle all cases
+        commands = answer_str.splitlines()
+        # Number check: Check that the number of commands >= 3
+        if len(commands) < 3:
+            return False
+        # Length check: Check that the average number of words in commands > 4
+        commands_split = [x.split(" ") for x in commands]
+        avg_words_in_commands = sum(map(len, commands_split)) / len(commands_split)
+        if avg_words_in_commands < 2:
+            return False
+        # TODO: Grammar check: Check that there is punctuation, capitals
+        # Diversity check: Check that commands are reasonably diverse
+        first_words = [x[0] for x in commands_split]
+        if len(set(first_words)) == 1:
+            return False
+        return True
 
     shared_state = SharedStaticTaskState(
         onboarding_data={"correct_answer": correct_config_answer},
