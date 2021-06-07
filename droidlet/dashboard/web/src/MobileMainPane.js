@@ -1,3 +1,7 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
 import React from "react";
 
 import { Container } from "react-bootstrap";

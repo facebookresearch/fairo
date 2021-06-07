@@ -83,7 +83,7 @@ class LocobotAgent(LocoMCAgent):
     def init_event_handlers(self):
         super().init_event_handlers()
 
-        @sio.on("command")
+        @sio.on("movement command")
         def test_command(sid, commands):
             movement = [0.0, 0.0, 0.0]
             for command in commands:

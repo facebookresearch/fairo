@@ -226,7 +226,7 @@ class StateManager {
       }
     }
     if (commands.length > 0) {
-      this.socket.emit("command", commands);
+      this.socket.emit("movement command", commands);
     }
   }
 
@@ -236,7 +236,7 @@ class StateManager {
    */
   buttonHandler(commands) {
     if (commands.length > 0) {
-      this.socket.emit("command", commands);
+      this.socket.emit("movement command", commands);
     }
   }
 

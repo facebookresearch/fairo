@@ -1,3 +1,7 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
 import React from "react";
 import stateManager from "../StateManager";
 import "./MobileDirectionButton.css";
@@ -15,7 +19,11 @@ class MobileDirectionButton extends React.Component {
     // constantly tells stateManager to handle button presses
     // logic is similar to that in ./Navigator.js
     // need to bind this so this.state within sendAndClearCommands refers to the correct this object
-    this.intervalId = setInterval(this.sendAndClearCommands.bind(this), 33.33);
+    let interval = 33.33;
+    this.intervalId = setInterval(
+      this.sendAndClearCommands.bind(this),
+      interval
+    ); // sendAndClearCommmands gets called every interval milliseconds
   }
 
   componentWillUnmount() {
@@ -63,13 +71,13 @@ class MobileDirectionButton extends React.Component {
           className="directionButton up"
           onClick={() => this.addCommand("MOVE_FORWARD")}
         >
-          UP{" "}
+          UP
         </button>
         <button
           className="directionButton down"
           onClick={() => this.addCommand("MOVE_DOWN")}
         >
-          DOWN{" "}
+          DOWN
         </button>
         <button
           className="directionButton right"

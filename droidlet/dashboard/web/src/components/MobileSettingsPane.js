@@ -1,6 +1,10 @@
 import React from "react";
 
 import { Row, Col } from "react-bootstrap";
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
 import LiveImage from "./LiveImage";
 import LiveHumans from "./LiveHumans";
 import stateManager from ".././StateManager";
