@@ -12,6 +12,7 @@ from droidlet.perception.robot.handlers import (
     DetectLaserPointer,
     ObjectDeduplicator,
 )
+from droidlet.memory.robot.loco_memory import DetectedObjectNode
 from droidlet.interpreter.robot.objects import AttributeDict
 from droidlet.event import sio
 import queue
@@ -29,7 +30,6 @@ class Perception:
 
     def __init__(self, model_data_dir, default_keypoints_path=False):
         self.model_data_dir = model_data_dir
-
         def slow_perceive_init(weights_dir):
             return AttributeDict(
                 {
@@ -81,7 +81,6 @@ class Perception:
         """Called by the core event loop for the agent to run all perceptual
         models and save their state to memory. It fetches the results of
         SlowPerception if they are ready.
-
         Args:
             force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
@@ -106,6 +105,8 @@ class Perception:
                 )
             return (new_objects, updated_objects)
         return None
+        
+        
 
     def log(self, rgb_depth, detections, humans, old_rgb_depth):
         """Log all relevant data from the perceptual models for the dashboard.

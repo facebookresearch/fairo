@@ -161,7 +161,7 @@ class LocoInterpreter(Interpreter):
                     tasks_to_do.append(T(agent, f))
             else:
                 dance_triples = dance_filters_d.get("triples", [])
-                if any([t.get("obj_text") == "wave" for t in dance_triples]):
+                if any([t.get("obj_text") == "dance" for t in dance_triples]):
                     new_task = self.task_objects["dance"](agent, {"movement_type": "wave"})
                     tasks_to_do.append(new_task)
                     # FIXME ! merge dances, refactor.  search by name
