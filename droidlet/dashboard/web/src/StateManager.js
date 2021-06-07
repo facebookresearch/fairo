@@ -187,9 +187,11 @@ class StateManager {
 
   keyHandler(key_codes) {
     let commands = [];
+    let keys = [];
     for (var k in key_codes) {
       let val = key_codes[k];
       k = parseInt(k);
+      keys.push(k);
       if (val === true) {
         if (k === 38) {
           // Up

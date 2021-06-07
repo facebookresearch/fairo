@@ -8,6 +8,7 @@ docopt>=0.6.2
 docutils>=0.14
 flake8>=3.5.0
 flake8-mypy>=17.8.0
+imantics>=0.1.12
 ipdb>=0.11
 ipython-genutils>=0.2.0
 ipython>=6.3.1
