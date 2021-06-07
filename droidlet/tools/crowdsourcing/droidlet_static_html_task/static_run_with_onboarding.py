@@ -50,11 +50,13 @@ def main(cfg: DictConfig) -> None:
         # NOTE: depending on which OS Turker uses, there could be carriage returns \r or just newlines \n
         # this python module should handle all cases
         commands = answer_str.splitlines()
+        # filter empty commands
+        filtered_commands = [x for x in commands if x != ""]
         # Number check: Check that the number of commands >= 3
         if len(commands) < 3:
             return False
         # Length check: Check that the average number of words in commands > 4
-        commands_split = [x.split(" ") for x in commands]
+        commands_split = [x.split(" ") for x in filtered_commands]
         avg_words_in_commands = sum(map(len, commands_split)) / len(commands_split)
         if avg_words_in_commands < 2:
             return False
