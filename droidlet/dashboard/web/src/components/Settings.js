@@ -62,7 +62,14 @@ class Settings extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.props.stateManager) this.props.stateManager.disconnect(this);
+    if (this.props.stateManager) {
+      this.props.stateManager.disconnect(this);
+      this.setState({ connected: false });
+      this.props.stateManager.socket.off(
+        "image_settings",
+        this.setImageSettings
+      );
+    }
   }
 
   onImageQualityChange(value) {

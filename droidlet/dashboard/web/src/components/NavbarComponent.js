@@ -17,22 +17,19 @@ class NavbarComponent extends React.Component {
             className="button"
             onClick={() => this.props.paneHandler("home")}
           >
-            {" "}
-            Home{" "}
+            Home
           </button>
           <button
             className="button"
             onClick={() => this.props.paneHandler("navigation")}
           >
-            {" "}
-            Navigation{" "}
+            Navigation
           </button>
           <button
             className="button"
             onClick={() => this.props.paneHandler("settings")}
           >
-            {" "}
-            Settings{" "}
+            Settings
           </button>
         </Nav>
       </Navbar>
