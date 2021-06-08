@@ -34,7 +34,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-import droidlet.lowlevel.locobot.rotation as rotation
+import droidlet.lowlevel.rotation as rotation
 
 from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 from droidlet.event import sio
@@ -50,7 +50,7 @@ logging.getLogger().handlers.clear()
 
 
 class HelloRobotAgent(LocoMCAgent):
-    """Implements an instantiation of the LocoMCAgent on a Locobot. It starts
+    """Implements an instantiation of the LocoMCAgent on a Hello Robot Stretch RE1. It starts
     off the agent processes including launching the dashboard.
 
     Args:
@@ -65,7 +65,7 @@ class HelloRobotAgent(LocoMCAgent):
     coordinate_transforms = rotation
 
     def __init__(self, opts, name="HelloRobot"):
-        super(LocobotAgent, self).__init__(opts)
+        super(HelloRobotAgent, self).__init__(opts)
         logging.info("HelloRobotAgent.__init__ started")
         self.opts = opts
         self.entityId = 0
@@ -94,10 +94,10 @@ class HelloRobotAgent(LocoMCAgent):
                     self.mover.bot.translate_by(-0.1)
                     print("action: BACKWARD")
                 elif command == "MOVE_LEFT":
-                    self.mover.bot.rotate_by(-0.1)
+                    self.mover.bot.rotate_by(0.2)
                     print("action: LEFT")
                 elif command == "MOVE_RIGHT":
-                    self.mover.bot.rotate_by(0.1)
+                    self.mover.bot.rotate_by(-0.2)
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
                     self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
@@ -201,7 +201,7 @@ class HelloRobotAgent(LocoMCAgent):
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("HelloRobot", base_path)
+    parser = ArgumentParser("Locobot", base_path)
     opts = parser.parse()
 
     logging.basicConfig(level=opts.log_level.upper())
