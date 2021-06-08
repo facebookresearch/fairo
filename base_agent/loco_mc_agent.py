@@ -9,6 +9,7 @@ import random
 import re
 import time
 import numpy as np
+import json
 
 from core import BaseAgent
 from base_agent.base_util import ErrorWithResponse
@@ -146,6 +147,11 @@ class LocoMCAgent(BaseAgent):
             if turk_experiment_id != "null":
                 with open("turk_experiment_id.txt", "w+") as f:
                     f.write(turk_experiment_id)
+                # Write metadata associated with crowdsourced run such as the experiment ID
+                # and worker identification
+                job_metadata = { "turk_experiment_id": turk_experiment_id }
+                with open("job_metadata.json", "w+") as f:
+                    json.dump(job_metadata, f)
             os._exit(0)
                 
 
