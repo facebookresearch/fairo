@@ -90,6 +90,27 @@ class RemoteLocobot(object):
         print(Style.RESET_ALL)
         p.stop()
 
+    def get_intrinsics(self):
+        return self.intrinsic_mat.tolist()
+    
+    def get_img_resolution(self):
+        return (CH, CW)
+    
+    def get_status(self):
+        return self._robot.get_status()
+    
+    def get_base_state(self):
+        s = self._robot.get_status()
+        return (s['base']['x'], s['base']['y'], s['base']['theta'])
+    
+    def get_pan(self):
+        s = self._robot.get_status()
+        return s['head']['head_pan']['pos']
+
+    def get_tilt(self):
+        s = self._robot.get_status()
+        return s['head']['head_tilt']['pos']
+    
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
         # print(self._robot.get_status())
@@ -117,7 +138,16 @@ class RemoteLocobot(object):
             # color_frame = frames.get_color_frame()
             # print(type(color_frame))
             
-            c
+            frames = self.realsense.wait_for_frames()
+            aligned_frames = self.align.process(frames)
+
+            # Get aligned frames
+            aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+            color_frame = aligned_frames.get_color_frame()
+
+            # Validate that both frames are valid
+            if not aligned_depth_frame or not color_frame:
+                continue
 
             depth_image = np.asanyarray(aligned_depth_frame.get_data()).astype(np.single)/1000.0
             color_image = np.asanyarray(color_frame.get_data())
@@ -129,11 +159,13 @@ class RemoteLocobot(object):
             # return color_frame, depth_frame
         print(type(color_image))
         # return pickle.dumps(color_image, protocol=2), pickle.dumps(depth_image, protocol=2)
-        return color_image.tolist(), depth_colormap.tolist()
+        return color_image.tolist(), depth_image.tolist()
 
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth()
+        rgb = np.asarray(rgb)
+        depth = np.asarray(depth)
         depth *= 1000  # convert to mm
         # cap anything more than np.power(2,16)~ 65 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
@@ -149,7 +181,8 @@ class RemoteLocobot(object):
 #        )
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
-        return rgb, depth, base2cam_rot, base2cam_trans
+        print('shapes ...{}, {}, {}, {}'.format(rgb.shape, depth.shape, base2cam_rot.shape, base2cam_trans.shape))
+        return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
 
 
 if __name__ == "__main__":
