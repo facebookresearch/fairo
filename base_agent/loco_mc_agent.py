@@ -142,10 +142,10 @@ class LocoMCAgent(BaseAgent):
         
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
-            turk_id = msg.get("turk_id", "null")
-            if turk_id != "null":
-                with open("turk_id.txt", "w+") as f:
-                    f.write(turk_id)
+            turk_experiment_id = msg.get("turk_experiment_id", "null")
+            if turk_experiment_id != "null":
+                with open("turk_experiment_id.txt", "w+") as f:
+                    f.write(turk_experiment_id)
             os._exit(0)
                 
 

@@ -74,7 +74,7 @@ class StateManager {
     // set default url to actual ip:port
     this.default_url = window.location.href;
     const urlParams = new URLSearchParams(window.location.search);
-    const turkId = urlParams.get("turk_id");
+    const turkId = urlParams.get("turk_experiment_id");
     this.setTurkId(turkId);
 
     this.setUrl(this.default_url);
@@ -101,11 +101,11 @@ class StateManager {
   }
 
   setTurkId(turkId) {
-    localStorage.setItem("turk_id", turkId);
+    localStorage.setItem("turk_experiment_id", turkId);
   }
 
   getTurkId() {
-    return localStorage.getItem("turk_id");
+    return localStorage.getItem("turk_experiment_id");
   }
 
   restart(url) {

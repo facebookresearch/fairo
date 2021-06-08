@@ -24,10 +24,10 @@ python3 /droidlet/craftassist/cuberite_process.py \
 
 background_agent
 
-# if turk_id.txt is provided, write to a turk bucket
-if test -f "turk_id.txt"; then
-    turk_id="$(cat turk_id.txt)"
-    S3_DEST="$S3_DEST/turk/$turk_id"
+# if turk_experiment_id.txt is provided, write to a turk bucket
+if test -f "turk_experiment_id.txt"; then
+    turk_experiment_id="$(cat turk_experiment_id.txt)"
+    S3_DEST="$S3_DEST/turk/$turk_experiment_id"
 fi
 S3_DEST="$S3_DEST/$TIMESTAMP"
 

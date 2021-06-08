@@ -25,7 +25,7 @@ class TurkInfo extends Component {
         isSessionEnd: true,
       });
       this.props.stateManager.socket.emit("terminateAgent", {
-        turk_id: this.props.stateManager.getTurkId(),
+        turk_experiment_id: this.props.stateManager.getTurkId(),
       });
     } else {
       this.setState({
