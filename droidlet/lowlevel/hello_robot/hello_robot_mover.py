@@ -15,12 +15,13 @@ import numpy as np
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 
+import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
 from ..robot_mover import MoverInterface
-from ..mover_utils import (
+from ..robot_mover_utils import (
     get_camera_angles,
     angle_diff,
     MAX_PAN_RAD,
@@ -36,15 +37,16 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION=2
 
-
-@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))
-def safe_call(f, *args):
+def safe_call(f, *args, **kwargs):
     try:
-        return f(*args)
+        return f(*args, **kwargs)
     except Pyro4.errors.ConnectionClosedError as e:
         msg = "{} - {}".format(f._RemoteMethod__name, e)
         raise ErrorWithResponse(msg)
-
+    except Exception as e:
+        print("Pyro traceback:")
+        print("".join(Pyro4.util.getPyroTraceback()))
+        raise e
 
 class HelloRobotMover(MoverInterface):
     """Implements methods that call the physical interfaces of the Robot.
@@ -54,13 +56,13 @@ class HelloRobotMover(MoverInterface):
     """
 
     def __init__(self, ip=None):
-        self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
+        self.bot = Pyro4.Proxy("PYRONAME:remotehellorobot@" + ip)
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
         intrinsic_mat = np.asarray(safe_call(self.bot.get_intrinsics))
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
         img_resolution = safe_call(self.bot.get_img_resolution)
-        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+        img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
@@ -88,21 +90,41 @@ class HelloRobotMover(MoverInterface):
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(self, x_s, use_dslam=True):
+    def move_relative(self, xyt_positions, use_dslam=False):
         """Command to execute a relative move.
 
         Args:
             xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
+            x,y,yaw are in the pyrobot's coordinates.
         """
-        pass
+        if not isinstance(next(iter(xyt_positions)), Iterable):
+            # single xyt position given
+            xyt_positions = [xyt_positions]
+        for xyt in xyt_positions:
+            self.bot.go_to_relative(xyt, close_loop=True, use_dslam=use_dslam)
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
+    def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
         """Command to execute a move to an absolute position.
+
+        It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
+        before calling the bot APIs.
 
         Args:
             xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
+            (x_c,y_c,yaw) are in the canonical world coordinates.
         """
-        pass
+        if not isinstance(next(iter(xyt_positions)), Iterable):
+            # single xyt position given
+            xyt_positions = [xyt_positions]
+        for xyt in xyt_positions:
+            logging.info("Move absolute in canonical coordinates {}".format(xyt))
+            self.bot.go_to_absolute(
+                base_canonical_coords_to_pyrobot_coords(xyt),
+                close_loop=True,
+                use_map=use_map,
+                use_dslam=use_dslam,
+            )
+        return "finished"
 
     def look_at(self, obj_pos, yaw_deg, pitch_deg):
         """Executes "look at" by setting the pan, tilt of the camera or turning the base if required.
@@ -156,10 +178,11 @@ class HelloRobotMover(MoverInterface):
          return:
          (x, z, yaw) of the robot base in standard coordinates
         """
-
         x_global, y_global, yaw = safe_call(self.bot.get_base_state)
-        return np.array([x_global, y_global, yaw])
-
+        x_standard = -y_global
+        z_standard = x_global
+        return np.array([x_standard, z_standard, yaw])
+        
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
 
@@ -167,15 +190,17 @@ class HelloRobotMover(MoverInterface):
             an RGBDepth object
         """
         rgb, depth, rot, trans = self.bot.get_pcd_data()
-        rgb = np.asarray(rgb).astype(np.float32)
+        rgb = np.asarray(rgb).astype(np.uint8)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         depth = np.asarray(depth)
         rot = np.asarray(rot)
         trans = np.asarray(trans)
         depth = depth.astype(np.float32)
         d = copy.deepcopy(depth)
-        print(f'type depth {type(depth)}')
+        print(f'shapes depth {depth.shape}, rgb {rgb.shape}')
         depth /= 1000.0
         depth = depth.reshape(-1)
+        print(f'shapes depth {depth.shape}, rot {rot.shape}')
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
@@ -193,6 +218,17 @@ class HelloRobotMover(MoverInterface):
         """
         turn_rad = yaw * math.pi / 180
         self.bot.rotate_by(turn_rad)
+
+    def get_obstacles_in_canonical_coords(self):
+        cordinates_in_robot_frame = self.bot.get_map()
+        cordinates_in_standard_frame = [
+            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
+        ]
+        cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
+        return cordinates_in_standard_frame
+
+    def explore(self):
+        return self.bot.explore()
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
