@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
+from droidlet.lowlevel.robot_mover_utils import xyz_pyrobot_to_canonical_coords
 from droidlet.base_util import TICKS_PER_SEC
 
 
