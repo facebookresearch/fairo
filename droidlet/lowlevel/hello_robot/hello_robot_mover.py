@@ -19,7 +19,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
-from ..imover import MoverInterface
+from ..robot_mover import MoverInterface
 from ..mover_utils import (
     get_camera_angles,
     angle_diff,
@@ -46,7 +46,7 @@ def safe_call(f, *args):
         raise ErrorWithResponse(msg)
 
 
-class BotMover(MoverInterface):
+class HelloRobotMover(MoverInterface):
     """Implements methods that call the physical interfaces of the Robot.
 
     Arguments:
@@ -93,19 +93,14 @@ class BotMover(MoverInterface):
 
         Args:
             xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
-            x,y,yaw are in the pyrobot's coordinates.
         """
         pass
 
     def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
         """Command to execute a move to an absolute position.
 
-        It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
-        before calling the bot APIs.
-
         Args:
             xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
-            (x_c,y_c,yaw) are in the canonical world coordinates.
         """
         pass
 
@@ -150,41 +145,20 @@ class BotMover(MoverInterface):
 
         return "finished"
 
-    def point_at(self, target_pos):
-        """Executes pointing the arm at the specified target pos.
-
-        Args:
-            target_pos ([x,y,z]): canonical coordinates to point to.
-
-        Returns:
-            string "finished"
-        """
-        pass
-
     def get_base_pos_in_canonical_coords(self):
-        """get the current Locobot position in the canonical coordinate system
-        instead of the Locobot's global coordinates as stated in the Locobot
-        documentation: https://www.pyrobot.org/docs/navigation.
-
+        """get the current robot position in the canonical coordinate system
+       
         the standard coordinate systems:
           Camera looks at (0, 0, 1),
           its right direction is (1, 0, 0) and
           its up-direction is (0, 1, 0)
 
          return:
-         (x, z, yaw) of the Locobot base in standard coordinates
+         (x, z, yaw) of the robot base in standard coordinates
         """
 
         x_global, y_global, yaw = safe_call(self.bot.get_base_state)
         return np.array([x_global, y_global, yaw])
-
-    def get_base_pos(self):
-        """Return Locobot (x, y, yaw) in the robot base coordinates as
-        illustrated in the docs:
-
-        https://www.pyrobot.org/docs/navigation
-        """
-        return self.bot.get_base_state()
 
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
@@ -211,9 +185,6 @@ class BotMover(MoverInterface):
         logging.info("Fetched all camera sensor input.")
         return RGBDepth(rgb, d, pts)
 
-    def dance(self):
-        self.bot.dance()
-
     def turn(self, yaw):
         """turns the bot by the yaw specified.
 
@@ -223,28 +194,9 @@ class BotMover(MoverInterface):
         turn_rad = yaw * math.pi / 180
         self.bot.rotate_by(turn_rad)
 
-    def grab_nearby_object(self, bounding_box=[(240, 480), (100, 540)]):
-        """
-        :param bounding_box: region in image to search for grasp
-        """
-        return self.bot.grasp(bounding_box)
-
-    def is_object_in_gripper(self):
-        return self.bot.get_gripper_state() == 2
-
-    def explore(self):
-        return self.bot.explore()
-
-    def drop(self):
-        return self.bot.open_gripper()
-
-    def get_obstacles_in_canonical_coords(self):
-       pass
-
-
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Locobot", base_path)
+    parser = ArgumentParser("HelloRobot", base_path)
     opts = parser.parse()
     mover = BotMover(ip=opts.ip)
     if opts.check_controller:

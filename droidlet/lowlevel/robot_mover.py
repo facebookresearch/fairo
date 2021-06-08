@@ -39,17 +39,3 @@ class MoverInterface(abc.ABC):
     @abc.abstractmethod
     def look_at(self):
         pass
-    
-
-# mover.get_base_pos_in_canonical_coords
-# mover.point_at
-# mover.move_relative
-# mover.move_absolute
-# mover.turn
-# mover.get_base_pos 
-# mover.explore
-
-# mover.grab_nearby_object
-# mover.is_object_in_gripper 
-# mover.drop
-# mover.bot_step
