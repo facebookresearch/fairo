@@ -86,19 +86,18 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("command")
         def test_command(sid, commands):
-            movement = [0.0, 0.0, 0.0]
             for command in commands:
                 if command == "MOVE_FORWARD":
-                    movement[0] += 0.1
+                    self.mover.bot.translate_by(0.1)
                     print("action: FORWARD")
                 elif command == "MOVE_BACKWARD":
-                    movement[0] -= 0.1
+                    self.mover.bot.translate_by(-0.1)
                     print("action: BACKWARD")
                 elif command == "MOVE_LEFT":
-                    movement[2] += 0.3
+                    self.mover.bot.rotate_by(-0.1)
                     print("action: LEFT")
                 elif command == "MOVE_RIGHT":
-                    movement[2] -= 0.3
+                    self.mover.bot.rotate_by(0.1)
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
                     self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
@@ -108,7 +107,6 @@ class LocobotAgent(LocoMCAgent):
                     self.mover.bot.set_tilt(self.mover.bot.get_tilt() - 0.08)
                 elif command == "TILT_DOWN":
                     self.mover.bot.set_tilt(self.mover.bot.get_tilt() + 0.08)
-            self.mover.move_relative([movement])
 
         @sio.on("shutdown")
         def _shutdown(sid, data):
@@ -155,7 +153,7 @@ class LocobotAgent(LocoMCAgent):
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        self.mover = BotMover(ip=self.opts.ip, backend=self.opts.backend)
+        self.mover = BotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)
