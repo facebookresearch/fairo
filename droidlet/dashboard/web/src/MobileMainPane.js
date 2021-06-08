@@ -10,15 +10,24 @@ import NavbarComponent from "./components/NavbarComponent";
 import MobileHomePane from "./components/MobileHomePane";
 import MobileNavigationPane from "./components/MobileNavigationPane";
 import MobileSettingsPane from "./components/MobileSettingsPane";
-
+import ObjectFixup from "./components/ObjectFixup";
+import stateManager from "./StateManager";
 class MobileMainPane extends React.Component {
   constructor(props) {
     let width = window.innerWidth;
     super(props);
+    // screen is the current pane
+    // width is the size of the feeds
+    // object_rgb is the object feed that gest feed into annotation pane
     this.state = {
       screen: "home",
       imageWidth: width / 2 - 25,
+      object_rgb: null,
     };
+  }
+
+  componentDidMount() {
+    if (stateManager) stateManager.connect(this);
   }
 
   paneHandler(pane) {
@@ -33,8 +42,16 @@ class MobileMainPane extends React.Component {
       displayPane = <MobileHomePane imageWidth={this.state.imageWidth} />;
     } else if (this.state.screen === "navigation") {
       displayPane = <MobileNavigationPane imageWidth={this.state.imageWidth} />;
-    } else {
+    } else if (this.state.screen === "settings") {
       displayPane = <MobileSettingsPane imageWidth={this.state.imageWidth} />;
+    } else if (this.state.screen === "annotation") {
+      displayPane = (
+        <ObjectFixup
+          imageWidth={window.innerWidth - 25}
+          image={this.state.object_rgb}
+          stateManager={stateManager}
+        />
+      );
     }
     return (
       <Container fluid>

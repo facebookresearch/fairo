@@ -30,6 +30,7 @@ class Message extends Component {
     this.toggleListen = this.toggleListen.bind(this);
     this.listen = this.listen.bind(this);
     this.elementRef = React.createRef();
+    this.keyPressBindThis = this.handleKeyPress.bind(this); // this is used in keypressed event handling
   }
 
   renderChatHistory(status) {
@@ -77,7 +78,11 @@ class Message extends Component {
   }
 
   componentDidMount() {
-    document.addEventListener("keypress", this.handleKeyPress.bind(this));
+    document.addEventListener("keypress", this.keyPressBindThis);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keypress", this.keyPressBindThis);
   }
 
   toggleListen() {

@@ -11,6 +11,7 @@ import LiveHumans from "./components/LiveHumans";
 import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
 import Timeline from "./components/Timeline/Timeline";
+import MobileMainPane from "./MobileMainPane";
 
 /**
  * The main state manager for the dashboard.
@@ -331,6 +332,13 @@ class StateManager {
             rgb: object_rgb,
             objects: res.objects,
             humans: res.humans,
+          });
+        }
+      } else if (ref instanceof MobileMainPane) {
+        // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
+        if (res.object_image !== -1 && res.object_image !== undefined) {
+          ref.setState({
+            object_rgb: object_rgb,
           });
         }
       }
