@@ -9,7 +9,6 @@ import numpy as np
 import pickle
 import tempfile
 import logging
-from imantics import Mask
 
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
@@ -191,16 +190,12 @@ class Detection(WorldObject):
 
     def to_struct(self):
         bbox = self._maybe_bbox(self.bbox, self.mask)
-        mask_arr = self.mask.cpu().detach().numpy()
-        mask_points_nd = Mask(mask_arr).polygons().points
-        mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
         return {
             "id": self.eid,
             "xyz": list(self.xyz),
             "bbox": bbox,
             "label": self.label,
             "properties": "\n ".join(self.properties if self.properties is not None else ""),
-            "mask": mask_points,
         }
 
     def get_masked_img(self):
