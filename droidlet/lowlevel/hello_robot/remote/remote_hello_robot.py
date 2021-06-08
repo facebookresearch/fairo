@@ -4,8 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 # python -m Pyro4.naming -n <MYIP>
 import Pyro4
 from stretch_body.robot import Robot
-import stretch_body.head as head
-import stretch_body.pimu as pimu
 from colorama import Fore, Back, Style
 import stretch_body.hello_utils as hu
 hu.print_stretch_re_use()
@@ -59,8 +57,7 @@ class RemoteLocobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home() #blocking
-        self._head = head.Head()
-        self._pimu = pimu.Pimu()
+
         self._check_battery()
         self._connect_to_realsense()
     
@@ -83,7 +80,7 @@ class RemoteLocobot(object):
         print("connected to realsense")
         
     def _check_battery(self):
-        p = self._pimu
+        p = self._robot.pimu
         p.pull_status()
         val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.0)
         val_in_range('Current',p.status['current'], vmin=0.1, vmax=p.config['high_current_alert'])
@@ -113,10 +110,10 @@ class RemoteLocobot(object):
         return s['head']['head_tilt']['pos']
     
     def set_pan(self, pan):
-        self._head.move_to('head_pan', pan)
+        self._robot.head.move_to('head_pan', pan)
     
     def set_tilt(self, tilt):
-        self._head.move_to('head_tilt', tilt)
+        self._robot.head.move_to('head_tilt', tilt)
     
     def set_pan_tilt(self, pan, tilt):
         """Sets both the pan and tilt joint angles of the robot camera  to the
@@ -217,9 +214,3 @@ if __name__ == "__main__":
 
         print("Server is started...")
         daemon.requestLoop()
-
-
-# Below is client code to run in a separate Python shell...
-# import Pyro4
-# robot = Pyro4.Proxy("PYRONAME:remotelocobot")
-# robot.test_connection()

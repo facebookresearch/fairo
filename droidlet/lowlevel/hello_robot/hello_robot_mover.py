@@ -20,7 +20,7 @@ from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
 from ..robot_mover import MoverInterface
-from ..mover_utils import (
+from ..robot_mover_utils import (
     get_camera_angles,
     angle_diff,
     MAX_PAN_RAD,
