@@ -36,7 +36,7 @@ from droidlet.interpreter.robot import (
 from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.locobot.rotation as rotation
 
-from droidlet.lowlevel.hello_robot.mover import BotMover
+from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -49,7 +49,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().handlers.clear()
 
 
-class LocobotAgent(LocoMCAgent):
+class HelloRobotAgent(LocoMCAgent):
     """Implements an instantiation of the LocoMCAgent on a Locobot. It starts
     off the agent processes including launching the dashboard.
 
@@ -59,14 +59,14 @@ class LocobotAgent(LocoMCAgent):
         name (string, optional): a name for your agent (default: Locobot)
 
     Example:
-        >>> python locobot_agent.py --backend 'locobot'
+        >>> python hello_robot_agent.py'
     """
 
     coordinate_transforms = rotation
 
-    def __init__(self, opts, name="Locobot"):
+    def __init__(self, opts, name="HelloRobot"):
         super(LocobotAgent, self).__init__(opts)
-        logging.info("LocobotAgent.__init__ started")
+        logging.info("HelloRobotAgent.__init__ started")
         self.opts = opts
         self.entityId = 0
         self.no_default_behavior = opts.no_default_behavior
@@ -153,7 +153,7 @@ class LocobotAgent(LocoMCAgent):
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        self.mover = BotMover(ip=self.opts.ip)
+        self.mover = HelloRobotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)
@@ -201,7 +201,7 @@ class LocobotAgent(LocoMCAgent):
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Locobot", base_path)
+    parser = ArgumentParser("HelloRobot", base_path)
     opts = parser.parse()
 
     logging.basicConfig(level=opts.log_level.upper())
@@ -218,5 +218,5 @@ if __name__ == "__main__":
 
     set_start_method("spawn", force=True)
 
-    sa = LocobotAgent(opts)
+    sa = HelloRobotAgent(opts)
     sa.start()
