@@ -216,7 +216,7 @@ if __name__ == "__main__":
 
     # Check that models and datasets are up to date
     if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "locobot"])
+        rc = subprocess.call([opts.verify_hash_script_path, "hello_robot"])
 
     set_start_method("spawn", force=True)
 
