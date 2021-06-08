@@ -33,6 +33,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
+Pyro4.config.PICKLE_PROTOCOL_VERSION=2
 
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))
@@ -57,7 +58,7 @@ class BotMover:
         self.close_loop = False if backend == "habitat" else True
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
-        intrinsic_mat = safe_call(self.bot.get_intrinsics)
+        intrinsic_mat = np.asarray(safe_call(self.bot.get_intrinsics))
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
         img_resolution = safe_call(self.bot.get_img_resolution)
         img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
@@ -314,10 +315,8 @@ class BotMover:
          (x, z, yaw) of the Locobot base in standard coordinates
         """
 
-        x_global, y_global, yaw = safe_call(self.bot.get_base_state, "odom")
-        x_standard = -y_global
-        z_standard = x_global
-        return np.array([x_standard, z_standard, yaw])
+        x_global, y_global, yaw = safe_call(self.bot.get_base_state)
+        return np.array([x_global, y_global, yaw])
 
     def get_base_pos(self):
         """Return Locobot (x, y, yaw) in the robot base coordinates as
@@ -334,6 +333,10 @@ class BotMover:
             an RGBDepth object
         """
         rgb, depth, rot, trans = self.bot.get_pcd_data()
+        rgb = np.asarray(rgb).astype(np.float32)
+        depth = np.asarray(depth)
+        rot = np.asarray(rot)
+        trans = np.asarray(trans)
         depth = depth.astype(np.float32)
         d = copy.deepcopy(depth)
         depth /= 1000.0
@@ -347,7 +350,7 @@ class BotMover:
             ros_to_habitat_frame = np.array([[0.0, -1.0, 0.0], [0.0, 0.0, -1.0], [1.0, 0.0, 0.0]])
             pts = ros_to_habitat_frame.T @ pts.T
             pts = pts.T
-        pts = transform_pose(pts, self.bot.get_base_state("odom"))
+        pts = transform_pose(pts, self.bot.get_base_state())
         logging.info("Fetched all camera sensor input.")
         return RGBDepth(rgb, d, pts)
 
