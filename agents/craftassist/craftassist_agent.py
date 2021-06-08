@@ -140,6 +140,9 @@ class CraftAssistAgent(LocoMCAgent):
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
+        # Add hooks for db_read and db_write
+        self.memory.register_hook(self.log_to_dashboard, self.memory._db_read)
+        self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
         file_log_handler = logging.FileHandler("agent.{}.log".format(self.name))
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)
@@ -318,6 +321,11 @@ class CraftAssistAgent(LocoMCAgent):
         except:  # this is for test/test_agent
             return
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
+
+    def log_to_dashboard(self, signal, sender, **kwargs):
+        """Emits the event to the dashboard"""
+        result = kwargs['data']
+        self.agent_emit(sender.__name__, result)
 
 
 if __name__ == "__main__":

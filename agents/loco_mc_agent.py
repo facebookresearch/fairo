@@ -341,6 +341,11 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
 
+    def agent_emit(self, event_name, result):
+        msg = event_name + ": " + str(result)
+        sio.emit("newEvent", msg)
+        print("New event " + msg)
+
 
 def default_agent_name():
     """Use a unique name based on timestamp"""
