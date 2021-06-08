@@ -10,6 +10,7 @@ import os
 import pickle
 import sqlite3
 import uuid
+import json
 import droidlet.event.dispatcher as dispatch
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
@@ -98,7 +99,7 @@ class AgentMemory:
 
         self.init_time_interface(agent_time)
 
-        self.s = dispatch.Signal()
+        self.dispatch_signal = dispatch.Signal()
 
         # FIXME agent : should this be here?  where to put?
         self.coordinate_transforms = coordinate_transforms
@@ -934,16 +935,18 @@ class AgentMemory:
             >>> query = "SELECT uuid FROM Memories WHERE node_type=?"
             >>> _db_read(query, 'Chat')
         """
+        hook_data = {"name" : "_db_read", "query" : query}
         args = tuple(a.item() if isinstance(a, np.number) else a for a in args)
         try:
             c = self.db.cursor()
             c.execute(query, args)
             r = c.fetchall()
-            self.s.send(self._db_read, data=query + " RETURNED " + str(r))
             c.close()
+            hook_data["result"] = r
+            hook_data = json.dumps(hook_data)
+            self.dispatch_signal.send(self._db_read, data=hook_data)
             return r
         except:
-            self.s.send(self._db_read, data=query + " RETURNED " + "Bad read: {} : {}".format(query, args))
             logging.error("Bad read: {} : {}".format(query, args))
             raise
 
@@ -1002,7 +1005,9 @@ class AgentMemory:
         if self.on_delete_callback is not None and deleted:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
-        self.s.send(self.db_write, data=query + " RETURNED " + str(r))
+        hook_data = {"name" : "db_write", "query" : query, "result" : r}
+        hook_data = json.dumps(hook_data)
+        self.dispatch_signal.send(self.db_write, data=hook_data)
         return r
 
     def _db_write(self, query: str, *args) -> int:
@@ -1130,4 +1135,7 @@ class AgentMemory:
         return obj
 
     def register_hook(self, receiver, sender):
-        self.s.connect(receiver, sender)
+        """
+        allows for registering hooks using the event dispatcher
+        """
+        self.dispatch_signal.connect(receiver, sender)

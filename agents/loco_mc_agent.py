@@ -341,10 +341,8 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
 
-    def agent_emit(self, event_name, result):
-        msg = event_name + ": " + str(result)
-        sio.emit("newEvent", msg)
-        print("New event " + msg)
+    def agent_emit(self, result):
+        sio.emit("newEvent", result)
 
 
 def default_agent_name():

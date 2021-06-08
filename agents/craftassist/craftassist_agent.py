@@ -322,10 +322,10 @@ class CraftAssistAgent(LocoMCAgent):
             return
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
 
-    def log_to_dashboard(self, signal, sender, **kwargs):
+    def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard"""
         result = kwargs['data']
-        self.agent_emit(sender.__name__, result)
+        self.agent_emit(result)
 
 
 if __name__ == "__main__":
