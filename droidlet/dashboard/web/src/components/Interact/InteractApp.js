@@ -49,6 +49,10 @@ class InteractApp extends Component {
     }
   }
 
+  componentWillUnmount() {
+    if (this.props.stateManager) this.props.stateManager.disconnect(this);
+  }
+
   getUrlParameterByName(name) {
     var match = RegExp("[?&]" + name + "=([^&]*)").exec(window.location.search);
     return match && decodeURIComponent(match[1].replace(/\+/g, " "));

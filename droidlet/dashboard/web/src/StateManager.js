@@ -228,12 +228,17 @@ class StateManager {
       }
     }
     if (commands.length > 0) {
-      this.socket.emit("command", commands);
+      this.socket.emit("movement command", commands);
+    }
+  }
 
-      // Reset keys to prevent duplicates
-      for (let i in keys) {
-        key_codes[keys[i]] = false;
-      }
+  /**
+   * sends commands to backend for mobile button navigation
+   * similar to keyHandler, but keyHandler is for web and arrow keys
+   */
+  buttonHandler(commands) {
+    if (commands.length > 0) {
+      this.socket.emit("movement command", commands);
     }
   }
 

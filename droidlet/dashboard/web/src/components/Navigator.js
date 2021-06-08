@@ -31,7 +31,8 @@ class Navigator extends React.Component {
       map[e.keyCode] = true;
     };
     document.addEventListener("keyup", onkey);
-    setInterval(stateManager.keyHandler, 33.33, map);
+    let interval = 33.33;
+    setInterval(stateManager.keyHandler, interval, map); // keyHandler gets called every interval milliseconds
   }
 
   render() {

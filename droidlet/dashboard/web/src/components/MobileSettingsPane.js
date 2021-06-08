@@ -9,10 +9,10 @@ import { Row, Col } from "react-bootstrap";
 import LiveImage from "./LiveImage";
 import LiveHumans from "./LiveHumans";
 import stateManager from ".././StateManager";
-import InteractApp from "./Interact/InteractApp";
 import Memory2D from "./Memory2D";
+import Settings from "./Settings";
 
-class MobileHomePane extends React.Component {
+class MobileSettingsPane extends React.Component {
   render() {
     return (
       <div>
@@ -65,12 +65,10 @@ class MobileHomePane extends React.Component {
             />
           </Col>
         </Row>
-        <Row>
-          <InteractApp stateManager={stateManager} isMobile={true} />
-        </Row>
+        <Settings stateManager={stateManager} isMobile={true} />
       </div>
     );
   }
 }
 
-export default MobileHomePane;
+export default MobileSettingsPane;

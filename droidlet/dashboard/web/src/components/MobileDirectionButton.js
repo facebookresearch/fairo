@@ -1,4 +1,10 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
 import React from "react";
+import stateManager from "../StateManager";
+import "./MobileDirectionButton.css";
 
 class MobileDirectionButton extends React.Component {
   constructor(props) {
@@ -6,6 +12,24 @@ class MobileDirectionButton extends React.Component {
     this.state = {
       commands: [],
     };
+    this.intervalId = undefined;
+  }
+
+  componentDidMount() {
+    // constantly tells stateManager to handle button presses
+    // logic is similar to that in ./Navigator.js
+    // need to bind this so this.state within sendAndClearCommands refers to the correct this object
+    let interval = 33.33;
+    this.intervalId = setInterval(
+      this.sendAndClearCommands.bind(this),
+      interval
+    ); // sendAndClearCommmands gets called every interval milliseconds
+  }
+
+  componentWillUnmount() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+    }
   }
 
   /**
@@ -20,13 +44,47 @@ class MobileDirectionButton extends React.Component {
     });
   }
 
+  /**
+   * sends commands to stateManager
+   * clears commands
+   */
+  sendAndClearCommands() {
+    if (this.state) {
+      stateManager.buttonHandler(this.state.commands);
+      // clears the commands once sent
+      this.setState({
+        commands: [],
+      });
+    }
+  }
+
   render() {
     return (
-      <div>
-        <button onClick={() => this.addCommand("MOVE_LEFT")}>LEFT</button>
-        <button onClick={() => this.addCommand("MOVE_FORWARD")}>UP </button>
-        <button onClick={() => this.addCommand("MOVE_DOWN")}>DOWN </button>
-        <button onClick={() => this.addCommand("MOVE_RIGHT")}>RIGHT</button>
+      <div className="container">
+        <button
+          className="directionButton left"
+          onClick={() => this.addCommand("MOVE_LEFT")}
+        >
+          LEFT
+        </button>
+        <button
+          className="directionButton up"
+          onClick={() => this.addCommand("MOVE_FORWARD")}
+        >
+          UP
+        </button>
+        <button
+          className="directionButton down"
+          onClick={() => this.addCommand("MOVE_DOWN")}
+        >
+          DOWN
+        </button>
+        <button
+          className="directionButton right"
+          onClick={() => this.addCommand("MOVE_RIGHT")}
+        >
+          RIGHT
+        </button>
       </div>
     );
   }
