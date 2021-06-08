@@ -144,12 +144,18 @@ class LocoMCAgent(BaseAgent):
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
             turk_experiment_id = msg.get("turk_experiment_id", "null")
+            mephisto_agent_id = msg.get("mephisto_agent_id", "null")
+            turk_worker_id = msg.get("turk_worker_id", "null")
             if turk_experiment_id != "null":
                 with open("turk_experiment_id.txt", "w+") as f:
                     f.write(turk_experiment_id)
                 # Write metadata associated with crowdsourced run such as the experiment ID
                 # and worker identification
-                job_metadata = { "turk_experiment_id": turk_experiment_id }
+                job_metadata = { 
+                    "turk_experiment_id": turk_experiment_id,
+                    "mephisto_agent_id": mephisto_agent_id,
+                    "turk_worker_id": turk_worker_id
+                }
                 with open("job_metadata.json", "w+") as f:
                     json.dump(job_metadata, f)
             os._exit(0)
