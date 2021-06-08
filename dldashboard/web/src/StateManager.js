@@ -74,8 +74,10 @@ class StateManager {
     // set default url to actual ip:port
     this.default_url = window.location.href;
     const urlParams = new URLSearchParams(window.location.search);
-    const turkId = urlParams.get("turk_experiment_id");
-    this.setTurkId(turkId);
+    const turkExperimentId = urlParams.get("turk_experiment_id");
+    const mephistoId = urlParams.get("mephisto_agent_id");
+    const turkWorkerId = urlParams.get("provider_worker_id");
+    this.setTurkId(turkExperimentId);
 
     this.setUrl(this.default_url);
 
