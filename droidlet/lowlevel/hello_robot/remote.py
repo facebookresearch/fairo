@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 # python -m Pyro4.naming -n <MYIP>
 import Pyro4
 from stretch_body.robot import Robot
+import stretch_body.head as head
 import stretch_body.pimu as pimu
 from colorama import Fore, Back, Style
 import stretch_body.hello_utils as hu
@@ -58,7 +59,9 @@ class RemoteLocobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home() #blocking
-        # self._check_battery()
+        self._head = head.Head()
+        self._pimu = pimu.Pimu()
+        self._check_battery()
         self._connect_to_realsense()
     
     def _connect_to_realsense(self):
@@ -80,9 +83,7 @@ class RemoteLocobot(object):
         print("connected to realsense")
         
     def _check_battery(self):
-        p=pimu.Pimu()
-        if not p.startup():
-            exit()
+        p = self._pimu
         p.pull_status()
         val_in_range('Voltage',p.status['voltage'], vmin=p.config['low_voltage_alert'], vmax=14.0)
         val_in_range('Current',p.status['current'], vmin=0.1, vmax=p.config['high_current_alert'])
@@ -111,9 +112,28 @@ class RemoteLocobot(object):
         s = self._robot.get_status()
         return s['head']['head_tilt']['pos']
     
+    def set_pan(self, pan):
+        self._head.move_to('head_pan', pan)
+    
+    def set_tilt(self, tilt):
+        self._head.move_to('head_tilt', tilt)
+    
+    def set_pan_tilt(self, pan, tilt):
+        """Sets both the pan and tilt joint angles of the robot camera  to the
+        specified values.
+
+        :param pan: value to be set for pan joint in radian
+        :param tilt: value to be set for the tilt joint in radian
+        
+        :type pan: float
+        :type tilt: float
+        :type wait: bool
+        """
+        self._head.move_to('head_pan', pan)
+        self._head.move_to('head_tilt', tilt)
+    
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
-        # print(self._robot.get_status())
         return "Connected!"  # should print on client terminal
     
     def home(self):
@@ -133,11 +153,6 @@ class RemoteLocobot(object):
     def get_rgb_depth(self):
         frames = None
         while not frames:
-            # frames = self.realsense.wait_for_frames()
-            # depth_frame = frames.get_depth_frame()
-            # color_frame = frames.get_color_frame()
-            # print(type(color_frame))
-            
             frames = self.realsense.wait_for_frames()
             aligned_frames = self.align.process(frames)
 
@@ -157,8 +172,6 @@ class RemoteLocobot(object):
             depth_colormap = np.moveaxis(depth_colormap, 0, 1)
 
             # return color_frame, depth_frame
-        print(type(color_image))
-        # return pickle.dumps(color_image, protocol=2), pickle.dumps(depth_image, protocol=2)
         return color_image.tolist(), depth_image.tolist()
 
     def get_pcd_data(self):
@@ -176,12 +189,8 @@ class RemoteLocobot(object):
         T = np.eye(4)
         T[:3,:3] = rot
         T[:3,3] = trans 
-#        trans, rot, T = self.realsense.get_link_transform(
-#            self._robot.camera.cam_cf, self._robot.camera.base_f
-#        )
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
-        print('shapes ...{}, {}, {}, {}'.format(rgb.shape, depth.shape, base2cam_rot.shape, base2cam_trans.shape))
         return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
 
 
@@ -213,4 +222,4 @@ if __name__ == "__main__":
 # Below is client code to run in a separate Python shell...
 # import Pyro4
 # robot = Pyro4.Proxy("PYRONAME:remotelocobot")
-# robot.go_home()
+# robot.test_connection()
