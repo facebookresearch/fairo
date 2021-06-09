@@ -15,6 +15,7 @@ import numpy as np
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 
+import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
@@ -169,6 +170,7 @@ class HelloRobotMover(MoverInterface):
         """
         rgb, depth, rot, trans = self.bot.get_pcd_data()
         rgb = np.asarray(rgb).astype(np.float32)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         depth = np.asarray(depth)
         rot = np.asarray(rot)
         trans = np.asarray(trans)
