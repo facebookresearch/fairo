@@ -147,6 +147,9 @@ class CraftAssistAgent(LocoMCAgent):
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)
         logging.info("Initialized agent memory")
+        # Add manual logging for timeline
+        timeline_log = open("timeline_log.txt", "w")
+        timeline_log.close()
 
     def init_perception(self):
         """Initialize perception modules"""
@@ -323,9 +326,12 @@ class CraftAssistAgent(LocoMCAgent):
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
 
     def log_to_dashboard(self, **kwargs):
-        """Emits the event to the dashboard"""
+        """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
         self.agent_emit(result)
+        timeline_log = open("timeline_log.txt", "a")
+        print(result, file=timeline_log)
+        timeline_log.close()
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import BasicMemorySearcher
 from .dialogue_stack import DialogueStack
+from datetime import datetime
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -935,16 +936,16 @@ class AgentMemory:
             >>> query = "SELECT uuid FROM Memories WHERE node_type=?"
             >>> _db_read(query, 'Chat')
         """
-        hook_data = {"name" : "_db_read", "query" : query}
+        # hook_data = {"name" : "_db_read", "time" : datetime.now().strftime("%H:%M:%S"), "query" : query, "args" : args}
         args = tuple(a.item() if isinstance(a, np.number) else a for a in args)
         try:
             c = self.db.cursor()
             c.execute(query, args)
             r = c.fetchall()
             c.close()
-            hook_data["result"] = r
-            hook_data = json.dumps(hook_data)
-            self.dispatch_signal.send(self._db_read, data=hook_data)
+            # hook_data["result"] = r
+            # hook_data = json.dumps(hook_data, default=str)
+            # self.dispatch_signal.send(self._db_read, data=hook_data)
             return r
         except:
             logging.error("Bad read: {} : {}".format(query, args))
@@ -1005,8 +1006,8 @@ class AgentMemory:
         if self.on_delete_callback is not None and deleted:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
-        hook_data = {"name" : "db_write", "query" : query, "result" : r}
-        hook_data = json.dumps(hook_data)
+        hook_data = {"name" : "db_write", "time" : datetime.now().strftime("%H:%M:%S"), "query" : query, "args" : args, "result" : r}
+        hook_data = json.dumps(hook_data, default=str)
         self.dispatch_signal.send(self.db_write, data=hook_data)
         return r
 
