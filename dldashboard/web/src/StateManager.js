@@ -72,8 +72,7 @@ class StateManager {
     this.showAssistantReply = this.showAssistantReply.bind(this);
 
     // set default url to actual ip:port
-    this.default_url =
-      "localhost:8000?turk_experiment_id=5&turk_worker_id=10&mephisto_agent_id=1"; //window.location.href;
+    this.default_url = "localhost:8000"; //window.location.href;
     const urlParams = new URLSearchParams(window.location.search);
     const turkExperimentId = urlParams.get("turk_experiment_id");
     const mephistoAgentId = urlParams.get("mephisto_agent_id");
@@ -106,7 +105,7 @@ class StateManager {
   }
 
   setTurkExperimentId(turk_experiment_id) {
-    localStorage.setItem("turk_experiment_id", turkId);
+    localStorage.setItem("turk_experiment_id", turk_experiment_id);
   }
 
   getTurkExperimentId() {
@@ -114,7 +113,7 @@ class StateManager {
   }
 
   setMephistoAgentId(mephisto_agent_id) {
-    localStorage.setItem("mephisto_agent_id", turkId);
+    localStorage.setItem("mephisto_agent_id", mephisto_agent_id);
   }
 
   getMephistoAgentId() {
@@ -122,7 +121,7 @@ class StateManager {
   }
 
   setTurkWorkerId(turk_worker_id) {
-    localStorage.setItem("turk_worker_id", turkId);
+    localStorage.setItem("turk_worker_id", turk_worker_id);
   }
 
   getTurkWorkerId() {
