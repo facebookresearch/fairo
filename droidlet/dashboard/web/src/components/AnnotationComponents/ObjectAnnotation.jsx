@@ -33,14 +33,17 @@ class ObjectAnnotation extends React.Component {
     super(props);
 
     this.state = {
-      objectIds: [],
+      objectIds: [...Array(this.props.masks.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw
       currentOverlay: null,
     };
 
-    this.currentId = 0;
+    this.currentId = this.props.masks.length;
     this.nameMap = {};
     this.pointMap = {};
+    for (let i = 0; i < this.props.masks.length; i++) {
+      this.pointMap[i] = this.props.masks[i];
+    }
     this.propertyMap = {};
 
     this.registerClick = this.registerClick.bind(this);
@@ -118,7 +121,9 @@ class ObjectAnnotation extends React.Component {
 
   drawingFinished(data) {
     this.propertyMap[this.currentId] = this.drawing_data.tags;
-    this.pointMap[this.currentId] = data;
+    this.pointMap[this.currentId] = [data];
+    // HOLLIS NOTE: data in form of [{x: 0, y: 0}, {x: 0, y: 0}, ...]
+    // Need to implement functionality for multiple masks for the same label
     this.nameMap[this.currentId] = this.drawing_data.name;
     this.setState(
       {
