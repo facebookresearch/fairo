@@ -56,9 +56,9 @@ class RemoteHelloRobot(object):
     
     def _connect_to_realsense(self):
         cfg = rs.config()
+        pipeline = rs.pipeline()
         cfg.enable_stream(rs.stream.color, CW, CH, rs.format.bgr8, 30)
         cfg.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, 30)
-        pipeline = rs.pipeline()
         pipeline.start(cfg)
         self.realsense = pipeline
         
@@ -165,9 +165,9 @@ class RemoteHelloRobot(object):
             color_image = np.moveaxis(color_image, 0, 1)
             depth_colormap = np.moveaxis(depth_colormap, 0, 1)
 
-            # return color_frame, depth_frame
         return color_image.tolist(), depth_image.tolist()
 
+    
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth()
