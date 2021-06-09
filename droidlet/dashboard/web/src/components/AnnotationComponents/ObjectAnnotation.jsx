@@ -76,6 +76,7 @@ class ObjectAnnotation extends React.Component {
             objects={this.state.objectIds}
             pointMap={this.pointMap}
             colors={COLORS}
+            imageWidth={this.props.imageWidth}
             onClick={(e) => this.registerClick(e.clientX, e.clientY)}
           />
           <button onClick={this.submit.bind(this)}>
@@ -89,6 +90,7 @@ class ObjectAnnotation extends React.Component {
           img={this.image}
           object={this.drawing_data.name}
           submitCallback={this.drawingFinished.bind(this)}
+          isMobile={this.props.isMobile}
         ></PolygonTool>
       );
     }

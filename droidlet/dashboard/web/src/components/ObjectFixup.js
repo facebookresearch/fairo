@@ -33,6 +33,8 @@ class ObjectFixup extends React.Component {
         image={this.state.image}
         not_turk={true}
         stateManager={this.props.stateManager}
+        isMobile={this.props.isMobile}
+        imageWidth={this.props.imageWidth}
       />
     );
   }

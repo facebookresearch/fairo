@@ -76,6 +76,12 @@ class PolygonTool extends React.Component {
           onMouseMove={this.onMouseMove}
           onKeyDown={this.keyDown}
         ></canvas>
+        {this.props.isMobile && (
+          <button onClick={this.enterButtonMobile.bind(this)}>
+            {" "}
+            Enter button{" "}
+          </button>
+        )}
       </div>
     );
   }
@@ -110,23 +116,30 @@ class PolygonTool extends React.Component {
         this.drawPoint(pt);
       });
     } else {
-      this.ctx.resetTransform();
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
-      this.ctx.drawImage(this.img, 0, 0);
-      if (this.points.length < 3) {
-        return;
-      }
-      let region = new Path2D();
-      region.moveTo(this.points[0].x, this.points[0].y);
-      for (let i = 1; i < this.points.length; i++) {
-        region.lineTo(this.points[i].x, this.points[i].y);
-      }
-      region.closePath();
-      this.ctx.fillStyle = "rgba(0,200,0,.5)";
-      this.ctx.fill(region, "evenodd");
+      console.log("enter has been pressed");
+      this.drawShape();
     }
+  }
+
+  // draws shape given the lines
+  drawShape() {
+    console.log("drawing shape");
+    this.ctx.resetTransform();
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
+    this.ctx.drawImage(this.img, 0, 0);
+    if (this.points.length < 3) {
+      return;
+    }
+    let region = new Path2D();
+    region.moveTo(this.points[0].x, this.points[0].y);
+    for (let i = 1; i < this.points.length; i++) {
+      region.lineTo(this.points[i].x, this.points[i].y);
+    }
+    region.closePath();
+    this.ctx.fillStyle = "rgba(0,200,0,.5)";
+    this.ctx.fill(region, "evenodd");
   }
 
   updateZoom() {
@@ -159,6 +172,13 @@ class PolygonTool extends React.Component {
     this.update();
   }
 
+  // simulates pressing enter on web. Only used for mobile version
+  enterButtonMobile() {
+    this.lastKey = "Enter";
+    this.lastKey = null;
+    this.props.submitCallback(this.points);
+  }
+
   onClick(e) {
     if (this.dragging) {
       this.dragging = false;
@@ -183,6 +203,7 @@ class PolygonTool extends React.Component {
       return;
     }
     if (this.lastKey !== "Enter") {
+      console.log("point 2");
       this.points.push(this.localToImage(this.lastMouse));
     }
     this.updateZoom();
@@ -196,6 +217,7 @@ class PolygonTool extends React.Component {
   }
 
   keyDown(e) {
+    console.log("calling keydown");
     switch (e.key) {
       case " ":
         if (this.points.length > 0) {
@@ -215,6 +237,7 @@ class PolygonTool extends React.Component {
         this.shiftViewBy(-10, 0);
         break;
       case "Enter":
+        console.log("point 3");
         if (this.lastKey === "Enter") {
           this.lastKey = null;
           this.props.submitCallback(this.points);

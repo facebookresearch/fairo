@@ -50,6 +50,7 @@ class MobileMainPane extends React.Component {
           imageWidth={window.innerWidth - 25}
           image={this.state.object_rgb}
           stateManager={stateManager}
+          isMobile={true}
         />
       );
     }
