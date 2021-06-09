@@ -44,6 +44,9 @@ class ObjectAnnotation extends React.Component {
     this.nextId = this.props.objects.length;
     this.nameMap = {};
     this.pointMap = {};
+    for (let i = 0; i < this.props.masks.length; i++) {
+      this.pointMap[i] = this.props.masks[i];
+    }
     this.propertyMap = {};
     for (let i = 0; i < this.props.objects.length; i++) {
       let curObject = this.props.objects[i];
