@@ -10,6 +10,7 @@ import pickle
 import tempfile
 import logging
 from imantics import Mask
+import torch
 
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
@@ -191,7 +192,11 @@ class Detection(WorldObject):
 
     def to_struct(self):
         bbox = self._maybe_bbox(self.bbox, self.mask)
-        mask_arr = [] if self.mask is None else self.mask.cpu().detach().numpy()
+        mask_arr = []
+        if self.mask is not None and isinstance(self.mask, np.ndarray):
+            mask_arr =  self.mask
+        if self.mask is not None and isinstance(self.mask, torch.Tensor): 
+            mask_arr = self.mask.cpu().detach().numpy()
         mask_points_nd = Mask(mask_arr).polygons().points
         mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
         return {
