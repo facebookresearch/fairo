@@ -1,13 +1,15 @@
 import json
 import logging
+import random
 import re
 import sentry_sdk
 import spacy
 from typing import Dict, Optional
-from droidlet.memory.memory_nodes import ProgramNode
 from droidlet.dialog.dialogue_objects import DialogueObject, Say
 from droidlet.interpreter import coref_resolve, process_spans_and_remove_fixed_value
 from droidlet.base_util import hash_user
+from .load_datasets import get_greetings, get_safety_words
+from ..perception.semantic_parsing.droidlet_nsp_model_wrapper import GreetingType
 
 spacy_model = spacy.load("en_core_web_sm")
 
@@ -17,14 +19,13 @@ class DialogueObjectMapper(object):
         self.dialogue_objects = dialogue_object_classes
         self.opts = opts
         self.dialogue_manager = dialogue_manager
+        self.safety_words = get_safety_words()
+        self.greetings = get_greetings(self.opts.ground_truth_data_dir)
 
     def get_dialogue_object(self, speaker: str, chat: str, parse: str or Dict):
         # # NOTE: We are only handling the last chat here compared to full chat history
+        # TODO: move this here and remove from dialogue_manager
         # chat_list = self.dialogue_manager.get_last_m_chats(m=1)
-        #
-        # # 2. Preprocess chat
-        # speaker, chatstr = chat_list[0]
-        # chat = self.preprocess_chat(chatstr)
 
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
@@ -33,25 +34,21 @@ class DialogueObjectMapper(object):
         ):
             return None
 
-        """
-        2. Check if parse was string or logical form. If string, the agent will
-        reply back to player with the string
-        """
-        # Note make `Say` only take in a string and return that.
-        if type(parse) == str:
-            return Say(parse, memory=self.dialogue_manager.memory)
+        # 1. Check against safety phrase list
+        if not self.is_safe(chat):
+            return Say("Please don't be rude.", memory=self.dialogue_manager.memory)
 
-        """
-        Else the parse is a logical form and we :
-        3. postprocess the logical form: processing spans + resolving coreference
-        4. handle the logical form by returning appropriate DialogueObject.
-        """
-        # 3. postprocess logical form: fill spans + resolve coreference
+        # 2. Check if incoming chat is one of the scripted ones in greetings
+        reply = self.get_greeting_reply(chat)
+        if reply:
+            return Say(reply, memory=self.dialogue_manager.memory)
+
+        # 3. postprocess logical form: process spans + resolve coreference
         updated_logical_form = self.postprocess_logical_form(
             speaker=speaker, chat=chat, logical_form=parse
         )
 
-        # 4. return the DialogueObject
+        # 4. handle the logical form by returning appropriate DialogueObject.
         return self.handle_logical_form(
             speaker=speaker, logical_form=updated_logical_form, chat=chat, opts=self.opts
         )
@@ -100,7 +97,6 @@ class DialogueObjectMapper(object):
         """Return the appropriate DialogueObject to handle an action dict d
         d should have spans filled (via process_spans_and_remove_fixed_value).
         """
-        # ProgramNode.create(self.dialogue_manager.memory, logical_form)
         memory = self.dialogue_manager.memory
         if logical_form["dialogue_type"] == "NOOP":
             return Say("I don't know how to answer that.", memory=memory)
@@ -121,3 +117,24 @@ class DialogueObjectMapper(object):
             return self.dialogue_objects["get_memory"](speaker, logical_form, memory=memory)
         else:
             raise ValueError("Bad dialogue_type={}".format(logical_form["dialogue_type"]))
+
+    def is_safe(self, safety_words, chat):
+        """Check that chat does not contain any word from the
+        safety check list.
+        """
+        cmd_set = set(chat.lower().split())
+        notsafe = len(cmd_set & safety_words) > 0
+        return not notsafe
+
+    def get_greeting_reply(self, greetings, chat):
+        response_options = []
+        for greeting_type, allowed_str in greetings.items():
+            if chat in allowed_str:
+                if greeting_type == GreetingType.GOODBYE.value:
+                    response_options = ["goodbye", "bye", "see you next time!"]
+                else:
+                    response_options = ["hi there!", "hello", "hey", "hi"]
+                return random.choice(response_options)
+        return None
+
+

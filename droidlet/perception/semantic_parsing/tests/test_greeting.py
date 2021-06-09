@@ -4,6 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 import os
+
+from droidlet.dialog.map_to_dialogue_object import get_greeting_reply
 from droidlet.shared_data_structs import MockOpt
 from ..droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 
@@ -21,11 +23,11 @@ class GreetingTest(unittest.TestCase):
         self.chat_parser = DroidletNSPModelWrapper(opts)
 
     def test_hello(self):
-        reply = self.chat_parser.get_greeting_reply("hello")
+        reply = get_greeting_reply(self.chat_parser.greetings, "hello")
         self.assertIn(reply, ["hi there!", "hello", "hey", "hi"])
 
     def test_goodbye(self):
-        reply = self.chat_parser.get_greeting_reply("goodbye")
+        reply = get_greeting_reply(self.chat_parser.greetings, "goodbye")
         self.assertIn(reply, ["goodbye", "bye", "see you next time!"])
 
 

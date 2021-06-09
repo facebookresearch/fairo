@@ -3,13 +3,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import copy
 import logging
-import random
 import pkg_resources
 from enum import Enum
 from time import time
 from typing import Dict
 from .utils import preprocess
-from .load_and_check_datasets import get_greetings, get_safety_words, get_ground_truth
+from .load_and_check_datasets import get_ground_truth
 from .nsp_model import DroidletSemanticParsingModel
 from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
@@ -39,11 +38,8 @@ class DroidletNSPModelWrapper(object):
             # No parsing model
             self.parsing_model = None
         """
-        Read all dataset files:
-        safety.txt, greetings.json, ground_truth/datasets folder
+        Read the ground truth dataset file: ground_truth/datasets folder
         """
-        self.safety_words = get_safety_words()
-        self.greetings = get_greetings(self.opts.ground_truth_data_dir)
         self.ground_truth_actions = get_ground_truth(self.opts.no_ground_truth, self.opts.ground_truth_data_dir)
 
         # Socket event listener
@@ -57,25 +53,6 @@ class DroidletNSPModelWrapper(object):
             logging.debug("got logical form: %r" % (action_dict))
             payload = {"action_dict": action_dict}
             sio.emit("renderActionDict", payload)
-
-    def is_safe(self, chat):
-        """Check that chat does not contain any word from the
-        safety check list.
-        """
-        cmd_set = set(chat.lower().split())
-        notsafe = len(cmd_set & self.safety_words) > 0
-        return not notsafe
-
-    def get_greeting_reply(self, chat):
-        response_options = []
-        for greeting_type, allowed_str in self.greetings.items():
-            if chat in allowed_str:
-                if greeting_type == GreetingType.GOODBYE.value:
-                    response_options = ["goodbye", "bye", "see you next time!"]
-                else:
-                    response_options = ["hi there!", "hello", "hey", "hi"]
-                return random.choice(response_options)
-        return None
 
     def preprocess_chat(self, chat):
         """Tokenize the chat and get list of sentences to parse.
@@ -96,26 +73,12 @@ class DroidletNSPModelWrapper(object):
         Returns:
             str or Dict
         """
-
-        # # NOTE: We are only handling the last chat here compared to full chat history
-        # chat_list = self.dialogue_manager.get_last_m_chats(m=1)
-
-        # 2. Preprocess chat
-        # speaker, chatstr = chat_list[0]
+        # 1. Preprocess chat
         chat = self.preprocess_chat(chatstr)
 
-        # # 3. Check against safety phrase list
-        # if not self.is_safe(chat):
-        #     return "Please don't be rude."
-        #
-        # # 4. Check if incoming chat is one of the scripted ones in greetings
-        # reply = self.get_greeting_reply(chat)
-        # if reply:
-        #     return reply
-
-        # 5. Get logical form from either ground truth or query the parsing model
+        # 2. Get logical form from either ground truth or query the parsing model
         logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)
-        return logical_form
+        return chat, logical_form
 
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:

@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 
+from droidlet.dialog.map_to_dialogue_object import is_safe
 from ..droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.shared_data_structs import MockOpt
 
@@ -25,11 +26,11 @@ class SafetyTest(unittest.TestCase):
 
 
     def test_unsafe_word(self):
-        is_safe = self.chat_parser.is_safe("bad Clinton")
+        is_safe = is_safe(self.chat_parser.safety_words, "bad Clinton")
         self.assertFalse(is_safe)
 
     def test_safe_word(self):
-        is_safe = self.chat_parser.is_safe("build a house")
+        is_safe = is_safe(self.chat_parser.safety_words, "build a house")
         self.assertTrue(is_safe)
 
 

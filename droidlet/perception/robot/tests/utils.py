@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypoints

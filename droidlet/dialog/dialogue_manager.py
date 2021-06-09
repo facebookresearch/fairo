@@ -50,12 +50,16 @@ class DialogueManager(object):
             speaker = self.memory.get_player_by_id(chat.speaker_id).name
             chat_memid = chat.memid
             # get logical form if any else None
+            logical_form = None
+            logical_form_triples = self.agent.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
+            if logical_form_triples:
+                logical_form = self.agent.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
             chat_str = chat.chat_text
-            chat_list_text.append((speaker, chat_str))
+            chat_list_text.append((speaker, chat_str, logical_form))
 
         return chat_list_text
 
-    def step(self, chat: Tuple[str, str], parse: str or Dict):
+    def step(self):
         """Process a chat and step through the dialogue manager task stack.
 
         The chat is given as input to the model, which returns a logical form.
@@ -72,7 +76,9 @@ class DialogueManager(object):
 
         """
         # chat is a single line command
-        speaker, chatstr = chat
+        chat_list = self.dialogue_manager.get_last_m_chats(m=1)
+        # TODO: this can be moved to get_d_o
+        speaker, chatstr, logical_form = chat_list[0]
         # get last m chats and their parses.
 
         if chatstr:
@@ -83,6 +89,6 @@ class DialogueManager(object):
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
             # TODO: Change this to only take parse and use get_last_m_chats to get chat + speaker
-            obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, parse)
+            obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form)
             if obj is not None:
                 self.dialogue_stack.append(obj)

@@ -15,7 +15,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from droidlet.shared_data_structs import Time, MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import Pos, Look
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode

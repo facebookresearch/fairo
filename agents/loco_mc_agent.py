@@ -270,7 +270,6 @@ class LocoMCAgent(BaseAgent):
                 continue
             incoming_chats.append((speaker, chat))
 
-
         if len(incoming_chats) > 0:
             # force to get objects, speaker info
             if self.perceive_on_chat:
@@ -278,11 +277,11 @@ class LocoMCAgent(BaseAgent):
             self.last_chat_time = time.time()
             # For now just process the first incoming chat, where chat -> [speaker, chat]
             speaker, chat = incoming_chats[0]
-            chat_parse = self.chat_parser.get_parse(chat)
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, chat)
+            preprocessed_chat, chat_parse = self.chat_parser.get_parse(chat)
+            # add postprocessed chat here
+            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
             logical_form_memid = self.memory.add_logical_form(chat_parse)
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-
 
         for v in self.perception_modules.values():
             v.perceive(force=force)
@@ -291,37 +290,8 @@ class LocoMCAgent(BaseAgent):
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""
-        # raw_incoming_chats = self.get_incoming_chats()
-        # if raw_incoming_chats:
-        #     logging.info("Incoming chats: {}".format(raw_incoming_chats))
-        # incoming_chats = []
-        # for raw_chat in raw_incoming_chats:
-        #     match = re.search("^<([^>]+)> (.*)", raw_chat)
-        #     if match is None:
-        #         logging.debug("Ignoring chat: {}".format(raw_chat))
-        #         continue
-        #
-        #     speaker, chat = match.group(1), match.group(2)
-        #     speaker_hash = hash_user(speaker)
-        #     logging.debug("Incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
-        #     if chat.startswith("/"):
-        #         continue
-        #     incoming_chats.append((speaker, chat))
-        #     self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, chat)
-        #
-        # if len(incoming_chats) > 0:
-        #     # force to get objects, speaker info
-        #     if self.perceive_on_chat:
-        #         self.perceive(force=True)
-        #     # change this to memory.get_time() format?
-        #     self.last_chat_time = time.time()
-        #     # For now just process the first incoming chat, where chat -> [speaker, chat]
-        #     chat_parse = self.chat_parser.get_parse(incoming_chats[0][1])
-            # to here ###########################################
-        # TODO: remove this
-        incoming_chats[0] = "hi"
-        chat_parse = {}
-        self.dialogue_manager.step(incoming_chats[0], chat_parse)
+
+        self.dialogue_manager.step()
         # TODO: fix the following with return from above
         # else:
         #     # Maybe add default task

@@ -13,7 +13,7 @@ from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.lowlevel.locobot.locobot_mover_utils import (

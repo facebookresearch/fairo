@@ -19,7 +19,7 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.parse_to_dialogue_object import DialogueObjectMapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
