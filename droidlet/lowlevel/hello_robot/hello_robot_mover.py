@@ -54,7 +54,7 @@ class HelloRobotMover(MoverInterface):
     """
 
     def __init__(self, ip=None):
-        self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
+        self.bot = Pyro4.Proxy("PYRONAME:remotehellorobot@" + ip)
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
         intrinsic_mat = np.asarray(safe_call(self.bot.get_intrinsics))
@@ -156,10 +156,11 @@ class HelloRobotMover(MoverInterface):
          return:
          (x, z, yaw) of the robot base in standard coordinates
         """
-
         x_global, y_global, yaw = safe_call(self.bot.get_base_state)
-        return np.array([x_global, y_global, yaw])
-
+        x_standard = -y_global
+        z_standard = x_global
+        return np.array([x_standard, z_standard, yaw])
+        
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
 

@@ -15,18 +15,10 @@ import pyrealsense2 as rs
 import cv2
 
 # Configure depth and color streams
-CAMERA_HEIGHT = .3
+CAMERA_HEIGHT = 1.5
 CH = 480
 CW = 640
 FREQ = 30
-
-# fps=30
-# pipeline = rs.pipeline()
-# config = rs.config()
-# config.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, fps)
-# config.enable_stream(rs.stream.color, CW, CH, rs.format.bgr8, fps)
-# pipeline.start(config)
-
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -43,7 +35,7 @@ def val_in_range(val_name, val,vmin, vmax):
 
 
 @Pyro4.expose
-class RemoteLocobot(object):
+class RemoteHelloRobot(object):
     """PyRobot interface for the Locobot.
 
     Args:
@@ -56,9 +48,10 @@ class RemoteLocobot(object):
         self._robot = Robot()
         self._robot.startup()
         if not self._robot.is_calibrated():
-            self._robot.home() #blocking
+            self._robot.home() 
 
-        self._check_battery()
+        # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
+        self._check_battery() 
         self._connect_to_realsense()
     
     def _connect_to_realsense(self):
@@ -68,6 +61,7 @@ class RemoteLocobot(object):
         pipeline = rs.pipeline()
         pipeline.start(cfg)
         self.realsense = pipeline
+        
         profile = pipeline.get_active_profile()
         depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
         i = depth_profile.get_intrinsics()
@@ -78,7 +72,7 @@ class RemoteLocobot(object):
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
-        
+    
     def _check_battery(self):
         p = self._robot.pimu
         p.pull_status()
@@ -126,8 +120,8 @@ class RemoteLocobot(object):
         :type tilt: float
         :type wait: bool
         """
-        self._head.move_to('head_pan', pan)
-        self._head.move_to('head_tilt', tilt)
+        self._robot.head.move_to('head_pan', pan)
+        self._robot.head.move_to('head_tilt', tilt)
     
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
@@ -138,6 +132,9 @@ class RemoteLocobot(object):
     
     def stow(self):
         self._robot.stow()
+    
+    def push_command(self):
+        self._robot.push_command()
 
     def translate_by(self, x_m):
         self._robot.base.translate_by(x_m)
@@ -207,10 +204,10 @@ if __name__ == "__main__":
     np.random.seed(123)
 
     with Pyro4.Daemon(args.ip) as daemon:
-        robot = RemoteLocobot()
+        robot = RemoteHelloRobot()
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
-            ns.register("remotelocobot", robot_uri)
+            ns.register("remotehellorobot", robot_uri)
 
         print("Server is started...")
         daemon.requestLoop()
