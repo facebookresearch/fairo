@@ -51,9 +51,9 @@ class DialogueManager(object):
             chat_memid = chat.memid
             # get logical form if any else None
             logical_form = None
-            logical_form_triples = self.agent.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
+            logical_form_triples = self.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
             if logical_form_triples:
-                logical_form = self.agent.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
+                logical_form = self.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
             chat_str = chat.chat_text
             chat_list_text.append((speaker, chat_str, logical_form))
 
@@ -76,7 +76,7 @@ class DialogueManager(object):
 
         """
         # chat is a single line command
-        chat_list = self.dialogue_manager.get_last_m_chats(m=1)
+        chat_list = self.get_last_m_chats(m=1)
         # TODO: this can be moved to get_d_o
         speaker, chatstr, logical_form = chat_list[0]
         # get last m chats and their parses.

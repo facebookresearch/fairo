@@ -118,17 +118,17 @@ class DialogueObjectMapper(object):
         else:
             raise ValueError("Bad dialogue_type={}".format(logical_form["dialogue_type"]))
 
-    def is_safe(self, safety_words, chat):
+    def is_safe(self, chat):
         """Check that chat does not contain any word from the
         safety check list.
         """
         cmd_set = set(chat.lower().split())
-        notsafe = len(cmd_set & safety_words) > 0
+        notsafe = len(cmd_set & self.safety_words) > 0
         return not notsafe
 
-    def get_greeting_reply(self, greetings, chat):
+    def get_greeting_reply(self, chat):
         response_options = []
-        for greeting_type, allowed_str in greetings.items():
+        for greeting_type, allowed_str in self.greetings.items():
             if chat in allowed_str:
                 if greeting_type == GreetingType.GOODBYE.value:
                     response_options = ["goodbye", "bye", "see you next time!"]

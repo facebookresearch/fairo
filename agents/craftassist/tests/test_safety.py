@@ -6,7 +6,6 @@ import os
 import unittest
 
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
-from droidlet.dialog.map_to_dialogue_object import is_safe
 from droidlet.shared_data_structs import MockOpt
 
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
@@ -26,11 +25,11 @@ class SafetyTest(BaseCraftassistTestCase):
 
 
     def test_unsafe_word(self):
-        is_safe = is_safe(self.agent.chat_parser.safety_words, "bad Clinton")
+        is_safe = self.agent.dialogue_manager.dialogue_object_mapper.is_safe("bad CLinton")
         self.assertFalse(is_safe)
 
     def test_safe_word(self):
-        is_safe = is_safe(self.agent.chat_parser.safety_words, "build a house")
+        is_safe = self.agent.dialogue_manager.dialogue_object_mapper.is_safe("build a house")
         self.assertTrue(is_safe)
 
     def test_dialogue_manager(self):
