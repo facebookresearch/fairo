@@ -9,7 +9,7 @@ class TagSelector extends React.Component {
     super(props);
 
     this.state = {
-      selectedTags: [],
+      selectedTags: props.tags || [],
       suggestions: [],
       currentValue: "",
     };
@@ -21,9 +21,9 @@ class TagSelector extends React.Component {
     return (
       <div className="tag-selector">
         <div className="tag-holder">
-          {this.state.selectedTags.map((tag) => {
+          {this.state.selectedTags.map((tag, i) => {
             return (
-              <span class="tag-selected">
+              <span className="tag-selected" key={i}>
                 {tag}
                 <button
                   onClick={() => {
@@ -44,12 +44,12 @@ class TagSelector extends React.Component {
           onKeyDown={this.keyDown.bind(this)}
         />
         <div className="tag-suggestions">
-          {this.state.suggestions.map((i) => {
+          {this.state.suggestions.map((tag, i) => {
             return (
-              <span>
+              <span key={i}>
                 <button
                   onClick={() => {
-                    this.addTag(i);
+                    this.addTag(tag);
                   }}
                 >
                   {i}

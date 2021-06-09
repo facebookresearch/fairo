@@ -10,6 +10,7 @@ class ObjectFixup extends React.Component {
     super(props);
     this.initialState = {
       image: undefined,
+      objects: [],
     };
     this.state = this.initialState;
   }
@@ -25,6 +26,7 @@ class ObjectFixup extends React.Component {
     return (
       <ObjectAnnotation
         image={this.state.image}
+        objects={this.state.objects}
         not_turk={true}
         stateManager={this.props.stateManager}
       />
