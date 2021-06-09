@@ -72,11 +72,11 @@ class StateManager {
     this.showAssistantReply = this.showAssistantReply.bind(this);
 
     // set default url to actual ip:port
-    this.default_url = "localhost:8000"; //window.location.href;
+    this.default_url = window.location.href;
     const urlParams = new URLSearchParams(window.location.search);
     const turkExperimentId = urlParams.get("turk_experiment_id");
     const mephistoAgentId = urlParams.get("mephisto_agent_id");
-    const turkWorkerId = urlParams.get("provider_worker_id");
+    const turkWorkerId = urlParams.get("turk_worker_id");
     this.setTurkExperimentId(turkExperimentId);
     this.setMephistoAgentId(mephistoAgentId);
     this.setTurkWorkerId(turkWorkerId);

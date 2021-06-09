@@ -147,8 +147,9 @@ class LocoMCAgent(BaseAgent):
             turk_experiment_id = msg.get("turk_experiment_id", "null")
             mephisto_agent_id = msg.get("mephisto_agent_id", "null")
             turk_worker_id = msg.get("turk_worker_id", "null")
-            print("turk worker ID: {}".format(turk_worker_id))
             if turk_experiment_id != "null":
+                print("turk worker ID: {}".format(turk_worker_id))
+                print("mephisto agent ID: {}".format(mephisto_agent_id))
                 with open("turk_experiment_id.txt", "w+") as f:
                     f.write(turk_experiment_id)
                 # Write metadata associated with crowdsourced run such as the experiment ID
