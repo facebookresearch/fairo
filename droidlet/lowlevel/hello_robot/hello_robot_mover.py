@@ -169,7 +169,7 @@ class HelloRobotMover(MoverInterface):
             an RGBDepth object
         """
         rgb, depth, rot, trans = self.bot.get_pcd_data()
-        rgb = np.asarray(rgb).astype(np.float32)
+        rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         depth = np.asarray(depth)
         rot = np.asarray(rot)
@@ -196,6 +196,9 @@ class HelloRobotMover(MoverInterface):
         """
         turn_rad = yaw * math.pi / 180
         self.bot.rotate_by(turn_rad)
+
+    def get_obstacles_in_canonical_coords(self):
+        pass
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
