@@ -217,7 +217,12 @@ class PolygonTool extends React.Component {
       case "Enter":
         if (this.lastKey === "Enter") {
           this.lastKey = null;
-          this.props.submitCallback(this.points);
+          this.props.submitCallback(
+            this.points.map((p) => ({
+              x: p.x / this.canvas.width,
+              y: p.y / this.canvas.height,
+            }))
+          );
         }
         break;
       case "=":

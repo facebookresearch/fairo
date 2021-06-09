@@ -53,8 +53,20 @@ class LiveObjects extends React.Component {
         }
       });
       if (fixer !== undefined) {
+        // Scale points
+        // quad nested array: obj, masks for obj, points in mask, x/y
+        let canvas_dim = 500; // hardcoded 500... not sure where this comes from
+        let scaledMasks = this.state.objects.map((obj) =>
+          obj.mask.map((masks) =>
+            masks.map((pt) => ({
+              x: pt[0] / canvas_dim,
+              y: pt[1] / canvas_dim,
+            }))
+          )
+        );
         fixer.setState({
           image: this.state.rgb,
+          masks: scaledMasks,
         });
         var myLayout = stateManager.dashboardLayout;
         // switch the active tab in the layout to the annotation tab
@@ -142,14 +154,14 @@ class LiveObjects extends React.Component {
         />
       );
       for (let i = 0; i < obj.mask.length; i++) {
-        let mask = obj.mask[i];
+        let mask = obj.mask[i].map((x) => [x[0] * scale, x[1] * scale]);
         renderedObjects.push(
           <Shape
             sceneFunc={(context, shape) => {
               context.beginPath();
-              context.moveTo(mask[0][0] * scale, mask[0][1] * scale);
+              context.moveTo(...mask[0]);
               for (let i = 1; i < mask.length; i++) {
-                context.lineTo(mask[i][0] * scale, mask[i][1] * scale);
+                context.lineTo(...mask[i]);
               }
               context.closePath();
               context.fillStrokeShape(shape);
