@@ -104,14 +104,14 @@ class DroidletNSPModelWrapper(object):
         # speaker, chatstr = chat_list[0]
         chat = self.preprocess_chat(chatstr)
 
-        # 3. Check against safety phrase list
-        if not self.is_safe(chat):
-            return "Please don't be rude."
-
-        # 4. Check if incoming chat is one of the scripted ones in greetings
-        reply = self.get_greeting_reply(chat)
-        if reply:
-            return reply
+        # # 3. Check against safety phrase list
+        # if not self.is_safe(chat):
+        #     return "Please don't be rude."
+        #
+        # # 4. Check if incoming chat is one of the scripted ones in greetings
+        # reply = self.get_greeting_reply(chat)
+        # if reply:
+        #     return reply
 
         # 5. Get logical form from either ground truth or query the parsing model
         logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)

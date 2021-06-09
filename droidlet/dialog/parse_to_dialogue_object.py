@@ -100,7 +100,7 @@ class DialogueObjectMapper(object):
         """Return the appropriate DialogueObject to handle an action dict d
         d should have spans filled (via process_spans_and_remove_fixed_value).
         """
-        ProgramNode.create(self.dialogue_manager.memory, logical_form)
+        # ProgramNode.create(self.dialogue_manager.memory, logical_form)
         memory = self.dialogue_manager.memory
         if logical_form["dialogue_type"] == "NOOP":
             return Say("I don't know how to answer that.", memory=memory)

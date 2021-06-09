@@ -148,6 +148,7 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_perception(self):
         """Initialize perception modules"""
+        # NOTE: self.chat_parser will move to perception_modules once Soumith's changes are in
         self.chat_parser = DroidletNSPModelWrapper(self.opts)
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self)

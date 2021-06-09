@@ -21,6 +21,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     TripleNode,
     PlayerNode,
+    ProgramNode,
     MemoryNode,
     ChatNode,
     TimeNode,
@@ -608,6 +609,26 @@ class AgentMemory:
             return ChatNode(self, r[0])
         else:
             return None
+
+    ###################
+    ## Logical form ###
+    ###################
+
+    def add_logical_form(self, logical_form: dict):
+        """Create a new ProgramNode
+
+        Args:
+            logical_form: the semantic parser's output
+        """
+        return ProgramNode.create(self, logical_form)
+
+    def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
+        """Return ProgramNode, given memid
+
+        Args:
+            memid (string): Memory ID
+        """
+        return ProgramNode(self, memid)
 
     #################
     ###  Players  ###

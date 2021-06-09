@@ -48,6 +48,8 @@ class DialogueManager(object):
         chat_list_text = []
         for chat in all_chats:
             speaker = self.memory.get_player_by_id(chat.speaker_id).name
+            chat_memid = chat.memid
+            # get logical form if any else None
             chat_str = chat.chat_text
             chat_list_text.append((speaker, chat_str))
 
@@ -71,6 +73,7 @@ class DialogueManager(object):
         """
         # chat is a single line command
         speaker, chatstr = chat
+        # get last m chats and their parses.
 
         if chatstr:
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
