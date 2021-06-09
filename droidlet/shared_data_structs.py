@@ -80,8 +80,8 @@ class RGBDepth:
         import cv2
         import base64
 
-        rgb = self.rgb.astype('float32') 
-        depth = self.depth.astype('float32') 
+        rgb = self.rgb
+        depth = self.depth 
         if size is not None:
             rgb = cv2.resize(rgb, (size, size), interpolation=cv2.INTER_LINEAR)
             depth = cv2.resize(depth, (size, size), interpolation=cv2.INTER_LINEAR)
