@@ -6,7 +6,7 @@ import logging
 import pkg_resources
 from enum import Enum
 from time import time
-from typing import Dict
+from typing import Dict, Tuple
 from .utils import preprocess
 from .load_and_check_datasets import get_ground_truth
 from .nsp_model import DroidletSemanticParsingModel
@@ -61,17 +61,16 @@ class DroidletNSPModelWrapper(object):
         preprocessed_chat = preprocess.preprocess_chat(chat)
         return preprocessed_chat
 
-    def get_parse(self, chatstr: str) -> str or Dict:
+    def get_parse(self, chatstr: str) -> Tuple[str, Dict]:
         """This is the function that is called from the tick() of the agent.
         This function takes in a chat and either returns text or logical form.
         The order is:
         1. Preprocess the incoming chat
-        2. check against safety words first and return if unsafe
-        3. check against greetings and return if chat is greeting
-        4. check against ground_truth commands or query model and return logical form
+        2. check against ground truth
+        3. query model and get logical form
 
         Returns:
-            str or Dict
+            str, Dict
         """
         # 1. Preprocess chat
         chat = self.preprocess_chat(chatstr)
