@@ -79,15 +79,21 @@ class SegmentRenderer extends React.Component {
     );
     //Draw image scaled and repostioned
     this.ctx.drawImage(this.props.img, 0, 0);
-    //Draw segments
+    //Draw regions
     for (let i = 0; i < this.props.objects.length; i++) {
-      let pts = this.props.pointMap[this.props.objects[i]];
-      if (pts) {
-        let color = this.props.colors[i % this.props.colors.length];
-        if (color) {
-          this.drawRegion(pts, color);
-        } else {
-          this.drawRegion(pts, "rgba(0,200,0,.5)");
+      let pts_arr = this.props.pointMap[this.props.objects[i]];
+      if (pts_arr.length > 0) {
+        let color =
+          this.props.colors[i % this.props.colors.length] || "rgba(0,200,0,.5)";
+        for (let i = 0; i < pts_arr.length; i++) {
+          // Must denormalize points
+          this.drawRegion(
+            pts_arr[i].map((pt) => ({
+              x: pt.x * this.canvas.width,
+              y: pt.y * this.canvas.height,
+            })),
+            color
+          );
         }
       }
     }
