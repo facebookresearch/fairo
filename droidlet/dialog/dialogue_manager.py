@@ -78,10 +78,9 @@ class DialogueManager(object):
         # chat is a single line command
         chat_list = self.get_last_m_chats(m=1)
         # TODO: this can be moved to get_d_o
-        speaker, chatstr, logical_form = chat_list[0]
-        # get last m chats and their parses.
 
-        if chatstr:
+        if chat_list:
+            speaker, chatstr, logical_form = chat_list[0]
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
             # NOTE: the model is responsible for not putting a new
@@ -92,3 +91,4 @@ class DialogueManager(object):
             obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form)
             if obj is not None:
                 self.dialogue_stack.append(obj)
+                return obj

@@ -291,13 +291,12 @@ class LocoMCAgent(BaseAgent):
     def controller_step(self):
         """Process incoming chats and modify task stack"""
 
-        self.dialogue_manager.step()
-        # TODO: fix the following with return from above
-        # else:
-        #     # Maybe add default task
-        #     if not self.no_default_behavior:
-        #         self.maybe_run_slow_defaults()
-        #     self.dialogue_manager.step((None, ""), "")
+        obj = self.dialogue_manager.step()
+        if not obj:
+            # Maybe add default task
+            if not self.no_default_behavior:
+                self.maybe_run_slow_defaults()
+            self.dialogue_manager.step()
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.memory.dialogue_stack) > 0:
