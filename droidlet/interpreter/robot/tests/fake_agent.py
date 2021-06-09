@@ -25,7 +25,7 @@ from droidlet.lowlevel.robot_mover_utils import (
 
 # FXIME!!! everything here should be essentially self-contained
 from agents.locobot.self_perception import SelfPerception
-import droidlet.lowlevel.locobot.rotation as rotation
+import droidlet.lowlevel.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
 
 # these should go in utils
