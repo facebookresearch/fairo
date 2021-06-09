@@ -82,7 +82,6 @@ class RGBDepth:
 
         rgb = self.rgb.astype('float32') 
         depth = self.depth.astype('float32') 
-        print(f'rgb.dtype {rgb.dtype}')
         if size is not None:
             rgb = cv2.resize(rgb, (size, size), interpolation=cv2.INTER_LINEAR)
             depth = cv2.resize(depth, (size, size), interpolation=cv2.INTER_LINEAR)

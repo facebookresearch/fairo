@@ -14,5 +14,5 @@ BGPID=$!
 sleep 4
 
 echo $ip
-python2 remote.py --ip $ip
+python2 remote_hello_robot.py --ip $ip
 BGPID2=$!
