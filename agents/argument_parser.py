@@ -84,6 +84,7 @@ class ArgumentParser:
             "--geoscorer_model_path", default="", help="path to geoscorer model"
         )
         mc_parser.add_argument("--port", type=int, default=25565)
+        mc_parser.add_argument("--log_timeline", action="store_true", help="enables timeline logging for dashboard")
 
     def add_loco_parser(self):
         loco_parser = self.parser.add_argument_group("Locobot Agent Args")

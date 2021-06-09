@@ -342,7 +342,7 @@ class LocoMCAgent(BaseAgent):
             sio.emit("memoryState", self.dashboard_memory["db"])
 
     def agent_emit(self, result):
-        sio.emit("newEvent", result)
+        sio.emit("newTimelineEvent", result)
 
 
 def default_agent_name():

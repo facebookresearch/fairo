@@ -329,9 +329,10 @@ class CraftAssistAgent(LocoMCAgent):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
         self.agent_emit(result)
-        timeline_log = open("timeline_log.txt", "a")
-        print(result, file=timeline_log)
-        timeline_log.close()
+        if self.opts.log_timeline:
+            timeline_log = open("timeline_log.txt", "a")
+            print(result, file=timeline_log)
+            timeline_log.close()
 
 
 if __name__ == "__main__":
