@@ -76,8 +76,12 @@ class StateManager {
     // set default url to actual ip:port
     this.default_url = window.location.href;
     const urlParams = new URLSearchParams(window.location.search);
-    const turkId = urlParams.get("turk_id");
-    this.setTurkId(turkId);
+    const turkExperimentId = urlParams.get("turk_experiment_id");
+    const mephistoAgentId = urlParams.get("mephisto_agent_id");
+    const turkWorkerId = urlParams.get("turk_worker_id");
+    this.setTurkExperimentId(turkExperimentId);
+    this.setMephistoAgentId(mephistoAgentId);
+    this.setTurkWorkerId(turkWorkerId);
 
     this.setUrl(this.default_url);
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
@@ -103,12 +107,28 @@ class StateManager {
     this.restart(this.url);
   }
 
-  setTurkId(turkId) {
-    localStorage.setItem("turk_id", turkId);
+  setTurkExperimentId(turk_experiment_id) {
+    localStorage.setItem("turk_experiment_id", turk_experiment_id);
   }
 
-  getTurkId() {
-    return localStorage.getItem("turk_id");
+  getTurkExperimentId() {
+    return localStorage.getItem("turk_experiment_id");
+  }
+
+  setMephistoAgentId(mephisto_agent_id) {
+    localStorage.setItem("mephisto_agent_id", mephisto_agent_id);
+  }
+
+  getMephistoAgentId() {
+    return localStorage.getItem("mephisto_agent_id");
+  }
+
+  setTurkWorkerId(turk_worker_id) {
+    localStorage.setItem("turk_worker_id", turk_worker_id);
+  }
+
+  getTurkWorkerId() {
+    return localStorage.getItem("turk_worker_id");
   }
 
   restart(url) {
