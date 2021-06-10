@@ -24,24 +24,26 @@ class PolygonTool extends React.Component {
     this.onClick = this.onClick.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
-
     this.drawPoint = this.drawPoint.bind(this);
     this.drawLine = this.drawLine.bind(this);
     this.localToImage = this.localToImage.bind(this);
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
+    this.mode = "default"; // default, dragging (could implement: draw, erase, duplicate, select, delete, etc)
+    this.prevMode = "default";
     this.isDrawingPolygon = false;
     this.lastMouse = {
       x: 0,
       y: 0,
     };
-    this.dragging = false;
+    this.points = [];
 
     this.canvasRef = React.createRef();
 
     this.zoomPixels = 300;
     this.pointSize = 10;
+    this.color = "rgba(0,0,200,0.5)"; // TODO: choose random color
   }
 
   componentDidMount() {
@@ -87,7 +89,7 @@ class PolygonTool extends React.Component {
   }
 
   update() {
-    //clear and transform
+    // Draw image scaled and repostioned
     this.ctx.resetTransform();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.setTransform(
@@ -98,28 +100,31 @@ class PolygonTool extends React.Component {
       this.Offset.x,
       this.Offset.y
     );
-    //Draw image scaled and repostioned
     this.ctx.drawImage(this.img, 0, 0);
-    //Draw points and lines
+
+    // Draw points and lines
     if (this.lastKey !== "Enter") {
       for (let i = 0; i < this.points.length; i++) {
+        // Lines
         for (let j = 0; j < this.points[i].length - 1; j++) {
           this.drawLine(this.points[i][j], this.points[i][j + 1]);
         }
-        if (this.points[i].length > 0 && !this.dragging) {
+        // Line to mouse
+        if (this.points[i].length > 0 && ["drawing"].includes(this.mode)) {
           this.drawLine(
             this.points[i][this.points[i].length - 1],
             this.localToImage(this.lastMouse)
           );
         }
-
-        this.points.forEach((pt) => {
-          this.drawPoint(pt);
+        // Draw points
+        this.points.forEach((ptSet) => {
+          ptSet.forEach((pt) => {
+            this.drawPoint(pt);
+          });
         });
       }
     } else {
       this.ctx.resetTransform();
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
       this.ctx.drawImage(this.img, 0, 0);
@@ -161,44 +166,46 @@ class PolygonTool extends React.Component {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top + 1,
     };
-    if (this.dragging) {
-      this.points[this.draggingIndex] = this.localToImage(this.lastMouse);
+    if (this.mode === "dragging") {
+      this.points[this.draggingIndex[0]][this.draggingIndex[1]] =
+        this.localToImage(this.lastMouse);
     }
     this.update();
   }
 
   onClick(e) {
-    if (this.dragging) {
-      this.dragging = false;
+    if (this.mode === "dragging") {
+      this.prevMode = this.mode;
+      this.mode = "default";
       this.update();
       return;
     }
 
+    // Check if point was clicked
     let hoverPointIndex = null;
     for (let i = 0; i < this.points.length; i++) {
-      if (
-        this.distance(this.points[i], this.localToImage(this.lastMouse)) <
-        this.pointSize / 2
-      ) {
-        hoverPointIndex = i;
+      for (let j = 0; j < this.points[i].length; j++) {
+        if (
+          this.distance(this.points[i][j], this.localToImage(this.lastMouse)) <
+          this.pointSize / 2
+        ) {
+          hoverPointIndex = [i, j];
+        }
       }
     }
-
     if (hoverPointIndex != null) {
-      this.dragging = true;
+      console.log("dragging now");
+      this.prevMode = this.mode;
+      this.mode = "dragging";
       this.draggingIndex = hoverPointIndex;
       this.update();
       return;
     }
-    if (this.lastKey !== "Enter") {
+
+    if (this.lastKey !== "Enter" && this.mode === "drawing") {
       this.points.push(this.localToImage(this.lastMouse));
     }
     this.updateZoom();
-    if (!this.isDrawingPolygon) {
-      this.points.pop();
-      this.isDrawingPolygon = true;
-    }
-
     this.update();
     this.lastKey = "Mouse";
   }
