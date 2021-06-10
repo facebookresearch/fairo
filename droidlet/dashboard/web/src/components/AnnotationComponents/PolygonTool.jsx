@@ -143,6 +143,7 @@ class PolygonTool extends React.Component {
       }
       this.prevMode = this.mode;
       this.mode = "dragging";
+      console.log("updating mode from", this.prevMode, "to", this.mode);
       this.draggingIndex = hoverPointIndex;
       this.currentMaskId = hoverPointIndex[0];
       this.update();
@@ -507,6 +508,20 @@ class PolygonTool extends React.Component {
 
   distance(pt1, pt2) {
     return Math.max(Math.abs(pt1.x - pt2.x), Math.abs(pt1.y - pt2.y)) * 2;
+  }
+
+  getPointClick() {
+    for (let i = 0; i < this.points.length; i++) {
+      for (let j = 0; j < this.points[i].length; j++) {
+        if (
+          this.distance(this.points[i][j], this.localToImage(this.lastMouse)) <
+          this.pointSize / 2
+        ) {
+          return [i, j];
+        }
+      }
+    }
+    return null;
   }
 }
 
