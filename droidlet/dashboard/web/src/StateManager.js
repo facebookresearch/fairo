@@ -229,6 +229,11 @@ class StateManager {
     }
     if (commands.length > 0) {
       this.socket.emit("movement command", commands);
+
+      // Reset keys to prevent duplicate commands
+      for (let i in keys) {
+        key_codes[keys[i]] = false;
+      }
     }
   }
 

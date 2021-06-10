@@ -155,7 +155,7 @@ class LiveObjects extends React.Component {
               context.fillStrokeShape(shape);
             }}
             fill={color}
-            opacity={0.3}
+            opacity={0.5}
             stroke="black"
             strokeWidth={1}
           />
