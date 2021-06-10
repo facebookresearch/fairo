@@ -132,6 +132,7 @@ class SegmentRenderer extends React.Component {
     this.canvas.addEventListener("mousedown", (e) => {
       // Run through regions and if click is in a region, display only that region
       let regionFound = false;
+      let regionId;
       for (let i = 0; i < this.regions.length; i++) {
         for (let j = 0; j < this.regions[i].length; j++) {
           if (
@@ -140,15 +141,14 @@ class SegmentRenderer extends React.Component {
             // Click in region
             // TODO: Isolate this region and show points
             console.log("region clicked!", i, j);
+            regionId = i;
             regionFound = true;
           }
         }
       }
 
-      // If outer area clicked, run onClick callback
-      if (!regionFound) {
-        this.props.onClick(e);
-      }
+      let region = regionFound ? regionId : -1;
+      this.props.onClick(e.clientX, e.clientY, regionFound, region);
     });
   }
 }
