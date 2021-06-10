@@ -131,22 +131,19 @@ class SegmentRenderer extends React.Component {
   addOnClickHandler(e) {
     this.canvas.addEventListener("mousedown", (e) => {
       // Run through regions and if click is in a region, display only that region
-      let regionFound = false;
-      let regionId;
+      let regionId = -1;
       for (let i = 0; i < this.regions.length; i++) {
         for (let j = 0; j < this.regions[i].length; j++) {
           if (
             this.ctx.isPointInPath(this.regions[i][j], e.offsetX, e.offsetY)
           ) {
-            // Click in region
             regionId = i;
-            regionFound = true;
           }
         }
       }
 
-      let region = regionFound ? regionId : -1;
-      this.props.onClick(e.clientX, e.clientY, regionFound, region);
+      let regionFound = regionId !== -1;
+      this.props.onClick(e.clientX, e.clientY, regionFound, regionId);
     });
   }
 }
