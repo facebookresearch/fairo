@@ -109,11 +109,6 @@ class ObjectAnnotation extends React.Component {
           onSubmit={this.dataEntered.bind(this)}
         />
       );
-      // if (this.props.isMobile) {
-      //   var overlay = (
-      //     <DataEntry x={this.props.imageWidth / 2} y={this.props.imageWidth / 2} onSubmit={this.dataEntered.bind(this)} />
-      //   );
-      // }
       // Update State
       this.setState({
         currentMode: "fill_data",
