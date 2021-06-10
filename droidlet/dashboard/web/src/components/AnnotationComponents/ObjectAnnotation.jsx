@@ -91,6 +91,7 @@ class ObjectAnnotation extends React.Component {
           object={this.drawing_data.name}
           submitCallback={this.drawingFinished.bind(this)}
           isMobile={this.props.isMobile}
+          imageWidth={this.props.imageWidth}
         ></PolygonTool>
       );
     }
@@ -99,9 +100,20 @@ class ObjectAnnotation extends React.Component {
   registerClick(x, y) {
     if (this.state.currentMode === "select") {
       // Build overlay component
+
       var overlay = (
-        <DataEntry x={x} y={y} onSubmit={this.dataEntered.bind(this)} />
+        <DataEntry
+          isMobile={this.props.isMobile}
+          x={x}
+          y={y}
+          onSubmit={this.dataEntered.bind(this)}
+        />
       );
+      // if (this.props.isMobile) {
+      //   var overlay = (
+      //     <DataEntry x={this.props.imageWidth / 2} y={this.props.imageWidth / 2} onSubmit={this.dataEntered.bind(this)} />
+      //   );
+      // }
       // Update State
       this.setState({
         currentMode: "fill_data",

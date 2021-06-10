@@ -64,13 +64,17 @@ class PolygonTool extends React.Component {
   }
 
   render() {
+    let imageSize = "500px"; // default is 500px for the web dashboard
+    if (this.props.imageWidth) {
+      imageSize = this.props.imageWidth;
+    }
     return (
       <div>
         <p>Please trace the {this.props.object}</p>
         <canvas
           ref={this.canvasRef}
-          width="500px"
-          height="500px"
+          width={imageSize}
+          height={imageSize}
           tabIndex="0"
           onClick={this.onClick}
           onMouseMove={this.onMouseMove}
@@ -78,8 +82,7 @@ class PolygonTool extends React.Component {
         ></canvas>
         {this.props.isMobile && (
           <button onClick={this.enterButtonMobile.bind(this)}>
-            {" "}
-            Enter button{" "}
+            Finished annotating the {this.props.object}
           </button>
         )}
       </div>
