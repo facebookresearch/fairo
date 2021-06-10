@@ -8,7 +8,10 @@ import math
 import pickle
 import torch
 from transformers import AutoModel, AutoTokenizer, BertConfig
-from train_model import *
+from droidlet.dialog.ttad.ttad_transformer_model.utils_parsing import *
+from droidlet.dialog.ttad.ttad_transformer_model.decoder_with_loss import *
+from droidlet.dialog.ttad.ttad_transformer_model.encoder_decoder import *
+from droidlet.dialog.ttad.ttad_transformer_model.caip_dataset import *
 
 from pprint import pprint
 
