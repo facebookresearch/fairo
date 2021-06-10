@@ -241,6 +241,13 @@ class PolygonTool extends React.Component {
           this.props.exitCallback();
         }
         break;
+      case "~":
+        this.mode = "default";
+        break;
+      case "Escape":
+        this.mode = "default";
+        this.props.exitCallback();
+        break;
       case "=":
         this.zoomPixels -= 10;
         this.updateZoom();
@@ -253,6 +260,39 @@ class PolygonTool extends React.Component {
         break;
     }
     this.lastKey = e.key;
+    console.log(e.key);
+    this.update();
+  }
+
+  updateZoom() {
+    this.scale = Math.min(
+      this.canvas.width / this.zoomPixels,
+      this.canvas.height / this.zoomPixels
+    );
+    if (
+      this.currentMaskId === -1 ||
+      this.points[this.currentMaskId].length === 0 ||
+      !["default", "dragging"].includes(this.mode)
+    ) {
+      return;
+    }
+    let points = this.points[this.currentMaskId];
+    this.Offset = {
+      x: -(points[points.length - 1].x - this.zoomPixels / 2) * this.scale,
+      y: -(points[points.length - 1].y - this.zoomPixels / 2) * this.scale,
+    };
+  }
+
+  onMouseMove(e) {
+    var rect = this.canvas.getBoundingClientRect();
+    this.lastMouse = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top + 1,
+    };
+    if (this.mode === "dragging") {
+      this.points[this.draggingIndex[0]][this.draggingIndex[1]] =
+        this.localToImage(this.lastMouse);
+    }
     this.update();
   }
 
@@ -508,20 +548,6 @@ class PolygonTool extends React.Component {
 
   distance(pt1, pt2) {
     return Math.max(Math.abs(pt1.x - pt2.x), Math.abs(pt1.y - pt2.y)) * 2;
-  }
-
-  getPointClick() {
-    for (let i = 0; i < this.points.length; i++) {
-      for (let j = 0; j < this.points[i].length; j++) {
-        if (
-          this.distance(this.points[i][j], this.localToImage(this.lastMouse)) <
-          this.pointSize / 2
-        ) {
-          return [i, j];
-        }
-      }
-    }
-    return null;
   }
 }
 
