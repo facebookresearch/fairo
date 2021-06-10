@@ -227,6 +227,10 @@ class PolygonTool extends React.Component {
         this.zoomPixels -= 10;
         this.updateZoom();
         break;
+      case "-":
+        this.zoomPixels += 10;
+        this.updateZoom();
+        break;
       default:
         break;
     }
