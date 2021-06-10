@@ -98,6 +98,9 @@ class ObjectAnnotation extends React.Component {
           img={this.image}
           object={this.drawing_data.name}
           masks={this.pointMap[this.state.currentMask]}
+          exitCallback={() => {
+            this.setState({ currentMode: "select" });
+          }}
           submitCallback={this.drawingFinished.bind(this)}
         ></PolygonTool>
       );
