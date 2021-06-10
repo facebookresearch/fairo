@@ -56,18 +56,34 @@ class LiveObjects extends React.Component {
         // Scale points
         // quad nested array: obj, masks for obj, points in mask, x/y
         let canvas_dim = 500; // hardcoded 500... not sure where this comes from
-        let scaledMasks = this.state.objects.map((obj) =>
-          obj.mask.map((masks) =>
+        // let scaledMasks = this.state.objects.map((obj) =>
+        //   obj.mask.map((masks) =>
+        //     masks.map((pt) => ({
+        //       x: pt[0] / canvas_dim,
+        //       y: pt[1] / canvas_dim,
+        //     }))
+        //   )
+        // );
+        // fixer.setState({
+        //   image: this.state.rgb,
+        //   masks: scaledMasks,
+        // });
+
+        let objects = this.state.objects.map((obj) => ({
+          mask: obj.mask.map((masks) =>
             masks.map((pt) => ({
               x: pt[0] / canvas_dim,
               y: pt[1] / canvas_dim,
             }))
-          )
-        );
+          ),
+          label: obj.label,
+          properties: obj.properties.split("\n "),
+        }));
         fixer.setState({
           image: this.state.rgb,
-          masks: scaledMasks,
+          objects,
         });
+
         var myLayout = stateManager.dashboardLayout;
         // switch the active tab in the layout to the annotation tab
         for (var i = 0; i < myLayout._getAllContentItems().length; i++) {

@@ -48,7 +48,13 @@ class PolygonTool extends React.Component {
     this.canvas = this.canvasRef.current;
     this.ctx = this.canvas.getContext("2d");
 
-    this.points = [];
+    this.points = this.props.masks.map((maskSet) =>
+      maskSet.map((pt) => ({
+        x: pt.x * this.canvas.width,
+        y: pt.y * this.canvas.height,
+      }))
+    );
+    console.log("shoudl be in array with objects with x and y", this.points);
 
     this.img = this.props.img;
     this.Offset = {
@@ -96,19 +102,21 @@ class PolygonTool extends React.Component {
     this.ctx.drawImage(this.img, 0, 0);
     //Draw points and lines
     if (this.lastKey !== "Enter") {
-      for (let i = 0; i < this.points.length - 1; i++) {
-        this.drawLine(this.points[i], this.points[i + 1]);
-      }
-      if (this.points.length > 0 && !this.dragging) {
-        this.drawLine(
-          this.points[this.points.length - 1],
-          this.localToImage(this.lastMouse)
-        );
-      }
+      for (let i = 0; i < this.points.length; i++) {
+        for (let j = 0; j < this.points[i].length - 1; j++) {
+          this.drawLine(this.points[i][j], this.points[i][j + 1]);
+        }
+        if (this.points[i].length > 0 && !this.dragging) {
+          this.drawLine(
+            this.points[i][this.points[i].length - 1],
+            this.localToImage(this.lastMouse)
+          );
+        }
 
-      this.points.forEach((pt) => {
-        this.drawPoint(pt);
-      });
+        this.points.forEach((pt) => {
+          this.drawPoint(pt);
+        });
+      }
     } else {
       this.ctx.resetTransform();
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);

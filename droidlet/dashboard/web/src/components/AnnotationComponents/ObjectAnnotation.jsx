@@ -7,6 +7,8 @@ and provides a annotation UI for tagging and segmenting objects in an image
 props:
 
 imgUrl: url of the image to annotate
+
+masks: array of points for the masks
 */
 
 import React from "react";
@@ -33,18 +35,22 @@ class ObjectAnnotation extends React.Component {
     super(props);
 
     this.state = {
-      objectIds: [...Array(this.props.masks.length).keys()], // [0, ..., maskLength-1]
+      objectIds: [...Array(this.props.objects.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw
       currentOverlay: null,
+      currentMask: null,
     };
 
-    this.currentId = this.props.masks.length;
+    this.currentId = this.props.objects.length;
     this.nameMap = {};
     this.pointMap = {};
-    for (let i = 0; i < this.props.masks.length; i++) {
-      this.pointMap[i] = this.props.masks[i];
-    }
     this.propertyMap = {};
+    for (let i = 0; i < this.props.objects.length; i++) {
+      let curObject = this.props.objects[i];
+      this.nameMap[i] = curObject.label;
+      this.pointMap[i] = curObject.mask;
+      this.propertyMap[i] = curObject.properties;
+    }
 
     this.registerClick = this.registerClick.bind(this);
 
@@ -79,7 +85,7 @@ class ObjectAnnotation extends React.Component {
             objects={this.state.objectIds}
             pointMap={this.pointMap}
             colors={COLORS}
-            onClick={(e) => this.registerClick(e.clientX, e.clientY)}
+            onClick={this.registerClick}
           />
           <button onClick={this.submit.bind(this)}>
             Finished annotating objects
@@ -91,23 +97,39 @@ class ObjectAnnotation extends React.Component {
         <PolygonTool
           img={this.image}
           object={this.drawing_data.name}
+          masks={this.pointMap[this.state.currentMask]}
           submitCallback={this.drawingFinished.bind(this)}
         ></PolygonTool>
       );
     }
   }
 
-  registerClick(x, y) {
+  registerClick(x, y, regionFound, region) {
     if (this.state.currentMode === "select") {
-      // Build overlay component
-      var overlay = (
-        <DataEntry x={x} y={y} onSubmit={this.dataEntered.bind(this)} />
-      );
-      // Update State
-      this.setState({
-        currentMode: "fill_data",
-        currentOverlay: overlay,
-      });
+      console.log(x, y, regionFound, region);
+      if (regionFound) {
+        this.drawing_data = {
+          tags: this.propertyMap[region],
+          name: this.nameMap[region],
+        };
+        this.setState({
+          currentMode: "draw_polygon",
+          currentOverlay: null,
+          currentMask: region,
+        });
+        console.log("data:", this.drawing_data, this.state);
+      } else {
+        // Build overlay component
+        var overlay = (
+          <DataEntry x={x} y={y} onSubmit={this.dataEntered.bind(this)} />
+        );
+        // Update State
+        this.setState({
+          currentMode: "fill_data",
+          currentOverlay: overlay,
+          currentMask: -1,
+        });
+      }
     }
   }
 
