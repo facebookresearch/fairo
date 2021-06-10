@@ -92,8 +92,7 @@ class CraftAssistAgent(LocoMCAgent):
             timeline_log = open("timeline_log.txt", "w")
             timeline_log.close()
         
-        # Add hooks for db_read and db_write
-        self.memory.register_hook(self.log_to_dashboard, self.memory._db_read)
+        # Add hook for db_write
         self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
 
     def get_chats(self):

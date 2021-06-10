@@ -55,7 +55,8 @@ class StateManager {
       { msg: "", failed: false },
     ],
     timelineHandshake: "",
-    timelineEvents: "",
+    timelineEvent: "",
+    timelineEventHistory: [],
   };
 
   constructor() {
@@ -189,7 +190,8 @@ class StateManager {
   }
 
   returnTimelineEvent(res) {
-    this.memory.timelineEvents = res;
+    this.memory.timelineEventHistory.push(res);
+    this.memory.timelineEvent = res;
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
