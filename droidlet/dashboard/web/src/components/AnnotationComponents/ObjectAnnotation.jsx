@@ -106,7 +106,6 @@ class ObjectAnnotation extends React.Component {
 
   registerClick(x, y, regionFound, region) {
     if (this.state.currentMode === "select") {
-      console.log(x, y, regionFound, region);
       if (regionFound) {
         this.drawing_data = {
           tags: this.propertyMap[region],
@@ -117,7 +116,6 @@ class ObjectAnnotation extends React.Component {
           currentOverlay: null,
           currentMask: region,
         });
-        console.log("data:", this.drawing_data, this.state);
       } else {
         // Build overlay component
         var overlay = (

@@ -139,8 +139,6 @@ class SegmentRenderer extends React.Component {
             this.ctx.isPointInPath(this.regions[i][j], e.offsetX, e.offsetY)
           ) {
             // Click in region
-            // TODO: Isolate this region and show points
-            console.log("region clicked!", i, j);
             regionId = i;
             regionFound = true;
           }

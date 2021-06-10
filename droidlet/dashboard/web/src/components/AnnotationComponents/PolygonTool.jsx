@@ -30,14 +30,16 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    this.mode = "default"; // default, dragging (could implement: draw, erase, duplicate, select, delete, etc)
+    this.mode = "default"; // default, drawing, dragging (could implement: draw, erase, duplicate, select, delete, etc)
     this.prevMode = "default";
+    this.currentMaskId = 0;
     this.isDrawingPolygon = false;
     this.lastMouse = {
       x: 0,
       y: 0,
     };
     this.points = [];
+    this.regions = [];
 
     this.canvasRef = React.createRef();
 
@@ -56,7 +58,6 @@ class PolygonTool extends React.Component {
         y: pt.y * this.canvas.height,
       }))
     );
-    console.log("shoudl be in array with objects with x and y", this.points);
 
     this.img = this.props.img;
     this.Offset = {
@@ -103,7 +104,7 @@ class PolygonTool extends React.Component {
     this.ctx.drawImage(this.img, 0, 0);
 
     // Draw points and lines
-    if (this.lastKey !== "Enter") {
+    if (["default", "drawing", "dragging"].includes(this.mode)) {
       for (let i = 0; i < this.points.length; i++) {
         // Lines
         for (let j = 0; j < this.points[i].length - 1; j++) {
@@ -123,22 +124,12 @@ class PolygonTool extends React.Component {
           });
         });
       }
-    } else {
-      this.ctx.resetTransform();
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
-      this.ctx.drawImage(this.img, 0, 0);
-      if (this.points.length < 3) {
-        return;
-      }
-      let region = new Path2D();
-      region.moveTo(this.points[0].x, this.points[0].y);
-      for (let i = 1; i < this.points.length; i++) {
-        region.lineTo(this.points[i].x, this.points[i].y);
-      }
-      region.closePath();
-      this.ctx.fillStyle = "rgba(0,200,0,.5)";
-      this.ctx.fill(region, "evenodd");
+    }
+    // Draw regions
+    if (this.mode === "default") {
+      this.points.forEach((pts) => {
+        this.drawRegion(pts);
+      });
     }
   }
 
@@ -147,16 +138,17 @@ class PolygonTool extends React.Component {
       this.canvas.width / this.zoomPixels,
       this.canvas.height / this.zoomPixels
     );
-    if (this.points.length === 0) {
+    if (
+      this.currentMaskId === -1 ||
+      this.points[this.currentMaskId].length === 0 ||
+      !["default", "dragging"].includes(this.mode)
+    ) {
       return;
     }
+    let points = this.points[this.currentMaskId];
     this.Offset = {
-      x:
-        -(this.points[this.points.length - 1].x - this.zoomPixels / 2) *
-        this.scale,
-      y:
-        -(this.points[this.points.length - 1].y - this.zoomPixels / 2) *
-        this.scale,
+      x: -(points[points.length - 1].x - this.zoomPixels / 2) * this.scale,
+      y: -(points[points.length - 1].y - this.zoomPixels / 2) * this.scale,
     };
   }
 
@@ -177,26 +169,17 @@ class PolygonTool extends React.Component {
     if (this.mode === "dragging") {
       this.prevMode = this.mode;
       this.mode = "default";
+      console.log("updating mode from", this.prevMode, "to", this.mode);
       this.update();
       return;
     }
 
     // Check if point was clicked
-    let hoverPointIndex = null;
-    for (let i = 0; i < this.points.length; i++) {
-      for (let j = 0; j < this.points[i].length; j++) {
-        if (
-          this.distance(this.points[i][j], this.localToImage(this.lastMouse)) <
-          this.pointSize / 2
-        ) {
-          hoverPointIndex = [i, j];
-        }
-      }
-    }
+    let hoverPointIndex = this.getPointClick();
     if (hoverPointIndex != null) {
-      console.log("dragging now");
       this.prevMode = this.mode;
       this.mode = "dragging";
+      console.log("updating mode from", this.prevMode, "to", this.mode);
       this.draggingIndex = hoverPointIndex;
       this.update();
       return;
@@ -269,6 +252,22 @@ class PolygonTool extends React.Component {
     this.ctx.stroke();
   }
 
+  drawRegion(points) {
+    if (points.length < 3) {
+      return;
+    }
+    let region = new Path2D();
+    region.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i++) {
+      region.lineTo(points[i].x, points[i].y);
+    }
+    region.closePath();
+    this.ctx.fillStyle = this.color;
+    this.ctx.fill(region, "evenodd");
+
+    return region;
+  }
+
   localToImage(pt) {
     return {
       x: (pt.x - this.Offset.x) / this.scale,
@@ -303,6 +302,20 @@ class PolygonTool extends React.Component {
 
   distance(pt1, pt2) {
     return Math.max(Math.abs(pt1.x - pt2.x), Math.abs(pt1.y - pt2.y)) * 2;
+  }
+
+  getPointClick() {
+    for (let i = 0; i < this.points.length; i++) {
+      for (let j = 0; j < this.points[i].length; j++) {
+        if (
+          this.distance(this.points[i][j], this.localToImage(this.lastMouse)) <
+          this.pointSize / 2
+        ) {
+          return [i, j];
+        }
+      }
+    }
+    return null;
   }
 }
 
