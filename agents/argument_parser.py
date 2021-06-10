@@ -84,7 +84,8 @@ class ArgumentParser:
             "--geoscorer_model_path", default="", help="path to geoscorer model"
         )
         mc_parser.add_argument("--port", type=int, default=25565)
-        mc_parser.add_argument("--log_timeline",
+        mc_parser.add_argument(
+            "--log_timeline",
             action="store_true", 
             default=False,
             help="enables timeline logging for dashboard",

@@ -87,6 +87,15 @@ class CraftAssistAgent(LocoMCAgent):
         ]
         self.perceive_on_chat = True
 
+        # Add optional logging for timeline
+        if opts.log_timeline:
+            timeline_log = open("timeline_log.txt", "w")
+            timeline_log.close()
+        
+        # Add hooks for db_read and db_write
+        self.memory.register_hook(self.log_to_dashboard, self.memory._db_read)
+        self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
+
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
@@ -144,15 +153,6 @@ class CraftAssistAgent(LocoMCAgent):
         file_log_handler.setFormatter(log_formatter)
         logging.getLogger().addHandler(file_log_handler)
         logging.info("Initialized agent memory")
-        
-        # Add optional logging for timeline
-        if self.opts.log_timeline:
-            timeline_log = open("timeline_log.txt", "w")
-            timeline_log.close()
-        
-        # Add hooks for db_read and db_write
-        self.memory.register_hook(self.log_to_dashboard, self.memory._db_read)
-        self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
 
     def init_perception(self):
         """Initialize perception modules"""
