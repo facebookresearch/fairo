@@ -21,6 +21,7 @@ class PolygonTool extends React.Component {
     super(props);
 
     this.update = this.update.bind(this);
+    this.drawPointsAndLines = this.drawPointsAndLines.bind(this);
     this.onClick = this.onClick.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
@@ -30,7 +31,7 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    this.mode = "default"; // default, drawing, dragging (could implement: draw, erase, duplicate, select, delete, etc)
+    this.mode = "default"; // default, drawing, dragging, focus (could implement: draw, erase, duplicate, select, delete, etc)
     this.prevMode = "default";
     this.currentMaskId = 0;
     this.isDrawingPolygon = false;
@@ -104,32 +105,13 @@ class PolygonTool extends React.Component {
     this.ctx.drawImage(this.img, 0, 0);
 
     // Draw points and lines
-    if (["default", "drawing", "dragging"].includes(this.mode)) {
-      for (let i = 0; i < this.points.length; i++) {
-        // Lines
-        for (let j = 0; j < this.points[i].length - 1; j++) {
-          this.drawLine(this.points[i][j], this.points[i][j + 1]);
-        }
-        // Line to mouse
-        if (this.points[i].length > 0 && ["drawing"].includes(this.mode)) {
-          this.drawLine(
-            this.points[i][this.points[i].length - 1],
-            this.localToImage(this.lastMouse)
-          );
-        }
-        // Draw points
-        this.points.forEach((ptSet) => {
-          ptSet.forEach((pt) => {
-            this.drawPoint(pt);
-          });
-        });
-      }
+    if (["default", "drawing", "dragging", "focus"].includes(this.mode)) {
+      this.drawPointsAndLines(["dragging", "focus"].includes(this.mode));
     }
+
     // Draw regions
-    if (this.mode === "default") {
-      this.points.forEach((pts) => {
-        this.drawRegion(pts);
-      });
+    if (["default", "focus"].includes(this.mode)) {
+      this.drawRegions(["dragging", "focus"].includes(this.mode));
     }
   }
 
@@ -166,6 +148,7 @@ class PolygonTool extends React.Component {
   }
 
   onClick(e) {
+    // Let go of dragging point
     if (this.mode === "dragging") {
       this.prevMode = this.mode;
       this.mode = "default";
@@ -181,16 +164,62 @@ class PolygonTool extends React.Component {
       this.mode = "dragging";
       console.log("updating mode from", this.prevMode, "to", this.mode);
       this.draggingIndex = hoverPointIndex;
+      this.currentMaskId = hoverPointIndex[0];
       this.update();
       return;
     }
 
+    // Add new point
     if (this.lastKey !== "Enter" && this.mode === "drawing") {
       this.points.push(this.localToImage(this.lastMouse));
+      this.updateZoom();
+      this.update();
+      this.lastKey = "Mouse";
+      return;
     }
-    this.updateZoom();
-    this.update();
-    this.lastKey = "Mouse";
+
+    // Focus on singular region
+    let regionId = this.getRegionClick();
+    if (this.mode === "default") {
+      if (regionId !== -1) {
+        this.prevMode = this.mode;
+        this.mode = "focus";
+        console.log("updating mode from", this.prevMode, "to", this.mode);
+        this.currentMaskId = regionId;
+      }
+      this.update();
+      this.lastKey = "Mouse";
+      return;
+    }
+
+    // Unfocus
+    if (this.mode === "focus") {
+      if (regionId === -1) {
+        this.prevMode = this.mode;
+        this.mode = "default";
+        console.log("updating mode from", this.prevMode, "to", this.mode);
+        this.currentMaskId = -1;
+      }
+      this.update();
+      this.lastKey = "Mouse";
+      return;
+    }
+  }
+
+  getRegionClick() {
+    let regionId = -1;
+    for (let i = 0; i < this.regions.length; i++) {
+      if (
+        this.ctx.isPointInPath(
+          this.regions[i],
+          this.lastMouse.x,
+          this.lastMouse.y
+        )
+      ) {
+        regionId = i;
+      }
+    }
+    return regionId;
   }
 
   keyDown(e) {
@@ -236,6 +265,40 @@ class PolygonTool extends React.Component {
     }
     this.lastKey = e.key;
     this.update();
+  }
+
+  drawPointsAndLines(focus = false) {
+    for (let i = 0; i < this.points.length; i++) {
+      // Continue if focusing on specific mask and id isn't equal
+      if (focus === true && i !== this.currentMaskId) {
+        continue;
+      }
+      // Points and Lines
+      for (let j = 0; j < this.points[i].length - 1; j++) {
+        this.drawLine(this.points[i][j], this.points[i][j + 1]);
+        this.drawPoint(this.points[i][j]);
+      }
+      this.drawPoint(this.points[i][this.points[i].length - 1]); // Final point
+      // Line to mouse
+      if (this.points[i].length > 0 && ["drawing"].includes(this.mode)) {
+        this.drawLine(
+          this.points[i][this.points[i].length - 1],
+          this.localToImage(this.lastMouse)
+        );
+      }
+    }
+  }
+
+  drawRegions(focus = false) {
+    this.regions = [];
+    for (let i = 0; i < this.points.length; i++) {
+      // Continue if focusing on specific mask and id isn't equal
+      if (focus && i !== this.currentMaskId) {
+        continue;
+      }
+      let region = this.drawRegion(this.points[i]);
+      this.regions.push(region);
+    }
   }
 
   drawPoint(pt) {
