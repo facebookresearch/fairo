@@ -50,13 +50,14 @@ class DialogueManager(object):
             speaker = self.memory.get_player_by_id(chat.speaker_id).name
             chat_memid = chat.memid
             # get logical form if any else None
-            logical_form = None
+            logical_form, chat_status = None, ""
             logical_form_triples = self.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
             processed_status = self.memory.get_triples(subj=chat_memid, pred_text="has_tag", obj_text="unprocessed")
             if logical_form_triples:
                 logical_form = self.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
 
-            chat_status = processed_status if processed_status else ""
+            if processed_status:
+                chat_status = processed_status[0][2]
             chat_str = chat.chat_text
             chat_list_text.append((speaker, chat_str, logical_form, chat_status, chat_memid))
 

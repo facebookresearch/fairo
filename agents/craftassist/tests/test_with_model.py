@@ -30,14 +30,30 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
     def test_come_here(self):
         chat = "come here"
         self.add_incoming_chat(chat, self.speaker)
+        # get logical form
+        preprocessed_chat, chat_parse = self.agent.chat_parser.get_parse(chat)
+        chat_memid = self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid,
+                                                preprocessed_chat)
+        logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
+        self.agent.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+        self.agent.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
         self.flush()
-
+        self.agent.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
         self.assertLessEqual(euclid_dist(self.agent.pos, self.get_speaker_pos()), 1)
 
     def test_stop(self):
         chat = "stop"
         self.add_incoming_chat(chat, self.speaker)
+        # get logical form
+        preprocessed_chat, chat_parse = self.agent.chat_parser.get_parse(chat)
+        chat_memid = self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid,
+                                                preprocessed_chat)
+        logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
+        self.agent.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+        self.agent.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
         self.flush()
+        self.agent.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
+
 
 
 if __name__ == "__main__":

@@ -349,15 +349,15 @@ class FakeAgent(LocoMCAgent):
         else:  # logical form given directly:
             # TODO: move this to perceive() ?
             # clear the chat buffer
-            self.get_incoming_chats()
+            # self.get_incoming_chats()
             # use the logical form as given...
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
             chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
-            logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            # logical_form_memid = self.memory.add_logical_form(d)
+            # self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            # self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
             # force to get objects, speaker info
             self.perceive(force=True)
@@ -396,6 +396,18 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def perceive(self, force=False):
+        # clear the chat buffer
+        self.get_incoming_chats()
+        # use the logical form as given...
+        if self.logical_form:
+            d = self.logical_form["logical_form"]
+            chatstr = self.logical_form["chatstr"]
+            speaker_name = self.logical_form["speaker"]
+            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
+            logical_form_memid = self.memory.add_logical_form(d)
+            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            force= True
         self.perception_modules["low_level"].perceive(force=force)
         if self.do_heuristic_perception:
             self.perception_modules["heuristic"].perceive()
