@@ -282,6 +282,8 @@ class LocoMCAgent(BaseAgent):
             chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
             logical_form_memid = self.memory.add_logical_form(chat_parse)
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            # TODO: tag as unprocessed
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
         for v in self.perception_modules.values():
             v.perceive(force=force)

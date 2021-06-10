@@ -22,7 +22,7 @@ class DialogueObjectMapper(object):
         self.safety_words = get_safety_words()
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
 
-    def get_dialogue_object(self, speaker: str, chat: str, parse: str or Dict):
+    def get_dialogue_object(self, speaker: str, chat: str, parse: Dict, chat_status: str, chat_memid: str):
         # # NOTE: We are only handling the last chat here compared to full chat history
         # TODO: move this here and remove from dialogue_manager
         # chat_list = self.dialogue_manager.get_last_m_chats(m=1)
@@ -33,6 +33,11 @@ class DialogueObjectMapper(object):
                 self.dialogue_manager.dialogue_stack[-1].awaiting_response
         ):
             return None
+        # TODO: add documentation for this
+        if not chat_status:
+            return None
+        # Mark chat as processed
+        self.dialogue_manager.memory.untag(chat_memid, "unprocessed")
 
         # 1. Check against safety phrase list
         if not self.is_safe(chat):

@@ -2,7 +2,6 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 
 # FIXME!!!  this whole thing will be merged into memories' Task machinery

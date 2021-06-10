@@ -347,6 +347,7 @@ class FakeAgent(LocoMCAgent):
         if self.logical_form is None:
             CraftAssistAgent.controller_step(self)
         else:  # logical form given directly:
+            # TODO: move this to perceive() ?
             # clear the chat buffer
             self.get_incoming_chats()
             # use the logical form as given...
@@ -356,6 +357,7 @@ class FakeAgent(LocoMCAgent):
             chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             logical_form_memid = self.memory.add_logical_form(d)
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
             # force to get objects, speaker info
             self.perceive(force=True)
@@ -365,6 +367,8 @@ class FakeAgent(LocoMCAgent):
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr, opts=self.opts
             )
+            self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
+
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
@@ -631,23 +635,32 @@ class FakePlayer(FakeAgent):
                     self.logical_form = self.lf_list[0]
                     del self.lf_list[0]
         else:  # logical form given directly:
+            # TODO: move this to perceive() ?
             # clear the chat buffer
             self.get_incoming_chats()
             # use the logical form as given...
-            # force to get objects, speaker info
-            self.perceive(force=True)
             speaker = self.logical_form["speaker"]
             logical_form = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
+            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, chatstr)
+            logical_form_memid = self.memory.add_logical_form(logical_form)
+            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+
+            # force to get objects, speaker info
+            self.perceive(force=True)
             updated_logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker, chat=chatstr, logical_form=logical_form
             )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
                 speaker=speaker, logical_form=updated_logical_form, chat=chatstr, opts=self.opts
             )
+            self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
+
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
+
 
     def get_info(self):
         return Player(

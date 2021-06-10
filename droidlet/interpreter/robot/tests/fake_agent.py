@@ -466,13 +466,16 @@ class FakeAgent(LocoMCAgent):
             chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             logical_form_memid = self.memory.add_logical_form(d)
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
+            # controller
             logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker_name, chat=chatstr, logical_form=d
             )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr
             )
+            self.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
             if obj is not None:
                 self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None

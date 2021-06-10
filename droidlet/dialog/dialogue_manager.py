@@ -52,10 +52,13 @@ class DialogueManager(object):
             # get logical form if any else None
             logical_form = None
             logical_form_triples = self.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
+            processed_status = self.memory.get_triples(subj=chat_memid, pred_text="has_tag", obj_text="unprocessed")
             if logical_form_triples:
                 logical_form = self.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
+
+            chat_status = processed_status if processed_status else ""
             chat_str = chat.chat_text
-            chat_list_text.append((speaker, chat_str, logical_form))
+            chat_list_text.append((speaker, chat_str, logical_form, chat_status, chat_memid))
 
         return chat_list_text
 
@@ -80,7 +83,8 @@ class DialogueManager(object):
         # TODO: this can be moved to get_d_o
 
         if chat_list:
-            speaker, chatstr, logical_form = chat_list[0]
+            # TODO: remove this and have mapper take in full list
+            speaker, chatstr, logical_form, chat_status, chat_memid = chat_list[0]
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
             # NOTE: the model is responsible for not putting a new
@@ -88,7 +92,7 @@ class DialogueManager(object):
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
             # TODO: Change this to only take parse and use get_last_m_chats to get chat + speaker
-            obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form)
+            obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form, chat_status, chat_memid)
             if obj is not None:
                 self.dialogue_stack.append(obj)
                 return obj
