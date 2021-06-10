@@ -9,6 +9,7 @@ import random
 import re
 import time
 import numpy as np
+import json
 
 from core import BaseAgent
 from base_agent.base_util import ErrorWithResponse
@@ -142,10 +143,24 @@ class LocoMCAgent(BaseAgent):
         
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
-            turk_id = msg.get("turk_id", "null")
-            if turk_id != "null":
-                with open("turk_id.txt", "w+") as f:
-                    f.write(turk_id)
+            logging.info("Terminating agent")
+            turk_experiment_id = msg.get("turk_experiment_id", "null")
+            mephisto_agent_id = msg.get("mephisto_agent_id", "null")
+            turk_worker_id = msg.get("turk_worker_id", "null")
+            if turk_experiment_id != "null":
+                logging.info("turk worker ID: {}".format(turk_worker_id))
+                logging.info("mephisto agent ID: {}".format(mephisto_agent_id))
+                with open("turk_experiment_id.txt", "w+") as f:
+                    f.write(turk_experiment_id)
+                # Write metadata associated with crowdsourced run such as the experiment ID
+                # and worker identification
+                job_metadata = { 
+                    "turk_experiment_id": turk_experiment_id,
+                    "mephisto_agent_id": mephisto_agent_id,
+                    "turk_worker_id": turk_worker_id
+                }
+                with open("job_metadata.json", "w+") as f:
+                    json.dump(job_metadata, f)
             os._exit(0)
                 
 
