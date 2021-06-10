@@ -55,6 +55,7 @@ class StateManager {
       { msg: "", failed: false },
     ],
     timelineHandshake: "",
+    timelineEvents: "",
   };
 
   constructor() {
@@ -69,6 +70,7 @@ class StateManager {
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
+    this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -133,6 +135,7 @@ class StateManager {
     socket.on("depth", this.processDepth);
     socket.on("objects", this.processObjects);
     socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
+    socket.on("newTimelineEvent", this.returnTimelineEvent);
   }
 
   updateStateManagerMemory(data) {
@@ -178,6 +181,15 @@ class StateManager {
 
   returnTimelineHandshake(res) {
     this.memory.timelineHandshake = res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof Timeline) {
+        ref.forceUpdate();
+      }
+    });
+  }
+
+  returnTimelineEvent(res) {
+    this.memory.timelineEvents = res;
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
