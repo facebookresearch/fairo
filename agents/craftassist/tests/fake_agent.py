@@ -347,18 +347,10 @@ class FakeAgent(LocoMCAgent):
         if self.logical_form is None:
             CraftAssistAgent.controller_step(self)
         else:  # logical form given directly:
-            # TODO: move this to perceive() ?
-            # clear the chat buffer
-            # self.get_incoming_chats()
-            # use the logical form as given...
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
-            # logical_form_memid = self.memory.add_logical_form(d)
-            # self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-            # self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
-
+            chat_memid = self.memory.get_chat_id(self.memory.get_player_by_name(speaker_name).memid, chatstr)
             # force to get objects, speaker info
             self.perceive(force=True)
             logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
@@ -407,7 +399,7 @@ class FakeAgent(LocoMCAgent):
             logical_form_memid = self.memory.add_logical_form(d)
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
-            force= True
+            force = True
         self.perception_modules["low_level"].perceive(force=force)
         if self.do_heuristic_perception:
             self.perception_modules["heuristic"].perceive()
@@ -647,25 +639,18 @@ class FakePlayer(FakeAgent):
                     self.logical_form = self.lf_list[0]
                     del self.lf_list[0]
         else:  # logical form given directly:
-            # TODO: move this to perceive() ?
-            # clear the chat buffer
-            self.get_incoming_chats()
-            # use the logical form as given...
-            speaker = self.logical_form["speaker"]
             logical_form = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, chatstr)
-            logical_form_memid = self.memory.add_logical_form(logical_form)
-            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            speaker_name = self.logical_form["speaker"]
+            chat_memid = self.memory.get_chat_id(self.memory.get_player_by_name(speaker_name).memid, chatstr)
 
             # force to get objects, speaker info
             self.perceive(force=True)
             updated_logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker, chat=chatstr, logical_form=logical_form
+                speaker=speaker_name, chat=chatstr, logical_form=logical_form
             )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker=speaker, logical_form=updated_logical_form, chat=chatstr, opts=self.opts
+                speaker=speaker_name, logical_form=updated_logical_form, chat=chatstr, opts=self.opts
             )
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
 

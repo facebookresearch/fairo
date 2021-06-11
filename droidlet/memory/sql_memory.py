@@ -579,6 +579,16 @@ class AgentMemory:
         """
         return ChatNode(self, memid)
 
+    def get_chat_id(self, speaker_id: str, chat: str) -> str:
+        """Return memid of ChatNode, given speaker and chat
+
+        Args:
+            speaker_id: memid of speaker
+            chat: chat string
+        """
+        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker_id, chat)
+        return r[0][0]
+
     def get_recent_chats(self, n=1) -> List["ChatNode"]:
         """Return a list of at most n chats
 
