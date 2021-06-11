@@ -260,7 +260,6 @@ class PolygonTool extends React.Component {
         break;
     }
     this.lastKey = e.key;
-    console.log(e.key);
     this.update();
   }
 
@@ -271,6 +270,7 @@ class PolygonTool extends React.Component {
     );
     if (
       this.currentMaskId === -1 ||
+      !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length === 0 ||
       !["default", "dragging"].includes(this.mode)
     ) {
