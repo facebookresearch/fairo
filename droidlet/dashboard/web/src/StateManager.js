@@ -72,9 +72,9 @@ class StateManager {
     this.processDepth = this.processDepth.bind(this);
     this.processObjects = this.processObjects.bind(this);
     this.showAssistantReply = this.showAssistantReply.bind(this);
+    this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
 
-    // set default url to actual ip:port
-    this.default_url = window.location.href;
+    // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
     const turkExperimentId = urlParams.get("turk_experiment_id");
     const mephistoAgentId = urlParams.get("mephisto_agent_id");
@@ -83,8 +83,9 @@ class StateManager {
     this.setMephistoAgentId(mephistoAgentId);
     this.setTurkWorkerId(turkWorkerId);
 
+    // set default url to actual ip:port
+    this.default_url = window.location.host;
     this.setUrl(this.default_url);
-    this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -96,7 +97,6 @@ class StateManager {
   }
 
   setDefaultUrl() {
-    // localStorage.clear();
     localStorage.removeItem("server_url");
     this.setUrl(this.default_url);
   }
