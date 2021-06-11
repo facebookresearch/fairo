@@ -1002,12 +1002,30 @@ class AgentMemory:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
         # JSONify formatted data to send to dashboard timeline
-        query_str = query[:query.find("(") - 1]
+        query_table, query_operation = self.parse_sql(query[:query.find("(") - 1])
         query_dict = self.format_query(query, *args)
-        hook_data = {"name" : "db_write", "time" : self.get_time(), "query" : query_str, "args" : query_dict, "result" : r}
+        hook_data = {
+            "name" : "db_write", 
+            "time" : self.get_time(), 
+            "table_name" : query_table, 
+            "operation" : query_operation, 
+            "args" : query_dict, 
+            "result" : r
+        }
         hook_data = json.dumps(hook_data, default=str)
         self.dispatch_signal.send(self.db_write, data=hook_data)
         return r
+
+    def parse_sql(self, query):
+        query = query.split()
+        table = ""
+        operation = ""
+        for word in query:
+            if word.isupper():
+                operation += word + " "
+            else:
+                table += word
+        return table, operation
 
     def format_query(self, query, *args):
         """Turns query and arguments into a structured format
@@ -1023,7 +1041,7 @@ class AgentMemory:
         end_idx = query.find(")")
         if start_idx != -1 and end_idx != -1:
             keys = query[start_idx + 1: end_idx]
-            keys = keys.split(",")
+            keys = keys.split(", ")
             query_args = dict(zip(keys, list(args)))
         return query_args
 

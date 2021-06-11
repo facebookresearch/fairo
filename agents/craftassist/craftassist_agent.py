@@ -79,6 +79,7 @@ class CraftAssistAgent(LocoMCAgent):
         self.add_self_memory_node()
         self.init_inventory()
         self.init_event_handlers()
+        self.timeline_log = None
 
         # list of (prob, default function) pairs
         self.visible_defaults = [
@@ -86,6 +87,10 @@ class CraftAssistAgent(LocoMCAgent):
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
+
+        # Add optional logging for timeline
+        if opts.log_timeline:
+            self.timeline_log = open("timeline_log.{}.txt".format(self.name), "a+")
         
         # Add hook for db_write
         self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
@@ -329,7 +334,7 @@ class CraftAssistAgent(LocoMCAgent):
         if "VoxelObjects" in result:
             self.agent_emit(result)
             if self.opts.log_timeline:
-                self.timeline_log = open("timeline_log.{}.txt".format(self.name), "a+")
+                self.timeline_log.flush()
                 print(result, file=self.timeline_log)
 
     def __del__(self):
