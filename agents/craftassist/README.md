@@ -66,6 +66,7 @@ Make sure the following packages have already been installed before moving on:
 
 To build Cuberite and the C++ Minecraft client:
 ```
+cd droidlet/lowlevel/minecraft
 make
 ```
 
@@ -81,7 +82,7 @@ docker exec -it minecraft_container bash
 
 to open a shell in the docker container, and then run:
 ```
-python cuberite_process.py --config flat_world
+python droidlet/lowlevel/minecraft/cuberite_process.py --config flat_world
 ```
 to start an instance of cuberite instance listening on `localhost:25565`
 
@@ -89,7 +90,7 @@ to start an instance of cuberite instance listening on `localhost:25565`
 
 Simply run the following command:
 ```
-python cuberite_process.py --config flat_world
+python droidlet/lowlevel/minecraft/cuberite_process.py --config flat_world
 ```
 to start an instance of cuberite instance listening on `localhost:25565`
 
@@ -124,14 +125,14 @@ docker exec -it minecraft_container bash
 
 to open a shell in the docker container, and then run:
 ```
-python ./agent/craftassist_agent.py
+python craftassist_agent.py
 ```
 
 #### For local user
 
 Run:
 ```
-python ./agent/craftassist_agent.py
+python craftassist_agent.py
 ```
 
 You should see a new bot player join the game.
@@ -141,7 +142,7 @@ Use the `w`, `a`, `s`, and `d` keys to navigate, left and right mouse clicks to 
 ## Running tests
 
 ```
-./agent/test.sh
+./tests/test.sh
 ```
 
 ## Citation
