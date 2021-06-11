@@ -141,25 +141,27 @@ class LiveObjects extends React.Component {
           fontSize={10}
         />
       );
-      for (let i = 0; i < obj.mask.length; i++) {
-        let mask = obj.mask[i];
-        renderedObjects.push(
-          <Shape
-            sceneFunc={(context, shape) => {
-              context.beginPath();
-              context.moveTo(mask[0][0] * scale, mask[0][1] * scale);
-              for (let i = 1; i < mask.length; i++) {
-                context.lineTo(mask[i][0] * scale, mask[i][1] * scale);
-              }
-              context.closePath();
-              context.fillStrokeShape(shape);
-            }}
-            fill={color}
-            opacity={0.5}
-            stroke="black"
-            strokeWidth={1}
-          />
-        );
+      if (obj && obj.mask) {
+        for (let i = 0; i < obj.mask.length; i++) {
+          let mask = obj.mask[i];
+          renderedObjects.push(
+            <Shape
+              sceneFunc={(context, shape) => {
+                context.beginPath();
+                context.moveTo(mask[0][0] * scale, mask[0][1] * scale);
+                for (let i = 1; i < mask.length; i++) {
+                  context.lineTo(mask[i][0] * scale, mask[i][1] * scale);
+                }
+                context.closePath();
+                context.fillStrokeShape(shape);
+              }}
+              fill={color}
+              opacity={0.5}
+              stroke="black"
+              strokeWidth={1}
+            />
+          );
+        }
       }
     });
 
