@@ -83,10 +83,10 @@ pip install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
+        <td> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/agents/locobot/README.md"> Instructions for running the Locobot agent</a>
         </td>
         <td>
-        3. <a href="https://github.com/facebookresearch/droidlet/blob/main/craftassist/README.md">Instructions for running the Craftassist agent</a>
+        <a href='https://github.com/facebookresearch/droidlet/blob/main/agents/craftassist/README.md'> Instructions for running the Craftassist agent</a>
         </td>
         <td>
         <br/>
