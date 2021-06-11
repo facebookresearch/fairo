@@ -136,9 +136,7 @@ class ObjectAnnotation extends React.Component {
   }
 
   drawingFinished(data, newMask) {
-    this.propertyMap[this.state.currentMaskId] = this.drawing_data.tags;
     this.pointMap[this.state.currentMaskId] = data;
-    this.nameMap[this.state.currentMaskId] = this.drawing_data.name;
     this.setState({
       currentMode: "select",
       objectIds: newMask
@@ -162,6 +160,8 @@ class ObjectAnnotation extends React.Component {
 
   dataEntrySubmit(objectData) {
     this.drawing_data = objectData;
+    this.propertyMap[this.state.currentMaskId] = this.drawing_data.tags;
+    this.nameMap[this.state.currentMaskId] = this.drawing_data.name;
     this.setState({
       currentMode: "select",
       currentOverlay: null,
