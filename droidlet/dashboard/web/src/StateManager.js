@@ -231,6 +231,10 @@ class StateManager {
         ref.setState({
           agent_reply: res.agent_reply,
         });
+      }
+    });
+  }
+
   returnTimelineHandshake(res) {
     this.memory.timelineHandshake = res;
     this.refs.forEach((ref) => {

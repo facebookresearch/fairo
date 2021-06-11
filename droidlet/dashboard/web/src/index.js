@@ -9,12 +9,15 @@ import "golden-layout/src/css/goldenlayout-base.css";
 import "golden-layout/src/css/goldenlayout-dark-theme.css";
 
 import MainPane from "./MainPane";
+import Console from "./components/Console";
 import Settings from "./components/Settings";
+import Navigator from "./components/Navigator";
+import Memory2D from "./components/Memory2D";
+import MemoryList from "./components/MemoryList";
+import QuerySemanticParser from "./components/QuerySemanticParser";
 import History from "./components/History";
-import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
-import TurkInfo from "./components/Turk/TurkInfo";
+import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
-import InteractApp from "./components/Interact/InteractApp";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
 import Timeline from "./components/Timeline/Timeline";
@@ -32,22 +35,34 @@ var config = {
       type: "row",
       content: [
         {
+          title: "Live Viewer",
+          type: "react-component",
+          component: "MainPane",
+          props: { stateManager: stateManager },
+        },
+        {
           type: "column",
           content: [
             {
               type: "stack",
               content: [
                 {
-                  title: "Interact",
+                  title: "Memory 2D",
                   type: "react-component",
-                  component: "InteractApp",
+                  component: "Memory2D",
                   props: { stateManager: stateManager },
                 },
-              ],
-            },
-            {
-              type: "stack",
-              content: [
+                {
+                  title: "Memory List",
+                  type: "react-component",
+                  component: "MemoryList",
+                  props: { stateManager: stateManager },
+                },
+                {
+                  title: "Console",
+                  type: "react-component",
+                  component: "Console",
+                },
                 {
                   title: "Chat History",
                   type: "react-component",
@@ -76,30 +91,25 @@ var config = {
                 },
               ],
             },
-          ],
-        },
-        {
-          type: "column",
-          content: [
             {
               type: "stack",
               content: [
                 {
-                  title: "VoxelWorld",
+                  title: "Settings",
                   type: "react-component",
-                  component: "VoxelWorld",
+                  component: "Settings",
                   props: { stateManager: stateManager },
                 },
-              ],
-              height: 60,
-            },
-            {
-              type: "stack",
-              content: [
                 {
-                  title: "Info",
+                  title: "Navigator",
                   type: "react-component",
-                  component: "TurkInfo",
+                  component: "Navigator",
+                  props: { stateManager: stateManager },
+                },
+                {
+                  title: "Object Annotation Fixer",
+                  type: "react-component",
+                  component: "ObjectFixup",
                   props: { stateManager: stateManager },
                 },
               ],
@@ -113,12 +123,13 @@ var config = {
 
 var dashboardLayout = new GoldenLayout(config);
 dashboardLayout.registerComponent("MainPane", MainPane);
+dashboardLayout.registerComponent("Console", Console);
 dashboardLayout.registerComponent("Settings", Settings);
-dashboardLayout.registerComponent("TurkInfo", TurkInfo);
+dashboardLayout.registerComponent("Navigator", Navigator);
+dashboardLayout.registerComponent("Memory2D", Memory2D);
+dashboardLayout.registerComponent("MemoryList", MemoryList);
+dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
 dashboardLayout.registerComponent("History", History);
-dashboardLayout.registerComponent("VoxelWorld", VoxelWorld);
-dashboardLayout.registerComponent("InteractApp", InteractApp);
-
 dashboardLayout.registerComponent("TeachApp", TeachApp);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
 dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
