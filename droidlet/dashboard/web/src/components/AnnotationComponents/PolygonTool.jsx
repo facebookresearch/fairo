@@ -200,30 +200,14 @@ class PolygonTool extends React.Component {
       case "Enter":
         if (this.lastKey === "Enter") {
           this.lastKey = null;
-          this.props.submitCallback(
-            this.points.map((pts) =>
-              pts.map((p) => ({
-                x: p.x / this.canvas.width,
-                y: p.y / this.canvas.height,
-              }))
-            ),
-            this.newMask
-          );
+          this.save();
         }
         break;
       case "~":
         this.mode = "default";
         break;
       case "Escape":
-        this.props.submitCallback(
-          this.points.map((pts) =>
-            pts.map((p) => ({
-              x: p.x / this.canvas.width,
-              y: p.y / this.canvas.height,
-            }))
-          ),
-          this.newMask
-        );
+        this.save();
         this.mode = "default";
         this.props.exitCallback();
         break;
@@ -311,12 +295,23 @@ class PolygonTool extends React.Component {
       if (focus === true && i !== this.currentMaskId) continue;
       // Continue if mask is empty
       if (this.points[i].length === 0) continue;
+
       // Points and Lines
       for (let j = 0; j < this.points[i].length - 1; j++) {
         this.drawLine(this.points[i][j], this.points[i][j + 1]);
         this.drawPoint(this.points[i][j]);
       }
       this.drawPoint(this.points[i][this.points[i].length - 1]); // Final point
+      // Line connecting start to finish
+      if (
+        !["drawing"].includes(this.mode) &&
+        !["drawing"].includes(this.prevMode)
+      ) {
+        this.drawLine(
+          this.points[i][0],
+          this.points[i][this.points[i].length - 1]
+        );
+      }
       // Line to mouse
       if (this.points[i].length > 0 && ["drawing"].includes(this.mode)) {
         this.drawLine(
@@ -369,6 +364,18 @@ class PolygonTool extends React.Component {
     this.ctx.fill(region, "evenodd");
 
     return region;
+  }
+
+  save() {
+    this.props.submitCallback(
+      this.points.map((pts) =>
+        pts.map((p) => ({
+          x: p.x / this.canvas.width,
+          y: p.y / this.canvas.height,
+        }))
+      ),
+      this.newMask
+    );
   }
 
   localToImage(pt) {
