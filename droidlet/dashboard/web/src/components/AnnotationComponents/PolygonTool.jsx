@@ -245,6 +245,15 @@ class PolygonTool extends React.Component {
         this.mode = "default";
         break;
       case "Escape":
+        this.props.submitCallback(
+          this.points.map((pts) =>
+            pts.map((p) => ({
+              x: p.x / this.canvas.width,
+              y: p.y / this.canvas.height,
+            }))
+          ),
+          this.newMask
+        );
         this.mode = "default";
         this.props.exitCallback();
         break;
