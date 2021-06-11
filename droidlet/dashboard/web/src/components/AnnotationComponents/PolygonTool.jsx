@@ -31,7 +31,7 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    this.mode = "default"; // default, drawing, dragging, focus (could implement: draw, erase, duplicate, select, delete, etc)
+    this.mode = this.props.mode || "default"; // default, drawing, dragging, focus (could implement: draw, erase, duplicate, select, delete, etc)
     this.prevMode = "default";
     this.currentMaskId = 0;
     this.isDrawingPolygon = false;
@@ -39,7 +39,7 @@ class PolygonTool extends React.Component {
       x: 0,
       y: 0,
     };
-    this.points = [];
+    this.points = [[]];
     this.regions = [];
 
     this.canvasRef = React.createRef();
@@ -53,12 +53,14 @@ class PolygonTool extends React.Component {
     this.canvas = this.canvasRef.current;
     this.ctx = this.canvas.getContext("2d");
 
-    this.points = this.props.masks.map((maskSet) =>
-      maskSet.map((pt) => ({
-        x: pt.x * this.canvas.width,
-        y: pt.y * this.canvas.height,
-      }))
-    );
+    this.points = this.props.masks
+      ? this.props.masks.map((maskSet) =>
+          maskSet.map((pt) => ({
+            x: pt.x * this.canvas.width,
+            y: pt.y * this.canvas.height,
+          }))
+        )
+      : [[]];
 
     this.img = this.props.img;
     this.Offset = {
@@ -118,8 +120,9 @@ class PolygonTool extends React.Component {
   onClick(e) {
     // Let go of dragging point
     if (this.mode === "dragging") {
+      let prevMode = this.prevMode;
       this.prevMode = this.mode;
-      this.mode = "default";
+      this.mode = prevMode;
       console.log("updating mode from", this.prevMode, "to", this.mode);
       this.update();
       return;
@@ -139,7 +142,7 @@ class PolygonTool extends React.Component {
 
     // Add new point
     if (this.lastKey !== "Enter" && this.mode === "drawing") {
-      this.points.push(this.localToImage(this.lastMouse));
+      this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
       this.updateZoom();
       this.update();
       this.lastKey = "Mouse";
@@ -177,8 +180,8 @@ class PolygonTool extends React.Component {
   keyDown(e) {
     switch (e.key) {
       case " ":
-        if (this.points.length > 0) {
-          this.points.pop();
+        if (this.points[this.currentMaskId].length > 0) {
+          this.points[this.currentMaskId].pop();
         }
         break;
       case "w":
@@ -225,7 +228,6 @@ class PolygonTool extends React.Component {
         break;
     }
     this.lastKey = e.key;
-    console.log(e.key);
     this.update();
   }
 
@@ -236,6 +238,7 @@ class PolygonTool extends React.Component {
     );
     if (
       this.currentMaskId === -1 ||
+      !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length === 0 ||
       !["default", "dragging"].includes(this.mode)
     ) {
@@ -294,9 +297,9 @@ class PolygonTool extends React.Component {
   drawPointsAndLines(focus = false) {
     for (let i = 0; i < this.points.length; i++) {
       // Continue if focusing on specific mask and id isn't equal
-      if (focus === true && i !== this.currentMaskId) {
-        continue;
-      }
+      if (focus === true && i !== this.currentMaskId) continue;
+      // Continue if mask is empty
+      if (this.points[i].length === 0) continue;
       // Points and Lines
       for (let j = 0; j < this.points[i].length - 1; j++) {
         this.drawLine(this.points[i][j], this.points[i][j + 1]);
@@ -317,9 +320,7 @@ class PolygonTool extends React.Component {
     this.regions = [];
     for (let i = 0; i < this.points.length; i++) {
       // Continue if focusing on specific mask and id isn't equal
-      if (focus && i !== this.currentMaskId) {
-        continue;
-      }
+      if (focus && i !== this.currentMaskId) continue;
       let region = this.drawRegion(this.points[i]);
       this.regions.push(region);
     }
