@@ -272,7 +272,7 @@ class PolygonTool extends React.Component {
       this.currentMaskId === -1 ||
       !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length === 0 ||
-      !["default", "dragging"].includes(this.mode)
+      !["default", "dragging", "drawing"].includes(this.mode)
     ) {
       return;
     }
