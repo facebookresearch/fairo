@@ -31,11 +31,41 @@ class Memory2D extends React.Component {
       ymax: 10,
       bot_xyz: [0.0, 0.0, 0.0],
       tooltip: null,
+      stageScale: 1,
+      stageX: 0,
+      stageY: 0,
+      memory2dClassName: "memory2d",
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
   }
+
+  handleDrag = (className) => {
+    this.setState({ memory2dClassName: className });
+  };
+
+  handleWheel = (e) => {
+    e.evt.preventDefault();
+
+    const scaleBy = 1.02;
+    const stage = e.target.getStage();
+    const oldScale = stage.scaleX();
+    const mousePointTo = {
+      x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
+      y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
+    };
+
+    const newScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+    this.setState({
+      stageScale: newScale,
+      stageX:
+        -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
+      stageY:
+        -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
+    });
+  };
 
   resizeHandler() {
     if (this.props.isMobile) {
@@ -214,7 +244,19 @@ class Memory2D extends React.Component {
     // final render
     return (
       <div ref={this.outer_div} style={{ height: "100%", width: "100%" }}>
-        <Stage className="memory2d" width={width} height={height}>
+        <Stage
+          className={this.state.memory2dClassName}
+          width={width}
+          height={height}
+          draggable
+          onWheel={this.handleWheel}
+          scaleX={this.state.stageScale}
+          scaleY={this.state.stageScale}
+          x={this.state.stageX}
+          y={this.state.stageY}
+          onDragMove={() => this.handleDrag("memory2d dragging-memory2d")}
+          onDragEnd={() => this.handleDrag("memory2d")}
+        >
           <Layer className="gridLayer">{gridLayer}</Layer>
           <Layer className="mapBoundary">{mapBoundary}</Layer>
           <Layer className="renderedObjects">{renderedObjects}</Layer>
