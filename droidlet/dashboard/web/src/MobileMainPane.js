@@ -18,11 +18,11 @@ class MobileMainPane extends React.Component {
     super(props);
     // screen is the current pane
     // width is the size of the feeds
-    // object_rgb is the object feed that gest feed into annotation pane
+    // object_rgb is the object feed that gets fed into annotation pane
     this.state = {
       screen: "home",
-      imageWidth: width / 2 - 25,
-      object_rgb: null,
+      imageWidth: width * 0.4,
+      objectRGB: null,
     };
   }
 
@@ -48,7 +48,7 @@ class MobileMainPane extends React.Component {
       displayPane = (
         <ObjectFixup
           imageWidth={window.innerWidth - 25}
-          image={this.state.object_rgb}
+          image={this.state.objectRGB}
           stateManager={stateManager}
           isMobile={true}
         />

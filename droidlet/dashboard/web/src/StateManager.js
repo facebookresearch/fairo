@@ -338,7 +338,7 @@ class StateManager {
         // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
         if (res.object_image !== -1 && res.object_image !== undefined) {
           ref.setState({
-            object_rgb: object_rgb,
+            objectRGB: object_rgb,
           });
         }
       }

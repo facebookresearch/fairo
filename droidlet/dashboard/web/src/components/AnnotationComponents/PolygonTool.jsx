@@ -81,8 +81,8 @@ class PolygonTool extends React.Component {
           onKeyDown={this.keyDown}
         ></canvas>
         {this.props.isMobile && (
-          <button onClick={this.enterButtonMobile.bind(this)}>
-            Finished annotating the {this.props.object}
+          <button onClick={this.pressEnterOnMobile.bind(this)}>
+            Finished with {this.props.object}'s label
           </button>
         )}
       </div>
@@ -169,8 +169,7 @@ class PolygonTool extends React.Component {
   }
 
   // simulates pressing enter on web. Only used for mobile version
-  enterButtonMobile() {
-    this.lastKey = "Enter";
+  pressEnterOnMobile() {
     this.lastKey = null;
     this.props.submitCallback(this.points);
   }
