@@ -36,7 +36,7 @@ class ObjectAnnotation extends React.Component {
 
     this.state = {
       objectIds: [...Array(this.props.objects.length).keys()], // [0, ..., maskLength-1]
-      currentMode: "select", // one of select, fill_data, draw
+      currentMode: "select", // one of select, fill_data, draw_polygon, start_polygon
       currentOverlay: null,
       currentMask: null,
     };
@@ -71,7 +71,20 @@ class ObjectAnnotation extends React.Component {
   }
 
   render() {
-    if (this.state.currentMode !== "draw_polygon") {
+    if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
+      return (
+        <PolygonTool
+          img={this.image}
+          object={this.drawing_data.name}
+          masks={this.pointMap[this.state.currentMask]}
+          exitCallback={() => {
+            this.setState({ currentMode: "select" });
+          }}
+          submitCallback={this.drawingFinished.bind(this)}
+          mode={this.state.currentMode === "start_polygon" ? "drawing" : null}
+        ></PolygonTool>
+      );
+    } else {
       return (
         <div>
           <p>
@@ -91,18 +104,6 @@ class ObjectAnnotation extends React.Component {
             Finished annotating objects
           </button>
         </div>
-      );
-    } else {
-      return (
-        <PolygonTool
-          img={this.image}
-          object={this.drawing_data.name}
-          masks={this.pointMap[this.state.currentMask]}
-          exitCallback={() => {
-            this.setState({ currentMode: "select" });
-          }}
-          submitCallback={this.drawingFinished.bind(this)}
-        ></PolygonTool>
       );
     }
   }
@@ -137,16 +138,14 @@ class ObjectAnnotation extends React.Component {
   dataEntered(objectData) {
     this.drawing_data = objectData;
     this.setState({
-      currentMode: "draw_polygon",
+      currentMode: "start_polygon",
       currentOverlay: null,
     });
   }
 
   drawingFinished(data) {
     this.propertyMap[this.currentId] = this.drawing_data.tags;
-    this.pointMap[this.currentId] = [data];
-    // HOLLIS NOTE: data in form of [{x: 0, y: 0}, {x: 0, y: 0}, ...]
-    // Need to implement functionality for multiple masks for the same label
+    this.pointMap[this.currentId] = data;
     this.nameMap[this.currentId] = this.drawing_data.name;
     this.setState(
       {
