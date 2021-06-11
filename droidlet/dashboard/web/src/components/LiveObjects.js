@@ -56,26 +56,15 @@ class LiveObjects extends React.Component {
         // Scale points
         // quad nested array: obj, masks for obj, points in mask, x/y
         let canvas_dim = 500; // hardcoded 500... not sure where this comes from
-        // let scaledMasks = this.state.objects.map((obj) =>
-        //   obj.mask.map((masks) =>
-        //     masks.map((pt) => ({
-        //       x: pt[0] / canvas_dim,
-        //       y: pt[1] / canvas_dim,
-        //     }))
-        //   )
-        // );
-        // fixer.setState({
-        //   image: this.state.rgb,
-        //   masks: scaledMasks,
-        // });
-
         let objects = this.state.objects.map((obj) => ({
-          mask: obj.mask.map((masks) =>
-            masks.map((pt) => ({
-              x: pt[0] / canvas_dim,
-              y: pt[1] / canvas_dim,
-            }))
-          ),
+          mask: obj.mask
+            ? obj.mask.map((masks) =>
+                masks.map((pt) => ({
+                  x: pt[0] / canvas_dim,
+                  y: pt[1] / canvas_dim,
+                }))
+              )
+            : [],
           label: obj.label,
           properties: obj.properties.split("\n "),
         }));
