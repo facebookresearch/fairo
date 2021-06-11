@@ -231,7 +231,7 @@ class PolygonTool extends React.Component {
       this.currentMaskId === -1 ||
       !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length === 0 ||
-      !["default", "dragging"].includes(this.mode)
+      !["default", "dragging", "drawing"].includes(this.mode)
     ) {
       return;
     }
@@ -375,9 +375,11 @@ class PolygonTool extends React.Component {
   }
 
   localToImage(pt) {
+    let newX = (pt.x - this.Offset.x) / this.scale;
+    let newY = (pt.y - this.Offset.y) / this.scale;
     return {
-      x: (pt.x - this.Offset.x) / this.scale,
-      y: (pt.y - this.Offset.y) / this.scale,
+      x: Math.min(Math.max(newX, 0), 512), // 512 is width/heigh of image on right
+      y: Math.min(Math.max(newY, 0), 512), // this.canvas.width is 500 for some reason
     };
   }
 
