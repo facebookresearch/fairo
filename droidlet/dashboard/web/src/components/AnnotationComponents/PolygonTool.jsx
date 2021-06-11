@@ -143,7 +143,6 @@ class PolygonTool extends React.Component {
       }
       this.prevMode = this.mode;
       this.mode = "dragging";
-      console.log("updating mode from", this.prevMode, "to", this.mode);
       this.draggingIndex = hoverPointIndex;
       this.currentMaskId = hoverPointIndex[0];
       this.update();
