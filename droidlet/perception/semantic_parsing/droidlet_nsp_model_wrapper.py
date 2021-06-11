@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import logging
 import pkg_resources
-from enum import Enum
 from time import time
 from typing import Dict, Tuple
 from .utils import preprocess
@@ -13,13 +12,6 @@ from .nsp_model import DroidletSemanticParsingModel
 from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
-
-
-class GreetingType(Enum):
-    """Types of bot greetings."""
-
-    HELLO = "hello"
-    GOODBYE = "goodbye"
 
 
 class DroidletNSPModelWrapper(object):

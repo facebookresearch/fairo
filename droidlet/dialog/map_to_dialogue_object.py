@@ -1,3 +1,4 @@
+from enum import Enum
 import json
 import logging
 import random
@@ -9,9 +10,15 @@ from droidlet.dialog.dialogue_objects import DialogueObject, Say
 from droidlet.interpreter import coref_resolve, process_spans_and_remove_fixed_value
 from droidlet.base_util import hash_user
 from .load_datasets import get_greetings, get_safety_words
-from ..perception.semantic_parsing.droidlet_nsp_model_wrapper import GreetingType
 
 spacy_model = spacy.load("en_core_web_sm")
+
+
+class GreetingType(Enum):
+    """Types of bot greetings."""
+
+    HELLO = "hello"
+    GOODBYE = "goodbye"
 
 
 class DialogueObjectMapper(object):
@@ -23,17 +30,15 @@ class DialogueObjectMapper(object):
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
 
     def get_dialogue_object(self, speaker: str, chat: str, parse: Dict, chat_status: str, chat_memid: str):
-        # # NOTE: We are only handling the last chat here compared to full chat history
-        # TODO: move this here and remove from dialogue_manager
-        # chat_list = self.dialogue_manager.get_last_m_chats(m=1)
-
+        """Returns DialogueObject for a given chat and logical form"""
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
         if (len(self.dialogue_manager.dialogue_stack) > 0) and (
                 self.dialogue_manager.dialogue_stack[-1].awaiting_response
         ):
             return None
-        # TODO: add documentation for this
+
+        # If chat has been processed already, return
         if not chat_status:
             return None
         # Mark chat as processed
