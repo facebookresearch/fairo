@@ -42,6 +42,8 @@ from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import
 )
 from droidlet.lowlevel.minecraft import craftassist_specs
 
+from droidlet.event import sio
+
 faulthandler.register(signal.SIGUSR1)
 
 random.seed(0)
