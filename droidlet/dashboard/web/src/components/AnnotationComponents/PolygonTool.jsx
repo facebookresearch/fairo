@@ -94,27 +94,18 @@ class PolygonTool extends React.Component {
   }
 
   update() {
-    // Draw image scaled and repostioned
-    this.ctx.resetTransform();
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.ctx.setTransform(
-      this.scale,
-      0,
-      0,
-      this.scale,
-      this.Offset.x,
-      this.Offset.y
-    );
-    this.ctx.drawImage(this.img, 0, 0);
-
-    // Draw points and lines
+    this.resetImage("small");
+    let focused = ["dragging", "focus"].includes(this.mode);
     if (["default", "drawing", "dragging", "focus"].includes(this.mode)) {
-      this.drawPointsAndLines(["dragging", "focus"].includes(this.mode));
+      this.drawPointsAndLines(focused);
     }
-
-    // Draw regions
     if (["default", "focus"].includes(this.mode)) {
-      this.drawRegions(["dragging", "focus"].includes(this.mode));
+      this.drawRegions(focused);
+    }
+    // If "Enter" was pressed, show full mask
+    if (this.lastKey === "Enter") {
+      this.resetImage();
+      this.drawRegions();
     }
   }
 
@@ -203,9 +194,11 @@ class PolygonTool extends React.Component {
         this.mode = "default";
         break;
       case "Escape":
-        this.save();
-        this.mode = "default";
-        this.props.exitCallback();
+        if (this.points[this.currentMaskId].length >= 3) {
+          this.save();
+          this.mode = "default";
+          this.props.exitCallback();
+        }
         break;
       case "=":
         this.zoomPixels -= 10;
@@ -399,6 +392,25 @@ class PolygonTool extends React.Component {
       this.canvas.width / this.img.width,
       this.canvas.height / this.img.height
     );
+  }
+
+  resetImage(type = "full") {
+    // full, small
+    this.ctx.resetTransform();
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (type === "full") {
+      this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
+    } else if (type === "small") {
+      this.ctx.setTransform(
+        this.scale,
+        0,
+        0,
+        this.scale,
+        this.Offset.x,
+        this.Offset.y
+      );
+    }
+    this.ctx.drawImage(this.img, 0, 0);
   }
 
   shiftViewBy(x, y) {
