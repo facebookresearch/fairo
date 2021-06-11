@@ -9,10 +9,6 @@ import json
 import random
 import ssl
 
-# https://github.com/miguelgrinberg/python-engineio/issues/142
-from engineio.payload import Payload
-Payload.max_decode_packets = 5000000
-
 try:
     import html
 

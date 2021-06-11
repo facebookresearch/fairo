@@ -1,5 +1,1 @@
-<<<<<<< HEAD:droidlet/dashboard/web/build/static/js/react-syntax-highlighter_languages_refractor_properties.c6b0ca97.chunk.js
 (this.webpackJsonpdashboard=this.webpackJsonpdashboard||[]).push([[108],{582:function(s,t,a){"use strict";function n(s){s.languages.properties={comment:/^[ \t]*[#!].*$/m,"attr-value":{pattern:/(^[ \t]*(?:\\(?:\r\n|[\s\S])|[^\\\s:=])+?(?: *[=:] *| ))(?:\\(?:\r\n|[\s\S])|[^\\\r\n])+/m,lookbehind:!0},"attr-name":/^[ \t]*(?:\\(?:\r\n|[\s\S])|[^\\\s:=])+?(?= *[=:] *| )/m,punctuation:/[=:]/}}s.exports=n,n.displayName="properties",n.aliases=[]}}]);
-=======
-(this.webpackJsonpdashboard=this.webpackJsonpdashboard||[]).push([[108],{581:function(s,t,a){"use strict";function n(s){s.languages.properties={comment:/^[ \t]*[#!].*$/m,"attr-value":{pattern:/(^[ \t]*(?:\\(?:\r\n|[\s\S])|[^\\\s:=])+?(?: *[=:] *| ))(?:\\(?:\r\n|[\s\S])|[^\\\r\n])+/m,lookbehind:!0},"attr-name":/^[ \t]*(?:\\(?:\r\n|[\s\S])|[^\\\s:=])+?(?= *[=:] *| )/m,punctuation:/[=:]/}}s.exports=n,n.displayName="properties",n.aliases=[]}}]);
->>>>>>> main:droidlet/dashboard/web/build/static/js/react-syntax-highlighter_languages_refractor_properties.5f99f95d.chunk.js

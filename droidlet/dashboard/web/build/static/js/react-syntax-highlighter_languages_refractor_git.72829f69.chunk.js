@@ -1,5 +1,0 @@
-<<<<<<< HEAD:droidlet/dashboard/web/build/static/js/react-syntax-highlighter_languages_refractor_git.3fd839a4.chunk.js
-(this.webpackJsonpdashboard=this.webpackJsonpdashboard||[]).push([[47],{527:function(s,t,m){"use strict";function a(s){s.languages.git={comment:/^#.*/m,deleted:/^[-\u2013].*/m,inserted:/^\+.*/m,string:/("|')(?:\\.|(?!\1)[^\\\r\n])*\1/m,command:{pattern:/^.*\$ git .*$/m,inside:{parameter:/\s--?\w+/m}},coord:/^@@.*@@$/m,commit_sha1:/^commit \w{40}$/m}}s.exports=a,a.displayName="git",a.aliases=[]}}]);
-=======
-(this.webpackJsonpdashboard=this.webpackJsonpdashboard||[]).push([[47],{526:function(s,t,m){"use strict";function a(s){s.languages.git={comment:/^#.*/m,deleted:/^[-\u2013].*/m,inserted:/^\+.*/m,string:/("|')(?:\\.|(?!\1)[^\\\r\n])*\1/m,command:{pattern:/^.*\$ git .*$/m,inside:{parameter:/\s--?\w+/m}},coord:/^@@.*@@$/m,commit_sha1:/^commit \w{40}$/m}}s.exports=a,a.displayName="git",a.aliases=[]}}]);
->>>>>>> main:droidlet/dashboard/web/build/static/js/react-syntax-highlighter_languages_refractor_git.72829f69.chunk.js

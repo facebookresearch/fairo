@@ -23,7 +23,7 @@ from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 import cv2
 import torch
 from PIL import Image
-from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+from .utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -97,17 +97,6 @@ class DetectionHandlerTest(unittest.TestCase):
 
         # check the correct type of each detected object
         self.assertEqual(type(detections[0]), Detection)
-
-    def test_detection_to_struct(self): 
-        # use case: face detections have no mask but are still Detections
-        d = get_fake_detection("", "", "")
-        d.mask = None
-
-        # check whether to_struct fails
-        try: 
-            d.to_struct() 
-        except: 
-            self.fail("detection's to_struct() fails when no mask is detected")
 
 
 class MemoryHandlerTest(unittest.TestCase):
