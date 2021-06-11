@@ -86,11 +86,6 @@ class CraftAssistAgent(LocoMCAgent):
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
-
-        # Add optional logging for timeline
-        if opts.log_timeline:
-            timeline_log = open("timeline_log.txt", "w")
-            timeline_log.close()
         
         # Add hook for db_write
         self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
@@ -330,11 +325,17 @@ class CraftAssistAgent(LocoMCAgent):
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
-        self.agent_emit(result)
-        if self.opts.log_timeline:
-            timeline_log = open("timeline_log.txt", "a")
-            print(result, file=timeline_log)
-            timeline_log.close()
+        # a sample filter for logging VoxelObjects queries only
+        if "VoxelObjects" in result:
+            self.agent_emit(result)
+            if self.opts.log_timeline:
+                self.timeline_log = open("timeline_log.{}.txt".format(self.name), "a+")
+                print(result, file=self.timeline_log)
+
+    def __del__(self):
+        """Close the timeline log file"""
+        if getattr(self, "timeline_log", None):
+            self.timeline_log.close()
 
 
 if __name__ == "__main__":
