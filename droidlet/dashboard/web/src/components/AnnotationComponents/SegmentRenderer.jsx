@@ -91,7 +91,7 @@ class SegmentRenderer extends React.Component {
       let color =
         this.props.colors[i % this.props.colors.length] || "rgba(0,200,0,.5)";
       // Go through masks in label
-      for (let j = 0; j < pts_arr.length; j++) {
+      for (let j in pts_arr) {
         // Denormalize points
         let points = pts_arr[j].map((pt) => ({
           x: pt.x * this.canvas.width,
