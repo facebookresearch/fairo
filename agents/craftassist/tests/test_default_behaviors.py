@@ -16,8 +16,8 @@ class TestDefaultBehavior(BaseCraftassistTestCase):
 
     def test_come_to_player(self):
         come_to_player(self.agent)
-        pass
-
+        # Assert that a move task was pushed and executed succesfully
+        self.assertTrue(self.agent.memory.get_last_finished_root_task().action_name, 'move')
 
 
 if __name__ == "__main__":
