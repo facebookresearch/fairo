@@ -79,7 +79,7 @@ class PolygonTool extends React.Component {
   render() {
     return (
       <div>
-        <p>Please trace the {this.props.object}</p>
+        <p>Please trace the {this.props.object || "object"}</p>
         <canvas
           ref={this.canvasRef}
           width="500px"
@@ -124,7 +124,6 @@ class PolygonTool extends React.Component {
       let prevMode = this.prevMode;
       this.prevMode = this.mode;
       this.mode = prevMode;
-      console.log("updating mode from", this.prevMode, "to", this.mode);
       this.update();
       return;
     }
@@ -134,7 +133,6 @@ class PolygonTool extends React.Component {
     if (hoverPointIndex != null) {
       this.prevMode = this.mode;
       this.mode = "dragging";
-      console.log("updating mode from", this.prevMode, "to", this.mode);
       this.draggingIndex = hoverPointIndex;
       this.currentMaskId = hoverPointIndex[0];
       this.update();
@@ -156,7 +154,6 @@ class PolygonTool extends React.Component {
       if (regionId !== -1) {
         this.prevMode = this.mode;
         this.mode = "focus";
-        console.log("updating mode from", this.prevMode, "to", this.mode);
         this.currentMaskId = regionId;
       }
       this.update();
@@ -169,7 +166,6 @@ class PolygonTool extends React.Component {
       if (regionId === -1) {
         this.prevMode = this.mode;
         this.mode = "default";
-        console.log("updating mode from", this.prevMode, "to", this.mode);
         this.currentMaskId = -1;
       }
       this.update();

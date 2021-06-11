@@ -121,26 +121,18 @@ class ObjectAnnotation extends React.Component {
           currentMaskId: regionId,
         });
       } else {
-        // Build overlay component
-        var overlay = (
-          <DataEntry x={x} y={y} onSubmit={this.dataEntered.bind(this)} />
-        );
-        // Update State
+        this.drawing_data = {
+          tags: null,
+          name: null,
+        };
         this.setState({
-          currentMode: "fill_data",
-          currentOverlay: overlay,
+          currentMode: "start_polygon",
           currentMaskId: this.nextId,
         });
+        this.clickPoint = { x, y };
+        this.nextId += 1;
       }
     }
-  }
-
-  dataEntered(objectData) {
-    this.drawing_data = objectData;
-    this.setState({
-      currentMode: "start_polygon",
-      currentOverlay: null,
-    });
   }
 
   drawingFinished(data, newMask) {
@@ -154,8 +146,26 @@ class ObjectAnnotation extends React.Component {
         : this.state.objectIds,
     });
     if (newMask) {
-      this.nextId += 1;
+      var overlay = (
+        <DataEntry
+          x={this.clickPoint.x}
+          y={this.clickPoint.y}
+          onSubmit={this.dataEntrySubmit.bind(this)}
+        />
+      );
+      this.setState({
+        currentMode: "fill_data",
+        currentOverlay: overlay,
+      });
     }
+  }
+
+  dataEntrySubmit(objectData) {
+    this.drawing_data = objectData;
+    this.setState({
+      currentMode: "select",
+      currentOverlay: null,
+    });
   }
 
   submit() {
