@@ -38,10 +38,10 @@ class ObjectAnnotation extends React.Component {
       objectIds: [...Array(this.props.objects.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw_polygon, start_polygon
       currentOverlay: null,
-      currentMask: null,
+      currentMaskId: null,
     };
 
-    this.currentId = this.props.objects.length;
+    this.nextId = this.props.objects.length;
     this.nameMap = {};
     this.pointMap = {};
     this.propertyMap = {};
@@ -76,7 +76,7 @@ class ObjectAnnotation extends React.Component {
         <PolygonTool
           img={this.image}
           object={this.drawing_data.name}
-          masks={this.pointMap[this.state.currentMask]}
+          masks={this.pointMap[this.state.currentMaskId]}
           exitCallback={() => {
             this.setState({ currentMode: "select" });
           }}
@@ -108,17 +108,17 @@ class ObjectAnnotation extends React.Component {
     }
   }
 
-  registerClick(x, y, regionFound, region) {
+  registerClick(x, y, regionFound, regionId) {
     if (this.state.currentMode === "select") {
       if (regionFound) {
         this.drawing_data = {
-          tags: this.propertyMap[region],
-          name: this.nameMap[region],
+          tags: this.propertyMap[regionId],
+          name: this.nameMap[regionId],
         };
         this.setState({
           currentMode: "draw_polygon",
           currentOverlay: null,
-          currentMask: region,
+          currentMaskId: regionId,
         });
       } else {
         // Build overlay component
@@ -129,7 +129,7 @@ class ObjectAnnotation extends React.Component {
         this.setState({
           currentMode: "fill_data",
           currentOverlay: overlay,
-          currentMask: -1,
+          currentMaskId: this.nextId,
         });
       }
     }
@@ -143,19 +143,19 @@ class ObjectAnnotation extends React.Component {
     });
   }
 
-  drawingFinished(data) {
-    this.propertyMap[this.currentId] = this.drawing_data.tags;
-    this.pointMap[this.currentId] = data;
-    this.nameMap[this.currentId] = this.drawing_data.name;
-    this.setState(
-      {
-        currentMode: "select",
-        objectIds: this.state.objectIds.splice(0).concat(this.currentId),
-      },
-      () => {
-        this.currentId += 1;
-      }
-    );
+  drawingFinished(data, newMask) {
+    this.propertyMap[this.state.currentMaskId] = this.drawing_data.tags;
+    this.pointMap[this.state.currentMaskId] = data;
+    this.nameMap[this.state.currentMaskId] = this.drawing_data.name;
+    this.setState({
+      currentMode: "select",
+      objectIds: newMask
+        ? this.state.objectIds.splice(0).concat(this.state.currentMaskId)
+        : this.state.objectIds,
+    });
+    if (newMask) {
+      this.nextId += 1;
+    }
   }
 
   submit() {
