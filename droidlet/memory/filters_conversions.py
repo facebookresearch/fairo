@@ -2,7 +2,7 @@ from copy import deepcopy
 import ast
 
 FILTERS_KW = ["SELECT", "FROM", "WHERE", "ORDER BY", "LIMIT", "SAME", "CONTAINS_COREFERENCE"]
-
+LIMITS = {"FIRST": "1", "SECOND": "2", "THIRD": "3"}
 
 # name resolution for properties:  DOES NOT EXIST
 # that is: "triples"/"properties"/"column names" are equivalent, and a
@@ -128,7 +128,7 @@ def new_filters_to_sqly(d):
     S = "SELECT "
     o = d.get("output", "MEMORY")
     if o == "MEMORY" or o == "COUNT":
-        S = S + o + "; "
+        S = S + o + " "
     else:
         if o.get("attribute") is None:
             raise Exception("malformed output dict {}".format(o))
@@ -148,6 +148,8 @@ def new_filters_to_sqly(d):
     if d.get("selector"):
         return_q = d["selector"].get("return_quantity")
         limit = d["selector"].get("ordinal") or "1"
+        if LIMITS.get(limit):
+            limit = LIMITS[limit]
         if return_q:
             if return_q == "random":
                 S = S + " ORDER BY RANDOM LIMIT " + limit + " "
@@ -156,9 +158,9 @@ def new_filters_to_sqly(d):
                     S
                     + " ORDER BY ("
                     + str(return_q["argval"]["quantity"]["attribute"])
-                    + "; LIMIT "
+                    + "); LIMIT "
                 )
-                S = S + limit + ") "
+                S = S + limit + " "
                 S = S + {"MAX": "DESC", "MIN": "ASC"}[return_q["argval"]["polarity"]]
         elif d["selector"].get("location"):
             S = S + "ORDER BY LOCATION (" + str(d["selector"]["location"]) + "); "
@@ -373,13 +375,8 @@ def where_leaf_to_comparator(clause):
             ct = {"close_tolerance": tol, "modulus": mod}
         right_text = clause[eq_idx + len(mod_text) :]
 
-    try:
-        left_value = maybe_eval_literal(left_text)
-        right_value = maybe_eval_literal(right_text)
-    except:
-        import ipdb
-
-        ipdb.set_trace()
+    left_value = maybe_eval_literal(left_text)
+    right_value = maybe_eval_literal(right_text)
     f = {
         "input_left": {"value_extractor": left_value},
         "input_right": {"value_extractor": right_value},
@@ -435,12 +432,9 @@ def convert_limit_from_sqly(clause, d):
     assert d.get("selector")
     d["selector"]["ordinal"] = int(c[0])
     if len(c) > 1:
-        try:
-            d["selector"]["argval"]["polarity"] = {"DESC": "MAX", "ASC": "MIN"}[c[1]]
-        except:
-            import ipdb
-
-            ipdb.set_trace()
+        d["selector"]["return_quantity"]["argval"]["polarity"] = {"DESC": "MAX", "ASC": "MIN"}[
+            c[1]
+        ]
 
 
 def convert_where_from_sqly(clause, d):
