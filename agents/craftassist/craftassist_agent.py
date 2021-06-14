@@ -31,7 +31,7 @@ from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import Pos, Look
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
@@ -149,7 +149,7 @@ class CraftAssistAgent(LocoMCAgent):
     def init_perception(self):
         """Initialize perception modules"""
         # NOTE: self.chat_parser will move to perception_modules once Soumith's changes are in
-        self.chat_parser = DroidletNSPModelWrapper(self.opts)
+        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
         self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(

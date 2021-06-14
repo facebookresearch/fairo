@@ -25,7 +25,7 @@ from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 from droidlet.lowlevel.minecraft import craftassist_specs
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
 
@@ -280,7 +280,7 @@ class FakeAgent(LocoMCAgent):
         self.look = self.get_look()
 
     def init_perception(self):
-        self.chat_parser = DroidletNSPModelWrapper(self.opts)
+        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(

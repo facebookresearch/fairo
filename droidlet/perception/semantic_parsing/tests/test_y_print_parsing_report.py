@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-from ..droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from ..droidlet_nsp_model_wrapper import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
 
@@ -1110,7 +1110,7 @@ class TestDialogueManager(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.chat_parser = DroidletNSPModelWrapper(opts)
+        self.chat_parser = NSPQuerier(opts)
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:

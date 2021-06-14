@@ -14,7 +14,7 @@ from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
 
 
-class DroidletNSPModelWrapper(object):
+class NSPQuerier(object):
     def __init__(self, opts):
         self.opts = opts
 

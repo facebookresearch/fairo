@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
 import unittest
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 
 TTAD_MODEL_DIR = os.path.join(
@@ -24,7 +24,7 @@ class TestValidateParseTree(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.chat_parser = DroidletNSPModelWrapper(opts)
+        self.chat_parser = NSPQuerier(opts)
 
     def test_validate_bad_json(self):
         # Don't print debug info on failure

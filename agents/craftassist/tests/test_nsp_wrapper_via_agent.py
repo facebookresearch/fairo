@@ -6,7 +6,7 @@ import unittest
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.shared_data_structs import MockOpt
 
@@ -39,7 +39,7 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
-        self.chat_parser = DroidletNSPModelWrapper(self.opts)
+        self.chat_parser = NSPQuerier(self.opts)
         pass
 
     def init_controller(self):

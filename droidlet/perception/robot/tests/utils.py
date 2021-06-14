@@ -5,7 +5,7 @@ import numpy as np
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypoints
 from droidlet.shared_data_structs import RGBDepth
@@ -23,7 +23,7 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
-        self.chat_parser = DroidletNSPModelWrapper(self.opts)
+        self.chat_parser = NSPQuerier(self.opts)
 
     def init_controller(self):
         dialogue_object_classes = {}

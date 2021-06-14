@@ -11,7 +11,7 @@ from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
@@ -416,7 +416,7 @@ class FakeAgent(LocoMCAgent):
         self.inventory = []
 
     def init_perception(self):
-        self.chat_parser = DroidletNSPModelWrapper(self.opts)
+        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self, perceive_freq=1)
         self.perception_modules["vision"] = FakeDetectorPerception(self)
