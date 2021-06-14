@@ -6,7 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--raw_templated_path",
-        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/generation_dialogues/templated_pre.txt",
+        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/nsp_templated_data_generation/templated_pre.txt",
     )
     parser.add_argument(
         "--ground_truth_path",
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--templated_path",
-        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/generation_dialogues/templated_pre.txt",
+        default="/private/home/rebeccaqian/minecraft/base_agent/ttad/nsp_templated_data_generation/templated_pre.txt",
     )
     parser.add_argument(
         "--full_path",

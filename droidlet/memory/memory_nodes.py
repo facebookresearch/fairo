@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import uuid
-import ast
+import json
 from typing import Optional, List, Dict, cast
 from droidlet.base_util import XYZ, POINT_AT_TARGET, to_player_struct
 
@@ -127,11 +127,11 @@ class ProgramNode(MemoryNode):
         super().__init__(agent_memory, memid)
         text = self.agent_memory._db_read_one(
             "SELECT logical_form FROM Programs WHERE uuid=?", self.memid
-        )
-        self.logical_form = ast.literal_eval(text)
+        )[0]
+        self.logical_form = json.loads(text)
 
     @classmethod
-    def create(cls, memory, logical_form, snapshot=False) -> str:
+    def create(cls, memory, logical_form: dict, snapshot=False) -> str:
         """Creates a new entry into the Programs table
 
         Returns:
@@ -148,8 +148,9 @@ class ProgramNode(MemoryNode):
             >>> create(memory, logical_form)
         """
         memid = cls.new(memory, snapshot=snapshot)
+        logical_form_text = json.dumps(logical_form)
         memory.db_write(
-            "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)", memid, format(logical_form)
+            "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)", memid, format(logical_form_text)
         )
         return memid
 

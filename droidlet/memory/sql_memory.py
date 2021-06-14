@@ -21,6 +21,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     TripleNode,
     PlayerNode,
+    ProgramNode,
     MemoryNode,
     ChatNode,
     TimeNode,
@@ -578,6 +579,16 @@ class AgentMemory:
         """
         return ChatNode(self, memid)
 
+    def get_chat_id(self, speaker_id: str, chat: str) -> str:
+        """Return memid of ChatNode, given speaker and chat
+
+        Args:
+            speaker_id: memid of speaker
+            chat: chat string
+        """
+        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker_id, chat)
+        return r[0][0]
+
     def get_recent_chats(self, n=1) -> List["ChatNode"]:
         """Return a list of at most n chats
 
@@ -608,6 +619,26 @@ class AgentMemory:
             return ChatNode(self, r[0])
         else:
             return None
+
+    ###################
+    ## Logical form ###
+    ###################
+
+    def add_logical_form(self, logical_form: dict):
+        """Create a new ProgramNode
+
+        Args:
+            logical_form: the semantic parser's output
+        """
+        return ProgramNode.create(self, logical_form)
+
+    def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
+        """Return ProgramNode, given memid
+
+        Args:
+            memid (string): Memory ID
+        """
+        return ProgramNode(self, memid)
 
     #################
     ###  Players  ###

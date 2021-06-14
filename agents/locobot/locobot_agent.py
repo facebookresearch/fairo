@@ -19,9 +19,10 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
@@ -133,6 +134,7 @@ class LocobotAgent(LocoMCAgent):
         Each perceptual module should have a perceive method that is
         called by the base agent event loop.
         """
+        self.chat_parser = NSPQuerier(self.opts)
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
@@ -148,7 +150,7 @@ class LocobotAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
 
