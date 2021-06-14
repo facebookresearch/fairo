@@ -6,17 +6,17 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data_source", default="droidlet/dialog/ttad/generation_dialogues/templated_pre.txt"
+        "--data_source", default="droidlet/dialog/ttad/nsp_templated_data_generation/templated_pre.txt"
     )
     parser.add_argument(
         "--commands_to_remove",
         help="path to test set commands to remove",
-        default="droidlet/dialog/ttad/generation_dialogues/templated_pre.txt",
+        default="droidlet/dialog/ttad/nsp_templated_data_generation/templated_pre.txt",
     )
     parser.add_argument(
         "--output_path",
         help="path of cleaned dataset to be used in train/valid split",
-        default="droidlet/dialog/ttad/generation_dialogues/templated_pre.txt",
+        default="droidlet/dialog/ttad/nsp_templated_data_generation/templated_pre.txt",
     )
     opts = parser.parse_args()
     with open(opts.commands_to_remove) as fd:
