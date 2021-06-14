@@ -24,6 +24,15 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.You will also see any lint errors in the console. <br />
 For debugging: you can set up the debugger in your IDE (for example [here](https://code.visualstudio.com/docs/nodejs/reactjs-tutorial#_debugging-react)) or use the developer console on your browser (for example: Command + option + J for Chrome on Macbook)
 
+### Accessing Mobile Dashboard
+
+After running yarn start, open [http://localhost:3000/mobile.html](http://localhost:3000/mobile.html) to view it in the browser. Use the Chrome Developer tools to 
+view it in mobile <br />
+
+To access on a physical device, find your computers ip address. Open http://[ip address]:3000/mobile.html on your physical phone <br />
+
+If you are running into issues, look at this link: [https://docs.google.com/document/d/1chTdtbW2t1swpWe4NMfyxn31tK_Bta3ZXwLfgM9w5rs/edit?usp=sharing](https://docs.google.com/document/d/1chTdtbW2t1swpWe4NMfyxn31tK_Bta3ZXwLfgM9w5rs/edit?usp=sharing)
+
 ### Files to check-in
 
 Check-in the following files or folders:
