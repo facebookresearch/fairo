@@ -8,7 +8,7 @@ from time import time
 from typing import Dict, Tuple
 from .utils import preprocess
 from .load_and_check_datasets import get_ground_truth
-from .nsp_model import DroidletSemanticParsingModel
+from .nsp_model_wrapper import DroidletSemanticParsingModel
 from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
@@ -16,8 +16,12 @@ from .utils.validate_json import JSONValidator
 
 class NSPQuerier(object):
     def __init__(self, opts):
+        """This class provides an API that takes in chat as plain text
+         and converts it to logical form. It does so by first checking against
+         ground truth text-logical form pairings and if not found, querying the
+         neural semantic parsing model.
+         """
         self.opts = opts
-
         # instantiate logger and parsing model
         self.NSPLogger = NSPLogger(
             "nsp_outputs.csv", ["command", "action_dict", "source", "agent", "time"]
@@ -29,9 +33,7 @@ class NSPQuerier(object):
         except NotADirectoryError:
             # No parsing model
             self.parsing_model = None
-        """
-        Read the ground truth dataset file: ground_truth/datasets folder
-        """
+        # Read the ground truth dataset file: ground_truth/datasets folder
         self.ground_truth_actions = get_ground_truth(self.opts.no_ground_truth, self.opts.ground_truth_data_dir)
 
         # Socket event listener
@@ -54,15 +56,18 @@ class NSPQuerier(object):
         return preprocessed_chat
 
     def get_parse(self, chatstr: str) -> Tuple[str, Dict]:
-        """This is the function that is called from the tick() of the agent.
-        This function takes in a chat and either returns text or logical form.
+        """This is the function that is called from the perceive() of the agent.
+        This function takes in a chat and returns logical form.
         The order is:
         1. Preprocess the incoming chat
-        2. check against ground truth
+        2. check against ground truth and get logical form
         3. query model and get logical form
 
+        Args:
+            chatstr (str) : chat or command that needs to be parsed
+
         Returns:
-            str, Dict
+            Dict: logical form found either in ground truth or from model
         """
         # 1. Preprocess chat
         chat = self.preprocess_chat(chatstr)
@@ -70,7 +75,6 @@ class NSPQuerier(object):
         # 2. Get logical form from either ground truth or query the parsing model
         logical_form = self.get_logical_form(chat=chat, parsing_model=self.parsing_model)
         return chat, logical_form
-
 
     def validate_parse_tree(self, parse_tree: Dict, debug: bool = True) -> bool:
         """Validate the parse tree against current grammar.

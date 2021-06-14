@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import json
-from ..droidlet_nsp_model_wrapper import NSPQuerier
+from ..nsp_querier import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 from prettytable import PrettyTable
 

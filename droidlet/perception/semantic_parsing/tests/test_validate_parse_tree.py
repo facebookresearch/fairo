@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
 import unittest
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 
 TTAD_MODEL_DIR = os.path.join(

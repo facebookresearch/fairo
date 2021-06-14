@@ -5,7 +5,7 @@ import numpy as np
 
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.perception.robot import Detection, Human, HumanKeypoints
 from droidlet.shared_data_structs import RGBDepth

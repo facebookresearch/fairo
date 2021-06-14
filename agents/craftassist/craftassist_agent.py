@@ -31,7 +31,7 @@ from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import Pos, Look
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.perception.semantic_parsing.droidlet_nsp_model_wrapper import NSPQuerier
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
