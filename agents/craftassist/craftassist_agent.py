@@ -8,6 +8,7 @@ import signal
 import random
 import sentry_sdk
 import time
+import json
 from multiprocessing import set_start_method
 from collections import namedtuple
 import subprocess
@@ -79,7 +80,6 @@ class CraftAssistAgent(LocoMCAgent):
         self.add_self_memory_node()
         self.init_inventory()
         self.init_event_handlers()
-        self.timeline_log = None
 
         # list of (prob, default function) pairs
         self.visible_defaults = [
@@ -87,10 +87,6 @@ class CraftAssistAgent(LocoMCAgent):
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
-
-        # Add optional logging for timeline
-        if opts.log_timeline:
-            self.timeline_log = open("timeline_log.{}.txt".format(self.name), "a+")
         
         # Add hook for db_write
         self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
@@ -331,16 +327,19 @@ class CraftAssistAgent(LocoMCAgent):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
         # a sample filter for logging VoxelObjects queries only
-        if "VoxelObjects" in result:
-            self.agent_emit(result)
-            if self.opts.log_timeline:
-                self.timeline_log.flush()
-                print(result, file=self.timeline_log)
+        if result["name"] == "db_write":
+            # JSONify the data
+            result = json.dumps(result, default=str)
+            if "VoxelObjects" in result:
+                self.agent_emit(result)
+                if self.opts.log_timeline:
+                    self.timeline_log_file.flush()
+                    print(result, file=self.timeline_log_file)
 
     def __del__(self):
         """Close the timeline log file"""
-        if getattr(self, "timeline_log", None):
-            self.timeline_log.close()
+        if getattr(self, "timeline_log_file", None):
+            self.timeline_log_file.close()
 
 
 if __name__ == "__main__":

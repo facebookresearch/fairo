@@ -10,7 +10,6 @@ import os
 import pickle
 import sqlite3
 import uuid
-import json
 import droidlet.event.dispatcher as dispatch
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
@@ -18,6 +17,7 @@ from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import BasicMemorySearcher
 from .dialogue_stack import DialogueStack
+from droidlet.memory.memory_util import parse_sql, format_query
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -1001,9 +1001,9 @@ class AgentMemory:
         if self.on_delete_callback is not None and deleted:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
-        # JSONify formatted data to send to dashboard timeline
-        query_table, query_operation = self.parse_sql(query[:query.find("(") - 1])
-        query_dict = self.format_query(query, *args)
+        # format the data to send to dashboard timeline
+        query_table, query_operation = parse_sql(query[:query.find("(") - 1])
+        query_dict = format_query(query, *args)
         hook_data = {
             "name" : "db_write", 
             "time" : self.get_time(), 
@@ -1012,38 +1012,8 @@ class AgentMemory:
             "args" : query_dict, 
             "result" : r
         }
-        hook_data = json.dumps(hook_data, default=str)
         self.dispatch_signal.send(self.db_write, data=hook_data)
         return r
-
-    def parse_sql(self, query):
-        query = query.split()
-        table = ""
-        operation = ""
-        for word in query:
-            if word.isupper():
-                operation += word + " "
-            else:
-                table += word
-        return table, operation
-
-    def format_query(self, query, *args):
-        """Turns query and arguments into a structured format
-
-        Args:
-            query (string): The query to be run against the database
-
-        Returns:
-            dict: An ordered format of query keys and corresponding arguments
-        """
-        query_args = {}
-        start_idx = query.find("(")
-        end_idx = query.find(")")
-        if start_idx != -1 and end_idx != -1:
-            keys = query[start_idx + 1: end_idx]
-            keys = keys.split(", ")
-            query_args = dict(zip(keys, list(args)))
-        return query_args
 
     def _db_write(self, query: str, *args) -> int:
         args = tuple(a.item() if isinstance(a, np.number) else a for a in args)

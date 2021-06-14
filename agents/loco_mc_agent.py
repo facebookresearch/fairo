@@ -54,6 +54,9 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
+        # Add optional logging for timeline
+        if opts.log_timeline:
+            self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
