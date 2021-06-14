@@ -192,7 +192,6 @@ class LocoMCAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
-
         # we check if the exception raised is in one of our whitelisted exceptions
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
@@ -282,13 +281,11 @@ class LocoMCAgent(BaseAgent):
             chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
             logical_form_memid = self.memory.add_logical_form(chat_parse)
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-            # TODO: tag as unprocessed
+            # New chat, mark as unprocessed.
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
         for v in self.perception_modules.values():
             v.perceive(force=force)
-
-
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""
@@ -312,20 +309,16 @@ class LocoMCAgent(BaseAgent):
 
         # default behaviors of the agent not visible in the game
         invisible_defaults = []
-
         defaults = (
             self.visible_defaults + invisible_defaults
             if time.time() - self.last_chat_time > DEFAULT_BEHAVIOUR_TIMEOUT
             else invisible_defaults
         )
-
         defaults = [(p, f) for (p, f) in defaults if f not in self.memory.banned_default_behaviors]
 
         def noop(*args):
             pass
-
         defaults.append((1 - sum(p for p, _ in defaults), noop))  # noop with remaining prob
-
         # weighted random choice of functions
         p, fns = zip(*defaults)
         fn = np.random.choice(fns, p=p)
