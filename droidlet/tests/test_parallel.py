@@ -21,8 +21,15 @@ class Foo:
 
     def forward(self):        
         self.b.put(5, 6)
-        print("here:", self.b.get(timeout=2))
-    
+        print("getting item:", self.b.get(timeout=2))
+
+
+import unittest
+
+class TestBackgroundtask(unittest.TestCase):
+        def test_background_task(self):
+            foo = Foo()
+            foo.forward()
 
 if __name__ == "__main__":
     foo = Foo()
