@@ -339,11 +339,6 @@ class CraftAssistAgent(LocoMCAgent):
                     self.timeline_log_file.flush()
                     print(result, file=self.timeline_log_file)
 
-    def __del__(self):
-        """Close the timeline log file"""
-        if getattr(self, "timeline_log_file", None):
-            self.timeline_log_file.close()
-
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)

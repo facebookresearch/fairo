@@ -347,6 +347,11 @@ class LocoMCAgent(BaseAgent):
     def agent_emit(self, result):
         sio.emit("newTimelineEvent", result)
 
+    def __del__(self):
+        """Close the timeline log file"""
+        if getattr(self, "timeline_log_file", None):
+            self.timeline_log_file.close()
+
 
 def default_agent_name():
     """Use a unique name based on timestamp"""
