@@ -19,10 +19,15 @@ class PolygonTool extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      message: "",
+    };
+
     this.update = this.update.bind(this);
     this.drawPointsAndLines = this.drawPointsAndLines.bind(this);
     this.onClick = this.onClick.bind(this);
     this.addMaskHandler = this.addMaskHandler.bind(this);
+    this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.drawPoint = this.drawPoint.bind(this);
@@ -34,6 +39,7 @@ class PolygonTool extends React.Component {
     // default, drawing, dragging, focus, adding
     this.mode = this.props.mode || "default";
     this.prevMode = "default";
+    this.message = "";
     this.currentMaskId = 0;
     this.isDrawingPolygon = false;
     this.lastMouse = {
@@ -80,11 +86,12 @@ class PolygonTool extends React.Component {
   render() {
     return (
       <div>
-        <p>Please trace the {this.props.object || "object"}</p>
+        <p>{this.state.message}</p>
         <Toolbox
           points={this.points}
           regions={this.regions}
           addMaskHandler={this.addMaskHandler}
+          deleteMaskHandler={this.deleteMaskHandler}
         />
         <canvas
           ref={this.canvasRef}
@@ -101,6 +108,7 @@ class PolygonTool extends React.Component {
 
   update() {
     this.resetImage("small");
+    this.updateMessage();
     let focused = ["dragging", "focus"].includes(this.mode);
     this.drawPointsAndLines(focused);
     this.drawRegions(focused);
@@ -171,6 +179,17 @@ class PolygonTool extends React.Component {
       this.lastKey = "Mouse";
       return;
     }
+
+    // Delete mask
+    if (this.mode === "deleting") {
+      if (regionId === -1) {
+        return;
+      }
+      this.points.splice(regionId, 1);
+      this.update();
+      this.lastKey = "Mouse";
+      return;
+    }
   }
 
   keyDown(e) {
@@ -231,6 +250,31 @@ class PolygonTool extends React.Component {
     this.points.push([]);
     this.prevMode = this.mode;
     this.mode = "adding";
+  }
+
+  deleteMaskHandler() {
+    console.log("in delete handler");
+    this.prevMode = this.mode;
+    this.mode = "deleting";
+  }
+
+  updateMessage() {
+    let newMessage = "";
+    switch (this.mode) {
+      case "adding":
+        newMessage = "Please add the new mask";
+        break;
+      case "deleting":
+        newMessage = "Select which mask to delete";
+        break;
+      default:
+        newMessage = "Please trace the " + this.props.object || "object";
+        break;
+    }
+    if (newMessage !== this.state.message) {
+      this.setState({ message: newMessage });
+    }
+    console.log("updated state", this.state.message);
   }
 
   updateZoom() {

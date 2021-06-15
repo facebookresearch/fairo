@@ -15,6 +15,7 @@ class Toolbox extends React.Component {
     super(props);
 
     this.addMaskHandler = this.addMaskHandler.bind(this);
+    this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
   }
 
   componentDidMount() {}
@@ -29,12 +30,11 @@ class Toolbox extends React.Component {
   }
 
   addMaskHandler() {
-    console.log("adding mask");
     this.props.addMaskHandler();
   }
 
   deleteMaskHandler() {
-    console.log("delete mask");
+    this.props.deleteMaskHandler();
   }
 }
 
