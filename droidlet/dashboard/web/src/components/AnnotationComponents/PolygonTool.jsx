@@ -30,6 +30,7 @@ class PolygonTool extends React.Component {
     this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
     this.changeTextHandler = this.changeTextHandler.bind(this);
     this.insertPointHandler = this.insertPointHandler.bind(this);
+    this.deletePointHandler = this.deletePointHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.drawPoint = this.drawPoint.bind(this);
@@ -38,7 +39,7 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    // default, drawing, dragging, focus, adding, inserting
+    // default, drawing, dragging, focus, adding, inserting, deletingMask, deletingPoint
     this.mode = this.props.mode || "default";
     this.prevMode = "default";
     this.baseMode = "default";
@@ -98,6 +99,7 @@ class PolygonTool extends React.Component {
           deleteLabelHandler={() => this.props.deleteLabelHandler()}
           changeTextHandler={this.changeTextHandler}
           insertPointHandler={this.insertPointHandler}
+          deletePointHandler={this.deletePointHandler}
         />
         <canvas
           ref={this.canvasRef}
@@ -150,6 +152,12 @@ class PolygonTool extends React.Component {
         this.points[hoverPointIndex[0]] = newPoints;
         this.mode = this.baseMode;
       }
+      if (this.mode === "deletingPoint") {
+        this.points[hoverPointIndex[0]].splice(hoverPointIndex[1], 1);
+        this.mode = this.baseMode;
+        this.update();
+        return;
+      }
       this.prevMode = this.mode;
       this.mode = "dragging";
       this.draggingIndex = hoverPointIndex;
@@ -197,7 +205,7 @@ class PolygonTool extends React.Component {
     }
 
     // Delete mask
-    if (this.mode === "deleting") {
+    if (this.mode === "deletingMask") {
       if (regionId === -1) {
         return;
       }
@@ -274,7 +282,7 @@ class PolygonTool extends React.Component {
 
   deleteMaskHandler() {
     this.prevMode = this.mode;
-    this.mode = "deleting";
+    this.mode = "deletingMask";
   }
 
   changeTextHandler() {
@@ -286,9 +294,18 @@ class PolygonTool extends React.Component {
 
   insertPointHandler() {
     this.baseMode =
-      this.points[this.currentMaskId].length === 0 ? "default" : this.mode;
+      this.points[this.currentMaskId] &&
+      this.points[this.currentMaskId].length === 0
+        ? "default"
+        : this.mode;
     this.prevMode = this.mode;
     this.mode = "inserting";
+  }
+
+  deletePointHandler() {
+    this.baseMode = this.mode;
+    this.prevMode = this.mode;
+    this.mode = "deletingPoint";
   }
 
   updateMessage() {
@@ -297,11 +314,14 @@ class PolygonTool extends React.Component {
       case "adding":
         newMessage = "Please add the new mask";
         break;
-      case "deleting":
+      case "deletingMask":
         newMessage = "Select which mask to delete";
         break;
       case "inserting":
         newMessage = "Select a point to duplicate";
+        break;
+      case "deletingPoint":
+        newMessage = "Select a point to delete";
         break;
       default:
         newMessage = "Please trace the " + (this.props.object || "object");

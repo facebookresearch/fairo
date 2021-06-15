@@ -19,6 +19,7 @@ class Toolbox extends React.Component {
         <button onClick={this.props.deleteLabelHandler}>Delete label</button>
         <button onClick={this.props.changeTextHandler}>Modify labels</button>
         <button onClick={this.props.insertPointHandler}>Insert point</button>
+        <button onClick={this.props.deletePointHandler}>Delete point</button>
       </div>
     );
   }
