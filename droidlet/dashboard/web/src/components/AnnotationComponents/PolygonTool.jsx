@@ -92,6 +92,7 @@ class PolygonTool extends React.Component {
           regions={this.regions}
           addMaskHandler={this.addMaskHandler}
           deleteMaskHandler={this.deleteMaskHandler}
+          deleteLabelHandler={() => this.props.deleteLabelHandler()}
         />
         <canvas
           ref={this.canvasRef}
@@ -185,6 +186,9 @@ class PolygonTool extends React.Component {
       if (regionId === -1) {
         return;
       }
+      if (this.points.length === 1) {
+        this.props.deleteLabelHandler();
+      }
       this.points.splice(regionId, 1);
       this.update();
       this.lastKey = "Mouse";
@@ -253,9 +257,13 @@ class PolygonTool extends React.Component {
   }
 
   deleteMaskHandler() {
-    console.log("in delete handler");
-    this.prevMode = this.mode;
-    this.mode = "deleting";
+    if (
+      !["adding", "drawing"].includes(this.mode) &&
+      !["adding", "drawing"].includes(this.prevMode)
+    ) {
+      this.prevMode = this.mode;
+      this.mode = "deleting";
+    }
   }
 
   updateMessage() {
@@ -366,6 +374,7 @@ class PolygonTool extends React.Component {
     }
     // Line to mouse
     if (
+      this.points[this.currentMaskId] &&
       this.points[this.currentMaskId].length > 0 &&
       ["drawing", "adding"].includes(this.mode)
     ) {

@@ -13,9 +13,6 @@ prop_name (Type)
 class Toolbox extends React.Component {
   constructor(props) {
     super(props);
-
-    this.addMaskHandler = this.addMaskHandler.bind(this);
-    this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
   }
 
   componentDidMount() {}
@@ -23,18 +20,11 @@ class Toolbox extends React.Component {
   render() {
     return (
       <div>
-        <button onClick={this.addMaskHandler}>Add mask</button>
-        <button onClick={this.deleteMaskHandler}>Delete mask</button>
+        <button onClick={this.props.addMaskHandler}>Add mask</button>
+        <button onClick={this.props.deleteMaskHandler}>Delete mask</button>
+        <button onClick={this.props.deleteLabelHandler}>Delete label</button>
       </div>
     );
-  }
-
-  addMaskHandler() {
-    this.props.addMaskHandler();
-  }
-
-  deleteMaskHandler() {
-    this.props.deleteMaskHandler();
   }
 }
 
