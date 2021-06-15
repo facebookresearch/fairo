@@ -29,6 +29,7 @@ class PolygonTool extends React.Component {
     this.addMaskHandler = this.addMaskHandler.bind(this);
     this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
     this.changeTextHandler = this.changeTextHandler.bind(this);
+    this.insertPointHandler = this.insertPointHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.drawPoint = this.drawPoint.bind(this);
@@ -37,9 +38,10 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    // default, drawing, dragging, focus, adding
+    // default, drawing, dragging, focus, adding, inserting
     this.mode = this.props.mode || "default";
     this.prevMode = "default";
+    this.baseMode = "default";
     this.message = "";
     this.currentMaskId = 0;
     this.isDrawingPolygon = false;
@@ -95,6 +97,7 @@ class PolygonTool extends React.Component {
           deleteMaskHandler={this.deleteMaskHandler}
           deleteLabelHandler={() => this.props.deleteLabelHandler()}
           changeTextHandler={this.changeTextHandler}
+          insertPointHandler={this.insertPointHandler}
         />
         <canvas
           ref={this.canvasRef}
@@ -127,7 +130,7 @@ class PolygonTool extends React.Component {
     if (this.mode === "dragging") {
       let prevMode = this.prevMode;
       this.prevMode = this.mode;
-      this.mode = prevMode;
+      this.mode = this.prevMode === "inserting" ? this.baseMode : prevMode;
       this.update();
       return;
     }
@@ -140,6 +143,12 @@ class PolygonTool extends React.Component {
         hoverPointIndex[0] !== this.currentMaskId
       ) {
         return;
+      }
+      if (this.mode === "inserting") {
+        let newPoints = this.points[hoverPointIndex[0]].slice();
+        newPoints.splice(hoverPointIndex[1], 0, newPoints[hoverPointIndex[1]]);
+        this.points[hoverPointIndex[0]] = newPoints;
+        this.mode = this.baseMode;
       }
       this.prevMode = this.mode;
       this.mode = "dragging";
@@ -224,6 +233,7 @@ class PolygonTool extends React.Component {
       case "Enter":
         if (this.lastKey === "Enter") {
           this.lastKey = null;
+          this.baseMode = "default";
           this.save();
         }
         break;
@@ -274,6 +284,13 @@ class PolygonTool extends React.Component {
     this.props.changeTextHandler(x, y);
   }
 
+  insertPointHandler() {
+    this.baseMode =
+      this.points[this.currentMaskId].length === 0 ? "default" : this.mode;
+    this.prevMode = this.mode;
+    this.mode = "inserting";
+  }
+
   updateMessage() {
     let newMessage = "";
     switch (this.mode) {
@@ -282,6 +299,9 @@ class PolygonTool extends React.Component {
         break;
       case "deleting":
         newMessage = "Select which mask to delete";
+        break;
+      case "inserting":
+        newMessage = "Select a point to duplicate";
         break;
       default:
         newMessage = "Please trace the " + (this.props.object || "object");
@@ -506,7 +526,22 @@ class PolygonTool extends React.Component {
   }
 
   distance(pt1, pt2) {
-    return Math.max(Math.abs(pt1.x - pt2.x), Math.abs(pt1.y - pt2.y)) * 2;
+    return Math.sqrt((pt1.x - pt2.x) ** 2 + (pt1.y - pt2.y) ** 2);
+  }
+
+  // Not used. Meant for highlighting segments
+  distanceToSegment(pt, p1, p2) {
+    let d = this.distance(p1, p2);
+    if (d === 0) {
+      return this.distance(pt, p1);
+    }
+    let t = ((pt.x - p1.x) * (p2.x - p1.x) + (pt.y - p1.y) * (p2.y - p1.y)) / d;
+    t = Math.max(0, Math.min(1, t));
+    let proj = {
+      x: p1.x + t * (p2.x - p1.x),
+      y: p1.y + t * (p2.y - p1.y),
+    };
+    return this.distance(pt, proj);
   }
 }
 

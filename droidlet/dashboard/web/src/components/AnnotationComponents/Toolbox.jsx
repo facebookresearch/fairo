@@ -11,10 +11,6 @@ prop_name (Type)
 */
 
 class Toolbox extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     return (
       <div>
@@ -22,6 +18,7 @@ class Toolbox extends React.Component {
         <button onClick={this.props.deleteMaskHandler}>Delete mask</button>
         <button onClick={this.props.deleteLabelHandler}>Delete label</button>
         <button onClick={this.props.changeTextHandler}>Modify labels</button>
+        <button onClick={this.props.insertPointHandler}>Insert point</button>
       </div>
     );
   }

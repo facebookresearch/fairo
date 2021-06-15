@@ -136,6 +136,7 @@ class SegmentRenderer extends React.Component {
       for (let i in this.regions) {
         for (let j in this.regions[i]) {
           if (
+            this.regions[i][j] &&
             this.ctx.isPointInPath(this.regions[i][j], e.offsetX, e.offsetY)
           ) {
             regionId = i;
