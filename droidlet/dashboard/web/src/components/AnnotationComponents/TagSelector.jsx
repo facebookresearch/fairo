@@ -9,7 +9,7 @@ class TagSelector extends React.Component {
     super(props);
 
     this.state = {
-      selectedTags: [],
+      selectedTags: props.tags || [],
       suggestions: [],
       currentValue: "",
     };

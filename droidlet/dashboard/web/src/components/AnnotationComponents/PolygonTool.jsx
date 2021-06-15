@@ -28,6 +28,7 @@ class PolygonTool extends React.Component {
     this.onClick = this.onClick.bind(this);
     this.addMaskHandler = this.addMaskHandler.bind(this);
     this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
+    this.changeTextHandler = this.changeTextHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.drawPoint = this.drawPoint.bind(this);
@@ -93,6 +94,7 @@ class PolygonTool extends React.Component {
           addMaskHandler={this.addMaskHandler}
           deleteMaskHandler={this.deleteMaskHandler}
           deleteLabelHandler={() => this.props.deleteLabelHandler()}
+          changeTextHandler={this.changeTextHandler}
         />
         <canvas
           ref={this.canvasRef}
@@ -263,6 +265,13 @@ class PolygonTool extends React.Component {
   deleteMaskHandler() {
     this.prevMode = this.mode;
     this.mode = "deleting";
+  }
+
+  changeTextHandler() {
+    let rect = this.canvas.getBoundingClientRect();
+    let x = this.points[0][0].x + rect.left;
+    let y = this.points[0][0].y + rect.top;
+    this.props.changeTextHandler(x, y);
   }
 
   updateMessage() {
