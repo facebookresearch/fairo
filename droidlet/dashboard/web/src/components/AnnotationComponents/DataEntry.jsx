@@ -7,19 +7,23 @@ import TagSelector from "./TagSelector";
 
 /*
 Props:
-draw_location: 
-    where to draw the overlay
-    {x: x location, y: y location}
 
-objectId:
-    Object indentifier (int)
+x (number): 
+  x-coodinate for where to draw the overlay
+y (number): 
+  y-coodinate for where to draw the overlay
+label: (string): 
+  object label name
+tags ([string]): 
+  text tags to describe the object
+onSubmit (function): 
+  callback to update label name and tags of object
 */
 class DataEntry extends React.Component {
   constructor(props) {
     super(props);
 
-    this.labels = [];
-    this.tags = [];
+    this.tags = this.props.tags || [];
 
     this.nameRef = React.createRef();
   }
@@ -34,8 +38,12 @@ class DataEntry extends React.Component {
           position: "fixed",
         }}
       >
-        <input placeholder="Object Name" ref={this.nameRef}></input>
-        <TagSelector tags={this.labels} update={(tags) => (this.tags = tags)} />
+        <input
+          placeholder="Object Name"
+          ref={this.nameRef}
+          defaultValue={this.props.label || ""}
+        />
+        <TagSelector tags={this.tags} update={(tags) => (this.tags = tags)} />
         <button className="data-entry-submit" onClick={this.submit.bind(this)}>
           Submit
         </button>
