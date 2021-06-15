@@ -20,6 +20,7 @@ def get_inequality_symbol(iq):
         return ">="
     elif iq == "LESS_THAN_EQUAL":
         return "<="
+    # FIXME deprecate this, just do NOT in an EQUAL
     elif iq == "NOT_EQUAL":
         return "!="
     elif iq == "EQUAL":
@@ -353,12 +354,13 @@ def where_leaf_to_comparator(clause):
             right_text = clause[gte_idx + 1 :]
     if eq_idx > -1:
         left_text = clause[:eq_idx]
-        eq = clause[eq_idx : clause.find(" ", eq_idx)]
-        if eq[1:3] == "(+-":
+        if clause[eq_idx + 1 : eq_idx + 3] == "(+-":
+            eq = clause[eq_idx : clause.find(")", eq_idx) + 1]
             ct = {"close_tolerance": int(eq[4:-1])}
+            right_text = clause[eq_idx + len(eq) + 1 :]
         else:
             ct = "EQUAL"
-        right_text = clause[eq_idx + len(eq) + 1 :]
+            right_text = clause[eq_idx + 1 :]
     if mod_idx > -1:
         # %_(modulus)(+-close_tolerance)
         left_text = clause[:mod_idx]
@@ -407,6 +409,7 @@ def convert_output_from_sqly(clause, d):
 
 
 def convert_memtype_from_sqly(clause, d):
+    # FIXME allow sentences with OR
     d["memory_type"] = clause
 
 
@@ -471,6 +474,12 @@ def sqly_to_new_filters(S):
     the WHERE clause is assumed enclosed in parens.
     the <attribute> in the ORDER BY clause is again either string or enclosed in {}.
     """
+    # TODO/FIXME:
+    # subqueries for left or right values and in other places
+    #     These can currently be done using FILTERS dicts
+    # special notation/equality in comparators for obj or obj_text search etc...
+    #     These can be done by hand using SELECT obj FROM triples WHERE ... etc.
+    #     but this breaks the abstraction somewhat
 
     blocks = split_sqly(S)
     d = {}

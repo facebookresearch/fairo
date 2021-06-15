@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import List
 import torch
+from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_new_filters
 
 SELFID = "0" * 32
 
@@ -60,6 +61,199 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
             return triples[0][2]
 
     return None
+
+
+def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
+    """
+    Tries to find memories with a property value
+
+    Args:
+        agent_memory: an AgentMemory object
+        prop: a string with the name of the property
+        value: the value to match.  if comparison_symbol is <>,
+            should be a tuple of (low, high); and if comparison symbol is
+            "%", should be a tuple of (modulus, remainder)
+            otherwise value should be a singleton tuple
+        comparison_symbol: one of "=", "<", "<=", ">", ">=", "%", "<>"
+        memtype: a memory type
+
+    returns a list of memids
+
+    looks with the following order of precedence:
+    1: main memory table
+    2: table corresponding to the nodes .TABLE
+    3: triple with the nodes memid as subject and prop as predicate
+    """
+    try:
+        if comparison_symbol != "%" or comparison_symbol != "<>":
+            assert len(value) == 1
+        else:
+            assert len(value) == 2
+    except:
+        raise Exception(
+            "comparison symbol in basic search is {} but value is {}".format(
+                comparison_symbol, value
+            )
+        )
+
+    if comparison_symbol == "%":
+        where = "WHERE " + prop + " % " + str(value[0]) + " =?"
+        v = value[1]
+    elif comparison_symbol == "<>":
+        where = "WHERE " + prop + ">? AND " + prop + "<?"
+        v = value
+    else:
+        where = "WHERE " + prop + comparison_symbol + "?"
+        v = value
+
+    # is it in the main memory table?
+    cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info(Memories)")]
+    if prop in cols:
+        cmd = "SELECT uuid FROM Memories " + where
+        return [m[0] for m in agent_memory._db_read(cmd, *v)]
+
+    # is it in the node table?
+    T = agent_memory.nodes[memtype].TABLE
+    cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info({})".format(T))]
+    if prop in cols:
+        cmd = "SELECT uuid FROM " + T + where
+        return [m[0] for m in agent_memory._db_read(cmd, *v)]
+
+    # is it a triple?
+    # n.b. if the query is about an actual triple (e.g. SELECT subj FROM Triples ...), it would have been
+    # handled in the previous block.  this block is for e.g. "SELECT MEMORY FROM ReferenceObjects WHERE ..."
+    # and where the WHERE clause uses a "column name" that is a triple
+
+    # FIXME! it is assumed for now that the value is the obj_text, not the obj; need to
+    # to introduce special comparison_symbol for the obj memid case
+    if comparison_symbol != "=":
+        raise Exception("Triple values need to have '=' as comparison symbol for now")
+    triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
+    if len(triples) > 0:
+        return [t[0] for t in triples]
+
+
+def try_float(value, where_clause):
+    try:
+        return float(value)
+    except:
+        raise Exception("tried to get float from {} in {}".format(value, where_clause))
+
+
+class MemorySearcher:
+    """ 
+    Basic string form:
+
+    SELECT <attribute>;
+    FROM mem_type(s);
+    WHERE <sentence of clauses>;
+    ORDER BY <attribute>; 
+    LIMIT <ordinal> DESC/ASC;
+    SAME ALLOWED/DISALLOWED/REQUIRED;
+    CONTAINS_COREFERENCE ;
+
+    for now it assumed that every <attribute> is an explicitly stored property of the memory. 
+    the SELECT clause can have value "COUNT" or "MEMORY" or an attribute.
+    the FROM clause is a MemoryNode NodeType (TODO sentence with OR's)
+    the WHERE clause is a sentence of the recursive form 
+        (clause, CONJUNCTION  ... CONJUCTION clause), where each CONJUCTION is either AND or OR
+        or a sentence of the form (NOT clause).  at a given level of the sentence, all conjuctions
+        should be the same. 
+    the ORDER BY clause can be RANDOM or an explicitly stored property
+        while the language allows a LOCATION clause, this searcher cannot handle it
+    the LIMIT is a positive integer
+    
+    basic dict form has keys:
+    "output": corresponding to the "SELECT" clause; with string values "COUNT" or "MEMORY"
+        or attribute dict as possible values
+    "memory_type": corresponding to "FROM"
+    "where_clause":  a tree of dicts where sentences (lists)
+        of clauses are keyed by a conjunction
+    "selector": corresponding to "ORDER BY", "LIMIT", "SAME"
+    "contains_coreference": corresponding to "CONTAINS_COREFERENCE"
+
+    the search method takes an agent_memory as input, and either a query 
+    (or this object was initialized with a query) as a kw arg
+    and outputs a list of MemoryNodes and corresponding list of values.
+    if the output type/SELECT is COUNT, the list of values will be the count repeated for each memory
+    if the output type is MEMORY, the list of values will be a None for each memory
+    
+    """
+
+    # TODO eventually allow any attribute- if its not a "simple" attribute,
+    #  pass in as attribute object (callable with proper signature)
+
+    def __init__(self, self_memid=SELFID, query=None):
+        self.self_memid = self_memid
+        self.query = query
+
+    def maybe_convert_query(self, query):
+        if type(query) is str:
+            return sqly_to_new_filters(query)
+        else:
+            return query
+
+    def handle_where(self, agent_memory, where_clause, memtype):
+        # do this brutally for now, if we need can make more efficient
+        if where_clause.get("AND"):
+            memids = []
+            for c in where_clause["AND"]:
+                memids.append(self.handle_where(agent_memory, c, memtype))
+            return set.intersection(*[set(m) for m in memids])
+        if where_clause.get("OR"):
+            memids = []
+            for c in where_clause["OR"]:
+                memids.append(self.handle_where(agent_memory, c, memtype))
+            return set.union(*[set(m) for m in memids])
+        if where_clause.get("NOT"):
+            # FIXME memtype might be a union of node types
+            # maybe FIXME? don't retrieve everything until necessary
+            all_memids = agent_memory._db_read(
+                "SELECT uuid FROM Memories WHERE node_type=?", memtype
+            )
+            memids = self.handle_where(agent_memory, where_clause["NOT"][0])
+            return all_memids - memids
+
+        if where_clause.get("input_left"):
+            # this is a leaf, actually search:
+            input_left = where_clause["input_left"]["value_extractor"]
+            input_right = where_clause["input_right"]["value_extractor"]
+            if (type(input_left) is not str) or type(input_right) is not str:
+                raise Exception(
+                    "currently search assumes attributes are explicitly stored property of the memory: {}".format(
+                        where_clause
+                    )
+                )
+            ctype = where_clause.get("comparison_type", "EQUAL")
+            comparison_symbol = get_inequality_symbol(ctype)
+            # FIXME do close tolerance for modulus
+            if type(ctype) is dict and ctype.get("close_tolerance"):
+                comparison_symbol = "<>"
+                v = try_float(input_right)
+                value = (v - ctype["close_tolerance"], v + ctype["close_tolerance"])
+            elif comparison_symbol[0] == "<" or comparison_symbol[0] == ">":
+                # going to convert back to str later, doing this for data sanitation/debugging
+                value = (try_float(input_right),)
+            elif type(ctype) is dict and ctype.get("modulus"):
+                comparison_symbol = "%"
+                value = (ctype["modulus"], input_right)
+            else:
+                value = (input_right,)
+            return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
+
+    def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
+        # returns a list of MemoryNodes and accompanying values
+        query = query or self.query
+        if not query:
+            return [], []
+        query = self.maybe_convert_query(query)
+        # TODO/FIXME memtype all
+        memtype = query.get("memory_type", default_memtype)
+        if query.get("where_clause"):
+            memids = self.handle_where(agent_memory, query["where_clause"], memtype)
+        else:
+            memids = []
+        return memids, [None] * len(memids)
 
 
 # TODO?  merge into Memory

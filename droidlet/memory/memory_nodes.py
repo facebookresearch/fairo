@@ -992,4 +992,5 @@ NODELIST = [
     SelfNode,
     ProgramNode,
     NamedAbstractionNode,
+    ReferenceObjectNode,
 ]
