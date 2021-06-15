@@ -261,13 +261,8 @@ class PolygonTool extends React.Component {
   }
 
   deleteMaskHandler() {
-    if (
-      !["adding", "drawing"].includes(this.mode) &&
-      !["adding", "drawing"].includes(this.prevMode)
-    ) {
-      this.prevMode = this.mode;
-      this.mode = "deleting";
-    }
+    this.prevMode = this.mode;
+    this.mode = "deleting";
   }
 
   updateMessage() {

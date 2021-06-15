@@ -169,10 +169,12 @@ class ObjectAnnotation extends React.Component {
     delete this.pointMap[this.state.currentMaskId];
     delete this.propertyMap[this.state.currentMaskId];
     let newObjectIds = this.state.objectIds.slice();
-    newObjectIds.splice(
-      this.state.objectIds.indexOf(parseInt(this.state.currentMaskId)),
-      1
+    let index = this.state.objectIds.indexOf(
+      parseInt(this.state.currentMaskId)
     );
+    if (index >= 0) {
+      newObjectIds.splice(index, 1);
+    }
     this.setState({
       currentMode: "select",
       currentMaskId: -1,
