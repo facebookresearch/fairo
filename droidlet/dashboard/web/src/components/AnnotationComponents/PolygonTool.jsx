@@ -1,9 +1,5 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
-*/
-import React from "react";
-
-/* Props
 
 img (Javascript Image object)
     *Loaded* image to be drawn to the canvas and traced
@@ -16,6 +12,9 @@ submitCallback (pts)
     (outline of the object)
 */
 
+import React from "react";
+import Toolbox from "./Toolbox";
+
 class PolygonTool extends React.Component {
   constructor(props) {
     super(props);
@@ -23,6 +22,7 @@ class PolygonTool extends React.Component {
     this.update = this.update.bind(this);
     this.drawPointsAndLines = this.drawPointsAndLines.bind(this);
     this.onClick = this.onClick.bind(this);
+    this.addMaskHandler = this.addMaskHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.drawPoint = this.drawPoint.bind(this);
@@ -31,7 +31,8 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    this.mode = this.props.mode || "default"; // default, drawing, dragging, focus (could implement: draw, erase, duplicate, select, delete, etc)
+    // default, drawing, dragging, focus, adding
+    this.mode = this.props.mode || "default";
     this.prevMode = "default";
     this.currentMaskId = 0;
     this.isDrawingPolygon = false;
@@ -80,6 +81,11 @@ class PolygonTool extends React.Component {
     return (
       <div>
         <p>Please trace the {this.props.object || "object"}</p>
+        <Toolbox
+          points={this.points}
+          regions={this.regions}
+          addMaskHandler={this.addMaskHandler}
+        />
         <canvas
           ref={this.canvasRef}
           width="500px"
@@ -96,12 +102,8 @@ class PolygonTool extends React.Component {
   update() {
     this.resetImage("small");
     let focused = ["dragging", "focus"].includes(this.mode);
-    if (["default", "drawing", "dragging", "focus"].includes(this.mode)) {
-      this.drawPointsAndLines(focused);
-    }
-    if (["default", "focus"].includes(this.mode)) {
-      this.drawRegions(focused);
-    }
+    this.drawPointsAndLines(focused);
+    this.drawRegions(focused);
     // If "Enter" was pressed, show full mask
     if (this.lastKey === "Enter") {
       this.resetImage();
@@ -122,6 +124,12 @@ class PolygonTool extends React.Component {
     // Check if point was clicked
     let hoverPointIndex = this.getPointClick();
     if (hoverPointIndex != null) {
+      if (
+        ["adding"].includes(this.mode) &&
+        hoverPointIndex[0] !== this.currentMaskId
+      ) {
+        return;
+      }
       this.prevMode = this.mode;
       this.mode = "dragging";
       this.draggingIndex = hoverPointIndex;
@@ -131,7 +139,7 @@ class PolygonTool extends React.Component {
     }
 
     // Add new point
-    if (this.lastKey !== "Enter" && this.mode === "drawing") {
+    if (this.lastKey !== "Enter" && ["drawing", "adding"].includes(this.mode)) {
       this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
       this.updateZoom();
       this.update();
@@ -194,7 +202,10 @@ class PolygonTool extends React.Component {
         this.mode = "default";
         break;
       case "Escape":
-        if (this.points[this.currentMaskId].length >= 3) {
+        if (
+          this.points[this.currentMaskId] &&
+          this.points[this.currentMaskId].length >= 3
+        ) {
           this.save();
           this.mode = "default";
           this.props.exitCallback();
@@ -215,6 +226,13 @@ class PolygonTool extends React.Component {
     this.update();
   }
 
+  addMaskHandler() {
+    this.currentMaskId = this.points.length;
+    this.points.push([]);
+    this.prevMode = this.mode;
+    this.mode = "adding";
+  }
+
   updateZoom() {
     this.scale = Math.min(
       this.canvas.width / this.zoomPixels,
@@ -224,7 +242,7 @@ class PolygonTool extends React.Component {
       this.currentMaskId === -1 ||
       !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length === 0 ||
-      !["default", "dragging", "drawing"].includes(this.mode)
+      !["default", "dragging", "drawing", "adding"].includes(this.mode)
     ) {
       return;
     }
@@ -293,21 +311,26 @@ class PolygonTool extends React.Component {
       this.drawPoint(this.points[i][this.points[i].length - 1]); // Final point
       // Line connecting start to finish
       if (
-        !["drawing"].includes(this.mode) &&
-        !["drawing"].includes(this.prevMode)
+        !["drawing", "adding"].includes(this.mode) &&
+        !["drawing", "adding"].includes(this.prevMode)
       ) {
         this.drawLine(
           this.points[i][0],
           this.points[i][this.points[i].length - 1]
         );
       }
-      // Line to mouse
-      if (this.points[i].length > 0 && ["drawing"].includes(this.mode)) {
-        this.drawLine(
-          this.points[i][this.points[i].length - 1],
-          this.localToImage(this.lastMouse)
-        );
-      }
+    }
+    // Line to mouse
+    if (
+      this.points[this.currentMaskId].length > 0 &&
+      ["drawing", "adding"].includes(this.mode)
+    ) {
+      this.drawLine(
+        this.points[this.currentMaskId][
+          this.points[this.currentMaskId].length - 1
+        ],
+        this.localToImage(this.lastMouse)
+      );
     }
   }
 
