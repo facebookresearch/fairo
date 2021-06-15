@@ -148,7 +148,11 @@ class PolygonTool extends React.Component {
     }
 
     // Add new point
-    if (this.lastKey !== "Enter" && ["drawing", "adding"].includes(this.mode)) {
+    if (
+      ["drawing", "adding"].includes(this.mode) &&
+      (this.lastKey !== "Enter" ||
+        ["drawing", "adding"].includes(this.prevMode)) // case where Enter is pressed, then "add mask"
+    ) {
       this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
       this.updateZoom();
       this.update();
@@ -276,7 +280,7 @@ class PolygonTool extends React.Component {
         newMessage = "Select which mask to delete";
         break;
       default:
-        newMessage = "Please trace the " + this.props.object || "object";
+        newMessage = "Please trace the " + (this.props.object || "object");
         break;
     }
     if (newMessage !== this.state.message) {
@@ -336,6 +340,7 @@ class PolygonTool extends React.Component {
     let regionId = -1;
     for (let i = 0; i < this.regions.length; i++) {
       if (
+        this.regions[i] &&
         this.ctx.isPointInPath(
           this.regions[i],
           this.lastMouse.x,
