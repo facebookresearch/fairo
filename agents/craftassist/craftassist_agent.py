@@ -332,19 +332,6 @@ class CraftAssistAgent(LocoMCAgent):
             return
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
 
-    def log_to_dashboard(self, **kwargs):
-        """Emits the event to the dashboard and/or logs it in a file"""
-        result = kwargs['data']
-        # a sample filter for logging VoxelObjects queries only
-        if result["name"] == "db_write":
-            # JSONify the data
-            result = json.dumps(result, default=str)
-            if "VoxelObjects" in result:
-                self.agent_emit(result)
-                if self.opts.log_timeline:
-                    self.timeline_log_file.flush()
-                    print(result, file=self.timeline_log_file)
-
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
