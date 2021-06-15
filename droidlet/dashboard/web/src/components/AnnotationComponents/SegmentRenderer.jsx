@@ -32,7 +32,7 @@ class SegmentRenderer extends React.Component {
     this.update = this.update.bind(this);
     this.drawLine = this.drawLine.bind(this);
     this.addOnClickHandler = this.addOnClickHandler.bind(this);
-    this.regions = []; // array of mask sets
+    this.regions = {}; // array of mask sets
 
     this.canvasRef = React.createRef();
     this.imgRef = React.createRef();
@@ -82,12 +82,13 @@ class SegmentRenderer extends React.Component {
 
     // Draw regions
     for (let i = 0; i < this.props.objects.length; i++) {
-      let pts_arr = this.props.pointMap[this.props.objects[i]];
+      let curId = this.props.objects[i];
+      let pts_arr = this.props.pointMap[curId];
       if (pts_arr.length === 0) {
         continue;
       }
 
-      this.regions.push([]);
+      this.regions[curId] = [];
       let color =
         this.props.colors[i % this.props.colors.length] || "rgba(0,200,0,.5)";
       // Go through masks in label
@@ -98,7 +99,7 @@ class SegmentRenderer extends React.Component {
           y: pt.y * this.canvas.height,
         }));
         let region = this.drawRegion(points, color);
-        this.regions[this.regions.length - 1].push(region);
+        this.regions[curId].push(region);
       }
     }
 
@@ -132,8 +133,8 @@ class SegmentRenderer extends React.Component {
     this.canvas.addEventListener("mousedown", (e) => {
       // Run through regions and if click is in a region, display only that region
       let regionId = -1;
-      for (let i = 0; i < this.regions.length; i++) {
-        for (let j = 0; j < this.regions[i].length; j++) {
+      for (let i in this.regions) {
+        for (let j in this.regions[i]) {
           if (
             this.ctx.isPointInPath(this.regions[i][j], e.offsetX, e.offsetY)
           ) {

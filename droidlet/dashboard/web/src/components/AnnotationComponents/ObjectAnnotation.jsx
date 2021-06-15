@@ -86,6 +86,7 @@ class ObjectAnnotation extends React.Component {
             this.setState({ currentMode: "select" });
           }}
           submitCallback={this.drawingFinished.bind(this)}
+          deleteLabelHandler={this.deleteLabelHandler.bind(this)}
           mode={this.state.currentMode === "start_polygon" ? "drawing" : null}
         ></PolygonTool>
       );
@@ -161,6 +162,22 @@ class ObjectAnnotation extends React.Component {
         currentOverlay: overlay,
       });
     }
+  }
+
+  deleteLabelHandler() {
+    delete this.nameMap[this.state.currentMaskId];
+    delete this.pointMap[this.state.currentMaskId];
+    delete this.propertyMap[this.state.currentMaskId];
+    let newObjectIds = this.state.objectIds.slice();
+    newObjectIds.splice(
+      this.state.objectIds.indexOf(parseInt(this.state.currentMaskId)),
+      1
+    );
+    this.setState({
+      currentMode: "select",
+      currentMaskId: -1,
+      objectIds: newObjectIds,
+    });
   }
 
   dataEntrySubmit(objectData) {
