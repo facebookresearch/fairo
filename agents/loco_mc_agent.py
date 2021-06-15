@@ -296,7 +296,7 @@ class LocoMCAgent(BaseAgent):
                 "time" : self.last_chat_time,
                 "chat" : chat, 
                 "preprocessed" : preprocessed_chat, 
-                "logical form" : chat_parse,
+                "logical_form" : chat_parse,
             }
             self.memory.dispatch_signal.send(self.perceive, data=hook_data)
 
@@ -361,16 +361,14 @@ class LocoMCAgent(BaseAgent):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
         # a sample filter for logging VoxelObjects queries only from db_write
-        if result["name"] == "db_write" and result["table_name"] == "VoxelObjects":
+        # or any type of data from perceive
+        if result["name"] == "db_write" and result["table_name"] == "VoxelObjects" or result["name"] == "perceive":
             # JSONify the data
             result = json.dumps(result, default=str)
             self.agent_emit(result)
             if self.opts.log_timeline:
                 self.timeline_log_file.flush()
                 print(result, file=self.timeline_log_file)
-        elif result["name"] == "perceive":
-            result = json.dumps(result, default=str)
-            self.agent_emit(result)
 
     def agent_emit(self, result):
         sio.emit("newTimelineEvent", result)
