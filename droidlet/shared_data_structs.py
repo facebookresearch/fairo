@@ -113,3 +113,4 @@ class MockOpt:
         # test does not instantiate cpp client
         self.port = -1
         self.no_default_behavior = False
+        self.log_timeline = False

@@ -397,6 +397,7 @@ class FakeAgent(LocoMCAgent):
             opts.model_base_path = ""
             opts.ground_truth_data_dir = ""
             opts.no_ground_truth = True
+            opts.log_timeline = False
         super(FakeAgent, self).__init__(opts)
         self.no_default_behavior = True
         self.last_task_memid = None

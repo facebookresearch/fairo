@@ -10,12 +10,14 @@ import os
 import pickle
 import sqlite3
 import uuid
+import droidlet.event.dispatcher as dispatch
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import BasicMemorySearcher
 from .dialogue_stack import DialogueStack
+from droidlet.memory.memory_util import parse_sql, format_query
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
@@ -97,6 +99,8 @@ class AgentMemory:
         self.on_delete_callback = on_delete_callback
 
         self.init_time_interface(agent_time)
+
+        self.dispatch_signal = dispatch.Signal()
 
         # FIXME agent : should this be here?  where to put?
         self.coordinate_transforms = coordinate_transforms
@@ -1028,6 +1032,18 @@ class AgentMemory:
         if self.on_delete_callback is not None and deleted:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
+        # format the data to send to dashboard timeline
+        query_table, query_operation = parse_sql(query[:query.find("(") - 1])
+        query_dict = format_query(query, *args)
+        hook_data = {
+            "name" : "db_write", 
+            "time" : self.get_time(), 
+            "table_name" : query_table, 
+            "operation" : query_operation, 
+            "args" : query_dict, 
+            "result" : r
+        }
+        self.dispatch_signal.send(self.db_write, data=hook_data)
         return r
 
     def _db_write(self, query: str, *args) -> int:
@@ -1153,3 +1169,9 @@ class AgentMemory:
         obj = pickle.loads(bs)
         self.reinstate_attrs(obj)
         return obj
+
+    def register_hook(self, receiver, sender):
+        """
+        allows for registering hooks using the event dispatcher
+        """
+        self.dispatch_signal.connect(receiver, sender)

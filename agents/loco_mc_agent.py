@@ -52,6 +52,9 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
+        # Add optional logging for timeline
+        if opts.log_timeline:
+            self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
@@ -340,6 +343,14 @@ class LocoMCAgent(BaseAgent):
                 "named_abstractions": named_abstractions,
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
+
+    def agent_emit(self, result):
+        sio.emit("newTimelineEvent", result)
+
+    def __del__(self):
+        """Close the timeline log file"""
+        if getattr(self, "timeline_log_file", None):
+            self.timeline_log_file.close()
 
 
 def default_agent_name():

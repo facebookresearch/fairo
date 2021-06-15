@@ -40,6 +40,12 @@ class ArgumentParser:
             default=False,
             help="Support a mode where the agent fails gracefully. Only use this for turk session, etc. ",
         )
+        self.parser.add_argument(
+            "--log_timeline",
+            action="store_true", 
+            default=False,
+            help="enables timeline logging for dashboard",
+        )
 
     def add_nsp_parser(self):
         nsp_parser = self.parser.add_argument_group("Neural Semantic Parser Args")
