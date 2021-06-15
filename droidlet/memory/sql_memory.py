@@ -1041,7 +1041,7 @@ class AgentMemory:
             "table_name" : query_table, 
             "operation" : query_operation, 
             "args" : query_dict, 
-            "result" : r
+            "result" : r,
         }
         self.dispatch_signal.send(self.db_write, data=hook_data)
         return r

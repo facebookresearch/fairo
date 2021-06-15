@@ -56,6 +56,9 @@ class LocoMCAgent(BaseAgent):
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
 
+        # Add hook for perceive
+        self.memory.register_hook(self.log_to_dashboard, self.perceive)
+
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
         # create a connection to database file
@@ -286,6 +289,16 @@ class LocoMCAgent(BaseAgent):
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
             # New chat, mark as unprocessed.
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            # Send data to the dashboard timeline
+            hook_data = {
+                "name" : "perceive",
+                "speaker" : speaker, 
+                "time" : self.last_chat_time,
+                "chat" : chat, 
+                "preprocessed" : preprocessed_chat, 
+                "logical form" : chat_parse,
+            }
+            self.memory.dispatch_signal.send(self.perceive, data=hook_data)
 
         for v in self.perception_modules.values():
             v.perceive(force=force)
@@ -347,15 +360,17 @@ class LocoMCAgent(BaseAgent):
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
-        # a sample filter for logging VoxelObjects queries only
-        if result["name"] == "db_write":
+        # a sample filter for logging VoxelObjects queries only from db_write
+        if result["name"] == "db_write" and result["table_name"] == "VoxelObjects":
             # JSONify the data
             result = json.dumps(result, default=str)
-            if "VoxelObjects" in result:
-                self.agent_emit(result)
-                if self.opts.log_timeline:
-                    self.timeline_log_file.flush()
-                    print(result, file=self.timeline_log_file)
+            self.agent_emit(result)
+            if self.opts.log_timeline:
+                self.timeline_log_file.flush()
+                print(result, file=self.timeline_log_file)
+        elif result["name"] == "perceive":
+            result = json.dumps(result, default=str)
+            self.agent_emit(result)
 
     def agent_emit(self, result):
         sio.emit("newTimelineEvent", result)
