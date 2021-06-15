@@ -185,9 +185,15 @@ class CraftAssistAgent(LocoMCAgent):
         )
 
     def perceive(self, force=False):
+        """Whenever some blocks are changed, that area will be put into a 
+        buffer which will be force-perceived by the agent in the next step
+
+        Here the agent first clusters areas that are overlapping on the buffer,
+        then run through all perception modules to perceive
+        and finally clear the buffer when perception is done.
+        """
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
-        for v in self.perception_modules.values():
-            v.perceive(force=force)
+        super().perceive()
         self.areas_to_perceive = []
 
     def get_time(self):
