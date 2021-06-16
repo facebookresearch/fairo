@@ -7,15 +7,21 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { Rnd } from "react-rnd";
 import { Stage, Layer, Image as KImage, Rect, Text, Shape } from "react-konva";
-import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import ObjectFixup from "./ObjectFixup";
 
-// fast string hash https://stackoverflow.com/a/15710692
-var hashCode = (s) =>
-  s.split("").reduce((a, b) => {
-    a = (a << 5) - a + b.charCodeAt(0);
-    return a & a;
-  }, 0);
+const COLORS = [
+  "rgba(0,200,0,.5)",
+  "rgba(200,0,0,.5)",
+  "rgba(0,0,200,.5)",
+  "rgba(200,200,0,.5)",
+  "rgba(0,200,200,.5)",
+  "rgba(200,0,200,.5)",
+  "rgba(150,50,50,.5)",
+  "rgba(255, 153, 0, .5)",
+  "rgba(128,0,128,.5)",
+  "rgba(0,204,255,.5)",
+  "rgba(153,204,0,.5)",
+];
 
 /**
  * Displays an image along with the object bounding boxes.
@@ -124,12 +130,11 @@ class LiveObjects extends React.Component {
       parsed_objects = [];
     }
     let j = 0;
-    parsed_objects.forEach((obj) => {
+    parsed_objects.forEach((obj, i) => {
       let obj_id = obj.id;
       let label = String(obj_id).concat(obj.label);
       let properties = obj.properties;
-      let hash = hashCode(label.concat(properties));
-      let color = colorScheme[Math.abs(hash % colorScheme.length)];
+      let color = COLORS[i % COLORS.length];
       let scale = height / 512;
       let x1 = parseInt(obj.bbox[0] * scale);
       let y1 = parseInt(obj.bbox[1] * scale);
