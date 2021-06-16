@@ -59,7 +59,7 @@ class PolygonTool extends React.Component {
 
     this.zoomPixels = 300;
     this.pointSize = 10;
-    this.color = "rgba(0,0,200,0.5)"; // TODO: choose random color
+    this.color = this.props.color;
   }
 
   componentDidMount() {
@@ -126,7 +126,11 @@ class PolygonTool extends React.Component {
     this.drawPointsAndLines(focused);
     this.drawRegions(focused);
     // If "Enter" was pressed, show full mask
-    if (this.lastKey === "Enter") {
+    if (
+      this.lastKey === "Enter" &&
+      this.points[this.currentMaskId] &&
+      this.points[this.currentMaskId].length >= 3
+    ) {
       this.resetImage();
       this.drawRegions();
     }
@@ -175,7 +179,9 @@ class PolygonTool extends React.Component {
     if (
       ["drawing", "adding"].includes(this.mode) &&
       (this.lastKey !== "Enter" ||
-        ["drawing", "adding"].includes(this.prevMode)) // case where Enter is pressed, then "add mask"
+        ["drawing", "adding"].includes(this.prevMode) ||
+        (this.points[this.currentMaskId] &&
+          this.points[this.currentMaskId].length < 3)) // case where Enter is pressed, then "add mask"
     ) {
       this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
       this.updateZoom();
@@ -262,7 +268,11 @@ class PolygonTool extends React.Component {
         this.changeTextHandler();
         break;
       case "Enter":
-        if (this.lastKey === "Enter") {
+        if (
+          this.lastKey === "Enter" &&
+          this.points[this.currentMaskId] &&
+          this.points[this.currentMaskId].length >= 3
+        ) {
           this.lastKey = null;
           this.baseMode = "default";
           this.save();
@@ -295,6 +305,12 @@ class PolygonTool extends React.Component {
   }
 
   addMaskHandler() {
+    if (
+      !this.points[this.currentMaskId] ||
+      this.points[this.currentMaskId].length < 3
+    ) {
+      return;
+    }
     this.currentMaskId = this.points.length;
     this.points.push([]);
     this.prevMode = this.mode;
@@ -302,11 +318,23 @@ class PolygonTool extends React.Component {
   }
 
   deleteMaskHandler() {
+    if (
+      !this.points[this.currentMaskId] ||
+      this.points[this.currentMaskId].length < 3
+    ) {
+      return;
+    }
     this.prevMode = this.mode;
     this.mode = "deletingMask";
   }
 
   changeTextHandler() {
+    if (
+      !this.points[this.currentMaskId] ||
+      this.points[this.currentMaskId].length < 3
+    ) {
+      return;
+    }
     this.save();
     let rect = this.canvas.getBoundingClientRect();
     let x = this.points[0][0].x + rect.left;
