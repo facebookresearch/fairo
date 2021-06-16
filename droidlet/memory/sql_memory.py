@@ -1174,4 +1174,5 @@ class AgentMemory:
         """
         allows for registering hooks using the event dispatcher
         """
-        self.dispatch_signal.connect(receiver, sender)
+        if sender == self.db_write:
+            self.dispatch_signal.connect(receiver, sender)
