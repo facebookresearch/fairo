@@ -1174,7 +1174,8 @@ class AgentMemory:
         """
         allows for registering hooks using the event dispatcher
         """
-        if sender == self.db_write:
+        allowed = [self.db_write,]
+        if sender in allowed:
             self._dispatch_signal.connect(receiver, sender)
         else:
-            raise ValueError("{} is not allowed to register hooks".format(sender.__name__))
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, allowed))

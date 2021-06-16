@@ -365,10 +365,11 @@ class LocoMCAgent(BaseAgent):
         """
         allows for registering hooks using the event dispatcher
         """
-        if sender == self.perceive:
+        allowed = [self.perceive,]
+        if sender in allowed:
             self._dispatch_signal.connect(receiver, sender)
         else:
-            raise ValueError("{} is not allowed to register hooks".format(sender.__name__))
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, allowed))
 
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
