@@ -326,6 +326,7 @@ class PolygonTool extends React.Component {
     }
     this.prevMode = this.mode;
     this.mode = "deletingMask";
+    this.currentMaskId = 0;
   }
 
   changeTextHandler() {
