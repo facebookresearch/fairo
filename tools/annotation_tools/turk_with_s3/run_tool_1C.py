@@ -16,7 +16,7 @@ collects results in batches and collates data.
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file 1C_input.txt --tool_num 3 > turk_input.csv"
+        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file C/input.txt --tool_num 3 > turk_input.csv"
     ],
     shell=True,
 )
