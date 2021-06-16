@@ -40,7 +40,7 @@ class LocoMCAgent(BaseAgent):
         self.areas_to_perceive = []
         self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
-        self.dispatch_signal = dispatch.Signal()
+        self._dispatch_signal = dispatch.Signal()
         self.dashboard_memory = {
             "db": {},
             "objects": [],
@@ -301,7 +301,7 @@ class LocoMCAgent(BaseAgent):
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,
             }
-            self.dispatch_signal.send(self.perceive, data=hook_data)
+            self._dispatch_signal.send(self.perceive, data=hook_data)
 
         for v in self.perception_modules.values():
             v.perceive(force=force)
@@ -365,7 +365,7 @@ class LocoMCAgent(BaseAgent):
         allows for registering hooks using the event dispatcher
         """
         if sender == self.perceive:
-            self.dispatch_signal.connect(receiver, sender)
+            self._dispatch_signal.connect(receiver, sender)
 
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
