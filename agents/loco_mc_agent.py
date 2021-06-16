@@ -56,8 +56,9 @@ class LocoMCAgent(BaseAgent):
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
 
-        # Add hook for perceive
-        self.memory.register_hook(self.log_to_dashboard, self.perceive)
+        # Add optional hook for perceive
+        if opts.enable_timeline:
+            self.memory.register_hook(self.log_to_dashboard, self.perceive)
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
