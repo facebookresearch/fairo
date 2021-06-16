@@ -100,6 +100,17 @@ class ObjectAnnotation extends React.Component {
             object(s) labeled.
           </p>
           {this.state.currentOverlay}
+          <div>
+            {this.state.objectIds.map((id, i) => (
+              <button
+                key={id}
+                style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                onClick={() => this.labelSelectHandler(id)}
+              >
+                {this.nameMap[id]}
+              </button>
+            ))}
+          </div>
           <SegmentRenderer
             img={this.image}
             objects={this.state.objectIds}
@@ -112,33 +123,6 @@ class ObjectAnnotation extends React.Component {
           </button>
         </div>
       );
-    }
-  }
-
-  registerClick(x, y, regionFound, regionId) {
-    if (this.state.currentMode === "select") {
-      if (regionFound) {
-        this.drawing_data = {
-          tags: this.propertyMap[regionId],
-          name: this.nameMap[regionId],
-        };
-        this.setState({
-          currentMode: "draw_polygon",
-          currentOverlay: null,
-          currentMaskId: regionId,
-        });
-      } else if (this.state.currentMode !== "fill_data") {
-        this.drawing_data = {
-          tags: null,
-          name: null,
-        };
-        this.setState({
-          currentMode: "start_polygon",
-          currentMaskId: this.nextId,
-        });
-        this.clickPoint = { x, y };
-        this.nextId += 1;
-      }
     }
   }
 
@@ -207,6 +191,45 @@ class ObjectAnnotation extends React.Component {
       currentMode: "select",
       currentOverlay: null,
     });
+  }
+
+  labelSelectHandler(id) {
+    this.setState({
+      currentMode: "draw_polygon",
+      currentOverlay: null,
+      currentMaskId: id,
+    });
+    this.drawing_data = {
+      tags: this.propertyMap[id],
+      name: this.nameMap[id],
+    };
+  }
+
+  registerClick(x, y, regionFound, regionId) {
+    if (this.state.currentMode === "select") {
+      if (regionFound) {
+        this.drawing_data = {
+          tags: this.propertyMap[regionId],
+          name: this.nameMap[regionId],
+        };
+        this.setState({
+          currentMode: "draw_polygon",
+          currentOverlay: null,
+          currentMaskId: regionId,
+        });
+      } else if (this.state.currentMode !== "fill_data") {
+        this.drawing_data = {
+          tags: null,
+          name: null,
+        };
+        this.setState({
+          currentMode: "start_polygon",
+          currentMaskId: this.nextId,
+        });
+        this.clickPoint = { x, y };
+        this.nextId += 1;
+      }
+    }
   }
 
   submit() {
