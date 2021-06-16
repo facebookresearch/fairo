@@ -88,10 +88,6 @@ class CraftAssistAgent(LocoMCAgent):
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
-        
-        # Add optional hook for db_write
-        if opts.enable_timeline:
-            self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
