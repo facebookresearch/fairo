@@ -438,6 +438,22 @@ class PolygonTool extends React.Component {
     this.update();
   }
 
+  save() {
+    this.props.submitCallback(
+      this.points.map((pts) =>
+        pts.map((p) => ({
+          x: p.x / this.canvas.width,
+          y: p.y / this.canvas.height,
+        }))
+      ),
+      this.newMask
+    );
+  }
+
+  /***************************************************************************
+   * Utilities
+   ***************************************************************************/
+
   getPointClick() {
     for (let i = 0; i < this.points.length; i++) {
       for (let j = 0; j < this.points[i].length; j++) {
@@ -550,18 +566,6 @@ class PolygonTool extends React.Component {
     this.ctx.fill(region, "evenodd");
 
     return region;
-  }
-
-  save() {
-    this.props.submitCallback(
-      this.points.map((pts) =>
-        pts.map((p) => ({
-          x: p.x / this.canvas.width,
-          y: p.y / this.canvas.height,
-        }))
-      ),
-      this.newMask
-    );
   }
 
   localToImage(pt) {
