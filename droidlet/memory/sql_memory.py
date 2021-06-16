@@ -1176,3 +1176,5 @@ class AgentMemory:
         """
         if sender == self.db_write:
             self._dispatch_signal.connect(receiver, sender)
+        else:
+            raise ValueError("{} is not allowed to register hooks".format(sender.__name__))

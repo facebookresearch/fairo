@@ -366,6 +366,8 @@ class LocoMCAgent(BaseAgent):
         """
         if sender == self.perceive:
             self._dispatch_signal.connect(receiver, sender)
+        else:
+            raise ValueError("{} is not allowed to register hooks".format(sender.__name__))
 
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
