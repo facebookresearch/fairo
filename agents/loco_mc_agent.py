@@ -6,6 +6,7 @@ import random
 import re
 import time
 import numpy as np
+import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
@@ -39,6 +40,7 @@ class LocoMCAgent(BaseAgent):
         self.areas_to_perceive = []
         self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
+        self.dispatch_signal = dispatch.Signal()
         self.dashboard_memory = {
             "db": {},
             "objects": [],
@@ -58,7 +60,7 @@ class LocoMCAgent(BaseAgent):
 
         # Add optional hook for perceive
         if opts.enable_timeline:
-            self.memory.register_hook(self.log_to_dashboard, self.perceive)
+            self.register_hook(self.log_to_dashboard, self.perceive)
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
@@ -299,7 +301,7 @@ class LocoMCAgent(BaseAgent):
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,
             }
-            self.memory.dispatch_signal.send(self.perceive, data=hook_data)
+            self.dispatch_signal.send(self.perceive, data=hook_data)
 
         for v in self.perception_modules.values():
             v.perceive(force=force)
@@ -357,6 +359,13 @@ class LocoMCAgent(BaseAgent):
                 "named_abstractions": named_abstractions,
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
+
+    def register_hook(self, receiver, sender):
+        """
+        allows for registering hooks using the event dispatcher
+        """
+        if sender == self.perceive:
+            self.dispatch_signal.connect(receiver, sender)
 
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
