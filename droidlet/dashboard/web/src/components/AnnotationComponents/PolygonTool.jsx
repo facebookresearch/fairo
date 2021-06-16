@@ -291,14 +291,6 @@ class PolygonTool extends React.Component {
           this.props.exitCallback();
         }
         break;
-      case "~":
-        this.mode = "default";
-        break;
-      case "Escape":
-        this.save();
-        this.mode = "default";
-        this.props.exitCallback();
-        break;
       case "=":
         this.zoomIn();
         break;
@@ -309,39 +301,6 @@ class PolygonTool extends React.Component {
         break;
     }
     this.lastKey = e.key;
-    this.update();
-  }
-
-  updateZoom() {
-    this.scale = Math.min(
-      this.canvas.width / this.zoomPixels,
-      this.canvas.height / this.zoomPixels
-    );
-    if (
-      this.currentMaskId === -1 ||
-      !this.points[this.currentMaskId] ||
-      this.points[this.currentMaskId].length === 0 ||
-      !["default", "dragging", "drawing"].includes(this.mode)
-    ) {
-      return;
-    }
-    let points = this.points[this.currentMaskId];
-    this.Offset = {
-      x: -(points[points.length - 1].x - this.zoomPixels / 2) * this.scale,
-      y: -(points[points.length - 1].y - this.zoomPixels / 2) * this.scale,
-    };
-  }
-
-  onMouseMove(e) {
-    var rect = this.canvas.getBoundingClientRect();
-    this.lastMouse = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top + 1,
-    };
-    if (this.mode === "dragging") {
-      this.points[this.draggingIndex[0]][this.draggingIndex[1]] =
-        this.localToImage(this.lastMouse);
-    }
     this.update();
   }
 

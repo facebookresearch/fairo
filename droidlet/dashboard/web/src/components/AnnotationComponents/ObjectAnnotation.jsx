@@ -77,12 +77,19 @@ class ObjectAnnotation extends React.Component {
 
   render() {
     if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
+      let curIndex = this.state.objectIds.indexOf(
+        parseInt(this.state.currentMaskId)
+      );
+      let color =
+        curIndex >= 0
+          ? COLORS[curIndex % COLORS.length]
+          : COLORS[this.state.objectIds.length % COLORS.length];
       return (
         <PolygonTool
           img={this.image}
           object={this.drawing_data.name}
           masks={this.pointMap[this.state.currentMaskId]}
-          color={COLORS[this.state.currentMaskId % COLORS.length]}
+          color={color}
           exitCallback={() => {
             this.setState({ currentMode: "select" });
           }}
