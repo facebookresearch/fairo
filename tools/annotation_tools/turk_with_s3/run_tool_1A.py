@@ -48,7 +48,7 @@ if rc != 0:
 
 # Postprocess
 print("*** Postprocessing results ***")
-rc = subprocess.call(["python parse_outputs.py"], shell=True)
+rc = subprocess.call(["python parse_tool_A_outputs.py"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
     sys.exit()
