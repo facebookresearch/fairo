@@ -1,3 +1,6 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
 var createGame = require("voxel-engine");
 var highlight = require("voxel-highlight");
 var player = require("voxel-player");

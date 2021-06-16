@@ -1,3 +1,6 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
 import React from "react";
 
 class VoxelWorld extends React.Component {

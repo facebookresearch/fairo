@@ -1,3 +1,6 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
 const World = require("./world");
 const world = new World();
 
