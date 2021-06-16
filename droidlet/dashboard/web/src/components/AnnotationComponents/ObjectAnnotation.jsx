@@ -127,7 +127,7 @@ class ObjectAnnotation extends React.Component {
           currentOverlay: null,
           currentMaskId: regionId,
         });
-      } else {
+      } else if (this.state.currentMode !== "fill_data") {
         this.drawing_data = {
           tags: null,
           name: null,

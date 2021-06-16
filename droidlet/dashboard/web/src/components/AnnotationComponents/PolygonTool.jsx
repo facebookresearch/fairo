@@ -286,6 +286,7 @@ class PolygonTool extends React.Component {
   }
 
   changeTextHandler() {
+    this.save();
     let rect = this.canvas.getBoundingClientRect();
     let x = this.points[0][0].x + rect.left;
     let y = this.points[0][0].y + rect.top;
