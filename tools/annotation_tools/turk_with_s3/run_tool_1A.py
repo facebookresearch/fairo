@@ -52,3 +52,10 @@ rc = subprocess.call(["python parse_outputs.py"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
     sys.exit()
+
+# Create inputs for other tools
+print("*** Postprocessing results ***")
+rc = subprocess.call(["python generate_input_for_tool_B_and_C.py"], shell=True)
+if rc != 0:
+    print("Error generating input for other tools. Exiting.")
+    sys.exit()
