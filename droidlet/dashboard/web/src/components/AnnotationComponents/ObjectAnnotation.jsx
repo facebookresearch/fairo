@@ -82,7 +82,7 @@ class ObjectAnnotation extends React.Component {
           img={this.image}
           object={this.drawing_data.name}
           masks={this.pointMap[this.state.currentMaskId]}
-          color={COLORS[this.state.currentMaskId % COLORS.length]}
+          color={COLORS[this.state.objectIds.length % COLORS.length]}
           exitCallback={() => {
             this.setState({ currentMode: "select" });
           }}
