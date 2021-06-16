@@ -13,7 +13,6 @@ submitCallback (pts)
 */
 
 import React from "react";
-import Toolbox from "./Toolbox";
 
 class PolygonTool extends React.Component {
   constructor(props) {
@@ -31,6 +30,8 @@ class PolygonTool extends React.Component {
     this.changeTextHandler = this.changeTextHandler.bind(this);
     this.insertPointHandler = this.insertPointHandler.bind(this);
     this.deletePointHandler = this.deletePointHandler.bind(this);
+    this.zoomIn = this.zoomIn.bind(this);
+    this.zoomOut = this.zoomOut.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.keyDown = this.keyDown.bind(this);
     this.drawPoint = this.drawPoint.bind(this);
@@ -91,16 +92,18 @@ class PolygonTool extends React.Component {
     return (
       <div>
         <p>{this.state.message}</p>
-        <Toolbox
-          points={this.points}
-          regions={this.regions}
-          addMaskHandler={this.addMaskHandler}
-          deleteMaskHandler={this.deleteMaskHandler}
-          deleteLabelHandler={() => this.props.deleteLabelHandler()}
-          changeTextHandler={this.changeTextHandler}
-          insertPointHandler={this.insertPointHandler}
-          deletePointHandler={this.deletePointHandler}
-        />
+        <div>
+          <button onClick={this.addMaskHandler}>Add mask</button>
+          <button onClick={this.deleteMaskHandler}>Delete mask</button>
+          <button onClick={() => this.props.deleteLabelHandler()}>
+            Delete label
+          </button>
+          <button onClick={this.changeTextHandler}>Modify labels</button>
+          <button onClick={this.insertPointHandler}>Insert point</button>
+          <button onClick={this.deletePointHandler}>Delete point</button>
+          <button onClick={this.zoomIn}>Zoom in</button>
+          <button onClick={this.zoomOut}>Zoom out</button>
+        </div>
         <canvas
           ref={this.canvasRef}
           width="500px"
@@ -259,12 +262,10 @@ class PolygonTool extends React.Component {
         }
         break;
       case "=":
-        this.zoomPixels -= 10;
-        this.updateZoom();
+        this.zoomIn();
         break;
       case "-":
-        this.zoomPixels += 10;
-        this.updateZoom();
+        this.zoomOut();
         break;
       default:
         break;
@@ -307,6 +308,16 @@ class PolygonTool extends React.Component {
     this.baseMode = this.mode;
     this.prevMode = this.mode;
     this.mode = "deletingPoint";
+  }
+
+  zoomIn() {
+    this.zoomPixels -= 10;
+    this.updateZoom();
+  }
+
+  zoomOut() {
+    this.zoomPixels += 10;
+    this.updateZoom();
   }
 
   updateMessage() {
