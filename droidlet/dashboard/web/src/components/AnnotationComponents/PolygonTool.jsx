@@ -67,12 +67,14 @@ class PolygonTool extends React.Component {
     this.ctx = this.canvas.getContext("2d");
 
     this.points = this.props.masks
-      ? this.props.masks.map((maskSet) =>
-          maskSet.map((pt) => ({
-            x: pt.x * this.canvas.width,
-            y: pt.y * this.canvas.height,
-          }))
-        )
+      ? this.props.masks
+          .map((maskSet) =>
+            maskSet.map((pt) => ({
+              x: pt.x * this.canvas.width,
+              y: pt.y * this.canvas.height,
+            }))
+          )
+          .filter((maskSet) => maskSet) // remove empty masks
       : [[]];
 
     this.img = this.props.img;
@@ -93,16 +95,16 @@ class PolygonTool extends React.Component {
       <div>
         <p>{this.state.message}</p>
         <div>
-          <button onClick={this.addMaskHandler}>Add mask</button>
-          <button onClick={this.deleteMaskHandler}>Delete mask</button>
+          <button onClick={this.addMaskHandler}>Add mask (q)</button>
+          <button onClick={this.deleteMaskHandler}>D(e)lete mask</button>
+          <button onClick={this.insertPointHandler}>(I)nsert point</button>
+          <button onClick={this.deletePointHandler}>(R)emove point</button>
+          <button onClick={this.changeTextHandler}>(M)odify labels</button>
           <button onClick={() => this.props.deleteLabelHandler()}>
-            Delete label
+            Delete (l)abel
           </button>
-          <button onClick={this.changeTextHandler}>Modify labels</button>
-          <button onClick={this.insertPointHandler}>Insert point</button>
-          <button onClick={this.deletePointHandler}>Delete point</button>
-          <button onClick={this.zoomIn}>Zoom in</button>
-          <button onClick={this.zoomOut}>Zoom out</button>
+          <button onClick={this.zoomIn}>Zoom in (=)</button>
+          <button onClick={this.zoomOut}>Zoom out (-)</button>
         </div>
         <canvas
           ref={this.canvasRef}
@@ -241,6 +243,24 @@ class PolygonTool extends React.Component {
       case "d":
         this.shiftViewBy(-10, 0);
         break;
+      case "q":
+        this.addMaskHandler();
+        break;
+      case "e":
+        this.deleteMaskHandler();
+        break;
+      case "i":
+        this.insertPointHandler();
+        break;
+      case "r":
+        this.deletePointHandler();
+        break;
+      case "l":
+        this.props.deleteLabelHandler();
+        break;
+      case "m":
+        this.changeTextHandler();
+        break;
       case "Enter":
         if (this.lastKey === "Enter") {
           this.lastKey = null;
@@ -342,7 +362,6 @@ class PolygonTool extends React.Component {
     if (newMessage !== this.state.message) {
       this.setState({ message: newMessage });
     }
-    console.log("updated state", this.state.message);
   }
 
   updateZoom() {
@@ -414,7 +433,7 @@ class PolygonTool extends React.Component {
       // Continue if focusing on specific mask and id isn't equal
       if (focus === true && i !== this.currentMaskId) continue;
       // Continue if mask is empty
-      if (this.points[i].length === 0) continue;
+      if (!this.points[i] || this.points[i].length === 0) continue;
 
       // Points and Lines
       for (let j = 0; j < this.points[i].length - 1; j++) {
@@ -477,7 +496,7 @@ class PolygonTool extends React.Component {
   }
 
   drawRegion(points) {
-    if (points.length < 3) {
+    if (!points || points.length < 3) {
       return;
     }
     let region = new Path2D();
