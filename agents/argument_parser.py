@@ -46,6 +46,12 @@ class ArgumentParser:
             default=False,
             help="enables timeline logging for dashboard",
         )
+        self.parser.add_argument(
+            "--enable_timeline",
+            action="store_true", 
+            default=False,
+            help="enables the dashboard timeline to display events",
+        )
 
     def add_nsp_parser(self):
         nsp_parser = self.parser.add_argument_group("Neural Semantic Parser Args")
