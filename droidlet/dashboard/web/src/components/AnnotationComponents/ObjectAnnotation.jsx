@@ -47,11 +47,7 @@ class ObjectAnnotation extends React.Component {
       let curObject = this.props.objects[i];
       this.nameMap[i] = curObject.label;
       this.pointMap[i] = curObject.mask;
-      for (let j in this.pointMap[i]) {
-        if (this.pointMap[i][j].length < 3) {
-          delete this.pointMap[i][j];
-        }
-      }
+      this.parsePoints(i);
       this.propertyMap[i] = curObject.properties;
     }
 
@@ -131,6 +127,23 @@ class ObjectAnnotation extends React.Component {
           </button>
         </div>
       );
+    }
+  }
+
+  parsePoints(i) {
+    let maxPoints = 25;
+    for (let j in this.pointMap[i]) {
+      if (this.pointMap[i][j].length < 3) {
+        delete this.pointMap[i][j];
+      } else if (this.pointMap[i][j].length > maxPoints) {
+        // Take every nth point so that the mask is maxPoints points
+        let newArr = [];
+        let delta = this.pointMap[i][j].length / maxPoints;
+        for (let k = 0; k < this.pointMap[i][j].length - 1; k += delta) {
+          newArr.push(this.pointMap[i][j][parseInt(k)]);
+        }
+        this.pointMap[i][j] = newArr;
+      }
     }
   }
 
