@@ -17,6 +17,8 @@ from .world import World, Opt, flat_ground_generator
 HEAD_HEIGHT = 2
 
 class FakeMCAgent(CraftAssistAgent):
+    """This FakeMCAgent preserves the original perceive() fn of CraftAssistAgent
+    """
     def __init__(self, world, opts):
         self.world = world
         self.opts = opts
@@ -84,6 +86,11 @@ class FakeMCAgent(CraftAssistAgent):
 
 
 class TestMCChatPerception(unittest.TestCase):
+    """This class tests perceive fn in CraftAssistAgent. It pushes some chat message to the world
+    and check if chat_parser can correctly parse it and put all relevant info into memory
+    It then checks the number of logical forms stored in memory (for each new chat, there should
+    be one more logical form stored in memory)
+    """
     def __init__(self, *args, **kwargs):
         super(TestMCChatPerception, self).__init__(*args, **kwargs)
         opts = MockOpt()
