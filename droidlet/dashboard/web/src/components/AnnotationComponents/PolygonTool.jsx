@@ -26,10 +26,11 @@ class PolygonTool extends React.Component {
     this.update = this.update.bind(this);
     this.drawPointsAndLines = this.drawPointsAndLines.bind(this);
     this.onClick = this.onClick.bind(this);
+    this.addHandler = this.addHandler.bind(this);
     this.addMaskHandler = this.addMaskHandler.bind(this);
+    this.addPointHandler = this.addPointHandler.bind(this);
     this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
     this.changeTextHandler = this.changeTextHandler.bind(this);
-    this.insertPointHandler = this.insertPointHandler.bind(this);
     this.deletePointHandler = this.deletePointHandler.bind(this);
     this.zoomIn = this.zoomIn.bind(this);
     this.zoomOut = this.zoomOut.bind(this);
@@ -41,7 +42,7 @@ class PolygonTool extends React.Component {
     this.imageToLocal = this.imageToLocal.bind(this);
     this.shiftViewBy = this.shiftViewBy.bind(this);
 
-    // default, drawing, dragging, focus, adding, inserting, deletingMask, deletingPoint
+    // default, drawing, dragging, focus, adding, addingMask, addingPoint, deletingMask, deletingPoint
     this.mode = this.props.mode || "default";
     this.prevMode = "default";
     this.baseMode = "default";
@@ -59,6 +60,7 @@ class PolygonTool extends React.Component {
     this.canvasRef = React.createRef();
 
     this.zoomPixels = 300;
+    this.zoomed = false;
     this.pointSize = 10;
     this.color = this.props.color;
   }
@@ -100,9 +102,8 @@ class PolygonTool extends React.Component {
       <div>
         <p>{this.state.message}</p>
         <div>
-          <button onClick={this.addMaskHandler}>Add mask (q)</button>
+          <button onClick={this.addHandler}>Add</button>
           <button onClick={this.deleteMaskHandler}>D(e)lete mask</button>
-          <button onClick={this.insertPointHandler}>(I)nsert point</button>
           <button onClick={this.deletePointHandler}>(R)emove point</button>
           <button onClick={this.zoomIn}>Zoom in (=)</button>
           <button onClick={this.zoomOut}>Zoom out (-)</button>
@@ -145,6 +146,7 @@ class PolygonTool extends React.Component {
       this.points[this.currentMaskId].length >= 3
     ) {
       this.resetImage();
+      this.drawPointsAndLines();
       this.drawRegions();
     }
   }
@@ -154,7 +156,7 @@ class PolygonTool extends React.Component {
     if (this.mode === "dragging") {
       let prevMode = this.prevMode;
       this.prevMode = this.mode;
-      this.mode = this.prevMode === "inserting" ? this.baseMode : prevMode;
+      this.mode = prevMode;
       this.update();
       return;
     }
@@ -162,17 +164,19 @@ class PolygonTool extends React.Component {
     // Check if point was clicked
     let hoverPointIndex = this.getPointClick();
     if (hoverPointIndex != null) {
+      if (this.mode === "adding") {
+        this.addPointHandler();
+      }
       if (
-        ["adding"].includes(this.mode) &&
+        ["addingMask"].includes(this.mode) &&
         hoverPointIndex[0] !== this.currentMaskId
       ) {
         return;
       }
-      if (this.mode === "inserting") {
+      if (this.mode === "addingPoint") {
         let newPoints = this.points[hoverPointIndex[0]].slice();
         newPoints.splice(hoverPointIndex[1], 0, newPoints[hoverPointIndex[1]]);
         this.points[hoverPointIndex[0]] = newPoints;
-        this.mode = this.baseMode;
       }
       if (
         this.mode === "deletingPoint" &&
@@ -194,10 +198,13 @@ class PolygonTool extends React.Component {
     }
 
     // Add new point
+    if (this.mode === "adding") {
+      this.addMaskHandler();
+    }
     if (
-      ["drawing", "adding"].includes(this.mode) &&
+      ["drawing", "addingMask"].includes(this.mode) &&
       (this.lastKey !== "Enter" ||
-        ["drawing", "adding"].includes(this.prevMode) ||
+        ["drawing", "addingMask"].includes(this.prevMode) ||
         (this.points[this.currentMaskId] &&
           this.points[this.currentMaskId].length < 3)) // case where Enter is pressed, then "add mask"
     ) {
@@ -215,9 +222,9 @@ class PolygonTool extends React.Component {
         this.prevMode = this.mode;
         this.mode = "focus";
         this.currentMaskId = regionId;
+        this.update();
+        this.lastKey = "Mouse";
       }
-      this.update();
-      this.lastKey = "Mouse";
       return;
     }
 
@@ -273,8 +280,8 @@ class PolygonTool extends React.Component {
       case "e":
         this.deleteMaskHandler();
         break;
-      case "i":
-        this.insertPointHandler();
+      case "f":
+        this.addPointHandler();
         break;
       case "r":
         this.deletePointHandler();
@@ -290,7 +297,18 @@ class PolygonTool extends React.Component {
         ) {
           this.lastKey = null;
           this.baseMode = "default";
+          this.prevMode = this.mode;
+          this.mode = "default";
           this.save();
+        }
+        if (
+          ["adding", "addingMask", "addingPoint"].includes(this.mode) &&
+          this.points[this.currentMaskId] &&
+          this.points[this.currentMaskId].length >= 3
+        ) {
+          this.baseMode = "default";
+          this.prevMode = this.mode;
+          this.mode = "default";
         }
         break;
       case "~":
@@ -319,6 +337,12 @@ class PolygonTool extends React.Component {
     this.update();
   }
 
+  addHandler() {
+    this.baseMode = "default";
+    this.prevMode = this.mode;
+    this.mode = "adding";
+  }
+
   addMaskHandler() {
     if (
       !this.points[this.currentMaskId] ||
@@ -329,7 +353,17 @@ class PolygonTool extends React.Component {
     this.currentMaskId = this.points.length;
     this.points.push([]);
     this.prevMode = this.mode;
-    this.mode = "adding";
+    this.mode = "addingMask";
+  }
+
+  addPointHandler() {
+    this.baseMode =
+      this.points[this.currentMaskId] &&
+      this.points[this.currentMaskId].length === 0
+        ? "default"
+        : this.mode;
+    this.prevMode = this.mode;
+    this.mode = "addingPoint";
   }
 
   deleteMaskHandler() {
@@ -355,18 +389,8 @@ class PolygonTool extends React.Component {
     this.props.dataEntrySubmit(data);
   }
 
-  insertPointHandler() {
-    this.baseMode =
-      this.points[this.currentMaskId] &&
-      this.points[this.currentMaskId].length === 0
-        ? "default"
-        : this.mode;
-    this.prevMode = this.mode;
-    this.mode = "inserting";
-  }
-
   deletePointHandler() {
-    this.baseMode = ["drawing", "adding"].includes(this.mode)
+    this.baseMode = ["drawing", "addingMask"].includes(this.mode)
       ? this.mode
       : "default";
     this.prevMode = this.mode;
@@ -387,13 +411,22 @@ class PolygonTool extends React.Component {
     let newMessage = "";
     switch (this.mode) {
       case "adding":
-        newMessage = "Please add the new mask";
+        newMessage =
+          "Click a point to duplicate it (f) or click anywhere else to create a new mask for this object (q)";
+        break;
+      case "addingMask":
+        newMessage = "Create a new mask for this object";
+        break;
+      case "addingPoint":
+        newMessage =
+          "Click a point to duplicate it and place it where you want";
+        break;
+      case "deleting":
+        newMessage =
+          "Click a point to delete it (r) or click a mask to delete it (e)";
         break;
       case "deletingMask":
         newMessage = "Select which mask to delete";
-        break;
-      case "inserting":
-        newMessage = "Select a point to duplicate";
         break;
       case "deletingPoint":
         newMessage = "Select a point to delete";
@@ -408,6 +441,7 @@ class PolygonTool extends React.Component {
   }
 
   updateZoom() {
+    this.zoomed = true;
     this.scale = Math.min(
       this.canvas.width / this.zoomPixels,
       this.canvas.height / this.zoomPixels
@@ -416,7 +450,7 @@ class PolygonTool extends React.Component {
       this.currentMaskId === -1 ||
       !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length === 0 ||
-      !["default", "dragging", "drawing", "adding"].includes(this.mode)
+      !["default", "dragging", "drawing", "addingMask"].includes(this.mode)
     ) {
       return;
     }
@@ -502,8 +536,8 @@ class PolygonTool extends React.Component {
       this.drawPoint(this.points[i][this.points[i].length - 1]); // Final point
       // Line connecting start to finish
       if (
-        !["drawing", "adding"].includes(this.mode) &&
-        !["drawing", "adding"].includes(this.prevMode)
+        !["drawing", "addingMask"].includes(this.mode) &&
+        !["drawing", "addingMask"].includes(this.prevMode)
       ) {
         this.drawLine(
           this.points[i][0],
@@ -515,7 +549,7 @@ class PolygonTool extends React.Component {
     if (
       this.points[this.currentMaskId] &&
       this.points[this.currentMaskId].length > 0 &&
-      ["drawing", "adding"].includes(this.mode)
+      ["drawing", "addingMask"].includes(this.mode)
     ) {
       this.drawLine(
         this.points[this.currentMaskId][
@@ -571,8 +605,14 @@ class PolygonTool extends React.Component {
   }
 
   localToImage(pt) {
-    let newX = (pt.x - this.Offset.x) / this.scale;
-    let newY = (pt.y - this.Offset.y) / this.scale;
+    let newX, newY;
+    if (this.zoomed) {
+      newX = (pt.x - this.Offset.x) / this.scale;
+      newY = (pt.y - this.Offset.y) / this.scale;
+    } else {
+      newX = pt.x / this.baseScale;
+      newY = pt.y / this.baseScale;
+    }
     return {
       x: Math.min(Math.max(newX, 0), 512), // 512 is width/heigh of image on right
       y: Math.min(Math.max(newY, 0), 512), // this.canvas.width is 500 for some reason
@@ -580,9 +620,12 @@ class PolygonTool extends React.Component {
   }
 
   imageToLocal(pt) {
+    let scale = this.zoomed ? this.scale : this.baseScale;
+    let offsetX = this.zoomed ? this.Offset.x : 0;
+    let offsetY = this.zoomed ? this.Offset.y : 0;
     return {
-      x: pt.x * this.scale + this.Offset.x,
-      y: pt.y * this.scale + this.Offset.y,
+      x: pt.x * scale + offsetX,
+      y: pt.y * scale + offsetY,
     };
   }
 
@@ -603,6 +646,7 @@ class PolygonTool extends React.Component {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     if (type === "full") {
       this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
+      this.zoomed = false;
     } else if (type === "small") {
       this.ctx.setTransform(
         this.scale,
