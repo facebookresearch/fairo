@@ -83,6 +83,7 @@ class ObjectAnnotation extends React.Component {
         <PolygonTool
           img={this.image}
           object={this.drawing_data.name}
+          tags={this.drawing_data.tags}
           masks={this.pointMap[this.state.currentMaskId]}
           color={color}
           exitCallback={() => {
@@ -90,7 +91,7 @@ class ObjectAnnotation extends React.Component {
           }}
           submitCallback={this.drawingFinished.bind(this)}
           deleteLabelHandler={this.deleteLabelHandler.bind(this)}
-          changeTextHandler={this.changeTextHandler.bind(this)}
+          dataEntrySubmit={this.dataEntrySubmit.bind(this)}
           mode={this.state.currentMode === "start_polygon" ? "drawing" : null}
         ></PolygonTool>
       );
@@ -190,22 +191,6 @@ class ObjectAnnotation extends React.Component {
       currentMode: "select",
       currentMaskId: -1,
       objectIds: newObjectIds,
-    });
-  }
-
-  changeTextHandler(x, y) {
-    var overlay = (
-      <DataEntry
-        x={x}
-        y={y}
-        onSubmit={this.dataEntrySubmit.bind(this)}
-        label={this.drawing_data.name}
-        tags={this.drawing_data.tags}
-      />
-    );
-    this.setState({
-      currentMode: "fill_data",
-      currentOverlay: overlay,
     });
   }
 

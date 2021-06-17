@@ -4,12 +4,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
 .data-entry-root {
   display: block;
   position: absolute;
-  background-color: rgb(247, 247, 247);
   width: min-content;
+  background-color: rgb(247, 247, 247);
   padding: 2px;
 }
-
 .data-entry-submit {
   background-color: rgb(148, 211, 84);
+  float: right;
+}
+.data-entry-delete {
+  margin-top: 15px;
   float: right;
 }

@@ -13,6 +13,7 @@ submitCallback (pts)
 */
 
 import React from "react";
+import DataEntry from "./DataEntry";
 
 class PolygonTool extends React.Component {
   constructor(props) {
@@ -91,6 +92,10 @@ class PolygonTool extends React.Component {
   }
 
   render() {
+    let dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
+    let dataEntryY =
+      this.canvas &&
+      this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
     return (
       <div>
         <p>{this.state.message}</p>
@@ -99,22 +104,30 @@ class PolygonTool extends React.Component {
           <button onClick={this.deleteMaskHandler}>D(e)lete mask</button>
           <button onClick={this.insertPointHandler}>(I)nsert point</button>
           <button onClick={this.deletePointHandler}>(R)emove point</button>
-          <button onClick={this.changeTextHandler}>(M)odify labels</button>
-          <button onClick={() => this.props.deleteLabelHandler()}>
-            Delete (l)abel
-          </button>
           <button onClick={this.zoomIn}>Zoom in (=)</button>
           <button onClick={this.zoomOut}>Zoom out (-)</button>
         </div>
-        <canvas
-          ref={this.canvasRef}
-          width="500px"
-          height="500px"
-          tabIndex="0"
-          onClick={this.onClick}
-          onMouseMove={this.onMouseMove}
-          onKeyDown={this.keyDown}
-        ></canvas>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <canvas
+            ref={this.canvasRef}
+            width="500px"
+            height="500px"
+            tabIndex="0"
+            onClick={this.onClick}
+            onMouseMove={this.onMouseMove}
+            onKeyDown={this.keyDown}
+          ></canvas>
+          <div>
+            <DataEntry
+              x={dataEntryX}
+              y={dataEntryY}
+              onSubmit={this.changeTextHandler}
+              label={this.props.object}
+              tags={this.props.tags}
+              deleteCallback={() => this.props.deleteLabelHandler()}
+            />
+          </div>
+        </div>
       </div>
     );
   }
@@ -269,9 +282,6 @@ class PolygonTool extends React.Component {
       case "l":
         this.props.deleteLabelHandler();
         break;
-      case "m":
-        this.changeTextHandler();
-        break;
       case "Enter":
         if (
           this.lastKey === "Enter" &&
@@ -334,7 +344,7 @@ class PolygonTool extends React.Component {
     this.currentMaskId = 0;
   }
 
-  changeTextHandler() {
+  changeTextHandler(data) {
     if (
       !this.points[this.currentMaskId] ||
       this.points[this.currentMaskId].length < 3
@@ -342,10 +352,7 @@ class PolygonTool extends React.Component {
       return;
     }
     this.save();
-    let rect = this.canvas.getBoundingClientRect();
-    let x = this.points[0][0].x + rect.left;
-    let y = this.points[0][0].y + rect.top;
-    this.props.changeTextHandler(x, y);
+    this.props.dataEntrySubmit(data);
   }
 
   insertPointHandler() {

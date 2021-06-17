@@ -47,6 +47,14 @@ class DataEntry extends React.Component {
         <button className="data-entry-submit" onClick={this.submit.bind(this)}>
           Submit
         </button>
+        {this.props.deleteCallback ? (
+          <button
+            className="data-entry-delete"
+            onClick={this.props.deleteCallback}
+          >
+            Delete (l)abel
+          </button>
+        ) : null}
       </div>
     );
   }
