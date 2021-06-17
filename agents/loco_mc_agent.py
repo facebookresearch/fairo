@@ -369,7 +369,7 @@ class LocoMCAgent(BaseAgent):
         if sender in allowed:
             self._dispatch_signal.connect(receiver, sender)
         else:
-            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, allowed))
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
 
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""

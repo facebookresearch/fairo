@@ -1178,4 +1178,4 @@ class AgentMemory:
         if sender in allowed:
             self._dispatch_signal.connect(receiver, sender)
         else:
-            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, allowed))
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
