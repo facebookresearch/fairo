@@ -31,7 +31,7 @@ class SegmentRenderer extends React.Component {
 
     this.update = this.update.bind(this);
     this.drawLine = this.drawLine.bind(this);
-    this.addOnClickHandler = this.addOnClickHandler.bind(this);
+    this.onClick = this.onClick.bind(this);
     this.regions = {}; // array of mask sets
 
     this.canvasRef = React.createRef();
@@ -103,7 +103,24 @@ class SegmentRenderer extends React.Component {
       }
     }
 
-    this.addOnClickHandler();
+    this.canvas.addEventListener("mousedown", this.onClick);
+  }
+
+  onClick(e) {
+    // Run through regions and if click is in a region, display only that region
+    let regionId = -1;
+    for (let i in this.regions) {
+      for (let j in this.regions[i]) {
+        if (
+          this.regions[i][j] &&
+          this.ctx.isPointInPath(this.regions[i][j], e.offsetX, e.offsetY)
+        ) {
+          regionId = i;
+        }
+      }
+    }
+    let regionFound = regionId !== -1;
+    this.props.onClick(e.clientX, e.clientY, regionFound, regionId);
   }
 
   drawLine(pt1, pt2) {
@@ -129,24 +146,8 @@ class SegmentRenderer extends React.Component {
     return region;
   }
 
-  addOnClickHandler(e) {
-    this.canvas.addEventListener("mousedown", (e) => {
-      // Run through regions and if click is in a region, display only that region
-      let regionId = -1;
-      for (let i in this.regions) {
-        for (let j in this.regions[i]) {
-          if (
-            this.regions[i][j] &&
-            this.ctx.isPointInPath(this.regions[i][j], e.offsetX, e.offsetY)
-          ) {
-            regionId = i;
-          }
-        }
-      }
-
-      let regionFound = regionId !== -1;
-      this.props.onClick(e.clientX, e.clientY, regionFound, regionId);
-    });
+  getCanvasBoundingBox() {
+    return this.canvas.getBoundingClientRect();
   }
 }
 

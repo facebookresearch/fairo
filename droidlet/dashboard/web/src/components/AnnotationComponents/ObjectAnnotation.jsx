@@ -62,6 +62,7 @@ class ObjectAnnotation extends React.Component {
       };
       this.image.src = this.props.imgUrl;
     }
+    this.segRef = React.createRef();
     this.overtime = false;
     setInterval(() => {
       //alert("Please finish what you're working on and click Submit Task below")
@@ -102,6 +103,9 @@ class ObjectAnnotation extends React.Component {
             object(s) labeled.
           </p>
           {this.state.currentOverlay}
+          <button onClick={() => this.newPolygon.bind(this)()}>
+            New Label
+          </button>
           <div>
             {this.state.objectIds.map((id, i) => (
               <button
@@ -116,6 +120,7 @@ class ObjectAnnotation extends React.Component {
             ))}
           </div>
           <SegmentRenderer
+            ref={this.segRef}
             img={this.image}
             objects={this.state.objectIds}
             pointMap={this.pointMap}
@@ -239,18 +244,27 @@ class ObjectAnnotation extends React.Component {
           currentMaskId: regionId,
         });
       } else if (this.state.currentMode !== "fill_data") {
-        this.drawing_data = {
-          tags: null,
-          name: null,
-        };
-        this.setState({
-          currentMode: "start_polygon",
-          currentMaskId: this.nextId,
-        });
-        this.clickPoint = { x, y };
-        this.nextId += 1;
+        this.newPolygon(x, y);
       }
     }
+  }
+
+  newPolygon(x = -1, y = -1) {
+    this.drawing_data = {
+      tags: null,
+      name: null,
+    };
+    this.setState({
+      currentMode: "start_polygon",
+      currentMaskId: this.nextId,
+    });
+    if (x === -1) {
+      let rect = this.segRef.current.getCanvasBoundingBox();
+      x = rect.left;
+      y = rect.top;
+    }
+    this.clickPoint = { x, y };
+    this.nextId += 1;
   }
 
   fullColor(color) {
