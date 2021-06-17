@@ -5,6 +5,7 @@ import unittest
 from droidlet.memory.memory_nodes import PlayerNode, LocationNode, ChatNode, NamedAbstractionNode
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.base_util import Pos, Look, Player
+from droidlet.memory.memory_filters import MemorySearcher
 
 
 class IncrementTime:
@@ -125,6 +126,7 @@ class BasicTest(unittest.TestCase):
 
         self.memory.tag(subj_memid=player_memid, tag_text="girl")
         self.memory.tag(subj_memid=player_memid, tag_text="plays_football")
+
         # test get_memids_by_tag
         self.memory.get_memids_by_tag(tag="girl")
         assert len(self.memory.get_memids_by_tag(tag="girl")) == 1
@@ -135,6 +137,52 @@ class BasicTest(unittest.TestCase):
 
         # test get_triples
         assert len(self.memory.get_triples(subj=player_memid, obj_text="girl")) == 1
+
+    # TODO: expand these
+    def test_sql_form(self):
+        self.memory = AgentMemory()
+        rachel_memid = PlayerNode.create(
+            self.memory, Player(10, "rachel", Pos(1, 0, 1), Look(0, 0))
+        )
+
+        self.memory.tag(subj_memid=rachel_memid, tag_text="girl")
+        self.memory.tag(subj_memid=rachel_memid, tag_text="plays_football")
+
+        robert_memid = PlayerNode.create(
+            self.memory, Player(11, "robert", Pos(4, 0, 5), Look(0, 0))
+        )
+
+        self.memory.tag(subj_memid=robert_memid, tag_text="boy")
+        self.memory.tag(subj_memid=robert_memid, tag_text="plays_football")
+
+        sam_memid = PlayerNode.create(self.memory, Player(12, "sam", Pos(-2, 0, 5), Look(0, 0)))
+
+        self.memory.tag(subj_memid=sam_memid, tag_text="girl")
+        self.memory.tag(subj_memid=sam_memid, tag_text="plays_volleyball")
+
+        # test NOT
+        m = MemorySearcher()
+        query = "SELECT MEMORY FROM ReferenceObject WHERE (NOT has_tag=girl)"
+        memids, _ = m.search(self.memory, query=query)
+        assert robert_memid in memids
+        assert sam_memid not in memids
+        assert rachel_memid not in memids
+
+        # test OR
+        m = MemorySearcher()
+        query = "SELECT MEMORY FROM ReferenceObject WHERE ((has_tag=plays_volleyball) OR (NOT has_tag=girl))"
+        memids, _ = m.search(self.memory, query=query)
+        assert robert_memid in memids
+        assert sam_memid in memids
+        assert rachel_memid not in memids
+
+        # test table property with tag
+        m = MemorySearcher()
+        query = "SELECT MEMORY FROM ReferenceObject WHERE ((has_tag=plays_volleyball) AND (x<0))"
+        memids, _ = m.search(self.memory, query=query)
+        assert robert_memid not in memids
+        assert sam_memid in memids
+        assert rachel_memid not in memids
 
     def test_chat_apis_memory(self):
         self.memory = AgentMemory()

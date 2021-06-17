@@ -239,6 +239,10 @@ def split_sqly(S, keywords=FILTERS_KW):
     or start after an outermost matching (closing) paren
     Only does one level of split...
     """
+    # sanity check
+    p = close_paren(S)
+    if p < 0 and "(" in S:
+        raise Exception("query {} has unbalanced parens".format(S))
     s = S
     clauses = []
     idx = 0
@@ -306,6 +310,9 @@ def convert_where_tree(where_tree):
     if type(where_tree) is str:
         return where_leaf_to_comparator(where_tree)
     output = {}
+    if where_tree.get("NOT") and type(where_tree["NOT"]) is str:
+        output["NOT"] = [where_leaf_to_comparator(where_tree["NOT"])]
+        return output
     for k, v in where_tree.items():
         if k in ["AND", "OR", "NOT"]:
             # a subtree

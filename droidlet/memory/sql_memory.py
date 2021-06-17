@@ -110,6 +110,15 @@ class AgentMemory:
         self.nodes = {}
         for node in nodelist:
             self.nodes[node.NODE_TYPE] = node
+        # FIXME, this is ugly.  using for memtype/FROM clauses in searches
+        # we also store .TABLE in each node, and use it.  this also should be fixed,
+        # it breaks the abstraction
+        self.node_children = {}
+        for node in nodelist:
+            self.node_children[node.NODE_TYPE] = []
+            for possible_child in nodelist:
+                if node in possible_child.__mro__:
+                    self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)

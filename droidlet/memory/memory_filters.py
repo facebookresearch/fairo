@@ -116,7 +116,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     T = agent_memory.nodes[memtype].TABLE
     cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info({})".format(T))]
     if prop in cols:
-        cmd = "SELECT uuid FROM " + T + where
+        cmd = "SELECT uuid FROM " + T + " " + where
         return [m[0] for m in agent_memory._db_read(cmd, *v)]
 
     # is it a triple?
@@ -208,17 +208,20 @@ class MemorySearcher:
         if where_clause.get("NOT"):
             # FIXME memtype might be a union of node types
             # maybe FIXME? don't retrieve everything until necessary
+            memtypes = agent_memory.node_children[memtype]
+            node_type_clause = ("OR node_type=? " * len(memtypes))[3:-1]
             all_memids = agent_memory._db_read(
-                "SELECT uuid FROM Memories WHERE node_type=?", memtype
+                "SELECT uuid FROM Memories WHERE " + node_type_clause, *memtypes
             )
-            memids = self.handle_where(agent_memory, where_clause["NOT"][0])
-            return all_memids - memids
+            all_memids = set([m[0] for m in all_memids])
+            memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
+            return list(all_memids - set(memids))
 
         if where_clause.get("input_left"):
             # this is a leaf, actually search:
             input_left = where_clause["input_left"]["value_extractor"]
             input_right = where_clause["input_right"]["value_extractor"]
-            if (type(input_left) is not str) or type(input_right) is not str:
+            if type(input_left) is dict or type(input_right) is dict:
                 raise Exception(
                     "currently search assumes attributes are explicitly stored property of the memory: {}".format(
                         where_clause
@@ -229,11 +232,11 @@ class MemorySearcher:
             # FIXME do close tolerance for modulus
             if type(ctype) is dict and ctype.get("close_tolerance"):
                 comparison_symbol = "<>"
-                v = try_float(input_right)
+                v = try_float(input_right, where_clause)
                 value = (v - ctype["close_tolerance"], v + ctype["close_tolerance"])
             elif comparison_symbol[0] == "<" or comparison_symbol[0] == ">":
                 # going to convert back to str later, doing this for data sanitation/debugging
-                value = (try_float(input_right),)
+                value = (try_float(input_right, where_clause),)
             elif type(ctype) is dict and ctype.get("modulus"):
                 comparison_symbol = "%"
                 value = (ctype["modulus"], input_right)
@@ -242,7 +245,8 @@ class MemorySearcher:
             return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
 
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
-        # returns a list of MemoryNodes and accompanying values
+        # returns a list of memids and accompanying values
+        # TODO values are MemoryNodes when query is SELECT MEMORIES
         query = query or self.query
         if not query:
             return [], []
