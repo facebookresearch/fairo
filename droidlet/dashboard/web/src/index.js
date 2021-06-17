@@ -20,7 +20,7 @@ import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
-import Timeline from "./components/Timeline/Timeline";
+import DashboardTimeline from "./components/Timeline/Timeline";
 
 import "./index.css";
 
@@ -78,7 +78,7 @@ var config = {
                 {
                   title: "Timeline",
                   type: "react-component",
-                  component: "Timeline",
+                  component: "DashboardTimeline",
                   props: { stateManager: stateManager },
                 },
                 {
@@ -133,6 +133,6 @@ dashboardLayout.registerComponent("History", History);
 dashboardLayout.registerComponent("TeachApp", TeachApp);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
 dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
-dashboardLayout.registerComponent("Timeline", Timeline);
+dashboardLayout.registerComponent("DashboardTimeline", DashboardTimeline);
 dashboardLayout.init();
 stateManager.dashboardLayout = dashboardLayout;

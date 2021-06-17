@@ -14392,6 +14392,11 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
+vis-timeline@^7.4.9:
+  version "7.4.9"
+  resolved "https://registry.yarnpkg.com/vis-timeline/-/vis-timeline-7.4.9.tgz#7ed225a04b521cb6c2d603e498953b1222650806"
+  integrity sha512-+Mb829u4Jq9qPhh6EHAa7DRBEwXW0AclaXndxAC7e772oI5pMSAbhbKsQXsPYRPkf9vtac3/US+WPHJQYjGsRA==
+
 vm-browserify@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz#78641c488b8e6ca91a75f511e7a3b32a86e5dda0"
