@@ -19,15 +19,13 @@ import SegmentRenderer from "./SegmentRenderer";
 const COLORS = [
   "rgba(0,200,0,.5)",
   "rgba(200,0,0,.5)",
-  "rgba(0,0,200,.5)",
+  "rgba(0,100,255,.5)",
+  "rgba(255,150,0,.5)",
+  "rgba(100,255,200,.5)",
   "rgba(200,200,0,.5)",
-  "rgba(0,200,200,.5)",
+  "rgba(0,200,150,.5)",
   "rgba(200,0,200,.5)",
-  "rgba(150,50,50,.5)",
-  "rgba(255, 153, 0, .5)",
-  "rgba(128,0,128,.5)",
   "rgba(0,204,255,.5)",
-  "rgba(153,204,0,.5)",
 ];
 
 class ObjectAnnotation extends React.Component {
@@ -112,7 +110,9 @@ class ObjectAnnotation extends React.Component {
             {this.state.objectIds.map((id, i) => (
               <button
                 key={id}
-                style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                style={{
+                  backgroundColor: this.fullColor(COLORS[i % COLORS.length]),
+                }}
                 onClick={() => this.labelSelectHandler(id)}
               >
                 {this.nameMap[id]}
@@ -238,6 +238,10 @@ class ObjectAnnotation extends React.Component {
         this.nextId += 1;
       }
     }
+  }
+
+  fullColor(color) {
+    return color.substring(0, color.length - 3) + "1)";
   }
 
   submit() {
