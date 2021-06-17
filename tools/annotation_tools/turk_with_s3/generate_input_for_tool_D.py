@@ -1,5 +1,8 @@
 """
-Construct input for annotation tools B and C from tool A outputs.
+Construct input for annotation tools D from tool C outputs.
+
+inpout for tool D is : 
+text \t \text \t "reference_object" \t "comparison" \t highlighted_text
 """
 from pprint import pprint
 import ast
@@ -8,22 +11,12 @@ import copy
 import argparse
 import os
 
-
-# construct input for tool D from tool C's output
-# inpout for tool D is : 
-# text \t highlighted_text \t "reference_object" \t "comparison"
-# folder_name_C = '../../minecraft/python/craftassist/text_to_tree_tool/turk_data/new_dance_form_data/next_20/tool3/'
-# folder_name_D = '../../minecraft/python/craftassist/text_to_tree_tool/turk_data/new_dance_form_data/next_20/tool4/'
-folder_name_C = '/private/home/rebeccaqian/droidlet/tools/annotation_tools/turk_with_s3/C/' #'/Users/kavyasrinet/Desktop/other_actions/0/toolC/'
-folder_name_D = '/private/home/rebeccaqian/droidlet/tools/annotation_tools/turk_with_s3/D/' #'/Users/kavyasrinet/Desktop/other_actions/0/toolD/'
+folder_name_C = '/private/home/rebeccaqian/droidlet/tools/annotation_tools/turk_with_s3/C/'
+folder_name_D = '/private/home/rebeccaqian/droidlet/tools/annotation_tools/turk_with_s3/D/'
 tool_C_out_file = folder_name_C + 'all_agreements.txt'
 tool_D_input_file = folder_name_D + 'input.txt'
 
 from pprint import pprint
-'''
-command: Input.command
-
-'''
 import copy
 example_d = {}
 
@@ -33,7 +26,6 @@ def merge_indices(indices):
         x, y = indices[i]
         if x != b + 1:
             return indices
-            # raise NotImplementedError("Spans not continuous during merging!!!")
         else:
             b = y
     if a==b:
@@ -61,9 +53,6 @@ with open(tool_C_out_file, "r") as f1, open(tool_D_input_file, 'w') as f2:
             continue
         out_dict = json.loads(out)
         ref_obj_dict = out_dict[action_child_name]
-#         print(out_dict)
-#         print(ref_obj_dict)
-#         break
             
         # find children that need to be re-annotated
         for key, val in ref_obj_dict.items():
@@ -76,23 +65,14 @@ with open(tool_C_out_file, "r") as f1, open(tool_D_input_file, 'w') as f2:
                 
                 write_line = ""
                 write_line += " ".join(words) + "\t"
-                #print(words, child_name, action_type, val[1])
                 
-                indices = merge_indices(val[1])
-                span_text = None
-                if type(indices) == list:
-                    if type(indices[0]) == list:
-                        # this means that indices were scattered and disjoint
-                        for idx in indices:
-                            words_copy[idx[0]] = "<span style='background-color: #FFFF00'>" + words_copy[idx[0]]
-                            words_copy[idx[1]] = words_copy[idx[1]] + "</span>"
-                    else:
-                        words_copy[indices[0]] = "<span style='background-color: #FFFF00'>" + words_copy[indices[0]]
-                        words_copy[indices[1]] = words_copy[indices[1]] + "</span>"
+                if len(val[1]) > 1:
+                    indices = merge_indices(val[1])
                 else:
-                    words_copy[indices] = "<span style='background-color: #FFFF00'>" + words_copy[indices] + "</span>"
-                write_line += " ".join(words_copy) + "\t" + action_child_name + "\t" + child_name
-                f2.write(write_line+ "\n")
+                    indices = val[1]
+                
+                line_output = "{}\t{}\t{}\t{}\t{}".format(" ".join(words), " ".join(words), action_child_name, child_name, str(indices).replace(", ","-"))
+                f2.write(line_output+ "\n")
 
 # if __name__ == "__main__":
 #     parser = argparse.ArgumentParser()
