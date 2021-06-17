@@ -161,8 +161,13 @@ class PolygonTool extends React.Component {
         this.points[hoverPointIndex[0]] = newPoints;
         this.mode = this.baseMode;
       }
-      if (this.mode === "deletingPoint") {
-        this.points[hoverPointIndex[0]].splice(hoverPointIndex[1], 1);
+      if (
+        this.mode === "deletingPoint" &&
+        this.points[hoverPointIndex[0]].length > 3
+      ) {
+        if (this.points[hoverPointIndex[0]].length > 3) {
+          this.points[hoverPointIndex[0]].splice(hoverPointIndex[1], 1);
+        }
         this.mode = this.baseMode;
         this.update();
         return;
@@ -354,7 +359,9 @@ class PolygonTool extends React.Component {
   }
 
   deletePointHandler() {
-    this.baseMode = this.mode;
+    this.baseMode = ["drawing", "adding"].includes(this.mode)
+      ? this.mode
+      : "default";
     this.prevMode = this.mode;
     this.mode = "deletingPoint";
   }
