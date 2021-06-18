@@ -533,7 +533,7 @@ if __name__ == "__main__":
     default_write_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument(
         "--folder_name",
-        default="{}/".format(default_write_dir),
+        default="{}/B/".format(default_write_dir),
     )
     opts = parser.parse_args()
 
@@ -541,7 +541,7 @@ if __name__ == "__main__":
     # command: Input.command
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + "processed_outputs.csv"
+    f_name = folder_name + "../processed_outputs.csv"
     only_show_disagreements = True
     sentence_mapping = {}
     with open(f_name, "r") as f:
