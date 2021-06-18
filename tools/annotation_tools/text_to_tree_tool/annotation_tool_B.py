@@ -240,7 +240,8 @@ if __name__ == "__main__":
         const queryString = window.location.search;
         console.log(queryString);
         let urlParams = new URLSearchParams(queryString);
-        const highlightRange = urlParams.get('range').split(",").map(Number);
+
+        const highlightRange = JSON.parse(urlParams.get("highlight_words"))[0]
         console.log(highlightRange)
         highlightStart = highlightRange[0]
         highlightEnd = highlightRange[1]
