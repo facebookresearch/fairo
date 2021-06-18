@@ -137,11 +137,26 @@ class ObjectAnnotation extends React.Component {
   }
 
   parsePoints(i) {
-    let maxPoints = 25;
     for (let j in this.pointMap[i]) {
       if (this.pointMap[i][j].length < 3) {
         delete this.pointMap[i][j];
-      } else if (this.pointMap[i][j].length > maxPoints) {
+        continue;
+      }
+      // Limit number of points based on mask width/height
+      let maxX = 0,
+        minX = 1,
+        maxY = 0,
+        minY = 1;
+      for (let k in this.pointMap[i][j]) {
+        let pt = this.pointMap[i][j][k];
+        maxX = Math.max(pt.x, maxX);
+        minX = Math.min(pt.x, minX);
+        maxY = Math.max(pt.y, maxY);
+        minY = Math.min(pt.y, minY);
+      }
+      let totalDiff = maxX - minX + maxY - minY;
+      let maxPoints = totalDiff < 0.015 ? 3 : totalDiff * 50;
+      if (this.pointMap[i][j].length > maxPoints) {
         // Take every nth point so that the mask is maxPoints points
         let newArr = [];
         let delta = this.pointMap[i][j].length / maxPoints;

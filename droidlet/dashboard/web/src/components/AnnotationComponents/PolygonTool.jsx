@@ -329,13 +329,21 @@ class PolygonTool extends React.Component {
         }
         break;
       case "Escape":
-        if (
-          this.points[this.currentMaskId] &&
-          this.points[this.currentMaskId].length >= 3
-        ) {
-          this.save();
+        if (this.points[this.currentMaskId]) {
+          if (this.points[this.currentMaskId].length >= 3) {
+            this.save();
+            this.mode = "default";
+            this.props.exitCallback();
+            return;
+          }
+          if (this.points.length === 1) {
+            this.props.deleteLabelHandler();
+            return;
+          }
+          this.points.splice(this.currentMaskId, 1);
+          this.currentMaskId = 0;
+          this.prevMode = this.mode;
           this.mode = "default";
-          this.props.exitCallback();
         }
         break;
       case "=":
