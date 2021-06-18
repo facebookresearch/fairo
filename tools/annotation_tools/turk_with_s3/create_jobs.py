@@ -76,10 +76,10 @@ def create_turk_job(xml_file_path: str, tool_num: int):
             print(curr_question)
 
             new_hit = mturk.create_hit(
-                Title="Match Sentences",
-                Description="Given an original sentence, identify whether new sentences have the same structure as the original.",
+                Title="CraftAssist Instruction Annotations",
+                Description="Given a sentence, provide information about its intent and highlight key words",
                 Keywords="text, categorization, quick",
-                Reward="0.15",
+                Reward="1.0",
                 MaxAssignments=1,
                 LifetimeInSeconds=600,
                 AssignmentDurationInSeconds=600,
