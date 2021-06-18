@@ -24,12 +24,9 @@ class AbstractHandler:
     """
 
     @abstractmethod
-    def handle(self, *input):
+    def __call__(self, *input):
         """Implement this method to hold the core execution logic."""
         pass
-
-    def __call__(self, *input):
-        return self.handle(*input)
 
     def _debug_draw(self, *input):
         """Implement this method to hold visualization details useful in

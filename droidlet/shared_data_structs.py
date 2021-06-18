@@ -100,3 +100,18 @@ class RGBDepth:
             "rgb": base64.b64encode(rgb_data).decode("utf-8"),
             "depth": base64.b64encode(depth_data).decode("utf-8"),
         }
+
+
+class MockOpt:
+    def __init__(self):
+        self.no_default_behavior = False
+        self.nsp_models_dir = ""
+        self.nsp_data_dir = ""
+        self.ground_truth_data_dir = ""
+        self.semseg_model_path = ""
+        self.no_ground_truth = True
+        # test does not instantiate cpp client
+        self.port = -1
+        self.no_default_behavior = False
+        self.log_timeline = False
+        self.enable_timeline = False

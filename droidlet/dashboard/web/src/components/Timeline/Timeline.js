@@ -12,6 +12,10 @@ class Timeline extends React.Component {
     return this.props.stateManager.memory.timelineHandshake;
   }
 
+  renderEvent() {
+    return this.props.stateManager.memory.timelineEvent;
+  }
+
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
   }
@@ -24,6 +28,7 @@ class Timeline extends React.Component {
           agent activities interactively.
         </p>
         <p>Handshake status: {this.renderHandshake()}</p>
+        <p>Latest memory event: {this.renderEvent()}</p>
       </div>
     );
   }

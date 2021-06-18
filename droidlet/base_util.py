@@ -212,3 +212,12 @@ def arrange(arrangement, schematic=None, shapeparams={}):
         b += extra_space + 1
         offsets = [np.round(i * b * np.asarray(orient)) for i in range(N)]
     return offsets
+
+
+def prepend_a_an(name):
+    """Add a/an to a name"""
+    if name[0] in ["a", "e", "i", "o", "u"]:
+        return "an " + name
+    else:
+        return "a " + name
+

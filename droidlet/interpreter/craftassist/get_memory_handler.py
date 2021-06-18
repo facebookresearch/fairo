@@ -16,7 +16,7 @@ from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.interpreter.craftassist.tasks import Build, Point
-from droidlet.dialog.ttad.generation_dialogues.generate_utils import prepend_a_an
+from droidlet.base_util import prepend_a_an
 
 
 class MCGetMemoryHandler(GetMemoryHandler):
