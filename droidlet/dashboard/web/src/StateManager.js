@@ -330,6 +330,11 @@ class StateManager {
           objects: res.objects,
           rgb: rgb,
         });
+      } else if (ref instanceof MobileMainPane) {
+        // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
+        ref.setState({
+          objectRGB: rgb,
+        });
       }
     });
   }
@@ -361,30 +366,6 @@ class StateManager {
           bot_xyz: [res.x, res.y, res.yaw],
           obstacle_map: res.map,
         });
-      } else if (ref instanceof Settings) {
-        ref.setState({ fps: fps });
-      } else if (ref instanceof LiveImage) {
-        ref.setState({
-          isLoaded: true,
-          rgb: rgb,
-          depth: depth,
-        });
-      } else if (ref instanceof LiveObjects || ref instanceof LiveHumans) {
-        if (res.object_image !== -1 && res.object_image !== undefined) {
-          ref.setState({
-            isLoaded: true,
-            rgb: object_rgb,
-            objects: res.objects,
-            humans: res.humans,
-          });
-        }
-      } else if (ref instanceof MobileMainPane) {
-        // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
-        if (res.object_image !== -1 && res.object_image !== undefined) {
-          ref.setState({
-            objectRGB: object_rgb,
-          });
-        }
       }
     });
   }
