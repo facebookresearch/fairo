@@ -6,9 +6,12 @@ and provides a annotation UI for tagging and segmenting objects in an image
 
 props:
 
-imgUrl: url of the image to annotate
-
-masks: array of points for the masks
+  objects ([{masks, label, properties}]): 
+    objects and their masks, names, and properties
+  image: 
+    actual image
+  imgUrl: 
+    url of the image to annotate
 */
 
 import React from "react";
@@ -72,6 +75,7 @@ class ObjectAnnotation extends React.Component {
 
   render() {
     if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
+      // Get color of object
       let curIndex = this.state.objectIds.indexOf(
         parseInt(this.state.currentMaskId)
       );

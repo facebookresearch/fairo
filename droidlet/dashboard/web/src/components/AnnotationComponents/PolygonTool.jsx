@@ -1,15 +1,33 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
 
-img (Javascript Image object)
+Takes in an object and displays the object with its points and edges. 
+Allows the user tomodify the object in a variety of manners such as 
+adding and deleting point, adding and deleting masks, changing the 
+labels and tags, and more. 
+
+img (Javascript Image object): 
     *Loaded* image to be drawn to the canvas and traced
-
-object (String) 
+object (String): 
     Name of the object to be traced
-
-submitCallback (pts) 
-    Function that handles submission. Takes an array of points 
-    (outline of the object)
+tags ([String]): 
+    List of properties for the object
+masks ([[{x, y}]]): 
+    2D array of masks and points for the object
+color (String): 
+    Rgba value for the color of the mask to be shown
+exitCallback (func): 
+    Callback when component is exited
+submitCallback (func): 
+    Function that handles submission. Takes an array of an 
+    array of points (outline of the object)
+deleteLabelHandler (func): 
+    Deletes the current object
+dataEntrySubmit (func): 
+    Callback for when the object is saved via the 
+    DataEntry component
+mode (String): 
+    Starting mode for PolygonTool
 */
 
 import React from "react";
@@ -300,6 +318,7 @@ class PolygonTool extends React.Component {
         this.props.deleteLabelHandler();
         break;
       case "Enter":
+        // Enter pressed twice
         if (
           this.lastKey === "Enter" &&
           this.points[this.currentMaskId] &&
@@ -311,6 +330,7 @@ class PolygonTool extends React.Component {
           this.mode = "default";
           this.save();
         }
+        // Reset when adding/deleting
         if (
           [
             "adding",
@@ -475,6 +495,7 @@ class PolygonTool extends React.Component {
       this.canvas.width / this.zoomPixels,
       this.canvas.height / this.zoomPixels
     );
+    // Require there to be a current mask with positive length
     if (
       this.currentMaskId === -1 ||
       !this.points[this.currentMaskId] ||

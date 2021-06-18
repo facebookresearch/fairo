@@ -13,16 +13,14 @@ import React from "react";
 
 img (Javascript Image Object)
     Image to draw segments on
-
 objects (List of object names to draw [keys to pointMap])
-
 pointMap (Map from object names to arrays of points)
     Defines the borders of objects to be drawn
-
 colors (List of colors to use to draw the segments)
     list of colors to use. If the length of the colors array is less than 
     the objects to be drawn, colors will be recycled (harder to read)
-
+onClick (func)
+    Handle click by starting a new polygon or displaying the clicked one
 */
 
 class SegmentRenderer extends React.Component {

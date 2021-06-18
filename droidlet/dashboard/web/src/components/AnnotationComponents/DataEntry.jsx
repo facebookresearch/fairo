@@ -16,7 +16,11 @@ label: (string):
   object label name
 tags ([string]): 
   text tags to describe the object
-onSubmit (function): 
+includeSubmitButton (bool): 
+  whether or not to include a submit button (only for new objects)
+deleteCallback (func): 
+  callback to delete the object
+onSubmit (func): 
   callback to update label name and tags of object
 */
 class DataEntry extends React.Component {
