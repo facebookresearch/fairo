@@ -16,7 +16,7 @@ collects results in batches and collates data.
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file C/input.txt --tool_num 3 > turk_input.csv"
+        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file C/input.txt --tool_num 3 > C/turk_input.csv"
     ],
     shell=True,
 )
@@ -26,7 +26,7 @@ if rc != 0:
 
 # Load input commands and create a separate HIT for each row
 rc = subprocess.call(
-    ["python3 create_jobs.py --xml_file fetch_question_C.xml --tool_num 3"], shell=True
+    ["python3 create_jobs.py --xml_file fetch_question_C.xml --tool_num 3 --input_csv C/turk_input.csv"], shell=True
 )
 if rc != 0:
     print("Error creating HIT jobs. Exiting.")
