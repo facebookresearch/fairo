@@ -114,3 +114,4 @@ class MockOpt:
         self.port = -1
         self.no_default_behavior = False
         self.log_timeline = False
+        self.enable_timeline = False

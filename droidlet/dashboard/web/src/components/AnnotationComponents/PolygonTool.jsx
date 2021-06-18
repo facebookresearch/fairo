@@ -114,6 +114,10 @@ class PolygonTool extends React.Component {
   }
 
   render() {
+    let imageSize = "500px"; // default is 500px for the web dashboard
+    if (this.props.imageWidth) {
+      imageSize = this.props.imageWidth;
+    }
     let dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
     let dataEntryY =
       this.canvas &&
@@ -137,13 +141,18 @@ class PolygonTool extends React.Component {
         <div style={{ display: "flex", flexDirection: "row" }}>
           <canvas
             ref={this.canvasRef}
-            width="500px"
-            height="500px"
+            width={imageSize}
+            height={imageSize}
             tabIndex="0"
             onClick={this.onClick}
             onMouseMove={this.onMouseMove}
             onKeyDown={this.keyDown}
           ></canvas>
+          {this.props.isMobile && (
+            <button onClick={this.pressEnterOnMobile.bind(this)}>
+              Finished with {this.props.object}'s label
+            </button>
+          )}
           <div>
             <DataEntry
               ref={this.dataEntryRef}
@@ -240,6 +249,18 @@ class PolygonTool extends React.Component {
     ) {
       this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
       this.updateZoom();
+    this.update();
+  }
+
+  // simulates pressing enter on web. Only used for mobile version
+  pressEnterOnMobile() {
+    this.lastKey = null;
+    this.props.submitCallback(this.points);
+  }
+
+  onClick(e) {
+    if (this.dragging) {
+      this.dragging = false;
       this.update();
       this.lastKey = "Mouse";
       return;

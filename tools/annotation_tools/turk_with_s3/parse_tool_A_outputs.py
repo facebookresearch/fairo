@@ -15,6 +15,7 @@ from spacy.lang.en import English
 from typing import List
 from operator import itemgetter
 from pprint import pprint
+import os
 
 
 def word_tokenize(st) -> str:
@@ -509,9 +510,12 @@ def resolve_spans(words, dicts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # Default to directory of script being run for writing inputs and outputs
+    default_write_dir = os.path.dirname(os.path.abspath(__file__))
+
     parser.add_argument(
         "--folder_name",
-        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/A/",
+        default="{}/A/".format(default_write_dir),
     )
     opts = parser.parse_args()
     print(opts)

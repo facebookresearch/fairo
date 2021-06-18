@@ -131,6 +131,8 @@ class ObjectAnnotation extends React.Component {
             pointMap={this.pointMap}
             colors={COLORS}
             onClick={this.registerClick}
+            imageWidth={this.props.imageWidth}
+            onClick={(e) => this.registerClick(e.clientX, e.clientY)}
           />
           <button onClick={this.submit.bind(this)}>
             Finished annotating objects
@@ -187,6 +189,29 @@ class ObjectAnnotation extends React.Component {
           y={this.clickPoint.y}
           onSubmit={this.dataEntrySubmit.bind(this)}
           includeSubmitButton={true}
+    } else {
+      return (
+        <PolygonTool
+          img={this.image}
+          object={this.drawing_data.name}
+          submitCallback={this.drawingFinished.bind(this)}
+          isMobile={this.props.isMobile}
+          imageWidth={this.props.imageWidth}
+        ></PolygonTool>
+      );
+    }
+  }
+
+  registerClick(x, y) {
+    if (this.state.currentMode === "select") {
+      // Build overlay component
+
+      var overlay = (
+        <DataEntry
+          isMobile={this.props.isMobile}
+          x={x}
+          y={y}
+          onSubmit={this.dataEntered.bind(this)}
         />
       );
       this.setState({
