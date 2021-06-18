@@ -40,15 +40,20 @@ class Memory2D extends React.Component {
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
   }
-
   handleDrag = (className) => {
-    this.setState({ memory2dClassName: className });
+    this.setState({ memory2d_className: className });
   };
-
+  convertCoordinate = (xyz) => {
+    const { width, height, xmax, xmin, ymax, ymin } = this.state;
+    let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
+    let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+    y = height - y;
+    return [x, y];
+  };
   handleWheel = (e) => {
     e.evt.preventDefault();
 
-    const scaleBy = 1.02;
+    const scaleBy = 1.2;
     const stage = e.target.getStage();
     const oldScale = stage.scaleX();
     const mousePointTo = {
@@ -56,7 +61,8 @@ class Memory2D extends React.Component {
       y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
     };
 
-    const newScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    const tmpScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    const newScale = tmpScale < 1 ? 1 : tmpScale;
 
     this.setState({
       stageScale: newScale,
@@ -66,7 +72,6 @@ class Memory2D extends React.Component {
         -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
     });
   };
-
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -240,15 +245,155 @@ class Memory2D extends React.Component {
         />
       );
     }
+    let coordinateAxesLayer = [];
+    let xyz0 = [0, 0, 0];
 
+    let x = this.convertCoordinate(xyz0)[0];
+    let y = this.convertCoordinate(xyz0)[1];
+
+    let axesZ = (
+      <Line
+        key = "axesZ"
+        points={[-width / 2, 0, width / 2, 0]}
+        x={x}
+        y={y}
+        stroke="#AAAAAA"
+        strokeWidth={0.5}
+      />
+    );
+
+    let axesX = (
+      <Line
+        key = "axesX"
+        points={[0, -height / 2, 0, height / 2]}
+        x={x}
+        y={y}
+        stroke="#AAAAAA"
+        strokeWidth={0.5}
+      />
+    );
+    let notches = [];
+    notches.push(
+      <Text
+        key = "root-text"
+        fill="#AAAAAA"
+        text={0}
+        fontSize={this.state.stageScale > 4 ? 3 : 7}
+        x={
+          this.state.stageScale > 4
+            ? x - 3
+            : this.state.stageScale > 2
+            ? x - 5
+            : x - 10
+        }
+        y={y + 2}
+      />
+    );
+    for (i = -10; i <= 10; ) {
+      let notchesCoordinateX = [i, 0, 0];
+      let notchesCoordinateZ = [0, 0, i];
+      let tmpCoordinateX = this.convertCoordinate(notchesCoordinateX);
+      let tmpCoordinateZ = this.convertCoordinate(notchesCoordinateZ);
+      notches.push(
+        <Line
+          key = {"coordinateX-" + i}
+          points={[-3, 0, 3, 0]}
+          x={tmpCoordinateX[0]}
+          y={tmpCoordinateX[1]}
+          stroke="#AAAAAA"
+          strokeWidth={0.5}
+        />
+      );
+      notches.push(
+        <Line
+          key = {"coordinateZ-" + i}
+          points={[0, -3, 0, 3]}
+          x={tmpCoordinateZ[0]}
+          y={tmpCoordinateZ[1]}
+          stroke="#AAAAAA"
+          strokeWidth={0.5}
+        />
+      );
+      if (i !== 0) {
+        notches.push(
+          <Text
+            key = {"textCoordinateX-" + i}
+            fill="#AAAAAA"
+            text={i}
+            align="right"
+            fontSize={this.state.stageScale > 4 ? 3 : 7}
+            x={
+              this.state.stageScale > 4
+                ? tmpCoordinateX[0] - 10
+                : tmpCoordinateX[0] - 15
+            }
+            y={
+              this.state.stageScale > 4
+                ? tmpCoordinateX[1] - 1.25
+                : tmpCoordinateX[1] - 3
+            }
+          />
+        );
+        if (i === -0.25) {
+          notches.push(
+            <Text
+              key = {"textCoordinateZ-" + i}
+              fill="#AAAAAA"
+              text={i}
+              fontSize={this.state.stageScale > 4 ? 3 : 7}
+              align="center"
+              x={tmpCoordinateZ[0] - 7}
+              y={tmpCoordinateZ[1] + 4.75}
+            />
+          );
+        } else {
+          notches.push(
+            <Text
+              key = {"textCoordinateZ0-" + i}
+              fill="#AAAAAA"
+              text={i}
+              fontSize={this.state.stageScale > 4 ? 3 : 7}
+              align="center"
+              x={tmpCoordinateZ[0] - 4}
+              y={tmpCoordinateZ[1] + 4.75}
+            />
+          );
+        }
+      }
+      if (this.state.stageScale > 4) {
+        i += 0.25;
+      } else if (this.state.stageScale > 2) {
+        i += 0.5;
+      } else {
+        i += 1;
+      }
+    }
+    const textCoordinates = [
+      { xy: this.convertCoordinate([-10, 0, 0.2]), label: "-x" },
+      { xy: this.convertCoordinate([-0.75, 0, -10]), label: "-z" },
+      { xy: this.convertCoordinate([9.5, 0, 0.2]), label: "x" },
+      { xy: this.convertCoordinate([-0.75, 0, 10]), label: "z" },
+    ];
+    textCoordinates.forEach((textCoordinate, key, map) => {
+      coordinateAxesLayer.push(
+        <Text
+          key={textCoordinate.label + key}
+          fill="#AAAAAA"
+          text={textCoordinate.label}
+          x={textCoordinate.xy[0]}
+          y={textCoordinate.xy[1]}
+        />
+      );
+    });
+    coordinateAxesLayer.push(axesX, axesZ, notches);
     // final render
     return (
       <div ref={this.outer_div} style={{ height: "100%", width: "100%" }}>
         <Stage
-          className={this.state.memory2dClassName}
+          draggable
+          className={this.state.memory2d_className}
           width={width}
           height={height}
-          draggable
           onWheel={this.handleWheel}
           scaleX={this.state.stageScale}
           scaleY={this.state.stageScale}
@@ -258,6 +403,7 @@ class Memory2D extends React.Component {
           onDragEnd={() => this.handleDrag("memory2d")}
         >
           <Layer className="gridLayer">{gridLayer}</Layer>
+          <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
           <Layer className="mapBoundary">{mapBoundary}</Layer>
           <Layer className="renderedObjects">{renderedObjects}</Layer>
           <Layer>
