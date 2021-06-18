@@ -132,7 +132,6 @@ class ObjectAnnotation extends React.Component {
             colors={COLORS}
             onClick={this.registerClick}
             imageWidth={this.props.imageWidth}
-            onClick={(e) => this.registerClick(e.clientX, e.clientY)}
           />
           <button onClick={this.submit.bind(this)}>
             Finished annotating objects
