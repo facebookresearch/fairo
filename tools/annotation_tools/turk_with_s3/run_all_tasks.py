@@ -54,3 +54,9 @@ if filesize > 0:
     if rc != 0:
         print("Error collating answers. Exiting.")
         sys.exit()
+
+# Run final postprocessing on the action dictionaries to construct logical forms in sync with grammar
+rc = subprocess.call(["python3 construct_final_action_dict.py"], shell=True)
+if rc != 0:
+    print("Error constructing final dictionary. Exiting.")
+    sys.exit()
