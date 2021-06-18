@@ -29,9 +29,10 @@ class PolygonTool extends React.Component {
     this.addHandler = this.addHandler.bind(this);
     this.addMaskHandler = this.addMaskHandler.bind(this);
     this.addPointHandler = this.addPointHandler.bind(this);
+    this.deleteHandler = this.deleteHandler.bind(this);
     this.deleteMaskHandler = this.deleteMaskHandler.bind(this);
-    this.changeTextHandler = this.changeTextHandler.bind(this);
     this.deletePointHandler = this.deletePointHandler.bind(this);
+    this.changeTextHandler = this.changeTextHandler.bind(this);
     this.zoomIn = this.zoomIn.bind(this);
     this.zoomOut = this.zoomOut.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
@@ -102,9 +103,8 @@ class PolygonTool extends React.Component {
       <div>
         <p>{this.state.message}</p>
         <div>
-          <button onClick={this.addHandler}>Add</button>
-          <button onClick={this.deleteMaskHandler}>D(e)lete mask</button>
-          <button onClick={this.deletePointHandler}>(R)emove point</button>
+          <button onClick={this.addHandler}>Add (q)</button>
+          <button onClick={this.deleteHandler}>Delete (e)</button>
           <button onClick={this.zoomIn}>Zoom in (=)</button>
           <button onClick={this.zoomOut}>Zoom out (-)</button>
         </div>
@@ -134,7 +134,7 @@ class PolygonTool extends React.Component {
   }
 
   update() {
-    this.resetImage("small");
+    this.resetImage(this.zoomed);
     this.updateMessage();
     let focused = ["dragging", "focus"].includes(this.mode);
     this.drawPointsAndLines(focused);
@@ -145,7 +145,8 @@ class PolygonTool extends React.Component {
       this.points[this.currentMaskId] &&
       this.points[this.currentMaskId].length >= 3
     ) {
-      this.resetImage();
+      this.zoomed = false;
+      this.resetImage(this.zoomed);
       this.drawPointsAndLines();
       this.drawRegions();
     }
@@ -167,6 +168,9 @@ class PolygonTool extends React.Component {
       if (this.mode === "adding") {
         this.addPointHandler();
       }
+      if (this.mode === "deleting") {
+        this.deletePointHandler();
+      }
       if (
         ["addingMask"].includes(this.mode) &&
         hoverPointIndex[0] !== this.currentMaskId
@@ -185,7 +189,6 @@ class PolygonTool extends React.Component {
         if (this.points[hoverPointIndex[0]].length > 3) {
           this.points[hoverPointIndex[0]].splice(hoverPointIndex[1], 1);
         }
-        this.mode = this.baseMode;
         this.update();
         return;
       }
@@ -241,9 +244,12 @@ class PolygonTool extends React.Component {
     }
 
     // Delete mask
-    if (this.mode === "deletingMask") {
+    if (["deletingMask", "deleting"].includes(this.mode)) {
       if (regionId === -1) {
         return;
+      }
+      if (this.mode === "deleting") {
+        this.deleteMaskHandler();
       }
       if (this.points.length === 1) {
         this.props.deleteLabelHandler();
@@ -261,29 +267,40 @@ class PolygonTool extends React.Component {
         if (this.points[this.currentMaskId].length > 0) {
           this.points[this.currentMaskId].pop();
         }
+        this.update();
         break;
       case "w":
         this.shiftViewBy(0, 10);
+        this.update();
         break;
       case "a":
         this.shiftViewBy(10, 0);
+        this.update();
         break;
       case "s":
         this.shiftViewBy(0, -10);
+        this.update();
         break;
       case "d":
         this.shiftViewBy(-10, 0);
+        this.update();
         break;
       case "q":
+        this.addHandler();
+        break;
+      case "f":
         this.addMaskHandler();
         break;
       case "e":
+        this.deleteHandler();
+        break;
+      case "g":
         this.deleteMaskHandler();
         break;
-      case "f":
+      case "r":
         this.addPointHandler();
         break;
-      case "r":
+      case "t":
         this.deletePointHandler();
         break;
       case "l":
@@ -302,7 +319,14 @@ class PolygonTool extends React.Component {
           this.save();
         }
         if (
-          ["adding", "addingMask", "addingPoint"].includes(this.mode) &&
+          [
+            "adding",
+            "addingMask",
+            "addingPoint",
+            "deleting",
+            "deletingMask",
+            "deletingPoint",
+          ].includes(this.mode) &&
           this.points[this.currentMaskId] &&
           this.points[this.currentMaskId].length >= 3
         ) {
@@ -310,9 +334,6 @@ class PolygonTool extends React.Component {
           this.prevMode = this.mode;
           this.mode = "default";
         }
-        break;
-      case "~":
-        this.mode = "default";
         break;
       case "Escape":
         if (
@@ -326,15 +347,16 @@ class PolygonTool extends React.Component {
         break;
       case "=":
         this.zoomIn();
+        this.update();
         break;
       case "-":
         this.zoomOut();
+        this.update();
         break;
       default:
         break;
     }
     this.lastKey = e.key;
-    this.update();
   }
 
   addHandler() {
@@ -366,6 +388,12 @@ class PolygonTool extends React.Component {
     this.mode = "addingPoint";
   }
 
+  deleteHandler() {
+    this.baseMode = "default";
+    this.prevMode = this.mode;
+    this.mode = "deleting";
+  }
+
   deleteMaskHandler() {
     if (
       !this.points[this.currentMaskId] ||
@@ -378,6 +406,14 @@ class PolygonTool extends React.Component {
     this.currentMaskId = 0;
   }
 
+  deletePointHandler() {
+    this.baseMode = ["drawing", "addingMask"].includes(this.mode)
+      ? this.mode
+      : "default";
+    this.prevMode = this.mode;
+    this.mode = "deletingPoint";
+  }
+
   changeTextHandler(data) {
     if (
       !this.points[this.currentMaskId] ||
@@ -387,14 +423,6 @@ class PolygonTool extends React.Component {
     }
     this.save();
     this.props.dataEntrySubmit(data);
-  }
-
-  deletePointHandler() {
-    this.baseMode = ["drawing", "addingMask"].includes(this.mode)
-      ? this.mode
-      : "default";
-    this.prevMode = this.mode;
-    this.mode = "deletingPoint";
   }
 
   zoomIn() {
@@ -412,7 +440,7 @@ class PolygonTool extends React.Component {
     switch (this.mode) {
       case "adding":
         newMessage =
-          "Click a point to duplicate it (f) or click anywhere else to create a new mask for this object (q)";
+          "Click a point to duplicate it (r) or click anywhere else to create a new mask for this object (f)";
         break;
       case "addingMask":
         newMessage = "Create a new mask for this object";
@@ -423,7 +451,7 @@ class PolygonTool extends React.Component {
         break;
       case "deleting":
         newMessage =
-          "Click a point to delete it (r) or click a mask to delete it (e)";
+          "Click a point to delete it (t) or click a mask to delete it (g)";
         break;
       case "deletingMask":
         newMessage = "Select which mask to delete";
@@ -640,14 +668,11 @@ class PolygonTool extends React.Component {
     );
   }
 
-  resetImage(type = "full") {
+  resetImage(zoomed) {
     // full, small
     this.ctx.resetTransform();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    if (type === "full") {
-      this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
-      this.zoomed = false;
-    } else if (type === "small") {
+    if (zoomed) {
       this.ctx.setTransform(
         this.scale,
         0,
@@ -656,6 +681,9 @@ class PolygonTool extends React.Component {
         this.Offset.x,
         this.Offset.y
       );
+    } else {
+      this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
+      this.zoomed = false;
     }
     this.ctx.drawImage(this.img, 0, 0);
   }
