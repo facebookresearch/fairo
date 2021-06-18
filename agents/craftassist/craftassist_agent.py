@@ -88,9 +88,6 @@ class CraftAssistAgent(LocoMCAgent):
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
-        
-        # Add hook for db_write
-        self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
@@ -331,19 +328,6 @@ class CraftAssistAgent(LocoMCAgent):
         except:  # this is for test/test_agent
             return
         PlayerNode.create(self.memory, p, memid=self.memory.self_memid)
-
-    def log_to_dashboard(self, **kwargs):
-        """Emits the event to the dashboard and/or logs it in a file"""
-        result = kwargs['data']
-        # a sample filter for logging VoxelObjects queries only
-        if result["name"] == "db_write":
-            # JSONify the data
-            result = json.dumps(result, default=str)
-            if "VoxelObjects" in result:
-                self.agent_emit(result)
-                if self.opts.log_timeline:
-                    self.timeline_log_file.flush()
-                    print(result, file=self.timeline_log_file)
 
 
 if __name__ == "__main__":

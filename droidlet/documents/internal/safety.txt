@@ -1,0 +1,554 @@
+<COMPLICATED>
+bible
+koran
+muslim
+jews
+jewish
+catholic
+evangelical
+hitler
+gas chamber
+holocaust
+nazi
+genocide
+mein kampf
+mussolini
+fascism
+concentration camp
+auschwitz
+bergen belsen
+semitism
+fascist
+homosexual
+burqa
+mosque
+racis
+wahhabism
+\brape\b
+\bgay\b
+\btrans\b
+\bqueer\b
+sexual
+\bsex\b
+\bdick\b
+pussy
+\btits\b
+incest
+pedophilia
+white supremacy
+black lives matter
+white lives matter
+fourteen words
+ku klux klan
+nigger
+negro
+trump
+clinton
+breitbart
+abortion
+fetus
+narcotic
+heroin
+opioid
+terroris
+al qaeda
+# The following patterns come from an old list of ad blacklisted terms
+# https://our.intern.facebook.com/intern/wiki/Policy_Management/Policy_Library/Ad_Blocking/Ad_Blacklisted_Terms/
+# TODO (ylan): find live version
+Abu Nidal
+Abu Sayyaf
+Al-Aqsa Martyrs Brigade
+Al-Jabha al-Dimuqratiya Li-Tahrir Filastin
+al-Qa\'ida
+al-Qaeda
+Ansar al-Islam
+Arbeiterpartei
+Armed Islamic
+Group
+AUC
+Autodefensas Unidas de Colombia
+Bitch
+Bolshevik
+Borman
+Bormann
+C 18
+C-18
+C18
+Combat 18
+Cunt
+Cunts
+Democratic
+Front for the Liberation of Palestine
+DHKC
+DHKP
+Egyptian Islamic Jihad
+Eichman
+Eichmann
+Ejercito de Liberacion Nacional
+Eugenic
+Euskadi ta
+Askatasuna
+Fag
+Faggot
+FARC
+Fascist
+Fatah al-Islam
+fhurer
+Fourteen 88
+Fourteen Words
+fuehrer
+fuhrer
+Gama\'a al-Islamiyya
+Genocide
+Gestapo
+Goebbels
+Goebels
+Goering
+Halk
+Hamas
+Hans-ulrich rudel
+Harakat
+ul-Mujahidin
+Heimwehr
+Hezbollah
+Hezbullah
+Himmler
+Hitler
+Hizbollah
+Holocaust
+holohoax
+Homo
+Horst Wessel
+Hussain Qadri
+Hymie
+Irish Republican Army
+Islamic
+Jihad Union
+Jemaah Islamiya
+Jodl
+Juden
+Kaffir
+Kaltenbrunner
+Keitel
+Kike
+\bKKK\b
+Klan
+Klu
+Klux
+kristallnacht
+Krupp
+Kurdistan Workers Party
+Kyke
+Lashkar Taiba
+Lashkar-e-Jhangvi
+Lashkar-e-Taiba
+Lashkar-e-Tayyaba
+Lashkar-e-Tayyiba
+Lashkar-e-Toiba
+Lashkar-i-Taiba
+Lashkar-i-Tayyaba
+Leibstandarte
+Liberation Tigers of Tamil
+Eelam
+LTTE
+Malik Mumtaz
+Mein Kampf
+Mengele
+Mujahedin-e Khalq
+Nacht der langen Messer
+National Front
+National Liberation Army
+Nationalsozialistische
+Nazi
+Nigger
+Night of the long knives
+NSDAP
+Palestine Liberation Front
+Palestinian Islamic Jihad
+Panzergrenadier
+Papen
+Parti Karkerani Kurdistan
+PFLP
+PKK
+Pogrom
+Popular Front for the Liberation of Palestine
+Raeder
+Raghead
+\bReich\b
+Reichsmarschall
+Ribbentrop
+Rohm
+Romel
+Rommel
+Rosenberg
+Rudof Hess
+Rudolph Hess
+Sambo
+Sauckel
+Schacht
+Schirach
+Schutzstaffel
+Semite
+Slut
+Soldatenlieder
+Speer
+Spic
+Streicher
+Sturmabteilung
+Swastika
+Tamil Tigers
+Towel Head
+Towelhead
+Twat
+Waffen
+Wannsee
+White Power
+White Pride
+Whore
+Stolz
+Yid
+Yids
+ZOG
+abpept
+amateurten
+babyerotic
+babyfuck
+babyfucking
+babyilegal
+babyrape
+barelake
+bisex
+bisexualten
+bitches
+blow job
+boyforced
+boylove
+boynude
+boysaged
+boysex
+chastecunt
+childabuseimages
+childanal
+childasfuck
+childextrem
+childforced
+childfuck
+childfucking
+childfuga
+childlover
+childmodel
+childmolestation
+childnudist
+CHILDOPHILIYA
+childophiliya
+childpep
+childporn
+childpornography
+childrape
+childrenfucking
+childrensex
+chilf
+chldlve
+chxxx
+controversial humor
+Controversial Humour
+cute lolita
+Cyberlolita
+d&d(dad&daughter)
+daddy's little girl
+daddylove
+daddys little girl
+daddys littlegirl
+dadyslitle
+dadysnaughty
+dark lola
+dark lolita
+darkcolection
+darkhomepusy
+darklola
+daughtersonporn
+daughtersonsex
+de&desi
+divinecutie
+Dogs and My Girls
+dogsandmygirls
+emiyunagi
+erotichild
+erotickid
+erotictodler
+escort service
+forbidenatraction
+forbidenlove
+frekidieporn
+gay boy
+gaykid
+gaymenoresde
+gayten
+gaytenlove
+girlsaged
+grou.ps
+hornyson
+hotloli
+husyfan
+ilegal.cp
+ilegalcp
+incest
+incest family
+incestpics
+itybitytentity
+jailbait
+kdquality
+Kdzcplt
+kid anal
+Kid cum
+kid extreem
+Kid extreme
+Kid fuck
+kidcum
+Kiddi
+kiddie pics
+kiddie porn
+Kiddie porno
+kiddie pornography
+Kiddie sex
+Kiddiefuck
+Kiddieporn
+Kiddy pic
+kiddy porn
+Kiddy sex
+kidextrem
+kidiefuck
+kidiefucking
+kidiepics
+kidieporn
+kidiepornopraphy
+kidiesex
+KidPics
+kidporn
+Kids sex
+kidsporn
+kidypic
+kidyporn
+kidypornography
+kidysex
+kidzila
+kidzporn
+kinderfilme
+kinderporn
+kinderpornography
+kinkikids
+kiss preteen girls
+ku klux klan
+leslita
+litlegirlsnude
+litlevirgin
+lolaboy
+loliboys
+lolibs
+lolicon
+lolifan
+lolifuck
+lolihost
+lolikon
+Lolilover
+lolisex
+lolisurprise
+lolita
+lolitafilia
+lolitafix
+lolitage
+lolital
+Lolitaldren
+Lolitalove
+lolitalove
+lolitanude
+lolitanudes
+lolitaphilia
+lolitaporn
+LOLiTAS
+lolitasex
+lolitasjoy
+lolitasmile
+lolitass
+LOLITASS
+lolitateen
+lolitaten
+lolitka
+loloboys
+lolporn
+lolsex
+lolyboy
+lolygirl
+loveboys
+lsmagazine
+lstenmodel
+marcosteia
+motherdaughterporn
+motherdaughtersex
+mothersonporn
+mothersonsex
+mutter und tochter
+n.a.m.b.l.a.
+nablot
+nakedchildren
+nakedtulip
+nambla
+naturistboy
+naturistgirl
+ninaslindasde
+ninaslindasmenosde
+ninos gay
+ninosgay
+ninosgayde
+ninosgaymenosde
+ninosmalportados
+northamericanman/boyloveasociation
+nubiles
+nudeboys
+nudechild
+nudechildren
+nudegirls
+nudekids
+nudelitlegirls
+nudepretengirls
+nudeten
+nudetens
+nudeyoungirls
+nudistchild*
+nudistchildphotolinks
+nudistkids
+nudistlolitas
+nymphet
+paedophilia
+pe@oworld
+pedofilia
+pedofuck
+pedofucking
+pedohardcore
+pedoland
+pedolove
+pedopage
+pedophile
+pedoporn
+pedopornography
+pedoworld
+picsofpthc
+picsofyoung
+podofilia
+pornophilia
+Pre-teen
+Pre-teens
+Pre-teenz
+prelola
+Preloli
+Prelolita
+Prelolita sex
+prelolitasex
+prepubecent
+prepubescentnudepics
+preteen
+preteen
+porn
+Preteen sex
+preteengoddess
+preteens
+preteeny
+preteenz
+pretengay
+pretengodes
+pretenporn
+pretenpornography
+pretensex
+pretenude
+pretenudegirls
+pretenudistphotos
+pretenudists
+prettn
+pro-ana
+prts
+ptcruiser
+pt private server
+pt/hc
+pt/sc
+ptcp
+pteen
+pthc
+PTHC
+PTSC
+ptsc
+qqaazz
+r@ygold
+rape
+rape.sloth
+raped
+rapedlolita
+rapesloth
+raping
+rapist
+raygold
+realhcp
+realola
+rompl
+rygold
+sexlola
+sexwithchildren
+sexyinfant
+sexykid
+shotacon
+slag
+slut
+sluts
+sneakyhat
+sondaughterporn
+sondaughtersex
+struggle cuddle
+strugglecuddle
+surprisesex
+surprise sex
+teen model
+tenamateur
+tenphotos
+tenpics
+tenporn
+theforbidenrealm
+theforbidenrealms
+thinspiration
+tighteaser
+tinygirls
+todlerkon
+underageadmirer
+underagenudists
+underageporn
+underagepornography
+underagesex
+underagevideo
+videosdenino
+vidsofpthc
+virginrape
+white supremacist
+yngirls
+young schoolgirls
+youngay
+youngboyslove
+youngchub
+youngirl
+youngirlsnude
+younglover
+youngmodel
+youngnudegirls
+youngnudist
+youngpusie
+youngtenangels
+yungirl
+yungmodel
+zadom
+
+<SENSITIVE>
+suicide
+kill myself
+t wanna live
+t want to live
+i want to die
+i wanna die
+
+penis

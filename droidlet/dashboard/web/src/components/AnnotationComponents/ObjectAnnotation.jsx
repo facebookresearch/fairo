@@ -131,6 +131,7 @@ class ObjectAnnotation extends React.Component {
             pointMap={this.pointMap}
             colors={COLORS}
             onClick={this.registerClick}
+            imageWidth={this.props.imageWidth}
           />
           <button onClick={this.submit.bind(this)}>
             Finished annotating objects

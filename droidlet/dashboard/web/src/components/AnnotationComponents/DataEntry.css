@@ -17,3 +17,11 @@ Copyright (c) Facebook, Inc. and its affiliates.
   margin-top: 15px;
   float: right;
 }
+.data-entry-block-mobile {
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}

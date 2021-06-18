@@ -114,6 +114,10 @@ class PolygonTool extends React.Component {
   }
 
   render() {
+    let imageSize = "500px"; // default is 500px for the web dashboard
+    if (this.props.imageWidth) {
+      imageSize = this.props.imageWidth;
+    }
     let dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
     let dataEntryY =
       this.canvas &&
@@ -137,13 +141,18 @@ class PolygonTool extends React.Component {
         <div style={{ display: "flex", flexDirection: "row" }}>
           <canvas
             ref={this.canvasRef}
-            width="500px"
-            height="500px"
+            width={imageSize}
+            height={imageSize}
             tabIndex="0"
             onClick={this.onClick}
             onMouseMove={this.onMouseMove}
             onKeyDown={this.keyDown}
           ></canvas>
+          {this.props.isMobile && (
+            <button onClick={this.pressEnterOnMobile.bind(this)}>
+              Finished with {this.props.object}'s label
+            </button>
+          )}
           <div>
             <DataEntry
               ref={this.dataEntryRef}
@@ -541,7 +550,16 @@ class PolygonTool extends React.Component {
       this.points[this.draggingIndex[0]][this.draggingIndex[1]] =
         this.localToImage(this.lastMouse);
     }
-    this.update();
+    if (
+      ["drawing", "addingMask"].includes(this.mode) &&
+      (this.lastKey !== "Enter" ||
+        ["drawing", "addingMask"].includes(this.prevMode) ||
+        (this.points[this.currentMaskId] &&
+          this.points[this.currentMaskId].length < 3)) // case where Enter is pressed, then "add mask"
+    ) {
+      this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
+      this.updateZoom();
+    }
   }
 
   addMaskHandler() {
@@ -641,10 +659,12 @@ class PolygonTool extends React.Component {
   }
 
   updateZoom() {
+    this.zoomed = true;
     this.scale = Math.min(
       this.canvas.width / this.zoomPixels,
       this.canvas.height / this.zoomPixels
     );
+    // Require there to be a current mask with positive length
     if (
       this.currentMaskId === -1 ||
       !this.points[this.currentMaskId] ||

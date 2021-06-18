@@ -6,6 +6,7 @@ import re
 from operator import itemgetter
 from pprint import pprint
 import ast
+import os
 
 MAX_WORDS = 40
 
@@ -471,9 +472,12 @@ def resolve_spans(words, dicts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # Default to directory of script being run for writing inputs and outputs
+    default_write_dir = os.path.dirname(os.path.abspath(__file__))
+
     parser.add_argument(
         "--folder_name",
-        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/C/",
+        default="{}/C/".format(default_write_dir),
     )
     opts = parser.parse_args()
     folder_name = opts.folder_name

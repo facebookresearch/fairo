@@ -34,6 +34,23 @@ class DataEntry extends React.Component {
   }
 
   render() {
+    if (this.props.isMobile) {
+      return (
+        <div className="data-entry-root data-entry-block-mobile">
+          <input placeholder="Object Name" ref={this.nameRef}></input>
+          <TagSelector
+            tags={this.labels}
+            update={(tags) => (this.tags = tags)}
+          />
+          <button
+            className="data-entry-submit"
+            onClick={this.submit.bind(this)}
+          >
+            Submit
+          </button>
+        </div>
+      );
+    }
     return (
       <div
         className="data-entry-root"

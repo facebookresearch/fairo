@@ -100,7 +100,7 @@ class AgentMemory:
 
         self.init_time_interface(agent_time)
 
-        self.dispatch_signal = dispatch.Signal()
+        self._dispatch_signal = dispatch.Signal()
 
         # FIXME agent : should this be here?  where to put?
         self.coordinate_transforms = coordinate_transforms
@@ -1041,9 +1041,9 @@ class AgentMemory:
             "table_name" : query_table, 
             "operation" : query_operation, 
             "args" : query_dict, 
-            "result" : r
+            "result" : r,
         }
-        self.dispatch_signal.send(self.db_write, data=hook_data)
+        self._dispatch_signal.send(self.db_write, data=hook_data)
         return r
 
     def _db_write(self, query: str, *args) -> int:
@@ -1174,4 +1174,8 @@ class AgentMemory:
         """
         allows for registering hooks using the event dispatcher
         """
-        self.dispatch_signal.connect(receiver, sender)
+        allowed = [self.db_write,]
+        if sender in allowed:
+            self._dispatch_signal.connect(receiver, sender)
+        else:
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
