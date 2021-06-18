@@ -16,7 +16,7 @@ collects results in batches and collates data.
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file 1C_input.txt --tool_num 3 > turk_input.csv"
+        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file C/input.txt --tool_num 3 > turk_input.csv"
     ],
     shell=True,
 )
@@ -54,4 +54,11 @@ print("*** Postprocessing results ***")
 rc = subprocess.call(["python3 parse_tool_C_outputs.py"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
+    sys.exit()
+
+# Create inputs for other tools
+print("*** Postprocessing results ***")
+rc = subprocess.call(["python generate_input_for_tool_D.py"], shell=True)
+if rc != 0:
+    print("Error generating input for other tools. Exiting.")
     sys.exit()
