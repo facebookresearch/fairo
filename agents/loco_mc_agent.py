@@ -118,6 +118,15 @@ class LocoMCAgent(BaseAgent):
                 return back a socket emit with parse of command and success status
             """
             logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
+            print("RECEIVED COMMAND in mc")
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"

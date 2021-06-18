@@ -116,6 +116,7 @@ class Message extends Component {
       this.props.setInteractState({ msg: chatmsg, failed: false });
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+      console.log("sending command to agent");
       //clear the textbox
       document.getElementById("msg").innerHTML = "";
     }
