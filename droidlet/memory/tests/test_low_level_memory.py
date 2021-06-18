@@ -2,7 +2,13 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
-from droidlet.memory.memory_nodes import PlayerNode, LocationNode, ChatNode, NamedAbstractionNode
+from droidlet.memory.memory_nodes import (
+    SelfNode,
+    PlayerNode,
+    LocationNode,
+    ChatNode,
+    NamedAbstractionNode,
+)
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.base_util import Pos, Look, Player
 from droidlet.memory.memory_filters import MemorySearcher
@@ -141,6 +147,11 @@ class BasicTest(unittest.TestCase):
     # TODO: expand these
     def test_sql_form(self):
         self.memory = AgentMemory()
+        # FIXME? should this be in memory init?
+        # FIXME!! in agents use SelfNode instead of PlayerNode
+        self_memid = SelfNode.create(
+            self.memory, Player(1, "robot", Pos(0, 0, 0), Look(0, 0)), memid=self.memory.self_memid
+        )
         rachel_memid = PlayerNode.create(
             self.memory, Player(10, "rachel", Pos(1, 0, 1), Look(0, 0))
         )

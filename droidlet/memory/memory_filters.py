@@ -30,7 +30,7 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
 
     Args:
         agent_memory: an AgentMemory object
-        mem: a MemoryNode object
+        mem: a MemoryNode object or memid (str)
         prop: a string with the name of the property
 
     looks with the following order of precedence:
@@ -38,6 +38,10 @@ def get_property_value(agent_memory, mem, prop, get_all=False):
     2: table corresponding to the nodes .TABLE
     3: triple with the nodes memid as subject and prop as predicate
     """
+    # TODO maybe don't do this? esp if there are a lot of mems and we don't need to?
+    # just need the MemoryNode for the Table anyway
+    if type(mem) is str:
+        mem = agent_memory.get_mem_by_id(mem)
 
     # is it in the main memory table?
     cols = [c[1] for c in agent_memory._db_read("PRAGMA table_info(Memories)")]
@@ -138,6 +142,31 @@ def try_float(value, where_clause):
         return float(value)
     except:
         raise Exception("tried to get float from {} in {}".format(value, where_clause))
+
+
+def argval_subsample_idx(values, n, polarity="MAX"):
+    """ values is a list, n an int, polarity is MAX or MIN"""
+    assert n > 0
+    descending = {"MAX": True, "MIN": False}[polarity]
+    _, idxs = torch.sort(torch.Tensor(values), descending=descending)
+    return idxs.tolist()[:n]
+
+
+def random_subsample_idx(num_mems, n, same="DISALLOWED"):
+    if num_mems == 0:
+        return []
+    if same == "REQUIRED":
+        return [torch.randint(num_mems, (1,)).item()] * n
+    replace = True
+    if same == "DISALLOWED":
+        replace = False
+        if n > num_mems:
+            raise Exception(
+                "RANDOM selection supposed to return {} memories withour replacement but only got {}".format(
+                    n, num_mems
+                )
+            )
+    return torch.multinomial(torch.ones(num_mems), n, replacement=replace).tolist()
 
 
 class MemorySearcher:
@@ -244,6 +273,62 @@ class MemorySearcher:
                 value = (input_right,)
             return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
 
+    def handle_selector(self, agent_memory, query, memids):
+        if query.get("selector"):
+            selector_d = query["selector"]
+            if selector_d.get("location"):
+                raise Exception(
+                    "queries with location selectors not yet implemented in basic search: query={}".format(
+                        query
+                    )
+                )
+            ordinal = int(selector_d.get("ordinal", 1))
+            return_q = selector_d.get("return_quantity")
+            if not return_q:
+                raise Exception("selector subdict with no return_quantity: query={}".format(query))
+            if return_q == "random":
+                same = selector_d.get("same", "DISALLOWED")
+                idxs = random_subsample_idx(len(memids), ordinal, same=same)
+            elif type(return_q) is dict and return_q.get("argval"):
+                try:
+                    attribute_name = return_q["argval"]["quantity"]["attribute"]
+                except:
+                    raise Exception(
+                        "malformed selector return quantity clause: {}".format(return_q)
+                    )
+                if type(attribute_name) is not str:
+                    raise Exception(
+                        "selector return quantity in basic search should be simple property, instead got: {}".format(
+                            attribute_name
+                        )
+                    )
+                vals = [get_property_value(agent_memory, m, attribute_name) for m in memids]
+                idxs = argval_subsample_idx(
+                    vals, ordinal, polarity=return_q["argval"].get("polarity", "MAX")
+                )
+            return [memids[i] for i in idxs]
+        else:
+            return memids
+
+    def handle_output(self, agent_memory, query, memids):
+        output = query.get("output", "MEMORY")
+        if output == "MEMORY":
+            return [agent_memory.get_mem_by_id(m) for m in memids]
+        elif output == "COUNT":
+            return [len(memids)] * len(memids)
+        else:
+            try:
+                attribute_name = query["output"]["attribute"]
+            except:
+                raise Exception("malformed output clause: {}".format(query))
+            if type(attribute_name) is not str:
+                raise Exception(
+                    "output attribute in basic search should be simple property, instead got: {}".format(
+                        attribute_name
+                    )
+                )
+            return [get_property_value(agent_memory, m, attribute_name) for m in memids]
+
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
         # returns a list of memids and accompanying values
         # TODO values are MemoryNodes when query is SELECT MEMORIES
@@ -257,7 +342,8 @@ class MemorySearcher:
             memids = self.handle_where(agent_memory, query["where_clause"], memtype)
         else:
             memids = []
-        return memids, [None] * len(memids)
+        memids = self.handle_selector(agent_memory, query, memids)
+        return memids, self.handle_output(agent_memory, query, memids)
 
 
 # TODO?  merge into Memory
@@ -598,31 +684,13 @@ class RandomMemorySelector(MemoryFilter):
         self.n = n
         self.same = same
 
-    def get_idxs(self, memids):
-        m = len(memids)
-        if m == 0:
-            return []
-        if self.same == "REQUIRED":
-            return [torch.randint(len(all_memids), (1,)).item()] * m
-        replace = True
-        if self.same == "DISALLOWED":
-            replace = False
-            if self.n > m:
-                raise Exception(
-                    "RandomMemorySelector supposed to return {} memories withour replacement but only got {}".format(
-                        self.n, m
-                    )
-                )
-
-        return torch.multinomial(torch.ones(m), self.n, replacement=replace).tolist()
-
     def search(self):
         all_memids = self.all_table_memids()
-        idxs = self.get_idxs(all_memids)
+        idxs = random_subsample_idx(len(all_memids), self.n, same=self.same)
         return [all_memids[i] for i in idxs], [None for i in idxs]
 
     def filter(self, memids, vals):
-        idxs = self.get_idxs(memids)
+        idxs = random_subsample_idx(len(memids), self.n, same=self.same)
         return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
 
