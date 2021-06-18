@@ -24,6 +24,7 @@ class DataEntry extends React.Component {
     super(props);
 
     this.tags = this.props.tags || [];
+    this.submit = this.submit.bind(this);
 
     this.nameRef = React.createRef();
   }
@@ -44,15 +45,17 @@ class DataEntry extends React.Component {
           defaultValue={this.props.label || ""}
         />
         <TagSelector tags={this.tags} update={(tags) => (this.tags = tags)} />
-        <button className="data-entry-submit" onClick={this.submit.bind(this)}>
-          Submit
-        </button>
+        {this.props.includeSubmitButton ? (
+          <button className="data-entry-submit" onClick={this.submit}>
+            Submit
+          </button>
+        ) : null}
         {this.props.deleteCallback ? (
           <button
             className="data-entry-delete"
             onClick={this.props.deleteCallback}
           >
-            Delete (l)abel
+            Delete object (⌫)
           </button>
         ) : null}
       </div>

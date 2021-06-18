@@ -59,6 +59,7 @@ class PolygonTool extends React.Component {
     this.newMask = this.props.mode === "drawing" ? true : false;
 
     this.canvasRef = React.createRef();
+    this.dataEntryRef = React.createRef();
 
     this.zoomPixels = 300;
     this.zoomed = false;
@@ -103,10 +104,17 @@ class PolygonTool extends React.Component {
       <div>
         <p>{this.state.message}</p>
         <div>
-          <button onClick={this.addHandler}>Add (q)</button>
-          <button onClick={this.deleteHandler}>Delete (e)</button>
-          <button onClick={this.zoomIn}>Zoom in (=)</button>
-          <button onClick={this.zoomOut}>Zoom out (-)</button>
+          <button onClick={this.addHandler}>➕ (a)</button>
+          <button onClick={this.deleteHandler}>🗑️ (d)</button>
+          <button onClick={this.zoomIn}>🔎 (=)</button>
+          <button onClick={this.zoomOut}>🔍 (-)</button>
+          <button
+            onClick={
+              this.dataEntryRef.current && this.dataEntryRef.current.submit
+            }
+          >
+            💾 (↵)
+          </button>
         </div>
         <div style={{ display: "flex", flexDirection: "row" }}>
           <canvas
@@ -120,6 +128,7 @@ class PolygonTool extends React.Component {
           ></canvas>
           <div>
             <DataEntry
+              ref={this.dataEntryRef}
               x={dataEntryX}
               y={dataEntryY}
               onSubmit={this.changeTextHandler}
@@ -269,41 +278,25 @@ class PolygonTool extends React.Component {
         }
         this.update();
         break;
-      case "w":
-        this.shiftViewBy(0, 10);
-        this.update();
-        break;
       case "a":
-        this.shiftViewBy(10, 0);
-        this.update();
-        break;
-      case "s":
-        this.shiftViewBy(0, -10);
-        this.update();
-        break;
-      case "d":
-        this.shiftViewBy(-10, 0);
-        this.update();
-        break;
-      case "q":
         this.addHandler();
         break;
-      case "f":
+      case "s":
         this.addMaskHandler();
         break;
-      case "e":
-        this.deleteHandler();
-        break;
-      case "g":
-        this.deleteMaskHandler();
-        break;
-      case "r":
+      case "q":
         this.addPointHandler();
         break;
-      case "t":
+      case "d":
+        this.deleteHandler();
+        break;
+      case "f":
+        this.deleteMaskHandler();
+        break;
+      case "e":
         this.deletePointHandler();
         break;
-      case "l":
+      case "Backspace":
         this.props.deleteLabelHandler();
         break;
       case "Enter":
@@ -440,7 +433,7 @@ class PolygonTool extends React.Component {
     switch (this.mode) {
       case "adding":
         newMessage =
-          "Click a point to duplicate it (r) or click anywhere else to create a new mask for this object (f)";
+          "Click a point to duplicate it (q) or click anywhere else to create a new mask for this object (s)";
         break;
       case "addingMask":
         newMessage = "Create a new mask for this object";
@@ -451,7 +444,7 @@ class PolygonTool extends React.Component {
         break;
       case "deleting":
         newMessage =
-          "Click a point to delete it (t) or click a mask to delete it (g)";
+          "Click a point to delete it (e) or click a mask to delete it (f)";
         break;
       case "deletingMask":
         newMessage = "Select which mask to delete";

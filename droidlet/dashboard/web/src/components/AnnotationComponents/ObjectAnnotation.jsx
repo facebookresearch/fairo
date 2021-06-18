@@ -167,6 +167,7 @@ class ObjectAnnotation extends React.Component {
           x={this.clickPoint.x}
           y={this.clickPoint.y}
           onSubmit={this.dataEntrySubmit.bind(this)}
+          includeSubmitButton={true}
         />
       );
       this.setState({
