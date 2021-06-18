@@ -54,10 +54,14 @@ def construct_inputs_from_tool_A(tool_A_out_file, tool_B_input_file, tool_C_inpu
                 if val[0]== 'no':
                     # insert "span"
                     words_copy = copy.deepcopy(words)
-                    child_name = key           
-                    indices = merge_indices(val[1])
+                    child_name = key
+                    if len(val[1]) > 1:
+                        indices = [merge_indices(val[1])]
+                    else:
+                        indices = val[1]           
+                        # indices = merge_indices(val[1])
                     span_text = None
-                    line_output = "{}\t{}\t{}\t{}\t{}".format(" ".join(words), " ".join(words), action_type, child_name, [indices])
+                    line_output = "{}\t{}\t{}\t{}\t{}".format(" ".join(words), " ".join(words), action_type, child_name, str(indices).replace(", ","-"))
                     if child_name in ['reference_object', 
                                     'receiver_reference_object', 
                                     'source_reference_object']:
