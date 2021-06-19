@@ -6,6 +6,7 @@ import random
 import re
 import time
 import numpy as np
+import datetime
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
@@ -296,6 +297,7 @@ class LocoMCAgent(BaseAgent):
             # Send data to the dashboard timeline
             hook_data = {
                 "name" : "perceive",
+                "datetime" : datetime.datetime.now(),
                 "speaker" : speaker, 
                 "time" : self.last_chat_time,
                 "chat" : chat, 

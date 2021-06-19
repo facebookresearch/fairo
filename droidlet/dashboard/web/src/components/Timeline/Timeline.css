@@ -1,7 +1,10 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
 */
-.timeline {
-  text-align: center;
-  margin-top: 0px 0;
+.vis-item {
+  background-color: #bde0ff;
+}
+
+.vis-item.vis-selected {
+  background-color: #bde0ff;
 }
