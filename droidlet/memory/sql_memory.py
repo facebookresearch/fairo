@@ -10,6 +10,7 @@ import os
 import pickle
 import sqlite3
 import uuid
+import datetime
 import droidlet.event.dispatcher as dispatch
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
@@ -1037,6 +1038,7 @@ class AgentMemory:
         query_dict = format_query(query, *args)
         hook_data = {
             "name" : "db_write", 
+            "datetime" : datetime.datetime.now(),
             "time" : self.get_time(), 
             "table_name" : query_table, 
             "operation" : query_operation, 
