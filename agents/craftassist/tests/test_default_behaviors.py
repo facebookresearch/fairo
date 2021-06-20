@@ -9,7 +9,12 @@ class TestDefaultBehavior(BaseCraftassistTestCase):
         super().setUp()
 
     def test_build_random_shape(self):
-        schematic = build_random_shape(self.agent)
+        schematic = [1] * 1000
+        # only build small things, otherwise test takes a long time and is likely to
+        # spill out of world space (and so take forever)
+        while len(schematic) > 200:
+            self.agent.memory.task_stack_clear()
+            schematic = build_random_shape(self.agent, rand_range=(1, 0, 1))
         # Assert that some non-zero size schematic was built
         self.assertTrue(len(schematic) > 0)
         changes = self.flush(10000)
