@@ -406,10 +406,10 @@ def handle_components(d, child_name):
                     if "reference_object" in child_d["location"]:
                         child_d["location"]["reference_object"][
                             "special_reference"
-                        ] = updated_value
+                        ] = {"fixed_value": updated_value}
                     else:
                         child_d["location"]["reference_object"] = {
-                            "special_reference": updated_value
+                            "special_reference": {"fixed_value": updated_value}
                         }
 
                     if "coordinates" in child_d["location"]:
