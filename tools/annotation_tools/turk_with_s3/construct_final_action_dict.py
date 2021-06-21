@@ -231,11 +231,14 @@ def fix_spans(d):
         if k == "contains_coreference" and v == "no":
             continue
         if type(v) == list:
-            if k == "tag_val":
-                new_d["has_tag"] = [0, merge_indices(v)]
+            if k != "triples":
+                if k == "tag_val":
+                    new_d["has_tag"] = [0, merge_indices(v)]
+                else:
+                    new_d[k] = [0, merge_indices(v)]
             else:
-                new_d[k] = [0, merge_indices(v)]
-            continue
+                new_d[k] = [fix_spans(x) for x in v]
+                continue
         elif type(v) == dict:
             new_d[k] = fix_spans(v)
             continue
