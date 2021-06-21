@@ -373,8 +373,12 @@ def handle_components(d, child_name):
         print(d)
         child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
         print(child_d)
+        # Convert to triples
+        triples = []
+        for k, v in child_d.items():
+            triples.append({"pred_text": k, "obj_text": v})
         # Add filters to schematics
-        filters_for_schematics = {"filters": child_d}
+        filters_for_schematics = {"filters": {"triples": triples}}
         output[child_name] = filters_for_schematics
 
     elif child_name == "location":
@@ -476,7 +480,7 @@ def remove_definite_articles(cmd, d):
                     new_d[k][k1] = v1
         # for internal nodes
         else:
-            if type(v) == list:
+            if type(v) == list and k != "triples":
                 new_v = []
                 for span in v:
                     # span[0] and span[1] are the same
