@@ -369,6 +369,14 @@ def handle_components(d, child_name):
         child_d = process_dict(with_prefix(d, "{}.".format("reference_object")))
         output["filters"]["reference_object"].update(child_d)
 
+    elif child_name == "schematic":
+        print(d)
+        child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
+        print(child_d)
+        # Add filters to schematics
+        filters_for_schematics = {"filters": child_d}
+        output[child_name] = filters_for_schematics
+
     elif child_name == "location":
         child_d = process_dict(d)
         # fix location type in location
