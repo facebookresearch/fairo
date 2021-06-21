@@ -12,7 +12,7 @@ from droidlet.memory.memory_attributes import (
 )
 from droidlet.memory.memory_values import LinearExtentValue, FixedValue, convert_comparison_value
 from droidlet.base_util import number_from_span
-from ..shared_data_structs import ErrorWithResponse
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import ReferenceObjectNode
 from .interpreter_utils import tags_from_dict
 
