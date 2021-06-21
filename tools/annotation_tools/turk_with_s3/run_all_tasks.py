@@ -35,7 +35,6 @@ if filesize > 0:
     # Wait for results to be ready
     print("Turk jobs created at : %s \n Waiting for results..." % time.ctime())
 
-time.sleep(100)
 # If the tool C input file is not empty, kick off a job
 filesize = os.path.getsize("C/input.txt")
 if filesize > 0:
