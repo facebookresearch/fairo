@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import json
 
 class interactionLogger:
-    def __init__(self, filepath, headers):
+    def __init__(self, filepath):
         """Logger class for the NSP component.
 
         args:
@@ -13,21 +13,37 @@ class interactionLogger:
             headers (list): List of string headers to be used in data store.
         """
         self.log_filepath = filepath
-        self.init_file_headers(filepath, headers)
 
     def logInteraction(self, data):
+        print ("LOGGING AN INTERACTION")
+        print ("LOGGING AN INTERACTION")
+        print ("LOGGING AN INTERACTION")
+        print ("LOGGING AN INTERACTION")
+        print ("LOGGING AN INTERACTION")
+
         """Log interaction data.
 
         args:
             filepath (str): Where to log data.
             data (list): List of values to write to file.
         """
-      loggingsFile = 'loggings.json'
 
-      with open(loggingsFile) as f:
-          data = json.load(f)
+        print ("file path is: ") 
+        print (self.log_filepath)
+        loggingsFile =  self.log_filepath
 
-      data.append(data)
+        # with open(loggingsFile) as f:
+        #     print ("f is")
+        #     print (f)
 
-      with open(loggingsFile, 'w') as f:
-        json.dump(data, f)
+        #     file = {}
+        #     if (f):
+        #         file = json.load(f)
+
+        # file.append(data)
+
+        with open(loggingsFile, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+        # with open(loggingsFile, 'w') as f:
+        #     json.dump(file, f)

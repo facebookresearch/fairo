@@ -9,6 +9,7 @@ import numpy as np
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
+from droidlet.perception.semantic_parsing.utils.interaction_logger import interactionLogger
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
 from droidlet.base_util import hash_user
@@ -54,6 +55,7 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
+        self.interactionLogger = interactionLogger("interaction_loggings.json")
         # Add optional logging for timeline
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
@@ -127,6 +129,8 @@ class LocoMCAgent(BaseAgent):
             print("RECEIVED COMMAND in mc")
             print("RECEIVED COMMAND in mc")
             print("RECEIVED COMMAND in mc")
+
+            self.interactionLogger.logInteraction({"text": "hi"})
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
