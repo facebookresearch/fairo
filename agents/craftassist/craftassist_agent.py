@@ -136,9 +136,7 @@ class CraftAssistAgent(LocoMCAgent):
             x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
             origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
             yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
-            blocks = 
-            
-            (yzxb, origin=origin)
+            blocks = npy_to_blocks_list(yzxb, origin=origin)
             blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
             payload = {
                 "status": "setupWorldInitialState",
