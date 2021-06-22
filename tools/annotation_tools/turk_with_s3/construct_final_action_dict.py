@@ -107,6 +107,16 @@ def fix_ref_obj(clean_dict):
                     "location": val["location"]
             }
             del val["location"]
+        # Put has_x attributes in triples
+        triples = []
+        for k, v in [x for x in val.items()]:
+            if "has_" in k:
+                triples.append({
+                    "pred_text": k,
+                    "obj_text": v
+                })
+                del val[k]
+        val["triples"] = triples
         new_clean_dict["filters"] = val
     return new_clean_dict
 
