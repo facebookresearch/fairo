@@ -101,6 +101,12 @@ def fix_ref_obj(clean_dict):
         new_clean_dict["repeat"] = val["repeat"]
         val.pop("repeat")
     if val:
+        # Add selectors to filters if there is a location
+        if "location" in val:
+            val["selector"] = {
+                    "location": val["location"]
+            }
+            del val["location"]
         new_clean_dict["filters"] = val
     return new_clean_dict
 
