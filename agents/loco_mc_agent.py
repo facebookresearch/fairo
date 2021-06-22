@@ -120,17 +120,8 @@ class LocoMCAgent(BaseAgent):
                 return back a socket emit with parse of command and success status
             """
             logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
-            print("RECEIVED COMMAND in mc")
 
-            self.interactionLogger.logInteraction({"text": "hi"})
+            # self.interactionLogger.logInteraction({"text": "hi"})
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
@@ -163,6 +154,33 @@ class LocoMCAgent(BaseAgent):
             if timelineHandshake == "Sent message!":
                 logging.debug("in receive_timeline_handshake, received handshake message")
                 sio.emit("returnTimelineHandshake", "Received message!")
+
+        @sio.on("interaction data")
+        def log_interaction_data(sid, interactionData):
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print ("HOLA HOLA HOLA")
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+            print (interactionData)
+
+            self.interactionLogger.logInteraction(interactionData)
+
 
     def init_physical_interfaces(self):
         """

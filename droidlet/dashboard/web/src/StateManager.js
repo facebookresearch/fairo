@@ -58,6 +58,9 @@ class StateManager {
     timelineEvent: "",
     timelineEventHistory: [],
   };
+  session_id = null;
+  mephisto_id = null;
+  turker_id = null;
 
   constructor() {
     this.processMemoryState = this.processMemoryState.bind(this);
@@ -77,6 +80,21 @@ class StateManager {
 
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
+
+    async function getIP() {
+      const response = await fetch("https://api.ipify.org/?format=json");
+      const data = await response.json();
+      console.log("data is");
+      console.log(data);
+      return data;
+    }
+
+    let ipAddress = "";
+    getIP().then((data) => {
+      ipAddress = data["ip"];
+      const dateString = (+new Date()).toString(36);
+      this.session_id = ipAddress + ":" + dateString; // generate session id from ipAddress and date of opening webapp
+    });
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -270,6 +288,20 @@ class StateManager {
     if (commands.length > 0) {
       this.socket.emit("movement command", commands);
     }
+  }
+
+  /**
+   * data is a dictionary
+   */
+  logInteractiondata(key, value) {
+    let interactionData = {};
+    interactionData["session_id"] = this.session_id;
+    interactionData["mephisto_id"] = this.mephisto_id;
+    interactionData["turker_id"] = this.turker_id;
+    interactionData[key] = value;
+    console.log("interaction data is");
+    console.log(interactionData);
+    this.socket.emit("interaction data", interactionData);
   }
 
   processMemoryState(msg) {

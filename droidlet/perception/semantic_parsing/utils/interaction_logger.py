@@ -27,8 +27,7 @@ class interactionLogger:
             filepath (str): Where to log data.
             data (list): List of values to write to file.
         """
-
-        print ("file path is: ") 
+        
         print (self.log_filepath)
         loggingsFile =  self.log_filepath
 
