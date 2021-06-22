@@ -195,6 +195,11 @@ class BasicTest(unittest.TestCase):
         assert sam_memid in memids
         assert rachel_memid not in memids
 
+        query = "SELECT (x, y) FROM ReferenceObject WHERE ((has_tag=plays_volleyball) AND (x<0))"
+        memids, vals = m.search(self.memory, query=query)
+        assert abs(vals[0][0] + 2.0) < 0.01
+        assert abs(vals[0][1]) < 0.01
+
     def test_chat_apis_memory(self):
         self.memory = AgentMemory()
         # Test add_chat

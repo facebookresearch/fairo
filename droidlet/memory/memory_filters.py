@@ -317,17 +317,31 @@ class MemorySearcher:
         elif output == "COUNT":
             return [len(memids)] * len(memids)
         else:
-            try:
-                attribute_name = query["output"]["attribute"]
-            except:
-                raise Exception("malformed output clause: {}".format(query))
-            if type(attribute_name) is not str:
-                raise Exception(
-                    "output attribute in basic search should be simple property, instead got: {}".format(
-                        attribute_name
+            if type(output) is dict:
+                try:
+                    attribute_name_list = [output["attribute"]]
+                except:
+                    raise Exception("malformed output clause: {}".format(query))
+            elif type(output) is list:
+                try:
+                    attribute_name_list = [a["attribute"] for a in output]
+                except:
+                    raise Exception("malformed output clause: {}".format(query))
+            values_dict = {m: [] for m in memids}
+            for aname in attribute_name_list:
+                if type(aname) is not str:
+                    raise Exception(
+                        "output attribute in basic search should be (list of) simple properties, instead got: {}".format(
+                            attribute_name_list
+                        )
                     )
-                )
-            return [get_property_value(agent_memory, m, attribute_name) for m in memids]
+                for m in memids:
+                    values_dict[m].append(get_property_value(agent_memory, m, aname))
+            if len(attribute_name_list) == 1:
+                for m in values_dict:
+                    values_dict[m] = values_dict[m][0]
+            # TODO switch everything to dicts
+            return [values_dict[m] for m in memids]
 
     def search(self, agent_memory, query=None, default_memtype="ReferenceObject"):
         # returns a list of memids and accompanying values
@@ -343,6 +357,7 @@ class MemorySearcher:
         else:
             memids = []
         memids = self.handle_selector(agent_memory, query, memids)
+        # TODO/FIXME switch output format to dicts
         return memids, self.handle_output(agent_memory, query, memids)
 
 

@@ -133,15 +133,27 @@ def new_filters_to_sqly(d):
     else:
         if o.get("attribute") is None:
             raise Exception("malformed output dict {}".format(o))
-        a = str(o["attribute"])
-        # FIXME do this more reliably
-        if (
-            a[0] == "{"
-            or len(a.split()) > 1
-            or any([k in a for k in ["SELECT", "WHERE", "ORDER BY"]])
-        ):
-            a = "(" + a + ")"
-        S = S + a + " "
+        attrs = o["attribute"]
+        if type(attrs) is list and len(attrs) > 1:
+            attrs_str = " ( "
+        else:
+            attrs_str = " "
+            attrs = [attrs]
+        for i in range(len(attrs)):
+            a = str(attrs[i])
+            # FIXME do this more reliably
+            if (
+                a[0] == "{"
+                or len(a.split()) > 1
+                or any([k in a for k in ["SELECT", "WHERE", "ORDER BY"]])
+            ):
+                a = "(" + a + ")"
+            attrs_str = attrs_str + a + " "
+            if i < len(attrs):
+                attrs_str = attrs_str + ", "
+        if len(attrs) > 1:
+            attrs_str = attrs_str + " ) "
+        S = S + attrs_str
     if d.get("memory_type"):
         S = S + "FROM " + d["memory_type"] + "; "
     if d.get("where_clause"):
@@ -407,11 +419,24 @@ def maybe_eval_literal(clause):
 
 def convert_output_from_sqly(clause, d):
     # FIXME !!! deal with recursion.  what if there is sqly in attribute?
-    # can be attribute or
+    # can be attribute, or list of simple attributes in form (a; b; c)
+    # currently cannot handle a list with a complex (new filters style) attribute
     if clause == "MEMORY" or clause == "COUNT":
         output = clause
     else:
-        output = {"attribute": maybe_eval_literal(clause)}
+        pidx = close_paren(clause)
+        if close_paren(clause, pidx=0) > -1:
+            oidx = clause.find("(")
+            clause = clause[oidx + 1 : pidx]
+            # this WILL break for FILTERs style attributes
+            if clause.find(",") > -1:
+                attrs = [c.strip() for c in clause.split(",")]
+            else:
+                attrs = [clause]
+            output = [{"attribute": maybe_eval_literal(a)} for a in attrs]
+        else:
+            output = [{"attribute": maybe_eval_literal(clause)}]
+
     d["output"] = output
 
 
