@@ -370,15 +370,20 @@ def handle_components(d, child_name):
         output["filters"]["reference_object"].update(child_d)
 
     elif child_name == "schematic":
-        print(d)
         child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
-        print(child_d)
         # Convert to triples
         triples = []
         for k, v in child_d.items():
-            triples.append({"pred_text": k, "obj_text": v})
+            triples.append({
+                "pred_text": k, 
+                "obj_text": v
+            })
         # Add filters to schematics
-        filters_for_schematics = {"filters": {"triples": triples}}
+        filters_for_schematics = {
+            "filters": {
+                "triples": triples
+            }
+        }
         output[child_name] = filters_for_schematics
 
     elif child_name == "location":
@@ -404,12 +409,14 @@ def handle_components(d, child_name):
                     del child_d["location"]
                 else:
                     if "reference_object" in child_d["location"]:
-                        child_d["location"]["reference_object"][
-                            "special_reference"
-                        ] = {"fixed_value": updated_value}
+                        child_d["location"]["reference_object"]["special_reference"] = {
+                            "fixed_value": updated_value
+                        }
                     else:
                         child_d["location"]["reference_object"] = {
-                            "special_reference": {"fixed_value": updated_value}
+                            "special_reference": {
+                                "fixed_value": updated_value
+                            }
                         }
 
                     if "coordinates" in child_d["location"]:
