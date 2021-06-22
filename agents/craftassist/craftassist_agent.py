@@ -43,6 +43,9 @@ from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import
     SubcomponentClassifierWrapper,
 )
 from droidlet.lowlevel.minecraft import craftassist_specs
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
+from droidlet.lowlevel.minecraft.mc_util import IDM
+
 
 from droidlet.event import sio
 
@@ -71,7 +74,7 @@ class CraftAssistAgent(LocoMCAgent):
                                "schematics": craftassist_specs.get_schematics(),
                                "block_data": craftassist_specs.get_block_data(),
                                "block_property_data": craftassist_specs.get_block_property_data(),
-                               "color_data": craftassist_specs.get_colour_data()
+                               "color_data": craftassist_specs.get_colour_data(),
                                }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
@@ -200,6 +203,7 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.opts.block_data = craftassist_specs.get_block_data()
         self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
+        self.opts.color_bid_map = COLOR_BID_MAP
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,

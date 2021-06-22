@@ -61,6 +61,7 @@ class MCInterpreter(Interpreter):
         self.default_frame = "SPEAKER"
         self.block_data = low_level_data["block_data"]
         self.special_shape_functions = low_level_data["special_shape_functions"]
+        self.color_bid_map = low_level_data["color_bid_map"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.subinterpret["condition"] = ConditionInterpreter()
@@ -126,7 +127,7 @@ class MCInterpreter(Interpreter):
                 destroy_task_data, build_task_data = handle_thicken(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "REPLACE":
                 destroy_task_data, build_task_data = handle_replace(
-                    self, speaker, m_d, obj, block_data=self.block_data
+                    self, speaker, m_d, obj, block_data=self.block_data, color_bid_map=self.color_bid_map
                 )
             elif m_d["modify_type"] == "SCALE":
                 destroy_task_data, build_task_data = handle_scale(self, speaker, m_d, obj)
@@ -134,7 +135,7 @@ class MCInterpreter(Interpreter):
                 destroy_task_data, build_task_data = handle_rigidmotion(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "FILL" or m_d["modify_type"] == "HOLLOW":
                 destroy_task_data, build_task_data = handle_fill(
-                    self, speaker, m_d, obj, block_data=self.block_data
+                    self, speaker, m_d, obj, block_data=self.block_data, color_bid_map=self.color_bid_map
                 )
             else:
                 raise ErrorWithResponse(
@@ -225,6 +226,7 @@ class MCInterpreter(Interpreter):
                                              speaker,
                                              d.get("schematic", {}),
                                              self.block_data,
+                                             self.color_bid_map,
                                              self.special_shape_functions)
 
         # Get the locations to build
@@ -305,7 +307,7 @@ class MCInterpreter(Interpreter):
                 # FIXME use a constant name
                 fill_idm = (3, 0)
             schematic, tags = interpret_fill_schematic(
-                self, speaker, d.get("schematic", {}), poss, fill_idm, self.block_data
+                self, speaker, d.get("schematic", {}), poss, fill_idm, self.block_data, self.color_bid_map
             )
             origin = np.min([xyz for (xyz, bid) in schematic], axis=0)
             task_data = {

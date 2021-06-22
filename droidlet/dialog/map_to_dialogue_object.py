@@ -114,10 +114,13 @@ class DialogueObjectMapper(object):
             return self.dialogue_objects["bot_capabilities"](memory=memory)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             low_level_interpreter_data = {}
-            if opts and hasattr(opts, 'block_data'):
-                low_level_interpreter_data['block_data'] = opts.block_data
-            if opts and hasattr(opts, 'special_shape_functions'):
-                low_level_interpreter_data['special_shape_functions'] = opts.special_shape_functions
+            if opts:
+                if hasattr(opts, 'block_data'):
+                    low_level_interpreter_data['block_data'] = opts.block_data
+                if hasattr(opts, 'special_shape_functions'):
+                    low_level_interpreter_data['special_shape_functions'] = opts.special_shape_functions
+                if hasattr(opts, 'color_bid_map'):
+                    low_level_interpreter_data['color_bid_map'] =  opts.color_bid_map
             return self.dialogue_objects["interpreter"](
                 speaker, logical_form, low_level_interpreter_data, memory=memory
             )

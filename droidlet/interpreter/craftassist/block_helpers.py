@@ -3,11 +3,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import random
 import Levenshtein
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import block_data
-from droidlet.lowlevel.minecraft.mc_util import IDM
 
 # TODO FILTERS!
-def get_block_type(s, block_data_info) -> IDM:
+def get_block_type(s, block_data_info, color_bid_map) -> Tuple:
     """string -> (id, meta)
     or  {"has_x": span} -> (id, meta)"""
 
@@ -20,7 +18,7 @@ def get_block_type(s, block_data_info) -> IDM:
         )
     else:
         if "has_colour" in s:
-            c = block_data.COLOR_BID_MAP.get(s["has_colour"])
+            c = color_bid_map.get(s["has_colour"])
             if c is not None:
                 closest_match = random.choice(c)
         if "has_block_type" in s:
