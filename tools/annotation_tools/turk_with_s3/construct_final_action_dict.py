@@ -101,6 +101,23 @@ def fix_ref_obj(clean_dict):
         new_clean_dict["repeat"] = val["repeat"]
         val.pop("repeat")
     if val:
+        # Add selectors to filters if there is a location
+        if "location" in val:
+            val["selector"] = {
+                    "location": val["location"]
+            }
+            del val["location"]
+        # Put has_x attributes in triples
+        triples = []
+        for k, v in [x for x in val.items()]:
+            if "has_" in k:
+                triples.append({
+                    "pred_text": k,
+                    "obj_text": v
+                })
+                del val[k]
+        if len(triples) > 0:
+            val["triples"] = triples
         new_clean_dict["filters"] = val
     return new_clean_dict
 
@@ -231,11 +248,14 @@ def fix_spans(d):
         if k == "contains_coreference" and v == "no":
             continue
         if type(v) == list:
-            if k == "tag_val":
-                new_d["has_tag"] = [0, merge_indices(v)]
+            if k != "triples":
+                if k == "tag_val":
+                    new_d["has_tag"] = [0, merge_indices(v)]
+                else:
+                    new_d[k] = [0, merge_indices(v)]
             else:
-                new_d[k] = [0, merge_indices(v)]
-            continue
+                new_d[k] = [fix_spans(x) for x in v]
+                continue
         elif type(v) == dict:
             new_d[k] = fix_spans(v)
             continue

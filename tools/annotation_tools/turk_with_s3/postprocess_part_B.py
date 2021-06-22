@@ -369,6 +369,23 @@ def handle_components(d, child_name):
         child_d = process_dict(with_prefix(d, "{}.".format("reference_object")))
         output["filters"]["reference_object"].update(child_d)
 
+    elif child_name == "schematic":
+        child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
+        # Convert to triples
+        triples = []
+        for k, v in child_d.items():
+            triples.append({
+                "pred_text": k, 
+                "obj_text": v
+            })
+        # Add filters to schematics
+        filters_for_schematics = {
+            "filters": {
+                "triples": triples
+            }
+        }
+        output[child_name] = filters_for_schematics
+
     elif child_name == "location":
         child_d = process_dict(d)
         # fix location type in location
@@ -392,12 +409,14 @@ def handle_components(d, child_name):
                     del child_d["location"]
                 else:
                     if "reference_object" in child_d["location"]:
-                        child_d["location"]["reference_object"][
-                            "special_reference"
-                        ] = updated_value
+                        child_d["location"]["reference_object"]["special_reference"] = {
+                            "fixed_value": updated_value
+                        }
                     else:
                         child_d["location"]["reference_object"] = {
-                            "special_reference": updated_value
+                            "special_reference": {
+                                "fixed_value": updated_value
+                            }
                         }
 
                     if "coordinates" in child_d["location"]:
@@ -468,7 +487,7 @@ def remove_definite_articles(cmd, d):
                     new_d[k][k1] = v1
         # for internal nodes
         else:
-            if type(v) == list:
+            if type(v) == list and k != "triples":
                 new_v = []
                 for span in v:
                     # span[0] and span[1] are the same
