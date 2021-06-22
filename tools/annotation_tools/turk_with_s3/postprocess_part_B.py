@@ -6,6 +6,7 @@ from operator import itemgetter
 import ast
 from pprint import pprint
 import json
+import os
 
 
 def process_repeat_dict(d):
@@ -528,9 +529,11 @@ def resolve_spans(words, dicts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # Default to directory of script being run for writing inputs and outputs
+    default_write_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument(
         "--folder_name",
-        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/",
+        default="{}/B/".format(default_write_dir),
     )
     opts = parser.parse_args()
 
@@ -538,7 +541,7 @@ if __name__ == "__main__":
     # command: Input.command
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + "processed_outputs.csv"
+    f_name = folder_name + "../processed_outputs.csv"
     only_show_disagreements = True
     sentence_mapping = {}
     with open(f_name, "r") as f:

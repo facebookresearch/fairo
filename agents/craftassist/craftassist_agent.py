@@ -8,6 +8,7 @@ import signal
 import random
 import sentry_sdk
 import time
+import json
 from multiprocessing import set_start_method
 from collections import namedtuple
 import subprocess
@@ -27,10 +28,11 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
@@ -134,7 +136,9 @@ class CraftAssistAgent(LocoMCAgent):
             x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
             origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
             yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
-            blocks = npy_to_blocks_list(yzxb, origin=origin)
+            blocks = 
+            
+            (yzxb, origin=origin)
             blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
             payload = {
                 "status": "setupWorldInitialState",
@@ -173,6 +177,8 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_perception(self):
         """Initialize perception modules"""
+        # NOTE: self.chat_parser will move to perception_modules once Soumith's changes are in
+        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
         self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
@@ -199,14 +205,20 @@ class CraftAssistAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
 
     def perceive(self, force=False):
+        """Whenever some blocks are changed, that area will be put into a 
+        buffer which will be force-perceived by the agent in the next step
+
+        Here the agent first clusters areas that are overlapping on the buffer,
+        then run through all perception modules to perceive
+        and finally clear the buffer when perception is done.
+        """
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
-        for v in self.perception_modules.values():
-            v.perceive(force=force)
+        super().perceive()
         self.areas_to_perceive = []
         self.update_dashboard_world()
 

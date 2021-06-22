@@ -9,6 +9,8 @@ import numpy as np
 import pickle
 import tempfile
 import logging
+from imantics import Mask
+import torch
 
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
@@ -32,7 +34,7 @@ things = "things.pickle"
 file_root = os.path.dirname(os.path.realpath(__file__))
 
 
-class DetectionHandler(AbstractHandler):
+class ObjectDetection(AbstractHandler):
     """Class for object detector.
 
     We use a modified Mask R-CNN with an additional head that predicts object properties.
@@ -42,9 +44,9 @@ class DetectionHandler(AbstractHandler):
     """
 
     def __init__(self, model_data_dir):
-        self.detector = Detector(model_data_dir)
+        self.detector = DetectorBase(model_data_dir)
 
-    def handle(self, rgb_depth):
+    def __call__(self, rgb_depth):
         """the inference logic for the handler lives here.
 
         Args:
@@ -78,7 +80,7 @@ class DetectionHandler(AbstractHandler):
         self.detector.draw(rgb_depth.rgb, predictions)
 
 
-class Detector:
+class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
     def __init__(self, model_data_dir):
@@ -173,11 +175,11 @@ class Detection(WorldObject):
         self.facial_rec_tag = face_tag
         self.feature_repr = None
 
-    def save_to_memory(self, agent, update=False):
+    def save_to_memory(self, memory, update=False):
         if update:
-            loco_memory.DetectedObjectNode.update(agent.memory, self)
+            loco_memory.DetectedObjectNode.update(memory, self)
         else:
-            loco_memory.DetectedObjectNode.create(agent.memory, self)
+            loco_memory.DetectedObjectNode.create(memory, self)
 
     def _maybe_bbox(self, bbox, mask):
         if hasattr(bbox, "tensor"):
@@ -190,12 +192,20 @@ class Detection(WorldObject):
 
     def to_struct(self):
         bbox = self._maybe_bbox(self.bbox, self.mask)
+        mask_arr = []
+        if self.mask is not None and isinstance(self.mask, np.ndarray):
+            mask_arr =  self.mask
+        if self.mask is not None and isinstance(self.mask, torch.Tensor): 
+            mask_arr = self.mask.cpu().detach().numpy()
+        mask_points_nd = Mask(mask_arr).polygons().points
+        mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
         return {
             "id": self.eid,
             "xyz": list(self.xyz),
             "bbox": bbox,
             "label": self.label,
             "properties": "\n ".join(self.properties if self.properties is not None else ""),
+            "mask": mask_points,
         }
 
     def get_masked_img(self):

@@ -2,20 +2,19 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-import os
 import random
 import re
 import time
 import numpy as np
 import json
+import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
-
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
-
+from droidlet.memory.memory_nodes import ProgramNode
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -42,6 +41,7 @@ class LocoMCAgent(BaseAgent):
         self.areas_to_perceive = []
         self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
+        self._dispatch_signal = dispatch.Signal()
         self.dashboard_memory = {
             "db": {},
             "objects": [],
@@ -55,6 +55,14 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
+        # Add optional logging for timeline
+        if opts.log_timeline:
+            self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
+        
+        # Add optional hook for db_write and perceive
+        if opts.enable_timeline:
+            self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
+            self.register_hook(self.log_to_dashboard, self.perceive)
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
@@ -115,12 +123,11 @@ class LocoMCAgent(BaseAgent):
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
             logical_form = {}
             status = ""
             try:
-                logical_form = dialogue_manager.semantic_parsing_model_wrapper.get_logical_form(
-                    chat=command, parsing_model=dialogue_manager.semantic_parsing_model_wrapper.parsing_model
+                logical_form = self.chat_parser.get_logical_form(
+                    chat=command, parsing_model=self.chat_parser.parsing_model
                 )
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
@@ -220,7 +227,6 @@ class LocoMCAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
-
         # we check if the exception raised is in one of our whitelisted exceptions
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
@@ -278,13 +284,9 @@ class LocoMCAgent(BaseAgent):
         return self.memory.get_time()
 
     def perceive(self, force=False):
-        for v in self.perception_modules.values():
-            v.perceive(force=force)
-
-    def controller_step(self):
-        # FIXME agent these should be moved to perception
-        # from here ###########################################
-        """Process incoming chats and modify task stack"""
+        # NOTE: the processing chats block here
+        # will move to chat_parser.perceive() once Soumith's changes are in
+        """Process incoming chats and run through parser"""
         raw_incoming_chats = self.get_incoming_chats()
         if raw_incoming_chats:
             logging.info("Incoming chats: {}".format(raw_incoming_chats))
@@ -301,22 +303,44 @@ class LocoMCAgent(BaseAgent):
             if chat.startswith("/"):
                 continue
             incoming_chats.append((speaker, chat))
-            self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, chat)
 
         if len(incoming_chats) > 0:
             # force to get objects, speaker info
             if self.perceive_on_chat:
-                self.perceive(force=True)
-            # change this to memory.get_time() format?
+                force = True
             self.last_chat_time = time.time()
-            # to here ###########################################
-            # for now just process the first incoming chat
-            self.dialogue_manager.step(incoming_chats[0])
-        else:
+            # For now just process the first incoming chat, where chat -> [speaker, chat]
+            speaker, chat = incoming_chats[0]
+            preprocessed_chat, chat_parse = self.chat_parser.get_parse(chat)
+            # add postprocessed chat here
+            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
+            logical_form_memid = self.memory.add_logical_form(chat_parse)
+            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            # New chat, mark as unprocessed.
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            # Send data to the dashboard timeline
+            hook_data = {
+                "name" : "perceive",
+                "speaker" : speaker, 
+                "time" : self.last_chat_time,
+                "chat" : chat, 
+                "preprocessed" : preprocessed_chat, 
+                "logical_form" : chat_parse,
+            }
+            self._dispatch_signal.send(self.perceive, data=hook_data)
+
+        for v in self.perception_modules.values():
+            v.perceive(force=force)
+
+    def controller_step(self):
+        """Process incoming chats and modify task stack"""
+
+        obj = self.dialogue_manager.step()
+        if not obj:
             # Maybe add default task
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
-            self.dialogue_manager.step((None, ""))
+            self.dialogue_manager.step()
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.memory.dialogue_stack) > 0:
@@ -330,20 +354,16 @@ class LocoMCAgent(BaseAgent):
 
         # default behaviors of the agent not visible in the game
         invisible_defaults = []
-
         defaults = (
             self.visible_defaults + invisible_defaults
             if time.time() - self.last_chat_time > DEFAULT_BEHAVIOUR_TIMEOUT
             else invisible_defaults
         )
-
         defaults = [(p, f) for (p, f) in defaults if f not in self.memory.banned_default_behaviors]
 
         def noop(*args):
             pass
-
         defaults.append((1 - sum(p for p, _ in defaults), noop))  # noop with remaining prob
-
         # weighted random choice of functions
         p, fns = zip(*defaults)
         fn = np.random.choice(fns, p=p)
@@ -365,6 +385,37 @@ class LocoMCAgent(BaseAgent):
                 "named_abstractions": named_abstractions,
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
+
+    def register_hook(self, receiver, sender):
+        """
+        allows for registering hooks using the event dispatcher
+        """
+        allowed = [self.perceive,]
+        if sender in allowed:
+            self._dispatch_signal.connect(receiver, sender)
+        else:
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
+
+    def log_to_dashboard(self, **kwargs):
+        """Emits the event to the dashboard and/or logs it in a file"""
+        result = kwargs['data']
+        # a sample filter for logging VoxelObjects queries only from db_write
+        # or any type of data from perceive
+        if result["name"] == "db_write" and result["table_name"] == "VoxelObjects" or result["name"] == "perceive":
+            # JSONify the data
+            result = json.dumps(result, default=str)
+            self.agent_emit(result)
+            if self.opts.log_timeline:
+                self.timeline_log_file.flush()
+                print(result, file=self.timeline_log_file)
+
+    def agent_emit(self, result):
+        sio.emit("newTimelineEvent", result)
+
+    def __del__(self):
+        """Close the timeline log file"""
+        if getattr(self, "timeline_log_file", None):
+            self.timeline_log_file.close()
 
 
 def default_agent_name():

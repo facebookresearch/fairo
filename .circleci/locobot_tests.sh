@@ -68,8 +68,8 @@ kill -9 $BGPID # kill habitat
 
 
 pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE agents/locobot/tests/test_memory.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=$COV_RELATIVE agents/locobot/tests/test_interpreter_mock.py --disable-pytest-warnings
 pytest --cov-report=xml:$SHARED_PATH/test_memory_low_level.xml --cov=$COV_RELATIVE droidlet/memory/robot/tests/test_low_level_memory.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=$COV_RELATIVE droidlet/interpreter/robot/tests/test_interpreter_mock.py --disable-pytest-warnings
 pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=$COV_RELATIVE droidlet/lowlevel/locobot/tests/test_utils.py --disable-pytest-warnings
 
 

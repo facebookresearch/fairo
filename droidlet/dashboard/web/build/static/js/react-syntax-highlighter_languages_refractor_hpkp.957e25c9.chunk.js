@@ -1,0 +1,5 @@
+<<<<<<< HEAD:droidlet/dashboard/web/build/static/js/react-syntax-highlighter_languages_refractor_hpkp.b5ca92ca.chunk.js
+(this.webpackJsonpdashboard=this.webpackJsonpdashboard||[]).push([[56],{536:function(a,s,e){"use strict";function t(a){a.languages.hpkp={directive:{pattern:/\b(?:(?:includeSubDomains|preload|strict)(?: |;)|pin-sha256="[a-zA-Z\d+=/]+"|(?:max-age|report-uri)=|report-to )/,alias:"keyword"},safe:{pattern:/\d{7,}/,alias:"selector"},unsafe:{pattern:/\d{1,6}/,alias:"function"}}}a.exports=t,t.displayName="hpkp",t.aliases=[]}}]);
+=======
+(this.webpackJsonpdashboard=this.webpackJsonpdashboard||[]).push([[56],{535:function(a,s,e){"use strict";function t(a){a.languages.hpkp={directive:{pattern:/\b(?:(?:includeSubDomains|preload|strict)(?: |;)|pin-sha256="[a-zA-Z\d+=/]+"|(?:max-age|report-uri)=|report-to )/,alias:"keyword"},safe:{pattern:/\d{7,}/,alias:"selector"},unsafe:{pattern:/\d{1,6}/,alias:"function"}}}a.exports=t,t.displayName="hpkp",t.aliases=[]}}]);
+>>>>>>> main:droidlet/dashboard/web/build/static/js/react-syntax-highlighter_languages_refractor_hpkp.957e25c9.chunk.js

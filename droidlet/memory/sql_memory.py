@@ -10,17 +10,20 @@ import os
 import pickle
 import sqlite3
 import uuid
+import droidlet.event.dispatcher as dispatch
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import BasicMemorySearcher
 from .dialogue_stack import DialogueStack
+from droidlet.memory.memory_util import parse_sql, format_query
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     TripleNode,
     PlayerNode,
+    ProgramNode,
     MemoryNode,
     ChatNode,
     TimeNode,
@@ -96,6 +99,8 @@ class AgentMemory:
         self.on_delete_callback = on_delete_callback
 
         self.init_time_interface(agent_time)
+
+        self._dispatch_signal = dispatch.Signal()
 
         # FIXME agent : should this be here?  where to put?
         self.coordinate_transforms = coordinate_transforms
@@ -578,6 +583,16 @@ class AgentMemory:
         """
         return ChatNode(self, memid)
 
+    def get_chat_id(self, speaker_id: str, chat: str) -> str:
+        """Return memid of ChatNode, given speaker and chat
+
+        Args:
+            speaker_id: memid of speaker
+            chat: chat string
+        """
+        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker_id, chat)
+        return r[0][0]
+
     def get_recent_chats(self, n=1) -> List["ChatNode"]:
         """Return a list of at most n chats
 
@@ -608,6 +623,26 @@ class AgentMemory:
             return ChatNode(self, r[0])
         else:
             return None
+
+    ###################
+    ## Logical form ###
+    ###################
+
+    def add_logical_form(self, logical_form: dict):
+        """Create a new ProgramNode
+
+        Args:
+            logical_form: the semantic parser's output
+        """
+        return ProgramNode.create(self, logical_form)
+
+    def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
+        """Return ProgramNode, given memid
+
+        Args:
+            memid (string): Memory ID
+        """
+        return ProgramNode(self, memid)
 
     #################
     ###  Players  ###
@@ -886,7 +921,7 @@ class AgentMemory:
         )
         if recency is None:
             recency = self.time.round_time(300)
-        args: List = [self.get_time() - recency]
+        args: List = [max(self.get_time() - recency, 0)]
         if action_name:
             args.append(action_name)
         memids = [r[0] for r in self._db_read(q, *args)]
@@ -997,6 +1032,18 @@ class AgentMemory:
         if self.on_delete_callback is not None and deleted:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
+        # format the data to send to dashboard timeline
+        query_table, query_operation = parse_sql(query[:query.find("(") - 1])
+        query_dict = format_query(query, *args)
+        hook_data = {
+            "name" : "db_write", 
+            "time" : self.get_time(), 
+            "table_name" : query_table, 
+            "operation" : query_operation, 
+            "args" : query_dict, 
+            "result" : r,
+        }
+        self._dispatch_signal.send(self.db_write, data=hook_data)
         return r
 
     def _db_write(self, query: str, *args) -> int:
@@ -1122,3 +1169,13 @@ class AgentMemory:
         obj = pickle.loads(bs)
         self.reinstate_attrs(obj)
         return obj
+
+    def register_hook(self, receiver, sender):
+        """
+        allows for registering hooks using the event dispatcher
+        """
+        allowed = [self.db_write,]
+        if sender in allowed:
+            self._dispatch_signal.connect(receiver, sender)
+        else:
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
