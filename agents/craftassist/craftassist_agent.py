@@ -44,8 +44,6 @@ from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import
 )
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
-from droidlet.lowlevel.minecraft.mc_util import IDM
-
 
 from droidlet.event import sio
 
