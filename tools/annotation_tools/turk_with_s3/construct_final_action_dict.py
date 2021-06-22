@@ -116,7 +116,8 @@ def fix_ref_obj(clean_dict):
                     "obj_text": v
                 })
                 del val[k]
-        val["triples"] = triples
+        if len(triples) > 0:
+            val["triples"] = triples
         new_clean_dict["filters"] = val
     return new_clean_dict
 
