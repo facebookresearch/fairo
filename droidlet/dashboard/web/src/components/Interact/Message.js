@@ -129,7 +129,18 @@ class Message extends Component {
   render() {
     return (
       <div className="Chat">
+        {/* FIXME Save for dashboard in turk */}
         {/* <p>Press spacebar to start/stop recording.</p> */}
+        {/* <p>Enter the command to the bot in the input box below</p>
+        <List>{this.renderChatHistory()}</List>
+        <div
+          contentEditable="true"
+          className="Msg single-line"
+          id="msg"
+          suppressContentEditableWarning={true}
+        >
+          {" "}
+        </div> */}
         <p>
           Enter the command to the bot in the input box below, or click the mic
           button to start/stop voice input.
@@ -176,6 +187,11 @@ class Message extends Component {
           Submit{" "}
         </Button>
 
+        {/* FIXME save for dashboard in turk */}
+        {/* <p id="callbackMsg">{this.props.status}</p>
+        <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
+        <br />
+        <br /> */}
         <p id="assistantReply">{this.props.agent_reply} </p>
       </div>
     );

@@ -46,8 +46,8 @@ class Question extends Component {
       feedback: this.state.feedback,
     };
 
-    // socket.io to save data to database
-    this.props.stateManager.socket.emit("saveErrorDetailsToDb", data);
+    // Emit socket.io event to save data to error logs
+    this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
 
     // go back to message page after writing to database
     this.props.goToMessage();
@@ -181,10 +181,7 @@ class Question extends Component {
     Yes -> correct, go to any feedback page
     No -> mark as aprsing error.
     */
-    var chatResponses = this.props.stateManager.memory.chatResponse;
-    var chatMsg = this.props.chats[this.props.failidx].msg;
 
-    this.setState({ action_dict: chatResponses[chatMsg] });
     // this.state.action_dict = chatResponses[chatMsg];
     if (this.state.action_dict) {
       if ("dialogue_type" in this.state.action_dict) {
@@ -298,6 +295,12 @@ class Question extends Component {
   goToEnd(new_action_dict) {
     //go to the last feedback page and save the new dict from labeling
     this.setState({ view: 3, new_action_dict: new_action_dict });
+  }
+
+  componentDidMount() {
+    var chatResponses = this.props.stateManager.memory.chatResponse;
+    var chatMsg = this.props.chats[this.props.failidx].msg;
+    this.setState({ action_dict: chatResponses[chatMsg] });
   }
 
   render() {
