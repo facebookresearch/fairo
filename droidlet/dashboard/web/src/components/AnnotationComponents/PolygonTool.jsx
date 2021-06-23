@@ -556,30 +556,8 @@ class PolygonTool extends React.Component {
       this.points[this.draggingIndex[0]][this.draggingIndex[1]] =
         this.localToImage(this.lastMouse);
     }
-    if (
-      ["drawing", "addingMask"].includes(this.mode) &&
-      (this.lastKey !== "Enter" ||
-        ["drawing", "addingMask"].includes(this.prevMode) ||
-        (this.points[this.currentMaskId] &&
-          this.points[this.currentMaskId].length < 3)) // case where Enter is pressed, then "add mask"
-    ) {
-      this.points[this.currentMaskId].push(this.localToImage(this.lastMouse));
-      this.updateZoom();
-    }
+    this.update();
   }
-
-  // onMouseMove(e) {
-  //   var rect = this.canvas.getBoundingClientRect();
-  //   this.lastMouse = {
-  //     x: e.clientX - rect.left,
-  //     y: e.clientY - rect.top + 1,
-  //   };
-  //   if (this.mode === "dragging") {
-  //     this.points[this.draggingIndex[0]][this.draggingIndex[1]] =
-  //       this.localToImage(this.lastMouse);
-  //   }
-  //   this.update();
-  // }
 
   // simulates pressing enter on web. Only used for mobile version
   pressEnterOnMobile() {
