@@ -44,6 +44,7 @@ incoming_chat.txt
 locobot/test/test_assets/perception_handlers/
 locobot/agent/dashboard_data.db*
 nsp_outputs.csv
+agents/locobot/interaction_loggings.json
 agents/locobot/models
 agents/locobot/datasets
 agents/locobot/dashboard_data.db
