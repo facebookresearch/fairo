@@ -6,7 +6,6 @@ from operator import itemgetter
 import ast
 from pprint import pprint
 import json
-import os
 
 
 def process_repeat_dict(d):
@@ -369,23 +368,6 @@ def handle_components(d, child_name):
         child_d = process_dict(with_prefix(d, "{}.".format("reference_object")))
         output["filters"]["reference_object"].update(child_d)
 
-    elif child_name == "schematic":
-        child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
-        # Convert to triples
-        triples = []
-        for k, v in child_d.items():
-            triples.append({
-                "pred_text": k, 
-                "obj_text": v
-            })
-        # Add filters to schematics
-        filters_for_schematics = {
-            "filters": {
-                "triples": triples
-            }
-        }
-        output[child_name] = filters_for_schematics
-
     elif child_name == "location":
         child_d = process_dict(d)
         # fix location type in location
@@ -409,14 +391,12 @@ def handle_components(d, child_name):
                     del child_d["location"]
                 else:
                     if "reference_object" in child_d["location"]:
-                        child_d["location"]["reference_object"]["special_reference"] = {
-                            "fixed_value": updated_value
-                        }
+                        child_d["location"]["reference_object"][
+                            "special_reference"
+                        ] = updated_value
                     else:
                         child_d["location"]["reference_object"] = {
-                            "special_reference": {
-                                "fixed_value": updated_value
-                            }
+                            "special_reference": updated_value
                         }
 
                     if "coordinates" in child_d["location"]:
@@ -487,7 +467,7 @@ def remove_definite_articles(cmd, d):
                     new_d[k][k1] = v1
         # for internal nodes
         else:
-            if type(v) == list and k != "triples":
+            if type(v) == list:
                 new_v = []
                 for span in v:
                     # span[0] and span[1] are the same
@@ -548,11 +528,9 @@ def resolve_spans(words, dicts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # Default to directory of script being run for writing inputs and outputs
-    default_write_dir = os.path.dirname(os.path.abspath(__file__))
     parser.add_argument(
         "--folder_name",
-        default="{}/B/".format(default_write_dir),
+        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/",
     )
     opts = parser.parse_args()
 
@@ -560,7 +538,7 @@ if __name__ == "__main__":
     # command: Input.command
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + "../processed_outputs.csv"
+    f_name = folder_name + "processed_outputs.csv"
     only_show_disagreements = True
     sentence_mapping = {}
     with open(f_name, "r") as f:

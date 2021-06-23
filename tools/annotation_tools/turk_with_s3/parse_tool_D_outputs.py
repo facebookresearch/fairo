@@ -6,7 +6,7 @@ from operator import itemgetter
 import json
 import ast
 from pprint import pprint
-import os
+
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
@@ -396,13 +396,10 @@ def resolve_spans(words, dicts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # Default to directory of script being run for writing inputs and outputs
-    default_write_dir = os.path.dirname(os.path.abspath(__file__))
-    
     parser.add_argument(
         "--folder_name",
         type=str,
-        default="{}/D/".format(default_write_dir),
+        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/D/",
     )
     opts = parser.parse_args()
     # convert csv to txt

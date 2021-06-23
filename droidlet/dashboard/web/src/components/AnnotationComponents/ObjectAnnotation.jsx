@@ -76,7 +76,6 @@ class ObjectAnnotation extends React.Component {
             objects={this.state.objectIds}
             pointMap={this.pointMap}
             colors={COLORS}
-            imageWidth={this.props.imageWidth}
             onClick={(e) => this.registerClick(e.clientX, e.clientY)}
           />
           <button onClick={this.submit.bind(this)}>
@@ -90,8 +89,6 @@ class ObjectAnnotation extends React.Component {
           img={this.image}
           object={this.drawing_data.name}
           submitCallback={this.drawingFinished.bind(this)}
-          isMobile={this.props.isMobile}
-          imageWidth={this.props.imageWidth}
         ></PolygonTool>
       );
     }
@@ -100,14 +97,8 @@ class ObjectAnnotation extends React.Component {
   registerClick(x, y) {
     if (this.state.currentMode === "select") {
       // Build overlay component
-
       var overlay = (
-        <DataEntry
-          isMobile={this.props.isMobile}
-          x={x}
-          y={y}
-          onSubmit={this.dataEntered.bind(this)}
-        />
+        <DataEntry x={x} y={y} onSubmit={this.dataEntered.bind(this)} />
       );
       // Update State
       this.setState({

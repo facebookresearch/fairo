@@ -100,7 +100,6 @@ module.exports = function(proxy, allowedHost) {
       verbose: true,
       rewrites: [
         {from: /^\/mobile/, to: '/mobile.html'},
-        {from: /^\/turk/, to: '/turk.html'},
       ],
       index: paths.publicUrlOrPath,
     },

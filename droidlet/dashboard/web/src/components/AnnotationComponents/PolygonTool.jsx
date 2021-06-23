@@ -64,27 +64,18 @@ class PolygonTool extends React.Component {
   }
 
   render() {
-    let imageSize = "500px"; // default is 500px for the web dashboard
-    if (this.props.imageWidth) {
-      imageSize = this.props.imageWidth;
-    }
     return (
       <div>
         <p>Please trace the {this.props.object}</p>
         <canvas
           ref={this.canvasRef}
-          width={imageSize}
-          height={imageSize}
+          width="500px"
+          height="500px"
           tabIndex="0"
           onClick={this.onClick}
           onMouseMove={this.onMouseMove}
           onKeyDown={this.keyDown}
         ></canvas>
-        {this.props.isMobile && (
-          <button onClick={this.pressEnterOnMobile.bind(this)}>
-            Finished with {this.props.object}'s label
-          </button>
-        )}
       </div>
     );
   }
@@ -166,12 +157,6 @@ class PolygonTool extends React.Component {
       this.points[this.draggingIndex] = this.localToImage(this.lastMouse);
     }
     this.update();
-  }
-
-  // simulates pressing enter on web. Only used for mobile version
-  pressEnterOnMobile() {
-    this.lastKey = null;
-    this.props.submitCallback(this.points);
   }
 
   onClick(e) {

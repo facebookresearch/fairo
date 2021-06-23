@@ -9,8 +9,6 @@ from droidlet.interpreter.craftassist import tasks
 from droidlet.lowlevel.minecraft.mc_util import pos_to_np
 from droidlet.dialog.dialogue_objects import Say
 from droidlet.base_util import prepend_a_an
-from droidlet.memory.memory_nodes import TaskNode
-
 """This file contains functions that the agent can perform 
 at random when not following player instructions or interacting with the
 player"""
@@ -37,7 +35,7 @@ def build_random_shape(agent, rand_range=(10, 0, 10), no_chat=False):
         "default_behavior": "build_random_shape",  # must == function name. Hacky and I hate it.
     }
     logging.debug("Default behavior: building {}".format(shape))
-    TaskNode(agent.memory, tasks.Build(agent, task_data).memid)
+    agent.memory.task_stack_push(tasks.Build(agent, task_data))
 
     if not no_chat:
         shape_name = prepend_a_an(shape.lower())
@@ -54,4 +52,4 @@ def come_to_player(agent):
     if len(op) == 0:
         return
     p = random.choice(agent.get_other_players())
-    TaskNode(agent.memory, tasks.Move(agent, {"target": pos_to_np(p.pos), "approx": 3}).memid)
+    agent.memory.task_stack_push(tasks.Move(agent, {"target": pos_to_np(p.pos), "approx": 3}))
