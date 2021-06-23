@@ -24,6 +24,8 @@ class interactionLogger:
         """
 
         loggingsFile =  self.log_filepath
+
+        # TODO: Instead of reading the json file and storing it in a variable, then updating the variable, write directly into the file
         with open (loggingsFile, 'r', encoding='utf-8') as f:
             # read json file
             feeds = json.load(f)
