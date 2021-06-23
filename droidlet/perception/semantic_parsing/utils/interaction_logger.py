@@ -23,26 +23,12 @@ class interactionLogger:
             data (list): List of values to write to file.
         """
 
-        print (self.log_filepath)
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-
         loggingsFile =  self.log_filepath
         with open (loggingsFile, 'r', encoding='utf-8') as f:
             feeds = json.load(f)
         with open(loggingsFile, 'w', encoding='utf-8') as f:
             # ensure that of interaction_loggings is empty, that it always has []
             feeds.append(data)
-            print ("data to append")
-            print(data)
-            print(data)
-            print(data)
-            print(data)
-            print(data)
-            print(data)
             
             # TODO: change this to perform json insertion with characters instead of truncate and repopulate
             f.truncate(0) # clear contents of file. This is pretty poor, should probably move to a database

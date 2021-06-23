@@ -378,8 +378,6 @@ class StateManager {
     interactionData["mephisto_agent_id"] = this.mephisto_agent_id;
     interactionData["turk_worker_id"] = this.turk_worker_id;
     interactionData[key] = value;
-    console.log("interaction data is");
-    console.log(interactionData);
     this.socket.emit("interaction data", interactionData);
   }
 
