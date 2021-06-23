@@ -31,6 +31,7 @@ class ObjectFixup extends React.Component {
     return (
       <ObjectAnnotation
         image={this.state.image}
+        objects={this.state.objects}
         not_turk={true}
         stateManager={this.props.stateManager}
         isMobile={this.props.isMobile}

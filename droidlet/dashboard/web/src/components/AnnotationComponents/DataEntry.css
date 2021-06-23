@@ -8,12 +8,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
   width: min-content;
   padding: 2px;
 }
-
 .data-entry-submit {
   background-color: rgb(148, 211, 84);
   float: right;
 }
-
+.data-entry-delete {
+  background-color: rgb(255, 82, 82);
+  margin-top: 15px;
+  float: right;
+}
 .data-entry-block-mobile {
   margin: 0;
   position: absolute;
