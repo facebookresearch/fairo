@@ -26,6 +26,8 @@ d: logical form from semantic parser
 
 
 def interpret_span_value(interpreter, speaker, d, comparison_measure=None):
+    # FIXME: This needs to be better named/documented. Seems like
+    # this is being used for value of key "value_extractor" only
     """
     Make a FixedValue object from a number span
 
