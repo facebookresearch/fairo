@@ -50,12 +50,16 @@ class SegmentRenderer extends React.Component {
   }
 
   render() {
+    let imageSize = "500px";
+    if (this.props.imageWidth) {
+      imageSize = this.props.imageWidth;
+    }
     return (
       <div>
         <canvas
           ref={this.canvasRef}
-          width="500px"
-          height="500px"
+          width={imageSize}
+          height={imageSize}
           tabIndex="0"
           onClick={this.props.onClick}
           onMouseMove={this.onMouseMove}

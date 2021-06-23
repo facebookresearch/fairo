@@ -6,6 +6,7 @@ import re
 from operator import itemgetter
 from pprint import pprint
 import ast
+import os
 
 MAX_WORDS = 40
 
@@ -338,12 +339,14 @@ def handle_components(d, child_name):
                     del child_d["location"]
                 else:
                     if "reference_object" in child_d["location"]:
-                        child_d["location"]["reference_object"][
-                            "special_reference"
-                        ] = updated_value
+                        child_d["location"]["reference_object"]["special_reference"] = {
+                            "fixed_value": updated_value
+                        }
                     else:
                         child_d["location"]["reference_object"] = {
-                            "special_reference": updated_value
+                            "special_reference": {
+                                "fixed_value": updated_value
+                            }
                         }
 
                     if "coordinates" in child_d["location"]:
@@ -471,9 +474,12 @@ def resolve_spans(words, dicts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    # Default to directory of script being run for writing inputs and outputs
+    default_write_dir = os.path.dirname(os.path.abspath(__file__))
+
     parser.add_argument(
         "--folder_name",
-        default="/Users/rebeccaqian/minecraft/tools/annotation_tools/turk_with_s3/C/",
+        default="{}/C/".format(default_write_dir),
     )
     opts = parser.parse_args()
     folder_name = opts.folder_name
