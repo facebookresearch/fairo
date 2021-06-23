@@ -16,7 +16,7 @@ collects results in batches and collates data.
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file input.txt > turk_input.csv"
+        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file input.txt > A/turk_input.csv"
     ],
     shell=True,
 )
@@ -25,7 +25,7 @@ if rc != 0:
     sys.exit()
 
 # Load input commands and create a separate HIT for each row
-rc = subprocess.call(["python create_jobs.py --tool_num 1 --xml_file step_1.xml"], shell=True)
+rc = subprocess.call(["python create_jobs.py --tool_num 1 --xml_file step_1.xml --input_csv A/turk_input.csv"], shell=True)
 if rc != 0:
     print("Error creating HIT jobs. Exiting.")
     sys.exit()
@@ -48,7 +48,14 @@ if rc != 0:
 
 # Postprocess
 print("*** Postprocessing results ***")
-rc = subprocess.call(["python parse_outputs.py"], shell=True)
+rc = subprocess.call(["python parse_tool_A_outputs.py"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
+    sys.exit()
+
+# Create inputs for other tools
+print("*** Postprocessing results ***")
+rc = subprocess.call(["python generate_input_for_tool_B_and_C.py"], shell=True)
+if rc != 0:
+    print("Error generating input for other tools. Exiting.")
     sys.exit()
