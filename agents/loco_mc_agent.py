@@ -182,28 +182,6 @@ class LocoMCAgent(BaseAgent):
 
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print ("HOLA HOLA HOLA")
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-            print (interactionData)
-
             self.interactionLogger.logInteraction(interactionData)
 
 
