@@ -5,7 +5,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 import random
-from droidlet.perception.craftassist import heuristic_perception
 from typing import Tuple, Dict, Any, Optional
 from copy import deepcopy
 from word2number.w2n import word_to_num
@@ -59,9 +58,13 @@ class MCInterpreter(Interpreter):
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
+        # These are coming from agent's low level
         self.block_data = low_level_data["block_data"]
         self.special_shape_functions = low_level_data["special_shape_functions"]
         self.color_bid_map = low_level_data["color_bid_map"]
+        # These come from agent's perception
+        self.astar_search = low_level_data["astar_search"]
+        self.get_all_holes_fn = low_level_data["get_all_holes_fn"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.subinterpret["condition"] = ConditionInterpreter()
@@ -287,7 +290,7 @@ class MCInterpreter(Interpreter):
         location, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
 
         # Get nearby holes
-        holes = heuristic_perception.get_all_nearby_holes(agent, location, self.block_data)
+        holes = self.get_all_holes_fn(agent, location, self.block_data)
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
 

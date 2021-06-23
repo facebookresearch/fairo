@@ -26,7 +26,9 @@ from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
+from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
+from droidlet.perception.craftassist import heuristic_perception
 
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
@@ -270,6 +272,8 @@ class FakeAgent(LocoMCAgent):
         self.opts.block_data = craftassist_specs.get_block_data()
         self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
         self.opts.color_bid_map = COLOR_BID_MAP
+        self.opts.astar_search = astar
+        self.opts.get_all_holes_fn = heuristic_perception.get_all_nearby_holes
         self._held_item: IDM = (0, 0)
         self._look_vec = (1, 0, 0)
         self._changed_blocks: List[Block] = []

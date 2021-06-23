@@ -7,7 +7,6 @@ agent can perform in game.
 import droidlet.base_util
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
-from droidlet.perception.craftassist import search
 from droidlet.shared_data_structs import ErrorWithResponse
 
 # FIXME! actual jump on client

@@ -121,6 +121,10 @@ class DialogueObjectMapper(object):
                     low_level_interpreter_data['special_shape_functions'] = opts.special_shape_functions
                 if hasattr(opts, 'color_bid_map'):
                     low_level_interpreter_data['color_bid_map'] =  opts.color_bid_map
+                if hasattr(opts, 'astar_search'):
+                    low_level_interpreter_data['astar_search'] = opts.astar_search
+                if hasattr(opts, 'get_all_holes_fn'):
+                    low_level_interpreter_data['get_all_holes_fn'] = opts.get_all_holes_fn
             return self.dialogue_objects["interpreter"](
                 speaker, logical_form, low_level_interpreter_data, memory=memory
             )
