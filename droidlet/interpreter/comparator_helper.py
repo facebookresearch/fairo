@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from droidlet.shared_data_structs import ErrorWithResponse
 from .attribute_helper import AttributeInterpreter, maybe_specific_mem, interpret_span_value
-from droidlet.interpreter.condition import Comparator
+from droidlet.interpreter.condition_classes import Comparator
 from droidlet.memory.memory_values import MemoryColumnValue
 from droidlet.memory.memory_attributes import ComparatorAttribute
 
