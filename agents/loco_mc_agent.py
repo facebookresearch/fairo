@@ -122,7 +122,6 @@ class LocoMCAgent(BaseAgent):
             """
             logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
 
-            # self.interactionLogger.logInteraction({"text": "hi"})
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"

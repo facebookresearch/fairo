@@ -61,8 +61,6 @@ class StateManager {
     timelineEventHistory: [],
   };
   session_id = null;
-  mephisto_id = null;
-  turker_id = null;
 
   constructor() {
     this.processMemoryState = this.processMemoryState.bind(this);
@@ -89,8 +87,6 @@ class StateManager {
     async function getIP() {
       const response = await fetch("https://api.ipify.org/?format=json");
       const data = await response.json();
-      console.log("data is");
-      console.log(data);
       return data;
     }
 
@@ -375,8 +371,8 @@ class StateManager {
   logInteractiondata(key, value) {
     let interactionData = {};
     interactionData["session_id"] = this.session_id;
-    interactionData["mephisto_agent_id"] = this.mephisto_agent_id;
-    interactionData["turk_worker_id"] = this.turk_worker_id;
+    interactionData["mephisto_agent_id"] = this.getMephistoAgentId();
+    interactionData["turk_worker_id"] = this.getTurkWorkerId();
     interactionData[key] = value;
     this.socket.emit("interaction data", interactionData);
   }

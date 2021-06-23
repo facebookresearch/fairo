@@ -123,6 +123,7 @@ class LocobotAgent(LocoMCAgent):
             self.dashboard_memory["objects"] = objects
             sio.emit("updateState", {"memory": self.dashboard_memory})
             
+
     def init_memory(self):
         """Instantiates memory for the agent.
 

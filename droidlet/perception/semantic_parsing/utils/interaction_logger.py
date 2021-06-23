@@ -25,11 +25,10 @@ class interactionLogger:
 
         loggingsFile =  self.log_filepath
         with open (loggingsFile, 'r', encoding='utf-8') as f:
+            # read json file
             feeds = json.load(f)
         with open(loggingsFile, 'w', encoding='utf-8') as f:
             # ensure that of interaction_loggings is empty, that it always has []
             feeds.append(data)
-            
-            # TODO: change this to perform json insertion with characters instead of truncate and repopulate
-            f.truncate(0) # clear contents of file. This is pretty poor, should probably move to a database
+            # replace the original json file with what is in the updated variable
             json.dump(feeds, f, ensure_ascii=False, indent=4)
