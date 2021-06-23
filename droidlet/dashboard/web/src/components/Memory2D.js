@@ -34,7 +34,7 @@ class Memory2D extends React.Component {
       stageScale: 1,
       stageX: 0,
       stageY: 0,
-      memory2dClassName: "memory2d",
+      memory2d_className: "memory2d",
       drag_coordinates: [0,0],
     };
     this.state = this.initialState;
@@ -261,8 +261,8 @@ class Memory2D extends React.Component {
       );
     }
     let coordinateAxesLayer = [];
-    let rootPointDefaultStage = [9, 0, -9];
-    let coordinateRootPoint = this.convertCoordinate(rootPointDefaultStage);
+    let rootPointDefault = [9, 0, -9];
+    let coordinateRootPoint = this.convertCoordinate(rootPointDefault);
 
     let x = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
     let y = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
@@ -293,14 +293,14 @@ class Memory2D extends React.Component {
     );
     
     let notches = [];
-    let endPoint = [
+    let endPointXZ = [
       (coordinateRootPoint[0] + width),
       (coordinateRootPoint[1] - height) 
     ];
     let tmpPointX = coordinateRootPoint[0];
     let tmpPointY = coordinateRootPoint[1];
 
-    while (tmpPointX < endPoint[0]) {
+    while (tmpPointX < endPointXZ[0]) {
       tmpPointX += 30;
       let coordinate = this.convertGridCoordinate([(tmpPointX - drag_coordinates[0]) / stageScale, 0]);
       notches.push(
@@ -325,7 +325,7 @@ class Memory2D extends React.Component {
       );
     }
 
-    while (tmpPointY > endPoint[1]) {
+    while (tmpPointY > endPointXZ[1]) {
       tmpPointY = tmpPointY - 20;
       let coordinate = this.convertGridCoordinate([0, (tmpPointY - drag_coordinates[1]) / stageScale]);
       notches.push(
