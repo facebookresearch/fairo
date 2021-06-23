@@ -57,8 +57,7 @@ class LocoMCAgent(BaseAgent):
         }
         # Add optional logging for timeline
         if opts.log_timeline:
-            # self.timeline_log_file = open("../../droidlet/dashboard/web/public/Timeline/timeline_log.{}.txt".format(self.name), "a+")
-            self.timeline_log_file = open("../../droidlet/dashboard/web/public/timeline_log.txt", "w")
+            self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
         
         # Add optional hook for db_write and perceive
         if opts.enable_timeline:
@@ -388,7 +387,6 @@ class LocoMCAgent(BaseAgent):
 
     def agent_emit(self, result):
         sio.emit("newTimelineEvent", result)
-        sio.emit("returnAgentName", self.name)
 
     def __del__(self):
         """Close the timeline log file"""
