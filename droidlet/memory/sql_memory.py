@@ -922,7 +922,7 @@ class AgentMemory:
         )
         if recency is None:
             recency = self.time.round_time(300)
-        args: List = [self.get_time() - recency]
+        args: List = [max(self.get_time() - recency, 0)]
         if action_name:
             args.append(action_name)
         memids = [r[0] for r in self._db_read(q, *args)]

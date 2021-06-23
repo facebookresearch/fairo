@@ -16,6 +16,14 @@ mturk = boto3.client(
     endpoint_url=MTURK_SANDBOX,
 )
 
+def delete_hits(mturk):
+    # Check if there are outstanding assignable or reviewable HITs
+    all_hits = mturk.list_hits()["HITs"]
+    hit_ids = [item["HITId"] for item in all_hits]
+    # This is slow but there's no better way to get the status of pending HITs
+    for hit_id in hit_ids:
+        # Get HIT status
+        mturk.delete_hit(HITId=hit_id)
 
 def get_hit_list_status(mturk):
     # Check if there are outstanding assignable or reviewable HITs
@@ -38,6 +46,8 @@ def get_hit_list_status(mturk):
 
 
 # This will contain the answers
+# delete_hits(mturk)
+# print("deleted all HITs")
 res = pd.DataFrame()
 NUM_TRIES_REMAINING = 5
 curr_hit_status = get_hit_list_status(mturk)

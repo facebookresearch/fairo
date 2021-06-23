@@ -1,4 +1,4 @@
-<img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br></br>
+<img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br>
 
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
