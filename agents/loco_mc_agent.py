@@ -57,7 +57,8 @@ class LocoMCAgent(BaseAgent):
         }
         # Add optional logging for timeline
         if opts.log_timeline:
-            self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
+            # self.timeline_log_file = open("../../droidlet/dashboard/web/public/Timeline/timeline_log.{}.txt".format(self.name), "a+")
+            self.timeline_log_file = open("../../droidlet/dashboard/web/public/timeline_log.txt", "w")
         
         # Add optional hook for db_write and perceive
         if opts.enable_timeline:
@@ -376,9 +377,8 @@ class LocoMCAgent(BaseAgent):
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
-        # a sample filter for logging VoxelObjects queries only from db_write
-        # or any type of data from perceive
-        if result["name"] == "db_write" and result["table_name"] == "VoxelObjects" or result["name"] == "perceive":
+        # a sample filter for logging data from perceive
+        if result["name"] == "perceive":
             # JSONify the data
             result = json.dumps(result, default=str)
             self.agent_emit(result)
@@ -388,6 +388,7 @@ class LocoMCAgent(BaseAgent):
 
     def agent_emit(self, result):
         sio.emit("newTimelineEvent", result)
+        sio.emit("returnAgentName", self.name)
 
     def __del__(self):
         """Close the timeline log file"""

@@ -57,6 +57,7 @@ class StateManager {
     timelineHandshake: "",
     timelineEvent: "",
     timelineEventHistory: [],
+    agentName: "",
   };
 
   constructor() {
@@ -77,6 +78,7 @@ class StateManager {
 
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
+    this.returnAgentName = this.returnAgentName.bind(this);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -148,6 +150,7 @@ class StateManager {
 
     socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
+    socket.on("returnAgentName", this.returnAgentName);
   }
 
   updateStateManagerMemory(data) {
@@ -193,6 +196,15 @@ class StateManager {
 
   returnTimelineHandshake(res) {
     this.memory.timelineHandshake = res;
+    this.refs.forEach((ref) => {
+      if (ref instanceof Timeline) {
+        ref.forceUpdate();
+      }
+    });
+  }
+
+  returnAgentName(res) {
+    this.memory.agentName = res;
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
