@@ -161,7 +161,7 @@ class NSPQuerier(object):
             logical_form_source = "not_found_in_gt_no_model"
         # log the logical form and chat with source
         self.NSPLogger.log_dialogue_outputs(
-            [chat, logical_form, "semantic_parser", "craftassist", time_now]
+            [chat, logical_form, logical_form_source, "craftassist", time_now]
         )
         # check if logical_form conforms to the grammar
         is_valid_json = self.validate_parse_tree(logical_form)
