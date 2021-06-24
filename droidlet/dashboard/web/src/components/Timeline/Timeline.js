@@ -31,11 +31,6 @@ class DashboardTimeline extends React.Component {
   }
 
   renderEvent() {
-    this.addEvent();
-    return this.props.stateManager.memory.timelineEvent;
-  }
-
-  addEvent() {
     const event = this.props.stateManager.memory.timelineEvent;
     if (event) {
       const eventObj = JSON.parse(event);
@@ -48,6 +43,7 @@ class DashboardTimeline extends React.Component {
             title: JSON.stringify(eventObj, null, 2),
             content: eventObj["name"],
             start: eventObj["datetime"],
+            selectable: false,
           },
         ]);
       }
@@ -55,13 +51,13 @@ class DashboardTimeline extends React.Component {
   }
 
   render() {
+    this.renderEvent();
     return (
       <div className="timeline">
-        <p>
-          A visualizer where users can easily view, inspect, and search through
-          agent activities interactively.
+        <p id="description">
+          A visualizer for viewing, inspecting, and searching through agent
+          activities interactively.
         </p>
-        <p>Latest memory event: {this.renderEvent()}</p>
         <div ref={this.appRef} />
       </div>
     );

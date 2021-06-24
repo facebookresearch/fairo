@@ -1039,7 +1039,6 @@ class AgentMemory:
         hook_data = {
             "name" : "db_write", 
             "datetime" : datetime.datetime.now(),
-            "time" : self.get_time(), 
             "table_name" : query_table, 
             "operation" : query_operation, 
             "args" : query_dict, 
