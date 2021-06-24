@@ -84,18 +84,18 @@ class StateManager {
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
-    async function getIP() {
-      const response = await fetch("https://api.ipify.org/?format=json");
-      const data = await response.json();
-      return data;
-    }
+    // async function getIP() {
+    //   const response = await fetch("https://api.ipify.org/?format=json");
+    //   const data = await response.json();
+    //   return data;
+    // }
 
-    let ipAddress = "";
-    getIP().then((data) => {
-      ipAddress = data["ip"];
-      const dateString = (+new Date()).toString(36);
-      this.session_id = ipAddress + ":" + dateString; // generate session id from ipAddress and date of opening webapp
-    });
+    // let ipAddress = "";
+    // getIP().then((data) => {
+    //   ipAddress = data["ip"];
+    //   const dateString = (+new Date()).toString(36);
+    //   this.session_id = ipAddress + ":" + dateString; // generate session id from ipAddress and date of opening webapp
+    // });
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
     const turkExperimentId = urlParams.get("turk_experiment_id");
@@ -165,6 +165,20 @@ class StateManager {
     });
 
     socket.on("connect", (msg) => {
+      let ipAddress = "";
+      async function getIP() {
+        const response = await fetch("https://api.ipify.org/?format=json");
+        const data = await response.json();
+        return data;
+      }
+      getIP().then((data) => {
+        ipAddress = data["ip"];
+        const dateString = (+new Date()).toString(36);
+        this.session_id = ipAddress + ":" + dateString; // generate session id from ipAddress and date of opening webapp
+        console.log("session id is");
+        console.log(this.session_id);
+        this.socket.emit("create loggings file", this.session_id);
+      });
       console.log("connect event");
       this.setConnected(true);
       this.socket.emit("get_memory_objects");
@@ -372,6 +386,8 @@ class StateManager {
     interactionData["mephisto_agent_id"] = this.getMephistoAgentId();
     interactionData["turk_worker_id"] = this.getTurkWorkerId();
     interactionData[key] = value;
+    console.log("logging");
+    console.log(interactionData);
     this.socket.emit("interaction data", interactionData);
   }
 

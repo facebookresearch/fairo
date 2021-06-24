@@ -11,7 +11,6 @@ import os
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
-from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
 from droidlet.base_util import hash_user
@@ -57,7 +56,6 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
-        self.interactionLogger = InteractionLogger("interaction_loggings.json")
         # Add optional logging for timeline
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
@@ -179,11 +177,6 @@ class LocoMCAgent(BaseAgent):
             if timelineHandshake == "Sent message!":
                 logging.debug("in receive_timeline_handshake, received handshake message")
                 sio.emit("returnTimelineHandshake", "Received message!")
-
-        @sio.on("interaction data")
-        def log_interaction_data(sid, interactionData):
-            self.interactionLogger.logInteraction(interactionData)
-
 
     def init_physical_interfaces(self):
         """
