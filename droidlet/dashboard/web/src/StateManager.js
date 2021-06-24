@@ -56,7 +56,6 @@ class StateManager {
       { msg: "", failed: false },
       { msg: "", failed: false },
     ],
-    timelineHandshake: "",
     timelineEvent: "",
     timelineEventHistory: [],
   };
@@ -80,7 +79,6 @@ class StateManager {
 
     this.processMap = this.processMap.bind(this);
 
-    this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
     // set turk related params
@@ -191,7 +189,6 @@ class StateManager {
 
     socket.on("humans", this.processHumans);
     socket.on("map", this.processMap);
-    socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
   }
 
@@ -267,15 +264,6 @@ class StateManager {
         ref.setState({
           agent_reply: res.agent_reply,
         });
-      }
-    });
-  }
-
-  returnTimelineHandshake(res) {
-    this.memory.timelineHandshake = res;
-    this.refs.forEach((ref) => {
-      if (ref instanceof Timeline) {
-        ref.forceUpdate();
       }
     });
   }

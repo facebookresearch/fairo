@@ -30,14 +30,6 @@ class DashboardTimeline extends React.Component {
     this.timeline = new Timeline(this.appRef.current, items, options);
   }
 
-  renderHandshake() {
-    this.props.stateManager.socket.emit(
-      "receiveTimelineHandshake",
-      "Sent message!"
-    );
-    return this.props.stateManager.memory.timelineHandshake;
-  }
-
   renderEvent() {
     this.addEvent();
     return this.props.stateManager.memory.timelineEvent;
@@ -69,7 +61,6 @@ class DashboardTimeline extends React.Component {
           A visualizer where users can easily view, inspect, and search through
           agent activities interactively.
         </p>
-        <p>Handshake status: {this.renderHandshake()}</p>
         <p>Latest memory event: {this.renderEvent()}</p>
         <div ref={this.appRef} />
       </div>
