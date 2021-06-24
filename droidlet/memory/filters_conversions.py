@@ -356,6 +356,7 @@ def where_leaf_to_comparator(clause):
     assert not (eq_idx > -1 and mod_idx > -1)
 
     if lt_idx > -1:
+        eq_idx = -1
         left_text = clause[:lt_idx]
         if lte_idx > -1:
             ct = "LESS_THAN_EQUAL"
@@ -364,6 +365,7 @@ def where_leaf_to_comparator(clause):
             ct = "LESS_THAN"
             right_text = clause[lt_idx + 1 :]
     if gt_idx > 0:
+        eq_idx = -1
         left_text = clause[:gt_idx]
         if gte_idx > 0:
             ct = "GREATER_THAN_EQUAL"
@@ -396,8 +398,8 @@ def where_leaf_to_comparator(clause):
             ct = {"close_tolerance": tol, "modulus": mod}
         right_text = clause[eq_idx + len(mod_text) :]
 
-    left_value = maybe_eval_literal(left_text)
-    right_value = maybe_eval_literal(right_text)
+    left_value = maybe_eval_literal(left_text.strip())
+    right_value = maybe_eval_literal(right_text.strip())
     f = {
         "input_left": {"value_extractor": left_value},
         "input_right": {"value_extractor": right_value},

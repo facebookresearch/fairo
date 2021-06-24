@@ -135,6 +135,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
     if len(triples) > 0:
         return [t[0] for t in triples]
+    return []
 
 
 def try_float(value, where_clause):
@@ -225,15 +226,15 @@ class MemorySearcher:
     def handle_where(self, agent_memory, where_clause, memtype):
         # do this brutally for now, if we need can make more efficient
         if where_clause.get("AND"):
-            memids = []
+            memid_lists = []
             for c in where_clause["AND"]:
-                memids.append(self.handle_where(agent_memory, c, memtype))
-            return set.intersection(*[set(m) for m in memids])
+                memid_lists.append(self.handle_where(agent_memory, c, memtype))
+            return set.intersection(*[set(m) for m in memid_lists])
         if where_clause.get("OR"):
-            memids = []
+            memid_lists = []
             for c in where_clause["OR"]:
-                memids.append(self.handle_where(agent_memory, c, memtype))
-            return set.union(*[set(m) for m in memids])
+                memid_lists.append(self.handle_where(agent_memory, c, memtype))
+            return set.union(*[set(m) for m in memid_lists])
         if where_clause.get("NOT"):
             # FIXME memtype might be a union of node types
             # maybe FIXME? don't retrieve everything until necessary

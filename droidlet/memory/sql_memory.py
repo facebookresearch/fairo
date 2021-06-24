@@ -14,7 +14,7 @@ from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
-from droidlet.memory.memory_filters import BasicMemorySearcher
+from droidlet.memory.memory_filters import BasicMemorySearcher, MemorySearcher
 from .dialogue_stack import DialogueStack
 
 from droidlet.memory.memory_nodes import (  # noqa
@@ -133,6 +133,7 @@ class AgentMemory:
         self.tag(self.self_memid, "SELF")
 
         self.basic_searcher = BasicMemorySearcher(self_memid=self.self_memid)
+        self.searcher = MemorySearcher()
 
     def __del__(self):
         """Close the database file"""
@@ -309,7 +310,7 @@ class AgentMemory:
             >>> memid = '10517cc584844659907ccfa6161e9d32'
             >>> table = 'ReferenceObjects'
             >>> check_memid_exists(memid, table)
-        """
+et        """
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object
@@ -345,6 +346,9 @@ class AgentMemory:
         uuids = self._db_read(query)
         for u in uuids:
             self.forget(u[0])
+
+    def sqly_search(self, query):
+        return self.searcher.search(self, query=query)
 
     def basic_search(self, filter_dict):
         """Perform a basic search using the filter_dict

@@ -75,6 +75,9 @@ class Task(object):
                     {"prio": -2, "finished": True}
                 )
                 return
+            query = "SELECT MEMORY FROM Tasks WHERE (prio>=1 AND _has_parent_task={})".format(
+                self.memid
+            )
             query = {
                 "base_table": "Tasks",
                 "base_range": {"minprio": 0.5},
