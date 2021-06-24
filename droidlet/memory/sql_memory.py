@@ -27,6 +27,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     LocationNode,
     ReferenceObjectNode,
     NamedAbstractionNode,
+    AttentionNode,
     NODELIST,
 )
 

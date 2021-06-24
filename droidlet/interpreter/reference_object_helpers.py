@@ -45,7 +45,12 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         mem = agent_memory.get_location_by_id(memid)
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
-        q = "SELECT MEMORY FROM Player WHERE eid={}".format(entity_id)
+        if S == "AGENT" or S == "SPEAKER":
+            q = "SELECT MEMORY FROM Player WHERE eid={}".format(entity_id)
+        elif S == "SPEAKER_LOOK":
+            q = "SELECT MEMORY FROM Attention WHERE type_name={}".format(entity_id)
+        else:
+            raise Exception("unknown special reference: {}".format(S))
     return q
 
 
