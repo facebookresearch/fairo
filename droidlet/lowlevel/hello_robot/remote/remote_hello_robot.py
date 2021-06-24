@@ -11,8 +11,11 @@ import numpy as np
 import logging
 import os
 import json
+import time
 import pyrealsense2 as rs
 import cv2
+
+from .utils import transform_global_to_base, goto
 
 # Configure depth and color streams
 CAMERA_HEIGHT = 1.5
@@ -143,8 +146,91 @@ class RemoteHelloRobot(object):
     def rotate_by(self, x_r):
         self._robot.base.rotate_by(x_r)
         self._robot.push_command()
-    
+
+    def go_to_absolute(
+        self,
+        xyt_position,
+        use_map=False,
+        close_loop=True,
+        smooth=False,
+        use_dslam=False,
+    ):
+        """Moves the robot base to given goal state in the world frame.
+
+        :param xyt_position: The goal state of the form (x,y,yaw)
+                             in the world (map) frame.
+        :param use_map: When set to "True", ensures that controller is
+                        using only free space on the map to move the robot.
+        :param close_loop: When set to "True", ensures that controller
+                           is operating in open loop by taking
+                           account of odometry.
+        :param smooth: When set to "True", ensures that the motion
+                       leading to the goal is a smooth one.
+        :param use_dslam: When set to "True", the robot uses slam for
+                          the navigation.
+
+        :type xyt_position: list or np.ndarray
+        :type use_map: bool
+        :type close_loop: bool
+        :type smooth: bool
+        """
+        assert(use_map == False)
+        assert(close_loop == True)
+        assert(smooth == False)
+        assert(use_dslam == False)
+        if self._done:
+            self._done = False
+            if use_dslam:
+                self._slam.set_absolute_goal_in_robot_frame(xyt_position)
+            else:
+                global_xyt = xyt_position
+                base_state = self.get_base_state()
+                base_xyt = transform_global_to_base(global_xyt, base_state)
+                goto(self._robot, list(base_xyt), dryrun=False)
+            self._done = True
+
+    def go_to_relative(
+        self,
+        xyt_position,
+        use_map=False,
+        close_loop=True,
+        smooth=False,
+        use_dslam=False,
+    ):
+        """Moves the robot base to the given goal state relative to its current
+        pose.
+
+        :param xyt_position: The  relative goal state of the form (x,y,yaw)
+        :param use_map: When set to "True", ensures that controller is
+                        using only free space on the map to move the robot.
+        :param close_loop: When set to "True", ensures that controller is
+                           operating in open loop by taking
+                           account of odometry.
+        :param smooth: When set to "True", ensures that the
+                       motion leading to the goal is a smooth one.
+        :param use_dslam: When set to "True", the robot uses slam for
+                          the navigation.
+
+        :type xyt_position: list or np.ndarray
+        :type use_map: bool
+        :type close_loop: bool
+        :type smooth: bool
+        """
+        assert(use_map == False)
+        assert(close_loop == True)
+        assert(smooth == False)
+        assert(use_dslam == False)
+        if self._done:
+            self._done = False
+            if use_dslam:
+                self._slam.set_relative_goal_in_robot_frame(xyt_position)
+            else:
+                goto(self._robot, list(xyt_position), dryrun=False)
+            self._done = True
+
+
     def get_rgb_depth(self):
+        tm = time.time()
         frames = None
         while not frames:
             frames = self.realsense.wait_for_frames()
@@ -165,7 +251,8 @@ class RemoteHelloRobot(object):
             color_image = np.moveaxis(color_image, 0, 1)
             depth_colormap = np.moveaxis(depth_colormap, 0, 1)
 
-        return color_image.tolist(), depth_image.tolist()
+        print('get_rgb_depth', time.time() - tm)
+        return color_image, depth_image
 
     
     def get_pcd_data(self):
