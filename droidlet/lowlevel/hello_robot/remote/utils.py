@@ -23,7 +23,7 @@ def transform_global_to_base(XYT, current_pose):
 
 from math import *
 import time
-def goto(xyt_position=None, translation_threshold=0.1, dryrun=False):
+def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False):
         """
         Moves the robot to the given goal state in
         the relative frame (base frame).
@@ -70,11 +70,14 @@ def goto(xyt_position=None, translation_threshold=0.1, dryrun=False):
         # move the distance
         print("translate by ", dist)
         if not dryrun:
+            print("not a dryrun")
             robot.base.translate_by(dist)
             robot.push_command()
-            time.sleep(0.2)
-            while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
-                time.sleep(0.05)
+            time.sleep(5)
+            # time.sleep(0.2)
+            # while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
+            #     print(robot.base.left_wheel.status['vel'], robot.base.right_wheel.status['vel'])
+            #     time.sleep(0.05)
         # second rotate by theta2
         print("rotate by ", theta_2)
         if not dryrun:

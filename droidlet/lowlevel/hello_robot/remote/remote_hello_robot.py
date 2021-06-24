@@ -15,7 +15,7 @@ import time
 import pyrealsense2 as rs
 import cv2
 
-from .utils import transform_global_to_base, goto
+from utils import transform_global_to_base, goto
 
 # Configure depth and color streams
 CAMERA_HEIGHT = 1.5
@@ -53,6 +53,7 @@ class RemoteHelloRobot(object):
         if not self._robot.is_calibrated():
             self._robot.home() 
 
+        self._done = True
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._check_battery() 
         self._connect_to_realsense()
@@ -83,7 +84,6 @@ class RemoteHelloRobot(object):
         val_in_range('Current',p.status['current'], vmin=0.1, vmax=p.config['high_current_alert'])
         val_in_range('CPU Temp',p.status['cpu_temp'], vmin=15, vmax=80)
         print(Style.RESET_ALL)
-        p.stop()
 
     def get_intrinsics(self):
         return self.intrinsic_mat.tolist()
