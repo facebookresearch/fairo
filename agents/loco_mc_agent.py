@@ -7,6 +7,7 @@ import re
 import time
 import numpy as np
 import json
+import os
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
