@@ -8,7 +8,15 @@ import "./Timeline.css";
 
 const items = new DataSet();
 
-const options = {};
+const options = {
+  tooltip: {
+    followMouse: true,
+    overflowMethod: "cap",
+    template: function (originalItemData, parsedItemData) {
+      return "<pre>" + originalItemData.title + "</pre>";
+    },
+  },
+};
 
 class DashboardTimeline extends React.Component {
   constructor() {
@@ -45,6 +53,7 @@ class DashboardTimeline extends React.Component {
       ) {
         items.add([
           {
+            title: JSON.stringify(eventObj, null, 2),
             content: eventObj["name"],
             start: eventObj["datetime"],
           },

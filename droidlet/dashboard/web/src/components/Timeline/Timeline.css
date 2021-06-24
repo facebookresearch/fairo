@@ -8,3 +8,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 .vis-item.vis-selected {
   background-color: #bde0ff;
 }
+
+.vis-timeline {
+  overflow: visible;
+}
