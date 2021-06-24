@@ -10,7 +10,7 @@ import json
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
-from droidlet.perception.semantic_parsing.utils.interaction_logger import interactionLogger
+from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
 from droidlet.base_util import hash_user
@@ -56,7 +56,7 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
-        self.interactionLogger = interactionLogger("interaction_loggings.json")
+        self.interactionLogger = InteractionLogger("interaction_loggings.json")
         # Add optional logging for timeline
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")

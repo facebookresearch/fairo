@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import json
 
-class interactionLogger:
+class InteractionLogger:
     def __init__(self, filepath):
         """Logger class for the NSP component.
 

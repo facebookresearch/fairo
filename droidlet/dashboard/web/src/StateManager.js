@@ -195,13 +195,10 @@ class StateManager {
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("image", this.processRGBDepth); // RGB + Depth
-
     socket.on("objects", this.processObjects);
-
     socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
     socket.on("showAssistantReply", this.showAssistantReply);
-
     socket.on("humans", this.processHumans);
     socket.on("map", this.processMap);
     socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
@@ -366,7 +363,8 @@ class StateManager {
   }
 
   /**
-   * data is a dictionary
+   * key and value is the key value pair to be logged by flask
+   * into interaction_loggings.json
    */
   logInteractiondata(key, value) {
     let interactionData = {};
