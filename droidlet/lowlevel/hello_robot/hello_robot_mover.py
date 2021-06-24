@@ -89,21 +89,41 @@ class HelloRobotMover(MoverInterface):
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(self, x_s, use_dslam=True):
+    def move_relative(self, xyt_positions, use_dslam=False):
         """Command to execute a relative move.
 
         Args:
             xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
+            x,y,yaw are in the pyrobot's coordinates.
         """
-        pass
+        if not isinstance(next(iter(xyt_positions)), Iterable):
+            # single xyt position given
+            xyt_positions = [xyt_positions]
+        for xyt in xyt_positions:
+            self.bot.go_to_relative(xyt, close_loop=True, use_dslam=use_dslam)
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
+    def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
         """Command to execute a move to an absolute position.
+
+        It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
+        before calling the bot APIs.
 
         Args:
             xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
+            (x_c,y_c,yaw) are in the canonical world coordinates.
         """
-        pass
+        if not isinstance(next(iter(xyt_positions)), Iterable):
+            # single xyt position given
+            xyt_positions = [xyt_positions]
+        for xyt in xyt_positions:
+            logging.info("Move absolute in canonical coordinates {}".format(xyt))
+            self.bot.go_to_absolute(
+                base_canonical_coords_to_pyrobot_coords(xyt),
+                close_loop=True,
+                use_map=use_map,
+                use_dslam=use_dslam,
+            )
+        return "finished"
 
     def look_at(self, obj_pos, yaw_deg, pitch_deg):
         """Executes "look at" by setting the pan, tilt of the camera or turning the base if required.
@@ -198,7 +218,7 @@ class HelloRobotMover(MoverInterface):
         self.bot.rotate_by(turn_rad)
 
     def get_obstacles_in_canonical_coords(self):
-        pass
+        print("no-op get_obstacles_in_canonical_coords")
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
