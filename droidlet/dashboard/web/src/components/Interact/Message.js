@@ -48,13 +48,12 @@ class Message extends Component {
           </ListItemText>
           <ListItemSecondaryAction>
             {value.msg !== "" ? (
-              <IconButton
-                edge="end"
-                aria-label="Fail"
+              <Button
+                style={{ backgroundColor: "red", color: "white" }}
                 onClick={() => this.props.goToQuestion(idx)}
               >
-                <FailIcon className="cross" />
-              </IconButton>
+                Mark Error
+              </Button>
             ) : null}
           </ListItemSecondaryAction>
         </ListItem>,
