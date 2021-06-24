@@ -60,6 +60,7 @@ class StateManager {
     timelineEvent: "",
     timelineEventHistory: [],
   };
+  session_id = null;
 
   constructor() {
     this.processMemoryState = this.processMemoryState.bind(this);
@@ -83,6 +84,18 @@ class StateManager {
     this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
+    async function getIP() {
+      const response = await fetch("https://api.ipify.org/?format=json");
+      const data = await response.json();
+      return data;
+    }
+
+    let ipAddress = "";
+    getIP().then((data) => {
+      ipAddress = data["ip"];
+      const dateString = (+new Date()).toString(36);
+      this.session_id = ipAddress + ":" + dateString; // generate session id from ipAddress and date of opening webapp
+    });
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
     const turkExperimentId = urlParams.get("turk_experiment_id");
@@ -182,13 +195,10 @@ class StateManager {
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
     socket.on("image", this.processRGBDepth); // RGB + Depth
-
     socket.on("objects", this.processObjects);
-    
     socket.on("updateVoxelWorldState", this.updateVoxelWorld);
     socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
     socket.on("showAssistantReply", this.showAssistantReply);
-    
     socket.on("humans", this.processHumans);
     socket.on("map", this.processMap);
     socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
@@ -350,6 +360,19 @@ class StateManager {
     if (commands.length > 0) {
       this.socket.emit("movement command", commands);
     }
+  }
+
+  /**
+   * key and value is the key value pair to be logged by flask
+   * into interaction_loggings.json
+   */
+  logInteractiondata(key, value) {
+    let interactionData = {};
+    interactionData["session_id"] = this.session_id;
+    interactionData["mephisto_agent_id"] = this.getMephistoAgentId();
+    interactionData["turk_worker_id"] = this.getTurkWorkerId();
+    interactionData[key] = value;
+    this.socket.emit("interaction data", interactionData);
   }
 
   processMemoryState(msg) {

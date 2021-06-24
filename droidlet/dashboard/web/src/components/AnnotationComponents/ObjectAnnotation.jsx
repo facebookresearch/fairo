@@ -290,6 +290,7 @@ class ObjectAnnotation extends React.Component {
       pointMap: this.pointMap,
     };
     this.props.stateManager.socket.emit("saveObjectAnnotation", postData);
+    this.props.stateManager.logInteractiondata("object annotation", postData);
     if (this.props.not_turk === true) return;
 
     // TODO: uncomment this to get working in a turk setting again

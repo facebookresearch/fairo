@@ -118,6 +118,8 @@ class Message extends Component {
     if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.props.setInteractState({ msg: chatmsg, failed: false });
+      //log message to flask
+      this.props.stateManager.logInteractiondata("text command", chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
       //clear the textbox
