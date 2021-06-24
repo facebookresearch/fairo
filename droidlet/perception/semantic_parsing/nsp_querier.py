@@ -26,6 +26,9 @@ class NSPQuerier(object):
         self.NSPLogger = NSPLogger(
             "nsp_outputs.csv", ["command", "action_dict", "source", "agent", "time"]
         )
+        self.ErrorLogger = NSPLogger(
+            "error_details.csv", ["command", "action_dict", "time", "parser_error", "other_error", "other_error_description"]
+        )
         try:
             self.parsing_model = DroidletSemanticParsingModel(
                 opts.nsp_models_dir, opts.nsp_data_dir
@@ -47,6 +50,23 @@ class NSPQuerier(object):
             logging.debug("got logical form: %r" % (action_dict))
             payload = {"action_dict": action_dict}
             sio.emit("renderActionDict", payload)
+
+        @sio.on("saveErrorDetailsToCSV")
+        def save_error_details(sid, data):
+            """Save error details to error logs.
+            The fields are
+                ["command", "action_dict", "source", "agent", "time", "parser_error", "other_error", "other_error_description"]
+            """
+            logging.info("Saving error details: %r" % (data))
+            if "action_dict" not in data or "msg" not in data:
+                logging.info("Could not save error details due to error in dashboard backend.")
+                return
+            is_parser_error = data["parsing_error"]
+            if is_parser_error:
+                self.ErrorLogger.log_dialogue_outputs([data["msg"], data["action_dict"], None, True, None, None])
+            else:
+                self.ErrorLogger.log_dialogue_outputs([data["msg"], data["action_dict"], None, False, True, data["feedback"]])
+
 
     def preprocess_chat(self, chat):
         """Tokenize the chat and get list of sentences to parse.
