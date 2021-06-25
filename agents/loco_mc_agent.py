@@ -14,7 +14,8 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio, dispatch
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
-
+from droidlet.memory.memory_nodes import ProgramNode
+from locobot.agent.label_propagation.label_propagation import propogate_label
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -109,6 +110,18 @@ class LocoMCAgent(BaseAgent):
         def save_object_annotation_to_db(sid, postData):
             logging.debug("in save_object_annotation_to_db, got postData: %r" % (postData))
             saveObjectAnnotationsToDb(self.conn, postData)
+
+        @sio.on("labelPropagation")
+        def label_propagation(sid, props): 
+            print("------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------")
+            # edit props
+            # Convert rgb array to a map
+            # Convert depth map to meters
+            # Convert mask polygons to mask maps then combine them
+            print(props)
+            sio.emit("labelPropagationReturn", props)
+            
+            # propogate_label(props)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):

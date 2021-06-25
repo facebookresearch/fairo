@@ -82,6 +82,8 @@ class StateManager {
 
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
+    this.getLabelPropagationProps = this.getLabelPropagationProps.bind(this);
+
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
     const turkExperimentId = urlParams.get("turk_experiment_id");
@@ -218,6 +220,8 @@ class StateManager {
     socket.on("humans", this.processHumans);
     socket.on("map", this.processMap);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
+
+    socket.on("labelPropagationReturn", this.labelPropagationReturn)
   }
 
   updateStateManagerMemory(data) {
@@ -380,6 +384,49 @@ class StateManager {
     interactionData[key] = value;
     this.socket.emit("interaction data", interactionData);
   }
+
+  getLabelPropagationProps() {
+    let props = {
+      rgbMap: this.labelPropProps.rgbImg, 
+      depthMap: this.labelPropProps.depthImg, 
+      masks: this.labelPropProps.masks, 
+      basePose: this.labelPropProps.pose,
+    }
+    console.log("prop props:", props)
+    this.socket.emit("labelPropagation", props)
+  }
+
+  labelPropagationReturn(props) {
+    console.log("label prop retrun:", props)
+  }
+
+  // // Takes in img element and returns RGB map of form height-width-RGBA
+  // buildRGBMap(img) {
+  //   // Get image data
+  //   let canvas = document.createElement("canvas")
+  //   canvas.width = img.width === 0 ? 512 : img.width
+  //   canvas.height = img.height === 0 ? 512 : img.height
+  //   let ctx = canvas.getContext("2d")
+  //   ctx.drawImage(img, 0, 0)
+  //   let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+
+  //   // Convert image data to hwc map
+  //   let imgRGB = [[]]
+  //   let row = 0, col = 0
+  //   for (let i = 0; i < imgData.length; i += 4) {
+  //     let pointData = imgData.slice(i, i + 3) // only include RGB (not RGBA)
+  //     imgRGB[row].push(pointData) 
+  //     col += 1
+  //     if (col === img.width) {
+  //       col = 0
+  //       row += 1
+  //       if (row < img.height) {
+  //         imgRGB.push([])
+  //       }
+  //     }
+  //   }
+  //   return imgRGB
+  // }
 
   processMemoryState(msg) {
     this.refs.forEach((ref) => {
