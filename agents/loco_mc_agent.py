@@ -8,9 +8,11 @@ import time
 import numpy as np
 import datetime
 import json
+import os
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
+from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
 from droidlet.base_util import hash_user
@@ -56,6 +58,7 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
+        self.interactionLogger = InteractionLogger("interaction_loggings.json")
         # Add optional logging for timeline
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
@@ -120,6 +123,7 @@ class LocoMCAgent(BaseAgent):
                 return back a socket emit with parse of command and success status
             """
             logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
+
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
@@ -168,7 +172,11 @@ class LocoMCAgent(BaseAgent):
                 with open("job_metadata.json", "w+") as f:
                     json.dump(job_metadata, f)
             os._exit(0)
-                
+
+        @sio.on("interaction data")
+        def log_interaction_data(sid, interactionData):
+            self.interactionLogger.logInteraction(interactionData)
+
 
     def init_physical_interfaces(self):
         """

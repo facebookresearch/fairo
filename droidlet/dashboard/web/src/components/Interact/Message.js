@@ -48,13 +48,12 @@ class Message extends Component {
           </ListItemText>
           <ListItemSecondaryAction>
             {value.msg !== "" ? (
-              <IconButton
-                edge="end"
-                aria-label="Fail"
+              <Button
+                style={{ backgroundColor: "red", color: "white" }}
                 onClick={() => this.props.goToQuestion(idx)}
               >
-                <FailIcon className="cross" />
-              </IconButton>
+                Mark Error
+              </Button>
             ) : null}
           </ListItemSecondaryAction>
         </ListItem>,
@@ -119,6 +118,8 @@ class Message extends Component {
     if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.props.setInteractState({ msg: chatmsg, failed: false });
+      //log message to flask
+      this.props.stateManager.logInteractiondata("text command", chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
       //clear the textbox
