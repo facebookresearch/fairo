@@ -130,11 +130,16 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
 
     # FIXME! it is assumed for now that the value is the obj_text, not the obj; need to
     # to introduce special comparison_symbol for the obj memid case
-    if comparison_symbol != "=":
-        raise Exception("Triple values need to have '=' as comparison symbol for now")
-    triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
+    if comparison_symbol != "=" and comparison_symbol != "=#=":
+        raise Exception("Triple values need to have '=' or '=#=' as comparison symbol for now")
+    if comparison_symbol == "=":
+        triples = agent_memory.get_triples(pred_text=prop, obj_text=value[0])
+    else:
+        triples = agent_memory.get_triples(pred_text=prop, obj=value[0])
+
+    node_children = agent_memory.node_children[memtype]
     if len(triples) > 0:
-        return [t[0] for t in triples]
+        return [t[0] for t in triples if agent_memory.get_node_from_memid(t[0]) in node_children]
     return []
 
 

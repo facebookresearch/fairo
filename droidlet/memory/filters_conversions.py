@@ -25,6 +25,10 @@ def get_inequality_symbol(iq):
         return "!="
     elif iq == "EQUAL":
         return "="
+    # FIXME deprecate this, better syntax for triples and memids
+    # use . notation? $variable.memid?
+    elif iq == "MEMID_EQUAL":
+        return "=#="
     else:
         if type(iq) is dict:
             assert iq.get("close_tolerance") or iq.get("modulus")
@@ -43,15 +47,23 @@ def convert_triple_to_comparator(triple):
     pred_text = triple.get("pred_text")
     if not pred_text:
         raise Exception("triples currently need a pred_text in FILTERS form")
-    obj = triple.get("obj_text") or triple.get("obj")
-    if not obj:
+    obj_text = triple.get("obj_text")
+    obj = triple.get("obj")
+    if not obj or obj_text:
         raise Exception("triples currently need a obj_text or obj in FILTERS form")
     # this is post span/coref resolve
-    c = {
-        "input_left": {"value_extractor": pred_text},
-        "input_right": {"value_extractor": obj},
-        "comparison_type": "EQUAL",
-    }
+    if obj:
+        c = {
+            "input_left": {"value_extractor": pred_text},
+            "input_right": {"value_extractor": obj},
+            "comparison_type": "MEMID_EQUAL",
+        }
+    else:
+        c = {
+            "input_left": {"value_extractor": pred_text},
+            "input_right": {"value_extractor": obj_text},
+            "comparison_type": "EQUAL",
+        }
     return c
 
 
@@ -345,6 +357,9 @@ def where_leaf_to_comparator(clause):
     """
     # TODO having_measure
     eq_idx = clause.find("=")
+    memideq_idx = clause.find(
+        "=#="
+    )  # special equality for memids instead of subject or object _text_
     lt_idx = clause.find("<")
     lte_idx = clause.find("<=")
     gt_idx = clause.find(">")
@@ -379,6 +394,9 @@ def where_leaf_to_comparator(clause):
             eq = clause[eq_idx : clause.find(")", eq_idx) + 1]
             ct = {"close_tolerance": int(eq[4:-1])}
             right_text = clause[eq_idx + len(eq) + 1 :]
+        elif clause[eq_idx + 1 : eq_idx + 3] == "#=":
+            ct = "MEMID_EQUAL"
+            right_text = clause[eq_idx + 3 :]
         else:
             ct = "EQUAL"
             right_text = clause[eq_idx + 1 :]

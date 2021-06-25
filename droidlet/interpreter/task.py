@@ -75,15 +75,10 @@ class Task(object):
                     {"prio": -2, "finished": True}
                 )
                 return
-            query = "SELECT MEMORY FROM Tasks WHERE (prio>=1 AND _has_parent_task={})".format(
+            query = "SELECT MEMORY FROM Task WHERE ((prio>=1) AND (_has_parent_task=#={}))".format(
                 self.memid
             )
-            query = {
-                "base_table": "Tasks",
-                "base_range": {"minprio": 0.5},
-                "triples": [{"pred_text": "_has_parent_task", "obj": self.memid}],
-            }
-            child_task_mems = self.agent.memory.basic_search(query)
+            _, child_task_mems = self.agent.memory.sqly_search(query)
             if child_task_mems:  # this task has active children, step them
                 return
             r = stepfn(self)

@@ -24,8 +24,17 @@ class VoxelCounter(Attribute):
             return True
 
         if self.block_data:
-            block_type_search_data = {"base_table": "BlockTypes", "triples": self.block_data}
-            block_type_mems = self.memory.basic_search(block_type_search_data)
+            # FIXME: allow more general queries
+            block_type_triples = (
+                "("
+                + " AND ".join(
+                    ["({}={})".format(d["pred_text"], d["obj_text"]) for d in self.block_data]
+                )
+                + ")"
+            )
+            _, block_type_mems = self.memory.sqly_search(
+                "SELECT MEMORY FROM BlockType WHERE " + block_type_triples
+            )
             allowed_idm_list = [(b.b, b.m) for b in block_type_mems]
 
             def allowed_idm(idm):  # noqa
