@@ -12,6 +12,7 @@ const options = {
   tooltip: {
     followMouse: true,
     overflowMethod: "cap",
+    // preserves the formatting from JSON.stringify()
     template: function (originalItemData, parsedItemData) {
       return "<pre>" + originalItemData.title + "</pre>";
     },
@@ -23,6 +24,7 @@ class DashboardTimeline extends React.Component {
     super();
     this.timeline = {};
     this.appRef = createRef();
+    this.prevEvent = "";
   }
 
   componentDidMount() {
@@ -32,21 +34,18 @@ class DashboardTimeline extends React.Component {
 
   renderEvent() {
     const event = this.props.stateManager.memory.timelineEvent;
-    if (event) {
+    // prevents duplicates because state changes cause the page to rerender
+    if (event && event !== this.prevEvent) {
+      this.prevEvent = event;
       const eventObj = JSON.parse(event);
-      if (
-        items.length <
-        this.props.stateManager.memory.timelineEventHistory.length
-      ) {
-        items.add([
-          {
-            title: JSON.stringify(eventObj, null, 2),
-            content: eventObj["name"],
-            start: eventObj["datetime"],
-            selectable: false,
-          },
-        ]);
-      }
+      items.add([
+        {
+          title: JSON.stringify(eventObj, null, 2),
+          content: eventObj["name"],
+          start: eventObj["datetime"],
+          selectable: false,
+        },
+      ]);
     }
   }
 
