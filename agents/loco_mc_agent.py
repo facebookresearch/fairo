@@ -8,6 +8,10 @@ import time
 import numpy as np
 import datetime
 import os
+import base64
+import cv2
+from imantics import Polygons
+import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
@@ -114,14 +118,50 @@ class LocoMCAgent(BaseAgent):
         @sio.on("labelPropagation")
         def label_propagation(sid, props): 
             print("------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------")
-            # edit props
-            # Convert rgb array to a map
-            # Convert depth map to meters
-            # Convert mask polygons to mask maps then combine them
-            print(props)
-            sio.emit("labelPropagationReturn", props)
+            print(props["rgbImg"][:100])
+            print(props["depthOrg"][:100])
+            print(props["masks"], len(props["masks"]))
+            print(props["basePose"])
+            processed_props = {}
             
-            # propogate_label(props)
+            # Convert rgb array to a map
+            rgb_encoded = props["rgbImg"]
+            rgb = base64.b64decode(rgb_encoded)
+            rgb = cv2.imdecode(np.array(rgb), cv2.IMREAD_COLOR)
+            print(rgb, type(rgb))
+            processed_props["rgbImg"] = rgb
+            # Get height, width from rgb image
+            height = 512
+            width = 512
+
+            # Convert depth map to meters
+            depth_encoded = props["depthOrg"]
+            depth = base64.b64decode(depth_encoded)
+            processed_props["depthOrg"] = depth
+            
+            # Convert mask polygons to mask maps then combine them
+            masks = props["masks"]
+            maskMap = []
+            for mask in masks: 
+                poly = Polygons(mask)
+                bitmap = poly.mask(height, width)
+                maskMap.append(bitmap.array)            
+            combinedMap = np.zeros((height, width)).astype(int)
+            for n, mask in enumerate(maskMap): 
+                # TODO probably a cleaner way to do this with numpy arrays
+                for i in range(height): 
+                    for j in range(width): 
+                        if mask[i][j]: 
+                            combinedMap[i][j] = n
+            processed_props["labelMap"] = combinedMap
+
+            # Attach base pose data
+            processed_props["basePoseData"] = props["basePose"]
+            
+            sio.emit("labelPropagationReturn", processed_props)
+            
+            # res = propogate_label(props)
+            # sio.emit("labelPropagationReturn", res)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):

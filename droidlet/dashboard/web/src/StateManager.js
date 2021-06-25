@@ -387,17 +387,26 @@ class StateManager {
 
   getLabelPropagationProps() {
     let props = {
-      rgbMap: this.labelPropProps.rgbImg, 
-      depthMap: this.labelPropProps.depthImg, 
+      rgbImg: this.labelPropProps.rgbImg, 
+      depthOrg: this.labelPropProps.depthOrg, 
       masks: this.labelPropProps.masks, 
       basePose: this.labelPropProps.pose,
     }
-    console.log("prop props:", props)
+    console.log("doing the label prop", props)
     this.socket.emit("labelPropagation", props)
   }
 
   labelPropagationReturn(props) {
     console.log("label prop retrun:", props)
+  }
+
+  labelPropPropsFull() {
+    return (
+      this.labelPropProps.rgbImg && 
+      this.labelPropProps.depthOrg && 
+      this.labelPropProps.masks && 
+      this.labelPropProps.pose
+    )
   }
 
   // // Takes in img element and returns RGB map of form height-width-RGBA
@@ -457,7 +466,7 @@ class StateManager {
 
   processDepth(res) {
     let depth = new Image();
-    depth.src = "data:image/webp;base64," + res;
+    depth.src = "data:image/webp;base64," + res.depthImg;
     this.refs.forEach((ref) => {
       if (ref instanceof LiveImage) {
         if (ref.props.type === "depth") {
