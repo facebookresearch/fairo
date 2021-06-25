@@ -17,6 +17,10 @@ const options = {
       return "<pre>" + originalItemData.title + "</pre>";
     },
   },
+  zoomMax: 86400000,
+  rollingMode: {
+    follow: true,
+  },
 };
 
 class DashboardTimeline extends React.Component {
@@ -30,6 +34,12 @@ class DashboardTimeline extends React.Component {
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
     this.timeline = new Timeline(this.appRef.current, items, options);
+    // set current viewing window to 30 minutes for readability
+    let currentTime = this.timeline.getCurrentTime();
+    this.timeline.setOptions({
+      start: currentTime.setMinutes(currentTime.getMinutes() - 15),
+      end: currentTime.setMinutes(currentTime.getMinutes() + 30),
+    });
   }
 
   renderEvent() {
