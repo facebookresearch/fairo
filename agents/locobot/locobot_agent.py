@@ -127,16 +127,6 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("store session id")
         def create_loggings_object(sid, id):
-            print ("id sent is: ")
-            print (id)
-            print (id)
-            print (id)
-            print (id)
-            print (id)
-            print (id)
-            print (id)
-            print (id)
-            
             filePath = "interaction_loggings_" + id + ".json"
             self.interactionLogger = InteractionLogger(filePath)
         
