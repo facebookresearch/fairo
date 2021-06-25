@@ -19,19 +19,8 @@ class InteractionLogger:
 
     def create_loggings_file(self, filepath):
         self.createdFile = True
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
-        print ('creating loggings file')
 
-        if os.path.isfile(self.log_filepath):
-            print()
-        else:
+        if not os.path.isfile(self.log_filepath):
             with open(self.log_filepath, 'w') as f:
                 json.dump([], f, ensure_ascii=False, indent=4)
 
@@ -47,22 +36,8 @@ class InteractionLogger:
         if not self.createdFile:
             self.create_loggings_file(self.log_filepath)
         
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ('LOGGING INTERACTION')
-        print ("FILE PATH IS")
         loggingsFile =  self.log_filepath
-        print (loggingsFile)
-        print (loggingsFile)
-        print (loggingsFile)
-        print (loggingsFile)
-        print (loggingsFile)
 
-        # TODO: Instead of reading the json file and storing it in a variable, then updating the variable, write directly into the file
         with open (loggingsFile, 'r', encoding='utf-8') as f:
             # read json file
             feeds = json.load(f)

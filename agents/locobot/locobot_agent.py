@@ -125,30 +125,19 @@ class LocobotAgent(LocoMCAgent):
             self.dashboard_memory["objects"] = objects
             sio.emit("updateState", {"memory": self.dashboard_memory})
 
-        @sio.on("create loggings file")
-        def create_loggings_file(sid, id):
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
-            print ("HAI WE ARE CREATING LOGGINGS FILE IN LOCOBOT_AGNET.PY")
+        @sio.on("store session id")
+        def create_loggings_object(sid, id):
+            print ("id sent is: ")
+            print (id)
+            print (id)
+            print (id)
+            print (id)
+            print (id)
+            print (id)
+            print (id)
+            print (id)
             
             filePath = "interaction_loggings_" + id + ".json"
-            print ('ID IS')
-            print(id)
-            print ('ID IS')
-            print(id)
-            print ('ID IS')
-            print(id)
-            print ('ID IS')
-            print(id)
-            print ('ID IS')
-            print(id)
-            
             self.interactionLogger = InteractionLogger(filePath)
         
         @sio.on("interaction data")
