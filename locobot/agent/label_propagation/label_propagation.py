@@ -9,11 +9,13 @@
 from tokenize import String
 import numpy as np
 import os
+import sys
+if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
+    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 import cv2
 import json
 from copy import deepcopy as copy
 from IPython import embed
-import sys
 import time
 import ray
 from scipy.spatial.transform import Rotation
@@ -59,6 +61,7 @@ def propogate_label(
         base_pose_data(np.ndarray): (x,y,theta)
         out_dir (str): path to store labeled propogation image
     """
+    print(f" root {root_path}, out {out_dir}, p {propogation_step}")
     ### load the inputs ###
     # load robot trajecotry data which has pose information coreesponding to each img observation taken
     with open(os.path.join(root_path, "data.json"), "r") as f:
@@ -116,7 +119,7 @@ def propogate_label(
     kernal_size = 3
 
     for img_indx in range(image_range[0], image_range[1]):
-        print("img_index = {}".format(img_indx))
+        # print("img_index = {}".format(img_indx))
 
         ### create point cloud in wolrd frame for img_indx ###
         # get the robot pose value
@@ -183,8 +186,8 @@ def propogate_label(
                         ),
                     )
                     loc = p * width + q
-                    loc = loc.reshape(-1).astype(np.int)
-                    loc = np.clip(loc, 0, width * height - 1).astype(np.int)
+                    loc = loc.reshape(-1).astype(np.int32)
+                    loc = np.clip(loc, 0, width * height - 1).astype(np.int32)
 
                     if (
                         min(np.linalg.norm(cur_pts_in_world[loc] - gt_pix_depth_in_world, axis=1))
@@ -239,7 +242,7 @@ def propogate_label(
             ]
 
             # number of pointf for the label found in cur img
-            print("pts in cam = {}".format(len(pts_in_cur_cam)))
+            # print("pts in cam = {}".format(len(pts_in_cur_cam)))
 
             # assign label to correspoinding pix values
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
@@ -257,6 +260,7 @@ if __name__ == "__main__":
         default="/checkpoint/dhirajgandhi/active_vision/replica_random_exploration_data",
     )
     parser.add_argument("--freq", help="freq to use ground truth seg label", type=int, default=60)
+    parser.add_argument("--gtframes", help="total gt frames to use", type=int, default=100)
     parser.add_argument(
         "--propogation_step",
         help="number of steps till porpgated label (both +ve and -ve side)",
@@ -302,10 +306,10 @@ if __name__ == "__main__":
     start = time.time()
     # load the file for train images to be used for label propogation
     scene_stored_path = args.scene_path
-    for scene in ['apartment_0', 'frl_apartment_4']:
+    for scene in ['apartment_0']:
     # for scene in os.listdir(scene_stored_path):
         root_path = os.path.join(scene_stored_path, scene)
-        out_dir = os.path.join(root_path, args.out_dir)
+        out_dir = args.out_dir #os.path.join(root_path, args.out_dir)
         ray.shutdown()
         # use all avialeble cpus -1
         ray.init(num_cpus=os.cpu_count() - 1)
@@ -317,11 +321,22 @@ if __name__ == "__main__":
             base_pose_data = json.load(f)
 
         num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
+
         propogation_step = args.propogation_step
 
         result = []
         train_img_id = {"img_id": []}
-        for src_img_indx in range(0, num_imgs - propogation_step, args.freq):
+        src_img_indx = 0
+        delta = int(num_imgs / args.gtframes)
+        propogation_step = min(propogation_step, int(delta/2))
+        train_img_id['propagation_step'] = propogation_step
+        
+        for x in range(args.gtframes):
+            src_img_indx += delta
+            # print(f'delta {delta}, prop_length {prop_length}')
+            
+            # print(f'{len(src_img_indx {src_img_indx}')
+        # for src_img_indx in range(0, num_imgs - propogation_step, args.freq):
             result.append(
                 propogate_label.remote(
                     root_path=root_path,
@@ -336,7 +351,7 @@ if __name__ == "__main__":
             )
             train_img_id["img_id"].append(src_img_indx)
 
-        with open(os.path.join(root_path, "train_img_id.json"), "w") as fp:
+        with open(os.path.join(args.out_dir, "train_img_id.json"), "w") as fp:
             json.dump(train_img_id, fp)
         ray.get(result)
     print("duration =", time.time() - start)
