@@ -68,7 +68,7 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
     if not eid:
         eid = get_eid_from_special(agent_memory, S, speaker=speaker)
     q = special_reference_search_data(None, speaker, S, entity_id=eid, agent_memory=agent_memory)
-    _, mems = agent_memory.sqly_search(q)
+    _, mems = agent_memory.basic_search(q)
     if not mems:
         # need a better interface for this, don't need to run full perception
         # just to force speakerlook in memory
@@ -355,7 +355,7 @@ def object_looked_at(
         eid = memory.get_player_by_name(speaker).eid
     # TODO wrap in try/catch, handle failures in finding speaker or not having speakers LOS
     xsect = capped_line_of_sight(memory, eid=eid, cap=25)
-    _, mems = memory.sqly_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
+    _, mems = memory.basic_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
     speaker_mem = mems[0]
     pos = np.array(speaker_mem.get_pos())
     yaw, pitch = speaker_mem.get_yaw_pitch()
@@ -407,7 +407,7 @@ def capped_line_of_sight(memory, speaker=None, eid=None, cap=20):
     xsect_mem = get_special_reference_object(
         None, speaker, "SPEAKER_LOOK", agent_memory=memory, eid=eid
     )
-    _, mems = memory.sqly_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
+    _, mems = memory.basic_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
     speaker_mem = mems[0]
     pos = speaker_mem.get_pos()
     if xsect_mem and np.linalg.norm(np.subtract(xsect_mem.get_pos(), pos)) <= cap:

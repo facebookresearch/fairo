@@ -32,7 +32,7 @@ class VoxelCounter(Attribute):
                 )
                 + ")"
             )
-            _, block_type_mems = self.memory.sqly_search(
+            _, block_type_mems = self.memory.basic_search(
                 "SELECT MEMORY FROM BlockType WHERE " + block_type_triples
             )
             allowed_idm_list = [(b.b, b.m) for b in block_type_mems]

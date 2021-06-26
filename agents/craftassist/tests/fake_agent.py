@@ -634,7 +634,7 @@ class FakePlayer(FakeAgent):
         if self.logical_form is None:
             CraftAssistAgent.controller_step(self)
             query = "SELECT Tasks WHERE ( (prio >= 0) AND (paused <= 0))"
-            _, task_mems = self.memory.sqly_search(query)
+            _, task_mems = self.memory.basic_search(query)
             if not task_mems:
                 if len(self.lf_list) > 0:
                     self.logical_form = self.lf_list[0]

@@ -234,12 +234,12 @@ class MemorySearcher:
             memid_lists = []
             for c in where_clause["AND"]:
                 memid_lists.append(self.handle_where(agent_memory, c, memtype))
-            return set.intersection(*[set(m) for m in memid_lists])
+            return list(set.intersection(*[set(m) for m in memid_lists]))
         if where_clause.get("OR"):
             memid_lists = []
             for c in where_clause["OR"]:
                 memid_lists.append(self.handle_where(agent_memory, c, memtype))
-            return set.union(*[set(m) for m in memid_lists])
+            return list(set.union(*[set(m) for m in memid_lists]))
         if where_clause.get("NOT"):
             # FIXME memtype might be a union of node types
             # maybe FIXME? don't retrieve everything until necessary

@@ -244,17 +244,20 @@ class BasicTest(unittest.TestCase):
         joe_tag_memid = self.memory.tag(joe_memid, "joe")
         jane_memid = PlayerNode.create(self.memory, Player(11, "jane", Pos(-1, 0, 1), Look(0, 0)))
 
-        joe_mems = self.memory.basic_search({"base_exact": {"name": "joe"}, "triples": []})
-        jane_mems = self.memory.basic_search({"base_exact": {"name": "jane"}, "triples": []})
+        _, joe_mems = self.memory.basic_search("SELECT MEMORY FROM ReferenceObject WHERE name=joe")
+        _, jane_mems = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE name=jane"
+        )
         assert len(joe_mems) == 1
         assert len(jane_mems) == 1
 
-        joe_mems_from_tag = self.memory.basic_search(
-            {"base_exact": {}, "triples": [{"obj_text": "joe", "pred_text": "has_tag"}]}
+        _, joe_mems_from_tag = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE has_tag=joe"
         )
-        jane_mems_from_tag = self.memory.basic_search(
-            {"base_exact": {}, "triples": [{"obj_text": "jane", "pred_text": "has_tag"}]}
+        _, jane_mems_from_tag = self.memory.basic_search(
+            "SELECT MEMORY FROM ReferenceObject WHERE has_tag=jane"
         )
+
         assert len(joe_mems_from_tag) == 1
         assert len(jane_mems_from_tag) == 0
 

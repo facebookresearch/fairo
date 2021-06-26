@@ -70,7 +70,7 @@ class AgentMemory:
         all_tables (list): List of all table names
         nodes (dict): Mapping of node name to table name
         self_memid (str): MemoryID for the AgentMemory
-        basic_searcher (BasicMemorySearcher): A class to search through memory
+        searcher (MemorySearcher): A class to process searches through memory
         time (int): The time of the agent
     """
 
@@ -133,7 +133,6 @@ class AgentMemory:
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "SELF")
 
-        self.basic_searcher = BasicMemorySearcher(self_memid=self.self_memid)
         self.searcher = MemorySearcher()
 
     def __del__(self):
@@ -348,25 +347,17 @@ et        """
         for u in uuids:
             self.forget(u[0])
 
-    def sqly_search(self, query):
-        return self.searcher.search(self, query=query)
-
-    def basic_search(self, filter_dict):
-        """Perform a basic search using the filter_dict
+    def basic_search(self, query):
+        """Perform a basic search using the query
 
         Args:
-            filter_dict (dict): A dictionary indicating values that the memory should be filtered on
+            query (dict): A FILTERS dict or sqly query
 
         Returns:
-            list[MemoryNode]: A list of MemoryNode objects.
+            list[memid], list[value]: the memids and respective values from the search
 
-        Examples::
-            >>> filters_dict = {"base_table" : "ReferenceObject",
-                                "triples" : [{"pred_text" : "has_name",
-                                              "obj_text" : "house"}]}
-            >>> basic_search(filters_dict)
         """
-        return self.basic_searcher.search(self, search_data=filter_dict)
+        return self.searcher.search(self, query=query)
 
     #################
     ###  Triples  ###

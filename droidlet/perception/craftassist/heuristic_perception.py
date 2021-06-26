@@ -512,7 +512,7 @@ def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=
             fill_block_name = block_data["bid_to_name"].get(idm)
         if fill_block_name:
             query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
-            _, fill_block_mems = agent.memory.sqly_search(query)
+            _, fill_block_mems = agent.memory.basic_search(query)
             fill_block_memid = fill_block_mems[0].memid
             agent.memory.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
         hole_mems.append(agent.memory.get_mem_by_id(memid))

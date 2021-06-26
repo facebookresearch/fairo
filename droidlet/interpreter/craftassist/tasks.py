@@ -675,7 +675,7 @@ class Fill(Task):
 
     def undo(self, agent):
         query = "SELECT MEMORY FROM Task WHERE _has_parent_task=#={}".format(self.memid)
-        _, build_mems = self.agent.memory.sqly_search(query)
+        _, build_mems = self.agent.memory.basic_search(query)
         if build_mems:
             build_mems[0].task.undo(agent)
 
@@ -750,7 +750,7 @@ class Destroy(Task):
 
     def undo(self, agent):
         query = "SELECT MEMORY FROM Task WHERE _has_parent_task=#={}".format(self.memid)
-        _, build_mems = self.agent.memory.sqly_search(query)
+        _, build_mems = self.agent.memory.basic_search(query)
         if build_mems:
             build_mems[0].task.undo(agent)
 
