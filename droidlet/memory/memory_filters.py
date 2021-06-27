@@ -673,7 +673,7 @@ class ComparatorFilter(MemoryFilter):
 
 
 class BasicFilter(MemoryFilter):
-    def __init__(self, agent_memory, query, ignore_self=False):  # search_data):
+    def __init__(self, agent_memory, query, ignore_self=False):
         super().__init__(agent_memory)
         self.query = query
         self.searcher = MemorySearcher(ignore_self=ignore_self)
@@ -692,14 +692,3 @@ class BasicFilter(MemoryFilter):
 
     def _selfstr(self):
         return "Basic: (" + str(self.query) + ")"
-
-
-if __name__ == "__main__":
-    search_data = {
-        "ref_obj_range": {"minx": 3},
-        "memories_exact": {"create_time": 1},
-        "triples": [
-            {"pred_text": "has_tag", "obj_text": "cow"},
-            {"pred_text": "has_name", "obj_text": "eddie"},
-        ],
-    }

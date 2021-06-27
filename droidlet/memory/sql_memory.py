@@ -14,7 +14,7 @@ from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
-from droidlet.memory.memory_filters import BasicMemorySearcher, MemorySearcher
+from droidlet.memory.memory_filters import MemorySearcher
 from .dialogue_stack import DialogueStack
 
 from droidlet.memory.memory_nodes import (  # noqa

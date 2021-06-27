@@ -32,7 +32,7 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
 
 
 def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent_memory=None):
-    """make a search dictionary for a BasicMemorySearcher to return the special ReferenceObject"""
+    """make a search query for a MemorySearcher to return the special ReferenceObject"""
     # TODO/FIXME! add things to workspace memory
     agent_memory = agent_memory or interpreter.memory
     if type(S) is dict:
