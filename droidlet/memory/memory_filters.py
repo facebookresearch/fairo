@@ -5,6 +5,14 @@ from typing import List
 import torch
 from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_new_filters
 
+####################################################################################
+### FIXME!!! memory searcher and basic filters need to be merged
+### and several of the FILTER interpreter files (comparator_helper, filter_helper, etc.)
+### need to be updated
+### also, need to update memory searcher semantics for multiple output values
+####################################################################################
+
+
 SELFID = "0" * 32
 
 
@@ -22,8 +30,6 @@ def maybe_or(sql, a):
         return sql
 
 
-# FIXME merge this with more general filters
-# FIXME don't just pick the first one, allow all props returned
 def get_property_value(agent_memory, mem, prop, get_all=False):
     """
     Tries to get property value from a memory.
@@ -218,9 +224,9 @@ class MemorySearcher:
     # TODO eventually allow any attribute- if its not a "simple" attribute,
     #  pass in as attribute object (callable with proper signature)
 
-    def __init__(self, self_memid=SELFID, query=None):
-        self.self_memid = self_memid
+    def __init__(self, query=None, ignore_self=False):
         self.query = query
+        self.ignore_self = ignore_self
 
     def maybe_convert_query(self, query):
         if type(query) is str:
@@ -363,201 +369,13 @@ class MemorySearcher:
         else:
             memids = []
         memids = self.handle_selector(agent_memory, query, memids)
-        # TODO/FIXME switch output format to dicts
+        if self.ignore_self:
+            try:
+                memids.remove(agent_memory.self_memid)
+            except:
+                pass
+            # TODO/FIXME switch output format to dicts
         return memids, self.handle_output(agent_memory, query, memids)
-
-
-# TODO?  merge into Memory
-class BasicMemorySearcher:
-    def __init__(self, self_memid=SELFID, search_data=None):
-        self.self_memid = self_memid
-        self.search_data = search_data
-
-    def is_filter_empty(self, search_data):
-        r = search_data.get("special")
-        if r and len(r) > 0:
-            return False
-        r = search_data.get("base_range")
-        if r and len(r) > 0:
-            return False
-        r = search_data.get("base_exact")
-        if r and len(r) > 0:
-            return False
-        r = search_data.get("memories_range")
-        if r and len(r) > 0:
-            return False
-        r = search_data.get("memories_exact")
-        if r and len(r) > 0:
-            return False
-        t = search_data.get("triples")
-        if t and len(t) > 0:
-            return False
-        return True
-
-    def range_queries(self, r, table, a=False):
-        """this does x, y, z, pitch, yaw, etc.
-        input format for generates is
-        {"xmin": float, xmax: float, ... , yawmin: float, yawmax: float}
-        """
-        sql = ""
-        vals = []
-        for k, v in r.items():
-            if "min" in k:
-                sql = maybe_and(sql, len(vals) > 0)
-                sql += table + "." + k.replace("min", "") + ">? "
-                vals.append(v)
-            if "max" in k:
-                sql = maybe_and(sql, len(vals) > 0)
-                sql += table + "." + k.replace("max", "") + "<? "
-                vals.append(v)
-        return sql, vals
-
-    def exact_matches(self, m, table, a=False):
-        sql = ""
-        vals = []
-        for k, v in m.items():
-            sql = maybe_and(sql, len(vals) > 0)
-            sql += table + "." + k + "=? "
-            vals.append(v)
-        return sql, vals
-
-    def triples(self, triples, table, a=False):
-        # currently does an "and": the memory needs to satisfy all triples
-        vals = []
-        if not triples:
-            return "", vals
-        sql = "{}.uuid IN (SELECT subj FROM Triples WHERE ".format(table)
-        for t in triples:
-            sql = maybe_or(sql, len(vals) > 0)
-            if t.get("pred_text"):
-                vals.append(t["pred_text"])
-                if t.get("obj_text"):
-                    sql += "(pred_text, obj_text)=(?, ?)"
-                    vals.append(t["obj_text"])
-                else:
-                    sql += "(pred_text, obj)=(?, ?)"
-                    vals.append(t["obj"])
-            else:
-                if t.get("obj_text"):
-                    sql += "obj_text=?"
-                    vals.append(t["obj_text"])
-                else:
-                    sql += "obj=?"
-                    vals.append(t["obj"])
-        sql += " GROUP BY subj HAVING COUNT(subj)=? )"
-        vals.append(len(triples))
-        return sql, vals
-
-    def get_query(self, search_data, ignore_self=True):
-        table = search_data["base_table"]
-        if self.is_filter_empty(search_data):
-            query = "SELECT uuid FROM " + table
-            if ignore_self:
-                query += " WHERE uuid !=?"
-                return query, [self.self_memid]
-            else:
-                return query, []
-
-        query = (
-            "SELECT {}.uuid FROM {}"
-            " INNER JOIN Memories as M on M.uuid={}.uuid"
-            " WHERE ".format(table, table, table)
-        )
-
-        args = []
-        fragment, vals = self.range_queries(search_data.get("base_range", {}), table)
-        query = maybe_and(query, len(args) > 0)
-        args.extend(vals)
-        query += fragment
-
-        fragment, vals = self.exact_matches(search_data.get("base_exact", {}), table)
-        query = maybe_and(query, len(args) > 0 and len(vals) > 0)
-        args.extend(vals)
-        query += fragment
-
-        fragment, vals = self.range_queries(search_data.get("memories_range", {}), "M")
-        query = maybe_and(query, len(args) > 0 and len(vals) > 0)
-        args.extend(vals)
-        query += fragment
-
-        fragment, vals = self.exact_matches(search_data.get("memories_exact", {}), "M")
-        query = maybe_and(query, len(args) > 0 and len(vals) > 0)
-        args.extend(vals)
-        query += fragment
-
-        fragment, vals = self.triples(search_data.get("triples", []), table)
-        query = maybe_and(query, len(args) > 0 and len(vals) > 0)
-        args.extend(vals)
-        query += fragment
-
-        if ignore_self:
-            query += " AND {}.uuid !=?".format(table)
-            args.append(self.self_memid)
-        return query, args
-
-    # flag (default) so that it makes a copy of speaker_look etc so that if the searcher is called
-    # later so it doesn't return the new position of the agent/speaker/speakerlook
-    # how to parse this distinction?
-    def handle_special(self, agent_memory, search_data):
-        d = search_data.get("special")
-        if not d:
-            return []
-        if d.get("SPEAKER"):
-            return [agent_memory.get_player_by_eid(d["SPEAKER"])]
-        if d.get("SPEAKER_LOOK"):
-            memids = agent_memory._db_read_one(
-                'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
-                d["SPEAKER_LOOK"],
-            )
-            if memids:
-                memid = memids[0]
-                mem = agent_memory.get_location_by_id(memid)
-                return [mem]
-        if d.get("AGENT") is not None:
-            return [agent_memory.get_player_by_eid(d["AGENT"])]
-        if d.get("DUMMY"):
-            return [d["DUMMY"]]
-        return []
-
-    def search(self, agent_memory, search_data=None) -> List["MemoryNode"]:  # noqa T484
-        """Find memories matching the given filters
-        search_data has children:
-            "base_table", value is a string with a table name.  if not specified, the
-                  base table is ReferenceObjects
-            "base_range", dict, with keys "min<column_name>" or "max<column_name>",
-                  (that is the string "min" prepended to the column name)
-                  and float values vmin and vmax respectively.
-                  <column_name> is any column in the base table that
-                  is a numerical value.  filters on rows satisfying the inequality
-                  <column_entry> > vmin or <column_entry> < vmax
-            "base_exact", dict,  with keys "<column_name>"
-                  <column_name> is any column in the base table
-                  checks exact matches to the value
-            "memories_range" and "memories_exact" are the same, but columns in the Memories table
-            "triples" list [t0, t1, ...,, tm].  each t in the list is a dict
-                  with form t = {"pred_text": <pred>, "obj_text": <obj>}
-                  or t = {"pred_text": <pred>, "obj": <obj_memid>}
-                  currently returns memories with all triples matched
-        """
-        if not search_data:
-            search_data = self.search_data
-        assert search_data
-        search_data["base_table"] = search_data.get("base_table", "ReferenceObjects")
-        self.search_data = search_data
-        if search_data.get("special"):
-            return self.handle_special(agent_memory, search_data)
-
-        # FIXME more careful handling of "SELF",
-        # rn you can only get it if you ask for it specfically
-        ignore_self = "SELF" not in [t.get("obj_text", "") for t in search_data.get("triples", [])]
-        query, args = self.get_query(search_data, ignore_self=ignore_self)
-
-        # for debug:
-        self.query = query
-        self.query_args = args
-
-        memids = [m[0] for m in agent_memory._db_read(query, *args)]
-        return [agent_memory.get_mem_by_id(memid) for memid in memids]
 
 
 # TODO subclass for filters that return at most one memory,value?
@@ -855,26 +673,25 @@ class ComparatorFilter(MemoryFilter):
 
 
 class BasicFilter(MemoryFilter):
-    def __init__(self, agent_memory, search_data):
+    def __init__(self, agent_memory, query, ignore_self=False):  # search_data):
         super().__init__(agent_memory)
-        self.search_data = search_data
-        self.sql_interface = BasicMemorySearcher(search_data=search_data)
+        self.query = query
+        self.searcher = MemorySearcher(ignore_self=ignore_self)
 
     def get_memids(self):
         return [m.memid for m in self.sql_interface.search(self.memory)]
 
     def search(self):
-        memids = self.get_memids()
-        return memids, [None] * len(memids)
+        return self.searcher.search(self.memory, query=self.query)
 
     def filter(self, memids, vals):
-        acceptable_memids = self.get_memids()
+        acceptable_memids, _ = self.search()
         filtered_memids = [memids[i] for i in range(len(memids)) if memids[i] in acceptable_memids]
         filtered_vals = [vals[i] for i in range(len(memids)) if memids[i] in acceptable_memids]
         return filtered_memids, filtered_vals
 
     def _selfstr(self):
-        return "Basic: (" + str(self.search_data) + ")"
+        return "Basic: (" + str(self.query) + ")"
 
 
 if __name__ == "__main__":

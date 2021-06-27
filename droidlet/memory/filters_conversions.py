@@ -281,11 +281,21 @@ def split_sqly(S, keywords=FILTERS_KW):
     return clauses
 
 
-def split_where(clause):
+def remove_enclosing_parens(clause):
+    # remove all parens enclosing the whole clause:
     if clause[0] == "(":
         c = close_paren(clause)
         if len(clause) == c + 1:
             clause = clause[1:-1]
+    return clause
+
+
+def split_where(clause):
+    clause = clause.strip()
+    while remove_enclosing_parens(clause) != clause:
+        clause = remove_enclosing_parens(clause)
+        clause = clause.strip()
+
     return split_sqly(clause, keywords=["AND", "OR"])
 
 
@@ -367,8 +377,13 @@ def where_leaf_to_comparator(clause):
     mod_idx = clause.find("%")
     # everything will break if clause is complicated enough that it has internal comparators FIXME?
     # not obvious we should be converting those back forth though
-    assert not (gt_idx > -1 and lt_idx > -1)
-    assert not (eq_idx > -1 and mod_idx > -1)
+    try:
+        assert not (gt_idx > -1 and lt_idx > -1)
+        assert not (eq_idx > -1 and mod_idx > -1)
+    except:
+        import ipdb
+
+        ipdb.set_trace()
 
     if lt_idx > -1:
         eq_idx = -1
