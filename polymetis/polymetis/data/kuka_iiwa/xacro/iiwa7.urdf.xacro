@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot name="iiwa7" 
+  xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Args -->
+  <xacro:arg name="hardware_interface" default="PositionJointInterface"/>
+  <xacro:arg name="robot_name" default="iiwa"/>
+  <xacro:arg name="origin_xyz" default="0 0 0"/>
+  <xacro:arg name="origin_rpy" default="0 0 0"/>
+  <xacro:arg name="gripper" default="none"/>
+  <xacro:arg name="force_torque_sensor" default="false"/>
+  <xacro:arg name="end_effector" default="ee_virtual"/>
+  <xacro:arg name="transparent" default="false"/>
+
+  <!-- Import Rviz colors -->
+  <xacro:include filename="materials.xacro" />
+
+  <xacro:if value="$(arg transparent)">
+    <xacro:materials alpha="0.0" />
+  </xacro:if>
+
+  <xacro:unless value="$(arg transparent)">
+    <xacro:materials />
+  </xacro:unless>
+
+  <!--Import the lbr iiwa macro -->
+  <xacro:include filename="iiwa7.xacro"/>
+
+  <!--iiwa-->
+  <xacro:iiwa7 hardware_interface="$(arg hardware_interface)" robot_name="$(arg robot_name)" gripper="$(arg gripper)" force_torque_sensor="$(arg force_torque_sensor)" end_effector="$(arg end_effector)" parent="world">
+    <origin xyz="$(arg origin_xyz)" rpy="$(arg origin_rpy)" />
+  </xacro:iiwa7>
+
+</robot>

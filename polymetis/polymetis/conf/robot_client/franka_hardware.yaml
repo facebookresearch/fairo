@@ -1,0 +1,80 @@
+hz: 1000
+use_real_time: true
+exec: franka_panda_client
+
+robot_client:
+  _target_: polymetis.robot_client.executable_robot_client.ExecutableRobotClient
+  use_real_time: ${use_real_time}
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [80, 120, 100, 100, 70, 50, 20]
+    default_Kqd: [10, 10, 10, 10, 5, 5, 5]
+    hz: ${hz}
+    robot_model_cfg: ${robot_model}
+  executable_cfg:
+    robot_ip: "172.16.0.2"
+    control_ip: ${ip}
+    control_port: ${port}
+    mock: false
+    use_real_time: ${use_real_time}
+    hz: ${hz}
+    num_dofs: ${robot_model.num_dofs}
+    exec: ${exec}
+    robot_client_metadata_path: ???
+
+    limits: 
+      # bounding box of the workspace
+      cartesian_pos_upper:
+        - 1.0
+        - 0.4
+        - 1.0
+      cartesian_pos_lower:
+        - 0.1
+        - -0.4
+        - -0.05
+
+      # the remaining limits are set to the original franka limits minus a margin
+      joint_pos_upper: #margin: 0.1 rad
+        - 2.80
+        - 1.66
+        - 2.80
+        - -0.17
+        - 2.80
+        - 3.65
+        - 2.80
+      joint_pos_lower: #margin: 0.1 rad
+        - -2.80
+        - -1.66
+        - -2.80
+        - -2.97
+        - -2.80
+        - 0.08
+        - -2.80
+      joint_vel: #margin: 0.1 rad/s
+        - 2.075
+        - 2.075
+        - 2.075
+        - 2.075
+        - 2.51
+        - 2.51
+        - 2.51
+      elbow_vel: 2.075      #margin: 0.1 rad/s
+      joint_torques:  #margin: 1N for first 4 joints, 0.5N for last 3 joints
+        - 86.0
+        - 86.0
+        - 86.0
+        - 86.0
+        - 11.5
+        - 11.5
+        - 11.5
+
+    safety_controller:
+      is_active: true
+      margins: # margin from hard safety limits at which safety controllers start to kick in
+        cartesian_pos: 0.05
+        joint_pos: 0.2
+        joint_vel: 0.5
+      stiffness:
+        cartesian_pos: 200.0
+        joint_pos: 50.0
+        joint_vel: 20.0

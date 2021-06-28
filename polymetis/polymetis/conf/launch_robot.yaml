@@ -1,0 +1,7 @@
+defaults:
+  - robot_model: franka_panda
+  - robot_client: empty_statistics_client  # [franka_sim, franka_hardware, empty_statistics_client]
+
+server_exec: run_server
+ip: 0.0.0.0
+port: 50051

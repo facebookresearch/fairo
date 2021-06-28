@@ -1,0 +1,147 @@
+<robot name="hole_box">
+  <material name="red">
+    <color rgba="1.0 0.0 0.0 1"/>
+  </material>
+  <material name="white">
+    <color rgba="1.0 1.0 1.0 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1"/>
+  </material>
+  <material name="box">
+    <color rgba="0.8 0.4 0.4 1"/>
+  </material>
+  <material name="light_box">
+    <color rgba="0.7 0.35 0.4 1"/>
+  </material>
+
+  <link name="hole_box1">
+    <contact>
+      <lateral_friction value="0.2"/>
+      <rolling_friction value="0.001"/>
+      <contact_cfm value="0.0"/>
+      <contact_erp value="1.0"/>
+      <restitution value="0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge1.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="box"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge1.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="dummy_joint1" type="fixed">
+    <parent link="hole_box1"/>
+    <child link="hole_box2"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+
+  <link name="hole_box2">
+    <contact>
+      <lateral_friction value="0.2"/>
+      <rolling_friction value="0.001"/>
+      <contact_cfm value="0.0"/>
+      <contact_erp value="1.0"/>
+      <restitution value="0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge2.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="light_box"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge2.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="dummy_joint2" type="fixed">
+    <parent link="hole_box2"/>
+    <child link="hole_box3"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+
+  <link name="hole_box3">
+    <contact>
+      <lateral_friction value="0.2"/>
+      <rolling_friction value="0.001"/>
+      <contact_cfm value="0.0"/>
+      <contact_erp value="1.0"/>
+      <restitution value="0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge3.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="box"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge3.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="dummy_joint3" type="fixed">
+    <parent link="hole_box3"/>
+    <child link="hole_box4"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+
+  <link name="hole_box4">
+    <contact>
+      <lateral_friction value="0.2"/>
+      <rolling_friction value="0.001"/>
+      <contact_cfm value="0.0"/>
+      <contact_erp value="1.0"/>
+      <restitution value="0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge4.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+      <material name="light_box"/>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="hole_box_huge4.obj" scale="0.01 0.01 0.01"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

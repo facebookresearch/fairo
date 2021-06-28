@@ -1,0 +1,4 @@
+Class MockControlCallback
+=========================
+
+.. doxygenclass:: MockControlCallback

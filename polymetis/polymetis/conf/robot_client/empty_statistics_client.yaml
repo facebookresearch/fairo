@@ -1,0 +1,20 @@
+robot_client:
+  _target_: polymetis.robot_client.executable_robot_client.ExecutableRobotClient
+  use_real_time: ${use_real_time}
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [0, 0, 0, 0, 0, 0, 0]
+    default_Kqd: [0, 0, 0, 0, 0, 0, 0]
+    hz: 1000
+    robot_model_cfg: ${robot_model}
+  executable_cfg:
+    server_address: "localhost:50051"
+    num_requests: ${num_requests}
+    use_real_time: ${use_real_time}
+    num_dofs: ${robot_model.num_dofs}
+
+    exec: empty_statistics_client
+    robot_client_metadata_path: ???
+
+use_real_time: true
+num_requests: 5000

@@ -1,0 +1,4 @@
+Class TestGrpcClient
+====================
+
+.. doxygenclass:: TestGrpcClient
