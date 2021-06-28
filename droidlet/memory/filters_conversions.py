@@ -141,6 +141,31 @@ def sqlyify_where_clause(c):
 
 
 def new_filters_to_sqly(d):
+    """
+    Takes a query in dictionary form with keys:
+    "output": corresponding to the "SELECT" clause; with string values "COUNT" or "MEMORY"
+        or attribute dict as possible values
+    "memory_type": corresponding to "FROM"; should be a MemoryNode type
+    "where_clause":  a tree of dicts where sentences (lists)
+        of clauses are keyed by a conjunction.  leaves in the tree are
+        comparators.  to represent a kb triple, use a comparator with 
+        input left being the pred_text, and input_right the obj memid or obj_text
+        if obj memid, use "MEMID_EQUAL" as the equality type; otherwise use "EQUAL"
+    "selector": corresponding to "ORDER BY", "LIMIT", "SAME"
+    "contains_coreference": corresponding to "CONTAINS_COREFERENCE"
+
+    returns a string of the following form:
+
+    SELECT <attribute>;
+    FROM mem_type(s);
+    WHERE <sentence of clauses>;
+    ORDER BY <attribute>; 
+    LIMIT <ordinal> DESC/ASC;
+    SAME ALLOWED/DISALLOWED/REQUIRED;
+    CONTAINS_COREFERENCE;
+
+    FIXME!! TODO !! spec for obj searches in triples, etc; subqueries in comparators and attributes, ... 
+    """
     S = "SELECT "
     o = d.get("output", "MEMORY")
     if o == "MEMORY" or o == "COUNT":
