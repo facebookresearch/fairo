@@ -10,8 +10,13 @@ import shutil
 import subprocess
 import tempfile
 import time
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import place_blocks, edit_cuberite_config
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.wait_for_cuberite import wait_for_cuberite
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import (
+    place_blocks,
+    edit_cuberite_config,
+)
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.wait_for_cuberite import (
+    wait_for_cuberite,
+)
 from droidlet.lowlevel.minecraft.shape_helpers import build_shape_scene
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
@@ -121,7 +126,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", default="diverse_world")
+    parser.add_argument("--config", default="flat_world")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--port", type=int, default=25565)
     parser.add_argument("--logging", action="store_true")
