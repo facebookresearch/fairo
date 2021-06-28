@@ -82,7 +82,7 @@ class LocobotAgent(LocoMCAgent):
         self.init_event_handlers()
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
-        self.interactionLogger = None
+        self.interaction_logger = InteractionLogger()
 
     def init_event_handlers(self):
         super().init_event_handlers()
@@ -124,15 +124,10 @@ class LocobotAgent(LocoMCAgent):
                 del o["feature_repr"] # pickling optimization
             self.dashboard_memory["objects"] = objects
             sio.emit("updateState", {"memory": self.dashboard_memory})
-
-        @sio.on("store session id")
-        def create_loggings_object(sid, id):
-            filePath = "interaction_loggings_" + id + ".json"
-            self.interactionLogger = InteractionLogger(filePath)
         
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
-            self.interactionLogger.logInteraction(interactionData)
+            self.interaction_logger.logInteraction(interactionData)
 
     def init_memory(self):
         """Instantiates memory for the agent.
