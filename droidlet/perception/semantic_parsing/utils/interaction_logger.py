@@ -24,9 +24,11 @@ class InteractionLogger:
         """
         
         if (data["session_id"]):
+            # get session_id
             session_id = data["session_id"]
             filePath = "interaction_loggings_" + session_id + ".json"
 
+            # if file path does not exist, write empty json into the file
             if not os.path.isfile(filePath):
                 with open(filePath, 'w') as f:
                     json.dump([], f, ensure_ascii=False, indent=4)
