@@ -124,19 +124,28 @@ class LocoMCAgent(BaseAgent):
             print(props["basePose"])
             processed_props = {}
             
-            # Convert rgb array to a map
-            rgb_encoded = props["rgbImg"]
-            rgb = base64.b64decode(rgb_encoded)
-            rgb = cv2.imdecode(np.array(rgb), cv2.IMREAD_COLOR)
-            print(rgb, type(rgb))
-            processed_props["rgbImg"] = rgb
-            # Get height, width from rgb image
-            height = 512
+            # Decode rgb map
+            height = 512 # should probably pass in height/width as props
             width = 512
+            rgb_encoded = props["rgbImg"]
+            rgb_bytes = base64.b64decode(rgb_encoded)
+            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
+            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
+            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
+            processed_props["rgbImg"] = rgb
+
+            rgb_encoded = props["prevRgbImg"]
+            rgb_bytes = base64.b64decode(rgb_encoded)
+            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
+            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
+            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
+            processed_props["rgbImg"] = rgb
 
             # Convert depth map to meters
             depth_encoded = props["depthOrg"]
-            depth = base64.b64decode(depth_encoded)
+            depth_bytes = base64.b64decode(depth_encoded)
+            depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
+            depth = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
             processed_props["depthOrg"] = depth
             
             # Convert mask polygons to mask maps then combine them
