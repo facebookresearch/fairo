@@ -113,9 +113,167 @@ jobs:
           CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
           bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "/shared" -f 'test*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
 
+  polymetis-build-local:
+    docker:
+      - image: fairrobotics/kuka-workspace:ubuntu-18
+        auth:
+          username: yixinlin
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - run:
+          name: Initialize Git submodules
+          command: |
+            git submodule update --init --recursive
+      - restore_cache:
+          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - run:
+          name: Create Conda environment
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+      - save_cache:
+          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+          paths:
+            - "/opt/conda/envs/polymetis-local"
+      - run:
+          name: Install
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+            cd polymetis/polymetis
+
+            export CFG="Release"
+            export BUILD_DOCS="ON"
+            ./install.sh
+      - run:
+          name: Run tests
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+            cd ./polymetis
+            export PATH=$PWD/polymetis/build/:$PATH
+
+            pytest ./polymetis/tests/python
+            python ./polymetis/tests/cpp/test_server.py
+      - run:
+          name: Generate documentation
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+
+            cd ./polymetis/docs/
+            make html
+
+            tar -cvf html.tar ./_build/html
+      - store_artifacts:
+          path: ./polymetis/docs/html.tar
+          destination: autogen_docs
+
+  polymetis-build-conda-pkg:
+    docker:
+      - image: fairrobotics/kuka-workspace:ubuntu-18
+        auth:
+          username: yixinlin
+          password: $DOCKERHUB_PASSWORD
+    resource_class: medium+
+    steps:
+      - checkout
+      - run:
+          name: Update submodules
+          command: git submodule update --init --recursive
+      - run:
+          name: Create Conda environment
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            [ -d /opt/conda/envs/polymetis-env ] || conda create -n polymetis-env python=3.8
+      - run:
+          name: Install conda-build
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda install conda-build -y
+      - run:
+          name: Create Conda package
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            conda build -c fair-robotics -c conda-forge -c conda-forge/label/old_feature_broken ./polymetis/polymetis/conda/conda_recipe
+      - store_artifacts:
+          path: /opt/conda/conda-bld/linux-64/
+          destination: conda_pkg
+      - run:
+          name: Update local channel
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            cd ./polymetis/polymetis/conda/
+            PKG_PATH="/opt/conda/conda-bld/linux-64/polymetis*.tar.bz2" ./build_conda_package.sh
+      - run:
+          name: Install from conda
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c conda-forge polymetis -y
+      - run:
+          name: Run polymetis pytest
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            pytest ./polymetis/polymetis/tests/python
+      - run:
+          name: Run polymetis C++ unit tests
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            python ./polymetis/polymetis/tests/cpp/test_server.py
+      - run:
+          name: Run libfranka test
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            ./polymetis/polymetis/tests/test_libfranka_installation.sh
+      - run:
+          name: Run integration tests
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-env
+            ./polymetis/tests/test_integrations.sh
+      - run:
+          name: Upload to Anaconda Cloud (if on main branch)
+          command: |
+            if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
+              then
+                . /opt/conda/etc/profile.d/conda.sh
+                conda activate polymetis-env
+                conda install anaconda-client
+                anaconda login --username $ANACONDA_USER --password $ANACONDA_PASSWORD
+                anaconda upload --user fair-robotics /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
+            fi
+
+  polymetis-formatting:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+      - run:
+          name: Run black formatting
+          command: |
+            cd ./polymetis
+            pip install black
+            black --check .
+      - run:
+          name: Run clang-format
+          command: |
+            cd ./polymetis
+            pip install clang-format
+            export PATH=$PATH
+            ./scripts/format_cpp.sh check all
 
 workflows:
   build:
     jobs:
       - minecraft
       - locobot
+      - polymetis-build-local
+      - polymetis-build-conda-pkg
+      - polymetis-formatting
