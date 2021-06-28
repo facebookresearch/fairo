@@ -1,0 +1,4 @@
+Class Command
+=============
+
+.. doxygenclass:: Command

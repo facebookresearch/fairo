@@ -1,0 +1,4 @@
+Class ControlLoops
+==================
+
+.. doxygenclass:: ControlLoops

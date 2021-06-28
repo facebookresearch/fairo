@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="force_torque_sensor">
+        <!-- force torque sensor -->
+        <joint name="iiwa_joint_fts" type="fixed">
+            <origin xyz="0 0 0.036" rpy="0 0 0"/>
+            <parent link="iiwa_link_7" />
+            <child link="iiwa_link_fts" />
+        </joint>
+        <link name="iiwa_link_fts">
+            <inertial>
+                <origin xyz="0 0 0.01875" rpy="0 0 0"/>
+                <mass value="0.65"/>
+                <inertia ixx="0.000661171875" ixy="0" ixz="0" iyy="0.000661171875" iyz="0" izz="0.00117" />
+            </inertial>
+            <visual>
+                <origin xyz="0 0 0" rpy="0 0 0" />
+                <geometry>
+                    <mesh filename="meshes/robotiq-ft300/visual/robotiq_fts300.dae"/>
+                </geometry>
+                <material name="Black"/>
+            </visual>
+        </link>
+    </xacro:macro>
+</robot>

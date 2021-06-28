@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="ee_virtual">
+        <!-- ee_link: virtual -->
+        <joint name="iiwa_joint_ee" type="fixed">
+            <parent link="iiwa_link_7"/>
+            <child link="iiwa_link_ee"/>
+            <origin rpy="0 0 0" xyz="0 0 0.045"/>
+        </joint>
+        <link name="iiwa_link_ee">
+            <inertial>
+                <origin rpy="0 0 0" xyz="0 0 0"/>
+                <mass value="0"/>
+                <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+            </inertial>
+        </link>
+    </xacro:macro>
+</robot>

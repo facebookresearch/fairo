@@ -1,0 +1,4 @@
+Class MoveCommand
+=================
+
+.. doxygenclass:: MoveCommand
