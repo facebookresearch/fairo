@@ -1036,8 +1036,10 @@ class AgentMemory:
         # format the data to send to dashboard timeline
         query_table, query_operation = parse_sql(query[:query.find("(") - 1])
         query_dict = format_query(query, *args)
+        # data is sent to the dashboard as JSON to be displayed in the timeline
         hook_data = {
             "name" : "db_write", 
+            "time" : self.get_time(),
             "datetime" : datetime.datetime.now(),
             "table_name" : query_table, 
             "operation" : query_operation, 

@@ -1,6 +1,11 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
+
+Timeline.js displays a timeline of agent activities on the dashboard, 
+relying on the visjs Timeline framework. Enable this when running the 
+agent using the flags --enable_timeline --log_timeline.
 */
+
 import React, { createRef } from "react";
 import { Timeline, DataSet } from "vis-timeline/standalone";
 import "vis-timeline/styles/vis-timeline-graph2d.css";

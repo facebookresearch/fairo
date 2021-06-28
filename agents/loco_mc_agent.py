@@ -325,6 +325,7 @@ class LocoMCAgent(BaseAgent):
                 "name" : "perceive",
                 "datetime" : datetime.datetime.now(),
                 "speaker" : speaker, 
+                "time" : self.last_chat_time,
                 "chat" : chat, 
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,
