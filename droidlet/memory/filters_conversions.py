@@ -1,5 +1,5 @@
 from copy import deepcopy
-import ast
+import json
 
 FILTERS_KW = ["SELECT", "FROM", "WHERE", "ORDER BY", "LIMIT", "SAME", "CONTAINS_COREFERENCE"]
 LIMITS = {"FIRST": "1", "SECOND": "2", "THIRD": "3"}
@@ -49,7 +49,10 @@ def convert_triple_to_comparator(triple):
         raise Exception("triples currently need a pred_text in FILTERS form")
     obj_text = triple.get("obj_text")
     obj = triple.get("obj")
-    if not obj or obj_text:
+    if (not obj) and (not obj_text):
+        import ipdb
+
+        ipdb.set_trace()
         raise Exception("triples currently need a obj_text or obj in FILTERS form")
     # this is post span/coref resolve
     if obj:
@@ -444,7 +447,7 @@ def where_leaf_to_comparator(clause):
 
 def maybe_eval_literal(clause):
     try:
-        output = ast.literal_eval(clause)
+        output = json.loads(clause)
     except:
         output = clause
     if type(output) is tuple:
