@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import React from "react";
 import ObjectAnnotation from "./AnnotationComponents/ObjectAnnotation";
+import MobileObjectAnnotation from "./AnnotationComponents/MobileObjectAnnotation";
 
 class ObjectFixup extends React.Component {
   constructor(props) {
@@ -27,6 +28,19 @@ class ObjectFixup extends React.Component {
   render() {
     if (this.state.image === undefined) {
       return null;
+    }
+
+    if (this.props.isMobile) {
+      return (
+        <MobileObjectAnnotation
+          image={this.state.image}
+          objects={this.state.objects}
+          not_turk={true}
+          stateManager={this.props.stateManager}
+          isMobile={this.props.isMobile}
+          imageWidth={this.props.imageWidth}
+        />
+      );
     }
     return (
       <ObjectAnnotation
