@@ -288,6 +288,7 @@ class LocoMCAgent(BaseAgent):
     def perceive(self, force=False):
         # NOTE: the processing chats block here
         # will move to chat_parser.perceive() once Soumith's changes are in
+        start_time = datetime.datetime.now()
         """Process incoming chats and run through parser"""
         raw_incoming_chats = self.get_incoming_chats()
         if raw_incoming_chats:
@@ -321,11 +322,13 @@ class LocoMCAgent(BaseAgent):
             # New chat, mark as unprocessed.
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
             # Send data to the dashboard timeline
+            end_time = datetime.datetime.now()
             hook_data = {
                 "name" : "perceive",
-                "datetime" : datetime.datetime.now(),
+                "start_datetime" : start_time,
+                "end_datetime" : end_time,
                 "speaker" : speaker, 
-                "time" : self.last_chat_time,
+                "agent_time" : self.last_chat_time,
                 "chat" : chat, 
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,

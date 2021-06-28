@@ -1021,6 +1021,7 @@ class AgentMemory:
             >>> args = '10517cc584844659907ccfa6161e9d32'
             >>> db_write(query, args)
         """
+        start_time = datetime.datetime.now()
         r = self._db_write(query, *args)
         # some of this can be implemented with TRIGGERS and a python sqlite fn
         # but its a bit of a pain bc we want the agent's time in the update
@@ -1037,10 +1038,12 @@ class AgentMemory:
         query_table, query_operation = parse_sql(query[:query.find("(") - 1])
         query_dict = format_query(query, *args)
         # data is sent to the dashboard as JSON to be displayed in the timeline
+        end_time = datetime.datetime.now()
         hook_data = {
             "name" : "db_write", 
-            "time" : self.get_time(),
-            "datetime" : datetime.datetime.now(),
+            "agent_time" : self.get_time(),
+            "start_datetime" : start_time,
+            "end_datetime" : end_time,
             "table_name" : query_table, 
             "operation" : query_operation, 
             "args" : query_dict, 
