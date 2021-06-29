@@ -27,6 +27,7 @@ from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 from droidlet.perception.robot import Perception
+from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance, 
@@ -81,6 +82,7 @@ class LocobotAgent(LocoMCAgent):
         self.init_event_handlers()
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
+        self.interaction_logger = InteractionLogger()
 
     def init_event_handlers(self):
         super().init_event_handlers()
@@ -122,6 +124,10 @@ class LocobotAgent(LocoMCAgent):
                 del o["feature_repr"] # pickling optimization
             self.dashboard_memory["objects"] = objects
             sio.emit("updateState", {"memory": self.dashboard_memory})
+        
+        @sio.on("interaction data")
+        def log_interaction_data(sid, interactionData):
+            self.interaction_logger.logInteraction(interactionData)
 
     def init_memory(self):
         """Instantiates memory for the agent.
