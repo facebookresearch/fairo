@@ -6,6 +6,7 @@ import random
 import re
 import time
 import numpy as np
+import datetime
 import json
 import os
 import droidlet.event.dispatcher as dispatch
@@ -169,14 +170,6 @@ class LocoMCAgent(BaseAgent):
                 with open("job_metadata.json", "w+") as f:
                     json.dump(job_metadata, f)
             os._exit(0)
-                
-
-
-        @sio.on("receiveTimelineHandshake")
-        def receive_timeline_handshake(sid, timelineHandshake):
-            if timelineHandshake == "Sent message!":
-                logging.debug("in receive_timeline_handshake, received handshake message")
-                sio.emit("returnTimelineHandshake", "Received message!")
 
     def init_physical_interfaces(self):
         """
@@ -288,6 +281,7 @@ class LocoMCAgent(BaseAgent):
     def perceive(self, force=False):
         # NOTE: the processing chats block here
         # will move to chat_parser.perceive() once Soumith's changes are in
+        start_time = datetime.datetime.now()
         """Process incoming chats and run through parser"""
         raw_incoming_chats = self.get_incoming_chats()
         if raw_incoming_chats:
@@ -321,10 +315,13 @@ class LocoMCAgent(BaseAgent):
             # New chat, mark as unprocessed.
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
             # Send data to the dashboard timeline
+            end_time = datetime.datetime.now()
             hook_data = {
                 "name" : "perceive",
+                "start_datetime" : start_time,
+                "end_datetime" : end_time,
                 "speaker" : speaker, 
-                "time" : self.last_chat_time,
+                "agent_time" : self.get_time(),
                 "chat" : chat, 
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,
@@ -401,9 +398,8 @@ class LocoMCAgent(BaseAgent):
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
-        # a sample filter for logging VoxelObjects queries only from db_write
-        # or any type of data from perceive
-        if result["name"] == "db_write" and result["table_name"] == "VoxelObjects" or result["name"] == "perceive":
+        # a sample filter for logging data from perceive
+        if result["name"] == "perceive":
             # JSONify the data
             result = json.dumps(result, default=str)
             self.agent_emit(result)
