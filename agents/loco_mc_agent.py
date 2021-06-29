@@ -122,55 +122,66 @@ class LocoMCAgent(BaseAgent):
             print(props["depthOrg"][:100])
             print(props["masks"], len(props["masks"]))
             print(props["basePose"])
-            processed_props = {}
             
             # Decode rgb map
             height = 512 # should probably pass in height/width as props
             width = 512
-            rgb_encoded = props["rgbImg"]
-            rgb_bytes = base64.b64decode(rgb_encoded)
-            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
-            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
-            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
-            processed_props["rgbImg"] = rgb
-
-            rgb_encoded = props["prevRgbImg"]
-            rgb_bytes = base64.b64decode(rgb_encoded)
-            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
-            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
-            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
-            processed_props["rgbImg"] = rgb
+            rgb_imgs = []
+            for rgb_encoded in [props["prevRgbImg"], props["rgbImg"]]:
+                rgb_bytes = base64.b64decode(rgb_encoded)
+                rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
+                rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
+                rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
+                rgb_imgs.append(rgb)
+            rgb_imgs = np.array(rgb_imgs)
 
             # Convert depth map to meters
-            depth_encoded = props["depthOrg"]
-            depth_bytes = base64.b64decode(depth_encoded)
-            depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
-            depth = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
-            processed_props["depthOrg"] = depth
-            
+            depth_imgs = []
+            for depth_encoded in [props["prevDepthOrg"], props["depthOrg"]]: 
+                depth_bytes = base64.b64decode(depth_encoded)
+                depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
+                # depth = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
+                # depth_imgs.append(depth)
+                depth_imgs.append(depth_np)
+            depth_imgs = np.array(depth_imgs)
+
             # Convert mask polygons to mask maps then combine them
-            masks = props["masks"]
-            maskMap = []
-            for mask in masks: 
-                poly = Polygons(mask)
-                bitmap = poly.mask(height, width)
-                maskMap.append(bitmap.array)            
-            combinedMap = np.zeros((height, width)).astype(int)
-            for n, mask in enumerate(maskMap): 
-                # TODO probably a cleaner way to do this with numpy arrays
-                for i in range(height): 
-                    for j in range(width): 
-                        if mask[i][j]: 
-                            combinedMap[i][j] = n
-            processed_props["labelMap"] = combinedMap
+            label_maps = []
+            for n, masks in enumerate([props["prevMasks"], props["masks"]]): 
+                mask_map = []
+                for mask in masks: 
+                    poly = Polygons(mask)
+                    bitmap = poly.mask(height, width)
+                    mask_map.append(bitmap.array)            
+                label_maps.append(np.zeros((height, width)).astype(int))
+                for m, mask in enumerate(mask_map): 
+                    # TODO probably a cleaner way to do this with numpy arrays
+                    for i in range(height): 
+                        for j in range(width): 
+                            if mask[i][j]: 
+                                label_maps[n][i][j] = m
+            label_maps = np.array(label_maps)
 
             # Attach base pose data
-            processed_props["basePoseData"] = props["basePose"]
+            base_pose_data = []
+            for pose_data in [props["prevBasePose"], props["basePose"]]: 
+                base_pose_data.append([pose_data["x"], pose_data["y"], pose_data["yaw"]])
+            base_pose_data = np.array(base_pose_data)
+
+            np.save("rgb0.npy", rgb_imgs[0])
+            np.save("rgb1.npy", rgb_imgs[1])
+            np.save("depth0.npy", depth_imgs[0])
+            np.save("depth1.npy", depth_imgs[1])
+            np.save("label_maps.npy", label_maps)
+            np.save("base_pose.npy", base_pose_data)
+            res_labels = propogate_label(rgb_imgs, depth_imgs, label_maps, base_pose_data, 1, 1)
             
-            sio.emit("labelPropagationReturn", processed_props)
-            
-            # res = propogate_label(props)
-            # sio.emit("labelPropagationReturn", res)
+            res_map = []
+            for i in res_labels.keys(): 
+                res_bytes = res_labels[i].tobytes()
+                res_map.append(res_bytes)
+
+            sio.emit("labelPropagationReturn", res_map)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):

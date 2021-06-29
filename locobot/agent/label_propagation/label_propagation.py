@@ -42,12 +42,19 @@ def transform_pose(XYZ, current_pose):
 
 
 def propogate_label(
-    root_path: str,
-    src_img_indx: int,
-    src_label: np.ndarray,
-    propogation_step: int,
+    rgb_imgs: np.ndarray, 
+    depth_imgs: np.ndarray, 
+    label_maps: np.ndarray, 
     base_pose_data: np.ndarray,
-    out_dir: str,
+    src_index: int, 
+    propagation_step: int,
+
+    # root_path: str,
+    # src_img_indx: int,
+    # src_label: np.ndarray,
+    # propogation_step: int,
+    # base_pose_data: np.ndarray,
+    # out_dir: str,
 ):
     """Take the label for src_img_indx and propogate it to [src_img_indx - propogation_step, src_img_indx + propogation_step]
     Args:
@@ -59,15 +66,12 @@ def propogate_label(
         out_dir (str): path to store labeled propogation image
     """
     ### load the inputs ###
-    # load robot trajecotry data which has pose information coreesponding to each img observation taken
-    with open(os.path.join(root_path, "data.json"), "r") as f:
-        base_pose_data = json.load(f)
     # load img
-    src_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)))
+    src_img = rgb_imgs[src_index]
     # load depth in mm
-    src_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(src_img_indx)))
+    src_depth = depth_imgs[src_index]
     # load robot pose for img index
-    src_pose = base_pose_data["{}".format(src_img_indx)]
+    src_pose = base_pose_data[src_index]
 
     ### data needed to convert depth img to pointcloud ###
     # values extracted from pyrobot habitat agent
@@ -86,7 +90,7 @@ def propogate_label(
 
     ### calculate point cloud in different frmaes ###
     # point cloud in camera frmae
-    depth = (src_depth.astype(np.float32) / 1000.0).reshape(-1)
+    depth = (src_depth.astype(np.float32) / 1000.0).reshape(uv_one_in_cam.shape)
     pts_in_cam = np.multiply(uv_one_in_cam, depth)
     pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
     # point cloud in robot base frame
@@ -97,36 +101,37 @@ def propogate_label(
     pts_in_world = transform_pose(pts_in_base, src_pose)
 
     ### figure out unique label values in provided gt label which is greater than 0 ###
-    unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
+    unique_pix_value = np.unique(label_maps.reshape(-1), axis=0)
     unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
 
     ### for each unique label, figure out points in wolrd frmae ###
     # first figure out pixel index
-    indx = [zip(*np.where(src_label == i)) for i in unique_pix_value]
+    indx = [zip(*np.where(label_maps == i)) for i in unique_pix_value]
     # convert pix index to index in point cloud
     # refer this https://www.codepile.net/pile/bZqJbyNz
     indx = [[i[0] * width + i[1] for i in j] for j in indx]
     # take out points in world space correspoinding to each unique label
     req_pts_in_world_list = [pts_in_world[indx[i]] for i in range(len(indx))]
 
-    # images in which in which we want to label propogation based on the provided gt seg label
-    image_range = [max(src_img_indx - propogation_step, 0), src_img_indx + propogation_step]
+    # images in which in which we want to label propagation based on the provided gt seg label
+    image_range = [max(src_index - propagation_step, 0), src_index + propagation_step]
     # param usful to search nearest point cloud in a region
     kernal_size = 3
 
+    annot_imgs = {}
     for img_indx in range(image_range[0], image_range[1]):
         print("img_index = {}".format(img_indx))
 
         ### create point cloud in wolrd frame for img_indx ###
         # get the robot pose value
-        base_pose = base_pose_data[str(img_indx)]
+        base_pose = base_pose_data[img_indx]
         # get the depth
         try:
-            cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
+            cur_depth = depth_imgs[img_indx]
         except:
             return
         # convert depth to point cloud in camera frmae
-        cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
+        cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(uv_one_in_cam.shape)
         cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)
         cur_pts_in_cam = np.concatenate(
             (cur_pts_in_cam, np.ones((1, cur_pts_in_cam.shape[1]))), axis=0
@@ -244,7 +249,8 @@ def propogate_label(
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
         # store the annotation file
-        np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)), annot_img.astype(np.uint32))
+        annot_imgs[img_indx] = annot_img.astype(np.uint32)
+    return annot_imgs
 
 
 

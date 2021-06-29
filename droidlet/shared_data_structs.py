@@ -87,7 +87,6 @@ class RGBDepth:
             rgb = cv2.resize(rgb, (size, size), interpolation=cv2.INTER_LINEAR)
             depth = cv2.resize(depth, (size, size), interpolation=cv2.INTER_LINEAR)
 
-        depth_org = depth
         depth_img = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
         depth_img = 255 - depth_img
 
@@ -97,11 +96,10 @@ class RGBDepth:
 
         _, rgb_data = cv2.imencode(fmt, cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), encode_param)
         _, depth_img_data = cv2.imencode(fmt, depth_img, encode_param)
-        _, depth_org_data = cv2.imencode(fmt, depth_org, encode_param)
         return {
             "rgb": base64.b64encode(rgb_data).decode("utf-8"),
             "depth_img": base64.b64encode(depth_img_data).decode("utf-8"),
-            "depth_org": base64.b64encode(depth_org_data).decode("utf-8"),
+            "depth_org": base64.b64encode(depth).decode("utf-8"),
         }
 
 
