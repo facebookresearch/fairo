@@ -21,11 +21,21 @@ import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
 import Timeline from "./components/Timeline/Timeline";
+import { isMobile } from "react-device-detect";
 
 import "./index.css";
 
 window.React = React;
 window.ReactDOM = ReactDOM;
+
+console.log("is mobile");
+console.log(isMobile);
+if (isMobile) {
+  let url = window.location;
+  url += "mobile.html";
+  window.location.href = url;
+}
+
 var config = {
   settings: {
     showPopoutIcon: false,
