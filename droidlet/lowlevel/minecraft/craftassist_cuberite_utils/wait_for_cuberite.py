@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import socket
 import time
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import ping_cuberite
+import ping_cuberite
 
 
 def wait_for_server(host, port, wait_ms=200, max_tries=200):
