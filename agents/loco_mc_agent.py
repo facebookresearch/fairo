@@ -328,7 +328,7 @@ class LocoMCAgent(BaseAgent):
                 "start_datetime" : start_time,
                 "end_datetime" : end_time,
                 "speaker" : speaker, 
-                "agent_time" : self.last_chat_time,
+                "agent_time" : self.get_time(),
                 "chat" : chat, 
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,
