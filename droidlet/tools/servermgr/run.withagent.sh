@@ -6,7 +6,6 @@
 S3_DEST=s3://craftassist/turk_interactions_with_agent
 
 function background_agent() (
-    python3 /droidlet/droidlet/lowlevel/minecraft/craftassist_cuberite_utils/wait_for_cuberite.py --host localhost --port 25565
     python3 /droidlet/droidlet/agents/craftassist/craftassist_agent.py --no_default_behavior --dev 1>agent.log 2>agent.log
 )
 
