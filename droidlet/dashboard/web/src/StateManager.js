@@ -412,7 +412,8 @@ class StateManager {
         }
       }
     });
-    if (!this.curFeedState.rgbImg) {
+    if (this.curFeedState.rgbImg != res) {
+      this.prevFeedState.rgbImg = this.curFeedState.rgbImg
       this.curFeedState.rgbImg = res
     }
   }
@@ -430,7 +431,8 @@ class StateManager {
         }
       }
     });
-    if (!this.curFeedState.depth) {
+    if (this.curFeedState.depth != res) {
+      this.prevFeedState.depth = this.curFeedState.depth
       this.curFeedState.depth = res
     }
   }
@@ -461,8 +463,10 @@ class StateManager {
         });
       }
     });
-    if (!this.curFeedState.masks) {
-      this.curFeedState.masks = res.objects.map(o => o.mask)
+    let masks = res.objects.map(o => o.mask)
+    if (JSON.stringify(this.curFeedState.masks) != JSON.stringify(masks)) {
+      this.prevFeedState.masks = this.curFeedState.masks
+      this.curFeedState.masks = masks
     }
   }
 
@@ -496,27 +500,15 @@ class StateManager {
       }
     });
 
-    // Update feed state here because it's received first
-    if (!this.curFeedState.pose) {
+    if (!this.curFeedState.pose || (res &&  
+      (res.x !== this.curFeedState.pose.x || 
+      res.y !== this.curFeedState.pose.y || 
+      res.yaw !== this.curFeedState.pose.yaw))) {
+      this.prevFeedState.pose = this.curFeedState.pose
       this.curFeedState.pose = {
         x: res.x, 
         y: res.y, 
-        yaw: res.yaw,
-      }
-    } else if (res && 
-      (res.x !== this.curFeedState.pose.x || 
-      res.y !== this.curFeedState.pose.y || 
-      res.yaw !== this.curFeedState.pose.yaw)) {
-      this.prevFeedState = this.curFeedState
-      this.curFeedState = {
-        rgbImg: null, 
-        depthOrg: null, 
-        masks: null, 
-        pose: {
-          x: res.x, 
-          y: res.y, 
-          yaw: res.yaw, 
-        },
+        yaw: res.yaw, 
       }
     }
   }
