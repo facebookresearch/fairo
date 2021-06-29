@@ -28,8 +28,6 @@ import "./index.css";
 window.React = React;
 window.ReactDOM = ReactDOM;
 
-console.log("is mobile");
-console.log(isMobile);
 if (isMobile) {
   let url = window.location;
   url += "mobile.html";
