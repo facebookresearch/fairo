@@ -3,6 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
+import datetime
+import droidlet.event.dispatcher as dispatch
 from typing import Tuple, Dict, Any, Optional
 
 # FIXME agent
@@ -45,6 +47,7 @@ class Interpreter(DialogueObject):
         self.archived_loop_data = None
         self.default_debug_path = "debug_interpreter.txt"
         self.post_process_loc = lambda loc, interpreter: loc
+        self._dispatch_signal = dispatch.Signal()
 
         # make sure to do in subclass
         # this is the order of things to search in workspace memory if a ref object
@@ -83,6 +86,10 @@ class Interpreter(DialogueObject):
         self.task_objects = {}  # noqa
 
     def step(self, agent) -> Tuple[Optional[str], Any]:
+        if agent.opts.enable_timeline:
+            self.register_hook(agent.log_to_dashboard, self.step)
+        start_time = datetime.datetime.now()
+        
         assert self.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
             actions = []
@@ -118,6 +125,16 @@ class Interpreter(DialogueObject):
                     self.memory, subj=chat.memid, pred_text="chat_effect_", obj=task_mem.memid
                 )
             self.finished = True
+            end_time = datetime.datetime.now()
+            hook_data = {
+                "name" : "interpreter",
+                "start_datetime" : start_time,
+                "end_datetime" : end_time,
+                "agent_time" : self.memory.get_time(),
+                "tasks_to_push" : tasks_to_push,
+                "task_mem" : task_mem,
+            }
+            self._dispatch_signal.send(self.step, data=hook_data)
             return response, dialogue_data
         except NextDialogueStep:
             return None, None
@@ -217,3 +234,13 @@ class Interpreter(DialogueObject):
     def handle_otheraction(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         return None, "I don't know how to do that yet", None
+
+    def register_hook(self, receiver, sender):
+        """
+        allows for registering hooks using the event dispatcher
+        """
+        allowed = [self.step,]
+        if sender in allowed:
+            self._dispatch_signal.connect(receiver, sender)
+        else:
+            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))

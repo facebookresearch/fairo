@@ -400,7 +400,8 @@ class LocoMCAgent(BaseAgent):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
         # a sample filter for logging data from perceive and dialogue
-        if result["name"] == "perceive" or result["name"] == "dialogue":
+        allowed = ["perceive", "dialogue", "interpreter",]
+        if result["name"] in allowed:
             # JSONify the data
             result = json.dumps(result, default=str)
             self.agent_emit(result)
