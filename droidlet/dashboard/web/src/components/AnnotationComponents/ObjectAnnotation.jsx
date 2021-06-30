@@ -38,8 +38,6 @@ class ObjectAnnotation extends React.Component {
     let objects = this.props.objects;
     if (!this.props.objects) {
       objects = this.props.stateManager.curFeedState.objects;
-      console.log("setting objects with stateManager.curFeedState.masks");
-      console.log(this.props.stateManager.curFeedState);
     }
     console.log("object annotation objects are");
     console.log(objects);
@@ -183,6 +181,7 @@ class ObjectAnnotation extends React.Component {
   }
 
   drawingFinished(data, newMask) {
+    console.log("finished drawing");
     this.pointMap[this.state.currentMaskId] = data;
     this.setState({
       currentMode: "select",

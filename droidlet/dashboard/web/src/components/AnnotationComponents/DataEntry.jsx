@@ -35,7 +35,6 @@ class DataEntry extends React.Component {
 
   render() {
     if (this.props.isMobile) {
-      console.log("rendering mobile");
       return (
         <div className="data-entry-root data-entry-block-mobile">
           <input
@@ -94,6 +93,7 @@ class DataEntry extends React.Component {
   }
 
   submit() {
+    console.log("data entry");
     let name = this.nameRef.current.value.trim();
     // Validation
     if (name.length === 0) {
