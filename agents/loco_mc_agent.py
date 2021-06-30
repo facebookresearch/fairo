@@ -65,6 +65,7 @@ class LocoMCAgent(BaseAgent):
         if opts.enable_timeline:
             self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
             self.register_hook(self.log_to_dashboard, self.perceive)
+            self.dialogue_manager.register_hook(self.log_to_dashboard, self.dialogue_manager.step)
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
@@ -398,8 +399,8 @@ class LocoMCAgent(BaseAgent):
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
         result = kwargs['data']
-        # a sample filter for logging data from perceive
-        if result["name"] == "perceive":
+        # a sample filter for logging data from perceive and dialogue
+        if result["name"] == "perceive" or result["name"] == "dialogue":
             # JSONify the data
             result = json.dumps(result, default=str)
             self.agent_emit(result)
