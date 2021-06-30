@@ -208,16 +208,18 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.opts.block_data = craftassist_specs.get_block_data()
-        self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
-        self.opts.color_bid_map = COLOR_BID_MAP
-        self.opts.astar_search = astar
-        self.opts.get_all_holes_fn = heuristic_perception.get_all_nearby_holes
+        low_level_interpreter_data = {
+            'block_data': craftassist_specs.get_block_data(),
+            'special_shape_functions': SPECIAL_SHAPE_FNS,
+            'color_bid_map': COLOR_BID_MAP,
+            'astar_search': astar,
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
+            low_level_interpreter_data=low_level_interpreter_data
         )
 
     def perceive(self, force=False):

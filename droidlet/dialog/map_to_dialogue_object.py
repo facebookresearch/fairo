@@ -22,9 +22,14 @@ class GreetingType(Enum):
 
 
 class DialogueObjectMapper(object):
-    def __init__(self, dialogue_object_classes, opts, dialogue_manager):
+    def __init__(self,
+                 dialogue_object_classes,
+                 opts,
+                 low_level_interpreter_data,
+                 dialogue_manager):
         self.dialogue_objects = dialogue_object_classes
         self.opts = opts
+        self.low_level_interpreter_data = low_level_interpreter_data
         self.dialogue_manager = dialogue_manager
         self.safety_words = get_safety_words()
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
@@ -113,20 +118,9 @@ class DialogueObjectMapper(object):
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
             return self.dialogue_objects["bot_capabilities"](memory=memory)
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
-            low_level_interpreter_data = {}
-            if opts:
-                if hasattr(opts, 'block_data'):
-                    low_level_interpreter_data['block_data'] = opts.block_data
-                if hasattr(opts, 'special_shape_functions'):
-                    low_level_interpreter_data['special_shape_functions'] = opts.special_shape_functions
-                if hasattr(opts, 'color_bid_map'):
-                    low_level_interpreter_data['color_bid_map'] =  opts.color_bid_map
-                if hasattr(opts, 'astar_search'):
-                    low_level_interpreter_data['astar_search'] = opts.astar_search
-                if hasattr(opts, 'get_all_holes_fn'):
-                    low_level_interpreter_data['get_all_holes_fn'] = opts.get_all_holes_fn
+            # _BIG_ FIXME: self.low_level_interpreter_data should be removed
             return self.dialogue_objects["interpreter"](
-                speaker, logical_form, low_level_interpreter_data, memory=memory
+                speaker, logical_form, self.low_level_interpreter_data, memory=memory
             )
         elif logical_form["dialogue_type"] == "PUT_MEMORY":
             return self.dialogue_objects["put_memory"](speaker, logical_form, memory=memory)

@@ -48,7 +48,7 @@ class FakeAgent(LocoMCAgent):
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             dialogue_object_mapper=DialogueObjectMapper,
-            opts=self.opts,
+            opts=self.opts
         )
 
 TTAD_MODEL_DIR = os.path.join(

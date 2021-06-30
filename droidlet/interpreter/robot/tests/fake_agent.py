@@ -434,7 +434,6 @@ class FakeAgent(LocoMCAgent):
     def init_controller(self):
         dialogue_object_classes = {}
         dialogue_object_classes["interpreter"] = LocoInterpreter
-        #        dialogue_object_classes["interpreter"] = Interpreter
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
