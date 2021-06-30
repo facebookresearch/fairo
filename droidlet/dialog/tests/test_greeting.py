@@ -21,6 +21,7 @@ class GreetingTest(unittest.TestCase):
         self.dialogue_object_mapper = DialogueObjectMapper(
             dialogue_object_classes={},
             opts=opts,
+            low_level_interpreter_data={},
             dialogue_manager=None
         )
 
