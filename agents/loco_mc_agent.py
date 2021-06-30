@@ -7,7 +7,6 @@ import re
 import time
 import numpy as np
 import datetime
-import json
 import os
 import droidlet.event.dispatcher as dispatch
 
@@ -16,7 +15,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
-from droidlet.memory.memory_nodes import ProgramNode
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"

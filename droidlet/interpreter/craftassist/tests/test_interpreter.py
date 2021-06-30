@@ -163,7 +163,7 @@ class DigTest(BaseCraftassistTestCase):
         super().setUp()
         self.set_looking_at((0, 63, 0))
 
-    def test_dance(self):
+    def test_single_dig(self):
         d = DIG_COMMANDS["dig a hole"]
         changes = self.handle_logical_form(d)
         # check agent changed a block:
@@ -171,6 +171,14 @@ class DigTest(BaseCraftassistTestCase):
         # check that all changes replaced blocks with air:
         assert not any([l[0] for l in list(changes.values())])
 
+    def test_n_by_n_dig(self):
+        logical_form = DIG_COMMANDS["dig a 3 x 3 hole"]
+        changes = self.handle_logical_form(logical_form)
+        # check that block changes are >= 5 in our fake world
+        self.assertGreater(len(changes), 5)
+        # check that all changes replaced blocks with air:
+        assert not any([l[0] for l in list(changes.values())])
+        
 
 # doesn't actually check if the bot dances, just if it crashes FIXME!
 # use recorder class from e2e_env
