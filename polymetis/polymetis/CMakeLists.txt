@@ -129,11 +129,14 @@ target_link_libraries(polymetis_server
     ${TORCH_LIBRARIES}
     yaml-cpp
     torchscript_pinocchio
+    torchrot
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
+target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
 
 add_executable(run_server "src/run_server.cpp")
 target_link_libraries(run_server polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
+target_link_libraries(run_server polymetis_server -Wl,--no-as-needed torchrot)
 
 # Add test client
 add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"

@@ -137,7 +137,7 @@ class CartesianSpacePD(toco.ControlModule):
         # Feedback law
         output = self.Kp @ ee_pose_err + self.Kd @ ee_twist_err
 
-        # Return torques projected back to joint space
+        # Return forces
         return output
 
 
@@ -166,7 +166,8 @@ class OperationalSpacePD(toco.ControlModule):
 
         Kp = diagonalize_gain(to_tensor(Kp))
         Kd = diagonalize_gain(to_tensor(Kd))
-        assert Kp.shape == Kd.shape
+        assert Kp.shape == torch.Size([6, 6])
+        assert Kd.shape == torch.Size([6, 6])
 
         self.Kp = torch.nn.Parameter(Kp)
         self.Kd = torch.nn.Parameter(Kd)
