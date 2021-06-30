@@ -129,9 +129,10 @@ class LocoMCAgent(BaseAgent):
             logical_form = {}
             status = ""
             try:
-                logical_form = self.chat_parser.get_logical_form(
+                chat_parse = self.chat_parser.get_logical_form(
                     chat=command, parsing_model=self.chat_parser.parsing_model
                 )
+                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=command, logical_form=chat_parse)
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
             except Exception as e:
