@@ -15,5 +15,5 @@
 	url = https://github.com/jonathathan/argparse.git
 [submodule "polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka"]
 	path = polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka
-	url = git@github.com:frankaemika/libfranka.git
+	url = https://github.com/frankaemika/libfranka.git
 

@@ -7,7 +7,7 @@
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
 
-LIBFRANKA_PATH="$GIT_ROOT/polymetis/src/clients/franka_panda_client/third_party/libfranka"
+LIBFRANKA_PATH="$GIT_ROOT/polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka"
 
 # Check to make sure directory exists
 [ ! -d $LIBFRANKA_PATH ] && echo "Directory $LIBFRANKA_PATH does not exist" && exit 1
