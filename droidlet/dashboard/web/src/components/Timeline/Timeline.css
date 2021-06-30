@@ -1,0 +1,19 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+#description {
+  text-align: center;
+}
+
+.vis-timeline {
+  overflow: visible;
+}
+
+.vis-tooltip {
+  background-color: #777;
+}
+
+pre {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.8em;
+}

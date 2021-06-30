@@ -10,7 +10,9 @@ import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
 import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
+import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import Timeline from "./components/Timeline/Timeline";
+import MobileMainPane from "./MobileMainPane";
 
 /**
  * The main state manager for the dashboard.
@@ -54,21 +56,44 @@ class StateManager {
       { msg: "", failed: false },
       { msg: "", failed: false },
     ],
-    timelineHandshake: "",
+    timelineEvent: "",
+    timelineEventHistory: [],
   };
+  session_id = null;
 
   constructor() {
-    this.processSensorPayload = this.processSensorPayload.bind(this);
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
+    this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
+    this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
     this.memory = this.initialMemoryState;
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
+    this.processRGBDepth = this.processRGBDepth.bind(this);
+
     this.processObjects = this.processObjects.bind(this);
-    this.returnTimelineHandshake = this.returnTimelineHandshake.bind(this);
+    this.showAssistantReply = this.showAssistantReply.bind(this);
+    this.processHumans = this.processHumans.bind(this);
+
+    this.processMap = this.processMap.bind(this);
+
+    this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
+
+    // set turk related params
+    const urlParams = new URLSearchParams(window.location.search);
+    const turkExperimentId = urlParams.get("turk_experiment_id");
+    const mephistoAgentId = urlParams.get("mephisto_agent_id");
+    const turkWorkerId = urlParams.get("turk_worker_id");
+    this.setTurkExperimentId(turkExperimentId);
+    this.setMephistoAgentId(mephistoAgentId);
+    this.setTurkWorkerId(turkWorkerId);
+
+    // set default url to actual ip:port
+    this.default_url = window.location.host;
+    this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");
     if (url === "undefined" || url === undefined || url === null) {
@@ -80,7 +105,7 @@ class StateManager {
   }
 
   setDefaultUrl() {
-    localStorage.clear();
+    localStorage.removeItem("server_url");
     this.setUrl(this.default_url);
   }
 
@@ -88,6 +113,30 @@ class StateManager {
     this.url = url;
     localStorage.setItem("server_url", url);
     this.restart(this.url);
+  }
+
+  setTurkExperimentId(turk_experiment_id) {
+    localStorage.setItem("turk_experiment_id", turk_experiment_id);
+  }
+
+  getTurkExperimentId() {
+    return localStorage.getItem("turk_experiment_id");
+  }
+
+  setMephistoAgentId(mephisto_agent_id) {
+    localStorage.setItem("mephisto_agent_id", mephisto_agent_id);
+  }
+
+  getMephistoAgentId() {
+    return localStorage.getItem("mephisto_agent_id");
+  }
+
+  setTurkWorkerId(turk_worker_id) {
+    localStorage.setItem("turk_worker_id", turk_worker_id);
+  }
+
+  getTurkWorkerId() {
+    return localStorage.getItem("turk_worker_id");
   }
 
   restart(url) {
@@ -102,6 +151,20 @@ class StateManager {
     });
 
     socket.on("connect", (msg) => {
+      let ipAddress = "";
+      async function getIP() {
+        const response = await fetch("https://api.ipify.org/?format=json");
+        const data = await response.json();
+        return data;
+      }
+      getIP().then((data) => {
+        ipAddress = data["ip"];
+        const dateString = (+new Date()).toString(36);
+        this.session_id = ipAddress + ":" + dateString; // generate session id from ipAddress and date of opening webapp
+        console.log("session id is");
+        console.log(this.session_id);
+        this.socket.emit("store session id", this.session_id);
+      });
       console.log("connect event");
       this.setConnected(true);
       this.socket.emit("get_memory_objects");
@@ -126,13 +189,19 @@ class StateManager {
     });
 
     socket.on("setChatResponse", this.setChatResponse);
-    socket.on("sensor_payload", this.processSensorPayload);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
+
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
+    socket.on("image", this.processRGBDepth); // RGB + Depth
     socket.on("objects", this.processObjects);
-    socket.on("returnTimelineHandshake", this.returnTimelineHandshake);
+    socket.on("updateVoxelWorldState", this.updateVoxelWorld);
+    socket.on("setVoxelWorldInitialState", this.setVoxelWorldInitialState);
+    socket.on("showAssistantReply", this.showAssistantReply);
+    socket.on("humans", this.processHumans);
+    socket.on("map", this.processMap);
+    socket.on("newTimelineEvent", this.returnTimelineEvent);
   }
 
   updateStateManagerMemory(data) {
@@ -176,8 +245,44 @@ class StateManager {
     });
   }
 
-  returnTimelineHandshake(res) {
-    this.memory.timelineHandshake = res;
+  updateVoxelWorld(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof VoxelWorld) {
+        console.log("update Voxel World with " + res.world_state);
+        ref.setState({
+          world_state: res.world_state,
+          status: res.status,
+        });
+      }
+    });
+  }
+
+  setVoxelWorldInitialState(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof VoxelWorld) {
+        console.log("set Voxel World Initial state: " + res.world_state);
+        ref.setState({
+          world_state: res.world_state,
+          status: res.status,
+        });
+      }
+    });
+  }
+
+  showAssistantReply(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof InteractApp) {
+        console.log("set assistant reply");
+        ref.setState({
+          agent_reply: res.agent_reply,
+        });
+      }
+    });
+  }
+
+  returnTimelineEvent(res) {
+    this.memory.timelineEventHistory.push(res);
+    this.memory.timelineEvent = res;
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
@@ -247,6 +352,19 @@ class StateManager {
     }
   }
 
+  /**
+   * key and value is the key value pair to be logged by flask
+   * into interaction_loggings.json
+   */
+  logInteractiondata(key, value) {
+    let interactionData = {};
+    interactionData["session_id"] = this.session_id;
+    interactionData["mephisto_agent_id"] = this.getMephistoAgentId();
+    interactionData["turk_worker_id"] = this.getTurkWorkerId();
+    interactionData[key] = value;
+    this.socket.emit("interaction data", interactionData);
+  }
+
   processMemoryState(msg) {
     this.refs.forEach((ref) => {
       if (ref instanceof MemoryList) {
@@ -285,7 +403,15 @@ class StateManager {
     });
   }
 
+  processRGBDepth(res) {
+    this.processRGB(res.rgb);
+    this.processDepth(res.depth);
+  }
+
   processObjects(res) {
+    if (res.image === -1 || res.image === undefined) {
+      return;
+    }
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
@@ -296,23 +422,34 @@ class StateManager {
           objects: res.objects,
           rgb: rgb,
         });
+      } else if (ref instanceof MobileMainPane) {
+        // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
+        ref.setState({
+          objectRGB: rgb,
+        });
       }
     });
   }
 
-  processSensorPayload(res) {
-    let fps_time = performance.now();
-    let fps = 1000 / (fps_time - this.fps_time);
-    this.fps_time = fps_time;
+  processHumans(res) {
+    if (res.image === -1 || res.image === undefined) {
+      return;
+    }
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
-    let depth = new Image();
-    depth.src = "data:image/webp;base64," + res.image.depth;
-    let object_rgb = new Image();
-    if (res.object_image !== -1 && res.object_image !== undefined) {
-      object_rgb.src = "data:image/webp;base64," + res.object_image.rgb;
-    }
 
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveHumans) {
+        ref.setState({
+          isLoaded: true,
+          humans: res.humans,
+          rgb: rgb,
+        });
+      }
+    });
+  }
+
+  processMap(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof Memory2D) {
         ref.setState({
@@ -321,26 +458,8 @@ class StateManager {
           bot_xyz: [res.x, res.y, res.yaw],
           obstacle_map: res.map,
         });
-      } else if (ref instanceof Settings) {
-        ref.setState({ fps: fps });
-      } else if (ref instanceof LiveImage) {
-        ref.setState({
-          isLoaded: true,
-          rgb: rgb,
-          depth: depth,
-        });
-      } else if (ref instanceof LiveObjects || ref instanceof LiveHumans) {
-        if (res.object_image !== -1 && res.object_image !== undefined) {
-          ref.setState({
-            isLoaded: true,
-            rgb: object_rgb,
-            objects: res.objects,
-            humans: res.humans,
-          });
-        }
       }
     });
-    return "OK";
   }
 
   connect(o) {

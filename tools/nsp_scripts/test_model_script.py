@@ -8,7 +8,10 @@ import math
 import pickle
 import torch
 from transformers import AutoModel, AutoTokenizer, BertConfig
-from droidlet.dialog.ttad.ttad_transformer_model.train_model import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
 
 from pprint import pprint
 
@@ -19,7 +22,11 @@ args = pickle.load(open(args_path, "rb"))
 tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
 with open(args.tree_voc_file) as fd:
     full_tree, tree_i2w = json.load(fd)
-dataset = CAIPDataset(tokenizer, args, prefix="", full_tree_voc=(full_tree, tree_i2w))
+
+dataset = CAIPDataset(tokenizer,
+                      args,
+                      prefix="",
+                      full_tree_voc=(full_tree, tree_i2w))
 
 enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
 bert_config = BertConfig.from_pretrained("bert-base-uncased")

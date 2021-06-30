@@ -692,3 +692,38 @@ class BasicFilter(MemoryFilter):
 
     def _selfstr(self):
         return "Basic: (" + str(self.query) + ")"
+    
+
+class BackoffFilter(MemoryFilter):
+    """
+    runs a sequence of Filters, passed into the __init__.  if nothing is returned from the 
+    first, returns the results of the second, and so on...
+
+    if a Filter in the sequence is instead a None object, that None object is skipped
+    this can be used to simplify conditional inclusion of a backoff candidate
+    """
+
+    def __init__(self, agent_memory, filters):
+        super().__init__(agent_memory)
+        self.filters = filters
+
+    def search(self):
+        for f in self.filters:
+            if f:
+                memids, vals = f()
+                if memids:
+                    return memids, vals
+        return [], []
+
+    def filter(self, memids, vals):
+        for f in self.filters:
+            if f:
+                filtered_memids, filtered_vals = f(memids, vals)
+                if filtered_memids:
+                    return filtered_memids, filtered_vals
+        return [], []
+
+    def _selfstr(self):
+        return "Backoff (" + str([f for f in self.filters]) + ")"
+
+

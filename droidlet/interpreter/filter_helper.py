@@ -13,6 +13,7 @@ from droidlet.memory.memory_filters import (
     CountTransform,
     ExtremeValueMemorySelector,
     RandomMemorySelector,
+    BackoffFilter,
 )
 from droidlet.base_util import number_from_span
 from ..shared_data_structs import ErrorWithResponse
@@ -238,10 +239,20 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
 
 def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
     F = MemoryFilter(interpreter.memory)
-    t = ["({}={})".format(t["pred_text"], t["obj_text"]) for t in filters_d.get("triples", [])]
-    where = " AND ".join(t)
-    query = "SELECT MEMORY FROM Dance WHERE (" + where + ")"
-    F.append(BasicFilter(interpreter.memory, query))
+    triples = ["({}={})".format(t["pred_text"], t["obj_text"]) for t in filters_d.get("triples", [])]
+    triple_filter = None
+    if len(triples) > 0:
+        where = " AND ".join(triples)
+        triple_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
+        
+    tags = tags_from_dict(filters_d)
+    tag_filter = None
+    triples = ["(has_tag={})".format(tag) for tag in tags]
+    if triples:
+        where = " AND ".join(triples)
+        tag_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
+
+    F.append(BackoffFilter(interpreter.memory, [triple_filter, tag_filter]))
     # currently spec intersects all comparators TODO?
     comparator_specs = filters_d.get("comparator")
     if comparator_specs:

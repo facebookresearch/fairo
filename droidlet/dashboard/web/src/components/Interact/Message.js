@@ -30,6 +30,7 @@ class Message extends Component {
     this.toggleListen = this.toggleListen.bind(this);
     this.listen = this.listen.bind(this);
     this.elementRef = React.createRef();
+    this.bindKeyPress = this.handleKeyPress.bind(this); // this is used in keypressed event handling
   }
 
   renderChatHistory(status) {
@@ -47,13 +48,12 @@ class Message extends Component {
           </ListItemText>
           <ListItemSecondaryAction>
             {value.msg !== "" ? (
-              <IconButton
-                edge="end"
-                aria-label="Fail"
+              <Button
+                style={{ backgroundColor: "red", color: "white" }}
                 onClick={() => this.props.goToQuestion(idx)}
               >
-                <FailIcon className="cross" />
-              </IconButton>
+                Mark Error
+              </Button>
             ) : null}
           </ListItemSecondaryAction>
         </ListItem>,
@@ -77,7 +77,11 @@ class Message extends Component {
   }
 
   componentDidMount() {
-    document.addEventListener("keypress", this.handleKeyPress.bind(this));
+    document.addEventListener("keypress", this.bindKeyPress);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener("keypress", this.bindKeyPress);
   }
 
   toggleListen() {
@@ -114,6 +118,8 @@ class Message extends Component {
     if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.props.setInteractState({ msg: chatmsg, failed: false });
+      //log message to flask
+      this.props.stateManager.logInteractiondata("text command", chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
       //clear the textbox
@@ -124,7 +130,18 @@ class Message extends Component {
   render() {
     return (
       <div className="Chat">
+        {/* FIXME Save for dashboard in turk */}
         {/* <p>Press spacebar to start/stop recording.</p> */}
+        {/* <p>Enter the command to the bot in the input box below</p>
+        <List>{this.renderChatHistory()}</List>
+        <div
+          contentEditable="true"
+          className="Msg single-line"
+          id="msg"
+          suppressContentEditableWarning={true}
+        >
+          {" "}
+        </div> */}
         <p>
           Enter the command to the bot in the input box below, or click the mic
           button to start/stop voice input.
@@ -171,6 +188,11 @@ class Message extends Component {
           Submit{" "}
         </Button>
 
+        {/* FIXME save for dashboard in turk */}
+        {/* <p id="callbackMsg">{this.props.status}</p>
+        <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
+        <br />
+        <br /> */}
         <p id="assistantReply">{this.props.agent_reply} </p>
       </div>
     );

@@ -37,4 +37,4 @@ Follow Google's [Javascript style guide](https://google.github.io/styleguide/jav
 Follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) for python development.
 
 ## Training Models
-For how to train the semantic parser, see [Training Models](droidlet/dialog/ttad/README.md)
+For how to train the semantic parser, see [Training Models](droidlet/perception/semantic_parsing/nsp_transformer_model/README.md)

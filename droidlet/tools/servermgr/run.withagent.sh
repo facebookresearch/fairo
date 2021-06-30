@@ -24,16 +24,16 @@ python3 /droidlet/craftassist/cuberite_process.py \
 
 background_agent
 
-# if turk_id.txt is provided, write to a turk bucket
-if test -f "turk_id.txt"; then
-    turk_id="$(cat turk_id.txt)"
-    S3_DEST="$S3_DEST/turk/$turk_id"
+# if turk_experiment_id.txt is provided, write to a turk bucket
+if test -f "turk_experiment_id.txt"; then
+    turk_experiment_id="$(cat turk_experiment_id.txt)"
+    S3_DEST="$S3_DEST/turk/$turk_experiment_id"
 fi
 S3_DEST="$S3_DEST/$TIMESTAMP"
 
 TARBALL=logs.tar.gz
 # Only upload the logs and CSV files
-find -name "*.log" -o -name "*.csv"|tar czf $TARBALL --force-local -T -
+find -name "*.log" -o -name "*.csv" -o -name "job_metadata.json"|tar czf $TARBALL --force-local -T -
 
 if [ -z "$CRAFTASSIST_NO_UPLOAD" ]; then
     # expects $AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY to exist
