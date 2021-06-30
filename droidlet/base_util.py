@@ -4,6 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict, namedtuple
 import binascii
 import hashlib
+
+import numpy
 import numpy as np
 from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
@@ -221,3 +223,12 @@ def prepend_a_an(name):
     else:
         return "a " + name
 
+
+def to_block_pos(array):
+    """Convert array to block position"""
+    return np.floor(array).astype("int32")
+
+
+def to_block_center(array):
+    """Return the array centered at [0.5, 0.5, 0.5]"""
+    return to_block_pos(array).astype("float") + [0.5, 0.5, 0.5]

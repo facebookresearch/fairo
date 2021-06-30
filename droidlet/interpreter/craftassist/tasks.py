@@ -14,10 +14,10 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID
+from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID, to_block_pos
 from droidlet.perception.craftassist import search
 from droidlet.perception.craftassist.heuristic_perception import ground_height
-from droidlet.lowlevel.minecraft.mc_util import to_block_pos, manhat_dist, strip_idmeta
+from droidlet.lowlevel.minecraft.mc_util import manhat_dist, strip_idmeta
 
 from droidlet.interpreter.task import BaseMovementTask, Task
 from droidlet.memory.memory_nodes import TaskNode, TripleNode

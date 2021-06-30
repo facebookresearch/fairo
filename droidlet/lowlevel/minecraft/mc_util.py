@@ -1,7 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.shared_data_structs import Time
 
 """This file contains utility functions for the CraftAssist agent"""
 import copy
@@ -158,16 +157,6 @@ def get_locs_from_entity(e):
     return None
 
 
-# this should eventually be replaced with sql query
-def most_common_idm(idms):
-    """idms is a list of tuples [(id, m) ,.... (id', m')]"""
-    counts = {}
-    for idm in idms:
-        if not counts.get(idm):
-            counts[idm] = 1
-        else:
-            counts[idm] += 1
-    return max(counts, key=counts.get)
 
 
 def strip_idmeta(blockobj):
@@ -179,16 +168,6 @@ def strip_idmeta(blockobj):
             return list(pos for (pos, id_meta) in blockobj)
     else:
         return None
-
-
-def to_block_center(array):
-    """Return the array centered at [0.5, 0.5, 0.5]"""
-    return to_block_pos(array).astype("float") + [0.5, 0.5, 0.5]
-
-
-def to_block_pos(array):
-    """Convert array to block position"""
-    return np.floor(array).astype("int32")
 
 
 SPAWN_OBJECTS = {

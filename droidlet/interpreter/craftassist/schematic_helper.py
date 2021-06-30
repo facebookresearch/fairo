@@ -8,15 +8,24 @@ import numpy as np
 from typing import List, Tuple, Union, Optional
 
 # TODO with subinterpret
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import block_data
 from droidlet.interpreter.craftassist import size_words
 from .block_helpers import get_block_type
-from droidlet.base_util import number_from_span
+from droidlet.base_util import number_from_span, Block
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.lowlevel.minecraft.mc_util import Block, most_common_idm
-
 from word2number.w2n import word_to_num
 from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPES_CANONICALIZE
+
+
+# this should eventually be replaced with sql query
+def most_common_idm(idms):
+    """idms is a list of tuples [(id, m) ,.... (id', m')]"""
+    counts = {}
+    for idm in idms:
+        if not counts.get(idm):
+            counts[idm] = 1
+        else:
+            counts[idm] += 1
+    return max(counts, key=counts.get)
 
 
 def get_properties_from_triples(triples_list, p):
@@ -57,7 +66,7 @@ def get_attrs_from_triples(triples, interpreter, block_data_info, color_bid_map)
         )
         attrs["bid"] = block_type
     elif any(text_keys["has_colour"]):
-        c = block_data.COLOR_BID_MAP.get(text_keys["has_colour"][0])
+        c = color_bid_map.get(text_keys["has_colour"][0])
         if c is not None:
             attrs["bid"] = random.choice(c)
 
@@ -116,6 +125,7 @@ def interpret_shape_schematic(
     # FIXME this is not compositional, and does not properly use FILTERS
     filters_d = d.get("filters", {})
     triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
+    shape  = ""
     if shapename is not None:
         shape = shapename
     else:
@@ -126,7 +136,6 @@ def interpret_shape_schematic(
             shape = shapes[0]
 
     attrs = get_attrs_from_triples(triples, interpreter, block_data_info, color_bid_map)
-
     tags = []
     for t in triples:
         key = t.get("pred_text", "")
@@ -197,7 +206,7 @@ def interpret_named_schematic(
     if any(colours):
         colour = colours[0]
         old_idm = most_common_idm(blocks.values())
-        c = block_data.COLOR_BID_MAP.get(colour)
+        c = color_bid_map.get(colour)
         if c is not None:
             new_idm = random.choice(c)
             for l in blocks:
