@@ -3,7 +3,7 @@ Polymetis
 
 Write `PyTorch <https://pytorch.org/>`_ controllers, test them in simulation, and seamlessly transfer to real-time hardware.
 
-Code on `Github <https://github.com/facebookresearch/polymetis>`_.
+Code on `Github <https://github.com/facebookresearch/droidlet/tree/main/polymetis>`_.
 
 By `Facebook AI Research <https://ai.facebook.com/>`_.
 
