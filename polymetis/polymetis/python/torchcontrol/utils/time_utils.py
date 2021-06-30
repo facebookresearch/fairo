@@ -2,9 +2,9 @@ import torch
 
 
 def timestamp_subtract(ts1, ts2):
-    """ Subtracts two timestamps
+    """Subtracts two timestamps
 
-    Timestamps are represented as a torch.Tensor of shape (2,), where the first element 
+    Timestamps are represented as a torch.Tensor of shape (2,), where the first element
     corresponds to seconds and the second element corresponds to nanoseconds.
 
     Args:
@@ -14,16 +14,16 @@ def timestamp_subtract(ts1, ts2):
     Outputs:
         Result of ts1 - ts2 represented as a timestamp
     """
-    
+
     assert ts1.shape == torch.Size([2])
     assert ts2.shape == torch.Size([2])
     return ts1 - ts2
 
 
 def timestamp_diff_seconds(ts1, ts2):
-    """ Computes the time difference in seconds between two timestamps.
+    """Computes the time difference in seconds between two timestamps.
 
-    Timestamps are represented as a torch.Tensor of shape (2,), where the first element 
+    Timestamps are represented as a torch.Tensor of shape (2,), where the first element
     corresponds to seconds and the second element corresponds to nanoseconds.
 
     Args:
@@ -38,9 +38,9 @@ def timestamp_diff_seconds(ts1, ts2):
 
 
 def timestamp_diff_ms(ts1, ts2):
-    """ Computes the time difference in milliseconds between two timestamps.
+    """Computes the time difference in milliseconds between two timestamps.
 
-    Timestamps are represented as a torch.Tensor of shape (2,), where the first element 
+    Timestamps are represented as a torch.Tensor of shape (2,), where the first element
     corresponds to seconds and the second element corresponds to nanoseconds.
 
     Args:
