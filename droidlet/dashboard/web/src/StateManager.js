@@ -105,17 +105,19 @@ class StateManager {
 
     // Assumes that all socket events for a frame are received before the next frame
     this.curFeedState = {
-      rgbImg: null, 
-      depth: null, 
+      rgbImg: null,
+      depth: null,
       masks: null,
       pose: null,
-    }
+      objects: null,
+    };
     this.prevFeedState = {
-      rgbImg: null, 
-      depth: null, 
+      rgbImg: null,
+      depth: null,
       masks: null,
       pose: null,
-    }
+      objects: null,
+    };
   }
 
   setDefaultUrl() {
@@ -401,8 +403,8 @@ class StateManager {
       }
     });
     if (this.curFeedState.rgbImg != res) {
-      this.prevFeedState.rgbImg = this.curFeedState.rgbImg
-      this.curFeedState.rgbImg = res
+      this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
+      this.curFeedState.rgbImg = res;
     }
   }
 
@@ -420,8 +422,8 @@ class StateManager {
       }
     });
     if (this.curFeedState.depth != res) {
-      this.prevFeedState.depth = this.curFeedState.depth
-      this.curFeedState.depth = res
+      this.prevFeedState.depth = this.curFeedState.depth;
+      this.curFeedState.depth = res;
     }
   }
 
@@ -438,6 +440,7 @@ class StateManager {
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
     this.refs.forEach((ref) => {
+      this.curFeedState.objects = res.objects;
       if (ref instanceof LiveObjects) {
         ref.setState({
           isLoaded: true,
@@ -451,10 +454,10 @@ class StateManager {
         });
       }
     });
-    let masks = res.objects.map(o => o.mask)
+    let masks = res.objects.map((o) => o.mask);
     if (JSON.stringify(this.curFeedState.masks) != JSON.stringify(masks)) {
-      this.prevFeedState.masks = this.curFeedState.masks
-      this.curFeedState.masks = masks
+      this.prevFeedState.masks = this.curFeedState.masks;
+      this.curFeedState.masks = masks;
     }
   }
 
@@ -488,16 +491,19 @@ class StateManager {
       }
     });
 
-    if (!this.curFeedState.pose || (res &&  
-      (res.x !== this.curFeedState.pose.x || 
-      res.y !== this.curFeedState.pose.y || 
-      res.yaw !== this.curFeedState.pose.yaw))) {
-      this.prevFeedState.pose = this.curFeedState.pose
+    if (
+      !this.curFeedState.pose ||
+      (res &&
+        (res.x !== this.curFeedState.pose.x ||
+          res.y !== this.curFeedState.pose.y ||
+          res.yaw !== this.curFeedState.pose.yaw))
+    ) {
+      this.prevFeedState.pose = this.curFeedState.pose;
       this.curFeedState.pose = {
-        x: res.x, 
-        y: res.y, 
-        yaw: res.yaw, 
-      }
+        x: res.x,
+        y: res.y,
+        yaw: res.yaw,
+      };
     }
   }
 
