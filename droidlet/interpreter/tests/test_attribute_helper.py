@@ -27,7 +27,7 @@ class BasicTest(unittest.TestCase):
         ad = {"filters": {"triples": [{"pred_text": "has_name", "obj_text": "house"}]}}
         mem, search_data = maybe_specific_mem(self.interpreter, "test_sp", ad)
         self.assertEqual(mem, None)
-        self.assertEqual(search_data[0], {'pred_text': 'has_tag', 'obj_text': 'house'})
+        self.assertEqual(search_data, 'SELECT MEMORY FROM ReferenceObject WHERE ((has_tag=house))')
 
     def test_interpret_linear_extent(self):
         ad = {"source": {"reference_object": {
