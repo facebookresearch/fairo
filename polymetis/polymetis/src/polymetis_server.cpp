@@ -77,15 +77,6 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   num_dofs_ = robot_client_metadata->dof();
 
   // Create initial state dictionary
-<<<<<<< Updated upstream
-  timestamp_ = torch::tensor(0.0);
-  joint_pos_ = torch::zeros(num_dofs_);
-  joint_vel_ = torch::zeros(num_dofs_);
-
-  state_dict_.insert("timestamp", timestamp_);
-  state_dict_.insert("joint_pos", joint_pos_);
-  state_dict_.insert("joint_vel", joint_vel_);
-=======
   rs_timestamp_ = torch::tensor(0.0);
   rs_joint_positions_ = torch::zeros(num_dofs_);
   rs_joint_velocities_ = torch::zeros(num_dofs_);
@@ -97,7 +88,6 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   state_dict_.insert("joint_velocities", rs_joint_velocities_);
   state_dict_.insert("motor_torques_measured", rs_motor_torques_measured_);
   state_dict_.insert("motor_torques_external", rs_motor_torques_external_);
->>>>>>> Stashed changes
 
   // Load default controller bytes into model buffer
   controller_model_buffer_.clear();
