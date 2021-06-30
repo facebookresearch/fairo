@@ -371,16 +371,26 @@ class MCInterpreter(Interpreter):
 
         def new_tasks():
             attrs = {}
+            schematic_triples = d.get("schematic", {}).get("filters", {}).get("triples",
+                                                                              [{'pred_text': 'has_size',
+                                                                                'obj_text': '2'}])
             schematic_d = d.get("schematic", {"has_size": 2})
             # set the attributes of the hole to be dug.
-            for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
-                key = "has_{}".format(dim)
-                if key in schematic_d:
-                    attrs[dim] = word_to_num(schematic_d[key])
-                elif "has_size" in schematic_d:
-                    attrs[dim] = interpret_size(self, schematic_d["has_size"])
-                else:
-                    attrs[dim] = default
+            for triple in schematic_triples:
+                for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
+                    key = "has_{}".format(dim)
+                    if key == triple['pred_text']:
+                        attrs[dim] = word_to_num(triple['obj_text'])
+                    elif "has_size" in triple['pred_text']:
+                        attrs[dim] = interpret_size(self, triple["obj_text"])
+                    else:
+                        attrs[dim] = default
+                    # if key in schematic_d:
+                    #     attrs[dim] = word_to_num(schematic_d[key])
+                    # elif "has_size" in schematic_d:
+                    #     attrs[dim] = interpret_size(self, schematic_d["has_size"])
+                    # else:
+                    #     attrs[dim] = default
             padding = (attrs["depth"] + 4, attrs["length"] + 4, attrs["width"] + 4)
             location_d = d.get("location", SPEAKERLOOK)
             repeat_num = get_repeat_num(d)
