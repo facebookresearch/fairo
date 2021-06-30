@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from .memory_filters import BasicMemorySearcher
+from .memory_filters import MemorySearcher
 from droidlet.base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
 
 
@@ -81,22 +81,22 @@ class TimeValue(ComparisonValue):
 
 # TODO unit conversions?
 class MemoryColumnValue(ComparisonValue):
-    def __init__(self, memory, search_data, mem=None):
+    def __init__(self, memory, attribute, query=None, mem=None):
         super().__init__(memory)
-        self.search_data = search_data
-        # TODO expand beyond ref objects
+        assert mem or query
         self.mem = mem
         if not self.mem:
             # FIXME!!!! put FILTERS here
-            self.searcher = BasicMemorySearcher(search_data=search_data)
+            self.searcher = MemorySearcher(query=query)
+        self.attribute = attribute
 
     def get_value(self):
         if self.mem:
-            return self.search_data["attribute"]([self.mem])[0]
-        mems = self.searcher.search(self.memory)
+            return self.attribute([self.mem])[0]
+        _, mems = self.searcher.search(self.memory)
         if len(mems) > 0:
             # TODO/FIXME! deal with more than 1 better
-            return self.search_data["attribute"](mems)[0]
+            return self.attribute(mems)[0]
         else:
             return
 
@@ -106,21 +106,21 @@ class LinearExtentValue(ComparisonValue):
     # e.g. "when you are as far from the house as the cow is from the house"
     # but NOT for "when the cow is 3 steps from the house"
     # in the latter case, one of the two entities will be given by the filters
-    def __init__(self, memory, linear_exent_attribute, mem=None, search_data=None):
+    def __init__(self, memory, linear_exent_attribute, mem=None, query=""):
         super().__init__(memory)
         self.linear_extent_attribute = linear_exent_attribute
-        assert mem or search_data
+        assert mem or query
         self.searcher = None
         self.mem = mem
         # FIXME!!! put FILTERS here
         if not self.mem:
-            self.searcher = BasicMemorySearcher(search_data=search_data)
+            self.searcher = MemorySearcher(query=query)
 
     def get_value(self):
         if self.mem:
             mems = [self.mem]
         else:
-            mems = self.searcher.search(self.memory)
+            _, mems = self.searcher.search(self.memory)
         if len(mems) > 0:
             # TODO/FIXME! deal with more than 1 better
             return self.linear_extent_attribute(mems)[0]

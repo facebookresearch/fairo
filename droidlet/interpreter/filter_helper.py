@@ -23,6 +23,12 @@ from .interpreter_utils import tags_from_dict
 
 CARDINAL_RADIUS = 20
 
+####################################################################################
+### FIXME!!! this file, comparator_helper, etc  needs to be refactored to make use of
+### updated memory searcher class
+### lots of overlapping code
+####################################################################################
+
 
 def get_val_map(interpreter, speaker, filters_d, get_all=False):
     output = filters_d.get("output")
@@ -55,6 +61,7 @@ def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
         return None
 
 
+# FIXME!!  properly use new FILTERS spec
 def interpret_ref_obj_filter(interpreter, speaker, filters_d):
     F = MemoryFilter(interpreter.memory)
 
@@ -69,16 +76,18 @@ def interpret_ref_obj_filter(interpreter, speaker, filters_d):
     # currently spec intersects all has_x, TODO?
     # FIXME!!! tags_from_dict is crude, use tags/relations appropriately
     #        triples = []
-    tags = tags_from_dict(filters_d)
-    triples = [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]
     #        for k, v in filters_d.items():
     #            if type(k) is str and "has" in k:
     #                if type(v) is str:
     #                    triples.append({"pred_text": k, "obj_text": v})
     # Warning: BasicFilters will filter out agent's self
     # FIXME !! finer control over this ^
-    if triples:
-        F.append(BasicFilter(interpreter.memory, {"triples": triples}))
+
+    tags = tags_from_dict(filters_d)
+    if tags:
+        where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
+        query = "SELECT MEMORY FROM ReferenceObject WHERE (" + where + ")"
+        F.append(BasicFilter(interpreter.memory, query, ignore_self=not ("SELF" in tags)))
 
     return F
 
@@ -206,19 +215,18 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
     task_properties = [
         a.get("obj_text").lower() for a in T if a.get("obj_text", "").lower() in task_tags
     ]
-    search_data = {}
-    search_data["base_table"] = "Tasks"
-    search_data["base_exact"] = {}
     if "currently_running" in task_properties:
-        search_data["base_exact"]["running"] = 1
-    if "paused" in task_properties:
-        search_data["base_exact"]["paused"] = 1
+        where = "(running=1) AND "
     else:
-        search_data["base_exact"]["paused"] = 0
-    search_data["base_range"] = {}
+        where = ""
+    if "paused" in task_properties:
+        where = where + "(paused=1)"
+    else:
+        where = where + "(paused=0)"
     if "finished" in task_properties:
-        search_data["base_range"]["minfinished"] = 0
-    F.append(BasicFilter(interpreter.memory, search_data))
+        where = where + " AND (finished>0)"
+    query = "SELECT MEMORY FROM Task WHERE (" + where + ")"
+    F.append(BasicFilter(interpreter.memory, query))
 
     # currently spec intersects all comparators TODO?
     comparator_specs = filters_d.get("comparator")
@@ -231,25 +239,18 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
 
 def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
     F = MemoryFilter(interpreter.memory)
-
-    search_data = {}
-    triples = []
+    triples = ["({}={})".format(t["pred_text"], t["obj_text"]) for t in filters_d.get("triples", [])]
     triple_filter = None
-    for t in filters_d.get("triples"):
-        triples.append(t)
-    if triples:
-        search_data["base_table"] = "Dances"
-        search_data["triples"] = triples
-        triple_filter = BasicFilter(interpreter.memory, search_data)
-
-    search_data = {}
+    if len(triples) > 0:
+        where = " AND ".join(triples)
+        triple_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
+        
     tags = tags_from_dict(filters_d)
     tag_filter = None
-    triples = [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]
+    triples = ["(has_tag={})".format(tag) for tag in tags]
     if triples:
-        search_data["base_table"] = "Dances"
-        search_data["triples"] = triples
-        tag_filter = BasicFilter(interpreter.memory, search_data)
+        where = " AND ".join(triples)
+        tag_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
 
     F.append(BackoffFilter(interpreter.memory, [triple_filter, tag_filter]))
     # currently spec intersects all comparators TODO?

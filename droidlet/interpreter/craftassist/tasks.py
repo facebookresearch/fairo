@@ -674,8 +674,8 @@ class Fill(Task):
         self.finished = True
 
     def undo(self, agent):
-        triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]
-        build_mems = self.agent.memory.basic_search({"base_table": "tasks", "triples": triples})
+        query = "SELECT MEMORY FROM Task WHERE _has_parent_task=#={}".format(self.memid)
+        _, build_mems = self.agent.memory.basic_search(query)
         if build_mems:
             build_mems[0].task.undo(agent)
 
@@ -749,8 +749,8 @@ class Destroy(Task):
             self.submitted_build_task = True
 
     def undo(self, agent):
-        triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]
-        build_mems = self.agent.memory.basic_search({"base_table": "tasks", "triples": triples})
+        query = "SELECT MEMORY FROM Task WHERE _has_parent_task=#={}".format(self.memid)
+        _, build_mems = self.agent.memory.basic_search(query)
         if build_mems:
             build_mems[0].task.undo(agent)
 
