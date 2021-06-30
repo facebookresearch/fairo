@@ -168,18 +168,23 @@ class LocoMCAgent(BaseAgent):
                 base_pose_data.append([pose_data["x"], pose_data["y"], pose_data["yaw"]])
             base_pose_data = np.array(base_pose_data)
 
-            np.save("rgb0.npy", rgb_imgs[0])
-            np.save("rgb1.npy", rgb_imgs[1])
-            np.save("depth0.npy", depth_imgs[0])
-            np.save("depth1.npy", depth_imgs[1])
-            np.save("label_maps.npy", label_maps)
-            np.save("base_pose.npy", base_pose_data)
+            # np.save("rgb0.npy", rgb_imgs[0])
+            # np.save("rgb1.npy", rgb_imgs[1])
+            # np.save("depth0.npy", depth_imgs[0])
+            # np.save("depth1.npy", depth_imgs[1])
+            # np.save("label_maps.npy", label_maps)
+            # np.save("base_pose.npy", base_pose_data)
             res_labels = propogate_label(rgb_imgs, depth_imgs, label_maps, base_pose_data, 1, 1)
-            
+
+            # Encode imagge            
             res_map = []
+            quality = 10
+            encode_param = [int(cv2.IMWRITE_WEBP_QUALITY), quality]
+            fmt = ".webp"            
             for i in res_labels.keys(): 
-                res_bytes = res_labels[i].tobytes()
-                res_map.append(res_bytes)
+                _, rgb_data = cv2.imencode(fmt, cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), encode_param)
+                # res_bytes = res_labels[i].tobytes()
+                res_map.append(rgb_data)
 
             sio.emit("labelPropagationReturn", res_map)
 

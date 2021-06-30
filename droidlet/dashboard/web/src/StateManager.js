@@ -5,6 +5,7 @@ import io from "socket.io-client";
 import Memory2D from "./components/Memory2D";
 import MemoryList from "./components/MemoryList";
 import LiveImage from "./components/LiveImage";
+import LabelProp from "./components/LabelProp";
 import Settings from "./components/Settings";
 import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
@@ -400,8 +401,20 @@ class StateManager {
     this.socket.emit("labelPropagation", props)
   }
 
-  labelPropagationReturn(props) {
-    console.log("label prop retrun:", props)
+  labelPropagationReturn(res) {
+    console.log("label prop retrun:", res)
+    let rgb = new Image();
+    rgb.src = "data:image/webp;base64," + res[0];
+    this.refs.forEach((ref) => {
+      if (ref instanceof LabelProp) {
+        if (ref.props.type === "rgb") {
+          ref.setState({
+            isLoaded: true,
+            rgb: rgb,
+          });
+        }
+      }
+    });
   }
 
   labelPropPropsFull() {
