@@ -5,6 +5,6 @@
 CFG="Release"
 BUILD_FRANKA="ON"
 
-cd ./polymetis
+cd ./polymetis/polymetis
 rm -rf build
 source install.sh
