@@ -289,6 +289,11 @@ class MCInterpreter(Interpreter):
         steps, reldir = interpret_relative_direction(self, location_d)
         location, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
 
+        """
+        FIXME: We need to fix this and perhaps put this in reasoning. Agent should run perception
+        and put into memory. Interpreter shouldn't be perceiving, but should be able to
+        ask the agent to do it when needed.
+        """
         # Get nearby holes
         holes = self.get_all_holes_fn(agent, location, self.block_data)
         # Choose the best ones to fill
