@@ -56,7 +56,9 @@ class iLQR(toco.PolicyModule):
             A dictionary containing the controller output
         """
         # Extract state vector
-        x = torch.cat([state_dict["joint_pos"], state_dict["joint_vel"]], dim=-1)
+        x = torch.cat(
+            [state_dict["joint_positions"], state_dict["joint_velocities"]], dim=-1
+        )
 
         # Select linear feedback gains & reference
         self.feedback.update({"K": self.Kxs[self.i, :, :]})
@@ -71,4 +73,4 @@ class iLQR(toco.PolicyModule):
 
         u_output = self.feedback(x, x_desired) + u_ff
 
-        return {"torque_desired": u_output}
+        return {"joint_torques": u_output}

@@ -20,7 +20,7 @@ def policy(request):
 
 @pytest.mark.benchmark(group="non-scripted")
 def test_policy_performance(policy, benchmark):
-    inputs = {"joint_pos": torch.zeros(7), "joint_vel": torch.zeros(7)}
+    inputs = {"joint_positions": torch.zeros(7), "joint_velocities": torch.zeros(7)}
 
     with torch.no_grad():
         benchmark(policy.forward, inputs)
@@ -28,7 +28,7 @@ def test_policy_performance(policy, benchmark):
 
 @pytest.mark.benchmark(group="scripted")
 def test_scripted_policy_performance(policy, benchmark):
-    inputs = {"joint_pos": torch.zeros(7), "joint_vel": torch.zeros(7)}
+    inputs = {"joint_positions": torch.zeros(7), "joint_velocities": torch.zeros(7)}
     scripted_policy = torch.jit.script(policy)
 
     with torch.no_grad():

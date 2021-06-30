@@ -24,7 +24,7 @@ except OSError:
     torch.ops.load_library(
         os.path.join(
             project_root_dir,
-            "polymetis/polymetis/build/libtorchrot.so",
+            "polymetis/build/libtorchrot.so",
         )
     )
 

@@ -18,7 +18,7 @@ project_root_dir = (
 )
 
 panda_urdf_path = path.abspath(
-    path.join(project_root_dir, "polymetis/polymetis/data/franka_panda/panda_arm.urdf")
+    path.join(project_root_dir, "polymetis/data/franka_panda/panda_arm.urdf")
 )
 panda_ee_joint_name = "panda_joint8"
 robot_model = toco.models.RobotModelPinocchio(panda_urdf_path, panda_ee_joint_name)
@@ -107,7 +107,7 @@ def test_policy(policy_class, policy_kwargs, is_terminating, update_params):
 
     for t in range(time_horizon):
         assert not scripted_policy.is_terminated()
-        inputs = {"joint_pos": torch.zeros(7), "joint_vel": torch.zeros(7)}
+        inputs = {"joint_positions": torch.zeros(7), "joint_velocities": torch.zeros(7)}
         scripted_policy.forward(inputs)
 
     if is_terminating:

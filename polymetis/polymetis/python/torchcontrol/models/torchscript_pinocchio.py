@@ -24,7 +24,7 @@ except OSError:
     torch.classes.load_library(
         os.path.join(
             project_root_dir,
-            "polymetis/polymetis/build/libtorchscript_pinocchio.so",
+            "polymetis/build/libtorchscript_pinocchio.so",
         )
     )
 

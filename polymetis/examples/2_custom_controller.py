@@ -40,8 +40,8 @@ class MySinePolicy(toco.PolicyModule):
 
     def forward(self, state_dict: Dict[str, torch.Tensor]):
         # Parse states
-        q_current = state_dict["joint_pos"]
-        qd_current = state_dict["joint_vel"]
+        q_current = state_dict["joint_positions"]
+        qd_current = state_dict["joint_velocities"]
 
         # Initialize
         if self.steps == 0:
@@ -64,7 +64,7 @@ class MySinePolicy(toco.PolicyModule):
             self.set_terminated()
         self.steps += 1
 
-        return {"torque_desired": output}
+        return {"joint_torques": output}
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ from torchcontrol.utils import test_utils
 
 urdf_path = os.path.join(
     test_utils.project_root_dir,
-    "polymetis/polymetis/data/kuka_iiwa/urdf/iiwa7.urdf",
+    "polymetis/data/kuka_iiwa/urdf/iiwa7.urdf",
 )
 
 # Set default tensor type to float32
