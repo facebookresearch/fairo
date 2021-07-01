@@ -77,7 +77,7 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   num_dofs_ = robot_client_metadata->dof();
 
   // Create initial state dictionary
-  rs_timestamp_ = torch::tensor(0.0);
+  rs_timestamp_ = torch::zeros(2).to(torch::kInt32);
   rs_joint_positions_ = torch::zeros(num_dofs_);
   rs_joint_velocities_ = torch::zeros(num_dofs_);
   rs_motor_torques_measured_ = torch::zeros(num_dofs_);
@@ -153,10 +153,9 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // Parse robot state
-  auto rs_timestamp_msg = robot_state->timestamp();
-  auto a = rs_timestamp_.data_ptr<float>();
-  *a = float(rs_timestamp_msg.seconds()) +
-       float(rs_timestamp_msg.nanos()) * 1e-9;
+  auto timestamp_msg = robot_state->timestamp();
+  rs_timestamp_[0] = timestamp_msg.seconds();
+  rs_timestamp_[1] = timestamp_msg.nanos();
   for (int i = 0; i < num_dofs_; i++) {
     rs_joint_positions_[i] = robot_state->joint_positions(i);
     rs_joint_velocities_[i] = robot_state->joint_velocities(i);
