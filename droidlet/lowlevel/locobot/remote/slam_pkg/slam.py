@@ -37,7 +37,7 @@ class Slam(object):
         agent_max_z=70,
         vis=False,
         save_vis=os.getenv("SAVE_VIS", 'False').lower() in ('true', 'True'),
-        save_folder=os.getenv("SLAM_SAVE_FOLDER"),
+        save_folder=os.getenv("SLAM_SAVE_FOLDER", '../slam_logs'),
     ):
         """
 
@@ -271,7 +271,7 @@ class Slam(object):
 
         """
         # add robot collision map to traversable area
-        # ocommented it as on real robot this gives issue sometime
+        # commented it as on real robot this gives issue sometime
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
