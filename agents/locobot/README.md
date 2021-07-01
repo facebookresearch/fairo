@@ -33,16 +33,16 @@ docker pull theh1ghwayman/locobot-assistant:segm
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-      <td> 2. Launch Pyro4 <p> Copy the <a href="https://github.com/facebookresearch/droidlet/tree/main/locobot/robot"> robot<a/> folder onto the Locobot and then do the following: </p>
+      <td> 2. Launch Pyro4 <p> Copy the <a href="https://github.com/facebookresearch/droidlet/tree/main/droidlet/lowlevel/locobot/remote"> remote<a/> folder onto the Locobot and then do the following: </p>
         <sub><pre lang="bash">
-cd robot
+cd remote
 chmod +x launch_pyro.sh
 ./launch_pyro.sh
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
 docker run --gpus all -it --rm --ipc=host -v $(pwd):/remote -w /remote theh1ghwayman/locobot-assistant:segm bash
-./locobot/robot/launch_pyro_habitat.sh
+./droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
         </pre></sub></td>
     </tr>
         <tr valign="top">

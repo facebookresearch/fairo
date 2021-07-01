@@ -13,16 +13,16 @@ class MyCustomEnv(AbstractControlledEnv):
     ... # define methods here
 ```
 
-The created simulation environment must define the following functions (see [abstract_env.py](https://github.com/facebookresearch/polymetis/tree/master/polysim/polysim/envs/abstract_env.py) for details):
+The created simulation environment must define the following functions (see [abstract_env.py](https://github.com/facebookresearch/droidlet/blob/main/polymetis/polymetis/python/polysim/envs/abstract_env.py) for details):
 - `reset`
 - `get_num_dofs`
 - `get_current_joint_pos_vel`
 - `get_current_joint_torques`
 - `apply_joint_torques`
 
-Sample simulation environments can also be found in [polysim/envs](https://github.com/facebookresearch/polymetis/tree/master/polysim/polysim/envs)
+Sample simulation environments can also be found in [polysim/envs](https://github.com/facebookresearch/droidlet/tree/main/polymetis/polymetis/python/polysim/envs)
 
-You must also define metadata around your simulation environment which instantiates a [RobotClientMetadata](https://github.com/facebookresearch/polymetis/tree/master/polymetis/python/polymetis/robot_client/metadata.py) object. An example configuration is in the [default config](https://github.com/facebookresearch/polymetis/tree/master/polymetis/conf/robot_client/franka_hardware.yaml) under `metadata_cfg`.
+You must also define metadata around your simulation environment which instantiates a [RobotClientMetadata](https://github.com/facebookresearch/droidlet/tree/main/polymetis/polymetis/python/polymetis/robot_client/metadata.py) object. An example configuration is in the [default config](https://github.com/facebookresearch/droidlet/tree/main/polymetis/polymetis/conf/robot_client/franka_hardware.yaml) under `metadata_cfg`.
 
 The Simulation Client is implemented as a wrapper around the simulation environment.
 To connect a simulation environment to a local server and run for 1000 steps:
