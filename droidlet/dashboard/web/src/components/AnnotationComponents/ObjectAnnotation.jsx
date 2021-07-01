@@ -179,7 +179,6 @@ class ObjectAnnotation extends React.Component {
   }
 
   drawingFinished(data, newMask) {
-    console.log("finished drawing");
     this.pointMap[this.state.currentMaskId] = data;
     this.setState({
       currentMode: "select",
