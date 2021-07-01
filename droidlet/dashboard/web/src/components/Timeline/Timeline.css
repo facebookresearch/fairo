@@ -13,6 +13,18 @@ Copyright (c) Facebook, Inc. and its affiliates.
   background-color: #777;
 }
 
+.vis-item.perceive {
+  background-color: #c0d6df;
+}
+
+.vis-item.dialogue {
+  background-color: #f7b2ad;
+}
+
+.vis-item.interpreter {
+  background-color: #dbe9ee;
+}
+
 pre {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 0.8em;
