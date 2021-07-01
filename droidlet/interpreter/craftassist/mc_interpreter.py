@@ -371,8 +371,15 @@ class MCInterpreter(Interpreter):
 
         def new_tasks():
             attrs = {}
-            schematic_d = d.get("schematic", {"has_size": 2})
+            schematic_triples = d.get("schematic", {}).get("filters", {}).get("triples",
+                                                                              [{'pred_text': 'has_size',
+                                                                                'obj_text': '2'}])
+            # schematic_d = d.get("schematic", {"has_size": 2})
             # set the attributes of the hole to be dug.
+            schematic_d = {}
+            for triple in schematic_triples:
+                schematic_d[triple['pred_text']] = triple['obj_text']
+                
             for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
                 key = "has_{}".format(dim)
                 if key in schematic_d:

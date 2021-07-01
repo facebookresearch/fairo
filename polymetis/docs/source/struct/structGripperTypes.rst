@@ -1,0 +1,4 @@
+Struct GripperTypes
+===================
+
+.. doxygenstruct:: GripperTypes

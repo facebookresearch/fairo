@@ -37,18 +37,17 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
             # FIXME handle errors/None return in AttributeInterpeter
             inp_filt = inp["filters"]
             if inp_filt["output"].get("attribute"):
-                search_data = {
-                    "attribute": get_attribute(
-                        interpreter, speaker, inp_filt["output"].get("attribute")
-                    )
-                }
-            mem, sd = maybe_specific_mem(interpreter, speaker, inp)
-            if sd:
-                for k, v in sd.items():
-                    search_data[k] = v
+                attribute = get_attribute(interpreter, speaker, inp_filt["output"]["attribute"])
+            else:
+                raise Exception(
+                    "filters comparator with no attribute specified {}".format(inp_filt)
+                )
+            mem, query = maybe_specific_mem(interpreter, speaker, inp)
             # TODO wrap this in a ScaledValue using condtition.convert_comparison_value
             # and "comparison_measure"
-            value_extractors[inp_pos] = MemoryColumnValue(interpreter.memory, search_data, mem=mem)
+            value_extractors[inp_pos] = MemoryColumnValue(
+                interpreter.memory, attribute, query=query, mem=mem
+            )
         else:
             raise ErrorWithResponse(
                 "I don't know understand that condition, looks like a comparator but value is not filters or span"

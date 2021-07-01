@@ -130,9 +130,10 @@ class LocoMCAgent(BaseAgent):
             logical_form = {}
             status = ""
             try:
-                logical_form = self.chat_parser.get_logical_form(
+                chat_parse = self.chat_parser.get_logical_form(
                     chat=command, parsing_model=self.chat_parser.parsing_model
                 )
+                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=command, logical_form=chat_parse)
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
             except Exception as e:
@@ -248,15 +249,15 @@ class LocoMCAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        query = {"base_table": "Tasks", "base_exact": {"prio": -1}}
-        task_mems = self.memory.basic_search(query)
+        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.init_condition.check():
                 mem.get_update_status({"prio": 0})
 
         # this is "select TaskNodes whose priority is >= 0 and are not paused"
-        query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
-        task_mems = self.memory.basic_search(query)
+        query = "SELECT MEMORY FROM Task WHERE ((prio>=0) AND (paused <= 0))"
+        _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.run_condition.check():
                 # eventually we need to use the multiplex filter to decide what runs
@@ -264,8 +265,8 @@ class LocoMCAgent(BaseAgent):
             if mem.task.stop_condition.check():
                 mem.get_update_status({"prio": 0, "running": 0})
         # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
-        query = {"base_table": "Tasks", "base_range": {"minrunning": 0.5, "maxpaused": 0.5}}
-        task_mems = self.memory.basic_search(query)
+        query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
+        _, task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)
             return

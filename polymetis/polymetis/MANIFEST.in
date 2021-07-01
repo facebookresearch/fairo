@@ -1,0 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+global-exclude *.pyc
+global-exclude __pycache__
+recursive-include python/polymetis/conf *.yaml
+recursive-include python/polymetis/data *.urdf *.xml *.stl *.STL *.DAE *.obj *.xacro *.dae

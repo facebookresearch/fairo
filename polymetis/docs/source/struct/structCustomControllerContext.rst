@@ -1,0 +1,4 @@
+Struct CustomControllerContext
+==============================
+
+.. doxygenstruct:: CustomControllerContext

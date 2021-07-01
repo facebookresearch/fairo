@@ -1,0 +1,23 @@
+logfile: ""
+
+update_interval_seconds: 1
+
+server_ip: "localhost"
+server_port: 50051
+max_queue_size: 10000
+downsampling_ratio: 30
+
+log_keys:
+  - "joint_positions"
+  - "joint_velocities"
+  - "joint_torques_computed"
+
+app:
+  debug: false
+  host: localhost
+  port: 2384
+  external_stylesheets:
+    - href: "https://unpkg.com/purecss@2.0.3/build/pure-min.css"
+      rel: "stylesheet"
+      integrity: "sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ"
+      crossorigin: "anonymous"

@@ -50,7 +50,7 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
     memory now but to be searched for when checking the condition
     """
     mem = None
-    search_data = None
+    query = ""
     cands = None
     # FIXME! make a "get_special_reference" fn
     if ref_obj_d.get("special_reference"):
@@ -75,17 +75,19 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
                 raise ErrorWithResponse(
                     "I don't know which objects' attribute you are talking about"
                 )
-            # TODO if more than one? ask? use the filters?
+            # FIXME! if more than one? ask? use the filters?
             else:
                 mem = cands[0]
     else:
-        # FIXME use FILTERS
         # this object is only defined by the filters and might be different at different moments
+        # FIXME use FILTERS!!
+        # FIXME backoff
         tags = tags_from_dict(filters_d)
-        # make a function, reuse code with get_reference_objects FIXME
-        search_data = [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]
+        if tags:
+            where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
+            query = "SELECT MEMORY FROM ReferenceObject WHERE (" + where + ")"
 
-    return mem, search_data
+    return mem, query
 
 
 def interpret_linear_extent(interpreter, speaker, d, force_value=False):
@@ -145,8 +147,8 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
         mem = None
         sd = None
         if rd:
-            mem, sd = maybe_specific_mem(interpreter, speaker, rd["filters"])
-        L = LinearExtentValue(interpreter.memory, L, mem=mem, search_data=sd)
+            mem, query = maybe_specific_mem(interpreter, speaker, rd["filters"])
+        L = LinearExtentValue(interpreter.memory, L, mem=mem, query=query)
 
     return L
 

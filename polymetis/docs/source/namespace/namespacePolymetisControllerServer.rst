@@ -1,0 +1,4 @@
+Namespace PolymetisControllerServer
+===============================
+
+.. doxygennamespace:: PolymetisControllerServer

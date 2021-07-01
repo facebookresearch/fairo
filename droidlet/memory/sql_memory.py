@@ -16,7 +16,7 @@ from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
-from droidlet.memory.memory_filters import BasicMemorySearcher
+from droidlet.memory.memory_filters import MemorySearcher
 from .dialogue_stack import DialogueStack
 from droidlet.memory.memory_util import parse_sql, format_query
 
@@ -31,6 +31,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     LocationNode,
     ReferenceObjectNode,
     NamedAbstractionNode,
+    AttentionNode,
     NODELIST,
 )
 
@@ -73,7 +74,7 @@ class AgentMemory:
         all_tables (list): List of all table names
         nodes (dict): Mapping of node name to table name
         self_memid (str): MemoryID for the AgentMemory
-        basic_searcher (BasicMemorySearcher): A class to search through memory
+        searcher (MemorySearcher): A class to process searches through memory
         time (int): The time of the agent
     """
 
@@ -116,6 +117,15 @@ class AgentMemory:
         self.nodes = {}
         for node in nodelist:
             self.nodes[node.NODE_TYPE] = node
+        # FIXME, this is ugly.  using for memtype/FROM clauses in searches
+        # we also store .TABLE in each node, and use it.  this also should be fixed,
+        # it breaks the abstraction
+        self.node_children = {}
+        for node in nodelist:
+            self.node_children[node.NODE_TYPE] = []
+            for possible_child in nodelist:
+                if node in possible_child.__mro__:
+                    self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
@@ -129,7 +139,7 @@ class AgentMemory:
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "SELF")
 
-        self.basic_searcher = BasicMemorySearcher(self_memid=self.self_memid)
+        self.searcher = MemorySearcher()
 
     def __del__(self):
         """Close the database file"""
@@ -306,7 +316,7 @@ class AgentMemory:
             >>> memid = '10517cc584844659907ccfa6161e9d32'
             >>> table = 'ReferenceObjects'
             >>> check_memid_exists(memid, table)
-        """
+et        """
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object
@@ -343,22 +353,17 @@ class AgentMemory:
         for u in uuids:
             self.forget(u[0])
 
-    def basic_search(self, filter_dict):
-        """Perform a basic search using the filter_dict
+    def basic_search(self, query):
+        """Perform a basic search using the query
 
         Args:
-            filter_dict (dict): A dictionary indicating values that the memory should be filtered on
+            query (dict): A FILTERS dict or sqly query
 
         Returns:
-            list[MemoryNode]: A list of MemoryNode objects.
+            list[memid], list[value]: the memids and respective values from the search
 
-        Examples::
-            >>> filters_dict = {"base_table" : "ReferenceObject",
-                                "triples" : [{"pred_text" : "has_name",
-                                              "obj_text" : "house"}]}
-            >>> basic_search(filters_dict)
         """
-        return self.basic_searcher.search(self, search_data=filter_dict)
+        return self.searcher.search(self, query=query)
 
     #################
     ###  Triples  ###

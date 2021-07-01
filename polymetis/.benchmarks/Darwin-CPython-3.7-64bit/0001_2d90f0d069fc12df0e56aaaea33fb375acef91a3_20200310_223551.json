@@ -1,0 +1,219 @@
+{
+    "machine_info": {
+        "node": "yixinlin-mbp",
+        "processor": "i386",
+        "machine": "x86_64",
+        "python_compiler": "Clang 4.0.1 (tags/RELEASE_401/final)",
+        "python_implementation": "CPython",
+        "python_implementation_version": "3.7.3",
+        "python_version": "3.7.3",
+        "python_build": [
+            "default",
+            "Jul  1 2019 14:38:56"
+        ],
+        "release": "19.3.0",
+        "system": "Darwin",
+        "cpu": {
+            "vendor_id": "GenuineIntel",
+            "hardware": "unknown",
+            "brand": "Intel(R) Core(TM) i7-7920HQ CPU @ 3.10GHz"
+        }
+    },
+    "commit_info": {
+        "id": "2d90f0d069fc12df0e56aaaea33fb375acef91a3",
+        "time": "2020-03-10T14:06:40-07:00",
+        "author_time": "2020-03-10T14:06:38-07:00",
+        "dirty": false,
+        "project": "controller-manager",
+        "branch": "yl-dynamics-controllers"
+    },
+    "benchmarks": [
+        {
+            "group": null,
+            "name": "test_controller_step[PDControlPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[PDControlPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[PDControlPolicy()]"
+            },
+            "param": "PDControlPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": 2000
+            },
+            "stats": {
+                "min": 2.8460000000229968e-05,
+                "max": 0.0002413280000004292,
+                "mean": 3.1996215292208265e-05,
+                "stddev": 6.366975183975455e-06,
+                "rounds": 35129,
+                "median": 3.1118999999968366e-05,
+                "iqr": 1.805999999326957e-06,
+                "q1": 3.0256000000505878e-05,
+                "q3": 3.2061999999832835e-05,
+                "iqr_outliers": 1381,
+                "stddev_outliers": 1256,
+                "outliers": "1256;1381",
+                "ld15iqr": 2.8460000000229968e-05,
+                "hd15iqr": 3.477300000032102e-05,
+                "ops": 31253.696440888758,
+                "total": 1.1239950469999842,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[DirectTorquePolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[DirectTorquePolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[DirectTorquePolicy()]"
+            },
+            "param": "DirectTorquePolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": 2000
+            },
+            "stats": {
+                "min": 2.8278999999464816e-05,
+                "max": 0.00047287799999917723,
+                "mean": 3.157855813953535e-05,
+                "stddev": 5.844116677269215e-06,
+                "rounds": 35045,
+                "median": 3.079600000077676e-05,
+                "iqr": 2.1962499996419638e-06,
+                "q1": 2.974274999978377e-05,
+                "q3": 3.193899999942573e-05,
+                "iqr_outliers": 1180,
+                "stddev_outliers": 1115,
+                "outliers": "1115;1180",
+                "ld15iqr": 2.8278999999464816e-05,
+                "hd15iqr": 3.523600000043814e-05,
+                "ops": 31667.056981554575,
+                "total": 1.1066705700000163,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[IlqrPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[IlqrPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[IlqrPolicy()]"
+            },
+            "param": "IlqrPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": 2000
+            },
+            "stats": {
+                "min": 2.8284999999961258e-05,
+                "max": 0.00021002999999986116,
+                "mean": 3.112876542328074e-05,
+                "stddev": 5.640702840732721e-06,
+                "rounds": 35012,
+                "median": 3.0449000000487558e-05,
+                "iqr": 1.8294999999390882e-06,
+                "q1": 2.9322500000095175e-05,
+                "q3": 3.1152000000034263e-05,
+                "iqr_outliers": 1186,
+                "stddev_outliers": 1076,
+                "outliers": "1076;1186",
+                "ld15iqr": 2.8284999999961258e-05,
+                "hd15iqr": 3.392500000032328e-05,
+                "ops": 32124.627700529203,
+                "total": 1.089880334999905,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[JointGoToPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[JointGoToPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[JointGoToPolicy(\n  (robot_model): TracedModule[RobotModelTorch](\n    original_name=RobotModelTorch\n    (_bodies): TracedModule[ModuleList](\n      original_name=ModuleList\n      (0): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (1): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (2): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (3): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (4): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (5): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (6): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (7): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (8): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n    )\n  )\n)]"
+            },
+            "param": "JointGoToPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": 2000
+            },
+            "stats": {
+                "min": 2.811499999921807e-05,
+                "max": 0.0006484300000000331,
+                "mean": 3.13591523229757e-05,
+                "stddev": 7.367953348879954e-06,
+                "rounds": 35149,
+                "median": 3.0596000000215895e-05,
+                "iqr": 1.7902500002442423e-06,
+                "q1": 2.97210000006487e-05,
+                "q3": 3.151125000089294e-05,
+                "iqr_outliers": 1427,
+                "stddev_outliers": 1185,
+                "outliers": "1185;1427",
+                "ld15iqr": 2.811499999921807e-05,
+                "hd15iqr": 3.4206000000480685e-05,
+                "ops": 31888.617067857947,
+                "total": 1.1022428450002728,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[OperationalSpaceController]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[OperationalSpaceController]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[OperationalSpaceController(\n  (robot_model): TracedModule[RobotModelTorch](\n    original_name=RobotModelTorch\n    (_bodies): TracedModule[ModuleList](\n      original_name=ModuleList\n      (0): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (1): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (2): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (3): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (4): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (5): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (6): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (7): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n      (8): TracedModule[RigidBody](\n        original_name=RigidBody\n        (inertia): TracedModule[RigidBodyInertia](original_name=RigidBodyInertia)\n      )\n    )\n  )\n)]"
+            },
+            "param": "OperationalSpaceController",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": 2000
+            },
+            "stats": {
+                "min": 2.819800000075645e-05,
+                "max": 0.00016583200000042098,
+                "mean": 3.189645970327199e-05,
+                "stddev": 5.836039186713967e-06,
+                "rounds": 35251,
+                "median": 3.089099999975531e-05,
+                "iqr": 2.786999999671025e-06,
+                "q1": 2.9876999999345344e-05,
+                "q3": 3.266399999901637e-05,
+                "iqr_outliers": 1204,
+                "stddev_outliers": 1176,
+                "outliers": "1176;1204",
+                "ld15iqr": 2.819800000075645e-05,
+                "hd15iqr": 3.687399999918739e-05,
+                "ops": 31351.44179958688,
+                "total": 1.124382101000041,
+                "iterations": 1
+            }
+        }
+    ],
+    "datetime": "2020-03-10T22:36:02.539484",
+    "version": "3.2.3"
+}

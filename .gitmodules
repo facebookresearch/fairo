@@ -13,3 +13,7 @@
 [submodule "droidlet/lowlevel/minecraft/logging/lib/argparse"]
 	path = droidlet/lowlevel/minecraft/logging/lib/argparse
 	url = https://github.com/jonathathan/argparse.git
+[submodule "polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka"]
+	path = polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka
+	url = https://github.com/frankaemika/libfranka.git
+
