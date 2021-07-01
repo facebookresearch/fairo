@@ -59,7 +59,6 @@ class DataEntry extends React.Component {
         </div>
       );
     }
-    console.log("rendering normal");
     return (
       <div
         className="data-entry-root"
@@ -93,7 +92,6 @@ class DataEntry extends React.Component {
   }
 
   submit() {
-    console.log("data entry");
     let name = this.nameRef.current.value.trim();
     // Validation
     if (name.length === 0) {

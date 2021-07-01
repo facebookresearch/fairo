@@ -84,9 +84,6 @@ class SegmentRenderer extends React.Component {
     this.ctx.drawImage(this.props.img, 0, 0);
 
     // Draw regions
-    console.log(this.props);
-    console.log(this.props.objects);
-    console.log(this.props.pointMap);
     for (let i = 0; i < this.props.objects.length; i++) {
       let curId = this.props.objects[i];
       let pts_arr = this.props.pointMap[curId];
