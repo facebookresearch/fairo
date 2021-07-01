@@ -61,7 +61,7 @@ class LocoMCAgent(BaseAgent):
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
         
-        # Add optional hook for db_write and perceive
+        # Add optional hook for db_write and perceive and dialogue_manager
         if opts.enable_timeline:
             self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
             self.register_hook(self.log_to_dashboard, self.perceive)

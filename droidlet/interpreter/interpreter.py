@@ -89,7 +89,7 @@ class Interpreter(DialogueObject):
         if agent.opts.enable_timeline:
             self.register_hook(agent.log_to_dashboard, self.step)
         start_time = datetime.datetime.now()
-        
+
         assert self.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
             actions = []
