@@ -29,8 +29,8 @@ class DefaultController(toco.PolicyModule):
         self.running = False
 
     def forward(self, state_dict: Dict[str, torch.Tensor]):
-        joint_pos_current = state_dict["joint_pos"]
-        joint_vel_current = state_dict["joint_vel"]
+        joint_pos_current = state_dict["joint_positions"]
+        joint_vel_current = state_dict["joint_velocities"]
 
         # Set reference joint position
         if not self.running:
@@ -45,4 +45,4 @@ class DefaultController(toco.PolicyModule):
             torch.zeros_like(self.joint_pos_desired),
         )
 
-        return {"torque_desired": torque_feedback}
+        return {"joint_torques": torque_feedback}

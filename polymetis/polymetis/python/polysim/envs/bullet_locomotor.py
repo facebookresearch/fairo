@@ -87,11 +87,11 @@ class DaisyLocomotorEnv(AbstractControlledEnv):
         # concatenating the joint pos and base state for controllers like ilqr
         # joint_pos should probably be renamed as generalized coordinates or something
         base_pos = self.get_current_base_pos()
-        self.robot_state["joint_pos"] = np.hstack(
+        self.robot_state["joint_positions"] = np.hstack(
             [state["j_pos"], base_pos, state["base_ori_euler"]]
         ).tolist()
         base_vel = self.get_current_base_vel()
-        self.robot_state["joint_vel"] = np.hstack(
+        self.robot_state["joint_velocities"] = np.hstack(
             [state["j_vel"], base_vel, state["base_ang_vel"]]
         ).tolist()
         self.robot_state["joint_acc"] = state["j_eff"]  # TODO: fill in this field

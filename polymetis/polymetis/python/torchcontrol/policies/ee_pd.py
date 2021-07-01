@@ -63,8 +63,8 @@ class CartesianImpedanceControl(toco.PolicyModule):
             A dictionary containing the controller output
         """
         # State extraction
-        joint_pos_current = state_dict["joint_pos"]
-        joint_vel_current = state_dict["joint_vel"]
+        joint_pos_current = state_dict["joint_positions"]
+        joint_vel_current = state_dict["joint_velocities"]
 
         # Desired state
         ee_pose_desired = T.from_rot_xyz(
@@ -82,4 +82,4 @@ class CartesianImpedanceControl(toco.PolicyModule):
         )  # coriolis
         torque_out = torque_feedback + torque_feedforward
 
-        return {"torque_desired": torque_out}
+        return {"joint_torques": torque_out}

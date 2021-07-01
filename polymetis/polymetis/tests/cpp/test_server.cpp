@@ -201,6 +201,8 @@ int main(int argc, char **argv) {
   for (int i = 0; i < metadata_.dof(); i++) {
     dummy_robot_state_.add_joint_positions(0);
     dummy_robot_state_.add_joint_velocities(0);
+    dummy_robot_state_.add_motor_torques_measured(0);
+    dummy_robot_state_.add_motor_torques_external(0);
   }
 
   return RUN_ALL_TESTS();

@@ -107,7 +107,7 @@ def test_policy(policy_class, policy_kwargs, is_terminating, update_params):
 
     for t in range(time_horizon):
         assert not scripted_policy.is_terminated()
-        inputs = {"joint_pos": torch.zeros(7), "joint_vel": torch.zeros(7)}
+        inputs = {"joint_positions": torch.zeros(7), "joint_velocities": torch.zeros(7)}
         scripted_policy.forward(inputs)
 
     if is_terminating:

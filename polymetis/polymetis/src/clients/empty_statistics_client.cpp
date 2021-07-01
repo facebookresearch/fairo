@@ -121,9 +121,12 @@ private:
   std::unique_ptr<PolymetisControllerServer::Stub> stub_;
   bool SendCommand(int num_dofs) {
     RobotState state_;
+    setTimestampToNow(state_.mutable_timestamp());
     for (int i = 0; i < num_dofs; i++) {
       state_.add_joint_positions(0.0);
       state_.add_joint_velocities(0.0);
+      state_.add_motor_torques_measured(0.0);
+      state_.add_motor_torques_external(0.0);
     }
 
     setTimestampToNow(state_.mutable_timestamp());
