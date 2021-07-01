@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 import datetime
-import droidlet.event.dispatcher as dispatch
+from droidlet.event import dispatch
 from typing import Tuple, Dict
 
 class DialogueManager(object):
@@ -43,7 +43,6 @@ class DialogueManager(object):
         self.dialogue_object_mapper = dialogue_object_mapper(
             dialogue_object_classes=dialogue_object_classes, opts=opts, dialogue_manager=self
         )
-        self._dispatch_signal = dispatch.Signal()
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
@@ -108,15 +107,5 @@ class DialogueManager(object):
                     "agent_time" : self.memory.get_time(),
                     "object" : str(obj)
                 }
-                self._dispatch_signal.send(self.step, data=hook_data)
+                dispatch.send("dialogue", data=hook_data)
                 return obj
-
-    def register_hook(self, receiver, sender):
-        """
-        allows for registering hooks using the event dispatcher
-        """
-        allowed = [self.step,]
-        if sender in allowed:
-            self._dispatch_signal.connect(receiver, sender)
-        else:
-            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
