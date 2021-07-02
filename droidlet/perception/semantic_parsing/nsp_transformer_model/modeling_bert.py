@@ -545,6 +545,7 @@ class BertEncoder(nn.Module):
 
             if i == 5:
                 # For token 6
+                # shape B x num_tokens_Y x H
                 layer_outputs_0 = self.expert_layer_0(
                     hidden_states,
                     attention_mask,
@@ -556,7 +557,12 @@ class BertEncoder(nn.Module):
                 )[0]
 
                 # Mask the outputs for token 6
+                # shape B x num_tokens_Y
                 mask_token_6 = torch.where(labels == 6, 1, 0)
+                # shape B x num_tokens_Y x H
+                mask_token_6_expanded = mask_token_6.unsqueeze(-1).expand(layer_outputs_0.size())
+                # only preserve the corresponding "expert" predictions
+                layer_outputs_0_masked = layer_outputs_0 * mask_token_6_expanded
                 layer_outputs_1 = self.expert_layer_1(
                     hidden_states,
                     attention_mask,
@@ -567,6 +573,10 @@ class BertEncoder(nn.Module):
                     output_attentions,
                 )[0]
                 mask_token_23 = torch.where(labels == 23, 1, 0)
+                mask_token_23_expanded = mask_token_23.unsqueeze(-1).expand(layer_outputs_1.size())
+                # only preserve the corresponding "expert" predictions
+                layer_outputs_1_masked = layer_outputs_1 * mask_token_23_expanded
+
 
             elif getattr(self.config, "gradient_checkpointing", False) and self.training:
 
