@@ -36,7 +36,7 @@ from transformers.modeling_utils import (
 )
 from transformers.utils import logging
 from transformers.configuration_bert import BertConfig
-from modeling_outputs import (
+from .modeling_outputs import (
     BaseModelOutputWithPastAndCrossAttentions,
     BaseModelOutputWithPoolingAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
@@ -47,7 +47,7 @@ from modeling_outputs import (
     SequenceClassifierOutput,
     TokenClassifierOutput,
 )
-from model_output import ModelOutput
+from .model_output import ModelOutput
 
 
 logger = logging.get_logger(__name__)
