@@ -62,6 +62,9 @@ class Memory2D extends React.Component {
     y = height - y;
     return [x, y];
   };
+  /* zoom-in, zoom-out function
+     the maximum zoom-out is 100% (stageScale = 1), the maximum zoom-in is unlimited 
+  */
   handleWheel = (e) => {
     e.evt.preventDefault();
     const scaleBy = 1.2;
@@ -291,7 +294,11 @@ class Memory2D extends React.Component {
         strokeWidth={strokeWidth}
       />
     );
-    
+    /* add notches and coordinate point value to coordinate axes
+       the number of notches axes is unchanged when zoom-in, zoom-out 
+       the coordinate point values is shown rounded 2 decimal digits 
+       (e.g: 5.123 = 5.12; 5.129 = 5.13) 
+    */
     let notches = [];
     let endPointXZ = [
       (coordinateRootPoint[0] + width),
