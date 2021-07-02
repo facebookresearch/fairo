@@ -510,9 +510,8 @@ class BertEncoder(nn.Module):
         self.config = config
         # Init layers
         self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
-        # single expert layer for now
-        self.expert_layer_0 = BertLayer(config)
-        self.expert_layer_1 = BertLayer(config)
+        # Initialize all expert layers
+        self.expert_layers = nn.ModuleList([BertLayer(config) for _ in range(10)])
 
     def forward(
         self,
@@ -545,41 +544,30 @@ class BertEncoder(nn.Module):
             is_expert_layer = False
             if i == 5:
                 is_expert_layer = True
-                # For token 6
-                # shape B x num_tokens_Y x H
-                layer_outputs_0 = self.expert_layer_0(
-                    hidden_states,
-                    attention_mask,
-                    layer_head_mask,
-                    encoder_hidden_states,
-                    encoder_attention_mask,
-                    past_key_value,
-                    output_attentions
-                )[0]
+                sum_of_experts = torch.zeros(labels.size() + (768,)).to('cuda')
+                for j, expert_layer_j in enumerate(self.expert_layers):
+                    # For token j
+                    # shape B x num_tokens_Y x H
+                    layer_outputs_j = self.expert_layers[j](
+                        hidden_states,
+                        attention_mask,
+                        layer_head_mask,
+                        encoder_hidden_states,
+                        encoder_attention_mask,
+                        past_key_value,
+                        output_attentions,
+                    )[0]
+                    # Mask the outputs for token 6
+                    # shape B x num_tokens_Y
+                    mask_token_j = torch.where(labels == j, 1, 0)
+                    # shape B x num_tokens_Y x H
+                    mask_token_j_expanded = mask_token_j.unsqueeze(-1).expand(layer_outputs_j.size())
+                    # only preserve the corresponding "expert" predictions
+                    layer_outputs_j_masked = layer_outputs_j * mask_token_j_expanded
+                    # Add the outputs
+                    sum_of_experts += layer_outputs_j_masked
 
-                # Mask the outputs for token 6
-                # shape B x num_tokens_Y
-                mask_token_6 = torch.where(labels == 6, 1, 0)
-                # shape B x num_tokens_Y x H
-                mask_token_6_expanded = mask_token_6.unsqueeze(-1).expand(layer_outputs_0.size())
-                # only preserve the corresponding "expert" predictions
-                layer_outputs_0_masked = layer_outputs_0 * mask_token_6_expanded
-                layer_outputs_1 = self.expert_layer_1(
-                    hidden_states,
-                    attention_mask,
-                    layer_head_mask,
-                    encoder_hidden_states,
-                    encoder_attention_mask,
-                    past_key_value,
-                    output_attentions,
-                )[0]
-                mask_token_23 = torch.where(labels == 23, 1, 0)
-                mask_token_23_expanded = mask_token_23.unsqueeze(-1).expand(layer_outputs_1.size())
-                # only preserve the corresponding "expert" predictions
-                layer_outputs_1_masked = layer_outputs_1 * mask_token_23_expanded
-
-                # Add the outputs
-                all_expert_layer_outputs = layer_outputs_0_masked + layer_outputs_1_masked
+                all_expert_layer_outputs = sum_of_experts
 
             if getattr(self.config, "gradient_checkpointing", False) and self.training:
 
