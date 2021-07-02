@@ -508,7 +508,10 @@ class BertEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
+        # Init layers
         self.layer = nn.ModuleList([BertLayer(config) for _ in range(config.num_hidden_layers)])
+        # single expert layer for now
+        self.expert_layer = BertLayer(config)
 
     def forward(
         self,
@@ -528,6 +531,9 @@ class BertEncoder(nn.Module):
         all_cross_attentions = () if output_attentions and self.config.add_cross_attention else None
 
         next_decoder_cache = () if use_cache else None
+        # NOTE: this is where the for loop iterating over layers is
+        # Let's say layer 5 is where we branch off
+        # condition on the hidden
         for i, layer_module in enumerate(self.layer):
             if output_hidden_states:
                 all_hidden_states = all_hidden_states + (hidden_states,)
@@ -535,7 +541,18 @@ class BertEncoder(nn.Module):
             layer_head_mask = head_mask[i] if head_mask is not None else None
             past_key_value = past_key_values[i] if past_key_values is not None else None
 
-            if getattr(self.config, "gradient_checkpointing", False) and self.training:
+            if i == 5:
+                layer_outputs = self.expert_layer(
+                    hidden_states,
+                    attention_mask,
+                    layer_head_mask,
+                    encoder_hidden_states,
+                    encoder_attention_mask,
+                    past_key_value,
+                    output_attentions,
+                )
+
+            elif getattr(self.config, "gradient_checkpointing", False) and self.training:
 
                 if use_cache:
                     logger.warning(
