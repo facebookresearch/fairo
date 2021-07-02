@@ -544,10 +544,11 @@ class BertEncoder(nn.Module):
             is_expert_layer = False
             if i == 5:
                 is_expert_layer = True
+                # Hidden size is hard coded, probably should make this configurable
                 sum_of_experts = torch.zeros(labels.size() + (768,)).to('cuda')
                 for j, expert_layer_j in enumerate(self.expert_layers):
                     # For token j
-                    # shape B x num_tokens_Y x H
+                    # B x V x H
                     layer_outputs_j = self.expert_layers[j](
                         hidden_states,
                         attention_mask,
@@ -557,10 +558,10 @@ class BertEncoder(nn.Module):
                         past_key_value,
                         output_attentions,
                     )[0]
-                    # Mask the outputs for token 6
-                    # shape B x num_tokens_Y
-                    mask_token_j = torch.where(labels == j, 1, 0)
-                    # shape B x num_tokens_Y x H
+                    # Mask the outputs for tokens that are assigned to this layer
+                    # B x V
+                    mask_token_j = torch.where(labels % 20 == j, 1, 0)
+                    # B x V x H
                     mask_token_j_expanded = mask_token_j.unsqueeze(-1).expand(layer_outputs_j.size())
                     # only preserve the corresponding "expert" predictions
                     layer_outputs_j_masked = layer_outputs_j * mask_token_j_expanded
