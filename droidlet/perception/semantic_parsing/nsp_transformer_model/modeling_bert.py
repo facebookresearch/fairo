@@ -542,7 +542,7 @@ class BertEncoder(nn.Module):
             layer_head_mask = head_mask[i] if head_mask is not None else None
             past_key_value = past_key_values[i] if past_key_values is not None else None
             is_expert_layer = False
-            if i == 5:
+            if i == 11:
                 is_expert_layer = True
                 # Hidden size is hard coded, probably should make this configurable
                 sum_of_experts = torch.zeros(labels.size() + (768,)).to('cuda')
