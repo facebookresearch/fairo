@@ -101,6 +101,7 @@ class DecoderWithLoss(nn.Module):
 
         """
         y_rep = self.bert(
+            labels=y,
             input_ids=y,
             attention_mask=y_mask,
             encoder_hidden_states=x_reps,
@@ -155,7 +156,7 @@ class DecoderWithLoss(nn.Module):
         }
         return res
 
-    def forward(self, y, y_mask, x_reps, x_mask, is_eval=False):
+    def forward(self, labels, y, y_mask, x_reps, x_mask, is_eval=False):
         """Same as step, except with loss. Set is_eval=True for validation."""
         if self.tree_to_text:
             bert_model = self.bert(
@@ -175,6 +176,7 @@ class DecoderWithLoss(nn.Module):
             res = {"lm_scores": lm_scores, "loss": lm_loss}
         else:
             model_out = self.bert(
+                labels=y,
                 input_ids=y[:, :-1, 0],
                 attention_mask=y_mask[:, :-1],
                 encoder_hidden_states=x_reps,

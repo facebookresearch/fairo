@@ -30,5 +30,5 @@ class EncoderDecoderWithLoss(nn.Module):
             x_reps = model[0]
         if not self.train_encoder:
             x_reps = x_reps.detach()
-        outputs = self.decoder(y, y_mask, x_reps, x_mask, is_eval)
+        outputs = self.decoder(y, y, y_mask, x_reps, x_mask, is_eval)
         return outputs
