@@ -542,8 +542,9 @@ class BertEncoder(nn.Module):
 
             layer_head_mask = head_mask[i] if head_mask is not None else None
             past_key_value = past_key_values[i] if past_key_values is not None else None
-
+            is_expert_layer = False
             if i == 5:
+                is_expert_layer = True
                 # For token 6
                 # shape B x num_tokens_Y x H
                 layer_outputs_0 = self.expert_layer_0(
@@ -577,8 +578,10 @@ class BertEncoder(nn.Module):
                 # only preserve the corresponding "expert" predictions
                 layer_outputs_1_masked = layer_outputs_1 * mask_token_23_expanded
 
+                # Add the outputs
+                all_expert_layer_outputs = layer_outputs_0_masked + layer_outputs_1_masked
 
-            elif getattr(self.config, "gradient_checkpointing", False) and self.training:
+            if getattr(self.config, "gradient_checkpointing", False) and self.training:
 
                 if use_cache:
                     logger.warning(
@@ -613,6 +616,11 @@ class BertEncoder(nn.Module):
                 )
 
             hidden_states = layer_outputs[0]
+            if is_expert_layer:
+                # Use expert outputs in input to the next layer module
+                # while preserving skip connection
+                hidden_states += all_expert_layer_outputs
+
             if use_cache:
                 next_decoder_cache += (layer_outputs[-1],)
             if output_attentions:
