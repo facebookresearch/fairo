@@ -17,12 +17,12 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
-from droidlet.perception.semantic_parsing_model.ttad.ttad_transformer_model.utils_parsing import *
-from droidlet.perception.semantic_parsing_model.ttad.ttad_transformer_model.utils_caip import *
-from droidlet.perception.semantic_parsing_model.ttad.ttad_transformer_model.decoder_with_loss import *
-from droidlet.perception.semantic_parsing_model.ttad.ttad_transformer_model.encoder_decoder import *
-from droidlet.perception.semantic_parsing_model.ttad.ttad_transformer_model.optimizer_warmup import *
-from droidlet.perception.semantic_parsing_model.ttad.ttad_transformer_model.caip_dataset import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
 
 
 class ModelTrainer:
