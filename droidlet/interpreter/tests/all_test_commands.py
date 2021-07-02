@@ -992,7 +992,7 @@ STOP_CONDITION_COMMANDS = {
                     "reference_object": {"special_reference": "AGENT"},
                     "relative_direction": "LEFT",
                 },
-                "stop_condition": CONDITIONS["that cow is closer than 2 steps to me"],
+                "remove_condition": CONDITIONS["that cow is closer than 2 steps to me"],
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1006,7 +1006,7 @@ STOP_CONDITION_COMMANDS = {
                         "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
                     }
                 },
-                "stop_condition": CONDITIONS["2 minutes"],
+                "remove_condition": CONDITIONS["2 minutes"],
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1020,7 +1020,7 @@ STOP_CONDITION_COMMANDS = {
                         "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
                     }
                 },
-                "stop_condition": CONDITIONS["18 seconds"],
+                "remove_condition": CONDITIONS["18 seconds"],
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1034,7 +1034,7 @@ STOP_CONDITION_COMMANDS = {
                         "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
                     }
                 },
-                "stop_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
+                "remove_condition": CONDITIONS["18 seconds after that cow has x greater than 5"],
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -1048,7 +1048,7 @@ STOP_CONDITION_COMMANDS = {
                         "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cow"}]}
                     }
                 },
-                "stop_condition": CONDITIONS["that cow has x greater than 5"],
+                "remove_condition": CONDITIONS["that cow has x greater than 5"],
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
