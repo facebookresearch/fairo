@@ -3,7 +3,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
+import datetime
 from typing import Tuple, Dict, Any, Optional
+from droidlet.event import dispatch
 
 # FIXME agent
 from droidlet.dialog.dialogue_objects import DialogueObject, ConfirmTask
@@ -83,6 +85,7 @@ class Interpreter(DialogueObject):
         self.task_objects = {}  # noqa
 
     def step(self, agent) -> Tuple[Optional[str], Any]:
+        start_time = datetime.datetime.now()
         assert self.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
             actions = []
@@ -118,6 +121,16 @@ class Interpreter(DialogueObject):
                     self.memory, subj=chat.memid, pred_text="chat_effect_", obj=task_mem.memid
                 )
             self.finished = True
+            end_time = datetime.datetime.now()
+            hook_data = {
+                "name" : "interpreter",
+                "start_datetime" : start_time,
+                "end_datetime" : end_time,
+                "agent_time" : self.memory.get_time(),
+                "tasks_to_push" : tasks_to_push,
+                "task_mem" : task_mem,
+            }
+            dispatch.send("interpreter", data=hook_data)
             return response, dialogue_data
         except NextDialogueStep:
             return None, None
