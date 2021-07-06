@@ -186,6 +186,7 @@ class PolygonTool extends React.Component {
               x={dataEntryX}
               y={dataEntryY}
               onSubmit={this.changeTextHandler}
+              isMobile={this.props.isMobile}
               label={this.props.object}
               tags={this.props.tags}
               deleteCallback={() => this.props.deleteLabelHandler()}

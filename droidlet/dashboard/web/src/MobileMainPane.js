@@ -22,6 +22,7 @@ class MobileMainPane extends React.Component {
     this.state = {
       screen: "home",
       imageWidth: width * 0.4,
+      screenWidth: width,
       objectRGB: null,
     };
   }
@@ -47,7 +48,7 @@ class MobileMainPane extends React.Component {
     } else if (this.state.screen === "annotation") {
       displayPane = (
         <ObjectFixup
-          imageWidth={window.innerWidth - 25}
+          imageWidth={this.state.screenWidth - 25}
           image={this.state.objectRGB}
           stateManager={stateManager}
           isMobile={true}

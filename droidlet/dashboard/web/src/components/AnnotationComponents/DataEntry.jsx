@@ -37,17 +37,25 @@ class DataEntry extends React.Component {
     if (this.props.isMobile) {
       return (
         <div className="data-entry-root data-entry-block-mobile">
-          <input placeholder="Object Name" ref={this.nameRef}></input>
-          <TagSelector
-            tags={this.labels}
-            update={(tags) => (this.tags = tags)}
+          <input
+            placeholder="Object Name"
+            ref={this.nameRef}
+            defaultValue={this.props.label || ""}
           />
-          <button
-            className="data-entry-submit"
-            onClick={this.submit.bind(this)}
-          >
-            Submit
-          </button>
+          <TagSelector tags={this.tags} update={(tags) => (this.tags = tags)} />
+          {this.props.includeSubmitButton ? (
+            <button className="data-entry-submit" onClick={this.submit}>
+              Submit
+            </button>
+          ) : null}
+          {this.props.deleteCallback ? (
+            <button
+              className="data-entry-delete"
+              onClick={this.props.deleteCallback}
+            >
+              Delete object (⌫)
+            </button>
+          ) : null}
         </div>
       );
     }

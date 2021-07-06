@@ -35,19 +35,23 @@ class ObjectAnnotation extends React.Component {
   constructor(props) {
     super(props);
 
+    let objects = this.props.objects;
+    if (!this.props.objects) {
+      objects = this.props.stateManager.curFeedState.objects;
+    }
     this.state = {
-      objectIds: [...Array(this.props.objects.length).keys()], // [0, ..., maskLength-1]
+      objectIds: [...Array(objects.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw_polygon, start_polygon
       currentOverlay: null,
       currentMaskId: null,
     };
 
-    this.nextId = this.props.objects.length;
+    this.nextId = objects.length;
     this.nameMap = {};
     this.pointMap = {};
     this.propertyMap = {};
-    for (let i = 0; i < this.props.objects.length; i++) {
-      let curObject = this.props.objects[i];
+    for (let i = 0; i < objects.length; i++) {
+      let curObject = objects[i];
       this.nameMap[i] = curObject.label;
       this.pointMap[i] = curObject.mask;
       this.parsePoints(i);
@@ -89,6 +93,7 @@ class ObjectAnnotation extends React.Component {
           object={this.drawing_data.name}
           tags={this.drawing_data.tags}
           masks={this.pointMap[this.state.currentMaskId]}
+          isMobile={this.props.isMobile}
           color={color}
           exitCallback={() => {
             this.setState({ currentMode: "select" });
