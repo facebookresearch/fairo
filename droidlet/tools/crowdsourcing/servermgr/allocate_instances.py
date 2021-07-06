@@ -150,4 +150,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--instance_num", type=int, default=1, help="number of instances requested")
     args = parser.parse_args()
+    print (args)
+    print (args.instance_num)
     instance_ips = request_instance(args.instance_num)
