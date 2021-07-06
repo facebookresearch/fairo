@@ -39,25 +39,34 @@ class LabelProp extends React.Component {
     const { offsetW, offsetH, isMobile } = this.props;
 
     let img = rgb;
-
-    if (rgb === null) {
-        if (isMobile) {
-          return <p>Loading... </p>;
-        }
-        return (
-          <Rnd
-            default={{
-              x: offsetW,
-              y: offsetH,
-              width: width,
-              height: height,
-            }}
-            lockAspectRatio={true}
-            onResize={this.onResize}
-          >
-            <p>Loading...</p>
-          </Rnd>
-        );
+    
+    if (img === null) {
+      if (isMobile) {
+        return <p>Loading... </p>;
+      }
+      return (
+        <Rnd
+          default={{
+            x: offsetW,
+            y: offsetH,
+            width: width,
+            height: height,
+          }}
+          lockAspectRatio={true}
+          onResize={this.onResize}
+        >
+          <p>Loading...</p>
+        </Rnd>
+      );
+    }
+    if (isMobile) {
+      return (
+        <Stage width={width} height={height}>
+          <Layer>
+            <KImage image={img} width={width} height={height} />
+          </Layer>
+        </Stage>
+      );
     }
     return (
       <Rnd
