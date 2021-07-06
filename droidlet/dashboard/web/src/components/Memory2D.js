@@ -31,12 +31,65 @@ class Memory2D extends React.Component {
       ymax: 10,
       bot_xyz: [0.0, 0.0, 0.0],
       tooltip: null,
+      stageScale: 1,
+      stageX: 0,
+      stageY: 0,
+      memory2d_className: "memory2d",
+      drag_coordinates: [0,0],
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
     this.resizeHandler = this.resizeHandler.bind(this);
   }
+  handleDrag = (className, drag_coordinates) => {
+    this.setState({ memory2d_className: className });
+    if(drag_coordinates){
+      this.setState({drag_coordinates});
+    }
+  };
+  convertGridCoordinate = (xy) =>{
+    const { width, height, xmax, xmin, ymax, ymin } = this.state;
+    return ([
+      ((xy[1] * (ymax - ymin)) / height) + ymin,
+      0,
+      ((xy[0] * (xmax - xmin)) / width) + xmin
+    ])
+  }
+  convertCoordinate = (xyz) => {
+    const { width, height, xmax, xmin, ymax, ymin } = this.state;
+    let x = parseInt(((xyz[2] - xmin) / (xmax - xmin)) * width);
+    let y = parseInt(((-xyz[0] - ymin) / (ymax - ymin)) * height);
+    y = height - y;
+    return [x, y];
+  };
+  /* zoom-in, zoom-out function
+     the maximum zoom-out is 100% (stageScale = 1), the maximum zoom-in is unlimited 
+  */
+  handleWheel = (e) => {
+    e.evt.preventDefault();
+    const scaleBy = 1.2;
+    const stage = e.target.getStage();
+    const oldScale = stage.scaleX();
+    const mousePointTo = {
+      x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
+      y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale,
+    };
 
+    const tmpScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    const newScale = tmpScale < 1 ? 1 : tmpScale;
+
+    this.setState({
+      drag_coordinates: [
+        -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
+        -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale
+      ],
+      stageScale: newScale,
+      stageX:
+        -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
+      stageY:
+        -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
+    });
+  };
   resizeHandler() {
     if (this.props.isMobile) {
       let dimensions = this.props.dimensions;
@@ -100,7 +153,7 @@ class Memory2D extends React.Component {
 
   render() {
     if (!this.state.isLoaded) return <p>Loading</p>;
-    let { height, width, memory, bot_xyz, obstacle_map, tooltip } = this.state;
+    let { height, width, memory, bot_xyz, obstacle_map, tooltip, drag_coordinates, stageScale } = this.state;
     let { objects } = memory;
     let { xmin, xmax, ymin, ymax } = this.state;
     let bot_x = bot_xyz[1];
@@ -210,12 +263,153 @@ class Memory2D extends React.Component {
         />
       );
     }
+    let coordinateAxesLayer = [];
+    let rootPointDefault = [9, 0, -9];
+    let coordinateRootPoint = this.convertCoordinate(rootPointDefault);
 
+    let x = (coordinateRootPoint[0] - drag_coordinates[0]) / stageScale;
+    let y = (coordinateRootPoint[1] - drag_coordinates[1]) / stageScale;
+
+    let rootPoint = this.convertGridCoordinate([x,y]);
+    let strokeWidth = 0.5 / stageScale;
+
+    let axesZ = (
+      <Line
+        key = "axesZ"
+        points={[0, 0, width, 0]}
+        x={x}
+        y={y}
+        stroke="#AAAAAA"
+        strokeWidth={strokeWidth}
+      />
+    );
+
+    let axesX = (
+      <Line
+        key = "axesX"
+        points={[0, -height, 0, 0]}
+        x={x}
+        y={y}
+        stroke="#AAAAAA"
+        strokeWidth={strokeWidth}
+      />
+    );
+    /* add notches and coordinate point value to coordinate axes
+       the number of notches axes is unchanged when zoom-in, zoom-out 
+       the coordinate point values is shown rounded 2 decimal digits 
+       (e.g: 5.123 = 5.12; 5.129 = 5.13) 
+    */
+    let notches = [];
+    let endPointXZ = [
+      (coordinateRootPoint[0] + width),
+      (coordinateRootPoint[1] - height) 
+    ];
+    let tmpPointX = coordinateRootPoint[0];
+    let tmpPointY = coordinateRootPoint[1];
+
+    while (tmpPointX < endPointXZ[0]) {
+      tmpPointX += 30;
+      let coordinate = this.convertGridCoordinate([(tmpPointX - drag_coordinates[0]) / stageScale, 0]);
+      notches.push(
+        <Text
+          key = {"textCoordinateX-" + tmpPointX}
+          text={coordinate[2].toFixed(2)}
+          fontSize={10 / stageScale}
+          x={(tmpPointX - 10 - drag_coordinates[0]) / stageScale}
+          y={(coordinateRootPoint[1] - 15 - drag_coordinates[1]) / stageScale}
+          fill="#AAAAAA"
+        />
+      );
+      notches.push(
+        <Line
+          key = {"coordinateX-" + tmpPointX}
+          points={[0, -3 / stageScale, 0, 3 / stageScale]}
+          x={(tmpPointX - drag_coordinates[0]) / stageScale}
+          y={y}
+          stroke="#AAAAAA"
+          strokeWidth={strokeWidth}
+        />
+      );
+    }
+
+    while (tmpPointY > endPointXZ[1]) {
+      tmpPointY = tmpPointY - 20;
+      let coordinate = this.convertGridCoordinate([0, (tmpPointY - drag_coordinates[1]) / stageScale]);
+      notches.push(
+        <Text
+          key = {"textCoordinateY-" + tmpPointY}
+          text={coordinate[0].toFixed(2)}
+          fontSize={10 / stageScale}
+          x={(coordinateRootPoint[0] - 35 - drag_coordinates[0]) / stageScale}
+          y={(tmpPointY - 5 - drag_coordinates[1]) / stageScale}
+          fill="#AAAAAA"
+        />
+      );
+      notches.push(
+        <Line
+          key = {"coordinateY-" + tmpPointY}
+          points={[-3 / stageScale, 0, 3 / stageScale, 0]}
+          x={x}
+          y={(tmpPointY - drag_coordinates[1]) / stageScale}
+          stroke="#AAAAAA"
+          strokeWidth={strokeWidth}
+        />
+      );
+    }
+
+    let rootTextCoordinate = [
+      (coordinateRootPoint[0] - 25 - drag_coordinates[0]) / stageScale,
+      (coordinateRootPoint[1] + 10 - drag_coordinates[1]) / stageScale
+    ];
+    notches.push(
+      <Text
+        key = "root-text"
+        fill="#AAAAAA"
+        text={`${rootPoint[0].toFixed(2)}, ${rootPoint[2].toFixed(2)}`}
+        fontSize={10 / stageScale}
+        x={rootTextCoordinate[0]}
+        y={rootTextCoordinate[1]}
+      />
+    );
+    notches.push(
+      <Text
+        key = "x-text"
+        fill ="#AAAAAA"
+        text = 'x'
+        fontSize={12 / stageScale}
+        x={(this.convertCoordinate([-9,0,-8.8])[0] - drag_coordinates[0]) / stageScale}
+        y={(this.convertCoordinate([-9,0,-8.8])[1] - drag_coordinates[1]) / stageScale}
+      />
+    );
+    notches.push(
+      <Text
+        key = "z-text"
+        fill ="#AAAAAA"
+        text = 'z'
+        fontSize={12 / stageScale}
+        x={(this.convertCoordinate([9.1,0,9])[0] - drag_coordinates[0]) / stageScale}
+        y={(this.convertCoordinate([9.1,0,9])[1] - drag_coordinates[1]) / stageScale}
+      />
+    );
+    coordinateAxesLayer.push(axesX, axesZ, notches);
     // final render
     return (
       <div ref={this.outer_div} style={{ height: "100%", width: "100%" }}>
-        <Stage className="memory2d" width={width} height={height}>
+        <Stage
+          draggable
+          className={this.state.memory2d_className}
+          width={width}
+          height={height}
+          onWheel={this.handleWheel}
+          scaleX={this.state.stageScale}
+          scaleY={this.state.stageScale}
+          x={this.state.stageX}
+          y={this.state.stageY}
+          onDragMove={e => this.handleDrag("memory2d dragging-memory2d", [e.target.attrs.x, e.target.attrs.y])}
+          onDragEnd={e => this.handleDrag("memory2d", [e.target.attrs.x, e.target.attrs.y])}
+        >
           <Layer className="gridLayer">{gridLayer}</Layer>
+          <Layer className="coordinateAxesLayer">{coordinateAxesLayer}</Layer>
           <Layer className="mapBoundary">{mapBoundary}</Layer>
           <Layer className="renderedObjects">{renderedObjects}</Layer>
           <Layer>

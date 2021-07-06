@@ -21,3 +21,6 @@ code {
   margin: 10;
   padding: 10;
 }
+.dragging-memory2d {
+  cursor: move;
+}
