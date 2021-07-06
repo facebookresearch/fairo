@@ -251,7 +251,6 @@ def propogate_label(
         # store the annotation file
         annot_imgs[img_indx] = annot_img.astype(np.uint32)
 
-    return rgb_imgs[0]
     return annot_imgs
 
 

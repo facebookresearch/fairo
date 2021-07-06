@@ -143,7 +143,7 @@ class Perception:
         sio.emit("rgb", serialized_image["rgb"])
         sio.emit("depth", {
             "depthImg": serialized_image["depth_img"],
-            "depthOrg": serialized_image["depth_org"],
+            "depthMax": serialized_image["depth_max"],
         })
 
         sio.emit("objects", {

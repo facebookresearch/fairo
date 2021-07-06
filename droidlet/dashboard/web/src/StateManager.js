@@ -84,6 +84,7 @@ class StateManager {
     this.returnTimelineEvent = this.returnTimelineEvent.bind(this);
 
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
+    this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -396,18 +397,22 @@ class StateManager {
       rgbImg: this.curFeedState.rgbImg, 
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
-      prevdepth: this.prevFeedState.depth, 
+      prevDepth: this.prevFeedState.depth, 
       masks: this.curFeedState.masks, 
       prevMasks: this.prevFeedState.masks, 
       basePose: this.curFeedState.pose,
       prevBasePose: this.prevFeedState.pose,
     }
     console.log("doing the label prop", props)
-    this.labelPropagationReturn(props.rgbImg)
-    this.socket.emit("labelPropagation", props)
+    this.socket.emit("label_propagation", props)
+    this.stateProcessed.rgbImg = true;
+    this.stateProcessed.depth = true;
+    this.stateProcessed.masks = true;
+    this.stateProcessed.pose = true;
   }
 
   labelPropagationReturn(res) {
+    console.log('label prop return with image', res.substring(0, 100))
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res;
     this.refs.forEach((ref) => {
@@ -418,10 +423,6 @@ class StateManager {
         });
       }
     });
-    this.stateProcessed.rgbImg = true;
-    this.stateProcessed.depth = true;
-    this.stateProcessed.masks = true;
-    this.stateProcessed.pose = true;
   }
 
   checkRunLabelProp() {
@@ -487,7 +488,10 @@ class StateManager {
     });
     if (this.curFeedState.depth !== res) {
       this.prevFeedState.depth = this.curFeedState.depth
-      this.curFeedState.depth = res
+      this.curFeedState.depth = {
+        depthImg: res.depthImg,
+        depthMax: res.depthMax,
+      }
       this.stateProcessed.depth = false
     }
     if (this.checkRunLabelProp()) {

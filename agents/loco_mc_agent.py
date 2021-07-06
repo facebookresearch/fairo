@@ -115,19 +115,20 @@ class LocoMCAgent(BaseAgent):
             logging.debug("in save_object_annotation_to_db, got postData: %r" % (postData))
             saveObjectAnnotationsToDb(self.conn, postData)
 
-        @sio.on("labelPropagation")
-        def label_propagation(sid, props): 
-            print("------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------")
-            print(props["rgbImg"][:100])
-            print(props["depthOrg"][:100])
-            print(props["masks"], len(props["masks"]))
-            print(props["basePose"])
+        @sio.on("label_propagation")
+        def label_propagation(sid, postData): 
+            print("------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\ncheeseburger\n\n")
+            print(postData["rgbImg"][:100])
+            print(postData["depth"]["depthImg"][:100])
+            print(postData["depth"]["depthMax"])
+            print(postData["masks"], len(postData["masks"]))
+            print(postData["basePose"])
             
             # Decode rgb map
             height = 512 # should probably pass in height/width as props
             width = 512
             rgb_imgs = []
-            for rgb_encoded in [props["prevRgbImg"], props["rgbImg"]]:
+            for rgb_encoded in [postData["prevRgbImg"], postData["rgbImg"]]:
                 rgb_bytes = base64.b64decode(rgb_encoded)
                 rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
                 rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
@@ -137,17 +138,18 @@ class LocoMCAgent(BaseAgent):
 
             # Convert depth map to meters
             depth_imgs = []
-            for depth_encoded in [props["prevDepthOrg"], props["depthOrg"]]: 
+            for depth in [postData["prevDepth"], postData["depth"]]: 
+                depth_encoded = depth["depthImg"]
                 depth_bytes = base64.b64decode(depth_encoded)
                 depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
-                # depth = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
-                # depth_imgs.append(depth)
-                depth_imgs.append(depth_np)
+                depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
+                depth_org = (255 - np.copy(depth_decoded)) * float(depth["depthMax"])
+                depth_imgs.append(depth_org)
             depth_imgs = np.array(depth_imgs)
 
             # Convert mask polygons to mask maps then combine them
             label_maps = []
-            for n, masks in enumerate([props["prevMasks"], props["masks"]]): 
+            for n, masks in enumerate([postData["prevMasks"], postData["masks"]]): 
                 mask_map = []
                 for mask in masks: 
                     poly = Polygons(mask)
@@ -164,7 +166,7 @@ class LocoMCAgent(BaseAgent):
 
             # Attach base pose data
             base_pose_data = []
-            for pose_data in [props["prevBasePose"], props["basePose"]]: 
+            for pose_data in [postData["prevBasePose"], postData["basePose"]]: 
                 base_pose_data.append([pose_data["x"], pose_data["y"], pose_data["yaw"]])
             base_pose_data = np.array(base_pose_data)
 
@@ -175,6 +177,10 @@ class LocoMCAgent(BaseAgent):
             # np.save("label_maps.npy", label_maps)
             # np.save("base_pose.npy", base_pose_data)
             res_labels = propogate_label(rgb_imgs, depth_imgs, label_maps, base_pose_data, 1, 1)
+            print("res_labels", res_labels)
+
+            # DEBUGGING RETURN
+            sio.emit("labelPropagationReturn", postData["rgbImg"])
 
             # Encode imagge            
             res_map = []
@@ -186,7 +192,7 @@ class LocoMCAgent(BaseAgent):
                 # res_bytes = res_labels[i].tobytes()
                 res_map.append(rgb_data)
 
-            sio.emit("labelPropagationReturn", res_map)
+            # sio.emit("labelPropagationReturn", res_map)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):
