@@ -11,6 +11,7 @@ import os
 import random
 import socket
 import time
+import CloudFlare
 
 from base64 import b64encode, b64decode
 from datetime import datetime, timezone
@@ -146,8 +147,44 @@ def request_instance(instance_num):
     logging.info(f"All {instance_num} are up, ip list: {instance_ips}")
     return instance_ips
 
+
+def register_dashboard_subdomain(cf, zone_id, ip, instance_id):
+    """Registers a unique subdomain for craftassist.io
+    that serves proxied HTTP content using cloudflare.
+    Args:
+    cf -- CloudFlare context with R/W permissions.
+    zone_id -- zone ID used to locate DNS records.
+    ip -- IP of the ECS container that runs dashboard.
+    instance_id -- unique identifier for this task run, which is the batch ID concatenated with the run number.
+    """
+    # Check that DNS record does not already exist
+    subdomain_name = "dashboard-{}".format(instance_id)
+    dns_record_exists = cf.zones.dns_records.get(
+        zone_id, params={"name": "{}.craftassist.io".format(subdomain_name)}
+    )
+    if dns_record_exists:
+        print("DNS record already exists for {}".format(subdomain_name))
+        return
+
+    dns_record = {"name": subdomain_name, "type": "A", "content": ip, "proxied": True}
+    r = cf.zones.dns_records.post(zone_id, data=dns_record)
+    print("Registered IP {} at subdomain {}".format(ip, instance_id))
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--instance_num", type=int, default=1, help="number of instances requested")
+    parser.add_argument("--batch_id", type=int, default=0, help="ID of the current batch, used to track which group of runs the task was run in")
     args = parser.parse_args()
-    instance_ips = request_instance(args.instance_num)
+    # instance_ips = request_instance(args.instance_num)
+    instance_ips = ['54.219.123.69', '3.101.118.112']
+    # register subdomain to proxy instance IP
+    if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
+        logging.info("registering subdomains on craftassist.io")
+        cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
+        zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
+        cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
+        dns_records = cf.zones.dns_records.get(zone_id)
+        for x in range(len(instance_ips)):
+            ip = instance_ips[x]
+            subdomain = "{}-{}".format(args.batch_id, x)
+            register_dashboard_subdomain(cf, zone_id, ip, subdomain)
