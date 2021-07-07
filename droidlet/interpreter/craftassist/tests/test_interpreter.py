@@ -175,7 +175,7 @@ class DigTest(BaseCraftassistTestCase):
         logical_form = DIG_COMMANDS["dig a 3 x 3 hole"]
         changes = self.handle_logical_form(logical_form)
         # check that block changes are >= 5 in our fake world
-        self.assertGreater(len(changes), 5)
+        self.assertEqual(len(changes), 9)
         # check that all changes replaced blocks with air:
         assert not any([l[0] for l in list(changes.values())])
         
