@@ -545,7 +545,8 @@ class BertEncoder(nn.Module):
             if i == 11:
                 is_expert_layer = True
                 # Hidden size is hard coded, probably should make this configurable
-                sum_of_experts = torch.zeros(labels.size() + (768,)).to('cuda')
+                hidden_size = hidden_states.shape[-1]
+                sum_of_experts = torch.zeros(labels.size() + (hidden_size,)).to(labels.device)
                 for j, expert_layer_j in enumerate(self.expert_layers):
                     # For token j
                     # B x V x H
