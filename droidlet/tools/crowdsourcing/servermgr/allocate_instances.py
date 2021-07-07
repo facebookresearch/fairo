@@ -12,6 +12,7 @@ import random
 import socket
 import time
 import CloudFlare
+import csv
 
 from base64 import b64encode, b64decode
 from datetime import datetime, timezone
@@ -148,27 +149,27 @@ def request_instance(instance_num):
     return instance_ips
 
 
-def register_dashboard_subdomain(cf, zone_id, ip, instance_id):
+def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
     """Registers a unique subdomain for craftassist.io
     that serves proxied HTTP content using cloudflare.
     Args:
     cf -- CloudFlare context with R/W permissions.
     zone_id -- zone ID used to locate DNS records.
     ip -- IP of the ECS container that runs dashboard.
-    instance_id -- unique identifier for this task run, which is the batch ID concatenated with the run number.
+    subdomain -- subdomain contains a unique identifier for this task run, 
+    which is the batch ID concatenated with the run number.
     """
     # Check that DNS record does not already exist
-    subdomain_name = "dashboard-{}".format(instance_id)
     dns_record_exists = cf.zones.dns_records.get(
-        zone_id, params={"name": "{}.craftassist.io".format(subdomain_name)}
+        zone_id, params={"name": "{}.craftassist.io".format(subdomain)}
     )
     if dns_record_exists:
-        print("DNS record already exists for {}".format(subdomain_name))
+        print("DNS record already exists for {}".format(subdomain))
         return
 
-    dns_record = {"name": subdomain_name, "type": "A", "content": ip, "proxied": True}
+    dns_record = {"name": subdomain, "type": "A", "content": ip, "proxied": True}
     r = cf.zones.dns_records.post(zone_id, data=dns_record)
-    print("Registered IP {} at subdomain {}".format(ip, instance_id))
+    print("Registered IP {} at subdomain {}".format(ip, subdomain))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -184,7 +185,16 @@ if __name__ == "__main__":
         zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
         cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
         dns_records = cf.zones.dns_records.get(zone_id)
-        for x in range(len(instance_ips)):
-            ip = instance_ips[x]
-            subdomain = "{}-{}".format(args.batch_id, x)
-            register_dashboard_subdomain(cf, zone_id, ip, subdomain)
+
+        # Write the subdomains and batch IDs to input CSV for Mephisto
+        # CSV file headers
+        headers = ["subdomain", "batch"]
+        with open("../droidlet_static_html_task/data.csv", "w") as fd:
+            csv_writer = csv.writer(fd, delimiter=",")
+            csv_writer.writerow(headers)
+            for x in range(len(instance_ips)):
+                ip = instance_ips[x]
+                subdomain = "dashboard-{}-{}".format(args.batch_id, x)
+                register_dashboard_subdomain(cf, zone_id, ip, subdomain)
+                # Write record to Mephisto task input CSV
+                csv_writer.writerow([subdomain, args.batch_id])
