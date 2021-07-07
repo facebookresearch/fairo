@@ -175,6 +175,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--instance_num", type=int, default=1, help="number of instances requested")
     parser.add_argument("--batch_id", type=int, default=0, help="ID of the current batch, used to track which group of runs the task was run in")
+    parser.add_argument("--user", type=str, default="rebeccaqian@fb.com", help="Email of the CloudFlare account")
     args = parser.parse_args()
     instance_ips = request_instance(args.instance_num)
     # register subdomain to proxy instance IP
@@ -182,7 +183,7 @@ if __name__ == "__main__":
         logging.info("registering subdomains on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
         zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
-        cf = CloudFlare.CloudFlare(email='rebeccaqian@fb.com', token=cloudflare_token)
+        cf = CloudFlare.CloudFlare(email=args.user, token=cloudflare_token)
         dns_records = cf.zones.dns_records.get(zone_id)
 
         # Write the subdomains and batch IDs to input CSV for Mephisto
