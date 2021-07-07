@@ -53,8 +53,7 @@ class DashboardTimeline extends React.Component {
 
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
-    this.timeline = new Timeline(this.appRef.current, items, options);
-    this.timeline.setGroups(groups);
+    this.timeline = new Timeline(this.appRef.current, items, groups, options);
     // set current viewing window to 10 seconds for readability
     let currentTime = this.timeline.getCurrentTime();
     this.timeline.setOptions({
@@ -63,7 +62,7 @@ class DashboardTimeline extends React.Component {
     });
   }
 
-  componentShouldUpdate() {
+  shouldComponentUpdate() {
     const event = this.props.stateManager.memory.timelineEvent;
     return event && event !== this.prevEvent;
   }

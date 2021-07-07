@@ -9,6 +9,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
   overflow: visible;
 }
 
+.vis-labelset .vis-label {
+  color: white;
+}
+
+.vis-time-axis .vis-text {
+  color: white;
+}
+
 .vis-tooltip {
   background-color: #777;
 }
