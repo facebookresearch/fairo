@@ -15,6 +15,11 @@ const items = new DataSet();
 
 const groups = [
   {
+    id: "timeline",
+    content: "timeline",
+    nestedGroups: ["perceive", "dialogue", "interpreter"],
+  },
+  {
     id: "perceive",
     content: "perceive",
   },
@@ -41,6 +46,7 @@ const options = {
   rollingMode: {
     follow: true,
   },
+  stack: false,
 };
 
 class DashboardTimeline extends React.Component {
@@ -73,6 +79,19 @@ class DashboardTimeline extends React.Component {
     if (event && event !== this.prevEvent) {
       this.prevEvent = event;
       const eventObj = JSON.parse(event);
+      // adds to the outer timeline group
+      items.add([
+        {
+          title: JSON.stringify(eventObj, null, 2),
+          content: eventObj["name"],
+          group: "timeline",
+          className: eventObj["name"],
+          start: eventObj["start_datetime"],
+          end: eventObj["end_datetime"],
+          selectable: false,
+        },
+      ]);
+      // adds the same item to the inner nested group
       items.add([
         {
           title: JSON.stringify(eventObj, null, 2),

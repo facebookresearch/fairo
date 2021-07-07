@@ -16,6 +16,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 .vis-time-axis .vis-text {
   color: white;
 }
+.vis-label.vis-nested-group.vis-group-level-unknown-but-gte1 {
+  background: none;
+}
+
+.vis-group-level-unknown-but-gte1 {
+  border: none;
+}
 
 .vis-tooltip {
   background-color: #777;
@@ -30,7 +37,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 }
 
 .vis-item.interpreter {
-  background-color: #dbe9ee;
+  background-color: #d4ffd4;
 }
 
 pre {
