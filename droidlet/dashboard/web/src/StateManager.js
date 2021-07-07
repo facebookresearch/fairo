@@ -473,6 +473,22 @@ class StateManager {
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation()
     }
+
+    // Display rgbImg as default for label prop
+    if (!this.prevFeedState.rgbImg && 
+      !this.prevFeedState.depth && 
+      !this.prevFeedState.masks && 
+      !this.prevFeedState.pose) 
+    {
+      this.refs.forEach((ref) => {
+        if (ref instanceof LabelProp) {
+          ref.setState({
+            isLoaded: true,
+            rgb: rgb,
+          });
+        }
+      });
+    }
   }
 
   processDepth(res) {
