@@ -13,7 +13,6 @@ import json
 from copy import deepcopy as copy
 from IPython import embed
 import time
-import ray
 from scipy.spatial.transform import Rotation
 import glob
 import argparse
