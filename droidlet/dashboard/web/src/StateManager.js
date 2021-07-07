@@ -5,7 +5,6 @@ import io from "socket.io-client";
 import Memory2D from "./components/Memory2D";
 import MemoryList from "./components/MemoryList";
 import LiveImage from "./components/LiveImage";
-import LabelProp from "./components/LabelProp";
 import Settings from "./components/Settings";
 import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
@@ -111,19 +110,19 @@ class StateManager {
     this.curFeedState = {
       rgbImg: null, 
       depth: null, 
-      masks: null,
+      objects: null,
       pose: null,
     }
     this.prevFeedState = {
       rgbImg: null, 
       depth: null, 
-      masks: null,
+      objects: null,
       pose: null,
     }
     this.stateProcessed = {
       rgbImg: false, 
       depth: false, 
-      masks: false,
+      objects: false,
       pose: false,
     }
   }
@@ -398,8 +397,8 @@ class StateManager {
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
       prevDepth: this.prevFeedState.depth, 
-      masks: this.curFeedState.masks, 
-      prevMasks: this.prevFeedState.masks, 
+      objects: this.curFeedState.objects, 
+      prevObjects: this.prevFeedState.objects, 
       basePose: this.curFeedState.pose,
       prevBasePose: this.prevFeedState.pose,
     }
@@ -407,39 +406,34 @@ class StateManager {
     this.socket.emit("label_propagation", props)
     this.stateProcessed.rgbImg = true;
     this.stateProcessed.depth = true;
-    this.stateProcessed.masks = true;
+    this.stateProcessed.objects = true;
     this.stateProcessed.pose = true;
   }
 
   labelPropagationReturn(res) {
     console.log('label prop return with image', res)
-    // console.log('label prop return with image', res.substring(0, 100))
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + this.curFeedState.rgbImg;
-    // rgb.src = "data:image/webp;base64," + res;
     this.refs.forEach((ref) => {
-      if (ref instanceof LabelProp) {
-        ref.setState({
-          isLoaded: true,
-          rgb: rgb,
-        });
+      if (ref instanceof LiveObjects) {
+        ref.addObjects(res)
       }
-    });
+    })
   }
 
   checkRunLabelProp() {
     return (
       this.curFeedState.rgbImg && 
       this.curFeedState.depth && 
-      this.curFeedState.masks && 
+      this.curFeedState.objects && 
       this.curFeedState.pose && 
       this.prevFeedState.rgbImg && 
       this.prevFeedState.depth && 
-      this.prevFeedState.masks && 
+      this.prevFeedState.objects && 
       this.prevFeedState.pose && 
       !this.stateProcessed.rgbImg && 
       !this.stateProcessed.depth && 
-      !this.stateProcessed.masks && 
+      !this.stateProcessed.objects && 
       !this.stateProcessed.pose  
     )
   }
@@ -472,22 +466,6 @@ class StateManager {
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation()
-    }
-
-    // Display rgbImg as default for label prop
-    if (!this.prevFeedState.rgbImg && 
-      !this.prevFeedState.depth && 
-      !this.prevFeedState.masks && 
-      !this.prevFeedState.pose) 
-    {
-      this.refs.forEach((ref) => {
-        if (ref instanceof LabelProp) {
-          ref.setState({
-            isLoaded: true,
-            rgb: rgb,
-          });
-        }
-      });
     }
   }
 
@@ -529,12 +507,19 @@ class StateManager {
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
+    res.objects.forEach(o => {
+      o["type"] = "detector"
+    })
     this.refs.forEach((ref) => {
       this.curFeedState.objects = res.objects;
       if (ref instanceof LiveObjects) {
+        // Don't add duplicate objects
+        for (let i = 0; i < res.objects.length; i++) {
+          if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
+            ref.addObjects(res.objects[i])
+          }
+        }
         ref.setState({
-          isLoaded: true,
-          objects: res.objects,
           rgb: rgb,
         });
       } else if (ref instanceof MobileMainPane) {
@@ -544,11 +529,10 @@ class StateManager {
         });
       }
     });
-    let masks = res.objects.map(o => o.mask)
-    if (JSON.stringify(this.curFeedState.masks) !== JSON.stringify(masks)) {
-      this.prevFeedState.masks = this.curFeedState.masks
-      this.curFeedState.masks = masks
-      this.stateProcessed.masks = false
+    if (JSON.stringify(this.curFeedState.objects) !== JSON.stringify(res.objects)) {
+      this.prevFeedState.objects = this.curFeedState.objects
+      this.curFeedState.objects = res.objects
+      this.stateProcessed.objects = false
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation()

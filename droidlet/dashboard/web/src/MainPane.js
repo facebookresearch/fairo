@@ -5,7 +5,6 @@ import React from "react";
 import LiveImage from "./components/LiveImage";
 import LiveObjects from "./components/LiveObjects";
 import LiveHumans from "./components/LiveHumans";
-import LabelProp from "./components/LabelProp";
 import InteractApp from "./components/Interact/InteractApp";
 
 class MainPane extends React.Component {
@@ -53,13 +52,6 @@ class MainPane extends React.Component {
           width={320}
           offsetH={320 + 60 + 320 + 30}
           offsetW={10 + 320 + 10}
-          stateManager={stateManager}
-        />
-        <LabelProp
-          height={320}
-          width={320}
-          offsetH={320 + 60 + 320 + 30 + 320 + 30}
-          offsetW={10}
           stateManager={stateManager}
         />
       </div>

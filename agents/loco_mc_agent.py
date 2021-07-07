@@ -117,13 +117,7 @@ class LocoMCAgent(BaseAgent):
 
         @sio.on("label_propagation")
         def label_propagation(sid, postData): 
-            print("------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\n-------------------------------\ncheeseburger\n\n")
-            print(postData["rgbImg"][:100])
-            print(postData["depth"]["depthImg"][:100])
-            print(postData["depth"]["depthMax"])
-            print(postData["masks"][0][:10], len(postData["masks"]))
-            print(postData["basePose"])
-            
+                        
             # Decode rgb map
             height = 512 # should probably pass in height/width as props
             width = 512
@@ -149,10 +143,10 @@ class LocoMCAgent(BaseAgent):
 
             # Convert mask points to mask maps then combine them
             label_maps = []
-            for n, masks in enumerate([postData["prevMasks"], postData["masks"]]): 
+            for n, object_set in enumerate([postData["prevObjects"], postData["objects"]]): 
                 mask_map = []
-                for mask in masks: 
-                    poly = Polygons(mask)
+                for o in object_set: 
+                    poly = Polygons(o["mask"])
                     bitmap = poly.mask(height, width)
                     mask_map.append(bitmap.array)            
                 label_maps.append(np.zeros((height, width)).astype(int))
@@ -179,18 +173,20 @@ class LocoMCAgent(BaseAgent):
             res_labels = propogate_label(rgb_imgs, depth_imgs, label_maps, base_pose_data, 1, 1)
             print("res_labels", res_labels)
 
-            # # DEBUGGING RETURN
-            # sio.emit("labelPropagationReturn", postData["rgbImg"])
+            # DEBUGGING RETURN
+            sio.emit("labelPropagationReturn", postData["prevObjects"])
 
             # Convert mask maps to mask points
-            res_points = []
+            objects = postData["objects"]
             for i in res_labels.keys(): 
                 mask_points_nd = Mask(res_labels).polygons().points
                 mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
-                res_points.append(mask_points)
+                objects[i]["mask"] = mask_points
+                objects[i]["type"] = "label_propagation"
+            print("new objects", objects)
 
-            # Returns an array of mask sets (arrays of masks (arrays of points))
-            sio.emit("labelPropagationReturn", res_points)
+            # Returns an array of objects with updated masks
+            # sio.emit("labelPropagationReturn", objects)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):
