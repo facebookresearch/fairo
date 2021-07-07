@@ -412,9 +412,11 @@ class StateManager {
   }
 
   labelPropagationReturn(res) {
-    console.log('label prop return with image', res.substring(0, 100))
+    console.log('label prop return with image', res)
+    // console.log('label prop return with image', res.substring(0, 100))
     let rgb = new Image();
-    rgb.src = "data:image/webp;base64," + res;
+    rgb.src = "data:image/webp;base64," + this.curFeedState.rgbImg;
+    // rgb.src = "data:image/webp;base64," + res;
     this.refs.forEach((ref) => {
       if (ref instanceof LabelProp) {
         ref.setState({

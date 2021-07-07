@@ -10,7 +10,7 @@ import datetime
 import os
 import base64
 import cv2
-from imantics import Polygons
+from imantics import Mask, Polygons
 import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
@@ -121,7 +121,7 @@ class LocoMCAgent(BaseAgent):
             print(postData["rgbImg"][:100])
             print(postData["depth"]["depthImg"][:100])
             print(postData["depth"]["depthMax"])
-            print(postData["masks"], len(postData["masks"]))
+            print(postData["masks"][0][:10], len(postData["masks"]))
             print(postData["basePose"])
             
             # Decode rgb map
@@ -147,7 +147,7 @@ class LocoMCAgent(BaseAgent):
                 depth_imgs.append(depth_org)
             depth_imgs = np.array(depth_imgs)
 
-            # Convert mask polygons to mask maps then combine them
+            # Convert mask points to mask maps then combine them
             label_maps = []
             for n, masks in enumerate([postData["prevMasks"], postData["masks"]]): 
                 mask_map = []
@@ -179,20 +179,18 @@ class LocoMCAgent(BaseAgent):
             res_labels = propogate_label(rgb_imgs, depth_imgs, label_maps, base_pose_data, 1, 1)
             print("res_labels", res_labels)
 
-            # DEBUGGING RETURN
-            sio.emit("labelPropagationReturn", postData["rgbImg"])
+            # # DEBUGGING RETURN
+            # sio.emit("labelPropagationReturn", postData["rgbImg"])
 
-            # Encode imagge            
-            res_map = []
-            quality = 10
-            encode_param = [int(cv2.IMWRITE_WEBP_QUALITY), quality]
-            fmt = ".webp"            
+            # Convert mask maps to mask points
+            res_points = []
             for i in res_labels.keys(): 
-                _, rgb_data = cv2.imencode(fmt, cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), encode_param)
-                # res_bytes = res_labels[i].tobytes()
-                res_map.append(rgb_data)
+                mask_points_nd = Mask(res_labels).polygons().points
+                mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
+                res_points.append(mask_points)
 
-            # sio.emit("labelPropagationReturn", res_map)
+            # Returns an array of mask sets (arrays of masks (arrays of points))
+            sio.emit("labelPropagationReturn", res_points)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):
