@@ -168,8 +168,11 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
         return
 
     dns_record = {"name": subdomain, "type": "A", "content": ip, "proxied": True}
-    r = cf.zones.dns_records.post(zone_id, data=dns_record)
-    print("Registered IP {} at subdomain {}".format(ip, subdomain))
+    try:
+        r = cf.zones.dns_records.post(zone_id, data=dns_record)   
+        print("Registered IP {} at subdomain {}".format(ip, subdomain))
+    except Exception as e:
+        raise e 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
