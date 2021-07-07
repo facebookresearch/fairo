@@ -176,8 +176,7 @@ if __name__ == "__main__":
     parser.add_argument("--instance_num", type=int, default=1, help="number of instances requested")
     parser.add_argument("--batch_id", type=int, default=0, help="ID of the current batch, used to track which group of runs the task was run in")
     args = parser.parse_args()
-    # instance_ips = request_instance(args.instance_num)
-    instance_ips = ['54.219.123.69', '3.101.118.112']
+    instance_ips = request_instance(args.instance_num)
     # register subdomain to proxy instance IP
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
         logging.info("registering subdomains on craftassist.io")
