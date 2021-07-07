@@ -68,7 +68,7 @@ class LabelPropagate(AbstractHandler):
         unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
         unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
 
-        ### for each unique label, figure out points in wolrd frmae ###
+        ### for each unique label, figure out points in world frame ###
         # first figure out pixel index
         indx = [zip(*np.where(src_label == i)) for i in unique_pix_value]
         # convert pix index to index in point cloud
@@ -77,20 +77,20 @@ class LabelPropagate(AbstractHandler):
         # take out points in world space correspoinding to each unique label
         req_pts_in_world_list = [pts_in_world[indx[i]] for i in range(len(indx))]
 
-        # param usful to search nearest point cloud in a region
+        # param useful to search nearest point cloud in a region
         kernal_size = 3
 
-        # convert depth to point cloud in camera frmae
+        # convert depth to point cloud in camera frame
         cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
         cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)
         cur_pts_in_cam = np.concatenate(
             (cur_pts_in_cam, np.ones((1, cur_pts_in_cam.shape[1]))), axis=0
         )
-        # convert point cloud in camera fromae to base frame
+        # convert point cloud in camera frame to base frame
         cur_pts_in_base = cur_pts_in_cam[:3, :].T
         cur_pts_in_base = np.dot(cur_pts_in_base, rot.T)
         cur_pts_in_base = cur_pts_in_base + trans.reshape(-1)
-        # convert point cloud from base frame to world frmae
+        # convert point cloud from base frame to world frame
         cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
 
         ### generate label for new img ###
@@ -120,7 +120,7 @@ class LabelPropagate(AbstractHandler):
             )
 
             # only consider depth matching for these points
-            # filter out point based on projected depth value wold frmae, this helps us get rid of pixels for which view to the object is blocked by any other object, as in that was projected 3D point in wolrd frmae for the current pix wont match with 3D point in the gt provide label
+            # filter out point based on projected depth value wold frame, this helps us get rid of pixels for which view to the object is blocked by any other object, as in that was projected 3D point in wolrd frmae for the current pix won't match with 3D point in the gt provide label
             dist_thr = 5e-2  # this is in meter
             for pixel_index in range(len(filtered_img_indx)):
                 if filtered_img_indx[pixel_index]:
@@ -149,7 +149,7 @@ class LabelPropagate(AbstractHandler):
             # take out filtered pix values
             pts_in_cur_img = pts_in_cur_img[filtered_img_indx]
 
-            # step to take care of quantization erros
+            # step to take care of quantization errors
             pts_in_cur_img = np.concatenate(
                 (
                     np.concatenate(
@@ -184,7 +184,7 @@ class LabelPropagate(AbstractHandler):
             )
             pts_in_cur_img = pts_in_cur_img[:, :2].astype(int)
 
-            # filter out index which fall beyonf the shape of img size, had to perform this step again to take care if any out of the image size point is introduced by the above quantization step
+            # filter out index which fall beyond the shape of img size, had to perform this step again to take care if any out of the image size point is introduced by the above quantization step
             pts_in_cur_img = pts_in_cur_img[
                 np.logical_and(
                     np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
@@ -192,7 +192,7 @@ class LabelPropagate(AbstractHandler):
                 )
             ]
 
-            # number of pointf for the label found in cur img
+            # number of points for the label found in cur img
             # print("pts in cam = {}".format(len(pts_in_cur_cam)))
 
             # assign label to correspoinding pix values
