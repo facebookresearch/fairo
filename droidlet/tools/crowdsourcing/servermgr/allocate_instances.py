@@ -168,16 +168,11 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
         return
 
     dns_record = {"name": subdomain, "type": "A", "content": ip, "proxied": True}
-<<<<<<< HEAD
     try:
         r = cf.zones.dns_records.post(zone_id, data=dns_record)   
         print("Registered IP {} at subdomain {}".format(ip, subdomain))
     except Exception as e:
         raise e 
-=======
-    r = cf.zones.dns_records.post(zone_id, data=dns_record)
-    print("Registered IP {} at subdomain {}".format(ip, subdomain))
->>>>>>> 534d2a09 (Write the allocated instances info to input CSV for Mephisto)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -205,8 +200,4 @@ if __name__ == "__main__":
                 subdomain = "dashboard-{}-{}".format(args.batch_id, x)
                 register_dashboard_subdomain(cf, zone_id, ip, subdomain)
                 # Write record to Mephisto task input CSV
-<<<<<<< HEAD
                 csv_writer.writerow([subdomain, args.batch_id])
-=======
-                csv_writer.writerow([subdomain, args.batch_id])
->>>>>>> 534d2a09 (Write the allocated instances info to input CSV for Mephisto)
