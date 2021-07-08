@@ -35,7 +35,7 @@ logging.getLogger().setLevel(logging.INFO)
 SUBNET_IDS = ["subnet-bee9d9d9"]
 SECURITY_GROUP_IDS = ["sg-04ec8fa6e1d91d460"]
 
-with open("run.withagent.sh", "rb") as f:
+with open("run.locobotagent.sh", "rb") as f:
     txt = f.read()
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
 
