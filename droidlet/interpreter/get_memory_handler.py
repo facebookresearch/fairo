@@ -1,14 +1,13 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
+from copy import deepcopy
+import logging
 from typing import Dict, Tuple, Any, Optional, Sequence
 
 from droidlet.dialog.dialogue_objects import DialogueObject
-from ..shared_data_structs import ErrorWithResponse
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import MemoryNode, TaskNode
-from copy import deepcopy
-import logging
 from .filter_helper import get_val_map
 
 ALL_PROXIMITY = 1000

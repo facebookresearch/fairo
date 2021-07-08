@@ -7,19 +7,16 @@ import datetime
 from typing import Tuple, Dict, Any, Optional
 from droidlet.event import dispatch
 
-# FIXME agent
-from droidlet.dialog.dialogue_objects import DialogueObject, ConfirmTask
 from .interpreter_utils import SPEAKERLOOK
-
 # point target should be subinterpret, dance should be in agents subclassed interpreters
 from .reference_object_helpers import ReferenceObjectInterpreter, interpret_reference_object
 from .location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
 from .filter_helper import FilterInterpreter
-
-from ..shared_data_structs import ErrorWithResponse, NextDialogueStep
-from droidlet.interpreter.task import maybe_task_list_to_control_block
+from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
+from .task import maybe_task_list_to_control_block
 from droidlet.memory.memory_nodes import TripleNode, TaskNode
-
+# NOTE: this should be removed
+from droidlet.dialog.dialogue_objects import DialogueObject, ConfirmTask
 
 class Interpreter(DialogueObject):
     """
