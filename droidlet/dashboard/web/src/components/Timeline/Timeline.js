@@ -58,7 +58,6 @@ class DashboardTimeline extends React.Component {
     this.state = {
       itemText: "",
     };
-    this.handleClick = this.handleClick.bind(this);
   }
 
   componentDidMount() {
@@ -71,14 +70,13 @@ class DashboardTimeline extends React.Component {
       end: currentTime.setSeconds(currentTime.getSeconds() + 10),
     });
     let state = this.state;
-    // this.timeline.on = this.timeline.on.bind(this);
+    const that = this;
     this.timeline.on("click", function (properties) {
-      // console.log(JSON.stringify(properties))
       if (properties["item"]) {
         const item = items.get(properties["item"]);
 
         console.log(this);
-        this.handleClick(items.get(properties["item"]));
+        that.handleClick(items.get(properties["item"]));
       }
     });
   }
@@ -90,10 +88,10 @@ class DashboardTimeline extends React.Component {
     console.log(item.title);
   }
 
-  shouldComponentUpdate() {
-    const event = this.props.stateManager.memory.timelineEvent;
-    return event && event !== this.prevEvent;
-  }
+  // shouldComponentUpdate() {
+  //   const event = this.props.stateManager.memory.timelineEvent;
+  //   return event && event !== this.prevEvent;
+  // }
 
   renderEvent() {
     const event = this.props.stateManager.memory.timelineEvent;
@@ -117,7 +115,6 @@ class DashboardTimeline extends React.Component {
       items.add([
         {
           title: JSON.stringify(eventObj, null, 2),
-          // content: eventObj["name"],
           group: eventObj["name"],
           className: eventObj["name"],
           start: eventObj["start_datetime"],
@@ -138,7 +135,6 @@ class DashboardTimeline extends React.Component {
         </p>
         <div ref={this.appRef} />
         <pre>{this.state.itemText}</pre>
-        <p>placeholder</p>
       </div>
     );
   }
