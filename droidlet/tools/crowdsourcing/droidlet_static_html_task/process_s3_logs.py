@@ -21,24 +21,25 @@ pd.set_option("display.max_rows", 10)
 def read_s3_bucket(s3_logs_dir, output_dir):
     print("{s3_logs_dir}/**/{csv_filename}".format(s3_logs_dir=s3_logs_dir, csv_filename="logs.tar.gz"))
     # NOTE: This assumes the local directory is synced with the same name as the S3 directory
-    pattern = re.compile(".*turk_interactions_with_agent\/([0-9]*).*logs.tar.gz")
+    pattern = re.compile(".*turk_interactions_with_agent\/([0-9]*)\/(.*)\/logs.tar.gz")
     # NOTE: this is hard coded to search 2 levels deep because of how our logs are structured
     for csv_path in glob.glob('{s3_logs_dir}/**/**/{csv_filename}'.format(s3_logs_dir=s3_logs_dir, csv_filename="logs.tar.gz")):
         tf = tarfile.open(csv_path)
         batch_id = pattern.match(csv_path).group(1)
-        tf.extractall(path="{}/{}/".format(output_dir, batch_id))
+        timestamp = pattern.match(csv_path).group(2)
+        tf.extractall(path="{}/{}/{}/".format(output_dir, batch_id, timestamp))
 
 def read_turk_logs(turk_output_directory, filename):
     # Crawl turk logs directory
     all_turk_interactions = None
 
-    for csv_path in glob.glob("{turk_logs_dir}/**/{csv_filename}".format(turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv")):
+    for csv_path in glob.glob("{turk_logs_dir}/**/**/{csv_filename}".format(turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv")):
         print(csv_path)
         with open(csv_path) as fd:
             # collect the NSP outputs CSV
             csv_file = pd.read_csv(csv_path, delimiter="|")
             # add a column with the interaction log ID
-            interaction_log_id = re.search(r'\/([^\/]*)\/nsp_outputs.csv', csv_path).group(1)
+            interaction_log_id = re.search(r'\/([^\/]*)\/{}.csv'.format(filename), csv_path).group(1)
             csv_file["turk_log_id"] = interaction_log_id
             if all_turk_interactions is None:
                 all_turk_interactions = csv_file
