@@ -95,6 +95,7 @@ class ObjectAnnotation extends React.Component {
           tags={this.drawing_data.tags}
           masks={this.pointMap[this.state.currentMaskId]}
           isMobile={this.props.isMobile}
+          originType={this.originTypeMap[this.state.currentMaskId]}
           color={color}
           exitCallback={() => {
             this.setState({ currentMode: "select" });
@@ -298,6 +299,7 @@ class ObjectAnnotation extends React.Component {
     };
     this.props.stateManager.socket.emit("saveObjectAnnotation", postData);
     this.props.stateManager.logInteractiondata("object annotation", postData);
+    this.props.stateManager.onObjectAnnotationSave(postData);
     if (this.props.not_turk === true) return;
 
     // TODO: uncomment this to get working in a turk setting again
