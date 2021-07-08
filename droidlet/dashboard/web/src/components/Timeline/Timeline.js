@@ -55,6 +55,10 @@ class DashboardTimeline extends React.Component {
     this.timeline = {};
     this.appRef = createRef();
     this.prevEvent = "";
+    this.state = {
+      itemText: "",
+    };
+    this.handleClick = this.handleClick.bind(this);
   }
 
   componentDidMount() {
@@ -66,6 +70,24 @@ class DashboardTimeline extends React.Component {
       start: currentTime.setSeconds(currentTime.getSeconds() - 5),
       end: currentTime.setSeconds(currentTime.getSeconds() + 10),
     });
+    let state = this.state;
+    // this.timeline.on = this.timeline.on.bind(this);
+    this.timeline.on("click", function (properties) {
+      // console.log(JSON.stringify(properties))
+      if (properties["item"]) {
+        const item = items.get(properties["item"]);
+
+        console.log(this);
+        this.handleClick(items.get(properties["item"]));
+      }
+    });
+  }
+
+  handleClick(item) {
+    this.setState({
+      itemText: item.title,
+    });
+    console.log(item.title);
   }
 
   shouldComponentUpdate() {
@@ -95,7 +117,7 @@ class DashboardTimeline extends React.Component {
       items.add([
         {
           title: JSON.stringify(eventObj, null, 2),
-          content: eventObj["name"],
+          // content: eventObj["name"],
           group: eventObj["name"],
           className: eventObj["name"],
           start: eventObj["start_datetime"],
@@ -115,6 +137,8 @@ class DashboardTimeline extends React.Component {
           activities interactively.
         </p>
         <div ref={this.appRef} />
+        <pre>{this.state.itemText}</pre>
+        <p>placeholder</p>
       </div>
     );
   }

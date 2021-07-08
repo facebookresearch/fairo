@@ -20,6 +20,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
   background: none;
 }
 
+.vis-label.vis-nested-group.vis-group-level-unknown-but-gte1 .vis-inner {
+  padding-left: 30px !important;
+}
+
 .vis-group-level-unknown-but-gte1 {
   border: none;
 }
