@@ -163,14 +163,6 @@ private:
   int num_dofs_;
   long int threshold_ns_ = THRESHOLD_NS;
 
-  torch::Tensor timestamp_;
-  torch::Tensor joint_pos_;
-  torch::Tensor joint_vel_;
-  c10::Dict<std::string, torch::Tensor> state_dict_;
-  std::vector<torch::jit::IValue> input_;
-  std::vector<torch::jit::IValue> empty_input_;
-  std::vector<torch::jit::IValue> param_dict_input_;
-
   std::mutex service_mtx_;
 
   CircularBuffer<RobotState> robot_state_buffer_ =
@@ -178,6 +170,20 @@ private:
 
   CustomControllerContext custom_controller_context_;
   RobotClientContext robot_client_context_;
+
+  // Robot states
+  torch::Tensor rs_timestamp_;
+  torch::Tensor rs_joint_positions_;
+  torch::Tensor rs_joint_velocities_;
+  torch::Tensor rs_motor_torques_measured_;
+  torch::Tensor rs_motor_torques_external_;
+
+  c10::Dict<std::string, torch::Tensor> state_dict_;
+
+  // Inputs
+  std::vector<torch::jit::IValue> input_;
+  std::vector<torch::jit::IValue> empty_input_;
+  std::vector<torch::jit::IValue> param_dict_input_;
 };
 
 #endif

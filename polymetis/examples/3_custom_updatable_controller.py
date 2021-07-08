@@ -32,15 +32,15 @@ class MyPDPolicy(toco.PolicyModule):
 
     def forward(self, state_dict: Dict[str, torch.Tensor]):
         # Parse states
-        q_current = state_dict["joint_pos"]
-        qd_current = state_dict["joint_vel"]
+        q_current = state_dict["joint_positions"]
+        qd_current = state_dict["joint_velocities"]
 
         # Execute PD control
         output = self.feedback(
             q_current, qd_current, self.q_desired, torch.zeros_like(qd_current)
         )
 
-        return {"torque_desired": output}
+        return {"joint_torques": output}
 
 
 if __name__ == "__main__":

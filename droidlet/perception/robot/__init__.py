@@ -14,6 +14,7 @@ from droidlet.perception.robot.handlers import (
     Human,
     HumanKeypointsOrdering,
     HumanPose,
+    LabelPropagate,
 )
 from droidlet.shared_data_structs import RGBDepth
 from droidlet.perception.robot.perception import Perception
@@ -34,4 +35,5 @@ __all__ = [
     HumanPose,
     FaceRecognition,
     ObjectDeduplicator,
+    LabelPropagate,
 ]

@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
+import datetime
+from droidlet.event import dispatch
 from typing import Tuple, Dict
 
 class DialogueManager(object):
@@ -79,6 +81,7 @@ class DialogueManager(object):
                 Example: ("player_1", "build a red cube")
 
         """
+        start_time = datetime.datetime.now()
         # chat is a single line command
         chat_list = self.get_last_m_chats(m=1)
         # TODO: this can be moved to get_d_o
@@ -96,4 +99,13 @@ class DialogueManager(object):
             obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form, chat_status, chat_memid)
             if obj is not None:
                 self.dialogue_stack.append(obj)
+                end_time = datetime.datetime.now()
+                hook_data = {
+                    "name" : "dialogue",
+                    "start_datetime" : start_time,
+                    "end_datetime" : end_time,
+                    "agent_time" : self.memory.get_time(),
+                    "object" : str(obj)
+                }
+                dispatch.send("dialogue", data=hook_data)
                 return obj

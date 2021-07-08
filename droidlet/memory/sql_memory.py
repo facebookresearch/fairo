@@ -11,13 +11,13 @@ import pickle
 import sqlite3
 import uuid
 import datetime
-import droidlet.event.dispatcher as dispatch
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import MemorySearcher
 from .dialogue_stack import DialogueStack
+from droidlet.event import dispatch
 from droidlet.memory.memory_util import parse_sql, format_query
 
 from droidlet.memory.memory_nodes import (  # noqa
@@ -101,8 +101,6 @@ class AgentMemory:
         self.on_delete_callback = on_delete_callback
 
         self.init_time_interface(agent_time)
-
-        self._dispatch_signal = dispatch.Signal()
 
         # FIXME agent : should this be here?  where to put?
         self.coordinate_transforms = coordinate_transforms
@@ -1054,7 +1052,7 @@ et        """
             "args" : query_dict, 
             "result" : r,
         }
-        self._dispatch_signal.send(self.db_write, data=hook_data)
+        dispatch.send("memory", data=hook_data)
         return r
 
     def _db_write(self, query: str, *args) -> int:
@@ -1180,13 +1178,3 @@ et        """
         obj = pickle.loads(bs)
         self.reinstate_attrs(obj)
         return obj
-
-    def register_hook(self, receiver, sender):
-        """
-        allows for registering hooks using the event dispatcher
-        """
-        allowed = [self.db_write,]
-        if sender in allowed:
-            self._dispatch_signal.connect(receiver, sender)
-        else:
-            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))

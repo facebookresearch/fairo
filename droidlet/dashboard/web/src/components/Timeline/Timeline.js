@@ -13,6 +13,21 @@ import "./Timeline.css";
 
 const items = new DataSet();
 
+const groups = [
+  {
+    id: "perceive",
+    content: "perceive",
+  },
+  {
+    id: "dialogue",
+    content: "dialogue",
+  },
+  {
+    id: "interpreter",
+    content: "interpreter",
+  },
+];
+
 const options = {
   tooltip: {
     followMouse: true,
@@ -39,12 +54,18 @@ class DashboardTimeline extends React.Component {
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
     this.timeline = new Timeline(this.appRef.current, items, options);
+    this.timeline.setGroups(groups);
     // set current viewing window to 10 seconds for readability
     let currentTime = this.timeline.getCurrentTime();
     this.timeline.setOptions({
       start: currentTime.setSeconds(currentTime.getSeconds() - 5),
       end: currentTime.setSeconds(currentTime.getSeconds() + 10),
     });
+  }
+
+  componentShouldUpdate() {
+    const event = this.props.stateManager.memory.timelineEvent;
+    return event && event !== this.prevEvent;
   }
 
   renderEvent() {
@@ -57,6 +78,8 @@ class DashboardTimeline extends React.Component {
         {
           title: JSON.stringify(eventObj, null, 2),
           content: eventObj["name"],
+          group: eventObj["name"],
+          className: eventObj["name"],
           start: eventObj["start_datetime"],
           end: eventObj["end_datetime"],
           selectable: false,

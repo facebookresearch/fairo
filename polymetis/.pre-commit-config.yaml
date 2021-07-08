@@ -9,6 +9,6 @@ repos:
       - id: cpp-format
         name: C++ formatting
         description: Runs format_cpp.sh
-        entry: scripts/format_cpp.sh
+        entry: polymetis/scripts/format_cpp.sh
         args: [format]
         language: script

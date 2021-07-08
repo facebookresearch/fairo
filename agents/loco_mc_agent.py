@@ -9,11 +9,10 @@ import numpy as np
 import datetime
 import json
 import os
-import droidlet.event.dispatcher as dispatch
 
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.event import sio
+from droidlet.event import sio, dispatch
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 from droidlet.memory.memory_nodes import ProgramNode
@@ -43,7 +42,6 @@ class LocoMCAgent(BaseAgent):
         self.areas_to_perceive = []
         self.perceive_on_chat = False
         self.dashboard_memory_dump_time = time.time()
-        self._dispatch_signal = dispatch.Signal()
         self.dashboard_memory = {
             "db": {},
             "objects": [],
@@ -61,10 +59,12 @@ class LocoMCAgent(BaseAgent):
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
         
-        # Add optional hook for db_write and perceive
+        # Add optional hooks for timeline
         if opts.enable_timeline:
-            self.memory.register_hook(self.log_to_dashboard, self.memory.db_write)
-            self.register_hook(self.log_to_dashboard, self.perceive)
+            dispatch.connect(self.log_to_dashboard, "perceive")
+            dispatch.connect(self.log_to_dashboard, "memory")
+            dispatch.connect(self.log_to_dashboard, "interpreter")
+            dispatch.connect(self.log_to_dashboard, "dialogue")
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
@@ -327,7 +327,7 @@ class LocoMCAgent(BaseAgent):
                 "preprocessed" : preprocessed_chat, 
                 "logical_form" : chat_parse,
             }
-            self._dispatch_signal.send(self.perceive, data=hook_data)
+            dispatch.send("perceive", data=hook_data)
 
         for v in self.perception_modules.values():
             v.perceive(force=force)
@@ -386,27 +386,19 @@ class LocoMCAgent(BaseAgent):
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
 
-    def register_hook(self, receiver, sender):
-        """
-        allows for registering hooks using the event dispatcher
-        """
-        allowed = [self.perceive,]
-        if sender in allowed:
-            self._dispatch_signal.connect(receiver, sender)
-        else:
-            raise ValueError("Unknown hook event {}. Available options are: {}".format(sender.__name__, [a.__name__ for a in allowed]))
-
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
-        result = kwargs['data']
-        # a sample filter for logging data from perceive
-        if result["name"] == "perceive":
-            # JSONify the data
-            result = json.dumps(result, default=str)
-            self.agent_emit(result)
-            if self.opts.log_timeline:
-                self.timeline_log_file.flush()
-                print(result, file=self.timeline_log_file)
+        if self.opts.enable_timeline:
+            result = kwargs['data']
+            # a sample filter for logging data from perceive and dialogue
+            allowed = ["perceive", "dialogue", "interpreter",]
+            if result["name"] in allowed:
+                # JSONify the data, then send it to the dashboard and/or log it
+                result = json.dumps(result, default=str)
+                self.agent_emit(result)
+                if self.opts.log_timeline:
+                    self.timeline_log_file.flush()
+                    print(result, file=self.timeline_log_file)
 
     def agent_emit(self, result):
         sio.emit("newTimelineEvent", result)

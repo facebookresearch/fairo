@@ -59,8 +59,8 @@ class JointPlanExecutor(toco.PolicyModule):
             A dictionary containing the controller output
         """
         # State extraction
-        joint_pos_current = state_dict["joint_pos"]
-        joint_vel_current = state_dict["joint_vel"]
+        joint_pos_current = state_dict["joint_positions"]
+        joint_vel_current = state_dict["joint_velocities"]
 
         # Select desired state
         q_desired, qd_desired, _ = self.plan(self.i)
@@ -79,7 +79,7 @@ class JointPlanExecutor(toco.PolicyModule):
         if self.i == self.N:
             self.set_terminated()
 
-        return {"torque_desired": torque_out}
+        return {"joint_torques": torque_out}
 
 
 class JointSpaceMoveTo(toco.PolicyModule):

@@ -77,13 +77,17 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   num_dofs_ = robot_client_metadata->dof();
 
   // Create initial state dictionary
-  timestamp_ = torch::zeros(2).to(torch::kInt32);
-  joint_pos_ = torch::zeros(num_dofs_);
-  joint_vel_ = torch::zeros(num_dofs_);
+  rs_timestamp_ = torch::zeros(2).to(torch::kInt32);
+  rs_joint_positions_ = torch::zeros(num_dofs_);
+  rs_joint_velocities_ = torch::zeros(num_dofs_);
+  rs_motor_torques_measured_ = torch::zeros(num_dofs_);
+  rs_motor_torques_external_ = torch::zeros(num_dofs_);
 
-  state_dict_.insert("timestamp", timestamp_);
-  state_dict_.insert("joint_pos", joint_pos_);
-  state_dict_.insert("joint_vel", joint_vel_);
+  state_dict_.insert("timestamp", rs_timestamp_);
+  state_dict_.insert("joint_positions", rs_joint_positions_);
+  state_dict_.insert("joint_velocities", rs_joint_velocities_);
+  state_dict_.insert("motor_torques_measured", rs_motor_torques_measured_);
+  state_dict_.insert("motor_torques_external", rs_motor_torques_external_);
 
   // Load default controller bytes into model buffer
   controller_model_buffer_.clear();
@@ -150,11 +154,13 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
 
   // Parse robot state
   auto timestamp_msg = robot_state->timestamp();
-  timestamp_[0] = timestamp_msg.seconds();
-  timestamp_[1] = timestamp_msg.nanos();
+  rs_timestamp_[0] = timestamp_msg.seconds();
+  rs_timestamp_[1] = timestamp_msg.nanos();
   for (int i = 0; i < num_dofs_; i++) {
-    joint_pos_[i] = robot_state->joint_positions(i);
-    joint_vel_[i] = robot_state->joint_velocities(i);
+    rs_joint_positions_[i] = robot_state->joint_positions(i);
+    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
+    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
+    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
   }
 
   // Select controller
@@ -171,7 +177,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
       controller->forward(input_).toGenericDict();
   custom_controller_context_.controller_mtx.unlock();
 
-  torch::jit::IValue key = torch::jit::IValue("torque_desired");
+  torch::jit::IValue key = torch::jit::IValue("joint_torques");
   torch::Tensor desired_torque = controller_state_dict.at(key).toTensor();
 
   for (int i = 0; i < num_dofs_; i++) {
