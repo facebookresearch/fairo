@@ -95,8 +95,6 @@ class ModelTrainer:
             tot_accuracy = 0.0
             st_time = time()
             for step, batch in enumerate(epoch_iterator):
-                if step > 200:
-                    break
                 batch_examples = batch[-1]
                 batch_tensors = [
                     t.to(model.decoder.lm_head.predictions.decoder.weight.device)
