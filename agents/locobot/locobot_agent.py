@@ -240,7 +240,16 @@ class LocobotAgent(LocoMCAgent):
 
     def shutdown(self):
         self._shutdown = True
-        self.perception_modules["vision"].vprocess_shutdown.set()
+        try:
+            self.perception_modules["vision"].vprocess_shutdown.set()
+        except:
+            """
+            the try/except is there in the event that
+            self.perception_modules["vision"] has either:
+            1. not been fully started yet
+            2. already crashed / shutdown due to other effects
+            """
+            pass
 
 
 if __name__ == "__main__":
