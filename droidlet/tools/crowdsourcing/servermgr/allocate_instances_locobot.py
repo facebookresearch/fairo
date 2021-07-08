@@ -35,27 +35,18 @@ logging.getLogger().setLevel(logging.INFO)
 SUBNET_IDS = ["subnet-bee9d9d9"]
 SECURITY_GROUP_IDS = ["sg-04ec8fa6e1d91d460"]
 
-with open("run.locobotagent.sh", "rb") as f:
+with open("run.withagent.sh", "rb") as f:
     txt = f.read()
-    txt_flat = txt.replace(b"diverse_world", b"flat_world")
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
-    run_flat_sh_gz_b64 = b64encode(gzip.compress(txt_flat)).decode("utf-8")
 
 
-def launch_instance(task="craftassist", config="random", debug=False):
+def launch_instance(task="locobot", config="random", debug=False):
     """Returns instance id (specifically, ECS task ARN) of a newly launched instance.
 
     Instance is not yet ready, and may not even have an ip address assigned!
     """
 
-    if config == "diverse_world":
-        run_sh = run_sh_gz_b64
-    elif config == "flat_world":
-        run_sh = run_flat_sh_gz_b64
-    elif config == "random":
-        run_sh = random.choice([run_sh_gz_b64, run_flat_sh_gz_b64])
-    else:
-        raise ValueError("Bad config={}".format(config))
+    run_sh = run_sh_gz_b64
 
     timestamp = datetime.now(timezone.utc).isoformat()
     r = ecs.run_task(
@@ -133,7 +124,7 @@ def get_instance_ip(instance_id):
     
 def request_instance(instance_num):
     logging.info(f"Requesting {instance_num} instances from AWS")
-    instances = [launch_instance(task="craftassist", config="flat_world", debug=False)[0] for _ in range(instance_num)]
+    instances = [launch_instance(task="locobot", config="flat_world", debug=False)[0] for _ in range(instance_num)]
     instance_status = [False] * instance_num
 
     while not all(instance_status):
