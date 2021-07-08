@@ -44,15 +44,13 @@ class BaseSwarmTask(Task):
         """divide task to swarm workers
         """
         raise NotImplementedError
-
 class SwarmMove(BaseSwarmTask):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
     
     def distribute(self, task_data):
         for i in range(self.num_agents):
-            swarm_worker = self.agent.swarm_workers[i]
-            tasks.Move(agent=swarm_worker, task_data=task_data)
+            self.agent.assign_task_to_worker(i, "move", task_data)
 
 class SwarmBuild(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -68,14 +66,13 @@ class SwarmBuild(BaseSwarmTask):
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            swarm_worker = self.agent.swarm_workers[i]
             tmp_task_data["blocks_list"] = block_list[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
             tmp_blocks_array = np.array([(x, y, z, b, m) for ((x, y, z), (b, m)) in tmp_task_data["blocks_list"]])
             offset = np.min(tmp_blocks_array[:, :3], axis=0)
             # get offset to modify the origin
             tmp_task_data["origin"] += np.array(offset)
             tmp_ind += self.num_blocks_per_agent[i]
-            tasks.Build(agent=swarm_worker, task_data=tmp_task_data)
+            self.agent.assign_task_to_worker(i, "build", tmp_task_data)
 
 class SwarmDestroy(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -90,10 +87,9 @@ class SwarmDestroy(BaseSwarmTask):
         tmp_ind = 0
         for i in range(self.num_agents):
             tmp_task_data = deepcopy(task_data)
-            swarm_worker = self.agent.swarm_workers[i]
             tmp_task_data["schematic"] = self.schematic[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
             tmp_ind += self.num_blocks_per_agent[i]
-            tasks.Destroy(agent=swarm_worker, task_data=tmp_task_data)
+            self.agent.assign_task_to_worker(i, "destroy", tmp_task_data)
 
 class SwarmDig(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -121,7 +117,6 @@ class SwarmDig(BaseSwarmTask):
 
         tmp_m = np.array([mx, my, mz])
         for i in range(self.num_agents):
-            swarm_worker = self.agent.swarm_workers[i]
             tmp_task_data = deepcopy(task_data)
             tmp_task_data["origin"] = np.array([tmp_m[0], tmp_m[1] + scheme[i,1] - 1, tmp_m[2]])
             tmp_task_data['width'] = scheme[i, 0]
@@ -130,4 +125,4 @@ class SwarmDig(BaseSwarmTask):
             tmp_m[0] = tmp_m[0] + offset[i]
             if np.min(scheme[i]) <= 0:
                 continue
-            tasks.Dig(agent=swarm_worker, task_data=tmp_task_data)
+            self.agent.assign_task_to_worker(i, "dig", tmp_task_data)

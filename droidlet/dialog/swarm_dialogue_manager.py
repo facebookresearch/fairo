@@ -4,9 +4,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from droidlet.dialog.dialogue_manager import DialogueManager
 
 class SwarmDialogueManager(DialogueManager):
-    def __init__(self, memory, dialogue_object_classes, dialogue_object_mapper, swarm_workers_names, opts):
+    def __init__(self, memory, dialogue_object_classes, dialogue_object_mapper, opts):
         super(SwarmDialogueManager, self).__init__(memory, dialogue_object_classes, dialogue_object_mapper, opts)
-        self.swarm_workers_names = swarm_workers_names
+
+    def neglect(self, name):
+        if "bot" in name:
+            return True
 
     def get_last_m_chats(self, m=1):
         # fetch last m chats from memory
@@ -15,7 +18,7 @@ class SwarmDialogueManager(DialogueManager):
         for chat in all_chats:
             # does not need to interpret its own swarm chats
             speaker = self.memory.get_player_by_id(chat.speaker_id).name
-            if speaker in self.swarm_workers_names:
+            if self.neglect(speaker):
                 continue
             chat_memid = chat.memid
             # get logical form if any else None
