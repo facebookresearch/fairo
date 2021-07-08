@@ -94,112 +94,112 @@ class ModelTrainer:
             text_span_loc_loss = 0.0
             tot_accuracy = 0.0
             st_time = time()
-            # for step, batch in enumerate(epoch_iterator):
-            #     if step > 200:
-            #         break
-            #     batch_examples = batch[-1]
-            #     batch_tensors = [
-            #         t.to(model.decoder.lm_head.predictions.decoder.weight.device)
-            #         for t in batch[:4]
-            #     ]
-            #     x, x_mask, y, y_mask = batch_tensors
-            #     if self.args.tree_to_text:
-            #         outputs = model(y, y_mask, x, x_mask)
-            #     else:
-            #         outputs = model(x, x_mask, y, y_mask)
-            #     loss = outputs["loss"]
-            #     text_span_loss = outputs["text_span_loss"]
-            #     fixed_span_loss = outputs["fixed_span_loss"]
-            #     model.zero_grad()
-            #     # backprop
-            #     # Use separate optimizers for text span and fixed span heads
-            #     text_span_loss.backward(retain_graph=True)
-            #     text_span_optimizer.step()
-            #     fixed_span_loss.backward(retain_graph=True)
-            #     fixed_span_optimizer.step()
+            for step, batch in enumerate(epoch_iterator):
+                if step > 200:
+                    break
+                batch_examples = batch[-1]
+                batch_tensors = [
+                    t.to(model.decoder.lm_head.predictions.decoder.weight.device)
+                    for t in batch[:4]
+                ]
+                x, x_mask, y, y_mask = batch_tensors
+                if self.args.tree_to_text:
+                    outputs = model(y, y_mask, x, x_mask)
+                else:
+                    outputs = model(x, x_mask, y, y_mask)
+                loss = outputs["loss"]
+                text_span_loss = outputs["text_span_loss"]
+                fixed_span_loss = outputs["fixed_span_loss"]
+                model.zero_grad()
+                # backprop
+                # Use separate optimizers for text span and fixed span heads
+                text_span_loss.backward(retain_graph=True)
+                text_span_optimizer.step()
+                fixed_span_loss.backward(retain_graph=True)
+                fixed_span_optimizer.step()
 
-            #     loss.backward()
-            #     # Add text span loss gradients
-            #     model.decoder.bert_final_layer_out.grad = (
-            #         model.decoder.bert_final_layer_out.grad.add(
-            #             text_span_loss_attenuation_factor
-            #             * (
-            #                 model.decoder.text_span_start_hidden_z.grad
-            #                 + model.decoder.text_span_end_hidden_z.grad
-            #             )
-            #         )
-            #     )
-            #     # Add fixed value loss gradients
-            #     model.decoder.bert_final_layer_out.grad = (
-            #         model.decoder.bert_final_layer_out.grad.add(
-            #             fixed_value_loss_attenuation_factor
-            #             * (model.decoder.fixed_span_hidden_z.grad)
-            #         )
-            #     )
-            #     if step % self.args.param_update_freq == 0:
-            #         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            #         optimizer.step()
-            #     # compute accuracy and add hard examples
-            #     if self.args.tree_to_text:
-            #         full_acc = compute_accuracy(outputs, x)
-            #         # hacky
-            #         lm_acc = full_acc
-            #     else:
-            #         lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
-            #     if self.args.hard:
-            #         if e > 0 or tot_steps > 2 * self.args.decoder_warmup_steps:
-            #             for acc, exple in zip(lm_acc, batch_examples):
-            #                 if not acc.item():
-            #                     if step % 400 == 100:
-            #                         print("ADDING HE:", step, exple[0])
-            #                     dataset.add_hard_example(exple)
-            #     # book-keeping
-            #     loc_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
-            #     loc_full_acc += full_acc.sum().item() / full_acc.shape[0]
-            #     tot_accuracy += full_acc.sum().item() / full_acc.shape[0]
-            #     text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0]
-            #     if not self.args.tree_to_text:
-            #         loc_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
-            #     loc_loss += loss.item()
-            #     loc_steps += 1
-            #     tot_loss += loss.item()
-            #     tot_steps += 1
-            #     text_span_tot_loss += text_span_loss.item()
-            #     text_span_loc_loss += text_span_loss.item()
-            #     if step % 400 == 0:
-            #         print(
-            #             "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
-            #                 e,
-            #                 step,
-            #                 loc_loss / loc_steps,
-            #                 loc_full_acc / loc_steps,
-            #                 time() - st_time,
-            #             )
-            #         )
-            #         logging.info(
-            #             "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
-            #                 e,
-            #                 step,
-            #                 loc_loss / loc_steps,
-            #                 loc_full_acc / loc_steps,
-            #                 time() - st_time,
-            #             )
-            #         )
-            #         logging.info("text span acc: {:.3f}".format(text_span_accuracy / loc_steps))
-            #         logging.info("text span loss: {:.3f}".format(text_span_loc_loss / loc_steps))
-            #         # Log training outputs to CSV
-            #         self.train_outputs_logger.log_dialogue_outputs([e, step, loc_loss / loc_steps, loc_full_acc / loc_steps, text_span_accuracy / loc_steps, text_span_loc_loss / loc_steps, time() - st_time])
-            #         loc_loss = 0
-            #         loc_steps = 0
-            #         loc_int_acc = 0.0
-            #         loc_span_acc = 0.0
-            #         loc_full_acc = 0.0
-            #         text_span_accuracy = 0.0
-            #         text_span_loc_loss = 0.0
-            # torch.save(
-            #     model.state_dict(),
-            #     pjoin(self.args.output_dir, "{}(ep=={}).pth".format(model_identifier, e)),
-            # )
+                loss.backward()
+                # Add text span loss gradients
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        text_span_loss_attenuation_factor
+                        * (
+                            model.decoder.text_span_start_hidden_z.grad
+                            + model.decoder.text_span_end_hidden_z.grad
+                        )
+                    )
+                )
+                # Add fixed value loss gradients
+                model.decoder.bert_final_layer_out.grad = (
+                    model.decoder.bert_final_layer_out.grad.add(
+                        fixed_value_loss_attenuation_factor
+                        * (model.decoder.fixed_span_hidden_z.grad)
+                    )
+                )
+                if step % self.args.param_update_freq == 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                    optimizer.step()
+                # compute accuracy and add hard examples
+                if self.args.tree_to_text:
+                    full_acc = compute_accuracy(outputs, x)
+                    # hacky
+                    lm_acc = full_acc
+                else:
+                    lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
+                if self.args.hard:
+                    if e > 0 or tot_steps > 2 * self.args.decoder_warmup_steps:
+                        for acc, exple in zip(lm_acc, batch_examples):
+                            if not acc.item():
+                                if step % 400 == 100:
+                                    print("ADDING HE:", step, exple[0])
+                                dataset.add_hard_example(exple)
+                # book-keeping
+                loc_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
+                loc_full_acc += full_acc.sum().item() / full_acc.shape[0]
+                tot_accuracy += full_acc.sum().item() / full_acc.shape[0]
+                text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0]
+                if not self.args.tree_to_text:
+                    loc_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
+                loc_loss += loss.item()
+                loc_steps += 1
+                tot_loss += loss.item()
+                tot_steps += 1
+                text_span_tot_loss += text_span_loss.item()
+                text_span_loc_loss += text_span_loss.item()
+                if step % 400 == 0:
+                    print(
+                        "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
+                            e,
+                            step,
+                            loc_loss / loc_steps,
+                            loc_full_acc / loc_steps,
+                            time() - st_time,
+                        )
+                    )
+                    logging.info(
+                        "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
+                            e,
+                            step,
+                            loc_loss / loc_steps,
+                            loc_full_acc / loc_steps,
+                            time() - st_time,
+                        )
+                    )
+                    logging.info("text span acc: {:.3f}".format(text_span_accuracy / loc_steps))
+                    logging.info("text span loss: {:.3f}".format(text_span_loc_loss / loc_steps))
+                    # Log training outputs to CSV
+                    self.train_outputs_logger.log_dialogue_outputs([e, step, loc_loss / loc_steps, loc_full_acc / loc_steps, text_span_accuracy / loc_steps, text_span_loc_loss / loc_steps, time() - st_time])
+                    loc_loss = 0
+                    loc_steps = 0
+                    loc_int_acc = 0.0
+                    loc_span_acc = 0.0
+                    loc_full_acc = 0.0
+                    text_span_accuracy = 0.0
+                    text_span_loc_loss = 0.0
+            torch.save(
+                model.state_dict(),
+                pjoin(self.args.output_dir, "{}(ep=={}).pth".format(model_identifier, e)),
+            )
             # Evaluating model
             model.eval()
             logging.info("evaluating model")
@@ -284,7 +284,7 @@ class ModelTrainer:
         logging.info(
             "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
         )
-        # self.valid_outputs_logger.log_dialogue_outputs([epoch, dtype, l, a, text_span_acc, text_span_loss, time()])
+        self.valid_outputs_logger.log_dialogue_outputs([epoch, dtype, l, a, text_span_acc, text_span_loss, time()])
 
 
 def generate_model_name(args, optional_identifier=""):
