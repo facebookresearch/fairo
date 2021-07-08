@@ -1,5 +1,4 @@
 from droidlet.interpreter.craftassist import MCInterpreter
-from droidlet.interpreter.craftassist import tasks, dance
 from droidlet.interpreter.craftassist import swarm_tasks
 from typing import Tuple, Dict, Any, Optional
 
@@ -7,7 +6,6 @@ class SwarmMCInterpreter(MCInterpreter):
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super(SwarmMCInterpreter, self).__init__(speaker, action_dict, low_level_data, **kwargs)
         # self.task_objects = {
-        #     # "move": tasks.Move,
         #     "move": tasks.Move,
         #     "undo": tasks.Undo,
         #     "build": tasks.Build,

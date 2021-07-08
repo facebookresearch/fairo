@@ -1,25 +1,9 @@
 from copy import deepcopy
-import logging
 import numpy as np
-import time
 
-from random import randint
-
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
-    PASSABLE_BLOCKS,
-    BUILD_BLOCK_REPLACE_MAP,
-    BUILD_IGNORE_BLOCKS,
-    BUILD_INTERCHANGEABLE_PAIRS,
-)
-from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID
-from droidlet.perception.craftassist import search
-from droidlet.perception.craftassist.heuristic_perception import ground_height
-from droidlet.lowlevel.minecraft.mc_util import to_block_pos, manhat_dist, strip_idmeta
-
-from droidlet.interpreter.task import BaseMovementTask, Task
-from droidlet.memory.memory_nodes import TaskNode, TripleNode
-from droidlet.memory.craftassist.mc_memory_nodes import MobNode
-from droidlet.interpreter.craftassist import tasks, dance
+from droidlet.interpreter.task import Task
+from droidlet.memory.memory_nodes import TaskNode
+from droidlet.interpreter.craftassist import tasks
 import pdb
 
 # single agent task reference
@@ -58,60 +42,8 @@ class BaseSwarmTask(Task):
 
     def distribute(self, task_data):
         """divide task to swarm workers
-        examples::
-
-        >>> self.swarm_worker_tasks = []
-        >>> build_task = Build(
-                worker_agent,
-                {
-                    "blocks_list": destroy_schm,
-                    "origin": origin,
-                    "force": True,
-                    "verbose": False,
-                    "embed": True,
-                    "dig_message": self.dig_message,
-                    "is_destroy_schm": not self.dig_message,
-                    "DIG_REACH": self.DIG_REACH,
-                },
-            )
-        >>> self.add_child_task(build_task)
-        >>> self.swarm_worker_tasks.append(build_task)
         """
         raise NotImplementedError
-
-# TODO: add task memid tracking and check if subtask is finished
-
-class SwarmDance(BaseSwarmTask):
-    def __init__(self, agent, task_data):
-        super().__init__(agent, task_data)
-        # movement should be a Movement object from dance.py
-        self.movement = task_data.get("movement")
-    
-    def distribute(self, task_data):
-        self.swarm_worker_tasks = []
-        for i in range(self.num_agents):
-            swarm_worker = self.agent.swarm_workers[i]
-            # cannot directly append the sub tasks to a list, db can't pickle.dump()
-            tasks.Dance(agent=swarm_worker, task_data=task_data)
-
-class SwarmDanceMove(BaseSwarmTask):
-    def __init__(self, agent, task_data):
-        super().__init__(agent, task_data)
-        self.relative_yaw = task_data.get("relative_yaw")
-        self.relative_pitch = task_data.get("relative_pitch")
-
-        # look_turn is (yaw, pitch).  pitch = 0 is head flat
-        self.head_yaw_pitch = task_data.get("head_yaw_pitch")
-        self.head_xyz = task_data.get("head_xyz")
-
-        self.translate = task_data.get("translate")
-    
-    def distribute(self, task_data):
-        self.swarm_worker_tasks = []
-        for i in range(self.num_agents):
-            swarm_worker = self.agent.swarm_workers[i]
-            tasks.Dance(agent=swarm_worker, task_data=task_data)
-
 
 class SwarmMove(BaseSwarmTask):
     def __init__(self, agent, task_data):
