@@ -411,12 +411,16 @@ class StateManager {
   }
 
   labelPropagationReturn(res) {
-    console.log('label prop return with image', res)
+    console.log('label prop return with image', res, res[0].type)
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + this.curFeedState.rgbImg;
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
-        ref.addObjects(res)
+        for (let i = 0; i < res.length; i++) {
+          if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i])) === -1) {
+            ref.addObjects(res[i])
+          }
+        }
       }
     })
   }

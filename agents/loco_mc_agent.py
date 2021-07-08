@@ -174,6 +174,8 @@ class LocoMCAgent(BaseAgent):
             print("res_labels", res_labels)
 
             # DEBUGGING RETURN
+            for i in range(len(postData["prevObjects"])): 
+                postData["prevObjects"][i]["type"] = "label_propagation"
             sio.emit("labelPropagationReturn", postData["prevObjects"])
 
             # Convert mask maps to mask points

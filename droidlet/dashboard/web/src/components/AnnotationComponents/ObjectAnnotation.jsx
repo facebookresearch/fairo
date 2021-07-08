@@ -56,6 +56,7 @@ class ObjectAnnotation extends React.Component {
       this.pointMap[i] = curObject.mask;
       this.parsePoints(i);
       this.propertyMap[i] = curObject.properties;
+      this.originTypeMap[i] = curObject.type;
     }
 
     this.registerClick = this.registerClick.bind(this);
@@ -134,6 +135,7 @@ class ObjectAnnotation extends React.Component {
             img={this.image}
             objects={this.state.objectIds}
             pointMap={this.pointMap}
+            originTypeMap={this.originTypeMap}
             colors={COLORS}
             imageWidth={this.props.imageWidth}
             onClick={this.registerClick}

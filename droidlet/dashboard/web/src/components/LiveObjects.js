@@ -79,6 +79,7 @@ class LiveObjects extends React.Component {
             : [],
           label: obj.label,
           properties: obj.properties.split("\n "),
+          type: obj.type,
         }));
         fixer.setState({
           image: this.state.rgb,
@@ -185,7 +186,7 @@ class LiveObjects extends React.Component {
               }}
               fill={color}
               opacity={0.5}
-              stroke="black"
+              stroke={obj.type === "detector" ? "white" : "black"}
               strokeWidth={1}
             />
           );
