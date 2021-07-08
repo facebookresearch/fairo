@@ -10,15 +10,19 @@ import argparse
 import boto3
 import os
 import tarfile
+import re
 
 pd.set_option('display.max_rows', 10)
 
 def read_s3_bucket(s3_logs_dir):
     print('{s3_logs_dir}/**/{csv_filename}'.format(s3_logs_dir=s3_logs_dir, csv_filename='logs.tar.gz'))
+    # NOTE: This assumes the local directory is synced with the same name as the S3 directory
+    pattern = re.compile(".*turk_interactions_with_agent\/([0-9]*).*logs.tar.gz")
     # NOTE: this is hard coded to search 2 levels deep because of how our logs are structured
     for csv_path in glob.glob('{s3_logs_dir}/**/**/{csv_filename}'.format(s3_logs_dir=s3_logs_dir, csv_filename='logs.tar.gz')):
         tf = tarfile.open(csv_path)
-        tf.extractall(path="/private/home/rebeccaqian/parsed_turk_logs/")
+        batch_id = pattern.match(csv_path).group(1)
+        tf.extractall(path="/private/home/rebeccaqian/parsed_turk_logs/{}/".format(batch_id))
 
 def read_turk_logs(turk_logs_directory, turk_output_directory, filename):
     # Crawl turk logs directory
