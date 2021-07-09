@@ -127,58 +127,60 @@ void FrankaTorqueControlClient::run() {
     return torque_applied_;
   };
 
-  // Send lambda function
-  bool is_robot_operational = true;
-  while (is_robot_operational) {
-    try {
-      if (!mock_franka_) {
-        robot_ptr_->control(control_callback);
-      } else {
-        franka::RobotState dummy_robot_state;
-        franka::Duration dummy_duration;
-
-        int period = 1.0 / FRANKA_HZ;
-        int period_ns = period * 1.0e9;
-
-        struct timespec abs_target_time;
-        while (true) {
-          clock_gettime(CLOCK_REALTIME, &abs_target_time);
-          abs_target_time.tv_nsec += period_ns;
-
-          control_callback(dummy_robot_state, dummy_duration);
-
-          clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &abs_target_time,
-                          nullptr);
-        }
-      }
-    } catch (const std::exception &ex) {
-      std::cout << ex.what() << std::endl;
-      is_robot_operational = false;
-    }
-
-    // Automatic recovery
-    for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
-      // Wait
-      if (i == 0) {
-        std::cout << ".\nPerforming automatic error recovery in "
-                  << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
-      } else {
-        std::cout << ".\nRetrying automatic error recovery in "
-                  << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
-      }
-      usleep(1000000 * RECOVERY_WAIT_SECS);
-
-      // Attempt recovery
+  // Run robot
+  if (!mock_franka_) {
+    bool is_robot_operational = true;
+    while (is_robot_operational) {
+      // Send lambda function
       try {
-        robot_ptr_->automaticErrorRecovery();
-        std::cout << "Robot operation recovered." << std::endl;
-        is_robot_operational = true;
-        break;
-
+        robot_ptr_->control(control_callback);
       } catch (const std::exception &ex) {
         std::cout << ex.what() << std::endl;
-        std::cout << "Recovery failed. " << std::endl;
+        is_robot_operational = false;
       }
+
+      // Automatic recovery
+      for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
+        // Wait
+        if (i == 0) {
+          std::cout << ".\nPerforming automatic error recovery in "
+                    << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
+        } else {
+          std::cout << ".\nRetrying automatic error recovery in "
+                    << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
+        }
+        usleep(1000000 * RECOVERY_WAIT_SECS);
+
+        // Attempt recovery
+        try {
+          robot_ptr_->automaticErrorRecovery();
+          std::cout << "Robot operation recovered." << std::endl;
+          is_robot_operational = true;
+          break;
+
+        } catch (const std::exception &ex) {
+          std::cout << ex.what() << std::endl;
+          std::cout << "Recovery failed. " << std::endl;
+        }
+      }
+    }
+
+  } else {
+    // Run mocked robot that returns dummy states
+    franka::RobotState dummy_robot_state;
+    franka::Duration dummy_duration;
+
+    int period = 1.0 / FRANKA_HZ;
+    int period_ns = period * 1.0e9;
+
+    struct timespec abs_target_time;
+    while (true) {
+      clock_gettime(CLOCK_REALTIME, &abs_target_time);
+      abs_target_time.tv_nsec += period_ns;
+
+      control_callback(dummy_robot_state, dummy_duration);
+
+      clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &abs_target_time, nullptr);
     }
   }
 }
