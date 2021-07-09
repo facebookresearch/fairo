@@ -148,17 +148,6 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     custom_controller_context_.status = TERMINATING;
   }
 
-  // Parse robot state
-  auto timestamp_msg = robot_state->timestamp();
-  rs_timestamp_[0] = timestamp_msg.seconds();
-  rs_timestamp_[1] = timestamp_msg.nanos();
-  for (int i = 0; i < num_dofs_; i++) {
-    rs_joint_positions_[i] = robot_state->joint_positions(i);
-    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
-    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
-    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
-  }
-
   // Update episode markers
   if (custom_controller_context_.status == READY) {
     // First step of episode: update episode marker
@@ -183,6 +172,17 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     controller = &custom_controller_context_.custom_controller;
   } else {
     controller = &robot_client_context_.default_controller;
+  }
+
+  // Parse robot state
+  auto timestamp_msg = robot_state->timestamp();
+  rs_timestamp_[0] = timestamp_msg.seconds();
+  rs_timestamp_[1] = timestamp_msg.nanos();
+  for (int i = 0; i < num_dofs_; i++) {
+    rs_joint_positions_[i] = robot_state->joint_positions(i);
+    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
+    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
+    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
   }
 
   // Step controller & generate torque command response
