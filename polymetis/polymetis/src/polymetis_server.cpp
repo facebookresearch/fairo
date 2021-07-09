@@ -145,13 +145,6 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
         << "Warning: Interrupted control update greater than threshold of "
         << threshold_ns_ << " ns. Reverting to default controller...";
     custom_controller_context_.status = TERMINATING;
-    robot_client_context_.default_controller.get_method("reset")(empty_input_);
-  }
-
-  // First step of episode: update episode marker
-  if (custom_controller_context_.status == READY) {
-    custom_controller_context_.episode_begin = robot_state_buffer_.size();
-    custom_controller_context_.status = RUNNING;
   }
 
   // Parse robot state
@@ -163,6 +156,24 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     rs_joint_velocities_[i] = robot_state->joint_velocities(i);
     rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
     rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
+  }
+
+  // Update episode markers
+  if (custom_controller_context_.status == READY) {
+    // First step of episode: update episode marker
+    custom_controller_context_.episode_begin = robot_state_buffer_.size();
+    custom_controller_context_.status = RUNNING;
+
+  } else if (custom_controller_context_.status == TERMINATING) {
+    // Last step of episode: update episode marker & reset default controller
+    custom_controller_context_.episode_end = robot_state_buffer_.size() - 1;
+    custom_controller_context_.status = TERMINATED;
+
+    robot_client_context_.default_controller.get_method("reset")(empty_input_);
+
+    std::cout
+        << "Terminating custom controller, switching to default controller."
+        << std::endl;
   }
 
   // Select controller
@@ -201,16 +212,6 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     if (controller->get_method("is_terminated")(empty_input_).toBool()) {
       custom_controller_context_.status = TERMINATING;
     }
-  }
-
-  // Last step of episode: update episode marker & reset default controller
-  if (custom_controller_context_.status == TERMINATING) {
-    robot_client_context_.default_controller.get_method("reset")(empty_input_);
-    custom_controller_context_.episode_end = robot_state_buffer_.size() - 1;
-    custom_controller_context_.status = TERMINATED;
-    std::cout
-        << "Terminating custom controller, switching to default controller."
-        << std::endl;
   }
 
   robot_client_context_.last_update_ns = getNanoseconds();
