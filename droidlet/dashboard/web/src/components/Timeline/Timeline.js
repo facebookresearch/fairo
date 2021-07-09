@@ -16,20 +16,20 @@ const items = new DataSet();
 const groups = [
   {
     id: "timeline",
-    content: "timeline",
+    content: "Timeline",
     nestedGroups: ["perceive", "dialogue", "interpreter"],
   },
   {
     id: "perceive",
-    content: "perceive",
+    content: "Perception",
   },
   {
     id: "dialogue",
-    content: "dialogue",
+    content: "Dialogue",
   },
   {
     id: "interpreter",
-    content: "interpreter",
+    content: "Interpreter",
   },
 ];
 
@@ -90,11 +90,6 @@ class DashboardTimeline extends React.Component {
     });
   }
 
-  // shouldComponentUpdate() {
-  //   const event = this.props.stateManager.memory.timelineEvent;
-  //   return event && event !== this.prevEvent;
-  // }
-
   renderEvent() {
     const event = this.props.stateManager.memory.timelineEvent;
     // prevents duplicates because state changes cause the page to rerender
@@ -110,7 +105,6 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_datetime"],
           end: eventObj["end_datetime"],
-          selectable: false,
         },
       ]);
       // adds the same item to the inner nested group
@@ -121,7 +115,6 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_datetime"],
           end: eventObj["end_datetime"],
-          selectable: false,
         },
       ]);
     }
@@ -137,6 +130,7 @@ class DashboardTimeline extends React.Component {
         </p>
         <div ref={this.appRef} />
         <div className="item">
+          <p id="result">Results:</p>
           <pre>{this.state.itemText}</pre>
         </div>
       </div>
