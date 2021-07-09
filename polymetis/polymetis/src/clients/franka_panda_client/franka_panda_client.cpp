@@ -170,7 +170,6 @@ void FrankaTorqueControlClient::run() {
 
       // Attempt recovery
       try {
-        std::cout << "Performing automatic error recovery..." << std::endl;
         robot_ptr_->automaticErrorRecovery();
         std::cout << "Robot operation recovered." << std::endl;
         is_robot_operational = true;
