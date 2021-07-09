@@ -101,6 +101,13 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
       config["safety_controller"]["stiffness"]["joint_pos"].as<double>();
   k_joint_vel_ =
       config["safety_controller"]["stiffness"]["joint_vel"].as<double>();
+
+  // Set collision behavior
+  robot_ptr_->setCollisionBehavior(
+      config["collision_behavior"]["lower_torque"].as<double>(),
+      config["collision_behavior"]["upper_torque"].as<double>(),
+      config["collision_behavior"]["lower_force"].as<double>(),
+      config["collision_behavior"]["upper_force"].as<double>());
 }
 
 void FrankaTorqueControlClient::run() {

@@ -68,6 +68,12 @@ robot_client:
         - 11.5
         - 11.5
 
+    collision_behavior:
+      lower_torque: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+      upper_torque: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+      lower_force: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+      upper_force: [100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
+
     safety_controller:
       is_active: true
       margins: # margin from hard safety limits at which safety controllers start to kick in
