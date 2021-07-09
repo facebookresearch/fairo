@@ -39,6 +39,9 @@ class ObjectAnnotation extends React.Component {
     if (!this.props.objects) {
       objects = this.props.stateManager.curFeedState.objects;
     }
+    if (objects === null) {
+      objects = [];
+    }
     this.state = {
       objectIds: [...Array(objects.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw_polygon, start_polygon

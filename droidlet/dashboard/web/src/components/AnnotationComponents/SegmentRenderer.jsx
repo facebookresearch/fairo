@@ -81,6 +81,9 @@ class SegmentRenderer extends React.Component {
       this.Offset.x,
       this.Offset.y
     );
+
+    console.log("image is");
+    console.log(this.props.img);
     this.ctx.drawImage(this.props.img, 0, 0);
 
     // Draw regions

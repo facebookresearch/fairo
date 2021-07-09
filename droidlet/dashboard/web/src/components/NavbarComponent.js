@@ -41,6 +41,12 @@ class NavbarComponent extends React.Component {
           >
             Annotation
           </button>
+          <button
+            className="button"
+            onClick={() => this.props.paneHandler("camera")}
+          >
+            Camera
+          </button>
         </Nav>
       </Navbar>
     );
