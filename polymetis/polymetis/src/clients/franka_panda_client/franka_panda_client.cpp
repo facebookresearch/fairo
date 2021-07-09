@@ -157,10 +157,23 @@ void FrankaTorqueControlClient::run() {
     // Automatic recovery
     std::cout << "Performing automatic error recovery in " << RECOVERY_WAIT_SECS
               << "second(s)..." << std::endl;
-    usleep(RECOVERY_WAIT_USEC);
-    std::cout << "Performing automatic error recovery..." << std::endl;
-    robot_ptr_->automaticErrorRecovery();
-    std::cout << "Robot operation recovered." << std::endl;
+    for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
+      try {
+        usleep(1000000 * RECOVERY_WAIT_SECS);
+        std::cout << "Performing automatic error recovery..." << std::endl;
+        robot_ptr_->automaticErrorRecovery();
+        std::cout << "Robot operation recovered." << std::endl;
+        break;
+
+      } catch (const std::exception &ex) {
+        std::cout << ex.what() << std::endl;
+        std::cout << "Recovery failed. " << std::endl;
+        if (i < RECOVERY_MAX_TRIES - 1) {
+          std::cout << "Retrying automatic error recovery in "
+                    << RECOVERY_WAIT_SECS << "second(s)..." << std::endl;
+        }
+      }
+    }
   }
 }
 
