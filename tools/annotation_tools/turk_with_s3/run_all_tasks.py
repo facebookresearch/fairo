@@ -13,6 +13,28 @@ Tool A run finishes
 -> run tool D
 """
 
+# Default to directory of script being run for writing inputs and outputs
+default_write_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Creating directories for tool outputs
+folder_name_A = '{}/A/'.format(default_write_dir)
+folder_name_B = '{}/B/'.format(default_write_dir)
+folder_name_C = '{}/C/'.format(default_write_dir)
+folder_name_D = '{}/D/'.format(default_write_dir)
+
+# If the tool specific write directories do not exist, create them
+if not os.path.isdir(folder_name_A):
+    os.mkdir(folder_name_B)
+
+if not os.path.isdir(folder_name_B):
+    os.mkdir(folder_name_B)
+
+if not os.path.isdir(folder_name_C):
+    os.mkdir(folder_name_C)
+
+if not os.path.isdir(folder_name_D):
+    os.mkdir(folder_name_C)
+
 # CSV input
 rc = subprocess.call(
     [
