@@ -37,9 +37,15 @@ const options = {
   tooltip: {
     followMouse: true,
     overflowMethod: "cap",
-    // preserves the formatting from JSON.stringify()
     template: function (originalItemData, parsedItemData) {
-      return "<pre>" + originalItemData.title + "</pre>";
+      const titleJSON = JSON.parse(originalItemData.title);
+      return (
+        "<pre>event: " +
+        titleJSON.name +
+        "\nagent time: " +
+        titleJSON.agent_time +
+        "</pre>"
+      );
     },
   },
   zoomMax: 86400000,
@@ -69,14 +75,11 @@ class DashboardTimeline extends React.Component {
       start: currentTime.setSeconds(currentTime.getSeconds() - 5),
       end: currentTime.setSeconds(currentTime.getSeconds() + 10),
     });
-    let state = this.state;
     const that = this;
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
         const item = items.get(properties["item"]);
-
-        console.log(this);
-        that.handleClick(items.get(properties["item"]));
+        that.handleClick(item);
       }
     });
   }
@@ -85,7 +88,6 @@ class DashboardTimeline extends React.Component {
     this.setState({
       itemText: item.title,
     });
-    console.log(item.title);
   }
 
   // shouldComponentUpdate() {
@@ -134,7 +136,9 @@ class DashboardTimeline extends React.Component {
           activities interactively.
         </p>
         <div ref={this.appRef} />
-        <pre>{this.state.itemText}</pre>
+        <div className="item">
+          <pre>{this.state.itemText}</pre>
+        </div>
       </div>
     );
   }

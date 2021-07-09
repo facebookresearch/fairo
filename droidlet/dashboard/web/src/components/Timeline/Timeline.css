@@ -5,6 +5,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
   text-align: center;
 }
 
+.item {
+  border: 1px solid white;
+}
+
 .vis-timeline {
   overflow: visible;
 }
@@ -28,10 +32,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
   border: none;
 }
 
-.vis-tooltip {
-  background-color: #777;
-}
-
 .vis-item.perceive {
   background-color: #c0d6df;
 }
@@ -46,5 +46,4 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 pre {
   font-family: Arial, Helvetica, sans-serif;
-  font-size: 0.8em;
 }
