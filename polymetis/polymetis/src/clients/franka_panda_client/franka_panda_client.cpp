@@ -160,10 +160,10 @@ void FrankaTorqueControlClient::run() {
     for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
       // Wait
       if (i == 0) {
-        std::cout << "Performing automatic error recovery in "
+        std::cout << ".\nPerforming automatic error recovery in "
                   << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
       } else {
-        std::cout << "Retrying automatic error recovery in "
+        std::cout << ".\nRetrying automatic error recovery in "
                   << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
       }
       usleep(1000000 * RECOVERY_WAIT_SECS);
