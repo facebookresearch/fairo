@@ -143,7 +143,8 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   if (!validRobotContext()) {
     std::cout
         << "Warning: Interrupted control update greater than threshold of "
-        << threshold_ns_ << " ns. Reverting to default controller...";
+        << threshold_ns_ << " ns. Reverting to default controller..."
+        << std::endl;
     custom_controller_context_.status = TERMINATING;
   }
 

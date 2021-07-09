@@ -128,7 +128,8 @@ void FrankaTorqueControlClient::run() {
   };
 
   // Send lambda function
-  while (true) {
+  bool is_robot_operational = true;
+  while (is_robot_operational) {
     try {
       if (!mock_franka_) {
         robot_ptr_->control(control_callback);
@@ -152,26 +153,32 @@ void FrankaTorqueControlClient::run() {
       }
     } catch (const std::exception &ex) {
       std::cout << ex.what() << std::endl;
+      is_robot_operational = false;
     }
 
     // Automatic recovery
-    std::cout << "Performing automatic error recovery in " << RECOVERY_WAIT_SECS
-              << " second(s)..." << std::endl;
     for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
+      // Wait
+      if (i == 0) {
+        std::cout << "Performing automatic error recovery in "
+                  << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
+      } else {
+        std::cout << "Retrying automatic error recovery in "
+                  << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
+      }
+      usleep(1000000 * RECOVERY_WAIT_SECS);
+
+      // Attempt recovery
       try {
-        usleep(1000000 * RECOVERY_WAIT_SECS);
         std::cout << "Performing automatic error recovery..." << std::endl;
         robot_ptr_->automaticErrorRecovery();
         std::cout << "Robot operation recovered." << std::endl;
+        is_robot_operational = true;
         break;
 
       } catch (const std::exception &ex) {
         std::cout << ex.what() << std::endl;
         std::cout << "Recovery failed. " << std::endl;
-        if (i < RECOVERY_MAX_TRIES - 1) {
-          std::cout << "Retrying automatic error recovery in "
-                    << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
-        }
       }
     }
   }
