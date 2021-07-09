@@ -104,10 +104,12 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
 
   // Set collision behavior
   robot_ptr_->setCollisionBehavior(
-      config["collision_behavior"]["lower_torque"].as<double>(),
-      config["collision_behavior"]["upper_torque"].as<double>(),
-      config["collision_behavior"]["lower_force"].as<double>(),
-      config["collision_behavior"]["upper_force"].as<double>());
+      config["collision_behavior"]["lower_torque"]
+          .as<std::array<double, NUM_DOFS>>(),
+      config["collision_behavior"]["upper_torque"]
+          .as<std::array<double, NUM_DOFS>>(),
+      config["collision_behavior"]["lower_force"].as<std::array<double, 6>>(),
+      config["collision_behavior"]["upper_force"].as<std::array<double, 6>>());
 }
 
 void FrankaTorqueControlClient::run() {
