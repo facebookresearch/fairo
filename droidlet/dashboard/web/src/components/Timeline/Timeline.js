@@ -75,6 +75,7 @@ class DashboardTimeline extends React.Component {
       start: currentTime.setSeconds(currentTime.getSeconds() - 5),
       end: currentTime.setSeconds(currentTime.getSeconds() + 10),
     });
+    // store this keyword to access it inside the event handler
     const that = this;
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
@@ -85,8 +86,20 @@ class DashboardTimeline extends React.Component {
   }
 
   handleClick(item) {
+    const eventObj = JSON.parse(item.title);
+    let prettyPrint = "";
+    for (let key in eventObj) {
+      if (eventObj.hasOwnProperty(key)) {
+        // stringify JSON object for logical form
+        if (key === "logical_form") {
+          prettyPrint += key + ": " + JSON.stringify(eventObj[key]) + "\n";
+        } else {
+          prettyPrint += key + ": " + eventObj[key] + "\n";
+        }
+      }
+    }
     this.setState({
-      itemText: item.title,
+      itemText: prettyPrint,
     });
   }
 
