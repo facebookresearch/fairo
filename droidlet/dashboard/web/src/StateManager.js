@@ -444,13 +444,14 @@ class StateManager {
   }
 
   labelPropagationReturn(res) {
-    console.log('label prop return with image', res, res[0].type)
-    let rgb = new Image();
-    rgb.src = "data:image/webp;base64," + this.curFeedState.rgbImg;
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
+        console.log('label prop return with image', res, ref.state.objects)
         for (let i = 0; i < res.length; i++) {
-          if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i])) === -1) {
+          // For some reason, labelPropagationReturn is run twice even though it's sent only once on the backend, 
+          // and the first time the masks have white edges whereas the second time they have white edges. 
+          // Can replace any existing matches with new objects to resolve, but should figure out why it's sending twice
+          if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i].mask)) === -1) {
             ref.addObjects(res[i])
           }
         }
