@@ -26,7 +26,6 @@ from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.perception.craftassist import heuristic_perception
 
@@ -331,8 +330,8 @@ class FakeAgent(LocoMCAgent):
             'block_data': craftassist_specs.get_block_data(),
             'special_shape_functions': SPECIAL_SHAPE_FNS,
             'color_bid_map': COLOR_BID_MAP,
-            'astar_search': astar,
-            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes
+        }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,

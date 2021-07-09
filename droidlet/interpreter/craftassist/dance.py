@@ -8,6 +8,8 @@ import droidlet.base_util
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
 from droidlet.shared_data_structs import ErrorWithResponse
+from droidlet.base_util import astar
+
 
 # FIXME! actual jump on client
 jump = [{"translate": (0, 1, 0)}, {"translate": (0, -1, 0)}]
@@ -146,7 +148,7 @@ class RefObjMovement(Movement):
         # is possible now, and error otherwise
 
         for i in range(len(self.path) - 1):
-            path = search.astar(agent, self.path[i + 1], approx=2, pos=self.path[i])
+            path = astar(agent, self.path[i + 1], approx=2, pos=self.path[i])
             if path is None:
                 raise ErrorWithResponse("I cannot find an appropriate path.")
 

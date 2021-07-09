@@ -7,7 +7,6 @@ import numpy as np
 import time
 
 from random import randint
-
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     PASSABLE_BLOCKS,
     BUILD_BLOCK_REPLACE_MAP,
@@ -15,7 +14,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     BUILD_INTERCHANGEABLE_PAIRS,
 )
 from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID, to_block_pos
-from droidlet.perception.craftassist import search
+from droidlet.base_util import astar
 from droidlet.perception.craftassist.heuristic_perception import ground_height
 from droidlet.lowlevel.minecraft.mc_util import manhat_dist, strip_idmeta
 
@@ -232,7 +231,7 @@ class Move(BaseMovementTask):
 
         # get path
         if self.path is None or tuple(agent.pos) != self.path[-1]:
-            self.path = search.astar(agent, self.target, self.approx)
+            self.path = astar(agent, self.target, self.approx)
             if self.path is None:
                 self.handle_no_path(agent)
                 return
@@ -569,7 +568,7 @@ class Build(Task):
     def get_next_destroy_target(self, agent, xyzs):
         p = agent.pos
         for i, c in enumerate(sorted(xyzs, key=lambda c: manhat_dist(p, c))):
-            path = search.astar(agent, c, approx=2)
+            path = astar(agent, c, approx=2)
             if path is not None:
                 if i > 0:
                     logging.debug("Destroy get_next_destroy_target wasted {} astars".format(i))

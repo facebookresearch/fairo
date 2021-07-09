@@ -42,7 +42,6 @@ from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJ
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
     SubcomponentClassifierWrapper,
 )
-from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.lowlevel.minecraft import shape_helpers
@@ -213,7 +212,6 @@ class CraftAssistAgent(LocoMCAgent):
             'block_data': craftassist_specs.get_block_data(),
             'special_shape_functions': SPECIAL_SHAPE_FNS,
             'color_bid_map': COLOR_BID_MAP,
-            'astar_search': astar,
             'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
         self.dialogue_manager = DialogueManager(
             memory=self.memory,

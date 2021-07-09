@@ -21,8 +21,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     PASSABLE_BLOCKS,
     COLOR_BID_MAP,
 )
-from droidlet.base_util import to_block_pos
-from droidlet.perception.craftassist.search import depth_first_search
+from droidlet.base_util import depth_first_search, to_block_pos
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]

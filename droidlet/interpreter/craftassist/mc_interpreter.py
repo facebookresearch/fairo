@@ -63,7 +63,6 @@ class MCInterpreter(Interpreter):
         self.special_shape_functions = low_level_data["special_shape_functions"]
         self.color_bid_map = low_level_data["color_bid_map"]
         # These come from agent's perception
-        self.astar_search = low_level_data["astar_search"]
         self.get_all_holes_fn = low_level_data["get_all_holes_fn"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
@@ -465,7 +464,7 @@ class MCInterpreter(Interpreter):
                         refmove = dance.RefObjMovement(
                             agent,
                             ref_object=ref_obj,
-                            relative_direction=location_d["relative_direction"],
+                            relative_direction=location_d["relative_direction"]
                         )
                         t = self.task_objects["dance"](agent, {"movement": refmove})
                         tasks_to_do.append(t)
