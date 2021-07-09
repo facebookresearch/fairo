@@ -20,6 +20,7 @@
 
 #define NUM_DOFS 7
 #define FRANKA_HZ 1000.0
+#define RECOVERY_WAIT_SECS 1
 
 class FrankaTorqueControlClient {
 private:

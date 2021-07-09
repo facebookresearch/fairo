@@ -141,9 +141,11 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              TorqueCommand *torque_command) {
   // Check if last update is stale
   if (!validRobotContext()) {
-    std::cerr << "Interrupted control update greater than threshold of "
-              << threshold_ns_ << " ns.\n";
-    return Status::CANCELLED;
+    std::cout
+        << "Warning: Interrupted control update greater than threshold of "
+        << threshold_ns_ << " ns. Reverting to default controller...";
+    custom_controller_context_.status = TERMINATING;
+    robot_client_context_.default_controller.get_method("reset")(empty_input_);
   }
 
   // First step of episode: update episode marker
