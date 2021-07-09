@@ -24,7 +24,7 @@ folder_name_D = '{}/D/'.format(default_write_dir)
 
 # If the tool specific write directories do not exist, create them
 if not os.path.isdir(folder_name_A):
-    os.mkdir(folder_name_B)
+    os.mkdir(folder_name_A)
 
 if not os.path.isdir(folder_name_B):
     os.mkdir(folder_name_B)
@@ -33,7 +33,7 @@ if not os.path.isdir(folder_name_C):
     os.mkdir(folder_name_C)
 
 if not os.path.isdir(folder_name_D):
-    os.mkdir(folder_name_C)
+    os.mkdir(folder_name_D)
 
 # CSV input
 rc = subprocess.call(
