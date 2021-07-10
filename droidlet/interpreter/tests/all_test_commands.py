@@ -998,7 +998,7 @@ STOP_CONDITION_COMMANDS = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
     "dig a hole 2 times": {
-        "action_sequence" : [
+        "action_sequence": [
             {
                 "action_type": "DIG",
                 "remove_condition": {
@@ -1006,14 +1006,17 @@ STOP_CONDITION_COMMANDS = {
                     "condition": {
                         "comparison_type": "EQUAL",
                         "input_left": {
-                            "value_extractor" : {
+                            "value_extractor": {
                                 "filters": {
                                     "output": {"attribute": "RUN_COUNT"},
-                                    "special": {"fixed_value": "THIS"}}
+                                    "special": {"fixed_value": "THIS"},
+                                }
+                            }
                         },
-                        "input_right": {"value_extractor": "2"}
-                    }
-                }}}
+                        "input_right": {"value_extractor": "2"},
+                    },
+                },
+            }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
     },
@@ -1084,4 +1087,3 @@ OTHER_COMMANDS = {
     },
     "undo": {"dialogue_type": "HUMAN_GIVE_COMMAND", "action_sequence": [{"action_type": "UNDO"}]},
 }
-
