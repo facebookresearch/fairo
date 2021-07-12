@@ -50,6 +50,7 @@ class ObjectAnnotation extends React.Component {
     this.nameMap = {};
     this.pointMap = {};
     this.propertyMap = {};
+    this.originTypeMap = {};
     for (let i = 0; i < objects.length; i++) {
       let curObject = objects[i];
       this.nameMap[i] = curObject.label;
@@ -296,7 +297,6 @@ class ObjectAnnotation extends React.Component {
       nameMap: this.nameMap,
       propertyMap: this.propertyMap,
       pointMap: this.pointMap,
-      originTypeMap: this.originTypeMap, 
     };
     this.props.stateManager.socket.emit("saveObjectAnnotation", postData);
     this.props.stateManager.logInteractiondata("object annotation", postData);

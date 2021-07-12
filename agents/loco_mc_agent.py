@@ -19,7 +19,7 @@ from droidlet.event import sio, dispatch
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 from droidlet.memory.memory_nodes import ProgramNode
-from locobot.agent.label_propagation.label_propagation import propogate_label
+from droidlet.perception.robot import LabelPropagate
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -118,77 +118,77 @@ class LocoMCAgent(BaseAgent):
         @sio.on("label_propagation")
         def label_propagation(sid, postData): 
                         
+            path = "examples_and_tutorials/notebooks/active_vision/"
+
             # Decode rgb map
-            height = 512 # should probably pass in height/width as props
-            width = 512
-            rgb_imgs = []
-            for rgb_encoded in [postData["prevRgbImg"], postData["rgbImg"]]:
-                rgb_bytes = base64.b64decode(rgb_encoded)
-                rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
-                rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
-                rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
-                rgb_imgs.append(rgb)
-            rgb_imgs = np.array(rgb_imgs)
+            rgb_bytes = base64.b64decode(postData["prevRgbImg"])
+            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
+            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
+            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
+            src_img = np.array(rgb)
+            np.save(path + "src_img.npy", src_img)
+            height, width, _ = src_img.shape
 
             # Convert depth map to meters
             depth_imgs = []
-            for depth in [postData["prevDepth"], postData["depth"]]: 
+            for i, depth in enumerate([postData["prevDepth"], postData["depth"]]): 
                 depth_encoded = depth["depthImg"]
                 depth_bytes = base64.b64decode(depth_encoded)
                 depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
                 depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
-                depth_org = (255 - np.copy(depth_decoded)) * float(depth["depthMax"])
-                depth_imgs.append(depth_org)
-            depth_imgs = np.array(depth_imgs)
+                if i == 0: 
+                    np.save(path + "src_depth.npy", depth_decoded)
+                else: 
+                    np.save(path + "cur_depth.npy", depth_decoded)
+                depth_unscaled = (255 - np.copy(depth_decoded))
+                depth_scaled = depth_unscaled / 255 * (float(depth["depthMax"]) - float(depth["depthMin"]))
+                depth_imgs.append(depth_scaled[:,:,0])
+            src_depth = np.array(depth_imgs[0])
+            cur_depth = np.array(depth_imgs[1])
 
             # Convert mask points to mask maps then combine them
-            label_maps = []
-            for n, object_set in enumerate([postData["prevObjects"], postData["objects"]]): 
-                mask_map = []
-                for o in object_set: 
-                    poly = Polygons(o["mask"])
-                    bitmap = poly.mask(height, width)
-                    mask_map.append(bitmap.array)            
-                label_maps.append(np.zeros((height, width)).astype(int))
-                for m, mask in enumerate(mask_map): 
-                    # TODO probably a cleaner way to do this with numpy arrays
-                    for i in range(height): 
-                        for j in range(width): 
-                            if mask[i][j]: 
-                                label_maps[n][i][j] = m
-            label_maps = np.array(label_maps)
+            src_label = np.zeros((height, width)).astype(int)
+            for n, o in enumerate(postData["prevObjects"]): 
+                poly = Polygons(o["mask"])
+                bitmap = poly.mask(height, width)
+                # TODO probably a cleaner way to do this with numpy arrays
+                for i in range(height): 
+                    for j in range(width): 
+                        if bitmap[i][j]: 
+                            src_label[i][j] = n + 1
+            np.save(path + "src_label.npy", src_label)
 
             # Attach base pose data
-            base_pose_data = []
-            for pose_data in [postData["prevBasePose"], postData["basePose"]]: 
-                base_pose_data.append([pose_data["x"], pose_data["y"], pose_data["yaw"]])
-            base_pose_data = np.array(base_pose_data)
-
-            # np.save("rgb0.npy", rgb_imgs[0])
-            # np.save("rgb1.npy", rgb_imgs[1])
-            # np.save("depth0.npy", depth_imgs[0])
-            # np.save("depth1.npy", depth_imgs[1])
-            # np.save("label_maps.npy", label_maps)
-            # np.save("base_pose.npy", base_pose_data)
-            res_labels = propogate_label(rgb_imgs, depth_imgs, label_maps, base_pose_data, 1, 1)
+            pose = postData["prevBasePose"]
+            src_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
+            pose = postData["basePose"]
+            cur_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
+            np.save(path + "src_pose.npy", src_pose)
+            np.save(path + "cur_pose.npy", cur_pose)
+            
+            LP = LabelPropagate()
+            res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
             print("res_labels", res_labels)
+            np.save(path + "res_labels.npy", res_labels)
 
             # DEBUGGING RETURN
-            for i in range(len(postData["prevObjects"])): 
-                postData["prevObjects"][i]["type"] = "label_propagation"
-            sio.emit("labelPropagationReturn", postData["prevObjects"])
+            # for i in range(len(postData["prevObjects"])): 
+            #     postData["prevObjects"][i]["type"] = "label_propagation"
+            # sio.emit("labelPropagationReturn", postData["prevObjects"])
 
             # Convert mask maps to mask points
-            objects = postData["objects"]
-            for i in res_labels.keys(): 
-                mask_points_nd = Mask(res_labels).polygons().points
+            objects = postData["prevObjects"]
+            for i in np.unique(res_labels): 
+                if i == 0: 
+                    pass
+                mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
                 mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
-                objects[i]["mask"] = mask_points
-                objects[i]["type"] = "label_propagation"
-            print("new objects", objects)
+                objects[int(i)-1]["mask"] = mask_points
+                objects[int(i)-1]["type"] = "label_propagation"
+            np.save(path + "objects.npy", objects)
 
             # Returns an array of objects with updated masks
-            # sio.emit("labelPropagationReturn", objects)
+            sio.emit("labelPropagationReturn", objects)
 
         @sio.on("sendCommandToAgent")
         def send_text_command_to_agent(sid, command):

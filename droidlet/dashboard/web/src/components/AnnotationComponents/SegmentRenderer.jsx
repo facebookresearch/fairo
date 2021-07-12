@@ -102,9 +102,6 @@ class SegmentRenderer extends React.Component {
           x: pt.x * this.canvas.width,
           y: pt.y * this.canvas.height,
         }));
-        // for (let j in points) {
-        //   this.drawLine(points[j], points[(j + 1) % points.length], lineColor)
-        // }
         let region = this.drawRegionsAndLines(points, regionColor, lineColor);
         this.regions[curId].push(region);
       }

@@ -394,26 +394,28 @@ class StateManager {
   }
   
   onObjectAnnotationSave(res) {
-    let { nameMap, pointMap, propertyMap, originTypeMap } = res;
-    this.curFeedState.objects = []
+    let { nameMap, pointMap, propertyMap } = res;
+    let newObjects = []
     let scale = 500  // hardcoded from somewhere else
+    console.log(res, this.curFeedState.objects)
     for (let id in nameMap) {
-      let oldObj = id < this.curFeedState.orgObjects.length;
-      let newId = oldObj ? this.curFeedState.orgObjects[id].id : null;
-      let newBbox = oldObj ? this.curFeedState.orgObjects[id].bbox : null;
-      let newXyz = oldObj ? this.curFeedState.orgObjects[id].xyz : null;
+      let oldObj = id < this.curFeedState.length;
+      let newId = oldObj ? this.curFeedState[id].id : null;
+      let newBbox = oldObj ? this.curFeedState[id].bbox : null;
+      let newXyz = oldObj ? this.curFeedState[id].xyz : null;
       let newMask = pointMap[id].map(mask => mask.map(pt => [pt.x * scale, pt.y * scale]))
 
-      this.curFeedState.objects.push({
+      newObjects.push({
         label: nameMap[id], 
         mask: newMask, 
         properties: propertyMap[id].join("\n "),
-        type: originTypeMap[id] || "detector", 
+        type: "propagate", 
         id: newId, 
         bbox: newBbox, 
         xyz: newXyz, 
       })
     }
+    this.curFeedState.objects = newObjects
 
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
@@ -426,11 +428,9 @@ class StateManager {
 
   startLabelPropagation() {
     let props = {
-      rgbImg: this.curFeedState.rgbImg, 
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
       prevDepth: this.prevFeedState.depth, 
-      objects: this.curFeedState.objects, 
       prevObjects: this.prevFeedState.objects, 
       basePose: this.curFeedState.pose,
       prevBasePose: this.prevFeedState.pose,
@@ -453,6 +453,8 @@ class StateManager {
           // Can replace any existing matches with new objects to resolve, but should figure out why it's sending twice
           if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i].mask)) === -1) {
             ref.addObjects(res[i])
+            this.curFeedState.objects.push(res[i])
+            console.log(this.curFeedState.objects.length)
           }
         }
       }
@@ -525,6 +527,7 @@ class StateManager {
       this.curFeedState.depth = {
         depthImg: res.depthImg,
         depthMax: res.depthMax,
+        depthMin: res.depthMin
       }
       this.stateProcessed.depth = false
     }
@@ -551,11 +554,18 @@ class StateManager {
     this.refs.forEach((ref) => {
       this.curFeedState.objects = res.objects;
       if (ref instanceof LiveObjects) {
-        // Don't add duplicate objects
-        for (let i = 0; i < res.objects.length; i++) {
-          if (!ref.state.objects || JSON.stringify(this.curFeedState.orgObjects).indexOf(JSON.stringify(res.objects[i])) === -1) {
-          // if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
-            ref.addObjects(res.objects[i])
+        // If new frame, replace objects
+        if (this.stateProcessed.objects) {
+          ref.setState({
+            objects: res.objects,
+          })
+        } else {
+          // Don't add duplicate objects
+          for (let i = 0; i < res.objects.length; i++) {
+            // if (!ref.state.objects || JSON.stringify(this.curFeedState.orgObjects).indexOf(JSON.stringify(res.objects[i])) === -1) {
+            if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
+              ref.addObjects(res.objects[i])
+            }
           }
         }
         ref.setState({
@@ -570,7 +580,8 @@ class StateManager {
     });
     if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
       this.prevFeedState.objects = this.curFeedState.objects
-      this.curFeedState.objects = res.objects
+      console.log(this.curFeedState.objects, res.objects, this.curFeedState.objects.concat(res.objects))
+      this.curFeedState.objects = this.curFeedState.objects.concat(res.objects)
       this.curFeedState.orgObjects = res.objects
       this.stateProcessed.objects = false
     }
