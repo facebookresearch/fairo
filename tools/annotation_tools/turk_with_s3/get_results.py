@@ -28,6 +28,7 @@ def get_hit_list_status(mturk):
     for hit_id in hit_ids:
         # Get HIT status
         status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
+        print(status)
         if status == "Assignable":
             hit_status["assignable"].append(hit_id)
         elif status == "Reviewable":
@@ -42,25 +43,28 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
         res = pd.read_csv(output_csv)
     else:
         res = pd.DataFrame()
-    NUM_TRIES_REMAINING = 5
+    NUM_TRIES_REMAINING = 10
     curr_hit_status = get_hit_list_status(mturk)
 
-    while curr_hit_status["assignable"] or curr_hit_status["reviewable"]:
-        if NUM_TRIES_REMAINING == 0:
-            break
-        print("*** Fetching results ***".format(NUM_TRIES_REMAINING))
+    if curr_hit_status["assignable"] or curr_hit_status["reviewable"]:
         # get reviewable hits, ie hits that have been completed
         # hits = [x['HITId'] for x in mturk.list_reviewable_hits()['HITs']]
         # If there are no reviewable HITs currently, wait 2 mins in between tries.
-        if len(curr_hit_status["reviewable"]) == 0:
+        while len(curr_hit_status["reviewable"]) == 0:
+            print("*** Fetching results, try number: {}***".format(NUM_TRIES_REMAINING))
             NUM_TRIES_REMAINING -= 1
-            time.sleep(30)
+            time.sleep(100)
             curr_hit_status = get_hit_list_status(mturk)
-            continue
+            print(curr_hit_status)
+            if NUM_TRIES_REMAINING == 0:
+                break
 
         # If there are no assignable or reviewable HITs, the job is done!
         if len(curr_hit_status["reviewable"]) == 0 and len(curr_hit_status["assignable"]) == 0:
-            print("*** No HITs pending or awaiting review. Exiting.")
+            print("*** No HITs pending or awaiting review. Exiting. ***")
+            sys.exit()
+        elif len(curr_hit_status["reviewable"]) == 0:
+            print("*** No HITs completed after all retries. Exiting. ***")
             sys.exit()
 
         # Parse responses from each reviewable HIT
@@ -102,6 +106,7 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
                 print("No results ready yet")
                 # if returned assignment is empty,reject
                 mturk.delete_hit(HITId=hit_id)
+
         curr_hit_status = get_hit_list_status(mturk)
         print(curr_hit_status)
 

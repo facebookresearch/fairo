@@ -76,7 +76,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     continue
                 if headers[i] == "highlight_words":
                     format_row = row[i].replace("-", ",")
-                    json_str = json.dumps(format_row)
+                    # json_str = json.dumps(format_row)
                     value = quote(format_row)
                 else:
                     value = row[i].replace(" ", "%20")
@@ -84,8 +84,10 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                 # Save param info to job specs
                 job_spec["Input.{}".format(headers[i])] = row[i]
             curr_question = question.format(query_params)
-
+            print("*"*50)
+            print("External question:")
             print(curr_question)
+            print("*"*50)
             if use_sandbox:
                 new_hit = mturk.create_hit(
                     Title="CraftAssist Instruction Annotations",
@@ -121,7 +123,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                         },
                     ]
                 )
-            print("A new HIT has been created. You can preview it here:")
+            print("Created a HIT:")
             if use_sandbox:
                 print(
                     "https://workersandbox.mturk.com/mturk/preview?groupId="
@@ -132,7 +134,9 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     "https://worker.mturk.com/mturk/preview?groupId="
                     + new_hit["HIT"]["HITGroupId"]
                 )
+            print("*"*50)
             print("HITID = " + new_hit["HIT"]["HITId"] + " (Use to Get Results)")
+            print("*"*50)
             job_spec["HITId"] = new_hit["HIT"]["HITId"]
 
             turk_jobs_df = turk_jobs_df.append(job_spec, ignore_index=True)
