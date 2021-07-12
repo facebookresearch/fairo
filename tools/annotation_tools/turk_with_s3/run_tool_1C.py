@@ -41,9 +41,10 @@ if rc != 0:
     print("Error creating HIT jobs. Exiting.")
     sys.exit()
 # Wait for results to be ready
-print("Turk jobs created at : %s \n Waiting for results..." % time.ctime())
+print("Turk jobs created for tool C at : %s \n Waiting for results..." % time.ctime())
+print("*"*50)
 
-time.sleep(100)
+time.sleep(200)
 # Check if results are ready
 rc = subprocess.call(
     [
@@ -56,6 +57,7 @@ if rc != 0:
     sys.exit()
 
 # Collate datasets
+print("*"*50)
 print("*** Collating turk outputs and input job specs ***")
 rc = subprocess.call(["python3 collate_answers.py --turk_output_csv C/turk_output.csv --job_spec_csv C/turk_job_specs.csv --collate_output_csv C/processed_outputs.csv"], shell=True)
 if rc != 0:
@@ -64,6 +66,7 @@ if rc != 0:
 
 
 # Postprocess
+print("*"*50)
 print("*** Postprocessing results ***")
 rc = subprocess.call(["python3 parse_tool_C_outputs.py"], shell=True)
 if rc != 0:
@@ -71,8 +74,10 @@ if rc != 0:
     sys.exit()
 
 # Create inputs for other tools
+print("*"*50)
 print("*** Postprocessing results ***")
 rc = subprocess.call(["python3 generate_input_for_tool_D.py"], shell=True)
 if rc != 0:
     print("Error generating input for other tools. Exiting.")
     sys.exit()
+print("*"*50)
