@@ -45,7 +45,7 @@ from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import
 from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
-from droidlet.lowlevel.minecraft import shape_helpers as sh
+from droidlet.lowlevel.minecraft import shape_helpers
 from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.event import sio
@@ -89,10 +89,10 @@ class CraftAssistAgent(LocoMCAgent):
         self.init_event_handlers()
 
         shape_helper_dict = {
-            "shape_names": sh.SHAPE_NAMES,
-            "shape_helper": sh.SHAPE_HELPERS,
-            "bid": sh.bid(),
-            "shape_fns": sh.SHAPE_FNS
+            "shape_names": shape_helpers.SHAPE_NAMES,
+            "shape_helper": shape_helpers.SHAPE_HELPERS,
+            "bid": shape_helpers.bid(),
+            "shape_fns": shape_helpers.SHAPE_FNS
         }
         # list of (prob, default function) pairs
         self.visible_defaults = [
