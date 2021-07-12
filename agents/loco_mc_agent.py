@@ -7,7 +7,6 @@ import re
 import time
 import numpy as np
 import datetime
-import json
 import os
 
 from agents.core import BaseAgent
@@ -15,7 +14,7 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio, dispatch
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
-from droidlet.memory.memory_nodes import ProgramNode
+
 random.seed(0)
 
 DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
@@ -369,7 +368,14 @@ class LocoMCAgent(BaseAgent):
         fn = np.random.choice(fns, p=p)
         if fn != noop:
             logging.debug("Default behavior: {}".format(fn))
-        fn(self)
+
+        if type(fn) == tuple:
+            # this function has arguments
+            f, args = fn
+            f(self, args)
+        else:
+            # run defualt
+            fn(self)
 
     def maybe_dump_memory_to_dashboard(self):
         if time.time() - self.dashboard_memory_dump_time > MEMORY_DUMP_KEYFRAME_TIME:

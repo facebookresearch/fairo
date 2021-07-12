@@ -655,7 +655,19 @@ DIG_COMMANDS = {
                 "action_type": "DIG",
             }
         ],
-    }
+    },
+    "dig a 3 x 3 hole": {
+        'dialogue_type': 'HUMAN_GIVE_COMMAND',
+        'action_sequence': [
+            {
+                'schematic': {
+                    'filters': {
+                        'triples': [
+                            {'pred_text': 'has_name', 'obj_text': 'hole'},
+                            {'pred_text': 'has_length', 'obj_text': '3'},
+                            {'pred_text': 'has_width', 'obj_text': '3'}]
+                    }},
+                'action_type': 'DIG'}]}
 }
 
 

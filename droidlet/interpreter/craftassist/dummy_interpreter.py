@@ -5,7 +5,6 @@ from typing import Tuple, Dict, Any, Optional
 
 from droidlet.dialog.dialogue_objects import DialogueObject
 from ..interpreter import ReferenceObjectInterpreter, FilterInterpreter, interpret_reference_object
-
 from ..condition_helper import ConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 

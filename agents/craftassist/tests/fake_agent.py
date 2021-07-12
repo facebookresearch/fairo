@@ -26,6 +26,10 @@ from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
+from droidlet.perception.craftassist.search import astar
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
+from droidlet.perception.craftassist import heuristic_perception
+
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
 
@@ -265,8 +269,7 @@ class FakeAgent(LocoMCAgent):
         self.pos = np.array(pos, dtype="int")
         self.logical_form = None
         self.world_interaction_occurred = False
-        self.opts.block_data = craftassist_specs.get_block_data()
-        self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
+        self.world_interaction_occurred = False
         self._held_item: IDM = (0, 0)
         self._look_vec = (1, 0, 0)
         self._changed_blocks: List[Block] = []
@@ -324,11 +327,18 @@ class FakeAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
+        low_level_interpreter_data = {
+            'block_data': craftassist_specs.get_block_data(),
+            'special_shape_functions': SPECIAL_SHAPE_FNS,
+            'color_bid_map': COLOR_BID_MAP,
+            'astar_search': astar,
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
+            low_level_interpreter_data=low_level_interpreter_data
         )
 
     def set_logical_form(self, lf, chatstr, speaker):

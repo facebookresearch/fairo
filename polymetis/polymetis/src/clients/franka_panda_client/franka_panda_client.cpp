@@ -80,7 +80,7 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   joint_pos_llimits_ =
       config["limits"]["joint_pos_lower"].as<std::array<double, NUM_DOFS>>();
   joint_vel_limits_ =
-      config["limits"]["joint_velocities"].as<std::array<double, NUM_DOFS>>();
+      config["limits"]["joint_vel"].as<std::array<double, NUM_DOFS>>();
   elbow_vel_limit_ = config["limits"]["elbow_vel"].as<double>();
   joint_torques_limits_ =
       config["limits"]["joint_torques"].as<std::array<double, NUM_DOFS>>();
@@ -91,16 +91,25 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   margin_cartesian_pos_ =
       config["safety_controller"]["margins"]["cartesian_pos"].as<double>();
   margin_joint_pos_ =
-      config["safety_controller"]["margins"]["joint_positions"].as<double>();
+      config["safety_controller"]["margins"]["joint_pos"].as<double>();
   margin_joint_vel_ =
-      config["safety_controller"]["margins"]["joint_velocities"].as<double>();
+      config["safety_controller"]["margins"]["joint_vel"].as<double>();
 
   k_cartesian_pos_ =
       config["safety_controller"]["stiffness"]["cartesian_pos"].as<double>();
   k_joint_pos_ =
-      config["safety_controller"]["stiffness"]["joint_positions"].as<double>();
+      config["safety_controller"]["stiffness"]["joint_pos"].as<double>();
   k_joint_vel_ =
-      config["safety_controller"]["stiffness"]["joint_velocities"].as<double>();
+      config["safety_controller"]["stiffness"]["joint_vel"].as<double>();
+
+  // Set collision behavior
+  robot_ptr_->setCollisionBehavior(
+      config["collision_behavior"]["lower_torque"]
+          .as<std::array<double, NUM_DOFS>>(),
+      config["collision_behavior"]["upper_torque"]
+          .as<std::array<double, NUM_DOFS>>(),
+      config["collision_behavior"]["lower_force"].as<std::array<double, 6>>(),
+      config["collision_behavior"]["upper_force"].as<std::array<double, 6>>());
 }
 
 void FrankaTorqueControlClient::run() {

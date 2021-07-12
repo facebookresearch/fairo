@@ -14,7 +14,6 @@ from droidlet.lowlevel.minecraft.mc_util import (
     manhat_dist,
     get_locs_from_entity,
     euclid_dist,
-    to_block_pos,
     fill_idmeta,
 )
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
@@ -22,6 +21,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     PASSABLE_BLOCKS,
     COLOR_BID_MAP,
 )
+from droidlet.base_util import to_block_pos
 from droidlet.perception.craftassist.search import depth_first_search
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
