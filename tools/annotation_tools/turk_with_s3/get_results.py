@@ -7,7 +7,7 @@ import time
 
 access_key = os.getenv("AWS_ACCESS_KEY_ID")
 secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-MTURK_SANDBOX = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
+MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
 mturk = boto3.client(
     "mturk",
     aws_access_key_id=access_key,
@@ -48,7 +48,10 @@ def get_hit_list_status(mturk):
 # This will contain the answers
 # delete_hits(mturk)
 # print("deleted all HITs")
-res = pd.DataFrame()
+if os.path.exists("turk_output.csv"):
+    res = pd.read_csv("turk_output.csv")
+else:
+    res = pd.DataFrame()
 NUM_TRIES_REMAINING = 5
 curr_hit_status = get_hit_list_status(mturk)
 
@@ -61,13 +64,13 @@ while curr_hit_status["assignable"] or curr_hit_status["reviewable"]:
     # If there are no reviewable HITs currently, wait 2 mins in between tries.
     if len(curr_hit_status["reviewable"]) == 0:
         NUM_TRIES_REMAINING -= 1
-        time.sleep(2 * 60)
+        time.sleep(30)
         curr_hit_status = get_hit_list_status(mturk)
         continue
 
     # If there are no assignable or reviewable HITs, the job is done!
     if len(curr_hit_status["reviewable"]) == 0 and len(curr_hit_status["assignable"]) == 0:
-        print("*** No more HITs pending or awaiting review. Exiting.")
+        print("*** No HITs pending or awaiting review. Exiting.")
         sys.exit()
 
     # Parse responses from each reviewable HIT
@@ -92,6 +95,7 @@ while curr_hit_status["assignable"] or curr_hit_status["reviewable"]:
                         new_row["Answer.{}".format(input_field)] = answer
 
                     res = res.append(new_row, ignore_index=True)
+                    res.to_csv("turk_output.csv", index=False)
                 else:
                     # One field found in HIT layout
                     answer = xml_doc["QuestionFormAnswers"]["Answer"]["FreeText"]
@@ -100,12 +104,13 @@ while curr_hit_status["assignable"] or curr_hit_status["reviewable"]:
                     print("Submitted answer: " + answer)
                     new_row["Answer.{}".format(input_field)] = answer
                     res = res.append(new_row, ignore_index=True)
+                    res.to_csv("turk_output.csv", index=False)
 
                 mturk.approve_assignment(AssignmentId=assignment["AssignmentId"])
                 mturk.delete_hit(HITId=hit_id)
         else:
             print("No results ready yet")
+            # if returned assignment is empty,reject
+            mturk.delete_hit(HITId=hit_id)
     curr_hit_status = get_hit_list_status(mturk)
     print(curr_hit_status)
-
-res.to_csv("turk_output.csv", index=False)

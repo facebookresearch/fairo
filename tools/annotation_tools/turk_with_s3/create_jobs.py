@@ -8,7 +8,7 @@ import ast
 from urllib.parse import quote
 from datetime import datetime
 
-MTURK_SANDBOX = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
+MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
 access_key = os.getenv("AWS_ACCESS_KEY_ID")
 secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 mturk = boto3.client(
@@ -24,25 +24,25 @@ print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my San
 def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
     # Delete HITs
     # For use in dev only
-    for item in mturk.list_hits()["HITs"]:
-        hit_id = item["HITId"]
-        print("HITId:", hit_id)
+    # for item in mturk.list_hits()["HITs"]:
+    #     hit_id = item["HITId"]
+    #     print("HITId:", hit_id)
 
-        # Get HIT status
-        status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
-        print("HITStatus:", status)
+    #     # Get HIT status
+    #     status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
+    #     print("HITStatus:", status)
 
-        # If HIT is active then set it to expire immediately
-        if status == "Assignable" or status == "Reviewable":
-            response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
+    #     # If HIT is active then set it to expire immediately
+    #     # if status == "Assignable" or status == "Reviewable":
+    #     #     response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
 
-        # Delete the HIT
-        try:
-            mturk.delete_hit(HITId=hit_id)
-        except:
-            print("Not deleted")
-        else:
-            print("Deleted")
+    #     # Delete the HIT
+    #     try:
+    #         mturk.delete_hit(HITId=hit_id)
+    #     except:
+    #         print("Not deleted")
+    #     else:
+    #         print("Deleted")
 
     # XML file containing ExternalQuestion object.
     # See MTurk API docs for constraints.
@@ -50,7 +50,12 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
         question = fd.read()
 
     # Where we will save the turk job parameters
-    turk_jobs_df = pd.DataFrame()
+    # if there are existing jobs data, we will load those
+    if os.path.exists("turk_job_specs.csv"):
+        turk_jobs_df = pd.read_csv("turk_job_specs.csv")
+    else:
+        turk_jobs_df = pd.DataFrame()
+        
     # TODO: make this command line arg
     with open(input_csv, newline="") as csvfile:
         turk_inputs = csv.reader(csvfile, delimiter=",")
@@ -79,7 +84,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
                 Title="CraftAssist Instruction Annotations",
                 Description="Given a sentence, provide information about its intent and highlight key words",
                 Keywords="text, categorization, quick",
-                Reward="1.0",
+                Reward="0.3",
                 MaxAssignments=1,
                 LifetimeInSeconds=600,
                 AssignmentDurationInSeconds=600,
