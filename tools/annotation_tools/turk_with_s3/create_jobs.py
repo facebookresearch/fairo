@@ -21,7 +21,7 @@ mturk = boto3.client(
 print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
 
 
-def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
+def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str):
     # Delete HITs
     # For use in dev only
     # for item in mturk.list_hits()["HITs"]:
@@ -51,11 +51,11 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
 
     # Where we will save the turk job parameters
     # if there are existing jobs data, we will load those
-    if os.path.exists("turk_job_specs.csv"):
-        turk_jobs_df = pd.read_csv("turk_job_specs.csv")
+    if os.path.exists(job_spec_csv):
+        turk_jobs_df = pd.read_csv(job_spec_csv)
     else:
         turk_jobs_df = pd.DataFrame()
-        
+
     # TODO: make this command line arg
     with open(input_csv, newline="") as csvfile:
         turk_inputs = csv.reader(csvfile, delimiter=",")
@@ -101,7 +101,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
 
             turk_jobs_df = turk_jobs_df.append(job_spec, ignore_index=True)
 
-    turk_jobs_df.to_csv("turk_job_specs.csv", index=False)
+    turk_jobs_df.to_csv(job_spec_csv, index=False)
 
     # Remember to modify the URL above when publishing
     # HITs to the live marketplace.
@@ -113,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument("--xml_file", type=str, required=True)
     parser.add_argument("--tool_num", type=int, required=True)
     parser.add_argument("--input_csv", type=str, required=True)
+    parser.add_argument("--job_spec_csv", type=str, required=True)
 
     args = parser.parse_args()
-    create_turk_job(args.xml_file, args.tool_num, args.input_csv)
+    create_turk_job(args.xml_file, args.tool_num, args.input_csv, args.job_spec_csv)
