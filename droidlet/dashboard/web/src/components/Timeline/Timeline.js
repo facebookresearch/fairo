@@ -128,8 +128,8 @@ class DashboardTimeline extends React.Component {
           content: eventObj["name"],
           group: "timeline",
           className: eventObj["name"],
-          start: eventObj["start_datetime"],
-          end: eventObj["end_datetime"],
+          start: eventObj["start_time"],
+          end: eventObj["end_time"],
         },
       ]);
       // adds the same item to the inner nested group
@@ -138,8 +138,8 @@ class DashboardTimeline extends React.Component {
           title: JSON.stringify(eventObj, null, 2),
           group: eventObj["name"],
           className: eventObj["name"],
-          start: eventObj["start_datetime"],
-          end: eventObj["end_datetime"],
+          start: eventObj["start_time"],
+          end: eventObj["end_time"],
         },
       ]);
     }

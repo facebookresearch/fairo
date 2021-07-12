@@ -121,8 +121,8 @@ class Interpreter(DialogueObject):
             end_time = datetime.datetime.now()
             hook_data = {
                 "name" : "interpreter",
-                "start_datetime" : start_time,
-                "end_datetime" : end_time,
+                "start_time" : start_time,
+                "end_time" : end_time,
                 "agent_time" : self.memory.get_time(),
                 "tasks_to_push" : tasks_to_push,
                 "task_mem" : task_mem,
