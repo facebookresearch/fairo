@@ -62,7 +62,7 @@ class DashboardTimeline extends React.Component {
     this.appRef = createRef();
     this.prevEvent = "";
     this.state = {
-      itemText: "",
+      tableBody: [],
     };
   }
 
@@ -87,24 +87,25 @@ class DashboardTimeline extends React.Component {
 
   handleClick(item) {
     const eventObj = JSON.parse(item.title);
-    let prettyPrint = "";
+    let tableArr = [];
     for (let key in eventObj) {
       if (eventObj.hasOwnProperty(key)) {
         // stringify JSON object for logical form
         if (key === "logical_form") {
-          prettyPrint +=
-            this.capitalizeEvent(key) +
-            ": " +
-            JSON.stringify(eventObj[key]) +
-            "\n";
+          tableArr.push({
+            event: this.capitalizeEvent(key),
+            description: JSON.stringify(eventObj[key]),
+          });
         } else {
-          prettyPrint +=
-            this.capitalizeEvent(key) + ": " + eventObj[key] + "\n";
+          tableArr.push({
+            event: this.capitalizeEvent(key),
+            description: eventObj[key],
+          });
         }
       }
     }
     this.setState({
-      itemText: prettyPrint,
+      tableBody: tableArr,
     });
   }
 
@@ -145,6 +146,20 @@ class DashboardTimeline extends React.Component {
     }
   }
 
+  renderTable() {
+    return this.state.tableBody.map((data, index) => {
+      const { event, description } = data;
+      return (
+        <tr>
+          <td>
+            <strong>{event}</strong>
+          </td>
+          <td>{description}</td>
+        </tr>
+      );
+    });
+  }
+
   render() {
     this.renderEvent();
     return (
@@ -156,7 +171,9 @@ class DashboardTimeline extends React.Component {
         <div ref={this.appRef} />
         <div className="item">
           <p id="result">Results:</p>
-          <pre>{this.state.itemText}</pre>
+          <table>
+            <tbody>{this.renderTable()}</tbody>
+          </table>
         </div>
       </div>
     );

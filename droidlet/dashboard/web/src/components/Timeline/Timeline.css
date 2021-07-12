@@ -53,9 +53,22 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 pre {
   font-family: Arial, Helvetica, sans-serif;
-  white-space: pre-wrap;
-  white-space: -moz-pre-wrap;
-  white-space: -pre-wrap;
-  white-space: -o-pre-wrap;
-  word-wrap: break-word;
+}
+
+table,
+th,
+td {
+  border: 0;
+  vertical-align: top;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+tbody tr td:first-child {
+  width: 10em;
+  min-width: 10em;
+  max-width: 10em;
+  word-break: break-all;
 }
