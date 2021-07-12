@@ -24,11 +24,16 @@ class MobileCameraPane extends React.Component {
 
   render() {
     if (this.state.currentMode === "camera") {
+      const videoConstraints = {
+        facingMode: { exact: "environment" },
+      };
+
       return (
         <div>
           <Webcam
             height={this.props.imageWidth}
             width={this.props.imageWidth}
+            videoConstraints={videoConstraints}
             ref="webcam"
           />
           <button onClick={this.screenshot.bind(this)}> Capture </button>
