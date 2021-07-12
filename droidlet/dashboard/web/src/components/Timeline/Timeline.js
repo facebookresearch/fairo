@@ -92,14 +92,26 @@ class DashboardTimeline extends React.Component {
       if (eventObj.hasOwnProperty(key)) {
         // stringify JSON object for logical form
         if (key === "logical_form") {
-          prettyPrint += key + ": " + JSON.stringify(eventObj[key]) + "\n";
+          prettyPrint +=
+            this.capitalizeEvent(key) +
+            ": " +
+            JSON.stringify(eventObj[key]) +
+            "\n";
         } else {
-          prettyPrint += key + ": " + eventObj[key] + "\n";
+          prettyPrint +=
+            this.capitalizeEvent(key) + ": " + eventObj[key] + "\n";
         }
       }
     }
     this.setState({
       itemText: prettyPrint,
+    });
+  }
+
+  capitalizeEvent(str) {
+    str = str.replace(/_/g, " ");
+    return str.replace(/\w\S*/g, function (txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
   }
 
