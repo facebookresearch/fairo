@@ -149,21 +149,21 @@ void FrankaTorqueControlClient::run() {
       }
 
       // Automatic recovery
+      std::cout << ".\nPerforming automatic error recovery. This calls "
+                   "franka::Robot::automaticErrorRecovery, which is equivalent "
+                   "to pressing and releasing the external activation device."
+                << std::endl;
       for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
+        std::cout << "Automatic error recovery attempt " << i + 1 << "/"
+                  << RECOVERY_MAX_TRIES << " ..." << std::endl;
+
         // Wait
-        if (i == 0) {
-          std::cout << ".\nPerforming automatic error recovery in "
-                    << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
-        } else {
-          std::cout << ".\nRetrying automatic error recovery in "
-                    << RECOVERY_WAIT_SECS << " second(s)..." << std::endl;
-        }
         usleep(1000000 * RECOVERY_WAIT_SECS);
 
         // Attempt recovery
         try {
           robot_ptr_->automaticErrorRecovery();
-          std::cout << "Robot operation recovered." << std::endl;
+          std::cout << "Robot operation recovered.\n." << std::endl;
           is_robot_operational = true;
           break;
 
