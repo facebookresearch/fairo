@@ -96,7 +96,7 @@ class StateManager {
     this.setTurkWorkerId(turkWorkerId);
 
     // set default url to actual ip:port
-    // this.default_url = window.location.host;
+    this.default_url = window.location.host;
     this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");
@@ -230,7 +230,6 @@ class StateManager {
     socket.on("humans", this.processHumans);
     socket.on("map", this.processMap);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
-
     socket.on("labelPropagationReturn", this.labelPropagationReturn);
   }
 
@@ -419,7 +418,7 @@ class StateManager {
         label: nameMap[id], 
         mask: newMask, 
         properties: propertyMap[id].join("\n "),
-        type: "annotate", // either "annotate", "detector", or "propagate"
+        type: "annotate", // either "annotate" or "detector"
         id: newId, 
         bbox: newBbox, 
         xyz: newXyz, 
@@ -456,11 +455,10 @@ class StateManager {
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
       prevDepth: this.prevFeedState.depth, 
-      prevObjects: this.prevFeedState.objects.filter(o => o.type === "annotate" || o.type === "propagate"), 
+      prevObjects: this.prevFeedState.objects.filter(o => o.type === "annotate"), 
       basePose: this.curFeedState.pose,
       prevBasePose: this.prevFeedState.pose,
     }
-    console.log("doing the label prop", props)
     this.socket.emit("label_propagation", props)
     this.stateProcessed.rgbImg = true;
     this.stateProcessed.depth = true;
@@ -471,7 +469,6 @@ class StateManager {
   labelPropagationReturn(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
-        console.log('label prop return with', res, '... ref objs:', ref.state.objects)
         for (let i = 0; i < res.length; i++) {
           res[i].bbox = this.getNewBbox(res[i].mask)
           ref.addObject(res[i])
@@ -577,8 +574,7 @@ class StateManager {
       o["type"] = "detector"
     })
 
-
-
+    // If new objects, update state and feed
     if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
       this.prevFeedState.objects = this.curFeedState.objects
       this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)) // deep clone
@@ -587,13 +583,6 @@ class StateManager {
 
       this.refs.forEach((ref) => {
         if (ref instanceof LiveObjects) {
-          // If new frame, replace objects
-          for (let i in res.results) {
-            if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
-              ref.addObject(res.objects[i])
-            }
-          }
-          
           ref.setState({
             objects: res.objects,
             rgb: rgb,
@@ -606,44 +595,6 @@ class StateManager {
         }
       });
     }
-
-
-    // this.refs.forEach((ref) => {
-    //   if (ref instanceof LiveObjects) {
-    //     // If new frame, replace objects
-    //     if (this.stateProcessed.objects) {
-    //       ref.setState({
-    //         objects: res.objects,
-    //       })
-    //     } else {
-    //       // Don't add duplicate objects
-    //       for (let i = 0; i < res.objects.length; i++) {
-    //         if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects) && (
-    //           !ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1)
-    //         ) {
-    //           ref.addObjects(res.objects[i])
-    //         }
-    //       }
-    //     }
-    //     ref.setState({
-    //       rgb: rgb,
-    //     });
-    //   } else if (ref instanceof MobileMainPane) {
-    //     // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
-    //     ref.setState({
-    //       objectRGB: rgb,
-    //     });
-    //   }
-    // });
-    // if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
-    //   this.prevFeedState.objects = this.curFeedState.objects
-    //   this.curFeedState.objects = res.objects
-    //   this.curFeedState.orgObjects = res.objects
-    //   this.stateProcessed.objects = false
-    //   console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
-    // }
-
-
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation()
     }

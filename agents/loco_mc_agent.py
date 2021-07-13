@@ -118,8 +118,6 @@ class LocoMCAgent(BaseAgent):
         @sio.on("label_propagation")
         def label_propagation(sid, postData): 
                         
-            path = "examples_and_tutorials/notebooks/active_vision/"
-
             # Decode rgb map
             rgb_bytes = base64.b64decode(postData["prevRgbImg"])
             rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
@@ -135,7 +133,6 @@ class LocoMCAgent(BaseAgent):
                 depth_bytes = base64.b64decode(depth_encoded)
                 depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
                 depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
-                # np.save(path + "cur_depth_img.npy", depth_decoded)
                 depth_unscaled = (255 - np.copy(depth_decoded[:,:,0]))
                 depth_scaled = depth_unscaled / 255 * (float(depth["depthMax"]) - float(depth["depthMin"]))
                 depth_imgs.append(depth_scaled)
@@ -162,19 +159,6 @@ class LocoMCAgent(BaseAgent):
             LP = LabelPropagate()
             res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
 
-            # DEBUGGING RETURN
-            # for i in range(len(postData["prevObjects"])): 
-            #     postData["prevObjects"][i]["type"] = "label_propagation"
-            # sio.emit("labelPropagationReturn", postData["prevObjects"])
-
-            # np.save(path + "src_img.npy", src_img)
-            # np.save(path + "src_depth.npy", src_depth)
-            # np.save(path + "cur_depth.npy", cur_depth)
-            # np.save(path + "src_label.npy", src_label)
-            # np.save(path + "src_pose.npy", src_pose)
-            # np.save(path + "cur_pose.npy", cur_pose)
-            # np.save(path + "res_labels.npy", res_labels)
-
             # Convert mask maps to mask points
             objects = postData["prevObjects"]
             print(objects, np.unique(res_labels))
@@ -185,8 +169,7 @@ class LocoMCAgent(BaseAgent):
                 mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
                 mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
                 objects[i-1]["mask"] = mask_points
-                objects[i-1]["type"] = "propagate"
-            np.save(path + "objects.npy", objects)
+                objects[i-1]["type"] = "annotate"
 
             # Returns an array of objects with updated masks
             sio.emit("labelPropagationReturn", objects)
