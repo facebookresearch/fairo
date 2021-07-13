@@ -148,9 +148,21 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     custom_controller_context_.status = TERMINATING;
   }
 
-  // Lock to prevent external termination during controller selection, which
-  // might cause loading of a uninitialized default controller
-  service_mtx_.lock();
+  // Parse robot state
+  auto timestamp_msg = robot_state->timestamp();
+  rs_timestamp_[0] = timestamp_msg.seconds();
+  rs_timestamp_[1] = timestamp_msg.nanos();
+  for (int i = 0; i < num_dofs_; i++) {
+    rs_joint_positions_[i] = robot_state->joint_positions(i);
+    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
+    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
+    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
+  }
+
+  // Lock to prevent 1) controller updates while controller is running; 2)
+  // external termination during controller selection, which might cause loading
+  // of a uninitialized default controller
+  custom_controller_context_.controller_mtx.lock();
 
   // Update episode markers
   if (custom_controller_context_.status == READY) {
@@ -178,24 +190,11 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     controller = &robot_client_context_.default_controller;
   }
 
-  // Unlock
-  service_mtx_.unlock();
-
-  // Parse robot state
-  auto timestamp_msg = robot_state->timestamp();
-  rs_timestamp_[0] = timestamp_msg.seconds();
-  rs_timestamp_[1] = timestamp_msg.nanos();
-  for (int i = 0; i < num_dofs_; i++) {
-    rs_joint_positions_[i] = robot_state->joint_positions(i);
-    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
-    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
-    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
-  }
-
   // Step controller & generate torque command response
-  custom_controller_context_.controller_mtx.lock();
   c10::Dict<torch::jit::IValue, torch::jit::IValue> controller_state_dict =
       controller->forward(input_).toGenericDict();
+
+  // Unlock
   custom_controller_context_.controller_mtx.unlock();
 
   torch::jit::IValue key = torch::jit::IValue("joint_torques");
@@ -325,7 +324,9 @@ Status PolymetisControllerServerImpl::TerminateController(
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
   if (custom_controller_context_.status != UNINITIALIZED) {
+    custom_controller_context_.controller_mtx.lock();
     custom_controller_context_.status = TERMINATING;
+    custom_controller_context_.controller_mtx.unlock();
 
     // Respond with start & end index
     while (custom_controller_context_.status == TERMINATING) {
