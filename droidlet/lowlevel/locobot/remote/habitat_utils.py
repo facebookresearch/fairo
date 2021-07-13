@@ -56,16 +56,16 @@ def reconfigure_scene(env, scene_path):
     human_female_template_id = load_object_configs(os.path.join(assets_path, "human_female"))[0]
 
     if scene_name == "apartment_0":
-        id_male = sim.add_object(human_male_template_id)
-        id_female = sim.add_object(human_female_template_id)
-        print("id_male, id_female: {} {}".format(id_male, id_female))
+        # id_male = sim.add_object(human_male_template_id)
+        # id_female = sim.add_object(human_female_template_id)
+        # print("id_male, id_female: {} {}".format(id_male, id_female))
 
-        sim.set_translation([1.2, -0.81, 0.3], id_female)  # apartment_0, female
-        sim.set_translation([1.2, -0.75, -0.3], id_male)  # apartment_0, male
+        # sim.set_translation([1.2, -0.81, 0.3], id_female)  # apartment_0, female
+        # sim.set_translation([1.2, -0.75, -0.3], id_male)  # apartment_0, male
 
         rot = mn.Quaternion.rotation(mn.Deg(-75), mn.Vector3.y_axis())
-        sim.set_rotation(rot, id_male)  # apartment_0
-        sim.set_rotation(rot, id_female)  # apartment_0
+        # sim.set_rotation(rot, id_male)  # apartment_0
+        # sim.set_rotation(rot, id_female)  # apartment_0
     elif scene_name == "skokloster-castle":
         id_female = sim.add_object(human_female_template_id)
         print("id_female: {}".format(id_female))
