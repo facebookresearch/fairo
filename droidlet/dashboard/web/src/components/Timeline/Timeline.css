@@ -54,14 +54,19 @@ pre {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+table {
+  border-collapse: collapse;
+}
+
+td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
 table,
 td {
   border: 0;
   vertical-align: top;
-}
-
-table {
-  border-collapse: collapse;
 }
 
 tbody tr td:first-child {
