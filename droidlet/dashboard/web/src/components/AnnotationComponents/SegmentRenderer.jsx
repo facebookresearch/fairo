@@ -49,6 +49,10 @@ class SegmentRenderer extends React.Component {
     this.update();
   }
 
+  componentDidUpdate() {
+    this.update()
+  }
+
   render() {
     let imageSize = "500px";
     if (this.props.imageWidth) {

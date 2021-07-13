@@ -45,32 +45,9 @@ class ObjectAnnotation extends React.Component {
       currentOverlay: null,
       currentMaskId: null,
     };
-
-    this.nextId = objects.length;
-    this.nameMap = {};
-    this.pointMap = {};
-    this.propertyMap = {};
-    this.originTypeMap = {};
-    for (let i = 0; i < objects.length; i++) {
-      let curObject = objects[i];
-      this.nameMap[i] = curObject.label;
-      this.pointMap[i] = curObject.mask;
-      this.parsePoints(i);
-      this.propertyMap[i] = curObject.properties;
-      this.originTypeMap[i] = curObject.type;
-    }
+    this.processProps()
 
     this.registerClick = this.registerClick.bind(this);
-
-    if (this.props.image !== undefined) {
-      this.image = this.props.image;
-    } else {
-      this.image = new Image();
-      this.image.onload = () => {
-        this.forceUpdate();
-      };
-      this.image.src = this.props.imgUrl;
-    }
     this.segRef = React.createRef();
     this.overtime = false;
     setInterval(() => {
@@ -79,7 +56,20 @@ class ObjectAnnotation extends React.Component {
     }, 1000 * 60 * window.MINUTES);
   }
 
+  componentDidUpdate() {
+    if (JSON.stringify(this.props.objects) !== JSON.stringify(this.objects)) {
+      this.setState({
+        objectIds: [...Array(this.props.objects.length).keys()], 
+        currentMode: "select", 
+        currentOverlay: null,
+        currentMaskId: null,
+      })
+      this.processProps()
+    }
+  }
+
   render() {
+    console.log('object annotation', this.props.objects.length, this.nameMap)
     if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
       // Get color of object
       let curIndex = this.state.objectIds.indexOf(
@@ -150,6 +140,34 @@ class ObjectAnnotation extends React.Component {
     }
   }
 
+  processProps() {
+    let objects = this.props.objects
+    this.nextId = objects.length;
+    this.objects = objects;
+    this.nameMap = {};
+    this.pointMap = {};
+    this.propertyMap = {};
+    this.originTypeMap = {};
+    for (let i = 0; i < objects.length; i++) {
+      let curObject = objects[i];
+      this.nameMap[i] = curObject.label;
+      this.pointMap[i] = curObject.mask;
+      this.parsePoints(i);
+      this.propertyMap[i] = curObject.properties;
+      this.originTypeMap[i] = curObject.type;
+    }
+
+    if (this.props.image !== undefined) {
+      this.image = this.props.image;
+    } else {
+      this.image = new Image();
+      this.image.onload = () => {
+        this.forceUpdate();
+      };
+      this.image.src = this.props.imgUrl;
+    }
+  }
+
   parsePoints(i) {
     for (let j in this.pointMap[i]) {
       if (this.pointMap[i][j].length < 3) {
@@ -169,7 +187,7 @@ class ObjectAnnotation extends React.Component {
         minY = Math.min(pt.y, minY);
       }
       let totalDiff = maxX - minX + maxY - minY;
-      let maxPoints = totalDiff < 0.015 ? 3 : totalDiff * 75;
+      let maxPoints = totalDiff < 0.015 ? 3 : totalDiff * 50;
       if (this.pointMap[i][j].length > maxPoints) {
         // Take every nth point so that the mask is maxPoints points
         let newArr = [];
