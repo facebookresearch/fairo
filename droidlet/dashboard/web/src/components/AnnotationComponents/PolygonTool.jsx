@@ -118,14 +118,22 @@ class PolygonTool extends React.Component {
   }
 
   render() {
+    console.log("in polygon");
     let imageSize = "500px"; // default is 500px for the web dashboard
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
     }
-    let dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
-    let dataEntryY =
-      this.canvas &&
-      this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
+    let dataEntryX = 0;
+    let dataEntryY = 0;
+    if (this.props.isMobile) {
+      dataEntryX = this.canvas && this.canvas.getBoundingClientRect().left;
+      dataEntryY = this.canvas && this.canvas.getBoundingClientRect().bottom;
+    } else {
+      dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
+      dataEntryY =
+        this.canvas &&
+        this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
+    }
     return (
       <div>
         <p>{this.state.message}</p>
@@ -746,6 +754,8 @@ class PolygonTool extends React.Component {
         this.Offset.y
       );
     } else {
+      console.log("this.baseScale works");
+      console.log(this.baseScale);
       this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
       this.zoomed = false;
     }

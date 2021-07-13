@@ -42,6 +42,10 @@ class ObjectAnnotation extends React.Component {
     if (objects === null) {
       objects = [];
     }
+    if (this.props.isFromCamera) {
+      // if component is from the mobile camera, there are no masks to draw
+      objects = [];
+    }
     this.state = {
       objectIds: [...Array(objects.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw_polygon, start_polygon
@@ -101,6 +105,7 @@ class ObjectAnnotation extends React.Component {
           exitCallback={() => {
             this.setState({ currentMode: "select" });
           }}
+          imageWidth={this.props.imageWidth}
           submitCallback={this.drawingFinished.bind(this)}
           deleteLabelHandler={this.deleteLabelHandler.bind(this)}
           dataEntrySubmit={this.dataEntrySubmit.bind(this)}

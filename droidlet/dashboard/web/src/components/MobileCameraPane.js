@@ -25,7 +25,7 @@ class MobileCameraPane extends React.Component {
   render() {
     if (this.state.currentMode === "camera") {
       const videoConstraints = {
-        facingMode: { exact: "environment" },
+        // facingMode: { exact: "environment" },
       };
 
       return (
@@ -43,10 +43,11 @@ class MobileCameraPane extends React.Component {
     if (this.state.currentMode === "annotation") {
       return (
         <ObjectFixup
-          imageWidth={this.state.screenWidth - 25}
+          imageWidth={this.props.imageWidth}
           image={this.state.img}
           stateManager={stateManager}
           isMobile={true}
+          isFromCamera={true}
         />
       );
     }
