@@ -137,6 +137,9 @@ class StateManager {
   setUrl(url) {
     this.url = url;
     localStorage.setItem("server_url", url);
+    if (this.socket) {
+      this.socket.removeAllListeners();
+    }
     this.restart(this.url);
   }
 
@@ -477,7 +480,7 @@ class StateManager {
           // Can replace any existing matches with new objects to resolve, but should figure out why it's sending twice
           if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i].mask)) === -1) {
             res[i].bbox = this.getNewBbox(res[i].mask)
-            ref.addObjects(res[i])
+            ref.addObject(res[i])
             this.curFeedState.objects.push(res[i])
           }
         }
@@ -511,19 +514,21 @@ class StateManager {
   }
 
   processRGB(res) {
-    let rgb = new Image();
-    rgb.src = "data:image/webp;base64," + res;
-    this.refs.forEach((ref) => {
-      if (ref instanceof LiveImage) {
-        if (ref.props.type === "rgb") {
-          ref.setState({
-            isLoaded: true,
-            rgb: rgb,
-          });
-        }
-      }
-    });
     if (this.curFeedState.rgbImg !== res) {
+      // Update feed
+      let rgb = new Image();
+      rgb.src = "data:image/webp;base64," + res;
+      this.refs.forEach((ref) => {
+        if (ref instanceof LiveImage) {
+          if (ref.props.type === "rgb") {
+            ref.setState({
+              isLoaded: true,
+              rgb: rgb,
+            });
+          }
+        }
+      });
+      // Update state
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg
       this.curFeedState.rgbImg = res
       this.stateProcessed.rgbImg = false
@@ -534,19 +539,21 @@ class StateManager {
   }
 
   processDepth(res) {
-    let depth = new Image();
-    depth.src = "data:image/webp;base64," + res.depthImg;
-    this.refs.forEach((ref) => {
-      if (ref instanceof LiveImage) {
-        if (ref.props.type === "depth") {
-          ref.setState({
-            isLoaded: true,
-            depth: depth,
-          });
-        }
-      }
-    });
     if (this.curFeedState.depth !== res) {
+      // Update feed
+      let depth = new Image();
+      depth.src = "data:image/webp;base64," + res.depthImg;
+      this.refs.forEach((ref) => {
+        if (ref instanceof LiveImage) {
+          if (ref.props.type === "depth") {
+            ref.setState({
+              isLoaded: true,
+              depth: depth,
+            });
+          }
+        }
+      });
+      // Update state
       this.prevFeedState.depth = this.curFeedState.depth
       this.curFeedState.depth = {
         depthImg: res.depthImg,
@@ -579,20 +586,25 @@ class StateManager {
 
 
     // if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
-    //   console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
     //   this.prevFeedState.objects = this.curFeedState.objects
     //   this.curFeedState.objects = res.objects
     //   this.curFeedState.orgObjects = res.objects
     //   this.stateProcessed.objects = false
+    //   console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
 
     //   this.refs.forEach((ref) => {
     //     if (ref instanceof LiveObjects) {
     //       // If new frame, replace objects
+    //       for (let i in res.results) {
+    //         if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
+    //           ref.addObject(res.objects[i])
+    //         }
+    //       }
+          
     //       ref.setState({
     //         objects: res.objects,
     //         rgb: rgb,
     //       })
-    //       console.log('hoiasdfhapsdifh')
     //     } else if (ref instanceof MobileMainPane) {
     //       // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
     //       ref.setState({
@@ -631,11 +643,11 @@ class StateManager {
       }
     });
     if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
-      console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
       this.prevFeedState.objects = this.curFeedState.objects
       this.curFeedState.objects = res.objects
       this.curFeedState.orgObjects = res.objects
       this.stateProcessed.objects = false
+      console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
     }
 
 

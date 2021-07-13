@@ -29,7 +29,7 @@ const COLORS = [
 class LiveObjects extends React.Component {
   constructor(props) {
     super(props);
-    this.addObjects = this.addObjects.bind(this);
+    this.addObject = this.addObject.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onFixup = this.onFixup.bind(this);
     this.initialState = {
@@ -41,8 +41,8 @@ class LiveObjects extends React.Component {
     this.state = this.initialState;
   }
 
-  addObjects(objects) {
-    let newObjects = this.state.objects ? this.state.objects.concat(objects) : [objects]
+  addObject(object) {
+    let newObjects = this.state.objects ? this.state.objects.concat(object) : [object]
     this.setState({
       objects: newObjects
     })
