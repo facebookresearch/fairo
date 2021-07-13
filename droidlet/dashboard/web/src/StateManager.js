@@ -460,6 +460,7 @@ class StateManager {
       prevBasePose: this.prevFeedState.pose,
     }
     this.socket.emit("label_propagation", props)
+    // Reset
     this.stateProcessed.rgbImg = true;
     this.stateProcessed.depth = true;
     this.stateProcessed.objects = true;
@@ -563,7 +564,6 @@ class StateManager {
   }
 
   processObjects(res) {
-    let rand = Math.random()
     if (res.image === -1 || res.image === undefined) {
       return;
     }
