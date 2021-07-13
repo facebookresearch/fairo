@@ -62,6 +62,7 @@ class DashboardTimeline extends React.Component {
     this.appRef = createRef();
     this.prevEvent = "";
     this.state = {
+      // used to construct table in results
       tableBody: [],
     };
   }
@@ -110,7 +111,9 @@ class DashboardTimeline extends React.Component {
   }
 
   capitalizeEvent(str) {
+    // replaces underscores with spaces
     str = str.replace(/_/g, " ");
+    // capitalizes the first letter of every word
     return str.replace(/\w\S*/g, function (txt) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
