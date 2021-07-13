@@ -363,7 +363,6 @@ class StateManager {
       }
     }
     if (commands.length > 0) {
-      console.log('emitting command', commands)
       this.socket.emit("movement command", commands);
 
       // Reset keys to prevent duplicate commands
@@ -414,7 +413,6 @@ class StateManager {
         i++
       }
       let newMask = pointMap[id].map(mask => mask.map((pt, i) => [pt.x * scale, pt.y * scale]))
-      console.log(newMask)
       let newBbox = this.getNewBbox(newMask);
 
       newObjects.push({
@@ -475,14 +473,9 @@ class StateManager {
       if (ref instanceof LiveObjects) {
         console.log('label prop return with', res, '... ref objs:', ref.state.objects)
         for (let i = 0; i < res.length; i++) {
-          // For some reason, labelPropagationReturn is run twice even though it's sent only once on the backend, 
-          // and the first time the masks have white edges whereas the second time they have white edges. 
-          // Can replace any existing matches with new objects to resolve, but should figure out why it's sending twice
-          if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i].mask)) === -1) {
-            res[i].bbox = this.getNewBbox(res[i].mask)
-            ref.addObject(res[i])
-            this.curFeedState.objects.push(res[i])
-          }
+          res[i].bbox = this.getNewBbox(res[i].mask)
+          ref.addObject(res[i])
+          this.curFeedState.objects.push(res[i])
         }
       }
     })
@@ -573,6 +566,7 @@ class StateManager {
   }
 
   processObjects(res) {
+    let rand = Math.random()
     if (res.image === -1 || res.image === undefined) {
       return;
     }
@@ -585,70 +579,69 @@ class StateManager {
 
 
 
+    if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
+      this.prevFeedState.objects = this.curFeedState.objects
+      this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)) // deep clone
+      this.curFeedState.orgObjects = JSON.parse(JSON.stringify(res.objects)) // deep clone
+      this.stateProcessed.objects = false
+
+      this.refs.forEach((ref) => {
+        if (ref instanceof LiveObjects) {
+          // If new frame, replace objects
+          for (let i in res.results) {
+            if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
+              ref.addObject(res.objects[i])
+            }
+          }
+          
+          ref.setState({
+            objects: res.objects,
+            rgb: rgb,
+          })
+        } else if (ref instanceof MobileMainPane) {
+          // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
+          ref.setState({
+            objectRGB: rgb,
+          });
+        }
+      });
+    }
+
+
+    // this.refs.forEach((ref) => {
+    //   if (ref instanceof LiveObjects) {
+    //     // If new frame, replace objects
+    //     if (this.stateProcessed.objects) {
+    //       ref.setState({
+    //         objects: res.objects,
+    //       })
+    //     } else {
+    //       // Don't add duplicate objects
+    //       for (let i = 0; i < res.objects.length; i++) {
+    //         if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects) && (
+    //           !ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1)
+    //         ) {
+    //           ref.addObjects(res.objects[i])
+    //         }
+    //       }
+    //     }
+    //     ref.setState({
+    //       rgb: rgb,
+    //     });
+    //   } else if (ref instanceof MobileMainPane) {
+    //     // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
+    //     ref.setState({
+    //       objectRGB: rgb,
+    //     });
+    //   }
+    // });
     // if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
     //   this.prevFeedState.objects = this.curFeedState.objects
     //   this.curFeedState.objects = res.objects
     //   this.curFeedState.orgObjects = res.objects
     //   this.stateProcessed.objects = false
     //   console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
-
-    //   this.refs.forEach((ref) => {
-    //     if (ref instanceof LiveObjects) {
-    //       // If new frame, replace objects
-    //       for (let i in res.results) {
-    //         if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
-    //           ref.addObject(res.objects[i])
-    //         }
-    //       }
-          
-    //       ref.setState({
-    //         objects: res.objects,
-    //         rgb: rgb,
-    //       })
-    //     } else if (ref instanceof MobileMainPane) {
-    //       // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
-    //       ref.setState({
-    //         objectRGB: rgb,
-    //       });
-    //     }
-    //   });
     // }
-
-
-    this.refs.forEach((ref) => {
-      if (ref instanceof LiveObjects) {
-        // If new frame, replace objects
-        if (this.stateProcessed.objects) {
-          ref.setState({
-            objects: res.objects,
-          })
-        } else {
-          // Don't add duplicate objects
-          for (let i = 0; i < res.objects.length; i++) {
-            if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects) && (
-              !ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1)
-            ) {
-              ref.addObjects(res.objects[i])
-            }
-          }
-        }
-        ref.setState({
-          rgb: rgb,
-        });
-      } else if (ref instanceof MobileMainPane) {
-        // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
-        ref.setState({
-          objectRGB: rgb,
-        });
-      }
-    });
-    if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
-      this.prevFeedState.objects = this.curFeedState.objects
-      this.curFeedState.objects = res.objects
-      this.curFeedState.orgObjects = res.objects
-      this.stateProcessed.objects = false
-      console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
-    }
 
 
     if (this.checkRunLabelProp()) {
