@@ -112,7 +112,7 @@ class StateManager {
       rgbImg: null, 
       depth: null, 
       objects: null, // Can be changed by annotation tool
-      orgObjects: null, // Original objects sent from backend
+      origObjects: null, // Original objects sent from backend
       pose: null,
     }
     this.prevFeedState = {
@@ -575,10 +575,10 @@ class StateManager {
     })
 
     // If new objects, update state and feed
-    if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
+    if (JSON.stringify(this.curFeedState.origObjects) !== JSON.stringify(res.objects)) {
       this.prevFeedState.objects = this.curFeedState.objects
       this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)) // deep clone
-      this.curFeedState.orgObjects = JSON.parse(JSON.stringify(res.objects)) // deep clone
+      this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)) // deep clone
       this.stateProcessed.objects = false
 
       this.refs.forEach((ref) => {
