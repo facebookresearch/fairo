@@ -126,7 +126,6 @@ class LocoMCAgent(BaseAgent):
             rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
             rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
             src_img = np.array(rgb)
-            np.save(path + "src_img.npy", src_img)
             height, width, _ = src_img.shape
 
             # Convert depth map to meters
@@ -136,13 +135,10 @@ class LocoMCAgent(BaseAgent):
                 depth_bytes = base64.b64decode(depth_encoded)
                 depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
                 depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
-                if i == 0: 
-                    np.save(path + "src_depth.npy", depth_decoded)
-                else: 
-                    np.save(path + "cur_depth.npy", depth_decoded)
-                depth_unscaled = (255 - np.copy(depth_decoded))
+                # np.save(path + "cur_depth_img.npy", depth_decoded)
+                depth_unscaled = (255 - np.copy(depth_decoded[:,:,0]))
                 depth_scaled = depth_unscaled / 255 * (float(depth["depthMax"]) - float(depth["depthMin"]))
-                depth_imgs.append(depth_scaled[:,:,0])
+                depth_imgs.append(depth_scaled)
             src_depth = np.array(depth_imgs[0])
             cur_depth = np.array(depth_imgs[1])
 
@@ -156,35 +152,40 @@ class LocoMCAgent(BaseAgent):
                     for j in range(width): 
                         if bitmap[i][j]: 
                             src_label[i][j] = n + 1
-            np.save(path + "src_label.npy", src_label)
 
             # Attach base pose data
             pose = postData["prevBasePose"]
             src_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
             pose = postData["basePose"]
             cur_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
-            np.save(path + "src_pose.npy", src_pose)
-            np.save(path + "cur_pose.npy", cur_pose)
             
             LP = LabelPropagate()
             res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
-            print("res_labels", res_labels)
-            np.save(path + "res_labels.npy", res_labels)
 
             # DEBUGGING RETURN
             # for i in range(len(postData["prevObjects"])): 
             #     postData["prevObjects"][i]["type"] = "label_propagation"
             # sio.emit("labelPropagationReturn", postData["prevObjects"])
 
+            # np.save(path + "src_img.npy", src_img)
+            # np.save(path + "src_depth.npy", src_depth)
+            # np.save(path + "cur_depth.npy", cur_depth)
+            # np.save(path + "src_label.npy", src_label)
+            # np.save(path + "src_pose.npy", src_pose)
+            # np.save(path + "cur_pose.npy", cur_pose)
+            # np.save(path + "res_labels.npy", res_labels)
+
             # Convert mask maps to mask points
             objects = postData["prevObjects"]
-            for i in np.unique(res_labels): 
+            print(objects, np.unique(res_labels))
+            for i_float in np.unique(res_labels): 
+                i = int(i_float)
                 if i == 0: 
-                    pass
+                    continue
                 mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
                 mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
-                objects[int(i)-1]["mask"] = mask_points
-                objects[int(i)-1]["type"] = "label_propagation"
+                objects[i-1]["mask"] = mask_points
+                objects[i-1]["type"] = "propagate"
             np.save(path + "objects.npy", objects)
 
             # Returns an array of objects with updated masks

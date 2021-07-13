@@ -397,19 +397,28 @@ class StateManager {
     let { nameMap, pointMap, propertyMap } = res;
     let newObjects = []
     let scale = 500  // hardcoded from somewhere else
-    console.log(res, this.curFeedState.objects)
     for (let id in nameMap) {
-      let oldObj = id < this.curFeedState.length;
-      let newId = oldObj ? this.curFeedState[id].id : null;
-      let newBbox = oldObj ? this.curFeedState[id].bbox : null;
-      let newXyz = oldObj ? this.curFeedState[id].xyz : null;
-      let newMask = pointMap[id].map(mask => mask.map(pt => [pt.x * scale, pt.y * scale]))
+      let oldObj = id < this.curFeedState.objects.length;
+      let newId = oldObj ? this.curFeedState.objects[id].id : null;
+      let newXyz = oldObj ? this.curFeedState.objects[id].xyz : null;
+      // Get rid of masks with <3 points
+      let i = 0
+      while (i < pointMap[id].length) {
+        if (!pointMap[id][i] || pointMap[id][i].length < 3) {
+          pointMap[id].splice(i, 1);
+          continue
+        }
+        i++
+      }
+      let newMask = pointMap[id].map(mask => mask.map((pt, i) => [pt.x * scale, pt.y * scale]))
+      console.log(newMask)
+      let newBbox = this.getNewBbox(newMask);
 
       newObjects.push({
         label: nameMap[id], 
         mask: newMask, 
         properties: propertyMap[id].join("\n "),
-        type: "propagate", 
+        type: "annotate", // either "annotate", "detector", or "propagate"
         id: newId, 
         bbox: newBbox, 
         xyz: newXyz, 
@@ -426,12 +435,27 @@ class StateManager {
     })
   }
 
+  getNewBbox(maskSet) {
+    let xs = [], ys = []
+    for (let i = 0; i < maskSet.length; i++) {
+      for (let j = 0; j < maskSet[i].length; j++) {
+        xs.push(maskSet[i][j][0])
+        ys.push(maskSet[i][j][1])
+      }
+    }
+    let minX = Math.min.apply(null, xs), 
+        maxX = Math.max.apply(null, xs), 
+        minY = Math.min.apply(null, ys), 
+        maxY = Math.max.apply(null, ys)
+    return [minX, minY, maxX, maxY]
+  }
+
   startLabelPropagation() {
     let props = {
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
       prevDepth: this.prevFeedState.depth, 
-      prevObjects: this.prevFeedState.objects, 
+      prevObjects: this.prevFeedState.objects.filter(o => o.type === "annotate" || o.type === "propagate"), 
       basePose: this.curFeedState.pose,
       prevBasePose: this.prevFeedState.pose,
     }
@@ -446,15 +470,15 @@ class StateManager {
   labelPropagationReturn(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
-        console.log('label prop return with image', res, ref.state.objects)
+        console.log('label prop return with', res, '... ref objs:', ref.state.objects)
         for (let i = 0; i < res.length; i++) {
           // For some reason, labelPropagationReturn is run twice even though it's sent only once on the backend, 
           // and the first time the masks have white edges whereas the second time they have white edges. 
           // Can replace any existing matches with new objects to resolve, but should figure out why it's sending twice
           if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res[i].mask)) === -1) {
+            res[i].bbox = this.getNewBbox(res[i].mask)
             ref.addObjects(res[i])
             this.curFeedState.objects.push(res[i])
-            console.log(this.curFeedState.objects.length)
           }
         }
       }
@@ -551,8 +575,35 @@ class StateManager {
     res.objects.forEach(o => {
       o["type"] = "detector"
     })
+
+
+
+    // if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
+    //   console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
+    //   this.prevFeedState.objects = this.curFeedState.objects
+    //   this.curFeedState.objects = res.objects
+    //   this.curFeedState.orgObjects = res.objects
+    //   this.stateProcessed.objects = false
+
+    //   this.refs.forEach((ref) => {
+    //     if (ref instanceof LiveObjects) {
+    //       // If new frame, replace objects
+    //       ref.setState({
+    //         objects: res.objects,
+    //         rgb: rgb,
+    //       })
+    //       console.log('hoiasdfhapsdifh')
+    //     } else if (ref instanceof MobileMainPane) {
+    //       // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
+    //       ref.setState({
+    //         objectRGB: rgb,
+    //       });
+    //     }
+    //   });
+    // }
+
+
     this.refs.forEach((ref) => {
-      this.curFeedState.objects = res.objects;
       if (ref instanceof LiveObjects) {
         // If new frame, replace objects
         if (this.stateProcessed.objects) {
@@ -562,8 +613,9 @@ class StateManager {
         } else {
           // Don't add duplicate objects
           for (let i = 0; i < res.objects.length; i++) {
-            // if (!ref.state.objects || JSON.stringify(this.curFeedState.orgObjects).indexOf(JSON.stringify(res.objects[i])) === -1) {
-            if (!ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1) {
+            if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects) && (
+              !ref.state.objects || JSON.stringify(ref.state.objects).indexOf(JSON.stringify(res.objects[i])) === -1)
+            ) {
               ref.addObjects(res.objects[i])
             }
           }
@@ -579,12 +631,14 @@ class StateManager {
       }
     });
     if (JSON.stringify(this.curFeedState.orgObjects) !== JSON.stringify(res.objects)) {
+      console.log('processing objects... cur objs:', this.curFeedState.objects && this.curFeedState.objects.length, 'new objs:', res.objects.length, 'org objs:', this.curFeedState.orgObjects && this.curFeedState.orgObjects.length)
       this.prevFeedState.objects = this.curFeedState.objects
-      console.log(this.curFeedState.objects, res.objects, this.curFeedState.objects.concat(res.objects))
-      this.curFeedState.objects = this.curFeedState.objects.concat(res.objects)
+      this.curFeedState.objects = res.objects
       this.curFeedState.orgObjects = res.objects
       this.stateProcessed.objects = false
     }
+
+
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation()
     }
