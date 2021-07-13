@@ -148,6 +148,10 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     custom_controller_context_.status = TERMINATING;
   }
 
+  // Lock to prevent external termination during controller selection, which
+  // might cause loading of a uninitialized default controller
+  service_mtx_.lock();
+
   // Update episode markers
   if (custom_controller_context_.status == READY) {
     // First step of episode: update episode marker
@@ -173,6 +177,9 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   } else {
     controller = &robot_client_context_.default_controller;
   }
+
+  // Unlock
+  service_mtx_.unlock();
 
   // Parse robot state
   auto timestamp_msg = robot_state->timestamp();
