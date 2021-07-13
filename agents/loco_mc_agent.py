@@ -318,12 +318,12 @@ class LocoMCAgent(BaseAgent):
             end_time = datetime.datetime.now()
             hook_data = {
                 "name" : "perceive",
-                "start_datetime" : start_time,
-                "end_datetime" : end_time,
-                "speaker" : speaker, 
+                "start_time" : start_time,
+                "end_time" : end_time,
                 "agent_time" : self.get_time(),
+                "speaker" : speaker, 
                 "chat" : chat, 
-                "preprocessed" : preprocessed_chat, 
+                "preprocessed_form" : preprocessed_chat, 
                 "logical_form" : chat_parse,
             }
             dispatch.send("perceive", data=hook_data)
