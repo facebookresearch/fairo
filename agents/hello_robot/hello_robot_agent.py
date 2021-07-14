@@ -25,6 +25,7 @@ from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.perception.robot import Perception
 from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
@@ -85,7 +86,7 @@ class HelloRobotAgent(LocoMCAgent):
     def init_event_handlers(self):
         super().init_event_handlers()
 
-        @sio.on("command")
+        @sio.on("movement command")
         def test_command(sid, commands):
             for command in commands:
                 if command == "MOVE_FORWARD":
@@ -133,36 +134,37 @@ class HelloRobotAgent(LocoMCAgent):
         Each perceptual module should have a perceive method that is
         called by the base agent event loop.
         """
+        self.chat_parser = NSPQuerier(self.opts)
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
-        self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
+        self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
     
-    def perceive(self, force=False):
-        self.perception_modules["self"].perceive(force=force)
+    # def perceive(self, force=False):
+    #     self.perception_modules["self"].perceive(force=force)
 
 
-        rgb_depth = self.mover.get_rgb_depth()
-        xyz = self.mover.get_base_pos_in_canonical_coords()
-        x, y, yaw = xyz
-        sio.emit("map", {
-            "x": x,
-            "y": y,
-            "yaw": yaw,
-            "map": self.mover.get_obstacles_in_canonical_coords()
-        })
+    #     rgb_depth = self.mover.get_rgb_depth()
+    #     xyz = self.mover.get_base_pos_in_canonical_coords()
+    #     x, y, yaw = xyz
+    #     sio.emit("map", {
+    #         "x": x,
+    #         "y": y,
+    #         "yaw": yaw,
+    #         "map": self.mover.get_obstacles_in_canonical_coords()
+    #     })
 
-        previous_objects = DetectedObjectNode.get_all(self.memory)
-        new_state = self.perception_modules["vision"].perceive(rgb_depth,
-                                                               xyz,
-                                                               previous_objects,
-                                                               force=force)
-        if new_state is not None:
-            new_objects, updated_objects = new_state
-            for obj in new_objects:
-                obj.save_to_memory(self.memory)
-            for obj in updated_objects:
-                obj.save_to_memory(self.memory, update=True)
+    #     previous_objects = DetectedObjectNode.get_all(self.memory)
+    #     new_state = self.perception_modules["vision"].perceive(rgb_depth,
+    #                                                            xyz,
+    #                                                            previous_objects,
+    #                                                            force=force)
+    #     if new_state is not None:
+    #         new_objects, updated_objects = new_state
+    #         for obj in new_objects:
+    #             obj.save_to_memory(self.memory)
+    #         for obj in updated_objects:
+    #             obj.save_to_memory(self.memory, update=True)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
