@@ -19,13 +19,14 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.perception.robot import Perception, SelfPerception
+from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
+from droidlet.perception.robot import Perception
+from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance, 
     default_behaviors,
@@ -135,7 +136,33 @@ class HelloRobotAgent(LocoMCAgent):
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
-        self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
+        self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
+    
+    def perceive(self, force=False):
+        self.perception_modules["self"].perceive(force=force)
+
+
+        rgb_depth = self.mover.get_rgb_depth()
+        xyz = self.mover.get_base_pos_in_canonical_coords()
+        x, y, yaw = xyz
+        sio.emit("map", {
+            "x": x,
+            "y": y,
+            "yaw": yaw,
+            "map": self.mover.get_obstacles_in_canonical_coords()
+        })
+
+        previous_objects = DetectedObjectNode.get_all(self.memory)
+        new_state = self.perception_modules["vision"].perceive(rgb_depth,
+                                                               xyz,
+                                                               previous_objects,
+                                                               force=force)
+        if new_state is not None:
+            new_objects, updated_objects = new_state
+            for obj in new_objects:
+                obj.save_to_memory(self.memory)
+            for obj in updated_objects:
+                obj.save_to_memory(self.memory, update=True)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
@@ -147,9 +174,15 @@ class HelloRobotAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
+        # self.dialogue_manager = DialogueManager(
+        #     memory=self.memory,
+        #     dialogue_object_classes=dialogue_object_classes,
+        #     semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+        #     opts=self.opts,
+        # )
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
