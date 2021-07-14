@@ -189,7 +189,7 @@ class ObjectAnnotation extends React.Component {
         minY = Math.min(pt.y, minY);
       }
       let totalDiff = maxX - minX + maxY - minY;
-      let maxPoints = totalDiff < 0.015 ? 3 : totalDiff * 50;
+      let maxPoints = totalDiff < 0.06 ? 3 : totalDiff * 50;
       if (this.pointMap[i][j].length > maxPoints) {
         // Take every nth point so that the mask is maxPoints points
         let newArr = [];

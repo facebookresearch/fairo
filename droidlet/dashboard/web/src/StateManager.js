@@ -471,6 +471,15 @@ class StateManager {
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
         for (let i = 0; i < res.length; i++) {
+          // Get rid of masks with <3 points
+          let j = 0
+          while (j < res[i].mask.length) {
+            if (!res[i].mask[j] || res[i].mask[j].length < 3) {
+              res[i].mask.splice(j, 1);
+              continue
+            }
+            j++
+          }
           res[i].bbox = this.getNewBbox(res[i].mask)
           ref.addObject(res[i])
           this.curFeedState.objects.push(res[i])

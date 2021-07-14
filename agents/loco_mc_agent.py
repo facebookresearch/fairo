@@ -161,7 +161,6 @@ class LocoMCAgent(BaseAgent):
 
             # Convert mask maps to mask points
             objects = postData["prevObjects"]
-            print(objects, np.unique(res_labels))
             for i_float in np.unique(res_labels): 
                 i = int(i_float)
                 if i == 0: 
