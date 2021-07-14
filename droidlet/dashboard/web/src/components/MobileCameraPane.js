@@ -19,9 +19,7 @@ class MobileCameraPane extends React.Component {
   }
 
   screenshot() {
-    var screenshot = this.webcamRef.current.getScreenshot();
-    console.log("screenshot");
-    console.log(screenshot);
+    let screenshot = this.webcamRef.current.getScreenshot();
     let asImage = new Image(this.props.imageWidth, this.props.imageWidth);
     asImage.src = screenshot;
     this.setState({
@@ -31,26 +29,38 @@ class MobileCameraPane extends React.Component {
   }
 
   componentDidMount() {
-    console.log("post mount");
-    if (this.webcamRef.current) {
-      // if device has no environment camera, use the selfie camera
-      if (!this.webcamRef.current.getScreenshot()) {
-        console.log("switching camera");
-        this.setState({
-          videoConstraints: {
-            facingMode: "user",
-            height: this.props.imageWidth,
-            width: this.props.imageWidth,
-          },
-        });
-        console.log("this.state");
-        console.log(this.state);
+    // check video constraint after 1 second to give time for the webcam to finish rendering
+    setTimeout(
+      function () {
+        this.checkVideoConstraint();
+      }.bind(this),
+      1000
+    );
+  }
+
+  /**
+   * check if device has environment camera
+   * if not, use the device selfie camera
+   * only needed for development purposes, as every mobile device should have an environment camera
+   */
+  checkVideoConstraint() {
+    if (true) {
+      if (this.webcamRef.current) {
+        let screenshot = this.webcamRef.current.getScreenshot();
+        if (!screenshot) {
+          this.setState({
+            videoConstraints: {
+              facingMode: "user",
+              height: this.props.imageWidth,
+              width: this.props.imageWidth,
+            },
+          });
+        }
       }
     }
   }
 
   render() {
-    console.log("camera render");
     if (this.state.currentMode === "camera") {
       return (
         <div>
