@@ -75,3 +75,30 @@ tbody tr td:first-child {
   max-width: 10em;
   word-break: break-all;
 }
+
+.search {
+  width: 400px;
+  margin-bottom: 15px;
+  position: relative;
+  display: flex;
+}
+
+.searchSpan {
+  width: 15%;
+  border: 1px solid #bfbfbf;
+  padding-top: 4px;
+  text-align: center;
+  color: white;
+  border-radius: 0 5px 5px 0;
+  font-size: 30px;
+}
+
+.searchInput {
+  width: 85%;
+  margin: 0px;
+  border: 1px solid #bfbfbf;
+  border-right: none;
+  padding: 4px;
+  border-radius: 5px 0 0 5px;
+  outline: none;
+}

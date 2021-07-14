@@ -8,6 +8,7 @@ agent using the flags --enable_timeline --log_timeline.
 
 import React, { createRef } from "react";
 import { Timeline, DataSet } from "vis-timeline/standalone";
+import SearchIcon from "@material-ui/icons/Search";
 import "vis-timeline/styles/vis-timeline-graph2d.css";
 import "./Timeline.css";
 
@@ -53,6 +54,22 @@ const options = {
     follow: true,
   },
   stack: false,
+};
+
+const SearchBar = ({ onChange, placeholder }) => {
+  return (
+    <div className="search">
+      <input
+        className="searchInput"
+        type="text"
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+      <span className="searchSpan">
+        <SearchIcon />
+      </span>
+    </div>
+  );
 };
 
 class DashboardTimeline extends React.Component {
@@ -171,7 +188,14 @@ class DashboardTimeline extends React.Component {
           A visualizer for viewing, inspecting, and searching through agent
           activities interactively.
         </p>
+
+        <SearchBar
+          placeholder="Search"
+          onChange={(e) => console.log(e.target.value)}
+        />
+
         <div ref={this.appRef} />
+
         <div className="item">
           <p id="result">Results:</p>
           <table>
