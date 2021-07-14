@@ -32,26 +32,20 @@ class SegmentRenderer extends React.Component {
     this.drawLine = this.drawLine.bind(this);
     this.onClick = this.onClick.bind(this);
     this.regions = {}; // array of mask sets
-    console.log("seg renderer constructor");
     this.canvasRef = React.createRef();
     this.imgRef = React.createRef();
-    console.log(this.props);
   }
 
   componentDidMount() {
-    console.log("component mounted");
     this.canvas = this.canvasRef.current;
     this.ctx = this.canvas.getContext("2d");
-    this.img = this.props.img;
     this.Offset = {
       x: 0,
       y: 0,
     };
-    this.baseScale = Math.min(
-      this.canvas.width / this.props.img.width,
-      this.canvas.height / this.props.img.height
-    );
+    this.baseScale = this.canvas.width / this.props.img.width;
     this.scale = this.baseScale;
+    this.canvas.height = this.props.img.height * this.baseScale;
     this.update();
   }
 
@@ -92,7 +86,6 @@ class SegmentRenderer extends React.Component {
   }
 
   update() {
-    console.log("updated");
     // Draw image scaled and repostioned
     this.ctx.resetTransform();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -104,12 +97,7 @@ class SegmentRenderer extends React.Component {
       this.Offset.x,
       this.Offset.y
     );
-    this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
-    console.log(this.img);
-
-    let img = new Image();
-    img.src = this.img.src;
-    this.ctx.drawImage(img, 0, 0);
+    this.ctx.drawImage(this.props.img, 0, 0);
 
     // Draw regions
     for (let i = 0; i < this.props.objects.length; i++) {

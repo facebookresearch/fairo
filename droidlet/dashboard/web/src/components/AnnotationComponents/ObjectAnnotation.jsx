@@ -78,6 +78,7 @@ class ObjectAnnotation extends React.Component {
     }
     this.segRef = React.createRef();
     this.overtime = false;
+    // only used because when segment renderer is first rendered, image isn't being displayed on canvas for some reason
     this.isFirstOpen = this.props.isFirstOpen;
     setInterval(() => {
       //alert("Please finish what you're working on and click Submit Task below")

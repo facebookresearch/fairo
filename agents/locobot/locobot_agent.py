@@ -127,7 +127,6 @@ class LocobotAgent(LocoMCAgent):
         
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
-            print ("calling logInteraction");
             self.interaction_logger.logInteraction(interactionData)
 
     def init_memory(self):

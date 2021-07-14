@@ -118,7 +118,6 @@ class PolygonTool extends React.Component {
   }
 
   render() {
-    console.log("in polygon");
     let imageSize = "500px"; // default is 500px for the web dashboard
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
@@ -755,8 +754,6 @@ class PolygonTool extends React.Component {
         this.Offset.y
       );
     } else {
-      console.log("this.baseScale works");
-      console.log(this.baseScale);
       this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
       this.zoomed = false;
     }
