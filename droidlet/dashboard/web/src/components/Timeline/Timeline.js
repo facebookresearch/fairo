@@ -7,6 +7,7 @@ agent using the flags --enable_timeline --log_timeline.
 */
 
 import React, { createRef } from "react";
+import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
 import SearchIcon from "@material-ui/icons/Search";
 import "vis-timeline/styles/vis-timeline-graph2d.css";
@@ -79,8 +80,10 @@ class DashboardTimeline extends React.Component {
     this.appRef = createRef();
     this.prevEvent = "";
     this.state = {
-      // used to construct table in results
+      // used to construct table on click
       tableBody: [],
+      // used to return results from search
+      searchResults: [],
     };
   }
 
@@ -123,8 +126,41 @@ class DashboardTimeline extends React.Component {
       }
     }
     this.setState({
+      searchResults: [],
       tableBody: tableArr,
     });
+  }
+
+  handleSearch(pattern) {
+    if (pattern) {
+      const fuse = new Fuse(
+        this.props.stateManager.memory.timelineEventHistory
+      );
+      const result = fuse.search(pattern);
+      const matches = [];
+      if (!result.length) {
+        // empty results pane
+        this.setState({
+          tableBody: [],
+          searchResults: [],
+        });
+      } else {
+        result.forEach(({ item }) => {
+          matches.push(item);
+        });
+        // set pane to show matches
+        this.setState({
+          tableBody: [],
+          searchResults: matches,
+        });
+      }
+    } else {
+      // empty results pane
+      this.setState({
+        tableBody: [],
+        searchResults: [],
+      });
+    }
   }
 
   capitalizeEvent(str) {
@@ -191,7 +227,7 @@ class DashboardTimeline extends React.Component {
 
         <SearchBar
           placeholder="Search"
-          onChange={(e) => console.log(e.target.value)}
+          onChange={(e) => this.handleSearch(e.target.value)}
         />
 
         <div ref={this.appRef} />
@@ -201,6 +237,12 @@ class DashboardTimeline extends React.Component {
           <table>
             <tbody>{this.renderTable()}</tbody>
           </table>
+        </div>
+
+        <div className="matches">
+          {this.state.searchResults.map((item) => (
+            <li>{item}</li>
+          ))}
         </div>
       </div>
     );
