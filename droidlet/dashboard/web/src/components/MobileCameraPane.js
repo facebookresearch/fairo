@@ -10,10 +10,11 @@ class MobileCameraPane extends React.Component {
       currentMode: "camera",
       img: null,
     };
+    this.webcamRef = React.createRef();
   }
 
   screenshot() {
-    var screenshot = this.refs.webcam.getScreenshot();
+    var screenshot = this.webcamRef.current.getScreenshot();
     let asImage = new Image(this.props.imageWidth, this.props.imageWidth);
     asImage.src = screenshot;
     this.setState({
@@ -26,6 +27,8 @@ class MobileCameraPane extends React.Component {
     if (this.state.currentMode === "camera") {
       const videoConstraints = {
         // facingMode: { exact: "environment" },
+        height: this.props.imageWidth,
+        width: this.props.imageWidth,
       };
 
       return (
@@ -34,7 +37,7 @@ class MobileCameraPane extends React.Component {
             height={this.props.imageWidth}
             width={this.props.imageWidth}
             videoConstraints={videoConstraints}
-            ref="webcam"
+            ref={this.webcamRef}
           />
           <button onClick={this.screenshot.bind(this)}> Capture </button>
         </div>
@@ -48,6 +51,7 @@ class MobileCameraPane extends React.Component {
           stateManager={stateManager}
           isMobile={true}
           isFromCamera={true}
+          isFirstOpen={true}
         />
       );
     }

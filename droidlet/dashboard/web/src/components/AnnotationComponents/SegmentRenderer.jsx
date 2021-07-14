@@ -35,6 +35,7 @@ class SegmentRenderer extends React.Component {
     console.log("seg renderer constructor");
     this.canvasRef = React.createRef();
     this.imgRef = React.createRef();
+    console.log(this.props);
   }
 
   componentDidMount() {
@@ -59,19 +60,35 @@ class SegmentRenderer extends React.Component {
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
     }
-    console.log("rendering");
-    return (
-      <div>
-        <canvas
-          ref={this.canvasRef}
-          width={imageSize}
-          height={imageSize}
-          tabIndex="0"
-          onMouseMove={this.onMouseMove}
-          onKeyDown={this.keyDown}
-        ></canvas>
-      </div>
-    );
+    if (this.props.isFromCamera && this.props.isFirstOpen) {
+      // drawing new image becuase for some reason the image isn't being drawn when opened from camera
+      return (
+        <div>
+          <img src={this.props.img.src} />
+          <canvas
+            ref={this.canvasRef}
+            width={imageSize}
+            height={imageSize}
+            tabIndex="0"
+            onMouseMove={this.onMouseMove}
+            onKeyDown={this.keyDown}
+          ></canvas>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <canvas
+            ref={this.canvasRef}
+            width={imageSize}
+            height={imageSize}
+            tabIndex="0"
+            onMouseMove={this.onMouseMove}
+            onKeyDown={this.keyDown}
+          ></canvas>
+        </div>
+      );
+    }
   }
 
   update() {
@@ -88,7 +105,11 @@ class SegmentRenderer extends React.Component {
       this.Offset.y
     );
     this.ctx.setTransform(this.baseScale, 0, 0, this.baseScale, 0, 0);
-    this.ctx.drawImage(this.img, 0, 0);
+    console.log(this.img);
+
+    let img = new Image();
+    img.src = this.img.src;
+    this.ctx.drawImage(img, 0, 0);
 
     // Draw regions
     for (let i = 0; i < this.props.objects.length; i++) {

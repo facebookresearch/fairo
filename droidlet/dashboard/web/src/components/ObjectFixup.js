@@ -37,6 +37,7 @@ class ObjectFixup extends React.Component {
         isMobile={this.props.isMobile}
         imageWidth={this.props.imageWidth}
         isFromCamera={this.props.isFromCamera}
+        isFirstOpen={this.props.isFirstOpen}
       />
     );
   }
