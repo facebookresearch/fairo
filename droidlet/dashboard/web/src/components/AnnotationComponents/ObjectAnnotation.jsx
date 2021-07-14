@@ -45,7 +45,7 @@ class ObjectAnnotation extends React.Component {
       currentOverlay: null,
       currentMaskId: null,
     };
-    this.processProps()
+    this.processProps(objects)
 
     this.registerClick = this.registerClick.bind(this);
     this.segRef = React.createRef();
@@ -57,19 +57,22 @@ class ObjectAnnotation extends React.Component {
   }
 
   componentDidUpdate() {
-    if (JSON.stringify(this.props.objects) !== JSON.stringify(this.objects)) {
+    let objects = this.props.objects;
+    if (!this.props.objects) {
+      objects = this.props.stateManager.curFeedState.objects;
+    }
+    if (JSON.stringify(objects) !== JSON.stringify(this.objects)) {
       this.setState({
-        objectIds: [...Array(this.props.objects.length).keys()], 
+        objectIds: [...Array(objects.length).keys()], 
         currentMode: "select", 
         currentOverlay: null,
         currentMaskId: null,
       })
-      this.processProps()
+      this.processProps(objects)
     }
   }
 
   render() {
-    console.log('object annotation', this.props.objects.length, this.nameMap)
     if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
       // Get color of object
       let curIndex = this.state.objectIds.indexOf(
@@ -140,8 +143,7 @@ class ObjectAnnotation extends React.Component {
     }
   }
 
-  processProps() {
-    let objects = this.props.objects
+  processProps(objects) {
     this.nextId = objects.length;
     this.objects = objects;
     this.nameMap = {};
@@ -311,11 +313,17 @@ class ObjectAnnotation extends React.Component {
       return;
     }
 
+    for (let key in this.propertyMap) {
+      if (typeof this.propertyMap[key] === typeof "") {
+        this.propertyMap[key] = this.propertyMap[key].split("\n ")
+      }
+    }
     const postData = {
       nameMap: this.nameMap,
       propertyMap: this.propertyMap,
       pointMap: this.pointMap,
     };
+
     this.props.stateManager.socket.emit("saveObjectAnnotation", postData);
     this.props.stateManager.logInteractiondata("object annotation", postData);
     this.props.stateManager.onObjectAnnotationSave(postData);
