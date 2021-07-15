@@ -20,6 +20,12 @@
 #include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 
+// IK parameters
+#define IK_EPS 1e-4
+#define IK_IT_MAX 1000
+#define IK_DT 1e-1
+#define IK_DAMP 1e-6
+
 torch::Tensor validTensor(torch::Tensor x) {
   if (x.dim() < 2) {
     x = x.unsqueeze(1);
@@ -144,6 +150,50 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     std::vector<int64_t> dims = {tau.rows()};
     return torch::from_blob(tau.data(), dims, torch::kFloat64).clone();
   }
+
+  torch::Tensor inverse_kinematics(torch::Tensor ee_pos,
+                                   torch::Tensor ee_quat) {
+    const pinocchio::SE3 oMdes(Eigen::Matrix3d::Identity(),
+                               Eigen::Vector3d(1., 0., 1.));
+    torch::Tensor result = torch::zeros(model_.nq, torch::kFloat32);
+
+    // Initialize IK variables
+    Eigen::VectorXd q = pinocchio::neutral(model_);
+
+    pinocchio::Data::Matrix6x J(6, model_.nv);
+    J.setZero();
+
+    typedef Eigen::Matrix<double, 6, 1> Vector6d;
+    Vector6d err;
+    Eigen::VectorXd v(model_.nv);
+
+    // Solve IK iteratively
+    for (int i = 0;; i++) {
+      // Compute forward kinematics error
+      pinocchio::forwardKinematics(model_, model_data_, q);
+      const pinocchio::SE3 dMi = oMdes.actInv(model_data_.oMi[ee_idx_]);
+      err = pinocchio::log6(dMi).toVector();
+
+      // Check termination
+      if (err.norm() < IK_EPS || i >= IK_IT_MAX) {
+        break;
+      }
+
+      // Descent solution
+      pinocchio::computeJointJacobian(model_, model_data_, q, ee_idx_, J);
+      pinocchio::Data::Matrix6 JJt;
+      JJt.noalias() = J * J.transpose();
+      JJt.diagonal().array() += IK_DAMP;
+      v.noalias() = -J.transpose() * JJt.ldlt().solve(err);
+      q = pinocchio::integrate(model_, q, v * IK_DT);
+    }
+
+    for (int i = 0; i < model_.nq; i++) {
+      result[i] = q[i];
+    }
+
+    return result;
+  }
 };
 
 TORCH_LIBRARY(torchscript_pinocchio, m) {
@@ -156,6 +206,7 @@ TORCH_LIBRARY(torchscript_pinocchio, m) {
       .def("forward_kinematics", &RobotModelPinocchio::forward_kinematics)
       .def("compute_jacobian", &RobotModelPinocchio::compute_jacobian)
       .def("inverse_dynamics", &RobotModelPinocchio::inverse_dynamics)
+      .def("inverse_kinematics", &RobotModelPinocchio::inverse_kinematics)
       .def_pickle(
           // __getstate__
           [](const c10::intrusive_ptr<RobotModelPinocchio> &self)
