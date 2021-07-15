@@ -1,6 +1,7 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
 */
+
 #description {
   text-align: center;
 }
@@ -88,6 +89,7 @@ td:nth-child(1) {
   color: white;
   border-radius: 0 5px 5px 0;
   font-size: 10px;
+  cursor: pointer;
 }
 
 .searchInput {
