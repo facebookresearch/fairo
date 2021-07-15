@@ -53,3 +53,4 @@ agents/locobot/dashboard_data.db
 droidlet/perception/robot/tests/test_assets/perception_handlers
 .ropeproject
 agents/craftassist/timeline_log*
+annotation_data/*
