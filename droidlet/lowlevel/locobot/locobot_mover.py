@@ -197,7 +197,7 @@ class LoCoBotMover:
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            self.bot.go_to_relative(xyt, close_loop=self.close_loop, use_dslam=use_dslam)
+            self.bot.go_to_relative(xyt, close_loop=self.close_loop, use_dslam=False)
             while not self.bot.command_finished():
                 print(self.bot.get_base_state("odom"))
 
@@ -220,7 +220,7 @@ class LoCoBotMover:
                 base_canonical_coords_to_pyrobot_coords(xyt),
                 close_loop=self.close_loop,
                 use_map=use_map,
-                use_dslam=use_dslam,
+                use_dslam=False,
             )
             start_base_state = self.get_base_pos_in_canonical_coords()
             while not self.bot.command_finished():

@@ -64,7 +64,7 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 
-def get_move_target_for_point(base_pos, target, eps=1):
+def get_move_target_for_point(base_pos, target, eps=0.5):
     """
     For point, we first want to move close to the object and then point to it.
 
@@ -83,7 +83,7 @@ def get_move_target_for_point(base_pos, target, eps=1):
     signz = 1 if dz > 0 else -1
 
     targetx = base_pos[0] + signx * (abs(dx) - eps)
-    targetz = base_pos[2] + signz * (abs(dz) - eps)
+    targetz = base_pos[1] + signz * (abs(dz) - eps)
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
 
