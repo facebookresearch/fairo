@@ -32,6 +32,7 @@ class LiveObjects extends React.Component {
     this.addObject = this.addObject.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onFixup = this.onFixup.bind(this);
+    this.onAnnotationSave = this.onAnnotationSave.bind(this);
     this.initialState = {
       height: props.height,
       width: props.width,
@@ -97,6 +98,12 @@ class LiveObjects extends React.Component {
           }
         }
       }
+    }
+  }
+
+  onAnnotationSave() {
+    if (this.props.stateManager) {
+      this.props.stateManager.saveAnnotations()
     }
   }
 
@@ -212,6 +219,7 @@ class LiveObjects extends React.Component {
           </Layer>
         </Stage>
         <button onClick={this.onFixup}>Fix</button>
+        <button onClick={this.onAnnotationSave}>Save</button>
       </Rnd>
     );
   }
