@@ -69,11 +69,8 @@ td {
   vertical-align: top;
 }
 
-tbody tr td:first-child {
-  width: 10em;
-  min-width: 10em;
-  max-width: 10em;
-  word-break: break-all;
+td:nth-child(1) {
+  width: 170px;
 }
 
 .search {

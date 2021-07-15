@@ -139,11 +139,18 @@ class DashboardTimeline extends React.Component {
 
   handleSearch(pattern) {
     if (pattern) {
+      const fuseOptions = {
+        ignoreLocation: true,
+      };
+
       const fuse = new Fuse(
-        this.props.stateManager.memory.timelineEventHistory
+        this.props.stateManager.memory.timelineEventHistory,
+        fuseOptions
       );
+
       const result = fuse.search(pattern);
       const matches = [];
+
       if (!result.length) {
         // empty results pane
         this.setState({
