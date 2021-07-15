@@ -230,6 +230,7 @@ class MCInterpreter(Interpreter):
                 speaker,
                 d.get("schematic", {}),
                 self.block_data,
+                self.color_bid_map,
                 self.special_shape_functions,
             )
         # Get the locations to build
