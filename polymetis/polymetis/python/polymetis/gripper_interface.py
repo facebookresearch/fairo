@@ -23,7 +23,6 @@ class GripperInterface:
     def _send_gripper_command(self, command, msg, blocking=True) -> None:
         if blocking:
             command(msg)
-
         else:
             threaing.Thread(target=command, args=msg).start()
 
