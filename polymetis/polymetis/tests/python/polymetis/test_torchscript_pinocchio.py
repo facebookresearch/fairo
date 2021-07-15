@@ -119,3 +119,29 @@ def test_inverse_dynamics(pybullet_env, pinocchio_wrapper, joint_states):
     )
 
     assert torch.allclose(pinocchio_id, pyb_id, atol=1e-4)
+
+
+def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
+    # Setup
+    joint_pos, joint_vel, joint_acc, num_dofs = joint_states
+    sim, robot_id, ee_idx = pybullet_env
+
+    pinocchio_fwd_kinematics = pinocchio_wrapper.forward_kinematics(
+        torch.Tensor(joint_pos)
+    )
+    pinocchio_pos, pinocchio_quat = pinocchio_fwd_kinematics
+
+    # Inverse kinematics with Pinocchio
+    pinocchio_joint_pos = pinocchio_wrapper.inverse_kinematics(
+        pinocchio_pos, pinocchio_quat
+    )
+
+    # Inverse kinematics with Pybullet
+    pos = pinocchio_pos.tolist()
+    quat = pinocchio_quat.tolist()
+    pybullet_joint_pos = torch.Tensor(
+        sim.calculateInverseKinematics(robot_id, ee_idx, pos, quat)
+    )
+
+    # Compare
+    assert torch.allclost(pinocchio_joint_pos, pybullet_joint_pos)
