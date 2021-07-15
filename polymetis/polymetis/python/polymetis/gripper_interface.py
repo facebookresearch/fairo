@@ -1,3 +1,5 @@
+import threading
+
 import grpc  # This requires `conda install grpcio protobuf`
 from polymetis_pb2 import GripperState, GripperStateDesired
 from polymetis_pb2_grpc import GripperControllerStub
@@ -18,18 +20,27 @@ class GripperInterface:
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = GripperControllerStub(self.channel)
 
+    def _send_gripper_command(self, command, msg, blocking=True) -> None:
+        if blocking:
+            command(msg)
+
+        else:
+            threaing.Thread(target=command, args=msg).start()
+
     def get_gripper_state(self) -> GripperState:
         return self.grpc_connection.GetGripperState(EMPTY)
 
-    def homing(self) -> None:
-        self.grpc_connection.Homing(EMPTY)
+    def homing(self, **kwargs) -> None:
+        self._send_gripper_command(self.grpc_connection.Homing, EMPTY)
 
-    def stop(self) -> None:
-        self.grpc_connection.Stop(EMPTY)
+    def stop(self, **kwargs) -> None:
+        self._send_gripper_command(self.grpc_connection.Stop, EMPTY, **kwargs)
 
-    def move(self, width: float, speed: float) -> None:
+    def move(self, width: float, speed: float, **kwargs) -> None:
         gripper_state_desired = GripperStateDesired(width=width, speed=speed)
-        self.grpc_connection.Move(gripper_state_desired)
+        self._send_gripper_command(
+            self.grpc_connection.Move, gripper_state_desired, **kwargs
+        )
 
     def grasp(
         self,
@@ -38,6 +49,7 @@ class GripperInterface:
         force: float,
         epsilon_inner: float = 0.005,
         epsilon_outer: float = 0.005,
+        **kwargs,
     ) -> None:
         gripper_state_desired = GripperStateDesired(
             width=width,
@@ -46,7 +58,9 @@ class GripperInterface:
             epsilon_inner=epsilon_inner,
             epsilon_outer=epsilon_outer,
         )
-        self.grpc_connection.Grasp(gripper_state_desired)
+        self._send_gripper_command(
+            self.grpc_connection.Grasp, gripper_state_desired, **kwargs
+        )
 
 
 if __name__ == "__main__":
