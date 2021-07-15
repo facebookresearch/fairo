@@ -24,13 +24,13 @@ class GripperInterface:
         if blocking:
             command(msg)
         else:
-            threaing.Thread(target=command, args=msg).start()
+            threading.Thread(target=command, args=(msg,)).start()
 
     def get_gripper_state(self) -> GripperState:
         return self.grpc_connection.GetGripperState(EMPTY)
 
     def homing(self, **kwargs) -> None:
-        self._send_gripper_command(self.grpc_connection.Homing, EMPTY)
+        self._send_gripper_command(self.grpc_connection.Homing, EMPTY, **kwargs)
 
     def stop(self, **kwargs) -> None:
         self._send_gripper_command(self.grpc_connection.Stop, EMPTY, **kwargs)
