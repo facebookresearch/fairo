@@ -153,11 +153,11 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
   torch::Tensor inverse_kinematics(torch::Tensor ee_pos,
                                    torch::Tensor ee_quat) {
-    const pinocchio::SE3 oMdes(Eigen::Matrix3d::Identity(),
-                               Eigen::Vector3d(1., 0., 1.));
     torch::Tensor result = torch::zeros(model_.nq, torch::kFloat32);
 
     // Initialize IK variables
+    const pinocchio::SE3 oMdes(Eigen::Matrix3d::Identity(),
+                               Eigen::Vector3d(1., 0., 1.));
     Eigen::VectorXd q = pinocchio::neutral(model_);
 
     pinocchio::Data::Matrix6x J(6, model_.nv);
