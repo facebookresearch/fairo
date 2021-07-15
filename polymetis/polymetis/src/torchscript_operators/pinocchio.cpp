@@ -163,19 +163,18 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     pinocchio::Data::Matrix6x J(6, model_.nv);
     J.setZero();
 
-    typedef Eigen::Matrix<double, 6, 1> Vector6d;
-    Vector6d err;
+    Eigen::Matrix<double, 6, 1> err;
     Eigen::VectorXd v(model_.nv);
 
     // Solve IK iteratively
-    for (int i = 0;; i++) {
+    for (int i = 0; i < IK_IT_MAX; i++) {
       // Compute forward kinematics error
       pinocchio::forwardKinematics(model_, model_data_, q);
       const pinocchio::SE3 dMi = oMdes.actInv(model_data_.oMi[ee_idx_]);
       err = pinocchio::log6(dMi).toVector();
 
       // Check termination
-      if (err.norm() < IK_EPS || i >= IK_IT_MAX) {
+      if (err.norm() < IK_EPS) {
         break;
       }
 
