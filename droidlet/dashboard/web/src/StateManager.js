@@ -402,15 +402,6 @@ class StateManager {
       let oldObj = id < this.curFeedState.objects.length;
       let newId = oldObj ? this.curFeedState.objects[id].id : null;
       let newXyz = oldObj ? this.curFeedState.objects[id].xyz : null;
-      // Get rid of masks with <3 points
-      let i = 0
-      while (i < pointMap[id].length) {
-        if (!pointMap[id][i] || pointMap[id][i].length < 3) {
-          pointMap[id].splice(i, 1);
-          continue
-        }
-        i++
-      }
       let newMask = pointMap[id].map(mask => mask.map((pt, i) => [pt.x * scale, pt.y * scale]))
       let newBbox = this.getNewBbox(newMask);
 

@@ -162,8 +162,7 @@ class LocobotAgent(LocoMCAgent):
             src_label = np.zeros((height, width)).astype(int)
             for n, o in enumerate(postData["prevObjects"]): 
                 poly = Polygons(o["mask"])
-                bitmap = poly.mask(height, width)
-                # TODO probably a cleaner way to do this with numpy arrays
+                bitmap = poly.mask(height, width) # not np array
                 for i in range(height): 
                     for j in range(width): 
                         if bitmap[i][j]: 
