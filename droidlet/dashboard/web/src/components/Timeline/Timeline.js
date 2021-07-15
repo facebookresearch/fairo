@@ -108,6 +108,15 @@ class DashboardTimeline extends React.Component {
 
   handleClick(item) {
     const eventObj = JSON.parse(item.title);
+    let tableArr = this.jsonToArray(eventObj);
+    this.setState({
+      searchResults: [],
+      tableBody: tableArr,
+    });
+  }
+
+  jsonToArray(eventObj) {
+    // turns JSON hook data into an array that can easily be turned into an HTML table
     let tableArr = [];
     for (let key in eventObj) {
       if (eventObj.hasOwnProperty(key)) {
@@ -125,10 +134,7 @@ class DashboardTimeline extends React.Component {
         }
       }
     }
-    this.setState({
-      searchResults: [],
-      tableBody: tableArr,
-    });
+    return tableArr;
   }
 
   handleSearch(pattern) {
@@ -146,7 +152,8 @@ class DashboardTimeline extends React.Component {
         });
       } else {
         result.forEach(({ item }) => {
-          matches.push(item);
+          const eventObj = JSON.parse(item);
+          matches.push(eventObj);
         });
         // set pane to show matches
         this.setState({
@@ -202,18 +209,24 @@ class DashboardTimeline extends React.Component {
     }
   }
 
-  renderTable() {
-    return this.state.tableBody.map((data, index) => {
-      const { event, description } = data;
-      return (
-        <tr>
-          <td>
-            <strong>{event}</strong>
-          </td>
-          <td>{description}</td>
-        </tr>
-      );
-    });
+  renderClickTable() {
+    return this.renderTable(this.state.tableBody);
+  }
+
+  renderTable(tableArr) {
+    if (tableArr) {
+      return tableArr.map((data) => {
+        const { event, description } = data;
+        return (
+          <tr>
+            <td>
+              <strong>{event}</strong>
+            </td>
+            <td>{description}</td>
+          </tr>
+        );
+      });
+    }
   }
 
   render() {
@@ -235,14 +248,17 @@ class DashboardTimeline extends React.Component {
         <div className="item">
           <p id="result">Results:</p>
           <table>
-            <tbody>{this.renderTable()}</tbody>
+            <tbody>{this.renderClickTable()}</tbody>
           </table>
-        </div>
 
-        <div className="matches">
-          {this.state.searchResults.map((item) => (
-            <li>{item}</li>
-          ))}
+          <div className="matches">
+            {this.state.searchResults.map((item) => (
+              <div>
+                {this.renderTable(this.jsonToArray(item))}
+                <hr />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
