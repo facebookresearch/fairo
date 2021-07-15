@@ -54,7 +54,7 @@ class SegmentRenderer extends React.Component {
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
     }
-    if (this.props.isFromCamera && this.props.isFirstOpen) {
+    if (this.props.isFromCamera && this.props.displayImage) {
       // drawing new image becuase for some reason the image isn't being drawn when opened from camera
       return (
         <div>

@@ -44,18 +44,16 @@ class MobileCameraPane extends React.Component {
    * only needed for development purposes, as every mobile device should have an environment camera
    */
   checkVideoConstraint() {
-    if (true) {
-      if (this.webcamRef.current) {
-        let screenshot = this.webcamRef.current.getScreenshot();
-        if (!screenshot) {
-          this.setState({
-            videoConstraints: {
-              facingMode: "user",
-              height: this.props.imageWidth,
-              width: this.props.imageWidth,
-            },
-          });
-        }
+    if (this.webcamRef.current) {
+      let screenshot = this.webcamRef.current.getScreenshot();
+      if (!screenshot) {
+        this.setState({
+          videoConstraints: {
+            facingMode: "user",
+            height: this.props.imageWidth,
+            width: this.props.imageWidth,
+          },
+        });
       }
     }
   }
@@ -82,7 +80,6 @@ class MobileCameraPane extends React.Component {
           stateManager={stateManager}
           isMobile={true}
           isFromCamera={true}
-          isFirstOpen={true}
         />
       );
     }

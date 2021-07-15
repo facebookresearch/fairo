@@ -79,7 +79,7 @@ class ObjectAnnotation extends React.Component {
     this.segRef = React.createRef();
     this.overtime = false;
     // only used because when segment renderer is first rendered, image isn't being displayed on canvas for some reason
-    this.isFirstOpen = this.props.isFirstOpen;
+    this.displayImage = true;
     setInterval(() => {
       //alert("Please finish what you're working on and click Submit Task below")
       this.overtime = true;
@@ -90,7 +90,7 @@ class ObjectAnnotation extends React.Component {
     if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
       // we have opened the polygontool
       // only here because opening segmentRenderer for the first time on mobile camera pane doesn't draw on the canvas
-      this.isFirstOpen = false;
+      this.displayImage = false;
       // Get color of object
       let curIndex = this.state.objectIds.indexOf(
         parseInt(this.state.currentMaskId)
@@ -151,7 +151,7 @@ class ObjectAnnotation extends React.Component {
             colors={COLORS}
             imageWidth={this.props.imageWidth}
             onClick={this.registerClick}
-            isFirstOpen={this.isFirstOpen}
+            displayImage={this.displayImage}
           />
           <button onClick={this.submit.bind(this)}>
             Finished annotating objects
