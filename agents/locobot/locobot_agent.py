@@ -165,14 +165,17 @@ class LocobotAgent(LocoMCAgent):
             # Convert mask points to mask maps then combine them
             categories = postData["categories"]
             src_label = np.zeros((height, width)).astype(int)
-            for o in postData["prevObjects"]: 
+            # For display only -- 2 separate chair masks will be same color here
+            display_map = np.zeros((height, width)).astype(int) 
+            for n, o in enumerate(postData["prevObjects"]): 
                 poly = Polygons(o["mask"])
                 bitmap = poly.mask(height, width) # not np array
                 index = categories.index(o["label"])
                 for i in range(height): 
                     for j in range(width): 
                         if bitmap[i][j]: 
-                            src_label[i][j] = index
+                            src_label[i][j] = n + 1
+                            display_map[i][j] = index
 
             # Attach base pose data
             pose = postData["prevBasePose"]
@@ -197,7 +200,7 @@ class LocobotAgent(LocoMCAgent):
             # Save annotation data to disk for retraining
             Path("annotation_data/seg").mkdir(parents=True, exist_ok=True)
             Path("annotation_data/rgb").mkdir(parents=True, exist_ok=True)
-            np.save("annotation_data/seg/{:05d}.npy".format(postData["frameCount"]), src_label)
+            np.save("annotation_data/seg/{:05d}.npy".format(postData["frameCount"]), display_map)
             im = Image.fromarray(src_img)
             im.save("annotation_data/rgb/{:05d}.jpg".format(postData["frameCount"]))
 
