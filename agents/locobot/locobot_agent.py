@@ -14,6 +14,10 @@ import base64
 import cv2
 from imantics import Mask, Polygons
 import numpy as np
+from PIL import Image
+from pathlib import Path
+import json
+from pycococreatortools import pycococreatortools
 
 from droidlet import dashboard
 
@@ -159,14 +163,16 @@ class LocobotAgent(LocoMCAgent):
             cur_depth = np.array(depth_imgs[1])
 
             # Convert mask points to mask maps then combine them
+            categories = postData["categories"]
             src_label = np.zeros((height, width)).astype(int)
-            for n, o in enumerate(postData["prevObjects"]): 
+            for o in postData["prevObjects"]: 
                 poly = Polygons(o["mask"])
                 bitmap = poly.mask(height, width) # not np array
+                index = categories.index(o["label"])
                 for i in range(height): 
                     for j in range(width): 
                         if bitmap[i][j]: 
-                            src_label[i][j] = n + 1
+                            src_label[i][j] = index
 
             # Attach base pose data
             pose = postData["prevBasePose"]
@@ -188,8 +194,87 @@ class LocobotAgent(LocoMCAgent):
                 objects[i-1]["mask"] = mask_points
                 objects[i-1]["type"] = "annotate"
 
+            # Save annotation data to disk for retraining
+            Path("annotation_data/seg").mkdir(parents=True, exist_ok=True)
+            Path("annotation_data/rgb").mkdir(parents=True, exist_ok=True)
+            np.save("annotation_data/seg/{:05d}.npy".format(postData["frameCount"]), src_label)
+            im = Image.fromarray(src_img)
+            im.save("annotation_data/rgb/{:05d}.jpg".format(postData["frameCount"]))
+
             # Returns an array of objects with updated masks
             sio.emit("labelPropagationReturn", objects)
+
+        @sio.on("save_annotations")
+        def save_annotations(sid, categories): 
+            seg_dir = "annotation_data/seg/"
+            img_dir = "annotation_data/rgb/"
+            coco_file_name = "annotation_data/coco_results.json"
+
+            fs = [x.split('.')[0] + '.jpg' for x in os.listdir(seg_dir)]
+
+            INFO = {}
+            LICENSES = [{}]
+            CATEGORIES = []
+            id_to_label = {}
+            removed_categories = []
+            for i, label in enumerate(categories):
+                print(categories, i, label)
+                if not label: 
+                    continue
+                CATEGORIES.append({"id": i, "name": label, "supercategory": "shape"})
+                id_to_label[i] = label
+                if label in ('floor', 'wall', 'ceiling', 'wall-plug'):
+                    removed_categories.append(i)
+
+            coco_output = {
+                "info": INFO,
+                "licenses": LICENSES,
+                "categories": CATEGORIES,
+                "images": [],
+                "annotations": [],
+            }
+
+            count = 0
+            for x in fs:
+                image_id = int(x.split('.')[0])
+                # load the annotation file
+                try:
+                    prop_path = os.path.join(seg_dir, "{:05d}.npy".format(image_id))
+                    annot = np.load(prop_path).astype(np.uint8)
+                except Exception as e:
+                    print(e)
+                    continue
+
+                img_filename = "{:05d}.jpg".format(image_id)
+                img = Image.open(os.path.join(img_dir, img_filename))
+                image_info = pycococreatortools.create_image_info(
+                    image_id, os.path.basename(img_filename), img.size
+                )
+
+                coco_output["images"].append(image_info)
+
+                # for each annotation add to coco format
+                for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
+                    try:
+                        category_info = {"id": int(i), "is_crowd": False}
+                        if category_info["id"] < 1 or category_info["id"] in removed_categories:
+                            # Exclude wall, ceiling, floor, wall-plug
+                            continue
+                    except:
+                        print("label value doesnt exist for", i)
+                        continue
+                    binary_mask = (annot == i).astype(np.uint8)
+
+                    annotation_info = pycococreatortools.create_annotation_info(
+                        count, image_id, category_info, binary_mask, img.size, tolerance=2
+                    )
+                    if annotation_info is not None:
+                        coco_output["annotations"].append(annotation_info)
+                        count += 1
+
+            with open(coco_file_name, "w") as output_json:
+                json.dump(coco_output, output_json)
+
 
     def init_memory(self):
         """Instantiates memory for the agent.
