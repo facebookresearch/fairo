@@ -110,7 +110,6 @@ class ObjectAnnotation extends React.Component {
           exitCallback={() => {
             this.setState({ currentMode: "select" });
           }}
-          imageWidth={this.props.imageWidth}
           submitCallback={this.drawingFinished.bind(this)}
           deleteLabelHandler={this.deleteLabelHandler.bind(this)}
           dataEntrySubmit={this.dataEntrySubmit.bind(this)}

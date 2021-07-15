@@ -58,10 +58,7 @@ class MobileMainPane extends React.Component {
       );
     } else if (this.state.screen === "camera") {
       displayPane = (
-        <MobileCameraPane
-          imageWidth={this.state.screenWidth - 25}
-          oldImage={this.state.objectRGB}
-        />
+        <MobileCameraPane imageWidth={this.state.screenWidth - 25} />
       );
     }
     return (

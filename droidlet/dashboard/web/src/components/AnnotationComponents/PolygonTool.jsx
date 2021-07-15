@@ -125,6 +125,7 @@ class PolygonTool extends React.Component {
     let dataEntryX = 0;
     let dataEntryY = 0;
     if (this.props.isMobile) {
+      // if is mobile, display the dataEntry at a different location
       dataEntryX = this.canvas && this.canvas.getBoundingClientRect().left;
       dataEntryY =
         this.canvas && this.canvas.getBoundingClientRect().bottom + 50;
