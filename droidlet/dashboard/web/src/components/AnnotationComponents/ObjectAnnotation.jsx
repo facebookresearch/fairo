@@ -52,7 +52,7 @@ class ObjectAnnotation extends React.Component {
       currentOverlay: null,
       currentMaskId: null,
     };
-    this.processProps(objects)
+    this.processProps(objects);
 
     this.registerClick = this.registerClick.bind(this);
     this.segRef = React.createRef();
@@ -70,14 +70,17 @@ class ObjectAnnotation extends React.Component {
     if (!this.props.objects) {
       objects = this.props.stateManager.curFeedState.objects;
     }
+    if (objects === null) {
+      objects = [];
+    }
     if (JSON.stringify(objects) !== JSON.stringify(this.objects)) {
       this.setState({
-        objectIds: [...Array(objects.length).keys()], 
-        currentMode: "select", 
+        objectIds: [...Array(objects.length).keys()],
+        currentMode: "select",
         currentOverlay: null,
         currentMaskId: null,
-      })
-      this.processProps(objects)
+      });
+      this.processProps(objects);
     }
   }
 
@@ -329,7 +332,7 @@ class ObjectAnnotation extends React.Component {
 
     for (let key in this.propertyMap) {
       if (typeof this.propertyMap[key] === typeof "") {
-        this.propertyMap[key] = this.propertyMap[key].split("\n ")
+        this.propertyMap[key] = this.propertyMap[key].split("\n ");
       }
     }
     const postData = {

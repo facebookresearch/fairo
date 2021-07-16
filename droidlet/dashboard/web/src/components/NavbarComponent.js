@@ -15,7 +15,10 @@ class NavbarComponent extends React.Component {
 
   render() {
     return (
-      <Navbar className="Navbar">
+      <Navbar
+        style={{ overflowX: "scroll", overflowY: "scroll", width: "100%" }}
+        className="Navbar"
+      >
         <Nav>
           <button
             className="button"
