@@ -175,7 +175,7 @@ dashboardLayout.registerComponent("DashboardTimeline", DashboardTimeline);
 dashboardLayout.registerComponent("TimelineResults", TimelineResults);
 dashboardLayout.registerComponent("TimelineDetails", TimelineDetails);
 
-// allows certain components to be scrollable
+// allows for css styling, e.g. to be scrollable
 dashboardLayout.on("itemCreated", function (item) {
   if (item.config.cssClass) item.element.addClass(item.config.cssClass);
 });

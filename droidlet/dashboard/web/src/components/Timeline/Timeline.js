@@ -112,6 +112,7 @@ class DashboardTimeline extends React.Component {
     if (pattern) {
       const fuseOptions = {
         ignoreLocation: true,
+        useExtendedSearch: true,
       };
 
       const fuse = new Fuse(
@@ -119,7 +120,7 @@ class DashboardTimeline extends React.Component {
         fuseOptions
       );
 
-      const result = fuse.search(pattern);
+      const result = fuse.search("'" + pattern);
       const matches = [];
 
       if (!result.length) {

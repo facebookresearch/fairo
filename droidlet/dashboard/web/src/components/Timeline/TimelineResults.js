@@ -13,7 +13,7 @@ class TimelineResults extends React.Component {
 
   render() {
     return (
-      <div className="matches">
+      <div className="subpanel">
         {this.props.stateManager.memory.timelineSearchResults.map((item) => (
           <div>
             {renderTable(jsonToArray(item))}

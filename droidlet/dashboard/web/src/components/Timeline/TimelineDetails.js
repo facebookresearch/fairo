@@ -13,7 +13,7 @@ class TimelineDetails extends React.Component {
 
   render() {
     return (
-      <div className="details">
+      <div className="subpanel">
         <table>
           <tbody>
             {renderTable(this.props.stateManager.memory.timelineDetails)}
