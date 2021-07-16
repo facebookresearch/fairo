@@ -9,6 +9,7 @@ agent using the flags --enable_timeline --log_timeline.
 import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
+import { jsonToArray } from "./TimelineUtils";
 import SearchIcon from "@material-ui/icons/Search";
 import "vis-timeline/styles/vis-timeline-graph2d.css";
 import "./Timeline.css";
@@ -79,12 +80,6 @@ class DashboardTimeline extends React.Component {
     this.timeline = {};
     this.appRef = createRef();
     this.prevEvent = "";
-    this.state = {
-      // used to construct table on click
-      tableBody: [],
-      // used to return results from search
-      searchResults: [],
-    };
   }
 
   componentDidMount() {
@@ -108,33 +103,10 @@ class DashboardTimeline extends React.Component {
 
   handleClick(item) {
     const eventObj = JSON.parse(item.title);
-    let tableArr = this.jsonToArray(eventObj);
-    this.setState({
-      searchResults: [],
-      tableBody: tableArr,
-    });
-  }
-
-  jsonToArray(eventObj) {
-    // turns JSON hook data into an array that can easily be turned into an HTML table
-    let tableArr = [];
-    for (let key in eventObj) {
-      if (eventObj.hasOwnProperty(key)) {
-        // stringify JSON object for logical form
-        if (key === "logical_form") {
-          tableArr.push({
-            event: this.capitalizeEvent(key),
-            description: JSON.stringify(eventObj[key]),
-          });
-        } else {
-          tableArr.push({
-            event: this.capitalizeEvent(key),
-            description: eventObj[key],
-          });
-        }
-      }
-    }
-    return tableArr;
+    let tableArr = jsonToArray(eventObj);
+    this.props.stateManager.memory.timelineSearchResults = [];
+    this.props.stateManager.memory.timelineDetails = tableArr;
+    this.props.stateManager.updateTimeline();
   }
 
   handleSearch(pattern) {
@@ -153,37 +125,23 @@ class DashboardTimeline extends React.Component {
 
       if (!result.length) {
         // empty results pane
-        this.setState({
-          tableBody: [],
-          searchResults: [],
-        });
+        this.props.stateManager.memory.timelineSearchResults = [];
+        this.props.stateManager.memory.timelineDetails = [];
       } else {
         result.forEach(({ item }) => {
           const eventObj = JSON.parse(item);
           matches.push(eventObj);
         });
         // set pane to show matches
-        this.setState({
-          tableBody: [],
-          searchResults: matches,
-        });
+        this.props.stateManager.memory.timelineSearchResults = matches;
+        this.props.stateManager.memory.timelineDetails = [];
       }
     } else {
       // empty results pane
-      this.setState({
-        tableBody: [],
-        searchResults: [],
-      });
+      this.props.stateManager.memory.timelineSearchResults = [];
+      this.props.stateManager.memory.timelineDetails = [];
     }
-  }
-
-  capitalizeEvent(str) {
-    // replaces underscores with spaces
-    str = str.replace(/_/g, " ");
-    // capitalizes the first letter of every word
-    return str.replace(/\w\S*/g, function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
+    this.props.stateManager.updateTimeline();
   }
 
   renderEvent() {
@@ -216,26 +174,6 @@ class DashboardTimeline extends React.Component {
     }
   }
 
-  renderClickTable() {
-    return this.renderTable(this.state.tableBody);
-  }
-
-  renderTable(tableArr) {
-    if (tableArr) {
-      return tableArr.map((data) => {
-        const { event, description } = data;
-        return (
-          <tr>
-            <td>
-              <strong>{event}</strong>
-            </td>
-            <td>{description}</td>
-          </tr>
-        );
-      });
-    }
-  }
-
   render() {
     this.renderEvent();
     return (
@@ -251,22 +189,6 @@ class DashboardTimeline extends React.Component {
         />
 
         <div ref={this.appRef} />
-
-        <div className="item">
-          <p id="result">Results:</p>
-          <table>
-            <tbody>{this.renderClickTable()}</tbody>
-          </table>
-
-          <div className="matches">
-            {this.state.searchResults.map((item) => (
-              <div>
-                {this.renderTable(this.jsonToArray(item))}
-                <hr />
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     );
   }

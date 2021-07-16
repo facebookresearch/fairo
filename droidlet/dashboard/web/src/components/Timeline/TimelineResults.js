@@ -3,6 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 
 import React from "react";
+import { renderTable, jsonToArray } from "./TimelineUtils";
+import "./Timeline.css";
 
 class TimelineResults extends React.Component {
   componentDidMount() {
@@ -11,8 +13,13 @@ class TimelineResults extends React.Component {
 
   render() {
     return (
-      <div>
-        <p>Placeholder for timeline results.</p>
+      <div className="matches">
+        {this.props.stateManager.memory.timelineSearchResults.map((item) => (
+          <div>
+            {renderTable(jsonToArray(item))}
+            <hr />
+          </div>
+        ))}
       </div>
     );
   }

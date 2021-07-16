@@ -90,8 +90,6 @@ var config = {
                 {
                   title: "Timeline",
                   type: "column",
-                  // type: "react-component",
-                  // component: "DashboardTimeline",
                   content: [
                     {
                       title: "Timeline",
@@ -117,7 +115,6 @@ var config = {
                       ],
                     },
                   ],
-                  // props: { stateManager: stateManager },
                 },
                 {
                   title: "Program the assistant",

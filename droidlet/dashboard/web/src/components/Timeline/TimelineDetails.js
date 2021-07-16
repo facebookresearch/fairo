@@ -3,6 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 
 import React from "react";
+import { renderTable } from "./TimelineUtils";
+import "./Timeline.css";
 
 class TimelineDetails extends React.Component {
   componentDidMount() {
@@ -11,8 +13,12 @@ class TimelineDetails extends React.Component {
 
   render() {
     return (
-      <div>
-        <p>Placeholder for timeline details.</p>
+      <div className="details">
+        <table>
+          <tbody>
+            {renderTable(this.props.stateManager.memory.timelineDetails)}
+          </tbody>
+        </table>
       </div>
     );
   }
