@@ -24,3 +24,16 @@ code {
 .dragging-memory2d {
   cursor: move;
 }
+
+.scrollable .lm_content {
+  overflow: auto;
+  overflow-x: hidden;
+}
+
+.lm_splitter.lm_vertical .lm_drag_handle {
+  height: 15px;
+}
+
+.lm_splitter.lm_horizontal .lm_drag_handle {
+  width: 15px;
+}

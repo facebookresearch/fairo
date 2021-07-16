@@ -104,7 +104,6 @@ class DashboardTimeline extends React.Component {
   handleClick(item) {
     const eventObj = JSON.parse(item.title);
     let tableArr = jsonToArray(eventObj);
-    this.props.stateManager.memory.timelineSearchResults = [];
     this.props.stateManager.memory.timelineDetails = tableArr;
     this.props.stateManager.updateTimeline();
   }
@@ -126,7 +125,6 @@ class DashboardTimeline extends React.Component {
       if (!result.length) {
         // empty results pane
         this.props.stateManager.memory.timelineSearchResults = [];
-        this.props.stateManager.memory.timelineDetails = [];
       } else {
         result.forEach(({ item }) => {
           const eventObj = JSON.parse(item);
@@ -134,12 +132,10 @@ class DashboardTimeline extends React.Component {
         });
         // set pane to show matches
         this.props.stateManager.memory.timelineSearchResults = matches;
-        this.props.stateManager.memory.timelineDetails = [];
       }
     } else {
       // empty results pane
       this.props.stateManager.memory.timelineSearchResults = [];
-      this.props.stateManager.memory.timelineDetails = [];
     }
     this.props.stateManager.updateTimeline();
   }

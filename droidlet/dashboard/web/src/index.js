@@ -93,21 +93,24 @@ var config = {
                   content: [
                     {
                       title: "Timeline",
+                      cssClass: "scrollable",
                       type: "react-component",
                       component: "DashboardTimeline",
                       props: { stateManager: stateManager },
                     },
                     {
-                      type: "stack",
+                      type: "row",
                       content: [
                         {
                           title: "Results",
+                          cssClass: "scrollable",
                           type: "react-component",
                           component: "TimelineResults",
                           props: { stateManager: stateManager },
                         },
                         {
                           title: "Details",
+                          cssClass: "scrollable",
                           type: "react-component",
                           component: "TimelineDetails",
                           props: { stateManager: stateManager },
@@ -171,5 +174,11 @@ dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
 dashboardLayout.registerComponent("DashboardTimeline", DashboardTimeline);
 dashboardLayout.registerComponent("TimelineResults", TimelineResults);
 dashboardLayout.registerComponent("TimelineDetails", TimelineDetails);
+
+// allows certain components to be scrollable
+dashboardLayout.on("itemCreated", function (item) {
+  if (item.config.cssClass) item.element.addClass(item.config.cssClass);
+});
+
 dashboardLayout.init();
 stateManager.dashboardLayout = dashboardLayout;
