@@ -67,7 +67,7 @@ class FacingInterpreter:
             else:
                 # TODO in the task make this relative!
                 try:
-                    deg = int(number_from_span(d["relative_pitch"]["angle"]))
+                    deg = int(number_from_span(d["relative_pitch"]))
                     return {"relative_pitch": deg}
                 except:
                     pass
