@@ -20,13 +20,18 @@ import json
 from pycococreatortools import pycococreatortools
 from sklearn.model_selection import train_test_split
 
-from droidlet import dashboard
+from detectron2 import model_zoo
+from detectron2.config import get_cfg
+from detectron2.data.datasets import register_coco_instances
+from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_test_loader
+from detectron2.engine import DefaultTrainer
+from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
+from droidlet import dashboard
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
     dashboard.start()
-
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
@@ -280,9 +285,10 @@ class LocobotAgent(LocoMCAgent):
         @sio.on("retrain_detector")
         def retrain_detector(sid): 
             
-            annotation_path = "annotation_data/coco_results.json"
-            train_path = "annotation_data/train.json"
-            test_path = "annotation_data/test.json"
+            folder_path = "annotation_data/"
+            annotation_path = folder_path + "coco_results.json"
+            train_path = folder_path + "train.json"
+            test_path = folder_path + "test.json"
             train_split = 0.7
 
             # 1) Split coco json file into train and test using cocosplit code
@@ -322,7 +328,48 @@ class LocobotAgent(LocoMCAgent):
                 save_coco(test_path, info, licenses, y_images, y_annots, categories)
 
             # 2) Use train/test files to retrain detector
+            dataset_name = "annotation_coco"
+            image_dir = folder_path + "rgb/"
+            train_data = dataset_name + "_train"
+            test_data = dataset_name + "_test"
 
+            if train_data in DatasetCatalog.list(): 
+                DatasetCatalog.remove(train_data)
+            register_coco_instances(train_data, {}, train_path, image_dir)
+            if test_data in DatasetCatalog.list(): 
+                DatasetCatalog.remove(test_data)
+            register_coco_instances(test_data, {}, train_path, image_dir)
+
+            MetadataCatalog.get(train_data)
+            coco_yaml = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+
+            cfg = get_cfg()
+            cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
+            cfg.DATASETS.TRAIN = (train_data,)
+            cfg.DATASETS.TEST = ()
+            cfg.DATALOADER.NUM_WORKERS = 2
+            cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
+            cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
+            cfg.OUTPUT_DIR = "annotation_data/output"
+            cfg.SOLVER.IMS_PER_BATCH = 2
+            cfg.SOLVER.BASE_LR = 0.005 # Make sure LR is good
+            cfg.SOLVER.MAX_ITER = 100 # 300 is good for small datasets
+            
+            # Train
+            os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
+            trainer = DefaultTrainer(cfg)
+            trainer.resume_or_load(resume=False)
+            trainer.train()
+
+            # Evaluate
+            evaluator = COCOEvaluator(test_data, ("bbox", "segm"), False, output_dir="../../annotation_data/output/")
+            val_loader = build_detection_test_loader(cfg, test_data)
+            inference = inference_on_dataset(trainer.model, val_loader, evaluator)
+            
+            # inference keys: bbox, semg
+            # bbox and segm keys: AP, AP50, AP75, APs, APm, AP1, AP-category1, ...
+            inference_json = json.loads(json.dumps(inference).replace("NaN", "null"))
+            sio.emit("annotationRetrain", inference_json)
 
 
     def init_memory(self):

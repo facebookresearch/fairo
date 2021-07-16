@@ -238,6 +238,7 @@ class StateManager {
     socket.on("map", this.processMap);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
     socket.on("labelPropagationReturn", this.labelPropagationReturn);
+    socket.on("annotationRetrain", this.annotationRetrain);
   }
 
   updateStateManagerMemory(data) {
@@ -525,6 +526,10 @@ class StateManager {
 
   retrainDetector() {
     this.socket.emit("retrain_detector")
+  }
+
+  annotationRetrain(res) {
+    console.log("retrained!", res)
   }
 
   processMemoryState(msg) {
