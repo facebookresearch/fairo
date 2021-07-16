@@ -1,0 +1,77 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+#description {
+  text-align: center;
+}
+
+#result {
+  margin-top: 0px;
+}
+
+.item {
+  border: 1px solid #bfbfbf;
+  border-top: 0px;
+  padding: 15px;
+}
+
+.vis-timeline {
+  overflow: visible;
+}
+
+.vis-labelset .vis-label {
+  color: white;
+}
+
+.vis-time-axis .vis-text {
+  color: white;
+}
+.vis-label.vis-nested-group.vis-group-level-unknown-but-gte1 {
+  background: none;
+}
+
+.vis-label.vis-nested-group.vis-group-level-unknown-but-gte1 .vis-inner {
+  padding-left: 20px !important;
+}
+
+.vis-group-level-unknown-but-gte1 {
+  border: none;
+}
+
+.vis-item.perceive {
+  background-color: #c0d6df;
+}
+
+.vis-item.dialogue {
+  background-color: #f7b2ad;
+}
+
+.vis-item.interpreter {
+  background-color: #d4ffd4;
+}
+
+pre {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+table,
+td {
+  border: 0;
+  vertical-align: top;
+}
+
+tbody tr td:first-child {
+  width: 10em;
+  min-width: 10em;
+  max-width: 10em;
+  word-break: break-all;
+}

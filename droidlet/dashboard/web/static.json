@@ -1,0 +1,8 @@
+{
+    "root": "build/",
+    "routes": {
+      "/mobile**": "mobile.html",
+      "/turk**": "turk.html",
+      "/**": "index.html"
+    }
+  }

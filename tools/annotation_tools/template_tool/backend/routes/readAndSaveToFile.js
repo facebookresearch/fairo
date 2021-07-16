@@ -46,14 +46,43 @@ router.get("/get_commands", function (req, res, next) {
 });
 
 /***
+ * Fetch the commands we want to label
+ */
+router.get("/get_fragments", function (req, res, next) {
+  if (fs.existsSync("fragments.txt")) {
+    // the file exists
+    fs.readFile("fragments.txt", function (err, data) {
+      if (err) throw err;
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.write(data.toString());
+      return res.end();
+    });
+  }
+});
+
+/***
  * Fetch progress on labels
  */
 router.get("/get_labels_progress", function (req, res, next) {
-  if (fs.existsSync("command_dict_pairs.json")) {
+  if (fs.existsSync("../frontend/src/command_dict_pairs.json")) {
     // the file exists
-    fs.readFile("command_dict_pairs.json", function (err, data) {
+    fs.readFile("../frontend/src/command_dict_pairs.json", function (err, data) {
       if (err) throw err;
-      console.log(data.toString())
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.write(data);
+      return res.end();
+    });
+  }
+});
+
+/***
+ * Fetch previously labelled templates
+ */
+router.get("/get_templates", function (req, res, next) {
+  if (fs.existsSync("templates_autocomplete.json")) {
+    // the file exists
+    fs.readFile("templates_autocomplete.json", function (err, data) {
+      if (err) throw err;
       res.writeHead(200, { "Content-Type": "application/json" });
       res.write(data);
       return res.end();
@@ -73,9 +102,12 @@ router.post("/", function (req, res, next) {
   res.send("post is working properly");
 });
 
-router.post("/append", function (req, res, next) {
+/**
+ * Write labelled pairs
+ */
+router.post("/writeLabels", function (req, res, next) {
   console.log(req.body);
-  fs.appendFile("command_dict_pairs.txt", "hi" + JSON.stringify(req.body) + "\n", function (err) {
+  fs.writeFile("../frontend/src/command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;
@@ -85,11 +117,11 @@ router.post("/append", function (req, res, next) {
 });
 
 /**
- * Write labelled pairs
+ * Write Templates
  */
-router.post("/writeLabels", function (req, res, next) {
+router.post("/writeTemplates", function (req, res, next) {
   console.log(req.body);
-  fs.writeFile("command_dict_pairs.json", JSON.stringify(req.body, undefined, 4), function (err) {
+  fs.writeFile("templates_autocomplete.json", JSON.stringify(req.body, undefined, 4), function (err) {
     // err is an error other than fileNotExists
     // if file does not exist, writeFile will create it
     if (err) throw err;
@@ -102,15 +134,17 @@ router.post("/writeLabels", function (req, res, next) {
  * Write labelled pairs
  */
 router.post("/uploadDataToS3", function (req, res, next) {
-  console.log(req.body);
-  const execSync = require('child_process').execSync;
-  const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py');
-  console.log('Postprocessing Output was:\n', postprocessing_output);
+  try {
+    console.log(req.body);
+    const execSync = require('child_process').execSync;
+    const postprocessing_output = execSync('python ../../../data_processing/autocomplete_postprocess.py --source_path ../frontend/src/command_dict_pairs.json');
+    console.log('Postprocessing Output was:\n', postprocessing_output);
+  }
+  catch (error) {
+    return res.status(500).json({ error: error.toString() });
+  }
 
-  const s3_output = execSync('aws s3 cp autocomplete_annotations.txt  s3://craftassist/pubr/high_pri_commands.txt');
-  console.log('S3 Output was:\n', postprocessing_output);
-
-  res.send("upload data is working properly");
+  res.send("Saved processed dataset to ~/droidlet/craftassist/agent/datasets/full_data/");
 });
 
 module.exports = router;

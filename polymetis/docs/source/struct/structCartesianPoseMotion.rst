@@ -1,0 +1,4 @@
+Struct CartesianPoseMotion
+==========================
+
+.. doxygenstruct:: CartesianPoseMotion

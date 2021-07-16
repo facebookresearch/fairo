@@ -1,0 +1,4 @@
+Struct RobotClientContext
+=========================
+
+.. doxygenstruct:: RobotClientContext

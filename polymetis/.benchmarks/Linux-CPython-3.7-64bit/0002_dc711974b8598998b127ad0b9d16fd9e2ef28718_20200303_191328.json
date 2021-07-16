@@ -1,0 +1,219 @@
+{
+    "machine_info": {
+        "node": "cleo-control",
+        "processor": "x86_64",
+        "machine": "x86_64",
+        "python_compiler": "GCC 7.3.0",
+        "python_implementation": "CPython",
+        "python_implementation_version": "3.7.6",
+        "python_version": "3.7.6",
+        "python_build": [
+            "default",
+            "Jan  8 2020 19:59:22"
+        ],
+        "release": "4.14.78-rt47-preempt-rt",
+        "system": "Linux",
+        "cpu": {
+            "vendor_id": "GenuineIntel",
+            "hardware": "unknown",
+            "brand": "Intel(R) Core(TM) i7-7567U CPU @ 3.50GHz"
+        }
+    },
+    "commit_info": {
+        "id": "dc711974b8598998b127ad0b9d16fd9e2ef28718",
+        "time": "2020-03-03T11:12:18-08:00",
+        "author_time": "2020-03-03T11:12:18-08:00",
+        "dirty": false,
+        "project": "controller-manager",
+        "branch": "yl-dynamics-controllers"
+    },
+    "benchmarks": [
+        {
+            "group": null,
+            "name": "test_controller_step[PDControlPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[PDControlPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[PDControlPolicy()]"
+            },
+            "param": "PDControlPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 7.172500772867352e-05,
+                "max": 0.00015449900820385665,
+                "mean": 7.392857352865865e-05,
+                "stddev": 5.9398289694063495e-06,
+                "rounds": 692,
+                "median": 7.291400106623769e-05,
+                "iqr": 5.740002961829305e-07,
+                "q1": 7.265199383255094e-05,
+                "q3": 7.322599412873387e-05,
+                "iqr_outliers": 47,
+                "stddev_outliers": 25,
+                "outliers": "25;47",
+                "ld15iqr": 7.184699643403292e-05,
+                "hd15iqr": 7.411200203932822e-05,
+                "ops": 13526.569664060225,
+                "total": 0.05115857288183179,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[DirectTorquePolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[DirectTorquePolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[DirectTorquePolicy()]"
+            },
+            "param": "DirectTorquePolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 5.970901111140847e-05,
+                "max": 0.0001489790010964498,
+                "mean": 6.189345973586878e-05,
+                "stddev": 6.772359106870801e-06,
+                "rounds": 703,
+                "median": 6.0794001910835505e-05,
+                "iqr": 6.709960871376097e-07,
+                "q1": 6.041849701432511e-05,
+                "q3": 6.108949310146272e-05,
+                "iqr_outliers": 38,
+                "stddev_outliers": 25,
+                "outliers": "25;38",
+                "ld15iqr": 5.970901111140847e-05,
+                "hd15iqr": 6.211501022335142e-05,
+                "ops": 16156.795956592412,
+                "total": 0.043511102194315754,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[IlqrPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[IlqrPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[IlqrPolicy()]"
+            },
+            "param": "IlqrPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 5.9672005590982735e-05,
+                "max": 0.00017126000602729619,
+                "mean": 6.27540329761927e-05,
+                "stddev": 9.072730173351394e-06,
+                "rounds": 511,
+                "median": 6.096799916122109e-05,
+                "iqr": 6.445188773795962e-07,
+                "q1": 6.067773938411847e-05,
+                "q3": 6.132225826149806e-05,
+                "iqr_outliers": 33,
+                "stddev_outliers": 26,
+                "outliers": "26;33",
+                "ld15iqr": 5.983900337014347e-05,
+                "hd15iqr": 6.237199704628438e-05,
+                "ops": 15935.230814239058,
+                "total": 0.032067310850834474,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[JointGoToPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[JointGoToPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[JointGoToPolicy(\n  (robot_model): RobotModelTorch(\n    original_name=RobotModelTorch\n    (_bodies): ModuleList(\n      original_name=ModuleList\n      (0): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (1): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (2): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (3): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (4): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (5): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (6): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (7): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (8): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n    )\n  )\n)]"
+            },
+            "param": "JointGoToPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 6.157699681352824e-05,
+                "max": 0.001156817001174204,
+                "mean": 0.00018429277364962867,
+                "stddev": 0.000341598796477483,
+                "rounds": 35,
+                "median": 6.253700121305883e-05,
+                "iqr": 1.2020063877571374e-06,
+                "q1": 6.217925329110585e-05,
+                "q3": 6.338125967886299e-05,
+                "iqr_outliers": 7,
+                "stddev_outliers": 4,
+                "outliers": "4;7",
+                "ld15iqr": 6.157699681352824e-05,
+                "hd15iqr": 6.681800005026162e-05,
+                "ops": 5426.148731697787,
+                "total": 0.0064502470777370036,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[OperationalSpaceController]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[OperationalSpaceController]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[OperationalSpaceController(\n  (robot_model): RobotModelTorch(\n    original_name=RobotModelTorch\n    (_bodies): ModuleList(\n      original_name=ModuleList\n      (0): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (1): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (2): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (3): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (4): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (5): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (6): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (7): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n      (8): RigidBody(\n        original_name=RigidBody\n        (inertia): RigidBodyInertia(original_name=RigidBodyInertia)\n      )\n    )\n  )\n)]"
+            },
+            "param": "OperationalSpaceController",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 6.201499490998685e-05,
+                "max": 0.0011549959890544415,
+                "mean": 0.00015476594328194752,
+                "stddev": 0.00029896437729906583,
+                "rounds": 36,
+                "median": 6.270499579841271e-05,
+                "iqr": 1.2425007298588753e-06,
+                "q1": 6.250049773370847e-05,
+                "q3": 6.374299846356735e-05,
+                "iqr_outliers": 6,
+                "stddev_outliers": 3,
+                "outliers": "3;6",
+                "ld15iqr": 6.201499490998685e-05,
+                "hd15iqr": 7.245900633279234e-05,
+                "ops": 6461.369851752415,
+                "total": 0.005571573958150111,
+                "iterations": 1
+            }
+        }
+    ],
+    "datetime": "2020-03-03T19:13:33.393960",
+    "version": "3.2.3"
+}

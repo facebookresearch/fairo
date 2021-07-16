@@ -1,0 +1,15 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+
+.Navbar {
+  position: fixed;
+  bottom: 0px;
+}
+
+.button {
+  background-color: white;
+  color: black;
+  border-radius: 12px;
+  border: 2px solid #000000;
+}

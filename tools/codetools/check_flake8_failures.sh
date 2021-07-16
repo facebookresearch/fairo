@@ -47,5 +47,5 @@ if [[ $1 == "--ci" ]]; then
     fi
 else
     # run flake8 locally on all files
-    flake8 ./base_agent/
+    flake8 ./droidlet/
 fi

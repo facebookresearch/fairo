@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package>
+  <name>polymetis</name>
+  <version>0.0.1</version>
+  <description>gRPC implementation of controller manager.</description>
+  <maintainer email="yixinlin@fb.com">Yixin Lin</maintainer>
+  <license>TODO</license>
+  <author email="yixinlin@fb.com">Yixin Lin</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <export>
+  </export>
+</package>

@@ -1,0 +1,18 @@
+defaults:
+  - robot_model: franka_panda
+robot_client:
+  _target_: polymetis.robot_client.executable_robot_client.ExecutableRobotClient
+  use_real_time: false
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [0, 0, 0, 0, 0, 0, 0]
+    default_Kqd: [0, 0, 0, 0, 0, 0, 0]
+    hz: 1000
+    robot_model_cfg: ${robot_model}
+  executable_cfg:
+    server_address: "localhost:50051"
+    use_real_time: false
+    num_dofs: ${robot_model.num_dofs}
+
+    exec: test_server
+    robot_client_metadata_path: ???

@@ -1,0 +1,4 @@
+Class StopMoveCommand
+=====================
+
+.. doxygenclass:: StopMoveCommand

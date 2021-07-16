@@ -1,0 +1,13 @@
+# Doxyfile 1.9.1
+
+PROJECT_NAME           = "FAIR Controller Manager"
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+GENERATE_XML           = YES
+XML_OUTPUT             = doxyxml
+XML_NS_MEMB_FILE_SCOPE = YES

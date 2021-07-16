@@ -1,0 +1,4 @@
+Class CircularBuffer
+====================
+
+.. doxygenclass:: CircularBuffer

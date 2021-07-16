@@ -1,0 +1,178 @@
+<!-- Bootstrap v3.0.3 -->
+<link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<!-- Modal --><!-- MODAL -->
+
+<div
+  aria-hidden="true"
+  aria-labelledby="exampleModalLabel"
+  class="modal fade in"
+  id="exampleModal"
+  role="dialog"
+  tabindex="-1"
+>
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button
+          aria-label="Close"
+          class="close"
+          data-dismiss="modal"
+          type="button"
+        >
+          <span aria-hidden="true"> &times; </span>
+        </button>
+      </div>
+
+      <div class="modal-body" id="modal">&nbsp;</div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-dismiss="modal" type="button">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Content -->
+
+<section
+  class="container"
+  id="Other"
+  style="
+    margin-bottom: 15px;
+    padding: 10px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 0.9em;
+  "
+>
+  <div class="row col-xs-12 col-md-12">
+    <!-- Instructions -->
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <strong> Instructions </strong>
+      </div>
+      <div class="panel-body" id="instructions">
+        <p>
+            <h1><strong>Interact with an assistant in a 3-D world creative game.</strong></h1>            
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_world_agent.png" width="320" height="240"></iframe>
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_2.png" width="320" height="240"></iframe>
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_3.png" width="320" height="240"></iframe>
+            
+            <p><b>Imagine you are playing a creative game in a 3-D voxel world and you have access to an assistant (as shown in some screenshots above) that can help you get things done.</b><br />
+            <b>Use your imagination and creativity to interact with the assistant. In the setup here, you will be logged in to the voxel world along with the assistant.</b> You can control your position in the 3-D world by clicking on the bottom-left pane and then using the navigation buttons.<br />
+            </p>
+
+            <p><b style="color:#FF0000;">IMPORTANT: You must click "start" and "end" session in the bottom right pane for your interactions to be recorded!
+            
+              Please note that you will only get paid if you:
+              <p> 1. Click "start" in the bottom right to begin session. Interact with the bot for full 5 minutes. </p> 
+              <p> 2. Once you are done interacting, click on "end" in the bottom right. </p> 
+              <p> 3. Click on "Submit" button at the bottom. </p> 
+            
+            </b></p>
+
+            <h3>How to enter voxel world and control</h3>
+            <p>Please click on the upper right pane to enter the 3-D voxel world.<br />
+            <b>Please use ‘w/a/s/d’ to move ‘forward/left/back/right’ , ‘space’ to jump and ‘esc’ to leave the world and back to the website.</b><br /></p>
+            
+            
+            <h3>Interacting with the assistant</h3>
+            <p>Please use the <b>chat box in the top left pane</b> to speak with and instruct the assistant. <br />
+            <p>We ask that you interact with the agent for <b>at least 5 minutes.</b></p> 
+            <b>Press “submit” when you are ready to send the command to the assistant</b>. Once you send the command, you should be able to see the assistant execute the command in the 3-D world on bottom-left. The assistant might also send you replies once in a while and you can see that below the “Submit” button. <br />
+            <b>The bot might be slow to respond due to network lag. You may expect a few seconds between sending a command and getting responses from the agent (we are improving it!).Please be patient and do not send multiple commands at a time</b>
+            
+            <p>On the bottom left you will be able to see a history of the last 5 commands you’ve sent to the assistant in the game. </p>
+            <b>Keep in mind that the bot is non-violent. </b></p>
+            <p>&nbsp;</p>
+            
+            <b>You can assume that the bot has the following capabilities:</b>
+            <ul>
+                <li><b>Move</b> (the bot can be told to move around to places, objects, things etc)</li>
+                <li><b>Build</b> (the bot can be told to build things)</li>
+                <li><b>Destroy</b> (the bot can be told to destroy things)</li>
+                <li><b>Dance</b> (the bot can be told to do a movement of some kind)</li>
+                <li><b>Get</b> (the bot can be told to get things from one place to another)</li>
+                <li><b>Tag</b> (the bot can be told to tag things)</li>
+                <li><b>Dig</b> (the bot can be told to dig up things)</li>
+                <li><b>Copy</b> (the bot can be told to make a copy of things)</li>
+                <li><b>Undo</b> (the bot can be told to revert things)</li>
+                <li><b>Fill</b> (the bot can be told to fill up structures)</li>
+                <li><b>Spawn</b> (the bot can be told to spawn objects)</li>
+                <li><b>Answer</b> (the bot can be told to answer your questions)</li>
+                <li><b>Stop</b> (the bot can be told to stop)</li>
+                <li><b>Resume</b> (the bot can be told to resume an earlier action)</li>
+            </ul>
+            <br />
+            <p><b>You can talk to the bot as you would to another human player to instruct it to perform actions mentioned above, ask it questions, or to give it information.</b></p><br />
+            
+            <h3> Mark Errors </h3>
+            <p>If the agent fails to do something you asked, please mark the failure! <br />
+            <p>This is done by clicking the <b style="color:#FF0000;">MARK ERROR</b> button next to the command. </p> 
+            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mark_errors_big_button.png" width="640" height="570"></iframe>
+            <p>If the agent fails, you will be prompted for more information.</p> 
+
+            <b>Please use your imagination to come up with things you'd like to say to the bot to make the interaction rich, given the bot’s capabilities. Be as creative as you can.</b> </br>
+            <b>The instructions should be related to the bot's capabilities, please give us as much variety as you can.</b><br />
+            <b>Remember that the bot is non-violent. Please click on the start button when you are ready and once finished, click on the “end” button to proceed to next steps.</b>
+            <p><strong><span style="color:#FF0000;">Rejection policy: You HIT will be rejected if any of these are violated</span></strong></p>
+            
+            <ul>
+              <li>The submitted instructions should be valid English sentences.</li>
+              <li>The submitted instructions should only be about the bot's capabilities.</li>
+              <li>Please be as creative as you can.</li>
+              <li>Do not leave an instruction blank.</li>
+              <li>All three instructions should be unique.</li>
+              <li>Do not use the exact same strategies across HITs.</li>
+            </ul>            
+        </p>
+      </div>
+    </div>
+    <!-- End Instructions -->
+    <!-- Content Body -->
+    <!-- End Content Body -->
+  </div>
+</section>
+
+<section
+  class="container"
+  id="Other"
+  style="
+    margin-bottom: 15px;
+    padding: 10px;
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 0.9em;
+    height: 1000px;
+  "
+>
+<iframe style="width:100%; height:100%;" src="https://${subdomain}.craftassist.io/turk.html?turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+</section>
+
+
+<script>
+  $(function () {
+    modal_body = $("#modal");
+    $("#instructions").clone().appendTo(modal_body);
+    $(".modal").modal("show");
+  });
+</script>
+
+<style type="text/css">
+  fieldset {
+    padding: 10px;
+    background: #fbfbfb;
+    border-radius: 5px;
+    margin-bottom: 5px;
+  }
+
+  .input_location {
+    background-color: blanchedalmond;
+    padding: 10px;
+  }
+</style>

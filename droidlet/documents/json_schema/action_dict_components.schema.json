@@ -1,0 +1,278 @@
+{
+  "$id": "action_dict_components.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Subcomponents of action dictionaries",
+  "type": "object",
+  "definitions": {
+    "condition": {
+      "description": "currently subdict of remove condition. WIP.",
+      "type": "object",
+      "properties": {
+        "comparison_type": {
+          "enum": [
+            "EQUAL"
+          ]
+        },
+        "input_left": {
+          "$ref": "#/definitions/input_left"
+        },
+        "input_right": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "$ref": "#/definitions/span"
+            }
+          }
+        }
+      }
+    },
+    "input_left": {
+      "type": "object",
+      "properties": {
+        "value_extractor": {
+          "$ref": "#/definitions/value_extractor"
+        }
+      }
+    },
+    "span": {
+      "$ref": "span.schema.json#/definitions/span"
+    },
+    "special": {
+      "type": "object",
+      "properties": {
+        "fixed_value": {
+          "enum": [
+            "THIS"
+          ]
+        }
+      }
+    },
+    "fixed_value": {
+      "type": "string"
+    },
+    "has_measure": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/span"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "fixed_value": {
+              "$ref": "#/definitions/fixed_value"
+            }
+          }
+        }
+      ]
+    },
+    "location": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "text_span": {
+              "$ref": "#/definitions/span"
+            },
+            "steps": {
+              "$ref": "#/definitions/span"
+            },
+            "has_measure": {
+              "$ref": "#/definitions/has_measure"
+            },
+            "contains_coreference": {
+              "enum": [
+                "yes"
+              ]
+            },
+            "relative_direction": {
+              "enum": [
+                "LEFT",
+                "RIGHT",
+                "UP",
+                "DOWN",
+                "FRONT",
+                "BACK",
+                "AWAY",
+                "INSIDE",
+                "NEAR",
+                "OUTSIDE",
+                "AROUND",
+                "BETWEEN",
+                "ANTICLOCKWISE",
+                "CLOCKWISE"
+              ]
+            },
+            "reference_object": {
+              "$ref": "#/definitions/reference_object"
+            },
+            "reference_object_1": {
+              "$ref": "#/definitions/reference_object"
+            },
+            "reference_object_2": {
+              "$ref": "#/definitions/reference_object"
+            }
+          }
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "reference_object": {
+      "type": "object",
+      "properties": {
+        "special_reference": {
+          "$ref": "#/definitions/special_reference"
+        },
+        "text_span": {
+          "$ref": "#/definitions/span"
+        },
+        "filters": {
+          "$ref": "filters.schema.json#/definitions/filters"
+        }
+      }
+    },
+    "remove_condition": {
+      "type": "object",
+      "description": "Condition for removing an event",
+      "properties": {
+        "condition_type": {
+          "enum": [
+            "COMPARATOR"
+          ]
+        },
+        "condition": {
+          "$ref": "#/definitions/condition"
+        }
+      }
+    },
+    "special_reference": {
+      "oneOf": [
+        {
+          "properties": {
+            "fixed_value": {
+              "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "coordinates_span": {
+              "$ref": "#/definitions/span"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "stop_condition": {
+      "type": "object",
+      "description": "Condition for stopping a repeat",
+      "properties": {
+        "condition_type": {
+          "enum": [
+            "ADJACENT_TO_BLOCK_TYPE",
+            "NEVER"
+          ]
+        },
+        "block_type": {
+          "$ref": "#/definitions/span"
+        }
+      }
+    },
+    "schematic": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "$ref": "filters.schema.json#/definitions/filters"
+        },
+        "text_span": {
+          "$ref": "#/definitions/span"
+        }
+      },
+      "required": [
+        "filters"
+      ]
+    },
+    "repeat": {
+      "type": "object",
+      "properties": {
+        "repeat_key": {
+          "enum": [
+            "ALL"
+          ]
+        },
+        "repeat_dir": {
+          "enum": [
+            "LEFT",
+            "RIGHT",
+            "UP",
+            "DOWN",
+            "FRONT",
+            "BACK",
+            "AROUND",
+            "SURROUND"
+          ]
+        }
+      }
+    },
+    "facing": {
+      "type": "object",
+      "properties": {
+        "text_span": {
+          "$ref": "#/definitions/span"
+        },
+        "yaw_pitch": {
+          "$ref": "#/definitions/span"
+        },
+        "yaw": {
+          "$ref": "#/definitions/span"
+        },
+        "pitch": {
+          "$ref": "#/definitions/span"
+        },
+        "relative_yaw": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/span"
+            },
+            {
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
+            }
+          ]
+        },
+        "relative_pitch": {
+          "oneOf": [
+            {
+              "$ref": "#/definitions/span"
+            },
+            {
+              "properties": {
+                "fixed_value": {
+                  "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                }
+              }
+            }
+          ]
+        },
+        "location": {
+          "$ref": "#/definitions/location"
+        }
+      }
+    },
+    "dance_type": {
+      "type": "object",
+      "properties": {
+        "filters": {
+          "$ref": "filters.schema.json#/definitions/filters"
+        }
+      }
+    }
+  }
+}

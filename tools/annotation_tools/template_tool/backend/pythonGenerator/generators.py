@@ -41,8 +41,8 @@ def get_absolute_path_to_key(json, key):
 
 
 def set_span(code, surface_form, span_value):
-    """ This function sets the span value in a dictionary given
-    a span value """
+    """This function sets the span value in a dictionary given
+    a span value"""
     span_array = span_value.split(" ")
     surface_form_words = surface_form.split(" ")
     start_span = surface_form_words.index(span_array[0])
@@ -70,7 +70,7 @@ def set_span(code, surface_form, span_value):
 
 class Generator:
     """This is a Generator class that is initialised for templates
-    using template information saved from the template interface """
+    using template information saved from the template interface"""
 
     def __init__(self, information):
 
@@ -98,18 +98,18 @@ class Generator:
         return generation
 
     def next(self):
-        """ next function following the iterable pattern """
+        """next function following the iterable pattern"""
         cur = self.get_generation()
         return cur
 
     def get_generation(self):
-        """ This function returns the generations for a template """
+        """This function returns the generations for a template"""
         return generate_template(self.info)
 
 
 def generate_template(info):
-    """ This function generates template surface-logical
-     forms given information about the template """
+    """This function generates template surface-logical
+    forms given information about the template"""
     surface_form = ""
     chosen_surface_forms = []
     for target_list in info["surfaceForms"]:
@@ -135,12 +135,13 @@ def generate_template(info):
         info["code"] = {}
     dictionary = {}
     dictionary = generate_dictionary(info["code"])
+    surface_form = surface_form.strip()
     return [surface_form, dictionary]
 
 
 def generate_dictionary(code, i=0, skeletal=None):
-    """ This function generates the action dictionary given an array
-    of action dictionaries """
+    """This function generates the action dictionary given an array
+    of action dictionaries"""
     if skeletal is None:
         skeletal = {}
     if i == len(code):

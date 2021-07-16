@@ -1,4 +1,4 @@
-# droidlet
+<img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br>
 
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
@@ -7,6 +7,8 @@
 `droidlet` is an ***early research project for AI researchers*** to explore ideas around *grounded dialogue*, *interactive learning* and *human-computer interfaces*.
 
 `droidlet` is in active development and is fairly unstable in design, API, performance and correctness. It is not meant for any production use.
+
+*Reach out to us at droidlet@fb.com, to discuss your use case or just share your thoughts!*
 
 <p align="center">
    <img src="https://locobot-bucket.s3-us-west-2.amazonaws.com/documentation/droidlet.gif" />
@@ -60,15 +62,20 @@ cd droidlet
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 2. Install dependencies
+        <td> 3. Install dependencies
         <sub><pre lang="bash">
+conda create -n droidlet_env python=3.7 \
+   pytorch==1.7.1 torchvision==0.8.2 \
+   cudatoolkit=11.0 -c pytorch
+conda activate droidlet_env
 pip install -r \
-    locobot/requirements.txt
+    agents/locobot/requirements.txt
+python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
 pip install -r \
-    craftassist/requirements.txt
+    agents/craftassist/requirements.txt
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
@@ -76,25 +83,25 @@ pip install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 3. <a href="https://github.com/facebookresearch/droidlet/blob/main/locobot/README.md"> Instructions for running the Locobot agent</a>
+        <td> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/agents/locobot/README.md"> Instructions for running the Locobot agent</a>
         </td>
         <td>
-        3. <a href="https://github.com/facebookresearch/droidlet/blob/main/craftassist/README.md">Instructions for running the Craftassist agent</a>
+        <a href='https://github.com/facebookresearch/droidlet/blob/main/agents/craftassist/README.md'> Instructions for running the Craftassist agent</a>
         </td>
         <td>
         <br/>
         </td>
     </tr>
         <tr valign="top">
-        <td colspan=3> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
+        <td colspan=3> 5. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
         </td>      
     </tr>    
     <tr valign="top" align="center">
-        <td colspan=3> 5. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
+        <td colspan=3> 6. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
         </td>
     </tr>
     <tr valign="top" align="center">
-        <td colspan=3> 6. Agent-specific API Documentation</a>
+        <td colspan=3> 7. Agent-specific API Documentation</a>
         </td>
     </tr>
     <tr valign="top">        
@@ -109,7 +116,6 @@ pip install -r requirements.txt
         </td>
     </tr>
   </table>
-</p>
 
 
 ## Documentation, Tutorials and Papers
@@ -118,6 +124,21 @@ pip install -r requirements.txt
 Two papers cover the design of droidlet:
 1. [droidlet: modular, heterogenous, multi-modal agents](https://arxiv.org/abs/2101.10384) covers the overall design of `droidlet` as an embodied AI platform that is extensible to physical robots and simulators.
 2. [CraftAssist: A Framework for Dialogue-enabled Interactive Agents](https://arxiv.org/abs/1907.08584) covers the design of the dialogue parser and the task system of an earlier version of `droidlet` that is specific to the game [Minecraft](https://www.minecraft.net/en-us)
+
+## Citation
+
+If you use droidlet in your work, please cite our [arXiv paper](https://arxiv.org/abs/2101.10384):
+
+```
+@misc{pratik2021droidlet,
+      title={droidlet: modular, heterogenous, multi-modal agents}, 
+      author={Anurag Pratik and Soumith Chintala and Kavya Srinet and Dhiraj Gandhi and Rebecca Qian and Yuxuan Sun and Ryan Drew and Sara Elkafrawy and Anoushka Tiwari and Tucker Hart and Mary Williamson and Abhinav Gupta and Arthur Szlam},
+      year={2021},
+      eprint={2101.10384},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO}
+}
+```
 
 ## License
 

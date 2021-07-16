@@ -1,0 +1,14 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: stable
+    hooks:
+      - id: black
+        language_version: python3
+  - repo: local
+    hooks:
+      - id: cpp-format
+        name: C++ formatting
+        description: Runs format_cpp.sh
+        entry: polymetis/scripts/format_cpp.sh
+        args: [format]
+        language: script

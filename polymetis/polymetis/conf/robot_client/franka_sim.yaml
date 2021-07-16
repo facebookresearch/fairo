@@ -1,0 +1,21 @@
+ip: localhost
+hz: 240
+gui: true
+use_grav_comp: true
+use_real_time: true
+
+robot_client:
+  _target_: polysim.grpc_sim_client.GrpcSimulationClient
+  env_cfg:
+    _target_: polysim.envs.BulletManipulatorEnv
+    gui: ${gui}
+    use_grav_comp: ${use_grav_comp}
+    robot_model_cfg: ${robot_model}
+  metadata_cfg:
+    _target_: polymetis.robot_client.metadata.RobotClientMetadata
+    default_Kq: [20, 30, 25, 25, 15, 10, 10]
+    default_Kqd: [1.0, 1.5, 1.0, 1.0, 0.5, 0.5, 0.5]
+    hz: ${hz}
+    robot_model_cfg: ${robot_model}
+  ip: ${ip}
+  port: ${port}

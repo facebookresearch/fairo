@@ -194,15 +194,19 @@ if __name__ == "__main__":
         "turn": ["facing"],
         "get": ["receiver_location"],
     }
-    print("""
+    print(
+        """
     <HTMLQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2011-11-11/HTMLQuestion.xsd">
     <HTMLContent><![CDATA[
-    """)
+    """
+    )
     print(BEFORE)
-    print("""
+    print(
+        """
         <script type='text/javascript' src='https://s3.amazonaws.com/mturk-public/externalHIT_v1.js'></script>
         <form name='mturk_form' method='post' id='mturk_form' action='https://workersandbox.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
-    """)
+    """
+    )
     for action in action_children.keys():
         for child in action_children[action]:
             question = get_questions(child, action, optional_words.get(action, None))
@@ -228,14 +232,16 @@ if __name__ == "__main__":
                     render_output += """</div><br><br>"""
                     print(render_output)
 
-    print("""
+    print(
+        """
         <p><input type='submit' id='submitButton' value='Submit' /></p></form>
         <script language='Javascript'>
         turkSetAssignmentID();
         const queryString = window.location.search;
         console.log(queryString);
         let urlParams = new URLSearchParams(queryString);
-        const highlightRange = urlParams.get('range').split(",").map(Number);
+
+        const highlightRange = JSON.parse(urlParams.get("highlight_words"))[0]
         console.log(highlightRange)
         highlightStart = highlightRange[0]
         highlightEnd = highlightRange[1]
@@ -275,11 +281,14 @@ if __name__ == "__main__":
         }
         document.body.appendChild(styleNode);
         </script>
-    """)
+    """
+    )
     print(AFTER)
-    print("""
+    print(
+        """
       ]]>
   </HTMLContent>
   <FrameHeight>600</FrameHeight>
   </HTMLQuestion>
-    """)
+    """
+    )
