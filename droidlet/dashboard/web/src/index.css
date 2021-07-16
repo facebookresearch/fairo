@@ -28,6 +28,7 @@ code {
 .scrollable .lm_content {
   overflow: auto;
   overflow-x: hidden;
+  background: #333333;
 }
 
 .lm_splitter.lm_vertical .lm_drag_handle {

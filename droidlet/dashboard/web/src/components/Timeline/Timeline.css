@@ -10,6 +10,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
   margin-top: 0px;
 }
 
+.matches {
+  margin: 30px;
+}
+
+.details {
+  margin: 30px;
+}
+
 .vis-timeline {
   overflow: visible;
 }
