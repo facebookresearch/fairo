@@ -90,6 +90,7 @@ class StateManager {
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
     this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
     this.saveAnnotations = this.saveAnnotations.bind(this);
+    this.annotationRetrain = this.annotationRetrain.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -101,7 +102,7 @@ class StateManager {
     this.setTurkWorkerId(turkWorkerId);
 
     // set default url to actual ip:port
-    this.default_url = window.location.host;
+    // this.default_url = window.location.host;
     this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");
@@ -526,10 +527,31 @@ class StateManager {
 
   retrainDetector() {
     this.socket.emit("retrain_detector")
+    // let hi = {
+    //   segm: {
+    //     AP: 100, 
+    //     AP50: 50, 
+    //     AP75: 75,
+    //     "AP-chair": 80, 
+    //     "AP-desk": 81, 
+    //     "AP-monitor": null, 
+    //     APl: null, 
+    //     APm: 30, 
+    //     APs: null,
+    //   }
+    // }
+    // this.annotationRetrain(hi)
   }
 
   annotationRetrain(res) {
     console.log("retrained!", res)
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          modelMetrics: res
+        })
+      }
+    });
   }
 
   processMemoryState(msg) {

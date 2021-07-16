@@ -34,11 +34,14 @@ class LiveObjects extends React.Component {
     this.onFixup = this.onFixup.bind(this);
     this.onAnnotationSave = this.onAnnotationSave.bind(this);
     this.onRetrain = this.onRetrain.bind(this);
+    this.onModelSwitch = this.onModelSwitch.bind(this);
+
     this.initialState = {
       height: props.height,
       width: props.width,
       rgb: null,
       objects: null,
+      modelMetrics: null,
     };
     this.state = this.initialState;
   }
@@ -111,6 +114,12 @@ class LiveObjects extends React.Component {
   onRetrain() {
     if (this.props.stateManager) {
       this.props.stateManager.retrainDetector()
+    }
+  }
+
+  onModelSwitch() {
+    if (this.props.stateManager) {
+      // this.props.stateManager.switchModel()
     }
   }
 
@@ -208,6 +217,19 @@ class LiveObjects extends React.Component {
       }
     });
 
+    let updatedModelDiv = null;
+    if (this.state.modelMetrics) {
+      let segm = this.state.modelMetrics.segm
+      let evalText = Object.keys(segm).map(key => <div>{key + ": " + segm[key]}</div>)
+      updatedModelDiv = (
+        <div>
+          <div>New model trained!</div>
+          Evalution: {evalText}
+          <button onClick={this.onModelSwitch}>Switch</button>
+        </div>
+      )
+    }
+
     return (
       <Rnd
         default={{
@@ -228,6 +250,7 @@ class LiveObjects extends React.Component {
         <button onClick={this.onFixup}>Fix</button>
         <button onClick={this.onAnnotationSave}>Save</button>
         <button onClick={this.onRetrain}>Retrain</button>
+        {updatedModelDiv}
       </Rnd>
     );
   }
