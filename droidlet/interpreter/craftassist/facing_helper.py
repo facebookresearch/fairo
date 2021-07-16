@@ -44,16 +44,16 @@ class FacingInterpreter:
         elif d.get("relative_yaw"):
             # TODO in the task use turn angle
             if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
-                left = "left" in span or "leave" in span  # lemmatizer :)
-                degrees = number_from_span(span) or 90
+                left = "left" in d["relative_yaw"] or "leave" in d["relative_yaw"]  # lemmatizer :)
+                degrees = number_from_span(d["relative_yaw"]) or 90
                 if degrees > 0 and left:
                     return {"relative_yaw": -degrees}
                 else:
                     return {"relative_yaw": degrees}
             else:
                 try:
-                    deg = int(d["relative_yaw"])
-                    return {"relative_yaw": deg}
+                    degrees = int(number_from_span(d["relative_yaw"]))
+                    return {"relative_yaw": degrees}
                 except:
                     pass
         elif d.get("relative_pitch"):
@@ -67,7 +67,7 @@ class FacingInterpreter:
             else:
                 # TODO in the task make this relative!
                 try:
-                    deg = int(d["relative_pitch"]["angle"])
+                    deg = int(number_from_span(d["relative_pitch"]["angle"]))
                     return {"relative_pitch": deg}
                 except:
                     pass
