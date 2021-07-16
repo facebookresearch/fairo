@@ -31,7 +31,6 @@ class SegmentRenderer extends React.Component {
     this.update = this.update.bind(this);
     this.onClick = this.onClick.bind(this);
     this.regions = {}; // array of mask sets
-
     this.canvasRef = React.createRef();
     this.imgRef = React.createRef();
   }
@@ -58,18 +57,35 @@ class SegmentRenderer extends React.Component {
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
     }
-    return (
-      <div>
-        <canvas
-          ref={this.canvasRef}
-          width={imageSize}
-          height={imageSize}
-          tabIndex="0"
-          onMouseMove={this.onMouseMove}
-          onKeyDown={this.keyDown}
-        ></canvas>
-      </div>
-    );
+    if (this.props.isFromCamera && this.props.displayImage) {
+      // drawing new image becuase for some reason the image isn't being drawn when opened from camera
+      return (
+        <div>
+          <img src={this.props.img.src} />
+          <canvas
+            ref={this.canvasRef}
+            width={imageSize}
+            height={imageSize}
+            tabIndex="0"
+            onMouseMove={this.onMouseMove}
+            onKeyDown={this.keyDown}
+          ></canvas>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <canvas
+            ref={this.canvasRef}
+            width={imageSize}
+            height={imageSize}
+            tabIndex="0"
+            onMouseMove={this.onMouseMove}
+            onKeyDown={this.keyDown}
+          ></canvas>
+        </div>
+      );
+    }
   }
 
   update() {

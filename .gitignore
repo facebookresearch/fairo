@@ -50,6 +50,7 @@ agents.locobot/*.log
 agents/locobot/models
 agents/locobot/datasets
 agents/locobot/dashboard_data.db
+agents/locobot/dashboard_data.db-journal
 droidlet/perception/robot/tests/test_assets/perception_handlers
 .ropeproject
 agents/craftassist/timeline_log*

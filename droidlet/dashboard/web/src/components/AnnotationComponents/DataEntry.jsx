@@ -35,8 +35,15 @@ class DataEntry extends React.Component {
 
   render() {
     if (this.props.isMobile) {
+      // remove fixed for isMobile so textbox doesn't get hidden by keyboard
       return (
-        <div className="data-entry-root data-entry-block-mobile">
+        <div
+          className="data-entry-root"
+          style={{
+            top: this.props.y + "px",
+            left: this.props.x + "px",
+          }}
+        >
           <input
             placeholder="Object Name"
             ref={this.nameRef}
