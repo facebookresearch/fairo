@@ -144,4 +144,4 @@ def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
     )
 
     # Compare
-    assert torch.allclost(pinocchio_joint_pos, pybullet_joint_pos)
+    assert torch.allclose(pinocchio_joint_pos, pybullet_joint_pos)
