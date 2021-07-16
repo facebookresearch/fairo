@@ -17,3 +17,4 @@ wordcloud
 fuzzywuzzy
 krovetz
 open3d
+sklearn

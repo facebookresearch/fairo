@@ -18,6 +18,7 @@ from PIL import Image
 from pathlib import Path
 import json
 from pycococreatortools import pycococreatortools
+from sklearn.model_selection import train_test_split
 
 from droidlet import dashboard
 
@@ -209,9 +210,9 @@ class LocobotAgent(LocoMCAgent):
         def save_annotations(sid, categories): 
             seg_dir = "annotation_data/seg/"
             img_dir = "annotation_data/rgb/"
-            coco_file_name = "coco_results.json"
+            coco_file_name = "annotation_data/coco_results.json"
 
-            fs = [x.split('.')[0] + '.jpg' for x in os.listdir(seg_dir)]
+            fs = [x.split(".")[0] + ".jpg" for x in os.listdir(seg_dir)]
 
             INFO = {}
             LICENSES = [{}]
@@ -224,7 +225,7 @@ class LocobotAgent(LocoMCAgent):
                     continue
                 CATEGORIES.append({"id": i, "name": label, "supercategory": "shape"})
                 id_to_label[i] = label
-                if label in ('floor', 'wall', 'ceiling', 'wall-plug'):
+                if label in ("floor", "wall", "ceiling", "wall-plug"):
                     removed_categories.append(i)
 
             coco_output = {
@@ -237,7 +238,7 @@ class LocobotAgent(LocoMCAgent):
 
             count = 0
             for x in fs:
-                image_id = int(x.split('.')[0])
+                image_id = int(x.split(".")[0])
                 # load the annotation file
                 try:
                     prop_path = os.path.join(seg_dir, "{:05d}.npy".format(image_id))
@@ -275,6 +276,53 @@ class LocobotAgent(LocoMCAgent):
         
             with open(coco_file_name, "w") as output_json:
                 json.dump(coco_output, output_json)
+
+        @sio.on("retrain_detector")
+        def retrain_detector(sid): 
+            
+            annotation_path = "annotation_data/coco_results.json"
+            train_path = "annotation_data/train.json"
+            test_path = "annotation_data/test.json"
+            train_split = 0.7
+
+            # 1) Split coco json file into train and test using cocosplit code
+            # Adapted from https://github.com/akarazniewicz/cocosplit/blob/master/cocosplit.py
+            with open(annotation_path, "rt", encoding="UTF-8") as annotations_file: 
+                
+                # Extract info from json
+                coco = json.load(annotations_file)
+                info = coco["info"]
+                licenses = coco["licenses"]
+                images = coco["images"]
+                annotations = coco["annotations"]
+                categories = coco["categories"]
+
+                # Remove images without annotations
+                images_with_annotations = set(map(lambda a: int(a["image_id"]), annotations))
+                images = list(filter(lambda i: i["id"] in images_with_annotations, images))
+
+                # Split images and annotations
+                x_images, y_images = train_test_split(images, train_size=train_split)
+                x_ids = list(map(lambda i: int(i["id"]), x_images))
+                x_annots = list(filter(lambda a: int(a["image_id"]) in x_ids, annotations))
+                y_ids = list(map(lambda i: int(i["id"]), y_images))
+                y_annots = list(filter(lambda a: int(a["image_id"]) in y_ids, annotations))
+
+                # Save to file
+                def save_coco(file, info, licenses, images, annotations, categories): 
+                    with open(file, 'wt', encoding="UTF-8") as coco: 
+                        json.dump({ 
+                            "info": info, 
+                            "licenses": licenses, 
+                            "images": images, 
+                            "annotations": annotations, 
+                            "categories": categories
+                        }, coco, indent=2, sort_keys=True)
+                save_coco(train_path, info, licenses, x_images, x_annots, categories)
+                save_coco(test_path, info, licenses, y_images, y_annots, categories)
+
+            # 2) Use train/test files to retrain detector
+
 
 
     def init_memory(self):
