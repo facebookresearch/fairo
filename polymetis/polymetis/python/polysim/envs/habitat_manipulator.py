@@ -1,3 +1,5 @@
+from typing import List
+from omegaconf import OmegaConf
 import os
 import numpy as np
 import torch
@@ -73,7 +75,7 @@ def place_agent(sim):
 
 def place_robot_from_agent(
     sim,
-    robot_id,
+    robot,
     angle_correction=-1.56,
     local_base_pos=None,
 ):
@@ -85,7 +87,7 @@ def place_robot_from_agent(
         mn.Rad(angle_correction), mn.Vector3(1.0, 0, 0)
     )
     base_transform.translation = agent_transform.transform_point(local_base_pos)
-    sim.set_articulated_object_root_state(robot_id, base_transform)
+    robot.transformation = base_transform
 
 
 class HabitatManipulatorEnv(AbstractControlledEnv):
@@ -98,37 +100,40 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         joint_damping=0.1,
         grav_comp=True,
     ):
+        # Save static parameters
         self.hz = hz
         self.dt = 1.0 / self.hz
         self.gui = gui
         self.n_dofs = robot_model_cfg.num_dofs
         self.grav_comp = grav_comp
 
+        # Save robot model configurations
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
             self.robot_model_cfg.robot_description_path
         )
 
+        # Create Pinocchio model (for gravity compensation)
         self.robot_model = toco.models.RobotModelPinocchio(
             self.robot_description_path, self.robot_model_cfg.ee_joint_name
         )
 
+        # Start Habitat simulator
         self.habitat_cfg = make_configuration(habitat_dir)
         self.sim = habitat_sim.Simulator(self.habitat_cfg)
         place_agent(self.sim)
 
-        self.robot_id = self.sim.add_articulated_object_from_urdf(
-            self.robot_description_path, True
+        # Load robot
+        self.robot = (
+            self.sim.get_articulated_object_manager().add_articulated_object_from_urdf(
+                self.robot_description_path, fixed_base=True
+            )
         )
+        place_robot_from_agent(self.sim, self.robot)
 
-        self.sim.set_articulated_object_motion_type(
-            self.robot_id, habitat_sim.physics.MotionType.DYNAMIC
-        )
-        assert (
-            self.sim.get_articulated_object_motion_type(self.robot_id)
-            == habitat_sim.physics.MotionType.DYNAMIC
-        )
+        self.robot.auto_clamp_joint_limits = True
 
+        # Set correct joint damping values
         for motor_id in range(self.n_dofs):
             joint_motor_settings = habitat_sim.physics.JointMotorSettings(
                 0.0,  # position_target
@@ -137,28 +142,31 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
                 joint_damping,  # velocity_gain
                 0.0,  # max_impulse
             )
-            self.sim.update_joint_motor(self.robot_id, motor_id, joint_motor_settings)
-            self.sim.set_articulated_link_friction(self.robot_id, motor_id, 0.0)
+            self.robot.update_joint_motor(motor_id, joint_motor_settings)
 
         self.reset()
 
-    def reset(self):
-        self.sim.reset_articulated_object(self.robot_id)
-        place_robot_from_agent(self.sim, self.robot_id)
+    def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
+        """Reset articulated object"""
+        if joint_pos is None:
+            joint_pos = OmegaConf.to_container(self.robot_model_cfg.rest_pose)
+        if joint_vel is None:
+            joint_vel = [0.0] * self.n_dofs
+
+        self.robot.joint_positions = joint_pos
+        self.robot.joint_velocities = joint_vel
 
     def get_num_dofs(self):
         return self.n_dofs
 
     def get_current_joint_pos_vel(self):
-        pos = self.sim.get_articulated_object_positions(self.robot_id)
-        vel = self.sim.get_articulated_object_velocities(self.robot_id)
-        return pos, vel
+        return self.robot.joint_positions, self.robot.joint_velocities
 
     def get_current_joint_torques(self):
-        tau = self.sim.get_articulated_object_forces(self.robot_id)
+        tau = self.robot.joint_forces
         return (tau, tau, tau, tau)
 
-    def grav_comp(self, pos, vel):
+    def compute_grav_comp(self, pos, vel):
         return (
             self.robot_model.inverse_dynamics(
                 torch.tensor(pos),
@@ -173,22 +181,21 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
     def apply_joint_torques(self, torques):
         pos, vel = self.get_current_joint_pos_vel()
 
-        grav_comp_torques = self.grav_comp(pos, vel)
+        grav_comp_torques = self.compute_grav_comp(pos, vel)
         if self.grav_comp:
             applied_torques = (np.array(torques) + grav_comp_torques).tolist()
         else:
             applied_torques = torques
 
-        curr_torques = self.sim.get_articulated_object_forces(
-            self.robot_id
-        )  # should always be 0 at this point
+        curr_torques = self.robot.joint_forces  # should always be 0 at this point
         if curr_torques != [0, 0, 0, 0, 0, 0, 0]:
             # Extremely important; otherwise occasionally the simulation will
             # put the articulated object to sleep (maybe limit violations?)
-            assert self.sim.get_articulated_object_sleep(self.robot_id)
-            self.sim.set_articulated_object_sleep(self.robot_id, False)
+            assert not self.robot.awake
+            self.robot.awake = True
 
-        self.sim.set_articulated_object_forces(self.robot_id, applied_torques)
+        # self.sim.set_articulated_object_forces(self.robot_id, applied_torques)
+        self.robot.joint_forces = applied_torques
         self.sim.step_physics(self.dt)
 
         if self.gui:
