@@ -15,7 +15,7 @@
 
 1. Install polymetis using conda. This should pull the latest successful build from `main` branch.
     ```bash
-    conda install -c fair-robotics -c conda-forge polymetis
+    conda install -c fair-robotics -c aihabitat -c conda-forge polymetis
     ```
 
 ## For advanced users & developers
@@ -88,6 +88,7 @@ We rebuild a new conda package during CI on every pushed commit, and store it as
         ```bash
         conda install -c file://$(eval pwd)/conda/channel \
             -c fair-robotics \
+            -c aihabitat \
             -c conda-forge \
             polymetis
         ```
