@@ -25,15 +25,17 @@ class Perception:
 
     Args:
         model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
+        model_file_name (string): model filename (default: "model_999.pth")
     """
 
-    def __init__(self, model_data_dir):
+    def __init__(self, model_data_dir, model_file_name=""):
         self.model_data_dir = model_data_dir
+        self.model_file_name = model_file_name
 
-        def slow_perceive_init(weights_dir):
+        def slow_perceive_init(weights_dir, model_file_name):
             return AttributeDict(
                 {
-                    "detector": ObjectDetection(weights_dir),
+                    "detector": ObjectDetection(weights_dir, model_file_name),
                     "human_pose": HumanPose(weights_dir),
                     "face_recognizer": FaceRecognition(),
                     "tracker": ObjectTracking(),
@@ -48,7 +50,7 @@ class Perception:
             return rgb_depth, detections, humans, xyz
 
         self.vprocess = BackgroundTask(init_fn=slow_perceive_init,
-                                   init_args=(model_data_dir,),
+                                   init_args=(model_data_dir,model_file_name,),
                                     process_fn=slow_perceive_run)
         self.vprocess.start()
         self.slow_vision_ready = True

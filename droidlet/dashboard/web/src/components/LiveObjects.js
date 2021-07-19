@@ -119,7 +119,7 @@ class LiveObjects extends React.Component {
 
   onModelSwitch() {
     if (this.props.stateManager) {
-      // this.props.stateManager.switchModel()
+      this.props.stateManager.switchModel()
     }
   }
 

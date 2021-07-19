@@ -43,8 +43,9 @@ class ObjectDetection(AbstractHandler):
         model_data_dir (string): path to the model directory
     """
 
-    def __init__(self, model_data_dir):
-        self.detector = DetectorBase(model_data_dir)
+    def __init__(self, model_data_dir, model_file_name):
+        # Use model_999.pth as default
+        self.detector = DetectorBase(model_data_dir, model_file_name or detector_weights)
 
     def __call__(self, rgb_depth):
         """the inference logic for the handler lives here.
@@ -83,7 +84,7 @@ class ObjectDetection(AbstractHandler):
 class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
-    def __init__(self, model_data_dir):
+    def __init__(self, model_data_dir, model_file_name):
         with open(os.path.join(model_data_dir, properties), "rb") as h:
             self.properties = pickle.load(h)
             logging.info("{} properties".format(len(self.properties)))
@@ -92,7 +93,7 @@ class DetectorBase:
             self.things = pickle.load(h)
             logging.info("{} things".format(len(self.things)))
 
-        weights = os.path.join(model_data_dir, detector_weights)
+        weights = os.path.join(model_data_dir, model_file_name)
         self.dataset_name = "dummy_dataset"
         self.predictor = get_predictor(
             lvis_yaml, weights, self.dataset_name, self.properties, self.things

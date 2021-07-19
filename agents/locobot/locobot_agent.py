@@ -19,6 +19,7 @@ from pathlib import Path
 import json
 from pycococreatortools import pycococreatortools
 from sklearn.model_selection import train_test_split
+import pickle
 
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
@@ -342,6 +343,7 @@ class LocobotAgent(LocoMCAgent):
 
             MetadataCatalog.get(train_data)
             coco_yaml = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+            output_dir = "annotation_data/output"
 
             cfg = get_cfg()
             cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
@@ -350,7 +352,7 @@ class LocobotAgent(LocoMCAgent):
             cfg.DATALOADER.NUM_WORKERS = 2
             cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
             cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
-            cfg.OUTPUT_DIR = "annotation_data/output"
+            cfg.OUTPUT_DIR = output_dir
             cfg.SOLVER.IMS_PER_BATCH = 2
             cfg.SOLVER.BASE_LR = 0.005 # Make sure LR is good
             cfg.SOLVER.MAX_ITER = 100 # 300 is good for small datasets
@@ -360,6 +362,8 @@ class LocobotAgent(LocoMCAgent):
             trainer = DefaultTrainer(cfg)
             trainer.resume_or_load(resume=False)
             trainer.train()
+            new_model_path = os.path.join(self.opts.perception_model_dir, "model_final.pth")
+            os.replace(os.path.join(output_dir, "model_final.pth"), new_model_path)
 
             # Evaluate
             evaluator = COCOEvaluator(test_data, ("bbox", "segm"), False, output_dir="../../annotation_data/output/")
@@ -370,6 +374,11 @@ class LocobotAgent(LocoMCAgent):
             # bbox and segm keys: AP, AP50, AP75, APs, APm, AP1, AP-category1, ...
             inference_json = json.loads(json.dumps(inference).replace("NaN", "null"))
             sio.emit("annotationRetrain", inference_json)
+
+        @sio.on("switch_detector")
+        def switch_detector(sid): 
+            print("switching to", self.opts.perception_model_dir, "model_final.pth")
+            self.perception_modules["vision"] = Perception(self.opts.perception_model_dir, "model_final.pth")
 
 
     def init_memory(self):

@@ -90,7 +90,9 @@ class StateManager {
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
     this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
     this.saveAnnotations = this.saveAnnotations.bind(this);
+    this.retrainDetector = this.retrainDetector.bind(this); 
     this.annotationRetrain = this.annotationRetrain.bind(this);
+    this.switchModel = this.switchModel.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -135,6 +137,7 @@ class StateManager {
     }
     this.frameCount = 0
     this.categories = new Set()
+    this.properties = new Set()
   }
 
   setDefaultUrl() {
@@ -462,6 +465,8 @@ class StateManager {
     let prevObjects = this.prevFeedState.objects.filter(o => o.type === "annotate")
     for (let i in prevObjects) {
       this.categories.add(prevObjects[i].label)
+      let prevProperties = prevObjects[i].properties.split("\n ")
+      prevProperties.forEach(p => this.properties.add(p))
     }
     let labelProps = {
       prevRgbImg: this.prevFeedState.rgbImg, 
@@ -522,7 +527,9 @@ class StateManager {
 
   saveAnnotations() {
     let categories = [null, ...this.categories] // Include null so category indices start at 1
+    let properties = [...this.properties]
     this.socket.emit("save_annotations", categories)
+    this.socket.emit("save_categories_properties", categories, properties)
   }
 
   retrainDetector() {
@@ -552,6 +559,11 @@ class StateManager {
         })
       }
     });
+  }
+
+  switchModel() {
+    console.log('switching models')
+    this.socket.emit("switch_detector")
   }
 
   processMemoryState(msg) {
