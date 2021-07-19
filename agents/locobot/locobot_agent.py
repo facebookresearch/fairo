@@ -283,6 +283,44 @@ class LocobotAgent(LocoMCAgent):
             with open(coco_file_name, "w") as output_json:
                 json.dump(coco_output, output_json)
 
+        @sio.on("save_categories_properties")
+        def save_categories_properties(sid, categories, properties): 
+
+            # # To open pickle files
+            # with open(os.path.join(self.opts.perception_model_dir, "things.pickle"), "rb") as h:
+            #     things = set(pickle.load(h)[1:])
+            #     print(things)
+            # with open(os.path.join(self.opts.perception_model_dir, "prop.pickle"), "rb") as h:
+            #     props = set(pickle.load(h))
+            #     print(props)
+
+            # Load existing categories & properties
+            file_dir = self.opts.perception_model_dir
+            things_path = os.path.join(file_dir, "things.json")
+            props_path = os.path.join(file_dir, "props.json")
+            with open(things_path, "rt") as file: 
+                things_dict = json.load(file)
+                cats = set(things_dict["items"])
+            with open(props_path, "rt") as file: 
+                props_dict = json.load(file)
+                props = set(props_dict["items"])
+
+            # Add new categories & properties
+            cats.update(categories[1:]) # Don't add null
+            cats_json = {
+                "items": list(cats), 
+            }
+            props.update(properties)
+            props_json = {
+                "items": list(props), 
+            }
+
+            # Write to file
+            with open(things_path, "w") as file: 
+                json.dump(cats_json, file)
+            with open(props_path, "w") as file: 
+                json.dump(props_json, file)
+
         @sio.on("retrain_detector")
         def retrain_detector(sid): 
             
