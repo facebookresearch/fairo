@@ -8,8 +8,6 @@ from omegaconf import DictConfig
 import habitat_sim
 import magnum as mn
 
-import cv2
-
 from polysim.envs import AbstractControlledEnv
 from polymetis.utils.data_dir import get_full_path_to_urdf
 
@@ -94,11 +92,11 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
     def __init__(
         self,
         robot_model_cfg: DictConfig,
-        hz: int,
         habitat_dir: str,
-        gui=False,
-        joint_damping=0.1,
-        grav_comp=True,
+        hz: int = 240,
+        joint_damping: float = 0.1,
+        grav_comp: bool = True,
+        gui: bool = False,
     ):
         # Save static parameters
         self.hz = hz
@@ -199,10 +197,13 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.sim.step_physics(self.dt)
 
         if self.gui:
+            import cv2
+
             obs = self.sim.get_sensor_observations()
+            img = obs["rgba_camera_1stperson"]
 
             cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
-            cv2.imshow("Habitat", obs["rgba_camera_1stperson"])
+            cv2.imshow("Habitat", img)
             key = cv2.waitKey(1)
 
         return torques

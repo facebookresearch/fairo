@@ -11,8 +11,8 @@ robot_client:
     _target_: polysim.envs.HabitatManipulatorEnv
     robot_model_cfg: ${robot_model}
     hz: ${hz}
-    habitat_dir: ${habitat_dir}
     gui: ${gui}
+    habitat_dir: ${habitat_dir}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
     default_Kq: [10, 10, 5, 5, 1, 1, 1]
