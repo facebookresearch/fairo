@@ -39,6 +39,7 @@ requirements:
     - grpc-cpp=1.35.0=h146f9af_0
     - grpcio
     - habitat-sim==0.2.0
+    - headless
     - hydra-core
     - myst-parser
     - numpy
