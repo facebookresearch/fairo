@@ -31,7 +31,6 @@ dependencies:
     - dash
     - grpcio
     - habitat-sim==0.2.0
-    - headless
     - hydra-core
     - myst-parser
     - numpy
