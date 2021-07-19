@@ -34,19 +34,17 @@ export function jsonToArray(eventObj) {
   // turns JSON hook data into an array that can easily be turned into an HTML table
   let tableArr = [];
   for (let key in eventObj) {
-    if (eventObj.hasOwnProperty(key)) {
-      // stringify JSON object for logical form
-      if (key === "logical_form") {
-        tableArr.push({
-          event: capitalizeEvent(key),
-          description: JSON.stringify(eventObj[key]),
-        });
-      } else {
-        tableArr.push({
-          event: capitalizeEvent(key),
-          description: eventObj[key],
-        });
-      }
+    // stringify JSON object for logical form
+    if (key === "logical_form") {
+      tableArr.push({
+        event: capitalizeEvent(key),
+        description: JSON.stringify(eventObj[key]),
+      });
+    } else {
+      tableArr.push({
+        event: capitalizeEvent(key),
+        description: eventObj[key],
+      });
     }
   }
   return tableArr;

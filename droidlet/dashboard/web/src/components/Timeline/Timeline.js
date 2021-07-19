@@ -109,8 +109,10 @@ class DashboardTimeline extends React.Component {
   }
 
   handleSearch(pattern) {
+    const matches = [];
     if (pattern) {
       const fuseOptions = {
+        // set ignoreLocation to true or else it searches the first 60 characters by default
         ignoreLocation: true,
         useExtendedSearch: true,
       };
@@ -120,24 +122,17 @@ class DashboardTimeline extends React.Component {
         fuseOptions
       );
 
+      // prepending Fuse operator to search for results that include the pattern
       const result = fuse.search("'" + pattern);
-      const matches = [];
 
-      if (!result.length) {
-        // empty results pane
-        this.props.stateManager.memory.timelineSearchResults = [];
-      } else {
+      if (result.length) {
         result.forEach(({ item }) => {
           const eventObj = JSON.parse(item);
           matches.push(eventObj);
         });
-        // set pane to show matches
-        this.props.stateManager.memory.timelineSearchResults = matches;
       }
-    } else {
-      // empty results pane
-      this.props.stateManager.memory.timelineSearchResults = [];
     }
+    this.props.stateManager.memory.timelineSearchResults = matches;
     this.props.stateManager.updateTimeline();
   }
 
