@@ -5,7 +5,6 @@
 import pytest
 
 import os
-import pathlib
 import numpy as np
 
 from omegaconf import DictConfig

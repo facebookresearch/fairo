@@ -1,8 +1,13 @@
-from typing import List
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+from typing import List, Tuple
 from omegaconf import OmegaConf
 import os
 import numpy as np
 import torch
+import magnum
 
 from omegaconf import DictConfig
 import habitat_sim
@@ -14,10 +19,32 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 import torchcontrol as toco
 
 
+"""
+Habitat simulation setup helper functions. Based on the URDF prototype branch:
+https://github.com/facebookresearch/habitat-sim/blob/f6267cbfe0ad6c8f86d79edc917a49fb26ddbb73/examples/tutorials/URDF_robotics_tutorial.py
+"""
+
+
 def make_configuration(
-    habitat_dir,
-    glb_path,
-):
+    habitat_dir: str,
+    glb_path: str,
+) -> habitat_sim.SimulatorConfiguration:
+    """Create a habitat_sim.SimulatorConfiguration object, and populate it
+    with the scene from the glb_path.
+
+    Args:
+
+        habitat_dir: the directory containing habitat-sim. Mainly used as root
+            of glb_path (if it's not an absolute path) and the physics config
+            file (typically `data/default.physics_config.json`).
+
+        glb_path: path to the .glb file. If a relative path, assumed to be
+            relative to `habitat_dir`.
+
+    Returns:
+        habitat_sim.SimulatorConfiguration object with reasonable values and
+            loaded with glb scene.
+    """
     if not os.path.isabs(glb_path):
         glb_path = os.path.join(habitat_dir, glb_path)
 
@@ -65,7 +92,8 @@ def make_configuration(
     return habitat_sim.Configuration(backend_cfg, [agent_cfg])
 
 
-def place_agent(sim):
+def place_agent(sim: habitat_sim.Simulator) -> magnum.Matrix4:
+    """Sets AgentState to some reasonable values and return a transformation matrix."""
     # place our agent in the scene
     agent_state = habitat_sim.AgentState()
     agent_state.position = [-0.15, -0.1, 1.0]
@@ -76,11 +104,12 @@ def place_agent(sim):
 
 
 def place_robot_from_agent(
-    sim,
-    robot,
-    angle_correction=-1.56,
-    local_base_pos=None,
-):
+    sim: habitat_sim.Simulator,
+    robot: habitat_sim._ext.habitat_sim_bindings.ManagedBulletArticulatedObject,
+    angle_correction: float = -1.56,
+    local_base_pos: np.ndarray = None,
+) -> None:
+    """Moves robot to reasonable transformation relative to agent."""
     if local_base_pos is None:
         local_base_pos = np.array([0.0, -1.1, -2.0])
     # place the robot root state relative to the agent
@@ -103,6 +132,26 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         gui: bool = False,
         habitat_scene_path: str = "data/scene_datasets/habitat-test-scenes/apartment_1.glb",
     ):
+        """
+        A wrapper around habitat-sim which loads an articulated object from a URDF
+        and places it into a scene.
+
+        Args:
+            robot_model_cfg: a typical configuration for a robot model (e.g. see
+                `franka_panda.yaml`).
+
+            habitat_dir: directory containing habitat-sim.
+
+            hz: the rate at which to update the simulation.
+
+            joint_damping: velocity gains damping joint movement towards 0 velocity.
+
+            grav_comp: whether to enable gravity compensation.
+
+            gui: whether to show a GUI window.
+
+            habitat_scene_path: path to the .glb file containing the scene.
+        """
         # Save static parameters
         self.hz = hz
         self.dt = 1.0 / self.hz
@@ -150,8 +199,13 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
 
         self.reset()
 
+        self.prev_torques_commanded = np.zeros(self.n_dofs)
+        self.prev_torques_applied = np.zeros(self.n_dofs)
+        self.prev_torques_measured = np.zeros(self.n_dofs)
+        self.prev_torques_external = np.zeros(self.n_dofs)
+
     def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
-        """Reset articulated object"""
+        """Reset joint positions / velocities to given values (0s by default)"""
         if joint_pos is None:
             joint_pos = OmegaConf.to_container(self.robot_model_cfg.rest_pose)
         if joint_vel is None:
@@ -160,17 +214,27 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.robot.joint_positions = joint_pos
         self.robot.joint_velocities = joint_vel
 
-    def get_num_dofs(self):
+    def get_num_dofs(self) -> int:
+        """Return number of degrees of freedom."""
         return self.n_dofs
 
-    def get_current_joint_pos_vel(self):
+    def get_current_joint_pos_vel(self) -> Tuple[List[float], List[float]]:
+        """Return tuple of joint positions and velocities, both of size `num_dofs`."""
         return self.robot.joint_positions, self.robot.joint_velocities
 
-    def get_current_joint_torques(self):
-        tau = self.robot.joint_forces
-        return (tau, tau, tau, tau)
+    def get_current_joint_torques(
+        self,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Returns torques: [inputted, clipped, added with gravity compensation, and measured externally]"""
+        return (
+            self.prev_torques_commanded,
+            self.prev_torques_applied,
+            self.prev_torques_measured,
+            self.prev_torques_external,
+        )
 
-    def compute_grav_comp(self, pos, vel):
+    def compute_grav_comp(self, pos: List[float], vel: List[float]) -> np.ndarray:
+        """Computes gravity compensation torques using Pinocchio robot model."""
         return (
             self.robot_model.inverse_dynamics(
                 torch.tensor(pos),
@@ -182,7 +246,14 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
             .numpy()
         )
 
-    def apply_joint_torques(self, torques):
+    def apply_joint_torques(self, torques: List[float]) -> List[float]:
+        """Sets joint torques and steps simulation. Returns applied
+        torques (possibly clipped & gravity compensated.)"""
+        self.prev_torques_commanded = np.array(torques)
+        self.prev_torques_applied = (
+            self.prev_torques_commanded
+        )  # TODO: apply torque clipping
+
         pos, vel = self.get_current_joint_pos_vel()
 
         grav_comp_torques = self.compute_grav_comp(pos, vel)
@@ -199,6 +270,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
 
         # self.sim.set_articulated_object_forces(self.robot_id, applied_torques)
         self.robot.joint_forces = applied_torques
+        self.prev_torques_measured = np.array(applied_torques)
         self.sim.step_physics(self.dt)
 
         if self.gui:
@@ -209,6 +281,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
 
             cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
             cv2.imshow("Habitat", img)
-            key = cv2.waitKey(1)
+            cv2.waitKey(1)
 
-        return torques
+        return applied_torques
