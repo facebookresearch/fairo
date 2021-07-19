@@ -1,9 +1,10 @@
 ip: localhost
-hz: 125
+hz: 240
 gui: true
 use_grav_comp: true
 use_real_time: true
 habitat_dir: ???
+habitat_scene_path: "data/scene_datasets/habitat-test-scenes/apartment_1.glb"
 
 robot_client:
   _target_: polysim.grpc_sim_client.GrpcSimulationClient
@@ -13,6 +14,7 @@ robot_client:
     hz: ${hz}
     gui: ${gui}
     habitat_dir: ${habitat_dir}
+    habitat_scene_path: ${habitat_scene_path}
   metadata_cfg:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
     default_Kq: [10, 10, 5, 5, 1, 1, 1]

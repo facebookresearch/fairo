@@ -14,12 +14,16 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 import torchcontrol as toco
 
 
-def make_configuration(habitat_dir):
+def make_configuration(
+    habitat_dir,
+    glb_path,
+):
+    if not os.path.isabs(glb_path):
+        glb_path = os.path.join(habitat_dir, glb_path)
+
     # simulator configuration
     backend_cfg = habitat_sim.SimulatorConfiguration()
-    backend_cfg.scene_id = os.path.join(
-        habitat_dir, "data", "scene_datasets/habitat-test-scenes/apartment_1.glb"
-    )
+    backend_cfg.scene_id = glb_path
     backend_cfg.enable_physics = True
     backend_cfg.physics_config_file = os.path.join(
         habitat_dir, backend_cfg.physics_config_file
@@ -97,6 +101,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         joint_damping: float = 0.1,
         grav_comp: bool = True,
         gui: bool = False,
+        habitat_scene_path: str = "data/scene_datasets/habitat-test-scenes/apartment_1.glb",
     ):
         # Save static parameters
         self.hz = hz
@@ -117,7 +122,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         )
 
         # Start Habitat simulator
-        self.habitat_cfg = make_configuration(habitat_dir)
+        self.habitat_cfg = make_configuration(habitat_dir, glb_path=habitat_scene_path)
         self.sim = habitat_sim.Simulator(self.habitat_cfg)
         place_agent(self.sim)
 
@@ -127,6 +132,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
                 self.robot_description_path, fixed_base=True
             )
         )
+        assert self.robot is not None
         place_robot_from_agent(self.sim, self.robot)
 
         self.robot.auto_clamp_joint_limits = True
@@ -189,7 +195,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         if curr_torques != [0, 0, 0, 0, 0, 0, 0]:
             # Extremely important; otherwise occasionally the simulation will
             # put the articulated object to sleep (maybe limit violations?)
-            assert not self.robot.awake
             self.robot.awake = True
 
         # self.sim.set_articulated_object_forces(self.robot_id, applied_torques)
