@@ -1,6 +1,7 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
 */
+
 #description {
   text-align: center;
 }
@@ -9,10 +10,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
   margin-top: 0px;
 }
 
-.item {
-  border: 1px solid #bfbfbf;
-  border-top: 0px;
-  padding: 15px;
+.subpanel {
+  margin: 30px;
 }
 
 .vis-timeline {
@@ -69,9 +68,34 @@ td {
   vertical-align: top;
 }
 
-tbody tr td:first-child {
-  width: 10em;
-  min-width: 10em;
-  max-width: 10em;
-  word-break: break-all;
+td:nth-child(1) {
+  width: 170px;
+}
+
+.search {
+  width: 400px;
+  margin-bottom: 15px;
+  position: relative;
+  display: flex;
+}
+
+.searchSpan {
+  width: 15%;
+  border: 1px solid #bfbfbf;
+  padding-top: 4px;
+  text-align: center;
+  color: white;
+  border-radius: 0 5px 5px 0;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.searchInput {
+  width: 85%;
+  margin: 0px;
+  border: 1px solid #bfbfbf;
+  border-right: none;
+  padding: 4px;
+  border-radius: 5px 0 0 5px;
+  outline: none;
 }

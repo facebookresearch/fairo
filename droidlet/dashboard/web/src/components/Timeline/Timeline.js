@@ -7,7 +7,10 @@ agent using the flags --enable_timeline --log_timeline.
 */
 
 import React, { createRef } from "react";
+import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
+import { jsonToArray } from "./TimelineUtils";
+import SearchIcon from "@material-ui/icons/Search";
 import "vis-timeline/styles/vis-timeline-graph2d.css";
 import "./Timeline.css";
 
@@ -55,16 +58,28 @@ const options = {
   stack: false,
 };
 
+const SearchBar = ({ onChange, placeholder }) => {
+  return (
+    <div className="search">
+      <input
+        className="searchInput"
+        type="text"
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+      <span className="searchSpan">
+        <SearchIcon />
+      </span>
+    </div>
+  );
+};
+
 class DashboardTimeline extends React.Component {
   constructor() {
     super();
     this.timeline = {};
     this.appRef = createRef();
     this.prevEvent = "";
-    this.state = {
-      // used to construct table in results
-      tableBody: [],
-    };
   }
 
   componentDidMount() {
@@ -88,35 +103,37 @@ class DashboardTimeline extends React.Component {
 
   handleClick(item) {
     const eventObj = JSON.parse(item.title);
-    let tableArr = [];
-    for (let key in eventObj) {
-      if (eventObj.hasOwnProperty(key)) {
-        // stringify JSON object for logical form
-        if (key === "logical_form") {
-          tableArr.push({
-            event: this.capitalizeEvent(key),
-            description: JSON.stringify(eventObj[key]),
-          });
-        } else {
-          tableArr.push({
-            event: this.capitalizeEvent(key),
-            description: eventObj[key],
-          });
-        }
-      }
-    }
-    this.setState({
-      tableBody: tableArr,
-    });
+    let tableArr = jsonToArray(eventObj);
+    this.props.stateManager.memory.timelineDetails = tableArr;
+    this.props.stateManager.updateTimeline();
   }
 
-  capitalizeEvent(str) {
-    // replaces underscores with spaces
-    str = str.replace(/_/g, " ");
-    // capitalizes the first letter of every word
-    return str.replace(/\w\S*/g, function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
+  handleSearch(pattern) {
+    const matches = [];
+    if (pattern) {
+      const fuseOptions = {
+        // set ignoreLocation to true or else it searches the first 60 characters by default
+        ignoreLocation: true,
+        useExtendedSearch: true,
+      };
+
+      const fuse = new Fuse(
+        this.props.stateManager.memory.timelineEventHistory,
+        fuseOptions
+      );
+
+      // prepending Fuse operator to search for results that include the pattern
+      const result = fuse.search("'" + pattern);
+
+      if (result.length) {
+        result.forEach(({ item }) => {
+          const eventObj = JSON.parse(item);
+          matches.push(eventObj);
+        });
+      }
+    }
+    this.props.stateManager.memory.timelineSearchResults = matches;
+    this.props.stateManager.updateTimeline();
   }
 
   renderEvent() {
@@ -149,20 +166,6 @@ class DashboardTimeline extends React.Component {
     }
   }
 
-  renderTable() {
-    return this.state.tableBody.map((data, index) => {
-      const { event, description } = data;
-      return (
-        <tr>
-          <td>
-            <strong>{event}</strong>
-          </td>
-          <td>{description}</td>
-        </tr>
-      );
-    });
-  }
-
   render() {
     this.renderEvent();
     return (
@@ -171,13 +174,13 @@ class DashboardTimeline extends React.Component {
           A visualizer for viewing, inspecting, and searching through agent
           activities interactively.
         </p>
+
+        <SearchBar
+          placeholder="Search"
+          onChange={(e) => this.handleSearch(e.target.value)}
+        />
+
         <div ref={this.appRef} />
-        <div className="item">
-          <p id="result">Results:</p>
-          <table>
-            <tbody>{this.renderTable()}</tbody>
-          </table>
-        </div>
       </div>
     );
   }

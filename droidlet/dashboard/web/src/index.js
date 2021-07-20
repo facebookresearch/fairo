@@ -20,7 +20,11 @@ import TeachApp from "./components/TeachApp/TeachApp";
 import stateManager from "./StateManager";
 import ObjectFixup from "./components/ObjectFixup";
 import MemoryDetail from "./components/Memory/MemoryDetail";
-import DashboardTimeline from "./components/Timeline/Timeline";
+import {
+  DashboardTimeline,
+  TimelineResults,
+  TimelineDetails,
+} from "./components/Timeline";
 import { isMobile } from "react-device-detect";
 
 import "./index.css";
@@ -85,9 +89,35 @@ var config = {
                 },
                 {
                   title: "Timeline",
-                  type: "react-component",
-                  component: "DashboardTimeline",
-                  props: { stateManager: stateManager },
+                  type: "column",
+                  content: [
+                    {
+                      title: "Timeline",
+                      cssClass: "scrollable",
+                      type: "react-component",
+                      component: "DashboardTimeline",
+                      props: { stateManager: stateManager },
+                    },
+                    {
+                      type: "row",
+                      content: [
+                        {
+                          title: "Results",
+                          cssClass: "scrollable",
+                          type: "react-component",
+                          component: "TimelineResults",
+                          props: { stateManager: stateManager },
+                        },
+                        {
+                          title: "Details",
+                          cssClass: "scrollable",
+                          type: "react-component",
+                          component: "TimelineDetails",
+                          props: { stateManager: stateManager },
+                        },
+                      ],
+                    },
+                  ],
                 },
                 {
                   title: "Program the assistant",
@@ -142,5 +172,13 @@ dashboardLayout.registerComponent("TeachApp", TeachApp);
 dashboardLayout.registerComponent("ObjectFixup", ObjectFixup);
 dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
 dashboardLayout.registerComponent("DashboardTimeline", DashboardTimeline);
+dashboardLayout.registerComponent("TimelineResults", TimelineResults);
+dashboardLayout.registerComponent("TimelineDetails", TimelineDetails);
+
+// allows for css styling, e.g. to be scrollable
+dashboardLayout.on("itemCreated", function (item) {
+  if (item.config.cssClass) item.element.addClass(item.config.cssClass);
+});
+
 dashboardLayout.init();
 stateManager.dashboardLayout = dashboardLayout;
