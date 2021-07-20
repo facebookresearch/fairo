@@ -28,34 +28,20 @@ class MobileCameraPane extends React.Component {
     });
   }
 
-  componentDidMount() {
-    // check video constraint after 1 second to give time for the webcam to finish rendering
-    setTimeout(
-      function () {
-        this.checkVideoConstraint();
-      }.bind(this),
-      1000
-    );
-  }
-
-  /**
-   * check if device has environment camera
-   * if not, use the device selfie camera
-   * only needed for development purposes, as every mobile device should have an environment camera
-   */
-  checkVideoConstraint() {
-    if (this.webcamRef.current) {
-      let screenshot = this.webcamRef.current.getScreenshot();
-      if (!screenshot) {
-        this.setState({
-          videoConstraints: {
-            facingMode: "user",
-            height: this.props.imageWidth,
-            width: this.props.imageWidth,
-          },
-        });
-      }
+  switchCamera() {
+    let newFacingMode = this.state.videoConstraints.facingMode;
+    if (newFacingMode === "user") {
+      newFacingMode = { exact: "environment" };
+    } else {
+      newFacingMode = "user";
     }
+    this.setState({
+      videoConstraints: {
+        facingMode: newFacingMode,
+        height: this.props.imageWidth,
+        width: this.props.imageWidth,
+      },
+    });
   }
 
   render() {
@@ -69,6 +55,7 @@ class MobileCameraPane extends React.Component {
             ref={this.webcamRef}
           />
           <button onClick={this.screenshot.bind(this)}> Capture </button>
+          <button onClick={this.switchCamera.bind(this)}>Switch Camera</button>
         </div>
       );
     }

@@ -70,9 +70,6 @@ class ObjectAnnotation extends React.Component {
     if (!this.props.objects) {
       objects = this.props.stateManager.curFeedState.objects;
     }
-    if (objects === null) {
-      objects = [];
-    }
     if (this.props.isFromCamera) {
       // if component is from the mobile camera, there are no masks to draw
       objects = [];
