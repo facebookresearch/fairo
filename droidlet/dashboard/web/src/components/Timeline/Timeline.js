@@ -105,6 +105,17 @@ class DashboardTimeline extends React.Component {
     let tableArr = jsonToArray(eventObj);
     this.props.stateManager.memory.timelineDetails = tableArr;
     this.props.stateManager.updateTimeline();
+
+    var config = {
+      title: "Details",
+      cssClass: "scrollable",
+      type: "react-component",
+      component: "TimelineDetails",
+      props: { stateManager: this.props.stateManager },
+    };
+    this.props.stateManager.dashboardLayout.root.contentItems[0].contentItems[1].contentItems[0].contentItems[5].contentItems[1].contentItems[1].addChild(
+      config
+    );
   }
 
   handleSearch(pattern) {

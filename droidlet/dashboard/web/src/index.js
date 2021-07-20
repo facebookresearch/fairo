@@ -109,11 +109,16 @@ var config = {
                           props: { stateManager: stateManager },
                         },
                         {
-                          title: "Details",
-                          cssClass: "scrollable",
-                          type: "react-component",
-                          component: "TimelineDetails",
-                          props: { stateManager: stateManager },
+                          type: "stack",
+                          content: [
+                            {
+                              title: "Details",
+                              cssClass: "scrollable",
+                              type: "react-component",
+                              component: "TimelineDetails",
+                              props: { stateManager: stateManager },
+                            },
+                          ],
                         },
                       ],
                     },
