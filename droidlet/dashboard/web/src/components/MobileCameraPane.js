@@ -55,10 +55,7 @@ class MobileCameraPane extends React.Component {
             ref={this.webcamRef}
           />
           <button onClick={this.screenshot.bind(this)}> Capture </button>
-          <button onClick={this.switchCamera.bind(this)}>
-            {" "}
-            Switch Camera{" "}
-          </button>
+          <button onClick={this.switchCamera.bind(this)}>Switch Camera</button>
         </div>
       );
     }
