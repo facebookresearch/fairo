@@ -197,7 +197,7 @@ jobs:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda build -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
+            conda build -c fair-robotics -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
           destination: conda_pkg
@@ -213,7 +213,7 @@ jobs:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c aihabitat -c conda-forge polymetis -y
+            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c conda-forge polymetis -y
       - run:
           name: Run polymetis pytest
           command: |
