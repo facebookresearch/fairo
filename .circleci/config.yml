@@ -147,15 +147,44 @@ jobs:
             export BUILD_DOCS="ON"
             ./install.sh
       - run:
+          name: Check latest stable habitat sim
+          command: git ls-remote https://github.com/facebookresearch/habitat-sim refs/tags/stable | awk '{print $1;}' > habitat_sim_stable_version
+      - restore_cache:
+          key: habitat-sim-{{ checksum "habitat_sim_stable_version" }}
+      - run:
+          name: Build habitat-sim
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda activate polymetis-local
+
+            if ! [[ -d ~/habitat-sim ]] ; then
+              git clone --recurse-submodules git@github.com:facebookresearch/habitat-sim.git ~/habitat-sim
+              cd ~/habitat-sim
+              git checkout stable
+              ./build.sh -j2 --bullet
+            fi
+
+            pip install -r ~/habitat-sim/requirements.txt
+            apt install -y xvfb
+      - save_cache:
+          key: habitat-sim-{{ checksum "habitat_sim_stable_version" }}
+          paths: ~/habitat-sim
+      - run:
           name: Run tests
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-local
+
             cd ./polymetis
             export PATH=$PWD/polymetis/build/:$PATH
+            export PYTHONPATH=~/habitat-sim:$PYTHONPATH
 
-            pytest ./polymetis/tests/python
+            Xvfb :100 -screen 0 1024x768x24 &
+
+            DISPLAY=:100 pytest ./polymetis/tests/python
             python ./polymetis/tests/cpp/test_server.py
+
+            pkill Xvfb
       - run:
           name: Generate documentation
           command: |
