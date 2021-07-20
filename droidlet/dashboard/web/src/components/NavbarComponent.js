@@ -15,7 +15,10 @@ class NavbarComponent extends React.Component {
 
   render() {
     return (
-      <Navbar className="Navbar">
+      <Navbar
+        style={{ overflowX: "scroll", overflowY: "scroll", width: "100%" }}
+        className="Navbar"
+      >
         <Nav>
           <button
             className="button"
@@ -40,6 +43,12 @@ class NavbarComponent extends React.Component {
             onClick={() => this.props.paneHandler("annotation")}
           >
             Annotation
+          </button>
+          <button
+            className="button"
+            onClick={() => this.props.paneHandler("camera")}
+          >
+            Camera
           </button>
         </Nav>
       </Navbar>

@@ -1,15 +1,12 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import droidlet.base_util
-
 """This file contain implementations of a collection of dances that the 
 agent can perform in game.
 """
+import droidlet.base_util
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
-from droidlet.perception.craftassist import search
-from droidlet.lowlevel.minecraft import shapes
 from droidlet.shared_data_structs import ErrorWithResponse
 
 # FIXME! actual jump on client

@@ -36,12 +36,20 @@ class DialogueManager(object):
 
     """
 
-    def __init__(self, memory, dialogue_object_classes, dialogue_object_mapper, opts):
+    def __init__(self,
+                 memory,
+                 dialogue_object_classes,
+                 dialogue_object_mapper,
+                 opts,
+                 low_level_interpreter_data={}):
         self.memory = memory
         # FIXME in stage III; need a sensible interface for this
         self.dialogue_stack = memory.dialogue_stack
         self.dialogue_object_mapper = dialogue_object_mapper(
-            dialogue_object_classes=dialogue_object_classes, opts=opts, dialogue_manager=self
+            dialogue_object_classes=dialogue_object_classes,
+            opts=opts,
+            low_level_interpreter_data=low_level_interpreter_data,
+            dialogue_manager=self
         )
 
     def get_last_m_chats(self, m=1):
@@ -102,8 +110,8 @@ class DialogueManager(object):
                 end_time = datetime.datetime.now()
                 hook_data = {
                     "name" : "dialogue",
-                    "start_datetime" : start_time,
-                    "end_datetime" : end_time,
+                    "start_time" : start_time,
+                    "end_time" : end_time,
                     "agent_time" : self.memory.get_time(),
                     "object" : str(obj)
                 }

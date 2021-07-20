@@ -11,6 +11,8 @@ import MobileHomePane from "./components/MobileHomePane";
 import MobileNavigationPane from "./components/MobileNavigationPane";
 import MobileSettingsPane from "./components/MobileSettingsPane";
 import ObjectFixup from "./components/ObjectFixup";
+import MobileCameraPane from "./components/MobileCameraPane";
+
 import stateManager from "./StateManager";
 class MobileMainPane extends React.Component {
   constructor(props) {
@@ -53,6 +55,10 @@ class MobileMainPane extends React.Component {
           stateManager={stateManager}
           isMobile={true}
         />
+      );
+    } else if (this.state.screen === "camera") {
+      displayPane = (
+        <MobileCameraPane imageWidth={this.state.screenWidth - 25} />
       );
     }
     return (

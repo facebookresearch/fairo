@@ -42,7 +42,11 @@ from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJ
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
     SubcomponentClassifierWrapper,
 )
+from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft import craftassist_specs
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
+from droidlet.lowlevel.minecraft import shape_helpers
+from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.event import sio
 
@@ -71,7 +75,7 @@ class CraftAssistAgent(LocoMCAgent):
                                "schematics": craftassist_specs.get_schematics(),
                                "block_data": craftassist_specs.get_block_data(),
                                "block_property_data": craftassist_specs.get_block_property_data(),
-                               "color_data": craftassist_specs.get_colour_data()
+                               "color_data": craftassist_specs.get_colour_data(),
                                }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
@@ -84,9 +88,15 @@ class CraftAssistAgent(LocoMCAgent):
         self.init_inventory()
         self.init_event_handlers()
 
+        shape_helper_dict = {
+            "shape_names": shape_helpers.SHAPE_NAMES,
+            "shape_helper": shape_helpers.SHAPE_HELPERS,
+            "bid": shape_helpers.bid(),
+            "shape_fns": shape_helpers.SHAPE_FNS
+        }
         # list of (prob, default function) pairs
         self.visible_defaults = [
-            (0.001, default_behaviors.build_random_shape),
+            (0.001, (default_behaviors.build_random_shape, shape_helper_dict)),
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
@@ -198,13 +208,18 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.opts.block_data = craftassist_specs.get_block_data()
-        self.opts.special_shape_functions = SPECIAL_SHAPE_FNS
+        low_level_interpreter_data = {
+            'block_data': craftassist_specs.get_block_data(),
+            'special_shape_functions': SPECIAL_SHAPE_FNS,
+            'color_bid_map': COLOR_BID_MAP,
+            'astar_search': astar,
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
+            low_level_interpreter_data=low_level_interpreter_data
         )
 
     def perceive(self, force=False):

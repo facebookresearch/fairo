@@ -7,15 +7,13 @@ import numpy as np
 from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
-
 from .interpreter_utils import SPEAKERLOOK
 from droidlet.dialog.dialogue_objects import ConfirmReferenceObject
 from .location_helpers import interpret_relative_direction
-from droidlet.base_util import euclid_dist, number_from_span
+from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
-from droidlet.base_util import T, XYZ
-from ..shared_data_structs import ErrorWithResponse, NextDialogueStep
+from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from .filter_helper import interpret_selector
 
 

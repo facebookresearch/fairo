@@ -69,6 +69,7 @@
     "react-rnd": "^10.1.10",
     "react-router-dom": "^5.2.0",
     "react-virtualized": "^9.22.3",
+    "react-webcam": "^5.2.4",
     "resolve": "1.15.0",
     "resolve-url-loader": "3.1.1",
     "sass-loader": "8.0.2",

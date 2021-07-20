@@ -4,11 +4,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 import random
-from droidlet.lowlevel.minecraft import shape_helpers as sh
 from droidlet.interpreter.craftassist import tasks
-from droidlet.lowlevel.minecraft.mc_util import pos_to_np
 from droidlet.dialog.dialogue_objects import Say
-from droidlet.base_util import prepend_a_an
+from droidlet.base_util import prepend_a_an, pos_to_np
 from droidlet.memory.memory_nodes import TaskNode
 
 """This file contains functions that the agent can perform 
@@ -16,15 +14,15 @@ at random when not following player instructions or interacting with the
 player"""
 
 
-def build_random_shape(agent, rand_range=(10, 0, 10), no_chat=False):
+def build_random_shape(agent, shape_helper_dict, rand_range=(10, 0, 10),  no_chat=False):
     """Pick a random shape from shapes.py and build that"""
     target_loc = agent.pos
     for i in range(3):
         target_loc[i] += np.random.randint(-rand_range[i], rand_range[i] + 1)
-    shape = random.choice(sh.SHAPE_NAMES)
-    opts = sh.SHAPE_HELPERS[shape]()
-    opts["bid"] = sh.bid()
-    schematic = sh.SHAPE_FNS[shape](**opts)
+    shape = random.choice(shape_helper_dict["shape_names"])
+    opts = shape_helper_dict["shape_helper"][shape]()
+    opts["bid"]  = shape_helper_dict["bid"]
+    schematic = shape_helper_dict["shape_fns"][shape](**opts)
     relations = [
         {"pred": "has_name", "obj": shape.lower()},
         {"pred": "has_tag", "obj": shape.lower()},

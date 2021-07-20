@@ -3,8 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import Optional, Union
 from word2number.w2n import word_to_num
-from ..shared_data_structs import ErrorWithResponse
-from droidlet.interpreter.condition import (
+from droidlet.shared_data_structs import ErrorWithResponse
+from droidlet.interpreter.condition_classes import (
     Condition,
     NeverCondition,
     AndCondition,

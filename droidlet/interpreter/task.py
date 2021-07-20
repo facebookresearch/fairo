@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.interpreter.condition import (
+from droidlet.interpreter.condition_classes import (
     AlwaysCondition,
     NeverCondition,
     NotCondition,
