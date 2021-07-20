@@ -226,7 +226,6 @@ class LocobotAgent(LocoMCAgent):
             id_to_label = {}
             removed_categories = []
             for i, label in enumerate(categories):
-                print(categories, i, label)
                 if not label: 
                     continue
                 CATEGORIES.append({"id": i, "name": label, "supercategory": "shape"})
@@ -282,6 +281,7 @@ class LocobotAgent(LocoMCAgent):
         
             with open(coco_file_name, "w") as output_json:
                 json.dump(coco_output, output_json)
+                print("Saved annotations to", coco_file_name)
 
         @sio.on("save_categories_properties")
         def save_categories_properties(sid, categories, properties): 
@@ -295,15 +295,21 @@ class LocobotAgent(LocoMCAgent):
             #     print(props)
 
             # Load existing categories & properties
-            file_dir = self.opts.perception_model_dir
+            file_dir = "annotation_data/output"
             things_path = os.path.join(file_dir, "things.json")
+            if os.path.exists(things_path): 
+                with open(things_path, "rt") as file: 
+                    things_dict = json.load(file)
+                    cats = set(things_dict["items"])
+            else: 
+                cats = set()
             props_path = os.path.join(file_dir, "props.json")
-            with open(things_path, "rt") as file: 
-                things_dict = json.load(file)
-                cats = set(things_dict["items"])
-            with open(props_path, "rt") as file: 
-                props_dict = json.load(file)
-                props = set(props_dict["items"])
+            if os.path.exists(props_path): 
+                with open(props_path, "rt") as file: 
+                    props_dict = json.load(file)
+                    props = set(props_dict["items"])
+            else: 
+                props = set()
 
             # Add new categories & properties
             cats.update(categories[1:]) # Don't add null
@@ -318,8 +324,10 @@ class LocobotAgent(LocoMCAgent):
             # Write to file
             with open(things_path, "w") as file: 
                 json.dump(cats_json, file)
+                print("saved categories to", things_path)
             with open(props_path, "w") as file: 
                 json.dump(props_json, file)
+                print("saved properties to", props_path)
 
         @sio.on("retrain_detector")
         def retrain_detector(sid): 
@@ -400,7 +408,7 @@ class LocobotAgent(LocoMCAgent):
             trainer = DefaultTrainer(cfg)
             trainer.resume_or_load(resume=False)
             trainer.train()
-            new_model_path = os.path.join(self.opts.perception_model_dir, "model_final.pth")
+            new_model_path = os.path.join(output_dir, "model_999.pth")
             os.replace(os.path.join(output_dir, "model_final.pth"), new_model_path)
 
             # Evaluate
@@ -415,8 +423,9 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("switch_detector")
         def switch_detector(sid): 
-            print("switching to", self.opts.perception_model_dir, "model_final.pth")
-            self.perception_modules["vision"] = Perception(self.opts.perception_model_dir, "model_final.pth")
+            dest_path = "annotation_data/output"
+            print("switching to", dest_path)
+            self.perception_modules["vision"] = Perception(dest_path)
 
 
     def init_memory(self):

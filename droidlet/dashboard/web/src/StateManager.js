@@ -529,11 +529,13 @@ class StateManager {
     let categories = [null, ...this.categories] // Include null so category indices start at 1
     let properties = [...this.properties]
     this.socket.emit("save_annotations", categories)
+    console.log("saving annotations, categories, and properties")
     this.socket.emit("save_categories_properties", categories, properties)
   }
 
   retrainDetector() {
     this.socket.emit("retrain_detector")
+    console.log('retraining detector...')
     // let hi = {
     //   segm: {
     //     AP: 100, 

@@ -11,6 +11,7 @@ import tempfile
 import logging
 from imantics import Mask
 import torch
+import json
 
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
@@ -28,8 +29,10 @@ from droidlet.perception.robot.perception_helpers import get_color_tag
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
 detector_weights = "model_999.pth"
-properties = "prop.pickle"
-things = "things.pickle"
+properties_default = "prop.pickle"
+properties_new = "props.json"
+things_default = "things.pickle"
+things_new = "things.json"
 
 file_root = os.path.dirname(os.path.realpath(__file__))
 
@@ -43,9 +46,8 @@ class ObjectDetection(AbstractHandler):
         model_data_dir (string): path to the model directory
     """
 
-    def __init__(self, model_data_dir, model_file_name):
-        # Use model_999.pth as default
-        self.detector = DetectorBase(model_data_dir, model_file_name or detector_weights)
+    def __init__(self, model_data_dir):
+        self.detector = DetectorBase(model_data_dir)
 
     def __call__(self, rgb_depth):
         """the inference logic for the handler lives here.
@@ -84,16 +86,25 @@ class ObjectDetection(AbstractHandler):
 class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
-    def __init__(self, model_data_dir, model_file_name):
-        with open(os.path.join(model_data_dir, properties), "rb") as h:
-            self.properties = pickle.load(h)
-            logging.info("{} properties".format(len(self.properties)))
+    def __init__(self, model_data_dir):
+        # Pickle files
+        if model_data_dir == "agents/locobot/models/perception/": 
+            with open(os.path.join(model_data_dir, properties_default), "rb") as h:
+                self.properties = pickle.load(h)
+                logging.info("{} properties".format(len(self.properties)))
+            with open(os.path.join(model_data_dir, things_default), "rb") as h:
+                self.things = pickle.load(h)
+                logging.info("{} things".format(len(self.things)))
+        # JSON files
+        else: 
+            with open(os.path.join(model_data_dir, properties_new), "r") as h:
+                self.properties = json.load(h)["items"]
+                logging.info("{} properties".format(len(self.properties)))
+            with open(os.path.join(model_data_dir, things_new), "r") as h:
+                self.things = json.load(h)["items"]
+                logging.info("{} things".format(len(self.things)))
 
-        with open(os.path.join(model_data_dir, things), "rb") as h:
-            self.things = pickle.load(h)
-            logging.info("{} things".format(len(self.things)))
-
-        weights = os.path.join(model_data_dir, model_file_name)
+        weights = os.path.join(model_data_dir, detector_weights)
         self.dataset_name = "dummy_dataset"
         self.predictor = get_predictor(
             lvis_yaml, weights, self.dataset_name, self.properties, self.things
