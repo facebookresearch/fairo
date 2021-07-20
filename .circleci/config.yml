@@ -147,28 +147,8 @@ jobs:
             export BUILD_DOCS="ON"
             ./install.sh
       - run:
-          name: Check latest stable habitat sim
-          command: git ls-remote https://github.com/facebookresearch/habitat-sim refs/tags/stable | awk '{print $1;}' > habitat_sim_stable_version
-      - restore_cache:
-          key: habitat-sim-{{ checksum "habitat_sim_stable_version" }}
-      - run:
-          name: Build habitat-sim
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda activate polymetis-local
-
-            apt install -y --no-install-recommends libjpeg-dev libglm-dev libgl1-mesa-glx libegl1-mesa-dev mesa-utils xorg-dev freeglut3-dev xvfb libxrandr2
-            if ! [[ -d ~/habitat-sim ]] ; then
-              git clone --recurse-submodules git@github.com:facebookresearch/habitat-sim.git ~/habitat-sim
-              cd ~/habitat-sim
-              git checkout stable
-              ./build.sh -j2 --bullet
-            fi
-
-            pip install -r ~/habitat-sim/requirements.txt
-      - save_cache:
-          key: habitat-sim-{{ checksum "habitat_sim_stable_version" }}
-          paths: ~/habitat-sim
+          name: Install Xvfb
+          command: apt install -y xvfb
       - run:
           name: Run tests
           command: |
@@ -177,14 +157,12 @@ jobs:
 
             cd ./polymetis
             export PATH=$PWD/polymetis/build/:$PATH
-            export PYTHONPATH=~/habitat-sim:$PYTHONPATH
 
             Xvfb :100 -screen 0 1024x768x24 &
-
             DISPLAY=:100 pytest ./polymetis/tests/python
-            python ./polymetis/tests/cpp/test_server.py
-
             pkill Xvfb
+
+            python ./polymetis/tests/cpp/test_server.py
       - run:
           name: Generate documentation
           command: |
@@ -226,7 +204,7 @@ jobs:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda build -c fair-robotics -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
+            conda build -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
           destination: conda_pkg
@@ -242,13 +220,19 @@ jobs:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c conda-forge polymetis -y
+            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c aihabitat -c conda-forge polymetis -y
+      - run:
+          name: Install Xvfb
+          command: apt install -y xvfb
       - run:
           name: Run polymetis pytest
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            pytest ./polymetis/polymetis/tests/python
+
+            Xvfb :100 -screen 0 1024x768x24 &
+            DISPLAY=:100 pytest ./polymetis/polymetis/tests/python
+            pkill Xvfb
       - run:
           name: Run polymetis C++ unit tests
           command: |
