@@ -49,3 +49,21 @@ export function jsonToArray(eventObj) {
   }
   return tableArr;
 }
+
+export function handleClick(stateManager, item) {
+  const eventObj = JSON.parse(item);
+  let tableArr = jsonToArray(eventObj);
+  stateManager.memory.timelineDetails = tableArr;
+  stateManager.updateTimeline();
+
+  var config = {
+    title: "Details",
+    cssClass: "scrollable",
+    type: "react-component",
+    component: "TimelineDetails",
+    props: { stateManager: stateManager },
+  };
+  stateManager.dashboardLayout.root.contentItems[0].contentItems[1].contentItems[0].contentItems[5].contentItems[1].contentItems[1].addChild(
+    config
+  );
+}
