@@ -11,7 +11,6 @@ import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
 import { jsonToArray } from "./TimelineUtils";
 import SearchIcon from "@material-ui/icons/Search";
-import "vis-timeline/styles/vis-timeline-graph2d.css";
 import "./Timeline.css";
 
 const items = new DataSet();

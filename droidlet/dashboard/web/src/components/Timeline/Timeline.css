@@ -19,14 +19,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 }
 
 .vis-labelset .vis-label {
-  color: white;
+  color: white !important;
 }
 
 .vis-time-axis .vis-text {
-  color: white;
+  color: white !important;
 }
 .vis-label.vis-nested-group.vis-group-level-unknown-but-gte1 {
-  background: none;
+  background: none !important;
 }
 
 .vis-label.vis-nested-group.vis-group-level-unknown-but-gte1 .vis-inner {
@@ -34,7 +34,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 }
 
 .vis-group-level-unknown-but-gte1 {
-  border: none;
+  border: none !important;
 }
 
 .vis-item.perceive {
