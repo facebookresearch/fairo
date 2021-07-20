@@ -6,16 +6,6 @@ import sys
 import time
 import argparse
 
-access_key = os.getenv("AWS_ACCESS_KEY_ID")
-secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
-mturk = boto3.client(
-    "mturk",
-    aws_access_key_id=access_key,
-    aws_secret_access_key=secret_key,
-    region_name="us-east-1",
-    endpoint_url=MTURK_SANDBOX,
-)
 
 def delete_hits(mturk):
     # Check if there are outstanding assignable or reviewable HITs
@@ -46,10 +36,12 @@ def get_hit_list_status(mturk):
     return hit_status
 
 
-def get_results(output_csv: str):
+def get_results(mturk, output_csv: str, use_sandbox: bool):
     # This will contain the answers
-    # delete_hits(mturk)
-    # print("deleted all HITs")
+    # if use_sandbox:
+    #     # NOTE: remove if not needed
+    #     delete_hits(mturk)
+    #     print("deleted all HITs")
     if os.path.exists(output_csv):
         res = pd.read_csv(output_csv)
     else:
@@ -120,6 +112,21 @@ def get_results(output_csv: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--output_csv", type=str, required=True)
+    parser.add_argument("--dev", action="store_true")
 
     args = parser.parse_args()
-    get_results(args.output_csv)
+    if args.dev:
+        MTURK_SANDBOX = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
+    else:
+        MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
+    access_key = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+
+    mturk = boto3.client(
+        "mturk",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name="us-east-1",
+        endpoint_url=MTURK_SANDBOX,
+    )
+    get_results(mturk, args.output_csv, args.dev)

@@ -8,41 +8,45 @@ import ast
 from urllib.parse import quote
 from datetime import datetime
 
-MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
-access_key = os.getenv("AWS_ACCESS_KEY_ID")
-secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-mturk = boto3.client(
-    "mturk",
-    aws_access_key_id=access_key,
-    aws_secret_access_key=secret_key,
-    region_name="us-east-1",
-    endpoint_url=MTURK_SANDBOX,
-)
-print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
+def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str, use_sandbox: bool):
+    if use_sandbox:
+        MTURK_SANDBOX = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
+    else:
+        MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
 
+    access_key = os.getenv("AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    mturk = boto3.client(
+        "mturk",
+        aws_access_key_id=access_key,
+        aws_secret_access_key=secret_key,
+        region_name="us-east-1",
+        endpoint_url=MTURK_SANDBOX,
+    )
+    print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
 
-def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str):
-    # Delete HITs
-    # For use in dev only
-    # for item in mturk.list_hits()["HITs"]:
-    #     hit_id = item["HITId"]
-    #     print("HITId:", hit_id)
+    # Delete HITs - For use in dev only
+    # NOTE: remove if not needed
+    if use_sandbox:
+        for item in mturk.list_hits()["HITs"]:
+            hit_id = item["HITId"]
+            print("HITId:", hit_id)
 
-    #     # Get HIT status
-    #     status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
-    #     print("HITStatus:", status)
+            # Get HIT status
+            status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
+            print("HITStatus:", status)
 
-    #     # If HIT is active then set it to expire immediately
-    #     # if status == "Assignable" or status == "Reviewable":
-    #     #     response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
+            # If HIT is active then set it to expire immediately
+            if status == "Assignable" or status == "Reviewable":
+                response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
 
-    #     # Delete the HIT
-    #     try:
-    #         mturk.delete_hit(HITId=hit_id)
-    #     except:
-    #         print("Not deleted")
-    #     else:
-    #         print("Deleted")
+            # Delete the HIT
+            try:
+                mturk.delete_hit(HITId=hit_id)
+            except:
+                print("Not deleted")
+            else:
+                print("Deleted")
 
     # XML file containing ExternalQuestion object.
     # See MTurk API docs for constraints.
@@ -79,34 +83,52 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
             curr_question = question.format(query_params)
 
             print(curr_question)
-
-            new_hit = mturk.create_hit(
-                Title="CraftAssist Instruction Annotations",
-                Description="Given a sentence, provide information about its intent and highlight key words",
-                Keywords="text, categorization, quick",
-                Reward="0.3",
-                MaxAssignments=1,
-                LifetimeInSeconds=600,
-                AssignmentDurationInSeconds=600,
-                AutoApprovalDelayInSeconds=14400,
-                Question=curr_question,
-                # TODO: consider making qualification configurable via JSON
-                QualificationRequirements=[{
-                        'QualificationTypeId': '32Z2G9B76CN4NO5994JO5V24P3EAXC',
-                        'Comparator': 'EqualTo',
-                        'IntegerValues': [
-                            100,
-                        ],
-                        'RequiredToPreview': False,
-                        'ActionsGuarded': 'Accept'
-                    },
-                ]
-            )
+            if use_sandbox:
+                new_hit = mturk.create_hit(
+                    Title="CraftAssist Instruction Annotations",
+                    Description="Given a sentence, provide information about its intent and highlight key words",
+                    Keywords="text, categorization, quick",
+                    Reward="0.3",
+                    MaxAssignments=1,
+                    LifetimeInSeconds=600,
+                    AssignmentDurationInSeconds=600,
+                    AutoApprovalDelayInSeconds=14400,
+                    Question=curr_question
+                )
+            else:
+                new_hit = mturk.create_hit(
+                    Title="CraftAssist Instruction Annotations",
+                    Description="Given a sentence, provide information about its intent and highlight key words",
+                    Keywords="text, categorization, quick",
+                    Reward="0.3",
+                    MaxAssignments=1,
+                    LifetimeInSeconds=600,
+                    AssignmentDurationInSeconds=600,
+                    AutoApprovalDelayInSeconds=14400,
+                    Question=curr_question,
+                    # TODO: consider making qualification configurable via JSON
+                    QualificationRequirements=[{
+                            'QualificationTypeId': '32Z2G9B76CN4NO5994JO5V24P3EAXC',
+                            'Comparator': 'EqualTo',
+                            'IntegerValues': [
+                                100,
+                            ],
+                            'RequiredToPreview': False,
+                            'ActionsGuarded': 'Accept'
+                        },
+                    ]
+                )
             print("A new HIT has been created. You can preview it here:")
-            print(
-                "https://workersandbox.mturk.com/mturk/preview?groupId="
-                + new_hit["HIT"]["HITGroupId"]
-            )
+            if use_sandbox:
+                print(
+                    "https://workersandbox.mturk.com/mturk/preview?groupId="
+                    + new_hit["HIT"]["HITGroupId"]
+                )
+            else:
+                print(
+                    "https://worker.mturk.com/mturk/preview?groupId="
+                    + new_hit["HIT"]["HITGroupId"]
+                )
             print("HITID = " + new_hit["HIT"]["HITId"] + " (Use to Get Results)")
             job_spec["HITId"] = new_hit["HIT"]["HITId"]
 
@@ -125,6 +147,7 @@ if __name__ == "__main__":
     parser.add_argument("--tool_num", type=int, required=True)
     parser.add_argument("--input_csv", type=str, required=True)
     parser.add_argument("--job_spec_csv", type=str, required=True)
+    parser.add_argument("--dev", action="store_true")
 
     args = parser.parse_args()
-    create_turk_job(args.xml_file, args.tool_num, args.input_csv, args.job_spec_csv)
+    create_turk_job(args.xml_file, args.tool_num, args.input_csv, args.job_spec_csv, args.dev)
