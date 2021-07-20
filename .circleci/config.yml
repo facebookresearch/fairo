@@ -157,6 +157,7 @@ jobs:
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-local
 
+            apt install -y --no-install-recommends libjpeg-dev libglm-dev libgl1-mesa-glx libegl1-mesa-dev mesa-utils xorg-dev freeglut3-dev xvfb libxrandr2
             if ! [[ -d ~/habitat-sim ]] ; then
               git clone --recurse-submodules git@github.com:facebookresearch/habitat-sim.git ~/habitat-sim
               cd ~/habitat-sim
@@ -165,7 +166,6 @@ jobs:
             fi
 
             pip install -r ~/habitat-sim/requirements.txt
-            apt install -y xvfb
       - save_cache:
           key: habitat-sim-{{ checksum "habitat_sim_stable_version" }}
           paths: ~/habitat-sim
