@@ -92,13 +92,17 @@ def make_configuration(
     return habitat_sim.Configuration(backend_cfg, [agent_cfg])
 
 
-def place_agent(sim: habitat_sim.Simulator) -> magnum.Matrix4:
+def place_agent(
+    sim: habitat_sim.Simulator,
+    agent_pos: list,
+    agent_orient: list,
+) -> magnum.Matrix4:
     """Sets AgentState to some reasonable values and return a transformation matrix."""
     # place our agent in the scene
     agent_state = habitat_sim.AgentState()
-    agent_state.position = [-0.15, -0.1, 1.0]
+    agent_state.position = agent_pos
     # agent_state.position = [-0.15, -1.6, 1.0]
-    agent_state.rotation = np.quaternion(-0.83147, 0, 0.55557, 0)
+    agent_state.rotation = np.quaternion(*agent_orient)
     agent = sim.initialize_agent(0, agent_state)
     return agent.scene_node.transformation_matrix()
 
@@ -106,16 +110,16 @@ def place_agent(sim: habitat_sim.Simulator) -> magnum.Matrix4:
 def place_robot_from_agent(
     sim: habitat_sim.Simulator,
     robot: habitat_sim._ext.habitat_sim_bindings.ManagedBulletArticulatedObject,
-    angle_correction: float = -1.56,
-    local_base_pos: np.ndarray = None,
+    local_base_pos: list,
+    orientation_vector: list,
+    angle_correction: float,
 ) -> None:
     """Moves robot to reasonable transformation relative to agent."""
-    if local_base_pos is None:
-        local_base_pos = np.array([0.0, -1.1, -2.0])
+    local_base_pos = np.array(local_base_pos)
     # place the robot root state relative to the agent
     agent_transform = sim.agents[0].scene_node.transformation_matrix()
     base_transform = mn.Matrix4.rotation(
-        mn.Rad(angle_correction), mn.Vector3(1.0, 0, 0)
+        mn.Rad(angle_correction), mn.Vector3(*orientation_vector)
     )
     base_transform.translation = agent_transform.transform_point(local_base_pos)
     robot.transformation = base_transform
@@ -131,6 +135,11 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         grav_comp: bool = True,
         gui: bool = False,
         habitat_scene_path: str = "data/scene_datasets/habitat-test-scenes/apartment_1.glb",
+        agent_pos: list = [-0.15, -0.1, 1.0],
+        agent_orient: list = [-0.83147, 0, 0.55557, 0],
+        local_base_pos: list = [0.0, -1.1, -2.0],
+        orientation_vector: list = [1.0, 0, 0],
+        angle_correction: float = -1.56,
     ):
         """
         A wrapper around habitat-sim which loads an articulated object from a URDF
@@ -173,7 +182,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         # Start Habitat simulator
         self.habitat_cfg = make_configuration(habitat_dir, glb_path=habitat_scene_path)
         self.sim = habitat_sim.Simulator(self.habitat_cfg)
-        place_agent(self.sim)
+        place_agent(self.sim, agent_pos=agent_pos, agent_orient=agent_orient)
 
         # Load robot
         self.robot = (
@@ -182,7 +191,13 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
             )
         )
         assert self.robot is not None
-        place_robot_from_agent(self.sim, self.robot)
+        place_robot_from_agent(
+            self.sim,
+            self.robot,
+            local_base_pos=local_base_pos,
+            orientation_vector=orientation_vector,
+            angle_correction=angle_correction,
+        )
 
         self.robot.auto_clamp_joint_limits = True
 
