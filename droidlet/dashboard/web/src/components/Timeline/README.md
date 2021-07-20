@@ -1,7 +1,11 @@
 # Timeline for Droidlet
 
 This component consists of an agent activity visualizer for the Droidlet dashboard app. Enable this when running the
-agent using the flags `--enable_timeline --log_timeline`.
+agent using the following flags:
+
+`--enable_timeline` allows you to view incoming events on the timeline component in the dashboard.
+
+`--log_timeline` saves the timeline history data to a .txt file which can further be used to recreate the timeline.
 
 ## Features
 
