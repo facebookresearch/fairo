@@ -238,7 +238,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         return (
             self.robot_model.inverse_dynamics(
                 torch.tensor(pos),
-                torch.tensor(vel),
+                torch.tensor([0 for _ in range(self.n_dofs)]),
                 torch.tensor([0 for _ in range(self.n_dofs)]),
             )
             .detach()
@@ -268,7 +268,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
             # put the articulated object to sleep (maybe limit violations?)
             self.robot.awake = True
 
-        # self.sim.set_articulated_object_forces(self.robot_id, applied_torques)
         self.robot.joint_forces = applied_torques
         self.prev_torques_measured = np.array(applied_torques)
         self.sim.step_physics(self.dt)
