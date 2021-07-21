@@ -184,6 +184,8 @@ class DashboardTimeline extends React.Component {
         <p id="description">
           A visualizer for viewing, inspecting, and searching through agent
           activities interactively.
+          <br />
+          Click an event to view more details!
         </p>
 
         <SearchBar

@@ -16,10 +16,10 @@ export function capitalizeEvent(str) {
 export function renderTable(tableArr) {
   // returns an HTML table given an array
   if (tableArr) {
-    return tableArr.map((data) => {
+    return tableArr.map((data, index) => {
       const { event, description } = data;
       return (
-        <tr>
+        <tr key={index}>
           <td>
             <strong>{event}</strong>
           </td>
