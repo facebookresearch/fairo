@@ -57,7 +57,7 @@ export function handleClick(stateManager, item) {
   stateManager.updateTimeline();
 
   var config = {
-    title: "Details",
+    title: capitalizeEvent(eventObj["name"]),
     cssClass: "scrollable",
     type: "react-component",
     component: "TimelineDetails",

@@ -9,7 +9,7 @@ agent using the flags --enable_timeline --log_timeline.
 import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { jsonToArray } from "./TimelineUtils";
+import { jsonToArray, capitalizeEvent } from "./TimelineUtils";
 import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
 
@@ -108,7 +108,7 @@ class DashboardTimeline extends React.Component {
     this.props.stateManager.updateTimeline();
 
     var config = {
-      title: "Details",
+      title: capitalizeEvent(eventObj["name"]),
       cssClass: "scrollable",
       type: "react-component",
       component: "TimelineDetails",
