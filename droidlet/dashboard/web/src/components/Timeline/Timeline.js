@@ -100,6 +100,7 @@ class DashboardTimeline extends React.Component {
     });
   }
 
+  // TODO: combine this handleClick() with the one in TimelineUtils.js
   handleClick(item) {
     const eventObj = JSON.parse(item.title);
     let tableArr = jsonToArray(eventObj);

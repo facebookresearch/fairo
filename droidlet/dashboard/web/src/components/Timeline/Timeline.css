@@ -99,3 +99,7 @@ td:nth-child(1) {
   border-radius: 5px 0 0 5px;
   outline: none;
 }
+
+.result {
+  cursor: pointer;
+}
