@@ -24,8 +24,8 @@ class HumanPose(AbstractHandler):
         model_data_dir (string): path to the model directory
     """
 
-    def __init__(self, model_data_dir):
-        self.detector = HumanKeypoints(model_data_dir)
+    def __init__(self, model_data_dir, default=True):
+        self.detector = HumanKeypoints(model_data_dir, default)
 
     def __call__(self, rgb_depth):
         logging.info("In HumanPoseHandler ... ")
@@ -87,11 +87,12 @@ class HumanKeypoints:
         ("right_shoulder", "left_shoulder"),
     ]
 
-    def __init__(self, model_data_dir):
+    def __init__(self, model_data_dir, default):
         cfg = get_cfg()
         yaml_path = os.path.abspath(os.path.join(file_root, "..", keypoints_yaml))
         cfg.merge_from_file(yaml_path)
-        weights = os.path.join(model_data_dir, keypoints_weights)
+        weights = os.path.join("agents/locobot/models/perception", keypoints_weights) if default else \
+            os.path.join(model_data_dir, keypoints_weights)
         cfg.MODEL.WEIGHTS = weights
         cfg.freeze()
 
