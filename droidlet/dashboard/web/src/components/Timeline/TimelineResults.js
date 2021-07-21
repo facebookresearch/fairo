@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 
 import React from "react";
-import { renderTable, jsonToArray, handleClick } from "./TimelineUtils";
+import { handleClick, jsonToResultsTable } from "./TimelineUtils";
 import "./Timeline.css";
 
 class TimelineResults extends React.Component {
@@ -14,17 +14,31 @@ class TimelineResults extends React.Component {
   render() {
     return (
       <div className="subpanel">
-        {this.props.stateManager.memory.timelineSearchResults.map((item) => (
-          <div
-            className="result"
-            onClick={() =>
-              handleClick(this.props.stateManager, JSON.stringify(item))
-            }
-          >
-            {renderTable(jsonToArray(item))}
-            <hr />
-          </div>
-        ))}
+        <table className="fixed">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Event Type</th>
+              <th>Event Summary</th>
+            </tr>
+          </thead>
+        </table>
+        <hr />
+
+        {this.props.stateManager.memory.timelineSearchResults.map(
+          (item, index) => (
+            <div
+              className="result"
+              key={index}
+              onClick={() =>
+                handleClick(this.props.stateManager, JSON.stringify(item))
+              }
+            >
+              {jsonToResultsTable(item)}
+              <hr />
+            </div>
+          )
+        )}
       </div>
     );
   }

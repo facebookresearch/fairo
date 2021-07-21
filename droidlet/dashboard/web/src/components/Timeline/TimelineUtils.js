@@ -50,6 +50,34 @@ export function jsonToArray(eventObj) {
   return tableArr;
 }
 
+export function jsonToResultsTable(eventObj) {
+  let name = eventObj["name"];
+  let time = eventObj["start_time"];
+  let description = "";
+
+  if (name === "perceive") {
+    description = eventObj["chat"];
+  } else if (name === "interpreter") {
+    description = eventObj["tasks_to_push"];
+  } else if (name === "dialogue") {
+    description = eventObj["object"];
+  } else if (name === "memory") {
+    description = eventObj["operation"];
+  }
+
+  return (
+    <table>
+      <tbody className="fixed">
+        <tr>
+          <td>{time}</td>
+          <td>{name}</td>
+          <td>{description}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
 export function handleClick(stateManager, item) {
   const eventObj = JSON.parse(item);
   let tableArr = jsonToArray(eventObj);

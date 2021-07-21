@@ -105,8 +105,12 @@ td:nth-child(1) {
   cursor: pointer;
 }
 
-tbody tr td:first-child {
-  width: 170px;
-  min-width: 170px;
-  max-width: 170px;
+.fixed td,
+.fixed th {
+  width: 33%;
+}
+
+.fixed {
+  width: 100%;
+  table-layout: fixed;
 }

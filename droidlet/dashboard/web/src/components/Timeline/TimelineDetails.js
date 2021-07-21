@@ -9,12 +9,12 @@ import "./Timeline.css";
 class TimelineDetails extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { update: false };
+    this.update = false;
   }
 
   shouldComponentUpdate() {
     // flag to prevent rerendering
-    return !this.state.update;
+    return !this.update;
   }
 
   componentDidMount() {
@@ -22,10 +22,7 @@ class TimelineDetails extends React.Component {
   }
 
   render() {
-    this.setState({
-      update: true,
-    });
-
+    this.update = true;
     return (
       <div className="subpanel">
         <table>
