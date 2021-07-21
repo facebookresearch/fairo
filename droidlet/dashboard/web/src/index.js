@@ -110,15 +110,8 @@ var config = {
                         },
                         {
                           type: "stack",
-                          content: [
-                            {
-                              title: "Details",
-                              cssClass: "scrollable",
-                              type: "react-component",
-                              component: "TimelineDetails",
-                              props: { stateManager: stateManager },
-                            },
-                          ],
+                          // empty content to be populated with detail panes on click
+                          content: [],
                         },
                       ],
                     },

@@ -68,10 +68,6 @@ td {
   vertical-align: top;
 }
 
-td:nth-child(1) {
-  width: 170px;
-}
-
 .search {
   width: 400px;
   margin-bottom: 15px;
@@ -102,4 +98,10 @@ td:nth-child(1) {
 
 .result {
   cursor: pointer;
+}
+
+tbody tr td:first-child {
+  width: 170px;
+  min-width: 170px;
+  max-width: 170px;
 }

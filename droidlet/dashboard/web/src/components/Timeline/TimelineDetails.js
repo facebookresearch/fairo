@@ -7,11 +7,22 @@ import { renderTable } from "./TimelineUtils";
 import "./Timeline.css";
 
 class TimelineDetails extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { update: false };
+  }
+
+  shouldComponentUpdate() {
+    // flag to prevent rerendering
+    return !this.state.update;
+  }
+
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
   }
 
   render() {
+    this.state.update = true;
     return (
       <div className="subpanel">
         <table>
