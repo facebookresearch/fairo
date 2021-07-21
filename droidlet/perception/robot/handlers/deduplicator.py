@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torchvision.models as models
 from torchvision import transforms
+import random
 
 from .core import AbstractHandler
 from droidlet.interpreter.robot.objects import AttributeDict
@@ -15,7 +16,7 @@ class ObjectDeduplicator(AbstractHandler):
     """Class for deduplicating a given set of objects from a given set of existing objects"""
 
     def __init__(self):
-        self.object_id_counter = 1
+        self.object_id_counter = random.randint(1, 1000)
         self.dedupe_model = models.resnet18(pretrained=True).cuda()
         self.layer = self.dedupe_model._modules.get("avgpool")
         self.dedupe_model.eval()
