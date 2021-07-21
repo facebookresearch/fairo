@@ -22,7 +22,10 @@ class TimelineDetails extends React.Component {
   }
 
   render() {
-    this.state.update = true;
+    this.setState({
+      update: true,
+    });
+
     return (
       <div className="subpanel">
         <table>

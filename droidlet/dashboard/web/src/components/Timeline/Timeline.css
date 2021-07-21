@@ -69,6 +69,10 @@ td {
   vertical-align: top;
 }
 
+td:nth-child(1) {
+  width: 170px;
+}
+
 .search {
   width: 400px;
   margin-bottom: 15px;
