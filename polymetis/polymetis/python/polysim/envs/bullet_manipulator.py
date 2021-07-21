@@ -22,13 +22,14 @@ log = logging.getLogger(__name__)
 class BulletManipulatorEnv(AbstractControlledEnv):
     """A manipulator environment using PyBullet.
 
-    robot_model_cfg: A Hydra configuration file containing information needed for the
-                     robot model, e.g. URDF. For an example, see
-                     `polymetis/conf/robot_model/franka_panda.yaml`
+    Args:
+        robot_model_cfg: A Hydra configuration file containing information needed for the
+                        robot model, e.g. URDF. For an example, see
+                        `polymetis/conf/robot_model/franka_panda.yaml`
 
-    gui: Whether to initialize the PyBullet simulation in GUI mode.
+        gui: Whether to initialize the PyBullet simulation in GUI mode.
 
-    use_grav_comp: If True, adds gravity compensation torques to the input torques.
+        use_grav_comp: If True, adds gravity compensation torques to the input torques.
     """
 
     def __init__(
@@ -138,7 +139,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         return self.get_current_joint_pos_vel()[1]
 
     def get_current_joint_torques(self):
-        """Returns a set of the previous torques that were just computed and applied."""
+        """Returns torques: [inputted, clipped, added with gravity compensation, and measured externally]"""
         return (
             self.prev_torques_commanded,
             self.prev_torques_applied,
