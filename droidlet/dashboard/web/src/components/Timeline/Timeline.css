@@ -113,4 +113,6 @@ td:nth-child(1) {
 .fixed {
   width: 100%;
   table-layout: fixed;
+  word-break: break-all;
+  overflow: hidden;
 }

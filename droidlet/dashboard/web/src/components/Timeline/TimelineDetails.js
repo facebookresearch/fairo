@@ -3,31 +3,41 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 
 import React from "react";
-import { renderTable } from "./TimelineUtils";
 import "./Timeline.css";
 
 class TimelineDetails extends React.Component {
-  constructor(props) {
-    super(props);
-    this.update = false;
-  }
-
   shouldComponentUpdate() {
-    // flag to prevent rerendering
-    return !this.update;
+    // prevent rerendering after the initial click event
+    return false;
   }
 
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
   }
 
+  renderTable(tableArr) {
+    // returns an HTML table given an array
+    if (tableArr) {
+      return tableArr.map((data, index) => {
+        const { event, description } = data;
+        return (
+          <tr key={index}>
+            <td>
+              <strong>{event}</strong>
+            </td>
+            <td>{description}</td>
+          </tr>
+        );
+      });
+    }
+  }
+
   render() {
-    this.update = true;
     return (
       <div className="subpanel">
         <table>
           <tbody>
-            {renderTable(this.props.stateManager.memory.timelineDetails)}
+            {this.renderTable(this.props.stateManager.memory.timelineDetails)}
           </tbody>
         </table>
       </div>
