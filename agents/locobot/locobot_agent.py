@@ -195,7 +195,7 @@ class LocobotAgent(LocoMCAgent):
             objects = postData["prevObjects"]
             for i_float in np.unique(res_labels): 
                 i = int(i_float)
-                if i == 0: 
+                if i == 0 or i >= len(objects): 
                     continue
                 mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
                 mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
