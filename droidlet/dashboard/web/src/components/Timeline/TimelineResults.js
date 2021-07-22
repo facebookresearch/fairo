@@ -14,12 +14,13 @@ class TimelineResults extends React.Component {
   render() {
     return (
       <div className="subpanel">
-        {this.props.stateManager.memory.timelineSearchResults.map((item) => (
-          <div>
-            {renderTable(jsonToArray(item))}
-            <hr />
-          </div>
-        ))}
+        {this.props.stateManager.memory.timelineSearchResults &&
+          this.props.stateManager.memory.timelineSearchResults.map((item) => (
+            <div>
+              {renderTable(jsonToArray(item))}
+              <hr />
+            </div>
+          ))}
       </div>
     );
   }
