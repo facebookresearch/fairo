@@ -19,7 +19,7 @@ const groups = [
   {
     id: "timeline",
     content: "Timeline",
-    nestedGroups: ["perceive", "dialogue", "interpreter"],
+    nestedGroups: ["perceive", "dialogue", "interpreter", "memory"],
   },
   {
     id: "perceive",
@@ -32,6 +32,10 @@ const groups = [
   {
     id: "interpreter",
     content: "Interpreter",
+  },
+  {
+    id: "memory",
+    content: "Memory",
   },
 ];
 
