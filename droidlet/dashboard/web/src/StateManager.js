@@ -490,7 +490,7 @@ class StateManager {
   labelPropagationReturn(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
-        for (let i = 0; i < res.length; i++) {
+        for (let i in res) {
           // Get rid of masks with <3 points
           let j = 0
           while (j < res[i].mask.length) {

@@ -172,15 +172,17 @@ class LocobotAgent(LocoMCAgent):
             # Convert mask points to mask maps then combine them
             categories = postData["categories"]
             src_label = np.zeros((height, width)).astype(int)
-            for o in postData["prevObjects"]: 
+            # For display only -- 2 separate chair masks will be same color here
+            display_map = np.zeros((height, width)).astype(int) 
+            for n, o in enumerate(postData["prevObjects"]): 
                 poly = Polygons(o["mask"])
                 bitmap = poly.mask(height, width)
                 index = categories.index(o["label"])
-                # TODO probably a cleaner way to do this with numpy arrays
                 for i in range(height): 
                     for j in range(width): 
                         if bitmap[i][j]: 
-                            src_label[i][j] = index
+                            src_label[i][j] = n + 1
+                            display_map[i][j] = index
 
             # Attach base pose data
             pose = postData["prevBasePose"]
@@ -192,11 +194,12 @@ class LocobotAgent(LocoMCAgent):
             res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
 
             # Convert mask maps to mask points
-            objects = postData["prevObjects"]
+            objects = {}
             for i_float in np.unique(res_labels): 
                 i = int(i_float)
-                if i == 0 or i >= len(objects): 
+                if i == 0: 
                     continue
+                objects[i-1] = postData["prevObjects"][i-1] # Do this in the for loop cause some objects aren't returned
                 mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
                 mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
                 objects[i-1]["mask"] = mask_points
@@ -205,7 +208,7 @@ class LocobotAgent(LocoMCAgent):
             # Save annotation data to disk for retraining
             Path("annotation_data/seg").mkdir(parents=True, exist_ok=True)
             Path("annotation_data/rgb").mkdir(parents=True, exist_ok=True)
-            np.save("annotation_data/seg/{:05d}.npy".format(postData["frameCount"]), src_label)
+            np.save("annotation_data/seg/{:05d}.npy".format(postData["frameCount"]), display_map)
             im = Image.fromarray(src_img)
             im.save("annotation_data/rgb/{:05d}.jpg".format(postData["frameCount"]))
 
