@@ -54,7 +54,6 @@ const options = {
   rollingMode: {
     follow: true,
   },
-  // stack: false,
 };
 
 const SearchBar = ({ onChange, placeholder }) => {
