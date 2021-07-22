@@ -219,7 +219,7 @@ class LocobotAgent(LocoMCAgent):
         def save_annotations(sid, categories): 
             seg_dir = "annotation_data/seg/"
             img_dir = "annotation_data/rgb/"
-            coco_file_name = "annotation_data/coco_results.json"
+            coco_file_name = "annotation_data/coco/coco_results.json"
 
             fs = [x.split(".")[0] + ".jpg" for x in os.listdir(seg_dir)]
 
@@ -282,6 +282,7 @@ class LocobotAgent(LocoMCAgent):
                         coco_output["annotations"].append(annotation_info)
                         count += 1
         
+            Path("annotation_data/coco").mkdir(parents=True, exist_ok=True)
             with open(coco_file_name, "w") as output_json:
                 json.dump(coco_output, output_json)
                 print("Saved annotations to", coco_file_name)
@@ -298,7 +299,7 @@ class LocobotAgent(LocoMCAgent):
             #     print(props)
 
             # Load existing categories & properties
-            file_dir = "annotation_data/output"
+            file_dir = "annotation_data/model"
             things_path = os.path.join(file_dir, "things.json")
             if os.path.exists(things_path): 
                 with open(things_path, "rt") as file: 
@@ -335,10 +336,13 @@ class LocobotAgent(LocoMCAgent):
         @sio.on("retrain_detector")
         def retrain_detector(sid): 
             
-            folder_path = "annotation_data/"
-            annotation_path = folder_path + "coco_results.json"
-            train_path = folder_path + "train.json"
-            test_path = folder_path + "test.json"
+            base_path = "annotation_data/"
+            coco_path = base_path + "coco/"
+            output_path = base_path + "output/"
+            model_path = base_path + "model/"
+            annotation_path = coco_path + "coco_results.json"
+            train_path = coco_path + "train.json"
+            test_path = coco_path + "test.json"
             train_split = 0.7
 
             # 1) Split coco json file into train and test using cocosplit code
@@ -379,7 +383,7 @@ class LocobotAgent(LocoMCAgent):
 
             # 2) Use train/test files to retrain detector
             dataset_name = "annotation_coco"
-            image_dir = folder_path + "rgb/"
+            image_dir = base_path + "rgb/"
             train_data = dataset_name + "_train"
             test_data = dataset_name + "_test"
 
@@ -392,7 +396,6 @@ class LocobotAgent(LocoMCAgent):
 
             MetadataCatalog.get(train_data)
             coco_yaml = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
-            output_dir = "annotation_data/output"
 
             cfg = get_cfg()
             cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
@@ -401,7 +404,7 @@ class LocobotAgent(LocoMCAgent):
             cfg.DATALOADER.NUM_WORKERS = 2
             cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
             cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
-            cfg.OUTPUT_DIR = output_dir
+            cfg.OUTPUT_DIR = output_path
             cfg.SOLVER.IMS_PER_BATCH = 2
             cfg.SOLVER.BASE_LR = 0.005 # Make sure LR is good
             cfg.SOLVER.MAX_ITER = 100 # 300 is good for small datasets
@@ -411,8 +414,8 @@ class LocobotAgent(LocoMCAgent):
             trainer = DefaultTrainer(cfg)
             trainer.resume_or_load(resume=False)
             trainer.train()
-            new_model_path = os.path.join(output_dir, "model_999.pth")
-            os.replace(os.path.join(output_dir, "model_final.pth"), new_model_path)
+            new_model_path = os.path.join(model_path, "model_999.pth")
+            os.replace(os.path.join(output_path, "model_final.pth"), new_model_path)
 
             # Evaluate
             evaluator = COCOEvaluator(test_data, ("bbox", "segm"), False, output_dir="../../annotation_data/output/")
@@ -426,9 +429,9 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("switch_detector")
         def switch_detector(sid): 
-            dest_path = "annotation_data/output"
-            print("switching to", dest_path)
-            self.perception_modules["vision"] = Perception(dest_path)
+            model_path = "annotation_data/model"
+            print("switching to", model_path)
+            self.perception_modules["vision"] = Perception(model_path)
 
 
     def init_memory(self):
