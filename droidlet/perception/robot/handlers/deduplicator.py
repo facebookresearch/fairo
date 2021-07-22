@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torchvision.models as models
 from torchvision import transforms
-import random
 
 from .core import AbstractHandler
 from droidlet.interpreter.robot.objects import AttributeDict

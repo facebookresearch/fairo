@@ -87,7 +87,9 @@ class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
     def __init__(self, model_data_dir):
-        # Pickle files
+        # Needed for pickle files that are downloaded from s3
+        # Can take this section out when prop.pickle and things.pickle are removed from s3
+        # Will also need to hardcode the things.json and props.json filepaths used below
         if model_data_dir == "agents/locobot/models/perception/": 
             with open(os.path.join(model_data_dir, properties_default), "rb") as h:
                 self.properties = pickle.load(h)
@@ -95,7 +97,7 @@ class DetectorBase:
             with open(os.path.join(model_data_dir, things_default), "rb") as h:
                 self.things = pickle.load(h)
                 logging.info("{} things".format(len(self.things)))
-        # JSON files
+        # Needed for JSON code files
         else: 
             with open(os.path.join(model_data_dir, properties_new), "r") as h:
                 self.properties = json.load(h)["items"]

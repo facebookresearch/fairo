@@ -473,6 +473,7 @@ class StateManager {
 
   startLabelPropagation() {
     let prevObjects = this.prevFeedState.objects.filter(o => o.type === "annotate")
+    // Update categories and properties
     for (let i in prevObjects) {
       this.categories.add(prevObjects[i].label)
       let prevProperties = prevObjects[i].properties.split("\n ")

@@ -215,6 +215,7 @@ class LocobotAgent(LocoMCAgent):
             # Returns an array of objects with updated masks
             sio.emit("labelPropagationReturn", objects)
 
+        # Adapted from coco_creator.ipynb
         @sio.on("save_annotations")
         def save_annotations(sid, categories): 
             seg_dir = "annotation_data/seg/"
@@ -289,14 +290,6 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("save_categories_properties")
         def save_categories_properties(sid, categories, properties): 
-
-            # # To open pickle files
-            # with open(os.path.join(self.opts.perception_model_dir, "things.pickle"), "rb") as h:
-            #     things = set(pickle.load(h)[1:])
-            #     print(things)
-            # with open(os.path.join(self.opts.perception_model_dir, "prop.pickle"), "rb") as h:
-            #     props = set(pickle.load(h))
-            #     print(props)
 
             # Load existing categories & properties
             file_dir = "annotation_data/model"
@@ -382,6 +375,7 @@ class LocobotAgent(LocoMCAgent):
                 save_coco(test_path, info, licenses, y_images, y_annots, categories)
 
             # 2) Use train/test files to retrain detector
+            # Adapted from train_detector.ipynb
             dataset_name = "annotation_coco"
             image_dir = base_path + "rgb/"
             train_data = dataset_name + "_train"
