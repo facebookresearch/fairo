@@ -25,7 +25,6 @@ class Perception:
 
     Args:
         model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
-        model_file_name (string): model filename (default: "model_999.pth")
     """
 
     def __init__(self, model_data_dir):
