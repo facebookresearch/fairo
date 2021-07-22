@@ -9,7 +9,7 @@ agent using the flags --enable_timeline --log_timeline.
 import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { jsonToArray, capitalizeEvent } from "./TimelineUtils";
+import { jsonToArray, capitalizeEvent, handleClick } from "./TimelineUtils";
 import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
 
@@ -94,28 +94,9 @@ class DashboardTimeline extends React.Component {
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
         const item = items.get(properties["item"]);
-        that.handleClick(item);
+        handleClick(that.props.stateManager, item.title);
       }
     });
-  }
-
-  // TODO: combine this handleClick() with the one in TimelineUtils.js
-  handleClick(item) {
-    const eventObj = JSON.parse(item.title);
-    let tableArr = jsonToArray(eventObj);
-    this.props.stateManager.memory.timelineDetails = tableArr;
-    this.props.stateManager.updateTimeline();
-
-    var config = {
-      title: capitalizeEvent(eventObj["name"]),
-      cssClass: "scrollable",
-      type: "react-component",
-      component: "TimelineDetails",
-      props: { stateManager: this.props.stateManager },
-    };
-    this.props.stateManager.dashboardLayout.root.contentItems[0].contentItems[1].contentItems[0].contentItems[5].contentItems[1].contentItems[1].addChild(
-      config
-    );
   }
 
   handleSearch(pattern) {
