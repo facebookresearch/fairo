@@ -123,6 +123,7 @@ class Interpreter(DialogueObject):
                 "name" : "interpreter",
                 "start_time" : start_time,
                 "end_time" : end_time,
+                "elapsed_time" : (end_time - start_time).total_seconds(),
                 "agent_time" : self.memory.get_time(),
                 "tasks_to_push" : tasks_to_push,
                 "task_mem" : task_mem,

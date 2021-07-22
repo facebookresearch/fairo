@@ -1046,6 +1046,7 @@ et        """
             "name" : "db_write", 
             "start_time" : start_time,
             "end_time" : end_time,
+            "elapsed_time" : (end_time - start_time).total_seconds(),
             "agent_time" : self.get_time(),
             "table_name" : query_table, 
             "operation" : query_operation, 
