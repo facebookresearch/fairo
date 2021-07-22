@@ -16,7 +16,7 @@ class ObjectDeduplicator(AbstractHandler):
     """Class for deduplicating a given set of objects from a given set of existing objects"""
 
     def __init__(self):
-        self.object_id_counter = random.randint(1, 1000)
+        self.object_id_counter = 1
         self.dedupe_model = models.resnet18(pretrained=True).cuda()
         self.layer = self.dedupe_model._modules.get("avgpool")
         self.dedupe_model.eval()
@@ -105,6 +105,8 @@ class ObjectDeduplicator(AbstractHandler):
             previous_objects (list[WorldObject]): a list of all previous WorldObjects ever detected
         """
         logging.info("In ObjectDeduplicationHandler ... ")
+        if self.object_id_counter <= len(previous_objects): # Ensure unique eids
+            self.object_id_counter = len(previous_objects) + 1
         new_objects = []
         updated_objects = []
         for current_object in current_objects:
