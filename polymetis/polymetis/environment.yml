@@ -1,6 +1,7 @@
 name: polymetis-local
 channels:
   - fair-robotics
+  - aihabitat
   - conda-forge/label/old_feature_broken
   - conda-forge
   - defaults
@@ -29,6 +30,7 @@ dependencies:
     - breathe
     - dash
     - grpcio
+    - habitat-sim==0.2.0
     - hydra-core
     - myst-parser
     - numpy
@@ -42,3 +44,4 @@ dependencies:
     - sphinx
     - sphinx-book-theme
     - tqdm
+    - withbullet

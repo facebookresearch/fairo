@@ -8,7 +8,7 @@ BASEDIR=$(dirname $0)
 if [ -z "$PKG_PATH" ]; then 
     echo "Building Conda package, since PKG_PATH is not defined"
     # Rebuild package
-    conda build -c fair-robotics -c conda-forge -c conda-forge/label/old_feature_broken $BASEDIR/conda_recipe
+    conda build -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken $BASEDIR/conda_recipe
     echo "Input tar.bz2 file path shown above to automatically update the conda channel: "
     read PKG_PATH
 fi

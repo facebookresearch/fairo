@@ -55,20 +55,21 @@ class TimelineResults extends React.Component {
         </table>
         <hr />
 
-        {this.props.stateManager.memory.timelineSearchResults.map(
-          (item, index) => (
-            <div
-              className="result"
-              key={index}
-              onClick={() =>
-                handleClick(this.props.stateManager, JSON.stringify(item))
-              }
-            >
-              {this.jsonToResultsTable(item)}
-              <hr />
-            </div>
-          )
-        )}
+        {this.props.stateManager.memory.timelineSearchResults &&
+          this.props.stateManager.memory.timelineSearchResults.map(
+            (item, index) => (
+              <div
+                className="result"
+                key={index}
+                onClick={() =>
+                  handleClick(this.props.stateManager, JSON.stringify(item))
+                }
+              >
+                {this.jsonToResultsTable(item)}
+                <hr />
+              </div>
+            )
+          )}
       </div>
     );
   }

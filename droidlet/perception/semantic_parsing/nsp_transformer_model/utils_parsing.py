@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import torch
-from .utils_caip import *
+from .utils_caip import select_spans, seq_to_tree, tokenize_mapidx, caip_collate
 from .tokenization_utils import fixed_span_values_voc
 
 

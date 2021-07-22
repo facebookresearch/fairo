@@ -312,6 +312,8 @@ class LocobotAgent(LocoMCAgent):
             2. already crashed / shutdown due to other effects
             """
             pass
+        time.sleep(5) # let the other threads die
+        os._exit(0) # TODO: remove and figure out why multiprocess sometimes hangs on exit
 
 
 if __name__ == "__main__":
