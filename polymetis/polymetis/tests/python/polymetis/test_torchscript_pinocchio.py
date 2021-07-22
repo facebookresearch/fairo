@@ -17,7 +17,8 @@ from torchcontrol.utils import test_utils
 
 urdf_path = os.path.join(
     test_utils.project_root_dir,
-    "polymetis/polymetis/data/kuka_iiwa/urdf/iiwa7.urdf",
+    # "polymetis/polymetis/data/kuka_iiwa/urdf/iiwa7.urdf",
+    "polymetis/polymetis/data/franka_panda/panda_arm.urdf",
 )
 
 # Set default tensor type to float32
@@ -46,7 +47,7 @@ def pybullet_env():
 
 @pytest.fixture
 def pinocchio_wrapper():
-    return toco.models.RobotModelPinocchio(urdf_path, "iiwa_joint_ee")
+    return toco.models.RobotModelPinocchio(urdf_path, "panda_joint8")
 
 
 @pytest.fixture
@@ -133,7 +134,7 @@ def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
 
     # Inverse kinematics with Pinocchio
     pinocchio_joint_pos = pinocchio_wrapper.inverse_kinematics(
-        pinocchio_pos, pinocchio_quat
+        pinocchio_pos, pinocchio_quat, max_iters=1
     )
 
     # Inverse kinematics with Pybullet
@@ -144,4 +145,7 @@ def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
     )
 
     # Compare
+    import pdb
+
+    pdb.set_trace()
     assert torch.allclose(pinocchio_joint_pos, pybullet_joint_pos)

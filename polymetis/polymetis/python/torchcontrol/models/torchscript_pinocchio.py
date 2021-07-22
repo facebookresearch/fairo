@@ -87,10 +87,16 @@ class RobotModelPinocchio(torch.nn.Module):
         self,
         ee_pos: torch.Tensor,
         ee_quat: torch.Tensor,
+        eps: float = 1e-4,
+        max_iters: int = 1000,
+        dt: float = 0.1,
+        damping: float = 1e-6,
     ) -> torch.Tensor:
         """Computes joint positions that achieve a given end-effector pose.
 
         Returns:
             torch.Tensor: joint positions
         """
-        return self.model.inverse_kinematics(ee_pos, ee_quat).to(joint_positions)
+        return self.model.inverse_kinematics(
+            ee_pos.squeeze(), ee_quat.squeeze(), eps, max_iters, dt, damping
+        ).to(ee_pos)

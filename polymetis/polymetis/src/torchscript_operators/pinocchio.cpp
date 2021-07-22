@@ -20,11 +20,7 @@
 #include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 
-// IK parameters
-#define IK_EPS 1e-4
-#define IK_IT_MAX 1000
-#define IK_DT 1e-1
-#define IK_DAMP 1e-6
+#include "polymetis/torchscript_operators/rotations.hpp"
 
 torch::Tensor validTensor(torch::Tensor x) {
   if (x.dim() < 2) {
@@ -41,7 +37,10 @@ Eigen::VectorXd matrixToVector(Eigen::MatrixXd A) {
 struct RobotModelPinocchio : torch::CustomClassHolder {
   pinocchio::Model model_;
   pinocchio::Data model_data_;
-  pinocchio::FrameIndex ee_idx_;
+  pinocchio::FrameIndex ee_frame_idx_;
+  Eigen::VectorXd ik_sol_p_;
+  Eigen::VectorXd ik_sol_v_;
+  pinocchio::Data::Matrix6x ik_sol_J_;
 
   std::string xml_buffer_;
   std::string ee_joint_name_;
@@ -65,7 +64,11 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   void initialize() {
     pinocchio::urdf::buildModelFromXML(xml_buffer_, model_);
     model_data_ = pinocchio::Data(model_);
-    ee_idx_ = model_.getFrameId(ee_joint_name_);
+    ee_frame_idx_ = model_.getFrameId(ee_joint_name_);
+
+    ik_sol_p_ = Eigen::VectorXd(model_.nq);
+    ik_sol_v_ = Eigen::VectorXd(model_.nv);
+    ik_sol_J_ = pinocchio::Data::Matrix6x(6, model_.nv);
   }
 
   c10::List<torch::Tensor> get_joint_angle_limits(void) {
@@ -102,10 +105,11 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     pinocchio::forwardKinematics(
         model_, model_data_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)));
-    pinocchio::updateFramePlacement(model_, model_data_, ee_idx_);
+    pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
 
-    auto pos_data = model_data_.oMf[ee_idx_].translation().transpose();
-    auto quat_data = Eigen::Quaterniond(model_data_.oMf[ee_idx_].rotation());
+    auto pos_data = model_data_.oMf[ee_frame_idx_].translation().transpose();
+    auto quat_data =
+        Eigen::Quaterniond(model_data_.oMf[ee_frame_idx_].rotation());
 
     for (int i = 0; i < 3; i++) {
       pos_result[i] = pos_data[i];
@@ -129,8 +133,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
                                          result.size(0), result.size(1));
     pinocchio::computeFrameJacobian(
         model_, model_data_,
-        matrixToVector(dtt::libtorch2eigen<double>(joint_positions)), ee_idx_,
-        pinocchio::LOCAL_WORLD_ALIGNED, J);
+        matrixToVector(dtt::libtorch2eigen<double>(joint_positions)),
+        ee_frame_idx_, pinocchio::LOCAL_WORLD_ALIGNED, J);
 
     return result;
   }
@@ -151,47 +155,68 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     return torch::from_blob(tau.data(), dims, torch::kFloat64).clone();
   }
 
-  torch::Tensor inverse_kinematics(torch::Tensor ee_pos,
-                                   torch::Tensor ee_quat) {
-    torch::Tensor result = torch::zeros(model_.nq, torch::kFloat32);
+  torch::Tensor inverse_kinematics(torch::Tensor ee_pos, torch::Tensor ee_quat,
+                                   double eps = 1e-4, int64_t max_iters = 1000,
+                                   double dt = 0.1, double damping = 1e-6) {
+    ee_pos = validTensor(ee_pos);
+    Eigen::Vector3d ee_pos_(
+        Eigen::Map<Eigen::Vector3d>(ee_pos.data_ptr<double>(), 3));
+
+    auto quat = tensor4ToQuat(ee_quat);
+    auto ee_quat_ = Eigen::Quaterniond(quat).cast<double>();
+    auto ee_orient_ = ee_quat_.toRotationMatrix();
 
     // Initialize IK variables
-    const pinocchio::SE3 oMdes(Eigen::Matrix3d::Identity(),
-                               Eigen::Vector3d(1., 0., 1.));
-    Eigen::VectorXd q = pinocchio::neutral(model_);
+    const pinocchio::SE3 desired_ee(ee_orient_, ee_pos_);
+    // std::cout << "ee_quat_ " << ee_quat_ << std::endl;
+    // std::cout << "ee_pos_ " << ee_pos_ << std::endl;
+    ik_sol_p_ = pinocchio::neutral(model_);
 
-    pinocchio::Data::Matrix6x J(6, model_.nv);
-    J.setZero();
+    ik_sol_J_.setZero();
 
     Eigen::Matrix<double, 6, 1> err;
-    Eigen::VectorXd v(model_.nv);
+    ik_sol_v_ = Eigen::VectorXd(model_.nv);
 
     // Solve IK iteratively
-    for (int i = 0; i < IK_IT_MAX; i++) {
+    for (int i = 0; i < max_iters; i++) {
+      std::cout << "ik_sol_p_ start  " << ik_sol_p_ << std::endl;
+      std::cout << "ik_sol_v_ start  " << ik_sol_v_ << std::endl;
       // Compute forward kinematics error
-      pinocchio::forwardKinematics(model_, model_data_, q);
-      const pinocchio::SE3 dMi = oMdes.actInv(model_data_.oMi[ee_idx_]);
+      pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
+      const pinocchio::SE3 dMi =
+          desired_ee.actInv(model_data_.oMi[ee_frame_idx_]);
       err = pinocchio::log6(dMi).toVector();
 
       // Check termination
-      if (err.norm() < IK_EPS) {
+      if (err.norm() < eps) {
         break;
       }
 
       // Descent solution
-      pinocchio::computeJointJacobian(model_, model_data_, q, ee_idx_, J);
+      pinocchio::computeJointJacobian(model_, model_data_, ik_sol_p_, 7,
+                                      ik_sol_J_);
+
+      // pinocchio::computeFrameJacobian(
+      //     model_, model_data_,
+      //     ik_sol_p_, ee_frame_idx_,
+      //     pinocchio::LOCAL_WORLD_ALIGNED, ik_sol_J_);
+
+      std::cout << "ik_sol_J_ " << ik_sol_J_ << std::endl;
+
       pinocchio::Data::Matrix6 JJt;
-      JJt.noalias() = J * J.transpose();
-      JJt.diagonal().array() += IK_DAMP;
-      v.noalias() = -J.transpose() * JJt.ldlt().solve(err);
-      q = pinocchio::integrate(model_, q, v * IK_DT);
+      JJt.noalias() = ik_sol_J_ * ik_sol_J_.transpose();
+      JJt.diagonal().array() += damping;
+      ik_sol_v_.noalias() = -ik_sol_J_.transpose() * JJt.ldlt().solve(err);
+      ik_sol_p_ = pinocchio::integrate(model_, ik_sol_p_, ik_sol_v_ * dt);
+      std::cout << "ik_sol_p_ end  " << ik_sol_p_ << std::endl;
     }
 
-    for (int i = 0; i < model_.nq; i++) {
-      result[i] = q[i];
+    if (err.norm() >= eps) {
+      std::cerr << "WARNING: IK did not converge!" << std::endl;
     }
 
-    return result;
+    std::vector<int64_t> dims = {ik_sol_p_.rows()};
+    return torch::from_blob(ik_sol_p_.data(), dims, torch::kFloat64).clone();
   }
 };
 
