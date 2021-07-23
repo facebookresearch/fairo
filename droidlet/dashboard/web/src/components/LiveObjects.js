@@ -113,7 +113,8 @@ class LiveObjects extends React.Component {
 
   onRetrain() {
     if (this.props.stateManager) {
-      this.props.stateManager.retrainDetector()
+      console.log('retraining detector...')
+      this.props.stateManager.socket.emit("retrain_detector")
     }
   }
 
@@ -195,15 +196,15 @@ class LiveObjects extends React.Component {
         />
       );
       if (obj && obj.mask) {
-        for (let i = 0; i < obj.mask.length; i++) {
-          let mask = obj.mask[i].map((x) => [x[0] * scale, x[1] * scale]);
+        for (let j = 0; j < obj.mask.length; j++) {
+          let mask = obj.mask[j].map((x) => [x[0] * scale, x[1] * scale]);
           renderedObjects.push(
             <Shape
               sceneFunc={(context, shape) => {
                 context.beginPath();
                 context.moveTo(...mask[0]);
-                for (let i = 1; i < mask.length; i++) {
-                  context.lineTo(...mask[i]);
+                for (let k = 1; k < mask.length; k++) {
+                  context.lineTo(...mask[k]);
                 }
                 context.closePath();
                 context.fillStrokeShape(shape);
@@ -212,6 +213,7 @@ class LiveObjects extends React.Component {
               opacity={0.5}
               stroke={obj.type === "detector" ? "white" : "black"}
               strokeWidth={1}
+              key={`${i}-${j}`}
             />
           );
         }

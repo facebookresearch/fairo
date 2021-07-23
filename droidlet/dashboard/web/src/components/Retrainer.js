@@ -41,8 +41,9 @@ class Navigator extends React.Component {
 
   onRetrain() {
     if (this.props.stateManager) {
+      console.log('retraining detector...')
       let { learningRate, trainSplit, maxIters } = this.state
-      this.props.stateManager.retrainDetector({
+      this.props.stateManager.socket.emit("retrain_detector", {
         learningRate, 
         trainSplit, 
         maxIters, 

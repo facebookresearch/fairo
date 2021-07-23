@@ -91,7 +91,6 @@ class StateManager {
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
     this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
     this.saveAnnotations = this.saveAnnotations.bind(this);
-    this.retrainDetector = this.retrainDetector.bind(this); 
     this.annotationRetrain = this.annotationRetrain.bind(this);
 
     // set turk related params
@@ -415,6 +414,7 @@ class StateManager {
   }
   
   onObjectAnnotationSave(res) {
+    // Process annotations
     let { nameMap, pointMap, propertyMap } = res;
     let newObjects = []
     let scale = 500  // hardcoded from somewhere else
@@ -472,13 +472,14 @@ class StateManager {
   }
 
   startLabelPropagation() {
-    let prevObjects = this.prevFeedState.objects.filter(o => o.type === "annotate")
     // Update categories and properties
+    let prevObjects = this.prevFeedState.objects.filter(o => o.type === "annotate")
     for (let i in prevObjects) {
       this.categories.add(prevObjects[i].label)
       let prevProperties = prevObjects[i].properties.split("\n ")
       prevProperties.forEach(p => this.properties.add(p))
     }
+
     let labelProps = {
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
@@ -490,6 +491,7 @@ class StateManager {
       categories: [null, ...this.categories], // Include null so category indices start at 1
     }
     this.socket.emit("label_propagation", labelProps)
+
     // Reset
     this.stateProcessed.rgbImg = true;
     this.stateProcessed.depth = true;
@@ -537,20 +539,15 @@ class StateManager {
   }
 
   saveAnnotations() {
+    console.log("saving annotations, categories, and properties")
     let categories = [null, ...this.categories] // Include null so category indices start at 1
     let properties = [...this.properties]
     this.socket.emit("save_annotations", categories)
-    console.log("saving annotations, categories, and properties")
     this.socket.emit("save_categories_properties", categories, properties)
   }
 
-  retrainDetector(settings = {}) {
-    this.socket.emit("retrain_detector", settings)
-    console.log('retraining detector...')
-  }
-
   annotationRetrain(res) {
-    console.log("retrained!", res)
+    console.log("retrained!")
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects || ref instanceof Retrainer) {
         ref.setState({

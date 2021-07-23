@@ -327,7 +327,7 @@ class LocobotAgent(LocoMCAgent):
                 print("saved properties to", props_path)
 
         @sio.on("retrain_detector")
-        def retrain_detector(sid, settings): 
+        def retrain_detector(sid, settings={}): 
             
             if len(settings) == 0: 
                 settings["trainSplit"] = 0.7
