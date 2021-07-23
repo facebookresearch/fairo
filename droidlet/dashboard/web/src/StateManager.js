@@ -90,6 +90,7 @@ class StateManager {
     this.onObjectAnnotationSave = this.onObjectAnnotationSave.bind(this);
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
     this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
+    this.onSave = this.onSave.bind(this);
     this.saveAnnotations = this.saveAnnotations.bind(this);
     this.annotationRetrain = this.annotationRetrain.bind(this);
 
@@ -137,6 +138,7 @@ class StateManager {
     this.frameCount = 0
     this.categories = new Set()
     this.properties = new Set()
+    this.annotationsSaved = true
   }
 
   setDefaultUrl() {
@@ -242,6 +244,7 @@ class StateManager {
     socket.on("newTimelineEvent", this.returnTimelineEvent);
     socket.on("labelPropagationReturn", this.labelPropagationReturn);
     socket.on("annotationRetrain", this.annotationRetrain);
+    socket.on("saveRgbSegCallback", this.saveAnnotations);
   }
 
   updateStateManagerMemory(data) {
@@ -446,6 +449,7 @@ class StateManager {
       })
     }
     this.curFeedState.objects = newObjects
+    this.annotationsSaved = false
 
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
@@ -480,17 +484,28 @@ class StateManager {
       prevProperties.forEach(p => this.properties.add(p))
     }
 
+    // Label prop
     let labelProps = {
       prevRgbImg: this.prevFeedState.rgbImg, 
       depth: this.curFeedState.depth, 
       prevDepth: this.prevFeedState.depth, 
-      prevObjects, 
+      objects: prevObjects, 
       basePose: this.curFeedState.pose,
       prevBasePose: this.prevFeedState.pose,
-      frameCount: this.frameCount,
-      categories: [null, ...this.categories], // Include null so category indices start at 1
     }
     this.socket.emit("label_propagation", labelProps)
+
+    // Save rgb/seg if needed
+    if (!this.annotationsSaved) {
+      let saveProps = {
+        rgb: this.prevFeedState.rgbImg, 
+        objects: prevObjects, 
+        frameCount: this.frameCount,
+        categories: [null, ...this.categories], // Include null so category indices start at 1
+      }
+      this.socket.emit("save_rgb_seg", saveProps)
+      this.annotationsSaved = true
+    }
 
     // Reset
     this.stateProcessed.rgbImg = true;
@@ -519,6 +534,9 @@ class StateManager {
         }
       }
     })
+    if (Object.keys(res).length > 0) {
+      this.annotationsSaved = false
+    }
   }
 
   checkRunLabelProp() {
@@ -538,8 +556,33 @@ class StateManager {
     )
   }
 
-  saveAnnotations() {
+  onSave() {
     console.log("saving annotations, categories, and properties")
+    
+    // Save rgb/seg if needed
+    if (!this.annotationsSaved) {
+      let curObjects = this.curFeedState.objects.filter(o => o.type === "annotate")
+      for (let i in curObjects) {
+        this.categories.add(curObjects[i].label)
+        let props = curObjects[i].properties.split("\n ")
+        props.forEach(p => this.properties.add(p))
+      }
+      let saveProps = {
+        rgb: this.curFeedState.rgbImg, 
+        objects: curObjects, 
+        frameCount: this.frameCount,
+        categories: [null, ...this.categories], // Include null so category indices start at 1
+        callback: true, // Include boolean param to save annotations after -- ensures whatever the noun form of synchronous is
+      }
+      this.socket.emit("save_rgb_seg", saveProps)
+      this.annotationsSaved = true
+    } else {
+      this.saveAnnotations()
+    }
+  }
+
+  saveAnnotations() {
+    // Save annotations
     let categories = [null, ...this.categories] // Include null so category indices start at 1
     let properties = [...this.properties]
     this.socket.emit("save_annotations", categories)

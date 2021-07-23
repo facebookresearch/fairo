@@ -107,7 +107,7 @@ class LiveObjects extends React.Component {
 
   onAnnotationSave() {
     if (this.props.stateManager) {
-      this.props.stateManager.saveAnnotations()
+      this.props.stateManager.onSave()
     }
   }
 
