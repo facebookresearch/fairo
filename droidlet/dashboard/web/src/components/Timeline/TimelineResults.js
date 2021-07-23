@@ -12,21 +12,19 @@ class TimelineResults extends React.Component {
   }
 
   jsonToResultsTable(eventObj) {
+    // which attribute to show as the description
+    let descriptionTable = {
+      perceive: "chat",
+      interpreter: "tasks_to_push",
+      dialogue: "object",
+      memory: "operation",
+    };
+
     let name = eventObj["name"];
     let time = eventObj["start_time"];
+    let description = eventObj[descriptionTable[name]];
     // show the time and not the date
     time = time.substring(time.indexOf(" "));
-    let description = "";
-
-    if (name === "perceive") {
-      description = eventObj["chat"];
-    } else if (name === "interpreter") {
-      description = eventObj["tasks_to_push"];
-    } else if (name === "dialogue") {
-      description = eventObj["object"];
-    } else if (name === "memory") {
-      description = eventObj["operation"];
-    }
 
     return (
       <table className="fixed">
