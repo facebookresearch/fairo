@@ -21,8 +21,8 @@ class TimelineResults extends React.Component {
     };
 
     let name = eventObj["name"];
-    let time = eventObj["start_time"];
     let description = eventObj[descriptionTable[name]];
+    let time = eventObj["start_time"];
     // show the time and not the date
     time = time.substring(time.indexOf(" "));
 
