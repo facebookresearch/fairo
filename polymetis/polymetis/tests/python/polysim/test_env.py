@@ -11,6 +11,8 @@ from omegaconf import DictConfig
 from polysim.envs import BulletManipulatorEnv
 from polysim.envs import HabitatManipulatorEnv
 
+import pybullet_data
+
 # from polysim.envs import DaisyLocomotorEnv
 
 franka_panda = DictConfig(
@@ -85,6 +87,73 @@ kuka_iiwa = DictConfig(
     }
 )
 
+kuka_gripper_sdf = DictConfig(
+    {
+        "num_dofs": 12,
+        "robot_state_dim": 12,
+        "hz": 240,
+        "time_warp": 1.0,
+        "default_controller_args": {
+            "type": "default",
+            "Kx": [
+                100.0,
+                150.0,
+                50.0,
+                75.0,
+                25.0,
+                10.0,
+                10.0,
+                10.0,
+                20.0,
+                5.0,
+                10.0,
+                2.5,
+                # 1.0,
+                # 0.5,
+            ],
+            "pos_state_dim": 7,
+        },
+        "robot_description_path": os.path.join(
+            pybullet_data.getDataPath(), "kuka_iiwa/kuka_with_gripper2.sdf"
+        ),
+        "controlled_joints": [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 10, 13],
+        "rest_pose": [
+            0.006418,
+            0.413184,
+            -0.011401,
+            -1.589317,
+            0.005379,
+            1.137684,
+            -0.006539,
+            0.000048,
+            -0.299912,
+            0.000000,
+            -0.000043,
+            0.299960,
+            # 0.000000,
+            # -0.000200,
+        ],
+        "joint_limits": [
+            2.96705972839,
+            2.09439510239,
+            2.96705972839,
+            2.09439510239,
+            2.96705972839,
+            2.09439510239,
+            3.05432619099,
+            2.09439510239,
+            2.96705972839,
+            # 2.09439510239,
+            # 3.05432619099,
+        ],
+        "torque_limits": [200, 200, 100, 100, 100, 30, 30, 10, 10, 10, 10, 10],
+        # "ee_link_idx": 6,
+        "ee_joint_name": "lbr_iiwa_with_wsg50__lbr_iiwa_link_5",
+        "using_camera": False,
+        "gpu_renderer": False,
+    }
+)
+
 
 @pytest.mark.parametrize(
     "obj, obj_kwargs",
@@ -99,6 +168,12 @@ kuka_iiwa = DictConfig(
             BulletManipulatorEnv,
             {
                 "robot_model_cfg": kuka_iiwa,
+            },
+        ),
+        (
+            BulletManipulatorEnv,
+            {
+                "robot_model_cfg": kuka_gripper_sdf,
             },
         ),
         (
