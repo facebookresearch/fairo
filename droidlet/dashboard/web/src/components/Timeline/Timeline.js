@@ -9,7 +9,7 @@ agent using the flags --enable_timeline --log_timeline.
 import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { jsonToArray, capitalizeEvent, handleClick } from "./TimelineUtils";
+import { handleClick } from "./TimelineUtils";
 import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
 
