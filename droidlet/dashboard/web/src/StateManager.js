@@ -15,6 +15,7 @@ import Timeline from "./components/Timeline/Timeline";
 import TimelineDetails from "./components/Timeline/TimelineDetails";
 import TimelineResults from "./components/Timeline/TimelineResults";
 import MobileMainPane from "./MobileMainPane";
+import Retrainer from "./components/Retrainer";
 
 /**
  * The main state manager for the dashboard.
@@ -92,7 +93,6 @@ class StateManager {
     this.saveAnnotations = this.saveAnnotations.bind(this);
     this.retrainDetector = this.retrainDetector.bind(this); 
     this.annotationRetrain = this.annotationRetrain.bind(this);
-    this.switchModel = this.switchModel.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -544,25 +544,20 @@ class StateManager {
     this.socket.emit("save_categories_properties", categories, properties)
   }
 
-  retrainDetector() {
-    this.socket.emit("retrain_detector")
+  retrainDetector(settings = {}) {
+    this.socket.emit("retrain_detector", settings)
     console.log('retraining detector...')
   }
 
   annotationRetrain(res) {
     console.log("retrained!", res)
     this.refs.forEach((ref) => {
-      if (ref instanceof LiveObjects) {
+      if (ref instanceof LiveObjects || ref instanceof Retrainer) {
         ref.setState({
           modelMetrics: res
         })
       }
     });
-  }
-
-  switchModel() {
-    console.log('switching models')
-    this.socket.emit("switch_detector")
   }
 
   processMemoryState(msg) {

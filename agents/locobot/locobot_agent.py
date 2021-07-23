@@ -327,8 +327,13 @@ class LocobotAgent(LocoMCAgent):
                 print("saved properties to", props_path)
 
         @sio.on("retrain_detector")
-        def retrain_detector(sid): 
+        def retrain_detector(sid, settings): 
             
+            if len(settings) == 0: 
+                settings["trainSplit"] = 0.7
+                settings["learningRate"] = 0.005
+                settings["maxIters"] = 100
+
             base_path = "annotation_data/"
             coco_path = base_path + "coco/"
             output_path = base_path + "output/"
@@ -336,7 +341,7 @@ class LocobotAgent(LocoMCAgent):
             annotation_path = coco_path + "coco_results.json"
             train_path = coco_path + "train.json"
             test_path = coco_path + "test.json"
-            train_split = 0.7
+            train_split = settings["trainSplit"]
 
             # 1) Split coco json file into train and test using cocosplit code
             # Adapted from https://github.com/akarazniewicz/cocosplit/blob/master/cocosplit.py
@@ -400,8 +405,8 @@ class LocobotAgent(LocoMCAgent):
             cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
             cfg.OUTPUT_DIR = output_path
             cfg.SOLVER.IMS_PER_BATCH = 2
-            cfg.SOLVER.BASE_LR = 0.005 # Make sure LR is good
-            cfg.SOLVER.MAX_ITER = 100 # 300 is good for small datasets
+            cfg.SOLVER.BASE_LR = settings["learningRate"] # Make sure LR is good
+            cfg.SOLVER.MAX_ITER = settings["maxIters"] # 300 is good for small datasets
             
             # Train
             os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)

@@ -119,7 +119,8 @@ class LiveObjects extends React.Component {
 
   onModelSwitch() {
     if (this.props.stateManager) {
-      this.props.stateManager.switchModel()
+      console.log("switching model...")
+      this.props.stateManager.socket.emit("switch_detector")
     }
   }
 
