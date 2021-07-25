@@ -15,6 +15,7 @@ from os.path import join as pjoin
 from tqdm import tqdm
 
 import torch
+import torch.utils.tensorboard
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim import Adam
 from transformers import AutoModel, AutoTokenizer, BertConfig
@@ -70,6 +71,7 @@ class ModelTrainer:
                 "time",
             ],
         )
+        self.tensorboard_dir = args.tensorboard_dir
 
     def train(self, model, dataset, tokenizer, model_identifier, full_tree_voc):
         """Training loop (all epochs at once)
@@ -85,6 +87,13 @@ class ModelTrainer:
             Tuple of (Loss, Accuracy)
 
         """
+        if self.tensorboard_dir:
+            tensorboard_dir = os.path.join(self.tensorboard_dir, model_identifier)
+            #            os.mkdir(self.tensorboard_dir, exist_ok=True)
+            tb = torch.utils.tensorboard.SummaryWriter(log_dir=tensorboard_dir)
+        else:
+            tb = None
+
         # make data sampler
         train_sampler = RandomSampler(dataset)
         logging.info("Initializing train data sampler: {}".format(train_sampler))
@@ -193,6 +202,9 @@ class ModelTrainer:
                 text_span_tot_loss += text_span_loss.item()
                 text_span_loc_loss += text_span_loss.item()
                 if step % 400 == 0:
+                    if tb:
+                        tb.add_scalar("tot_accuracy", tot_accuracy, global_step=step)
+                        tb.add_scalar("tot_loss", tot_loss, global_step=step)
                     print(
                         "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
                             e,
@@ -241,7 +253,10 @@ class ModelTrainer:
             logging.info("evaluating model")
             for dtype_spec in json.loads(self.args.dtype_samples):
                 dtype, ratio = dtype_spec
-                self.eval_model_on_dataset(e, model, dtype, full_tree_voc, tokenizer)
+                l, a = self.eval_model_on_dataset(e, model, dtype, full_tree_voc, tokenizer)
+                if tb:
+                    tb.add_scalar("val_accuracy", a, global_step=e)
+                    tb.add_scalar("val_loss", l, global_step=e)
 
         return (tot_loss / tot_steps, tot_accuracy / tot_steps)
 
@@ -323,6 +338,7 @@ class ModelTrainer:
         self.valid_outputs_logger.log_dialogue_outputs(
             [epoch, dtype, l, a, text_span_acc, text_span_loss, time()]
         )
+        return l, a
 
 
 def generate_model_name(args, optional_identifier=""):
@@ -344,7 +360,7 @@ def generate_model_name(args, optional_identifier=""):
         "batch_size": "batch",
         "decoder_learning_rate": "dec_lr",
         "decoder_warmup_steps": "dec_ws",
-        "dtype_samples": "spl",
+        "dtype_samples": "data",
         "encoder_learning_rate": "enc_lr",
         "encoder_warmup_steps": "enc_ws",
         "model_name": "name",
@@ -357,8 +373,11 @@ def generate_model_name(args, optional_identifier=""):
         "train_encoder": "tr",
         "fixed_value_weight": "fv",
     }
+    dsets = {"templated": "t", "templated_filters": "tf", "annotated": "a"}
     for k, v in vars(args).items():
         if k in args_keys:
+            if k == "dtype_samples":
+                v = ":".join([dsets[d[0]] + str(d[1]) for d in json.loads(args.dtype_samples)])
             name += "{param}={value}|".format(param=args_keys[k], value=v)
     # In case we want additional identification for the model, eg. test run
     name += "{time}|".format(time=time_now)
@@ -366,7 +385,40 @@ def generate_model_name(args, optional_identifier=""):
     return name
 
 
-def main():
+def build_grammar(args):
+    data = {"train": {}, "valid": {}, "test": {}}
+    dtype_samples_unpacked = json.loads(args.dtype_samples)
+    dtypes = [t for t, p in dtype_samples_unpacked]
+    for spl in data:
+        for dt in dtypes:
+            fname = pjoin(args.data_dir, "{}/{}.txt".format(spl, dt))
+            logging.info("loading file {}".format(fname))
+            if isfile(fname):
+                data[spl][fname.split("/")[-1][:-4]] = process_txt_data(filepath=fname)
+    full_tree, tree_i2w = make_full_tree(
+        [(d_list, 1.0) for spl, dtype_dict in data.items() for dtype, d_list in dtype_dict.items()]
+    )
+    json.dump((full_tree, tree_i2w), open(args.tree_voc_file, "w"))
+
+
+def build_model(args, tokenizer, tree_i2w):
+    # make model
+    logging.info("making model")
+    enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
+    bert_config = BertConfig.from_pretrained(args.decoder_config_name)
+    bert_config.is_decoder = True
+    bert_config.add_cross_attention = True
+    if args.tree_to_text:
+        tokenizer.add_tokens(tree_i2w)
+    else:
+        bert_config.vocab_size = len(tree_i2w) + 8
+    logging.info("vocab size {}".format(bert_config.vocab_size))
+    dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
+    encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
+    return dec_with_loss, encoder_decoder
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_dir",
@@ -374,6 +426,7 @@ def main():
         type=str,
         help="train/valid/test data",
     )
+    parser.add_argument("--tensorboard_dir", default="")
     parser.add_argument(
         "--output_dir",
         default="agents/craftassist/models/semantic_parser/ttad_bert_updated/",
@@ -498,12 +551,16 @@ def main():
         help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
     args = parser.parse_args()
+
+    os.makedirs(args.output_dir, exist_ok=True)
     # HACK: allows us to give rephrase proba only instead of full dictionary
     if args.rephrase_proba > 0:
         args.dtype_samples = json.dumps(
             [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
         )
+
     model_identifier = generate_model_name(args, args.optional_identifier)
+
     # set up logging
     l_handler = logging.handlers.WatchedFileHandler(
         "{}/{}.log".format(args.output_dir, model_identifier)
@@ -522,24 +579,10 @@ def main():
             full_tree, tree_i2w = json.load(fd)
     else:
         logging.info("====== Making Grammar ======")
-        data = {"train": {}, "valid": {}, "test": {}}
-        dtype_samples_unpacked = json.loads(args.dtype_samples)
-        dtypes = [t for t, p in dtype_samples_unpacked]
-        for spl in data:
-            for dt in dtypes:
-                fname = pjoin(args.data_dir, "{}/{}.txt".format(spl, dt))
-                logging.info("loading file {}".format(fname))
-                if isfile(fname):
-                    data[spl][fname.split("/")[-1][:-4]] = process_txt_data(filepath=fname)
-        full_tree, tree_i2w = make_full_tree(
-            [
-                (d_list, 1.0)
-                for spl, dtype_dict in data.items()
-                for dtype, d_list in dtype_dict.items()
-            ]
-        )
-        json.dump((full_tree, tree_i2w), open(args.tree_voc_file, "w"))
+        build_grammar(args)
+
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_encoder_name)
+
     logging.info("====== Loading Dataset ======")
     train_dataset = CAIPDataset(
         tokenizer,
@@ -549,28 +592,16 @@ def main():
         word_noise=args.word_dropout,
         full_tree_voc=(full_tree, tree_i2w),
     )
+
     logging.info("====== Setting up Model ======")
+    dec_with_loss, encoder_decoder = build_model(args, tokenizer, tree_i2w)
 
-    # make model
-    logging.info("making model")
-    enc_model = AutoModel.from_pretrained(args.pretrained_encoder_name)
-    bert_config = BertConfig.from_pretrained(args.decoder_config_name)
-
-    bert_config.is_decoder = True
-    bert_config.add_cross_attention = True
-    if args.tree_to_text:
-        tokenizer.add_tokens(tree_i2w)
-    else:
-        bert_config.vocab_size = len(tree_i2w) + 8
-    logging.info("vocab size {}".format(bert_config.vocab_size))
-    dec_with_loss = DecoderWithLoss(bert_config, args, tokenizer)
-    encoder_decoder = EncoderDecoderWithLoss(enc_model, dec_with_loss, args)
     # save configs
     json.dump(
         (full_tree, tree_i2w), open(pjoin(args.output_dir, model_identifier + "_tree.json"), "w")
     )
     pickle.dump(args, open(pjoin(args.output_dir, model_identifier + "_args.pk"), "wb"))
-    # train_model
+
     logging.info("====== Training Model ======")
     encoder_decoder = encoder_decoder.cuda()
     encoder_decoder.train()
@@ -579,7 +610,3 @@ def main():
     loss, accu = model_trainer.train(
         encoder_decoder, train_dataset, tokenizer, model_identifier, full_tree_voc
     )
-
-
-if __name__ == "__main__":
-    main()
