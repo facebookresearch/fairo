@@ -10,7 +10,7 @@ python locobot_agent.py 2>&1 >/dev/null &
 BGPID=$!
 popd
 
-sleep 45 # wait for the agent to fully start (including downloading of models
+sleep 45 # wait for the agent to fully start (including downloading of models)
 
 python test_agent.py
 

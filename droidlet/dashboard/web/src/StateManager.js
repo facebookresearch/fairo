@@ -12,6 +12,8 @@ import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import Timeline from "./components/Timeline/Timeline";
+import TimelineDetails from "./components/Timeline/TimelineDetails";
+import TimelineResults from "./components/Timeline/TimelineResults";
 import MobileMainPane from "./MobileMainPane";
 
 /**
@@ -58,6 +60,8 @@ class StateManager {
     ],
     timelineEvent: "",
     timelineEventHistory: [],
+    timelineSearchResults: [],
+    timelineDetails: [],
   };
   session_id = null;
 
@@ -314,6 +318,14 @@ class StateManager {
     this.memory.timelineEvent = res;
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
+        ref.forceUpdate();
+      }
+    });
+  }
+
+  updateTimeline() {
+    this.refs.forEach((ref) => {
+      if (ref instanceof TimelineDetails || ref instanceof TimelineResults) {
         ref.forceUpdate();
       }
     });

@@ -122,10 +122,19 @@ class PolygonTool extends React.Component {
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
     }
-    let dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
-    let dataEntryY =
-      this.canvas &&
-      this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
+    let dataEntryX = 0;
+    let dataEntryY = 0;
+    if (this.props.isMobile) {
+      // if is mobile, display the dataEntry at a different location
+      dataEntryX = this.canvas && this.canvas.getBoundingClientRect().left;
+      dataEntryY =
+        this.canvas && this.canvas.getBoundingClientRect().bottom + 50;
+    } else {
+      dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
+      dataEntryY =
+        this.canvas &&
+        this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
+    }
     return (
       <div>
         <p>{this.state.message}</p>
