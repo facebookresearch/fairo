@@ -11,10 +11,7 @@ The supported fields are :
   - `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects. 
   - `same` that specifies whether or not we are allowed to return the exact copies of an object. 
   - `location` : location of the object based on which the selection is done. This is defined [here](human_give_command.md#location)
-- `comparator`: This field specifies some form of comparison between two values.
-- `triples` : This is a list of triple dictionaries that have a subject, predicate and object.
-- `author` : Specifies the author of the change. For eg in "go to the house I made last", author is "SPEAKER" here.
-
+- `where_clause`: This field represents a tree that can have three different kinds of nodes: `AND`, `OR`, `NOT`
 
 ```
 FILTERS = { 
@@ -26,11 +23,19 @@ FILTERS = {
         "location": <LOCATION>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
-      "comparator": [<COMPARATOR> , ...],
-      "triples": <TRIPLES>,
-      "author":  {"fixed_value" : "AGENT" / "SPEAKER"} / span,
+      "where_clause" : {
+        "AND": [<COMPARATOR>/<TRIPLES>], 
+        "OR": [<COMPARATOR>/<TRIPLES>], 
+        "NOT": [<COMPARATOR>/<TRIPLES>]
+        }
       }
 ```
+
+## Where clause ##
+The value of this key determines the `WHERE` clause in a SQL query. The where clause allows these three keys:
+"AND" , "OR" and "NOT".
+The values for these keys are a lit of dictionaries where each dictionary is either: a 
+`<COMPARATOR>` or `<TRIPLES>`.
 
 ## ATTRIBUTE ##
 
