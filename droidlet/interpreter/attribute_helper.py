@@ -83,7 +83,7 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
     else:
         # this object is only defined by the filters and might be different at different moments
         # FIXME use FILTERS!!
-        # FIXME backoff
+        # should interpret as normal filter at this point...
         tags = tags_from_dict(filters_d)
         if tags:
             where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
@@ -187,6 +187,7 @@ class AttributeInterpreter:
                 return BBoxSize(interpreter.memory, d_attribute.lower())
             d_attribute = CANONICALIZE_ATTRIBUTES.get(d_attribute.lower())
             if d_attribute and type(d_attribute) is str:
+                # FIXME!!! merge/backoff to things like get_property_value
                 return TableColumn(interpreter.memory, d_attribute, get_all=get_all)
             elif d_attribute and type(d_attribute) is list:
                 alist = [self.__call__(interpreter, speaker, a) for a in d_attribute]
@@ -212,5 +213,6 @@ CANONICALIZE_ATTRIBUTES = {
     "born_time": "create_time",
     "modify_time": "updated_time",
     "visit_time": "attended_time",  # FIXME!!
+    "run_count": "run_count"
     # "speaker","finished_time", "chat", "logical_form" ... tasks not supported yet
 }

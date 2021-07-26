@@ -34,6 +34,7 @@ class Interpreter(DialogueObject):
         memory: the agent's memory
         dialogue_stack: a DialogueStack object where this Interpreter object will live
     """
+
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(**kwargs)
         self.speaker = speaker
@@ -60,7 +61,7 @@ class Interpreter(DialogueObject):
             # FIXME, just make a class
             "reference_objects": ReferenceObjectInterpreter(interpret_reference_object),
             "reference_locations": ReferenceLocationInterpreter(),
-            # make sure to do this in subclass
+            # make sure to do this in sfubclass
             # "attribute": MCAttributeInterpreter(),
             # "condition": ConditionInterpreter(),
             # "specify_locations": ComputeLocations(),
@@ -111,7 +112,8 @@ class Interpreter(DialogueObject):
             task_mem = None
             if tasks_to_push:
                 T = maybe_task_list_to_control_block(tasks_to_push, agent)
-                task_mem = TaskNode(self.memory, tasks_to_push[0].memid)
+                #                task_mem = TaskNode(self.memory, tasks_to_push[0].memid)
+                task_mem = TaskNode(self.memory, T.memid)
             if task_mem:
                 chat = self.memory.get_most_recent_incoming_chat()
                 TripleNode.create(
@@ -181,8 +183,8 @@ class Interpreter(DialogueObject):
             task = Move(agent, task_data)
             return task
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
             location_d = d.get("location", SPEAKERLOOK)
             mems = self.subinterpret["reference_locations"](self, speaker, location_d)
             if mems:
