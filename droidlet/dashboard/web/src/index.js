@@ -89,7 +89,6 @@ var config = {
                 },
                 {
                   title: "Timeline",
-                  // id: "timeline",
                   type: "column",
                   content: [
                     {
