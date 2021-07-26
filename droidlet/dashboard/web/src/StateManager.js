@@ -13,6 +13,7 @@ import InteractApp from "./components/Interact/InteractApp";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import Timeline from "./components/Timeline/Timeline";
 import TimelineResults from "./components/Timeline/TimelineResults";
+import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
 
 /**
@@ -213,8 +214,10 @@ class StateManager {
       this.memory = this.initialMemoryState;
       // clear state of all components
       this.refs.forEach((ref) => {
-        ref.setState(ref.initialState);
-        ref.forceUpdate();
+        if (!(ref instanceof TimelineDetails)) {
+          ref.setState(ref.initialState);
+          ref.forceUpdate();
+        }
       });
       console.log("disconnected");
     });
