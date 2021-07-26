@@ -89,6 +89,7 @@ var config = {
                 },
                 {
                   title: "Timeline",
+                  // id: "timeline",
                   type: "column",
                   content: [
                     {
@@ -110,6 +111,7 @@ var config = {
                         },
                         {
                           type: "stack",
+                          id: "timelineDetails",
                           // empty content to be populated with detail panes on click
                           content: [],
                         },

@@ -44,7 +44,7 @@ export function handleClick(stateManager, item) {
     component: "TimelineDetails",
     props: { stateManager: stateManager },
   };
-  stateManager.dashboardLayout.root.contentItems[0].contentItems[1].contentItems[0].contentItems[5].contentItems[1].contentItems[1].addChild(
-    config
-  );
+  stateManager.dashboardLayout.root
+    .getItemsById("timelineDetails")[0]
+    .addChild(config);
 }
