@@ -232,7 +232,7 @@ def interpret_schematic(
     repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
     repeat = int(number_from_span(repeat))
     if any(shapes):
-        blocks, tags = interpret_shape_schematic(interpreter, speaker, d, block_data_info, color_bid_map)
+        blocks, tags = interpret_shape_schematic(interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function)
         return [(blocks, None, tags)] * repeat
     else:
         return [interpret_named_schematic(interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function)] * repeat
