@@ -200,6 +200,8 @@ def compute_accuracy(outputs, y):
     Returns:
         Either a tuple of LM and span accuracies or just the language modeling accuracy.
 
+    # TODO: shape of these
+
     """
     if len(y.shape) == 2:
         lm_targets = y

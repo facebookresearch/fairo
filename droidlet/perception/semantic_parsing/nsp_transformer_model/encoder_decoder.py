@@ -25,6 +25,7 @@ class EncoderDecoderWithLoss(nn.Module):
         self.train_encoder = args.train_encoder
 
     def forward(self, x, x_mask, y, y_mask, x_reps=None, is_eval=False):
+        # TODO: add shapes
         if x_reps is None:
             model = self.encoder(input_ids=x, attention_mask=x_mask)
             x_reps = model[0]

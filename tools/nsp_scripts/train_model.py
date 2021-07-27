@@ -257,6 +257,7 @@ class ModelTrainer:
         )
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=True)
         # training loop
+        # TODO: what these are supposed to be
         tot_steps = 0
         tot_loss = 0.0
         tot_int_acc = 0.0
@@ -278,6 +279,7 @@ class ModelTrainer:
                 # compute accuracy and add hard examples
                 lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
                 # book-keeping
+                # lm_acc: [B, ]
                 tot_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
                 tot_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
                 tot_accu += full_acc.sum().item() / full_acc.shape[0]
