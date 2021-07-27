@@ -187,20 +187,6 @@
                 "where_clause": {
                     "$ref": "#/definitions/where_clause"
                 },
-                "author": {
-                    "oneOf": [
-                        {
-                            "properties": {
-                                "fixed_value": {
-                                    "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
-                                }
-                            }
-                        },
-                        {
-                            "$ref": "action_dict_components.schema.json#/definitions/span"
-                        }
-                    ]
-                },
                 "selector": {
                     "$ref": "#/definitions/selector"
                 }
