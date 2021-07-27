@@ -264,8 +264,6 @@ class StateManager {
   }
 
   setChatResponse(res) {
-    console.log("response is");
-    console.log(res);
     if (isMobile) {
       alert("Received text message: " + res.chat);
     }
