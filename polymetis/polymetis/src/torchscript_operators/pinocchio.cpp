@@ -168,8 +168,6 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
     // Initialize IK variables
     const pinocchio::SE3 desired_ee(ee_orient_, ee_pos_);
-    // std::cout << "ee_quat_ " << ee_quat_ << std::endl;
-    // std::cout << "ee_pos_ " << ee_pos_ << std::endl;
     ik_sol_p_ = pinocchio::neutral(model_);
 
     ik_sol_J_.setZero();
@@ -179,8 +177,6 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
     // Solve IK iteratively
     for (int i = 0; i < max_iters; i++) {
-      std::cout << "ik_sol_p_ start  " << ik_sol_p_ << std::endl;
-      std::cout << "ik_sol_v_ start  " << ik_sol_v_ << std::endl;
       // Compute forward kinematics error
       pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
       const pinocchio::SE3 dMf =
@@ -197,14 +193,11 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
           model_, model_data_, ik_sol_p_, ee_frame_idx_,
           pinocchio::LOCAL_WORLD_ALIGNED, ik_sol_J_);
 
-      std::cout << "ik_sol_J_ " << ik_sol_J_ << std::endl;
-
       pinocchio::Data::Matrix6 JJt;
       JJt.noalias() = ik_sol_J_ * ik_sol_J_.transpose();
       JJt.diagonal().array() += damping;
       ik_sol_v_.noalias() = -ik_sol_J_.transpose() * JJt.ldlt().solve(err);
       ik_sol_p_ = pinocchio::integrate(model_, ik_sol_p_, ik_sol_v_ * dt);
-      std::cout << "ik_sol_p_ end  " << ik_sol_p_ << std::endl;
     }
 
     if (err.norm() >= eps) {
