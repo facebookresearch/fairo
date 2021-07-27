@@ -15,7 +15,6 @@ import Timeline from "./components/Timeline/Timeline";
 import TimelineDetails from "./components/Timeline/TimelineDetails";
 import TimelineResults from "./components/Timeline/TimelineResults";
 import MobileMainPane from "./MobileMainPane";
-import { Alert } from "react-alert";
 import { isMobile } from "react-device-detect";
 
 /**
