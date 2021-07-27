@@ -60,7 +60,9 @@ class TestValidateParseTree(unittest.TestCase):
                             "location": {
                                 "reference_object": {
                                     "filters": {
-                                        "triples": [{"pred_text": "has_name", "obj_text": "cube"}]
+                                        "where_clause": {
+                                            "AND": [{"pred_text": "has_name", "obj_text": "cube"}]
+                                        }
                                     }
                                 }
                             }
