@@ -47,7 +47,7 @@ def pybullet_env():
 
 @pytest.fixture
 def pinocchio_wrapper():
-    return toco.models.RobotModelPinocchio(urdf_path, "panda_joint8")
+    return toco.models.RobotModelPinocchio(urdf_path, "panda_link8")
 
 
 @pytest.fixture
