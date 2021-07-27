@@ -86,7 +86,9 @@ class TestDialogueManager(unittest.TestCase):
                     "schematic": {
                         "text_span": [0, [5, 5]],
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [5, 5]]}]
+                            "where_clause" : {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [5, 5]]}]
+                            }
                         },
                     },
                 }
@@ -106,7 +108,9 @@ class TestDialogueManager(unittest.TestCase):
                             "location": {
                                 "reference_object": {
                                     "filters": {
-                                        "triples": [{"pred_text": "has_name", "obj_text": "cube"}]
+                                        "where_clause": {
+                                            "AND": [{"pred_text": "has_name", "obj_text": "cube"}]
+                                        }
                                     }
                                 }
                             }
