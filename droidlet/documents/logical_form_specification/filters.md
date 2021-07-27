@@ -19,7 +19,7 @@ FILTERS = {
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
       "selector": {
-        "return_quantity": <ARGMAX> / <ARGMIN> / <RANDOM> / "ALL",
+        "return_quantity": <ARGVAL> / <RANDOM> / "ALL",
         "location": <LOCATION>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
