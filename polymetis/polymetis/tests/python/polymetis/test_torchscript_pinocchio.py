@@ -53,9 +53,13 @@ def pinocchio_wrapper():
 @pytest.fixture
 def joint_states():
     num_dofs = 7
-    joint_pos = [0 for _ in range(num_dofs)]
-    joint_vel = [0 for _ in range(num_dofs)]
-    joint_acc = [0 for _ in range(num_dofs)]
+
+    # Assign small random numbers to joint states
+    torch.manual_seed(0)
+    joint_pos = (0.1 * torch.randn(num_dofs)).tolist()
+    joint_vel = (0.03 * torch.randn(num_dofs)).tolist()
+    joint_acc = (0.01 * torch.randn(num_dofs)).tolist()
+
     return joint_pos, joint_vel, joint_acc, num_dofs
 
 
@@ -119,7 +123,7 @@ def test_inverse_dynamics(pybullet_env, pinocchio_wrapper, joint_states):
         f"Inverse dynamics: Max abs diff between pinocchio & pybullet: {(pyb_id - pinocchio_id).abs().max()}"
     )
 
-    assert torch.allclose(pinocchio_id, pyb_id, atol=1e-4)
+    assert torch.allclose(pinocchio_id, pyb_id, atol=1e-2)  # tolerance: 0.01 N
 
 
 def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
