@@ -138,7 +138,7 @@ def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
 
     # Inverse kinematics with Pinocchio
     pinocchio_joint_pos = pinocchio_wrapper.inverse_kinematics(
-        pinocchio_pos, pinocchio_quat, max_iters=1
+        pinocchio_pos, pinocchio_quat, max_iters=100
     )
 
     # Inverse kinematics with Pybullet

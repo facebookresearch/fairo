@@ -179,6 +179,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     for (int i = 0; i < max_iters; i++) {
       // Compute forward kinematics error
       pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
+      pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
       const pinocchio::SE3 dMf =
           desired_ee.actInv(model_data_.oMf[ee_frame_idx_]);
       err = pinocchio::log6(dMf).toVector();
