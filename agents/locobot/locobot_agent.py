@@ -233,7 +233,7 @@ class LocobotAgent(LocoMCAgent):
             im = Image.fromarray(src_img)
             im.save("annotation_data/rgb/{:05d}.jpg".format(postData["frameCount"]))
 
-            if postData["callback"]: 
+            if "callback" in postData and postData["callback"]: 
                 sio.emit("saveRgbSegCallback")
 
         # Adapted from coco_creator.ipynb
