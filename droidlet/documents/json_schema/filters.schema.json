@@ -12,16 +12,6 @@
                         "MIN"
                     ]
                 },
-                "ordinal": {
-                    "anyOf": [
-                        {
-                            "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
-                        },
-                        {
-                            "$ref": "action_dict_components.schema.json#/definitions/span"
-                        }
-                    ]
-                },
                 "quantity": {
                     "$ref": "#/definitions/quantity"
                 }
@@ -328,6 +318,9 @@
                     "const": "ALL"
                 },
                 {
+                    "const": "RANDOM"
+                },
+                {
                     "type": "object",
                     "properties": {
                         "random": {
@@ -350,6 +343,16 @@
                         },
                         "return_quantity": {
                             "$ref": "#/definitions/return_quantity"
+                        },
+                        "ordinal": {
+                            "anyOf": [
+                                {
+                                    "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                },
+                                {
+                                    "$ref": "action_dict_components.schema.json#/definitions/span"
+                                }
+                            ]
                         },
                         "same": {
                             "enum": [
