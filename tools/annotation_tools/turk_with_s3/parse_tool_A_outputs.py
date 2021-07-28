@@ -522,11 +522,10 @@ if __name__ == "__main__":
     tokenizer = English().Defaults.create_tokenizer()
 
     # convert csv to txt first
-    # def process_results_with_agreements(f_name, num_agreements=1, debug=False, tsv=False, only_show_disagreements=False):
     num_agreements = 2
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + "../A/processed_outputs.csv"
+    f_name = folder_name + "/processed_outputs.csv"
     only_show_disagreements = True
     with open(f_name, "r") as f:
         r = csv.DictReader(f)
