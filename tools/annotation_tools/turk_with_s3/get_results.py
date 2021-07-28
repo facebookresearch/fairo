@@ -111,18 +111,20 @@ if __name__ == "__main__":
     parser.add_argument("--dev", action="store_true")
 
     args = parser.parse_args()
-    if args.dev:
-        MTURK_URL = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
-    else:
-        MTURK_URL = "https://mturk-requester.us-east-1.amazonaws.com"
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_region = os.getenv("AWS_REGION", default="us-east-1")
+
+    if args.dev:
+        MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)
+    else:
+        MTURK_URL = "https://mturk-requester.{}.amazonaws.com".format(aws_region)
 
     mturk = boto3.client(
         "mturk",
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
-        region_name="us-east-1",
+        region_name=aws_region,
         endpoint_url=MTURK_URL,
     )
     get_results(mturk, args.output_csv, args.dev)

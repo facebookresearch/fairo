@@ -9,18 +9,20 @@ from urllib.parse import quote
 from datetime import datetime
 
 def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str, use_sandbox: bool):
-    if use_sandbox:
-        MTURK_URL = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
-    else:
-        MTURK_URL = "https://mturk-requester.us-east-1.amazonaws.com"
-
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_region = os.getenv("AWS_REGION", default="us-east-1")
+
+    if use_sandbox:
+        MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)
+    else:
+        MTURK_URL = "https://mturk-requester.{}.amazonaws.com".format(aws_region)
+
     mturk = boto3.client(
         "mturk",
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
-        region_name="us-east-1",
+        region_name=aws_region,
         endpoint_url=MTURK_URL,
     )
     print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
