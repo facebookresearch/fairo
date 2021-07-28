@@ -53,7 +53,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         self.joint_limits_low = np.array(self.robot_model_cfg.joint_limits_low)
         self.joint_limits_high = np.array(self.robot_model_cfg.joint_limits_high)
         if self.robot_model_cfg.joint_damping is None:
-            self.joint_damping = np.zeros(self.n_dofs)
+            self.joint_damping = None
         else:
             self.joint_damping = np.array(self.robot_model_cfg.joint_damping)
         if self.robot_model_cfg.torque_limits is None:
@@ -248,15 +248,17 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             target_position = target_position.tolist()
         if isinstance(target_orientation, np.ndarray):
             target_orientation = target_orientation.tolist()
-        joint_des_pos = self.sim.calculateInverseKinematics(
-            self.robot_id,
-            self.ee_link_idx,
-            target_position,
+        ik_kwargs = dict(
+            bodyUniqueId=self.robot_id,
+            endEffectorLinkIndex=self.ee_link_idx,
+            targetPosition=target_position,
             targetOrientation=target_orientation,
             upperLimits=self.joint_limits_high.tolist(),
             lowerLimits=self.joint_limits_low.tolist(),
-            jointDamping=self.joint_damping.tolist(),
         )
+        if self.joint_damping is not None:
+            ik_kwargs["joint_damping"] = self.joint_damping.tolist()
+        joint_des_pos = self.sim.calculateInverseKinematics(**ik_kwargs)
         return np.array(joint_des_pos)
 
     def compute_inverse_dynamics(
