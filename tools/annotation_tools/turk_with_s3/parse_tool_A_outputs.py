@@ -526,7 +526,7 @@ if __name__ == "__main__":
     num_agreements = 2
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + "../processed_outputs.csv"
+    f_name = folder_name + "../A/processed_outputs.csv"
     only_show_disagreements = True
     with open(f_name, "r") as f:
         r = csv.DictReader(f)
