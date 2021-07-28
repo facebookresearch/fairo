@@ -42,8 +42,11 @@ class MobileObjectAnnotation extends React.Component {
     } else {
       return (
         <div>
-          HAI THERE
-          <ImageDrawer img={this.image} imageWidth={this.props.imageWidth} />
+          <ImageDrawer
+            img={this.image}
+            imageWidth={this.props.imageWidth}
+            setMode={this.setMode.bind(this)}
+          />
         </div>
       );
     }

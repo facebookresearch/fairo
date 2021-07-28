@@ -1,0 +1,27 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+*/
+.data-entry-root {
+  display: block;
+  position: absolute;
+  background-color: rgb(247, 247, 247);
+  width: min-content;
+  padding: 2px;
+}
+.data-entry-submit {
+  background-color: rgb(148, 211, 84);
+  float: right;
+}
+.data-entry-delete {
+  background-color: rgb(255, 82, 82);
+  margin-top: 15px;
+  float: right;
+}
+.data-entry-block-mobile {
+  margin: 0;
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
