@@ -10,9 +10,9 @@ from datetime import datetime
 
 def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str, use_sandbox: bool):
     if use_sandbox:
-        MTURK_SANDBOX = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
+        MTURK_URL = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
     else:
-        MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
+        MTURK_URL = "https://mturk-requester.us-east-1.amazonaws.com"
 
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -21,7 +21,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         region_name="us-east-1",
-        endpoint_url=MTURK_SANDBOX,
+        endpoint_url=MTURK_URL,
     )
     print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
 
@@ -107,16 +107,16 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     AutoApprovalDelayInSeconds=14400,
                     Question=curr_question,
                     # TODO: consider making qualification configurable via JSON
-                    # QualificationRequirements=[{
-                    #         'QualificationTypeId': '32Z2G9B76CN4NO5994JO5V24P3EAXC',
-                    #         'Comparator': 'EqualTo',
-                    #         'IntegerValues': [
-                    #             100,
-                    #         ],
-                    #         'RequiredToPreview': False,
-                    #         'ActionsGuarded': 'Accept'
-                    #     },
-                    # ]
+                    QualificationRequirements=[{
+                            'QualificationTypeId': '32Z2G9B76CN4NO5994JO5V24P3EAXC',
+                            'Comparator': 'EqualTo',
+                            'IntegerValues': [
+                                100,
+                            ],
+                            'RequiredToPreview': False,
+                            'ActionsGuarded': 'Accept'
+                        },
+                    ]
                 )
             print("A new HIT has been created. You can preview it here:")
             if use_sandbox:

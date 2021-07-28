@@ -1,0 +1,2 @@
+HITId,Input.command,Input.word0,Input.word1,Input.word2,Input.word3,Answer.root.action_type,Answer.root.action_type.MOVE.MOVE,Answer.root.action_type.MOVE.MOVE.yes.location.span#2,Answer.root.action_type.MOVE.MOVE.yes.location.span#3,Answer.root.loop,WorkerId
+3P0I4CQYV0ALD48DH56SZF35WC6OW7,Move to the man,Move,to,the,man,MOVE,yes,on,on,None,A3M3ZFDVYMBJ1X

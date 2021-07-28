@@ -38,10 +38,6 @@ def get_hit_list_status(mturk):
 
 def get_results(mturk, output_csv: str, use_sandbox: bool):
     # This will contain the answers
-    # if use_sandbox:
-    #     # NOTE: remove if not needed
-    #     delete_hits(mturk)
-    #     print("deleted all HITs")
     if os.path.exists(output_csv):
         res = pd.read_csv(output_csv)
     else:
@@ -116,9 +112,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.dev:
-        MTURK_SANDBOX = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
+        MTURK_URL = "https://mturk-requester-sandbox.us-east-1.amazonaws.com"
     else:
-        MTURK_SANDBOX = "https://mturk-requester.us-east-1.amazonaws.com"
+        MTURK_URL = "https://mturk-requester.us-east-1.amazonaws.com"
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
@@ -127,6 +123,6 @@ if __name__ == "__main__":
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
         region_name="us-east-1",
-        endpoint_url=MTURK_SANDBOX,
+        endpoint_url=MTURK_URL,
     )
     get_results(mturk, args.output_csv, args.dev)
