@@ -107,16 +107,16 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     AutoApprovalDelayInSeconds=14400,
                     Question=curr_question,
                     # TODO: consider making qualification configurable via JSON
-                    QualificationRequirements=[{
-                            'QualificationTypeId': '32Z2G9B76CN4NO5994JO5V24P3EAXC',
-                            'Comparator': 'EqualTo',
-                            'IntegerValues': [
-                                100,
-                            ],
-                            'RequiredToPreview': False,
-                            'ActionsGuarded': 'Accept'
-                        },
-                    ]
+                    # QualificationRequirements=[{
+                    #         'QualificationTypeId': '32Z2G9B76CN4NO5994JO5V24P3EAXC',
+                    #         'Comparator': 'EqualTo',
+                    #         'IntegerValues': [
+                    #             100,
+                    #         ],
+                    #         'RequiredToPreview': False,
+                    #         'ActionsGuarded': 'Accept'
+                    #     },
+                    # ]
                 )
             print("A new HIT has been created. You can preview it here:")
             if use_sandbox:
