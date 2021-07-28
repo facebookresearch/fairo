@@ -23,6 +23,7 @@ class BaseAgent:
                 self.handle_exception(e)
 
     def step(self):
+        self.parse_chat()
         self.perceive()
         self.memory.update(self)
         # maybe place tasks on the stack, based on memory/perception
@@ -30,6 +31,12 @@ class BaseAgent:
         # step topmost task on stack
         self.task_step()
         self.count += 1
+
+    def parse_chat(self):
+        """
+        Parse chat.
+        """
+        raise NotImplementedError
 
     def perceive(self):
         """
