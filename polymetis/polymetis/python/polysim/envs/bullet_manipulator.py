@@ -37,6 +37,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         robot_model_cfg: DictConfig,
         gui: bool,
         use_grav_comp: bool = True,
+        gravity: float = 9.81,
     ):
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
@@ -67,6 +68,8 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             self.sim = BulletClient(connection_mode=pybullet.GUI)
         else:
             self.sim = BulletClient(connection_mode=pybullet.DIRECT)
+
+        self.sim.setGravity(0, 0, -gravity)
 
         # Load robot
         ext = os.path.splitext(self.robot_description_path)[-1][1:]
