@@ -236,9 +236,14 @@ class LocobotAgent(LocoMCAgent):
             if "callback" in postData and postData["callback"]: 
                 sio.emit("saveRgbSegCallback")
 
-        # Adapted from coco_creator.ipynb
         @sio.on("save_annotations")
         def save_annotations(sid, categories): 
+            if categories.length == 0: 
+                print("Error in saving annotations: Categories need to not be null. \
+                    You cannot just use the rgb/ and seg/ folders to create the \
+                        COCO json -- categories do not persist in memory")
+                return
+
             seg_dir = "annotation_data/seg/"
             img_dir = "annotation_data/rgb/"
             coco_file_name = "annotation_data/coco/coco_results.json"
@@ -249,14 +254,11 @@ class LocobotAgent(LocoMCAgent):
             LICENSES = [{}]
             CATEGORIES = []
             id_to_label = {}
-            removed_categories = []
             for i, label in enumerate(categories):
                 if not label: 
                     continue
                 CATEGORIES.append({"id": i, "name": label, "supercategory": "shape"})
                 id_to_label[i] = label
-                if label in ("floor", "wall", "ceiling", "wall-plug"):
-                    removed_categories.append(i)
 
             coco_output = {
                 "info": INFO,
@@ -289,8 +291,7 @@ class LocobotAgent(LocoMCAgent):
                 for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
                     try:
                         category_info = {"id": int(i), "is_crowd": False}
-                        if category_info["id"] < 1 or category_info["id"] in removed_categories:
-                            # Exclude wall, ceiling, floor, wall-plug
+                        if category_info["id"] < 1:
                             continue
                     except:
                         print("label value doesnt exist for", i)
@@ -401,7 +402,6 @@ class LocobotAgent(LocoMCAgent):
                 save_coco(test_path, info, licenses, y_images, y_annots, categories)
 
             # 2) Use train/test files to retrain detector
-            # Adapted from train_detector.ipynb
             dataset_name = "annotation_coco"
             image_dir = base_path + "rgb/"
             train_data = dataset_name + "_train"
@@ -409,9 +409,13 @@ class LocobotAgent(LocoMCAgent):
 
             if train_data in DatasetCatalog.list(): 
                 DatasetCatalog.remove(train_data)
+            if train_data in MetadataCatalog.list(): 
+                MetadataCatalog.remove(train_data)
             register_coco_instances(train_data, {}, train_path, image_dir)
             if test_data in DatasetCatalog.list(): 
                 DatasetCatalog.remove(test_data)
+            if test_data in MetadataCatalog.list(): 
+                MetadataCatalog.remove(test_data)
             register_coco_instances(test_data, {}, train_path, image_dir)
 
             MetadataCatalog.get(train_data)
@@ -450,6 +454,21 @@ class LocobotAgent(LocoMCAgent):
         @sio.on("switch_detector")
         def switch_detector(sid): 
             model_path = "annotation_data/model"
+            detector_weights = "model_999.pth"
+            properties_file = "props.json"
+            things_file = "things.json"
+
+            files = os.listdir(model_path)
+            if detector_weights not in files: 
+                print("Error switching model:", os.path.join(model_path, things_file), "not found")
+                return
+            if properties_file not in files: 
+                print("Error switching model:", os.path.join(model_path, things_file), "not found")
+                return
+            if things_file not in files: 
+                print("Error switching model:", os.path.join(model_path, things_file), "not found")
+                return
+
             print("switching to", model_path)
             self.perception_modules["vision"] = Perception(model_path)
 
