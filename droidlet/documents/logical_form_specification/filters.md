@@ -8,8 +8,9 @@ The supported fields are :
 - `contains coreference` : This field specifies whether the memory node has a coreference that needs to be resolved based on dialogue context.
 - `memory_type` : Specifies the type of memory is the name of memory node. The default value for this is : `"REFERENCE_OBJECT"`.
 - `selector` : This field specifies how the selection is done. This has the following fields:
-  - `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects. 
-  - `same` that specifies whether or not we are allowed to return the exact copies of an object. 
+  - `return_quantity` which returns a set of objects based on some form of ranking or randomly selected objects.
+  - `ordinal` which specifies the ranking in the returned set.
+  - `same` that specifies whether we are allowed to return the exact copies of an object. 
   - `location` : location of the object based on which the selection is done. This is defined [here](human_give_command.md#location)
 - `where_clause`: This field represents a tree that can have three different kinds of nodes: `AND`, `OR`, `NOT`
 
@@ -19,7 +20,8 @@ FILTERS = {
       "contains_coreference": "yes",
       "memory_type": "TASKS" / "REFERENCE_OBJECT" / "CHAT" / "PROGRAM" / "ALL",
       "selector": {
-        "return_quantity": <ARGVAL> / <RANDOM> / "ALL",
+        "return_quantity": <ARGVAL> / "RANDOM" / "ALL",
+        "ordinal": {"fixed_value" : "FIRST"} / <span>, 
         "location": <LOCATION>,
         "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
       },
@@ -80,17 +82,8 @@ This defines either:
 ```
 {"argval" : { 
     "polarity" : "MAX" / "MIN", 
-    "ordinal": {"fixed_value" : "FIRST"} / <span>, 
     "quantity": <ATTRIBUTE>
     }
-}
-```
-
-### RANDOM ###
-This defines how many objects to return:
-```
-{
-  "random":{"fixed_value" : "1"} /span
 }
 ```
 
