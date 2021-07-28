@@ -51,7 +51,7 @@ if rc != 0:
 
 # Postprocess
 print("*** Postprocessing results ***")
-rc = subprocess.call(["python3 postprocess_part_B.py"], shell=True)
+rc = subprocess.call(["python3 parse_tool_B_outputs.py"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
     sys.exit()
