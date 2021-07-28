@@ -175,11 +175,14 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     Eigen::Matrix<double, 6, 1> err;
     ik_sol_v_ = Eigen::VectorXd(model_.nv);
 
+    // Reset robot pose
+    pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
+    pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
+
     // Solve IK iteratively
     for (int i = 0; i < max_iters; i++) {
       // Compute forward kinematics error
       pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
-      pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
       const pinocchio::SE3 dMf =
           desired_ee.actInv(model_data_.oMf[ee_frame_idx_]);
       err = pinocchio::log6(dMf).toVector();
