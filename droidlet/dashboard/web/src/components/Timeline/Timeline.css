@@ -40,14 +40,17 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 .vis-item.perceive {
   background-color: #c0d6df;
+  border-color: #c0d6df;
 }
 
 .vis-item.dialogue {
   background-color: #f7b2ad;
+  border-color: #f7b2ad;
 }
 
 .vis-item.interpreter {
   background-color: #d4ffd4;
+  border-color: #d4ffd4;
 }
 
 pre {

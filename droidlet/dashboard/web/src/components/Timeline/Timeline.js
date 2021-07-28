@@ -138,14 +138,6 @@ class DashboardTimeline extends React.Component {
       this.prevEvent = event;
       const eventObj = JSON.parse(event);
 
-      let type = "";
-      if (eventObj["elapsed_time"] < 1) {
-        // for very short events, less than 1s in duration
-        type = "box";
-      } else {
-        type = "range";
-      }
-
       // adds to the outer timeline group
       items.add([
         {
@@ -155,7 +147,7 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
-          type: type,
+          type: "box",
         },
       ]);
       // adds the same item to the inner nested group
@@ -166,7 +158,7 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
-          type: type,
+          type: "box",
         },
       ]);
     }
