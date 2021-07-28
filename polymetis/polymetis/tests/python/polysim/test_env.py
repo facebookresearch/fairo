@@ -147,8 +147,7 @@ kuka_gripper_sdf = DictConfig(
             # 3.05432619099,
         ],
         "torque_limits": [200, 200, 100, 100, 100, 30, 30, 10, 10, 10, 10, 10],
-        # "ee_link_idx": 6,
-        "ee_joint_name": "lbr_iiwa_with_wsg50__lbr_iiwa_link_5",
+        "ee_link_idx": 5,
         "using_camera": False,
         "gpu_renderer": False,
     }
