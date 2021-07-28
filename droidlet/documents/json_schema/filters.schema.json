@@ -347,7 +347,11 @@
                         "ordinal": {
                             "anyOf": [
                                 {
-                                    "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                "properties": {
+                                    "fixed_value": {
+                                        "$ref": "action_dict_components.schema.json#/definitions/fixed_value"
+                                    }
+                                    }
                                 },
                                 {
                                     "$ref": "action_dict_components.schema.json#/definitions/span"

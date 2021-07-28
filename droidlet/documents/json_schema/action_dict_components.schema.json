@@ -48,11 +48,7 @@
       }
     },
     "fixed_value": {
-      "properties": {
-        "fixed_value": {
-          "type": "string"
-        }
-      }
+      "type": "string"
     },
     "has_measure": {
       "oneOf": [
