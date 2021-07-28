@@ -437,8 +437,8 @@ def remove_definite_articles(cmd, d):
             if type(v[1]) == list:
                 new_v = []
                 for span in v[1]:
-                    if words[span[0]] in ["the", "a", "an"]:
-                        continue
+                    # if words[span[0]] in ["the", "a", "an"]:
+                    #     continue
                     new_v.append(span)
                 new_d[k] = [v[0], new_v]
             elif type(v[1]) == dict:
@@ -452,8 +452,8 @@ def remove_definite_articles(cmd, d):
             if type(v) == list:
                 new_v = []
                 for span in v:
-                    if words[span[0]] in ["the", "a", "an"]:
-                        continue
+                    # if words[span[0]] in ["the", "a", "an"]:
+                    #     continue
                     new_v.append(span)
                 new_d[k] = new_v
             elif type(v) == dict:
@@ -623,7 +623,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd = k
-            outfile.write(cmd + "\t" + v + "\n")
+            outfile.write(cmd.strip() + "\t" + v + "\n")
 
     # write disagreements to a file
     disag = str(no_agreement)
@@ -631,7 +631,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in disagreements_dict.items():
             cmd = k
-            outfile.write(cmd + "\n")
+            outfile.write(cmd.strip() + "\n")
             for item in v:
                 outfile.write(item + "\n")
             outfile.write("\n")
@@ -650,7 +650,7 @@ if __name__ == "__main__":
         for line in f1.readlines():
             cmd, out = line.strip().split("\t")
             cmd = preprocess_chat(cmd)[0]
-            f_out.write(cmd + "\t" + out + "\n")
+            f_out.write(cmd.strip() + "\t" + out + "\n")
         for line in f_in.readlines():
             cmd, out = line.strip().split("\t")
-            f_out.write(cmd + "\t" + out + "\n")
+            f_out.write(cmd.strip() + "\t" + out + "\n")
