@@ -43,7 +43,7 @@ if rc != 0:
 
 # Collate datasets
 print("*** Collating turk outputs and input job specs ***")
-rc = subprocess.call(["python collate_answers.py --turk_output_csv C/turk_output.csv --job_spec_csv C/turk_job_specs.csv --collate_output_csv C/processed_outputs.csv"], shell=True)
+rc = subprocess.call(["python3 collate_answers.py --turk_output_csv C/turk_output.csv --job_spec_csv C/turk_job_specs.csv --collate_output_csv C/processed_outputs.csv"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
     sys.exit()
@@ -58,7 +58,7 @@ if rc != 0:
 
 # Create inputs for other tools
 print("*** Postprocessing results ***")
-rc = subprocess.call(["python generate_input_for_tool_D.py"], shell=True)
+rc = subprocess.call(["python3 generate_input_for_tool_D.py"], shell=True)
 if rc != 0:
     print("Error generating input for other tools. Exiting.")
     sys.exit()

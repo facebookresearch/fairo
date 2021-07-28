@@ -43,7 +43,7 @@ if rc != 0:
 
 # Collate datasets
 print("*** Collating turk outputs and input job specs ***")
-rc = subprocess.call(["python collate_answers.py --turk_output_csv B/turk_output.csv --job_spec_csv B/turk_job_specs.csv --collate_output_csv B/processed_outputs.csv"], shell=True)
+rc = subprocess.call(["python3 collate_answers.py --turk_output_csv B/turk_output.csv --job_spec_csv B/turk_job_specs.csv --collate_output_csv B/processed_outputs.csv"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
     sys.exit()
