@@ -203,8 +203,8 @@ class ModelTrainer:
                 text_span_loc_loss += text_span_loss.item()
                 if step % 400 == 0:
                     if tb:
-                        tb.add_scalar("batch_accuracy", loc_full_acc, global_step=step)
-                        tb.add_scalar("batch_loss", loc_loss, global_step=step)
+                        tb.add_scalar("accuracy", loc_full_acc/loc_steps, global_step=step)
+                        tb.add_scalar("loss", loc_loss/loc_steps, global_step=step)
                     print(
                         "{:2d} - {:5d} \t L: {:.3f} A: {:.3f} \t {:.2f}".format(
                             e,
