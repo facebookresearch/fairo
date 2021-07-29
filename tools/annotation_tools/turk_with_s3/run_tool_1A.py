@@ -36,7 +36,7 @@ if rc != 0:
 # Load input commands and create a separate HIT for each row
 rc = subprocess.call(
     [
-        "python3 create_jobs.py --tool_num 1 --xml_file step_1.xml --input_csv A/turk_input.csv --job_spec_csv A/turk_job_specs.csv {}".format(dev_flag)
+        "python3 create_jobs.py --tool_num 1 --xml_file fetch_question_A.xml --input_csv A/turk_input.csv --job_spec_csv A/turk_job_specs.csv {}".format(dev_flag)
     ],
     shell=True,
 )
