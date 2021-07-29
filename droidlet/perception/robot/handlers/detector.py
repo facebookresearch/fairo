@@ -90,23 +90,24 @@ class DetectorBase:
         # Needed for pickle files that are downloaded from s3
         # Can take this section out when prop.pickle and things.pickle are removed from s3
         # Will also need to hardcode the things.json and props.json filepaths used below
-        if model_data_dir == "agents/locobot/models/perception/": 
-            with open(os.path.join(model_data_dir, properties_default), "rb") as h:
+        model_dir = model_data_dir.rstrip("/")
+        if "/".join(model_dir.split("/")[-4:]) == "agents/locobot/models/perception": 
+            with open(os.path.join(model_dir, properties_default), "rb") as h:
                 self.properties = pickle.load(h)
                 logging.info("{} properties".format(len(self.properties)))
-            with open(os.path.join(model_data_dir, things_default), "rb") as h:
+            with open(os.path.join(model_dir, things_default), "rb") as h:
                 self.things = pickle.load(h)
                 logging.info("{} things".format(len(self.things)))
         # Needed for JSON code files
         else: 
-            with open(os.path.join(model_data_dir, properties_new), "r") as h:
+            with open(os.path.join(model_dir, properties_new), "r") as h:
                 self.properties = json.load(h)["items"]
                 logging.info("{} properties".format(len(self.properties)))
-            with open(os.path.join(model_data_dir, things_new), "r") as h:
+            with open(os.path.join(model_dir, things_new), "r") as h:
                 self.things = json.load(h)["items"]
                 logging.info("{} things".format(len(self.things)))
 
-        weights = os.path.join(model_data_dir, detector_weights)
+        weights = os.path.join(model_dir, detector_weights)
         self.dataset_name = "dummy_dataset"
         self.predictor = get_predictor(
             lvis_yaml, weights, self.dataset_name, self.properties, self.things
