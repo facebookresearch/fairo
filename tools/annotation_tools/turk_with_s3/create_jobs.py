@@ -59,7 +59,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
     # if there are existing jobs data, we will load those
     # The format is HITId followed by a list of features, eg.
     # HITId,Input.command,Input.word0,Input.word1...
-    if os.path.exists(job_spec_csv):
+    if os.path.exists(job_spec_csv) and os.path.getsize(job_spec_csv) > 0:
         turk_jobs_df = pd.read_csv(job_spec_csv)
     else:
         turk_jobs_df = pd.DataFrame()
