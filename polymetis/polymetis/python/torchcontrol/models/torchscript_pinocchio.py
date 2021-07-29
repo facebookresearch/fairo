@@ -13,9 +13,11 @@ try:
         f"{os.environ['CONDA_PREFIX']}/lib/libtorchscript_pinocchio.so"
     )
 except OSError:
-    lib_path = os.path.join(
-        PKG_ROOT_DIR,
-        "../../build/libtorchscript_pinocchio.so",
+    lib_path = os.path.abspath(
+        os.path.join(
+            PKG_ROOT_DIR,
+            "../../build/libtorchscript_pinocchio.so",
+        )
     )
     print(
         f"Warning: Failed to load 'libtorchscript_pinocchio.so' from CONDA_PREFIX, loading from default build directory instead: '{lib_path}'"
