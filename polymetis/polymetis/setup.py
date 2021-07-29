@@ -9,7 +9,7 @@ from setuptools import find_packages
 from setuptools import find_namespace_packages
 
 install_requires = [
-    "hydra-core==1.0.0",
+    "hydra-core==1.0.6",
     "numpy>=1.18.0",
     "pandas",
     "plotly",
