@@ -271,8 +271,8 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
 
         pos, vel = self.get_current_joint_pos_vel()
 
-        grav_comp_torques = self.compute_grav_comp(pos, vel)
         if self.grav_comp:
+            grav_comp_torques = self.compute_grav_comp(pos, vel)
             applied_torques = (np.array(torques) + grav_comp_torques).tolist()
         else:
             applied_torques = torques
