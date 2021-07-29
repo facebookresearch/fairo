@@ -7,7 +7,7 @@ import pytest
 import os
 import numpy as np
 
-from omegaconf import DictConfig
+from omegaconf import OmegaConf
 from polysim.envs import BulletManipulatorEnv
 from polysim.envs import HabitatManipulatorEnv
 
@@ -15,7 +15,7 @@ import pybullet_data
 
 # from polysim.envs import DaisyLocomotorEnv
 
-franka_panda = DictConfig(
+franka_panda = OmegaConf.create(
     {
         "robot_description_path": "franka_panda/panda_arm.urdf",
         "controlled_joints": [0, 1, 2, 3, 4, 5, 6],
@@ -52,10 +52,10 @@ franka_panda = DictConfig(
         "torque_limits": [87.0, 87.0, 87.0, 87.0, 12.0, 12.0, 12.0],
         "use_grav_comp": True,
         "num_dofs": 7,
-    }
+    },
 )
 
-kuka_iiwa = DictConfig(
+kuka_iiwa = OmegaConf.create(
     {
         "robot_description_path": "kuka_iiwa/urdf/iiwa7.urdf",
         "controlled_joints": [0, 1, 2, 3, 4, 5, 6],
@@ -84,10 +84,10 @@ kuka_iiwa = DictConfig(
         "torque_limits": [30.0, 30.0, 30.0, 30.0, 30.0, 20.0, 20.0],
         "use_grav_comp": True,
         "num_dofs": 7,
-    }
+    },
 )
 
-kuka_gripper_sdf = DictConfig(
+kuka_gripper_sdf = OmegaConf.create(
     {
         "num_dofs": 12,
         "robot_state_dim": 12,
@@ -133,7 +133,7 @@ kuka_gripper_sdf = DictConfig(
             # 0.000000,
             # -0.000200,
         ],
-        "joint_limits": [
+        "joint_limits_high": [
             2.96705972839,
             2.09439510239,
             2.96705972839,
@@ -146,12 +146,26 @@ kuka_gripper_sdf = DictConfig(
             # 2.09439510239,
             # 3.05432619099,
         ],
+        "joint_limits_low": [
+            -2.96705972839,
+            -2.09439510239,
+            -2.96705972839,
+            -2.09439510239,
+            -2.96705972839,
+            -2.09439510239,
+            -3.05432619099,
+            -2.09439510239,
+            -2.96705972839,
+            # -2.09439510239,
+            # -3.05432619099,
+        ],
+        "joint_damping": None,
         "torque_limits": [200, 200, 100, 100, 100, 30, 30, 10, 10, 10, 10, 10],
         "ee_link_idx": 5,
         "ee_joint_name": "J5",
         "using_camera": False,
         "gpu_renderer": False,
-    }
+    },
 )
 
 
