@@ -15,10 +15,6 @@ class MobileObjectAnnotation extends React.Component {
     this.setState({
       currentMode: mode,
     });
-    console.log("state is");
-    console.log(this.state);
-    console.log("set mode");
-    console.log(mode);
   }
 
   render() {

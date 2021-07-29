@@ -49,8 +49,7 @@ class MobileMainPane extends React.Component {
     } else if (this.state.screen === "settings") {
       displayPane = <MobileSettingsPane imageWidth={this.state.imageWidth} />;
     } else if (this.state.screen === "annotation") {
-      let oldVersion = false;
-      if (oldVersion) {
+      if (stateManager.useDesktopComponentOnMobile) {
         displayPane = (
           <ObjectFixup
             imageWidth={this.state.screenWidth - 25}
