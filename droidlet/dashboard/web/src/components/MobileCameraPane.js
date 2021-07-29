@@ -22,8 +22,6 @@ class MobileCameraPane extends React.Component {
   screenshot() {
     let screenshot = this.webcamRef.current.getScreenshot();
     let asImage = new Image(this.props.imageWidth, this.props.imageWidth);
-    console.log("asImage");
-    console.log(asImage);
     asImage.src = screenshot;
     this.setState({
       currentMode: "annotation",
