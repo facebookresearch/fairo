@@ -16,6 +16,7 @@ requirements:
     - cmake
     - cudatoolkit=10.1
     - doxygen
+    - flatbuffers
     - grpc-cpp=1.35.0=h146f9af_0
     - hpp-fcl=1.6.0=py38h75fc22a_1
     - libprotobuf
@@ -23,6 +24,7 @@ requirements:
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
+    - python-flatbuffers
     - pytorch-cpu=1.6.0=py3.8_cpu_1_cxx11_abi
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
@@ -36,6 +38,7 @@ requirements:
     - cudatoolkit=10.1
     - dash
     - doxygen
+    - flatbuffers
     - grpc-cpp=1.35.0=h146f9af_0
     - grpcio
     - habitat-sim==0.2.0
@@ -52,6 +55,7 @@ requirements:
     - pytest
     - pytest-benchmark
     - python
+    - python-flatbuffers
     - pytorch=1.6.0=py3.8_cuda10.1_cudnn7.6.5_1_cxx11_abi
     - scipy
     - sphinx

@@ -1,0 +1,104 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
+rpc_service PolymetisControllerServer {
+
+  /*
+  ***** User client methods *****
+
+  These are user-facing methods allowing you to change
+  the current controller and get the full robot states.
+  */
+
+  // Switch the current controller, and return the log index at start of 
+  // controller execution
+  SetController(ControllerChunk):LogInterval (streaming: "client");
+
+  // Update the current controller, and return the log index at the point
+  // where update takes effect
+  UpdateController(ControllerChunk):LogInterval (streaming: "client");
+
+  // Terminate the current controller, and return the log indices at
+  // start & end of controller execution
+  TerminateController(Empty):LogInterval;
+
+  // Get the current robot state
+  GetRobotState(Empty):RobotState;
+
+  // Get a stream of robot states
+  GetRobotStateStream(Empty):RobotState (streaming: "server");
+
+  // Get a stream of past robot states
+  GetRobotStateLog(LogInterval):RobotState (streaming: "server");
+
+  // Get the start & end log indices of current controller
+  GetEpisodeInterval(Empty):LogInterval;
+
+  /*
+  ***** Robot client methods *****
+
+  Clients implementing these methods should provide the robot
+  environment, e.g. the process which connects to the robot
+  hardware or simulation.
+  */
+
+  // Send relevant metadata to initialize RobotClient connection
+  InitRobotClient(RobotClientMetadata):Empty;
+
+  // Compute torque command in response to a robot state.
+  ControlUpdate(RobotState):TorqueCommand;
+
+  GetRobotClientMetadata(Empty):RobotClientMetadata;
+}
+
+table LogInterval {
+  start:int;
+  end:int;
+}
+
+table ControllerChunk {
+  // A subset of the binary stream which contains
+  // the serialized Torchscript module.
+  torchscript_binary_chunk:byte;
+}
+
+table RobotClientMetadata {
+  urdf_filestring:string;
+  hz:int;
+  default_Kq:[float];
+  default_Kqd:[float];
+  default_controller:byte;
+  dof:int;
+  ee_joint_name:string;
+  ee_link_idx:int;
+  rest_pose:[float];
+}
+
+table Timestamp {
+    seconds:long;
+    nanos:int;
+}
+
+table RobotState {
+  // Contains the robot state. Fields are optional
+  // depending on context. Add to this table to
+  // extend for different types of robots/sensors.
+  timestamp:Timestamp;
+  joint_positions:[float];
+  joint_velocities:[float];
+  joint_torques_computed:[float];              //Torques received from the controller server (copy of TorqueCommand.joint_torques)
+  prev_joint_torques_computed:[float];         //Torques received from the controller server in the previous timestep
+  prev_joint_torques_computed_safened:[float]; //Torques after adding safety mechanisms in the previous timestep
+  motor_torques_measured:[float];              //Measured torque signals from the robot motors
+  motor_torques_external:[float];              //Measured external torques exerted on the robot motors
+}
+
+table TorqueCommand {
+  // Contains the command sent to the robot.
+  timestamp:Timestamp;
+  joint_torques:[float];
+}
+
+table Empty {}
