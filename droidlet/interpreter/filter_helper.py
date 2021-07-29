@@ -53,10 +53,16 @@ def maybe_append_left(F, to_append=None):
 
 def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
     # is this a specific memory?
-    # ... then return
-    mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
-    if mem:
-        return maybe_append_left(FixedMemFilter(interpreter.memory, mem.memid), to_append=val_map)
+    # ... then return it
+    F = None
+    if filters_d.get("special") and filters_d["special"] == "THIS":
+        F = FixedMemFilter(interpreter.memory, "NULL")
+    else:
+        mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
+        if mem:
+            F = FixedMemFilter(interpreter.memory, mem.memid)
+    if F is not None:
+        return maybe_append_left(F, to_append=val_map)
     else:
         return None
 
@@ -239,18 +245,24 @@ def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
 
 def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
     F = MemoryFilter(interpreter.memory)
-    triples = ["({}={})".format(t["pred_text"], t["obj_text"]) for t in filters_d.get("triples", [])]
+    triples = [
+        "({}={})".format(t["pred_text"], t["obj_text"]) for t in filters_d.get("triples", [])
+    ]
     triple_filter = None
     if len(triples) > 0:
         where = " AND ".join(triples)
-        triple_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
-        
+        triple_filter = BasicFilter(
+            interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")"
+        )
+
     tags = tags_from_dict(filters_d)
     tag_filter = None
     triples = ["(has_tag={})".format(tag) for tag in tags]
     if triples:
         where = " AND ".join(triples)
-        tag_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
+        tag_filter = BasicFilter(
+            interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")"
+        )
 
     F.append(BackoffFilter(interpreter.memory, [triple_filter, tag_filter]))
     # currently spec intersects all comparators TODO?
@@ -280,9 +292,9 @@ class FilterInterpreter:
 
         # is this a specific memory?
         # ... then return
-        specific_mem = maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map)
-        if specific_mem is not None:
-            return specific_mem
+        specific_mem_filter = maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map)
+        if specific_mem_filter is not None:
+            return specific_mem_filter
 
         memtype = filters_d.get("memory_type", "REFERENCE_OBJECT")
         # FIXME/TODO: these share lots of code, refactor
