@@ -148,6 +148,7 @@ kuka_gripper_sdf = DictConfig(
         ],
         "torque_limits": [200, 200, 100, 100, 100, 30, 30, 10, 10, 10, 10, 10],
         "ee_link_idx": 5,
+        "ee_joint_name": "J5",
         "using_camera": False,
         "gpu_renderer": False,
     }
