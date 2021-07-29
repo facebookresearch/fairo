@@ -18,4 +18,4 @@ fuzzywuzzy
 krovetz
 open3d
 sklearn
-pycococreatortools
+git+git://github.com/waspinator/coco.git@2.1.0
