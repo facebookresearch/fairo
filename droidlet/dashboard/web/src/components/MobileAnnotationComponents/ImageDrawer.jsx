@@ -10,7 +10,7 @@ class ImageDrawer extends React.Component {
     this.isDrawing = false;
     this.annotationName = null;
     this.annotationTags = null;
-    this.pointList = []; // list of all the points on the mask
+    this.pointSet = new Set(); // set of all the shaded pixels
     this.isDrawing = true;
   }
 
@@ -45,21 +45,6 @@ class ImageDrawer extends React.Component {
     this.ctx.drawImage(this.props.img, 0, 0);
   }
 
-  onTouchEnd = (event) => {
-    this.isDrawing = false;
-    this.ctx.strokeStyle = "red";
-    this.ctx.lineJoin = "round";
-    this.ctx.linewidth = 5;
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.currentMouse.x, this.currentMouse.y);
-    this.ctx.lineTo(this.firstCoordinate.x, this.firstCoordinate.y);
-    this.ctx.closePath();
-    this.ctx.stroke();
-    this.isDrawing = false;
-    this.pointList.push(this.firstCoordinate);
-  };
-
   onTouchMove = (event) => {
     if (this.isDrawing) {
       const canvas = this.canvas;
@@ -80,19 +65,39 @@ class ImageDrawer extends React.Component {
         this.ctx = this.canvas.getContext("2d");
 
         if (this.ctx) {
-          this.ctx.strokeStyle = "red";
-          this.ctx.lineJoin = "round";
-          this.ctx.linewidth = 5;
-
+          let radius = 2;
           this.ctx.beginPath();
-          this.ctx.moveTo(this.prevMouse.x, this.prevMouse.y);
-          this.ctx.lineTo(this.currentMouse.x, this.currentMouse.y);
-          this.ctx.closePath();
-          this.ctx.stroke();
+          this.ctx.arc(
+            this.currentMouse.x,
+            this.currentMouse.y,
+            radius,
+            0,
+            2 * Math.PI
+          );
+          this.addPointsWithinCircle(
+            this.currentMouse.x,
+            this.currentMouse.y,
+            radius
+          );
+          this.ctx.fill();
         }
       }
     }
   };
+
+  // add points to set
+  addPointsWithinCircle(centerX, centerY, radius) {
+    for (let x = centerX - radius; x < centerX + radius; x++) {
+      for (let y = centerY - radius; y < centerY + radius; y++) {
+        let dx = x - centerX;
+        let dy = y - centerY;
+        let distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared <= radius * radius) {
+          this.pointSet.add({ x: x, y: y });
+        }
+      }
+    }
+  }
 
   // submit annotation to backend
   dataEntrySubmit(objectData) {
@@ -105,7 +110,7 @@ class ImageDrawer extends React.Component {
 
   // clears all the lines on the screen
   clearMask() {
-    this.pointList = [];
+    this.pointSet.clear();
     this.update();
   }
 
@@ -130,7 +135,6 @@ class ImageDrawer extends React.Component {
           height={imageSize}
           tabIndex="0"
           onTouchMove={this.onTouchMove}
-          onTouchEnd={this.onTouchEnd}
           onMouseUp={this.mouseEvent}
         ></canvas>
 
