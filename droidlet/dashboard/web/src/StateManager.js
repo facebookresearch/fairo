@@ -12,8 +12,8 @@ import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import Timeline from "./components/Timeline/Timeline";
-import TimelineDetails from "./components/Timeline/TimelineDetails";
 import TimelineResults from "./components/Timeline/TimelineResults";
+import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
 
 /**
@@ -215,8 +215,10 @@ class StateManager {
       this.memory = this.initialMemoryState;
       // clear state of all components
       this.refs.forEach((ref) => {
-        ref.setState(ref.initialState);
-        ref.forceUpdate();
+        if (!(ref instanceof TimelineDetails)) {
+          ref.setState(ref.initialState);
+          ref.forceUpdate();
+        }
       });
       console.log("disconnected");
     });
@@ -326,7 +328,7 @@ class StateManager {
 
   updateTimeline() {
     this.refs.forEach((ref) => {
-      if (ref instanceof TimelineDetails || ref instanceof TimelineResults) {
+      if (ref instanceof TimelineResults) {
         ref.forceUpdate();
       }
     });
