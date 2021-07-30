@@ -11,6 +11,17 @@ Copyright (c) Facebook, Inc. and its affiliates.
   margin-top: 0px;
 }
 
+#dropdown {
+  float: right;
+  margin-right: 40px;
+  position: relative;
+  bottom: 20px;
+}
+
+.clearfloat {
+  clear: both;
+}
+
 .subpanel {
   margin: 30px;
 }
@@ -81,6 +92,7 @@ td:nth-child(1) {
   margin-bottom: 15px;
   position: relative;
   display: flex;
+  float: left;
 }
 
 .searchSpan {

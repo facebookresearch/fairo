@@ -33,7 +33,7 @@ const MenuProps = {
 
 const names = ["Perception", "Dialogue", "Interpreter", "Memory"];
 
-export default function MultipleSelect() {
+export default function TimelineDropdown() {
   const classes = useStyles();
   const [personName, setPersonName] = React.useState([]);
 

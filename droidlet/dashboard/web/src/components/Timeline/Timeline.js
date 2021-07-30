@@ -10,7 +10,7 @@ import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
 import { handleClick } from "./TimelineUtils";
-import MultipleSelect from "./TimelineDropdown";
+import TimelineDropdown from "./TimelineDropdown";
 import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
 
@@ -181,7 +181,11 @@ class DashboardTimeline extends React.Component {
           onChange={(e) => this.handleSearch(e.target.value)}
         />
 
-        <MultipleSelect />
+        <div id="dropdown">
+          <TimelineDropdown />
+        </div>
+
+        <div className="clearfloat"></div>
 
         <div ref={this.appRef} />
       </div>
