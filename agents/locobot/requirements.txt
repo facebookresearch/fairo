@@ -18,4 +18,4 @@ fuzzywuzzy
 krovetz
 open3d
 sklearn
-git+git://github.com/waspinator/coco.git@2.1.0
+git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI
