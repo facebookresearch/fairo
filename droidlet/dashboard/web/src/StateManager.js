@@ -15,6 +15,7 @@ import Timeline from "./components/Timeline/Timeline";
 import TimelineResults from "./components/Timeline/TimelineResults";
 import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
+import { isMobile } from "react-device-detect";
 
 /**
  * The main state manager for the dashboard.
@@ -265,6 +266,9 @@ class StateManager {
   }
 
   setChatResponse(res) {
+    if (isMobile) {
+      alert("Received text message: " + res.chat);
+    }
     this.memory.chats = res.allChats;
     this.memory.chatResponse[res.chat] = res.chatResponse;
 
