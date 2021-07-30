@@ -9,6 +9,8 @@ from droidlet.interpreter.task import ControlBlock
 import logging
 import pdb
 import sys
+from droidlet.lowlevel.minecraft.mc_util import MCTime
+from droidlet.memory.craftassist.swarm_worker_memory import SwarmWorkerMemory
 
 TASK_MAP = TASK_MAP = {
         "move": tasks.Move,
@@ -31,12 +33,14 @@ class ForkedPdb(pdb.Pdb):
             sys.stdin = _stdin
 
 class CraftAssistSwarmWorker(CraftAssistAgent):
-    def __init__(self, opts, idx=0):
+    def __init__(self, opts, idx, memory_send_queue, memory_receive_queue):
         self.agent_idx = idx
         self.task_stacks = dict()
         self.prio = dict()
         self.running = dict()
         self.pause = False
+        self.memory_send_queue = memory_send_queue
+        self.memory_receive_queue = memory_receive_queue
         super(CraftAssistSwarmWorker, self).__init__(opts)
 
     def init_event_handlers(self):
@@ -47,9 +51,10 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         self.perception_modules = {}
         self.perception_modules["low_level"] = SwarmLowLevelMCPerception(self)
 
-    # def init_memory(self):
-    #     self.memory_send_queue = Queue()
-    #     self.memory_receive_queue = Queue()
+    def init_memory(self):
+        self.memory = SwarmWorkerMemory(agent_time=MCTime(self.get_world_time),
+                                        memory_send_queue=self.memory_send_queue,
+                                        memory_receive_queue=self.memory_receive_queue)
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -64,7 +69,6 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         task_updates = []
         finished_task_memids = []
         for memid, task in self.task_stacks.items():
-            # ForkedPdb().set_trace()
             pre_task_status = (self.prio[memid], self.running[memid], task.finished)
             if self.prio[memid] == -1:
                 if task.init_condition.check():
@@ -104,6 +108,8 @@ class CraftAssistSwarmWorker_Wrapper(Process):
         self.perceptions = Queue()
         self.query_from_worker = Queue()
         self.query_from_master = Queue()
+        self.memory_send_queue = Queue()
+        self.memory_receive_queue = Queue()
 
     def send_queries(self, queries):
         # TODO: send queries to master by pushing to self.query_from_worker
@@ -118,38 +124,35 @@ class CraftAssistSwarmWorker_Wrapper(Process):
         # TODO: update task info based on information given by master agent
         pass
 
-    def run(self):  
-        agent = CraftAssistSwarmWorker(self.opts, self.idx)
+    def run(self):
+        agent = CraftAssistSwarmWorker(self.opts, self.idx, memory_send_queue=self.memory_send_queue, memory_receive_queue=self.memory_receive_queue)
+
+        self.query_from_worker.put(("initialization", True))
         while True:
-            # ForkedPdb().set_trace()
             worker_perception = agent.perceive()
             self.perceptions.put(worker_perception)
             
             flag = True
             while flag:
-                try:
+                if self.query_from_master.empty():
+                    flag = False
+                else:
                     memid, info = self.query_from_master.get_nowait()
                     self.update_task(memid, info)
-                except:
-                    flag = False
 
-            try:
+            if not self.input_tasks.empty():
                 task_class_name, task_data, task_memid = self.input_tasks.get_nowait()
                 if task_memid not in agent.task_stacks.keys():
                 # TODO: implement stop and resume
                     agent.task_stacks[task_memid] = TASK_MAP[task_class_name](agent, task_data)
                     agent.prio[task_memid] = -1
                     agent.running[task_memid] = -1
-            except:
-                logging.debug("swarm worker {}: no new task received".format(self.idx))
-                pass
             
-            try:
+            if not self.input_chats.empty():
                 chat = self.input_chats.get_nowait()
                 agent.send_chat(chat)
-            except:
-                pass
 
+            
             queries, task_updates = agent.task_step()
             self.send_queries(queries)
             self.send_task_updates(task_updates)
