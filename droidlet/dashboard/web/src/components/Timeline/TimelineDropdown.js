@@ -35,21 +35,21 @@ const names = ["Perception", "Dialogue", "Interpreter", "Memory"];
 
 export default function TimelineDropdown() {
   const classes = useStyles();
-  const [personName, setPersonName] = React.useState([]);
+  const [eventName, setEventName] = React.useState([]);
 
   const handleChange = (event) => {
-    setPersonName(event.target.value);
+    setEventName(event.target.value);
   };
 
   return (
     <div>
       <FormControl className={classes.formControl}>
-        <InputLabel id="demo-mutiple-checkbox-label">Tag</InputLabel>
+        <InputLabel id="mutiple-checkbox-label">Filters</InputLabel>
         <Select
-          labelId="demo-mutiple-checkbox-label"
-          id="demo-mutiple-checkbox"
+          labelId="mutiple-checkbox-label"
+          id="mutiple-checkbox"
           multiple
-          value={personName}
+          value={eventName}
           onChange={handleChange}
           input={<Input />}
           renderValue={(selected) => selected.join(", ")}
@@ -57,7 +57,7 @@ export default function TimelineDropdown() {
         >
           {names.map((name) => (
             <MenuItem key={name} value={name}>
-              <Checkbox checked={personName.indexOf(name) > -1} />
+              <Checkbox checked={eventName.indexOf(name) > -1} />
               <ListItemText primary={name} />
             </MenuItem>
           ))}
