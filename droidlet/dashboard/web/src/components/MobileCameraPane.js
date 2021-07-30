@@ -2,6 +2,7 @@ import React from "react";
 import Webcam from "react-webcam";
 import ObjectFixup from "./ObjectFixup";
 import stateManager from ".././StateManager";
+import MobileObjectAnnotation from "./MobileAnnotationComponents/MobileObjectAnnotation";
 
 class MobileCameraPane extends React.Component {
   constructor(props) {
@@ -60,15 +61,25 @@ class MobileCameraPane extends React.Component {
       );
     }
     if (this.state.currentMode === "annotation") {
-      return (
-        <ObjectFixup
-          imageWidth={this.props.imageWidth}
-          image={this.state.img}
-          stateManager={stateManager}
-          isMobile={true}
-          isFromCamera={true}
-        />
-      );
+      if (stateManager.useDesktopComponentOnMobile) {
+        return (
+          <ObjectFixup
+            imageWidth={this.props.imageWidth}
+            image={this.state.img}
+            stateManager={stateManager}
+            isMobile={true}
+            isFromCamera={true}
+          />
+        );
+      } else {
+        return (
+          <MobileObjectAnnotation
+            imageWidth={this.props.imageWidth - 25}
+            image={this.state.img}
+            stateManager={stateManager}
+          />
+        );
+      }
     }
   }
 }
