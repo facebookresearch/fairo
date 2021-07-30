@@ -27,14 +27,14 @@ class Perception:
         model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
     """
 
-    def __init__(self, model_data_dir):
+    def __init__(self, model_data_dir, default_keypoints_path=False):
         self.model_data_dir = model_data_dir
 
         def slow_perceive_init(weights_dir):
             return AttributeDict(
                 {
                     "detector": ObjectDetection(weights_dir),
-                    "human_pose": HumanPose(weights_dir),
+                    "human_pose": HumanPose(weights_dir, default_keypoints_path),
                     "face_recognizer": FaceRecognition(),
                     "tracker": ObjectTracking(),
                 })

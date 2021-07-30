@@ -24,7 +24,7 @@ class HumanPose(AbstractHandler):
         model_data_dir (string): path to the model directory
     """
 
-    def __init__(self, model_data_dir, default=True):
+    def __init__(self, model_data_dir, default=False):
         self.detector = HumanKeypoints(model_data_dir, default)
 
     def __call__(self, rgb_depth):

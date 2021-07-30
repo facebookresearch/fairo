@@ -238,7 +238,7 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("save_annotations")
         def save_annotations(sid, categories): 
-            if categories.length == 0: 
+            if len(categories) == 0: 
                 print("Error in saving annotations: Categories need to not be null. \
                     You cannot just use the rgb/ and seg/ folders to create the \
                         COCO json -- categories do not persist in memory")
@@ -470,7 +470,7 @@ class LocobotAgent(LocoMCAgent):
                 return
 
             print("switching to", model_path)
-            self.perception_modules["vision"] = Perception(model_path)
+            self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
 
     def init_memory(self):
