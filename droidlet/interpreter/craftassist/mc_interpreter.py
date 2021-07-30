@@ -243,7 +243,7 @@ class MCInterpreter(Interpreter):
                 self.color_bid_map,
                 self.special_shape_functions,
             )
-
+            
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
         mems = self.subinterpret["reference_locations"](self, speaker, location_d)
@@ -442,22 +442,10 @@ class MCInterpreter(Interpreter):
                 tasks_todo.append(t)
             return maybe_task_list_to_control_block(tasks_todo, agent)
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks": new_tasks,
-                            "stop_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
 
@@ -541,22 +529,10 @@ class MCInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return maybe_task_list_to_control_block(tasks_to_do, agent)
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks_fn": new_tasks,
-                            "stop_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
 

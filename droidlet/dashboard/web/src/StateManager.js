@@ -12,8 +12,8 @@ import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import Timeline from "./components/Timeline/Timeline";
-import TimelineDetails from "./components/Timeline/TimelineDetails";
 import TimelineResults from "./components/Timeline/TimelineResults";
+import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
 import Retrainer from "./components/Retrainer";
 
@@ -117,21 +117,21 @@ class StateManager {
 
     // Assumes that all socket events for a frame are received before the next frame
     this.curFeedState = {
-      rgbImg: null, 
-      depth: null, 
+      rgbImg: null,
+      depth: null,
       objects: null, // Can be changed by annotation tool
       origObjects: null, // Original objects sent from backend
       pose: null,
-    }
+    };
     this.prevFeedState = {
-      rgbImg: null, 
-      depth: null, 
+      rgbImg: null,
+      depth: null,
       objects: null,
       pose: null,
-    }
+    };
     this.stateProcessed = {
-      rgbImg: false, 
-      depth: false, 
+      rgbImg: false,
+      depth: false,
       objects: false,
       pose: false,
     }
@@ -222,8 +222,10 @@ class StateManager {
       this.memory = this.initialMemoryState;
       // clear state of all components
       this.refs.forEach((ref) => {
-        ref.setState(ref.initialState);
-        ref.forceUpdate();
+        if (!(ref instanceof TimelineDetails)) {
+          ref.setState(ref.initialState);
+          ref.forceUpdate();
+        }
       });
       console.log("disconnected");
     });
@@ -335,7 +337,7 @@ class StateManager {
 
   updateTimeline() {
     this.refs.forEach((ref) => {
-      if (ref instanceof TimelineDetails || ref instanceof TimelineResults) {
+      if (ref instanceof TimelineResults) {
         ref.forceUpdate();
       }
     });
@@ -415,12 +417,12 @@ class StateManager {
     interactionData[key] = value;
     this.socket.emit("interaction data", interactionData);
   }
-  
+
   onObjectAnnotationSave(res) {
     // Process annotations
     let { nameMap, pointMap, propertyMap } = res;
-    let newObjects = []
-    let scale = 500  // hardcoded from somewhere else
+    let newObjects = [];
+    let scale = 500; // hardcoded from somewhere else
     for (let id in nameMap) {
       let oldObj = id < this.curFeedState.objects.length;
       let newId = oldObj ? this.curFeedState.objects[id].id : null;
@@ -439,14 +441,14 @@ class StateManager {
       let newBbox = this.getNewBbox(newMask);
 
       newObjects.push({
-        label: nameMap[id], 
-        mask: newMask, 
+        label: nameMap[id],
+        mask: newMask,
         properties: propertyMap[id].join("\n "),
         type: "annotate", // either "annotate" or "detector"
-        id: newId, 
-        bbox: newBbox, 
-        xyz: newXyz, 
-      })
+        id: newId,
+        bbox: newBbox,
+        xyz: newXyz,
+      });
     }
     this.curFeedState.objects = newObjects
     this.annotationsSaved = false
@@ -457,22 +459,23 @@ class StateManager {
           objects: this.curFeedState.objects,
         });
       }
-    })
+    });
   }
 
   getNewBbox(maskSet) {
-    let xs = [], ys = []
+    let xs = [],
+      ys = [];
     for (let i = 0; i < maskSet.length; i++) {
       for (let j = 0; j < maskSet[i].length; j++) {
-        xs.push(maskSet[i][j][0])
-        ys.push(maskSet[i][j][1])
+        xs.push(maskSet[i][j][0]);
+        ys.push(maskSet[i][j][1]);
       }
     }
-    let minX = Math.min.apply(null, xs), 
-        maxX = Math.max.apply(null, xs), 
-        minY = Math.min.apply(null, ys), 
-        maxY = Math.max.apply(null, ys)
-    return [minX, minY, maxX, maxY]
+    let minX = Math.min.apply(null, xs),
+      maxX = Math.max.apply(null, xs),
+      minY = Math.min.apply(null, ys),
+      maxY = Math.max.apply(null, ys);
+    return [minX, minY, maxX, maxY];
   }
 
   startLabelPropagation() {
@@ -506,7 +509,6 @@ class StateManager {
       this.socket.emit("save_rgb_seg", saveProps)
       this.annotationsSaved = true
     }
-
     // Reset
     this.stateProcessed.rgbImg = true;
     this.stateProcessed.depth = true;
@@ -520,17 +522,17 @@ class StateManager {
       if (ref instanceof LiveObjects) {
         for (let i in res) {
           // Get rid of masks with <3 points
-          let j = 0
+          let j = 0;
           while (j < res[i].mask.length) {
             if (!res[i].mask[j] || res[i].mask[j].length < 3) {
               res[i].mask.splice(j, 1);
-              continue
+              continue;
             }
-            j++
+            j++;
           }
-          res[i].bbox = this.getNewBbox(res[i].mask)
-          ref.addObject(res[i])
-          this.curFeedState.objects.push(res[i])
+          res[i].bbox = this.getNewBbox(res[i].mask);
+          ref.addObject(res[i]);
+          this.curFeedState.objects.push(res[i]);
         }
       }
     })
@@ -541,19 +543,19 @@ class StateManager {
 
   checkRunLabelProp() {
     return (
-      this.curFeedState.rgbImg && 
-      this.curFeedState.depth && 
-      this.curFeedState.objects && 
-      this.curFeedState.pose && 
-      this.prevFeedState.rgbImg && 
-      this.prevFeedState.depth && 
-      this.prevFeedState.objects && 
-      this.prevFeedState.pose && 
-      !this.stateProcessed.rgbImg && 
-      !this.stateProcessed.depth && 
-      !this.stateProcessed.objects && 
-      !this.stateProcessed.pose  
-    )
+      this.curFeedState.rgbImg &&
+      this.curFeedState.depth &&
+      this.curFeedState.objects &&
+      this.curFeedState.pose &&
+      this.prevFeedState.rgbImg &&
+      this.prevFeedState.depth &&
+      this.prevFeedState.objects &&
+      this.prevFeedState.pose &&
+      !this.stateProcessed.rgbImg &&
+      !this.stateProcessed.depth &&
+      !this.stateProcessed.objects &&
+      !this.stateProcessed.pose
+    );
   }
 
   onSave() {
@@ -624,12 +626,12 @@ class StateManager {
         }
       });
       // Update state
-      this.prevFeedState.rgbImg = this.curFeedState.rgbImg
-      this.curFeedState.rgbImg = res
-      this.stateProcessed.rgbImg = false
+      this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
+      this.curFeedState.rgbImg = res;
+      this.stateProcessed.rgbImg = false;
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 
@@ -649,16 +651,16 @@ class StateManager {
         }
       });
       // Update state
-      this.prevFeedState.depth = this.curFeedState.depth
+      this.prevFeedState.depth = this.curFeedState.depth;
       this.curFeedState.depth = {
         depthImg: res.depthImg,
         depthMax: res.depthMax,
-        depthMin: res.depthMin
-      }
-      this.stateProcessed.depth = false
+        depthMin: res.depthMin,
+      };
+      this.stateProcessed.depth = false;
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 
@@ -674,23 +676,26 @@ class StateManager {
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
-    res.objects.forEach(o => {
-      o["type"] = "detector"
-    })
+    res.objects.forEach((o) => {
+      o["type"] = "detector";
+    });
 
     // If new objects, update state and feed
-    if (JSON.stringify(this.curFeedState.origObjects) !== JSON.stringify(res.objects)) {
-      this.prevFeedState.objects = this.curFeedState.objects
-      this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)) // deep clone
-      this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)) // deep clone
-      this.stateProcessed.objects = false
+    if (
+      JSON.stringify(this.curFeedState.origObjects) !==
+      JSON.stringify(res.objects)
+    ) {
+      this.prevFeedState.objects = this.curFeedState.objects;
+      this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)); // deep clone
+      this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)); // deep clone
+      this.stateProcessed.objects = false;
 
       this.refs.forEach((ref) => {
         if (ref instanceof LiveObjects) {
           ref.setState({
             objects: res.objects,
             rgb: rgb,
-          })
+          });
         } else if (ref instanceof MobileMainPane) {
           // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
           ref.setState({
@@ -700,7 +705,7 @@ class StateManager {
       });
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 
@@ -734,20 +739,23 @@ class StateManager {
       }
     });
 
-    if (!this.curFeedState.pose || (res &&  
-      (res.x !== this.curFeedState.pose.x || 
-      res.y !== this.curFeedState.pose.y || 
-      res.yaw !== this.curFeedState.pose.yaw))) {
-      this.prevFeedState.pose = this.curFeedState.pose
+    if (
+      !this.curFeedState.pose ||
+      (res &&
+        (res.x !== this.curFeedState.pose.x ||
+          res.y !== this.curFeedState.pose.y ||
+          res.yaw !== this.curFeedState.pose.yaw))
+    ) {
+      this.prevFeedState.pose = this.curFeedState.pose;
       this.curFeedState.pose = {
-        x: res.x, 
-        y: res.y, 
-        yaw: res.yaw, 
-      }
-      this.stateProcessed.pose = false
+        x: res.x,
+        y: res.y,
+        yaw: res.yaw,
+      };
+      this.stateProcessed.pose = false;
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 

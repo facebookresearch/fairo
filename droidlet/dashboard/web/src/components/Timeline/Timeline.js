@@ -9,7 +9,7 @@ agent using the flags --enable_timeline --log_timeline.
 import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { jsonToArray } from "./TimelineUtils";
+import { handleClick } from "./TimelineUtils";
 import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
 
@@ -19,7 +19,7 @@ const groups = [
   {
     id: "timeline",
     content: "Timeline",
-    nestedGroups: ["perceive", "dialogue", "interpreter"],
+    nestedGroups: ["perceive", "dialogue", "interpreter", "memory"],
   },
   {
     id: "perceive",
@@ -32,6 +32,10 @@ const groups = [
   {
     id: "interpreter",
     content: "Interpreter",
+  },
+  {
+    id: "memory",
+    content: "Memory",
   },
 ];
 
@@ -54,7 +58,6 @@ const options = {
   rollingMode: {
     follow: true,
   },
-  stack: false,
 };
 
 const SearchBar = ({ onChange, placeholder }) => {
@@ -95,16 +98,9 @@ class DashboardTimeline extends React.Component {
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
         const item = items.get(properties["item"]);
-        that.handleClick(item);
+        handleClick(that.props.stateManager, item.title);
       }
     });
-  }
-
-  handleClick(item) {
-    const eventObj = JSON.parse(item.title);
-    let tableArr = jsonToArray(eventObj);
-    this.props.stateManager.memory.timelineDetails = tableArr;
-    this.props.stateManager.updateTimeline();
   }
 
   handleSearch(pattern) {
@@ -141,6 +137,7 @@ class DashboardTimeline extends React.Component {
     if (event && event !== this.prevEvent) {
       this.prevEvent = event;
       const eventObj = JSON.parse(event);
+
       // adds to the outer timeline group
       items.add([
         {
@@ -150,6 +147,7 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
+          type: "box",
         },
       ]);
       // adds the same item to the inner nested group
@@ -160,6 +158,7 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
+          type: "box",
         },
       ]);
     }
@@ -172,6 +171,8 @@ class DashboardTimeline extends React.Component {
         <p id="description">
           A visualizer for viewing, inspecting, and searching through agent
           activities interactively.
+          <br />
+          Click an event to view more details!
         </p>
 
         <SearchBar
