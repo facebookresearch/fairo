@@ -218,9 +218,8 @@ class LocobotAgent(LocoMCAgent):
         self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
 
     def perceive(self, force=False):
+        super().perceive(force=force, parser_only=True)
         self.perception_modules["self"].perceive(force=force)
-
-
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()
         x, y, yaw = xyz
