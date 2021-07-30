@@ -8,8 +8,8 @@ class ImageDrawer extends React.Component {
     this.canvasRef = React.createRef();
     this.imgRef = React.createRef();
     this.isDrawing = false;
-    this.annotationName = null;
-    this.annotationTags = null;
+    this.annotationName = "";
+    this.annotationTags = [];
     this.pointList = []; // list of all the points on the mask
     this.isDrawing = true;
   }
@@ -96,9 +96,9 @@ class ImageDrawer extends React.Component {
 
   // submit annotation to backend
   dataEntrySubmit(objectData) {
-    this.drawing_data = objectData;
-    this.annotationTags = this.drawing_data.tags;
-    this.annotationName = this.drawing_data.name;
+    this.drawingData = objectData;
+    this.annotationTags = this.drawingData.tags;
+    this.annotationName = this.drawingData.name;
     // reset the setting on mobileObjectAnnotation
     this.props.setMode("select");
   }

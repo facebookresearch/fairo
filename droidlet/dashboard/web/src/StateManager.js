@@ -132,6 +132,7 @@ class StateManager {
       pose: false,
     };
     this.useDesktopComponentOnMobile = false; // switch to use either desktop or mobile annotation on mobile device
+    // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
 
   setDefaultUrl() {
@@ -308,7 +309,6 @@ class StateManager {
   showAssistantReply(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
-        console.log("set assistant reply");
         ref.setState({
           agent_reply: res.agent_reply,
         });

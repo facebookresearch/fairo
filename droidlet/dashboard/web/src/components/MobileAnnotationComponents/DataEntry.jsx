@@ -73,7 +73,7 @@ class DataEntry extends React.Component {
       return;
     } else if (this.tags.length < 2) {
       alert(
-        "Please enter at least 2 descriptive tags for the object. Examples include: color, shape, size, orientation, etc."
+        "Please enter at least 2 descriptive tags for the object separated by enter. Examples include: color, shape, size, orientation, etc."
       );
       return;
     }
