@@ -7,15 +7,19 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { Rnd } from "react-rnd";
 import { Stage, Layer, Image as KImage, Rect, Text, Shape } from "react-konva";
-import { schemeCategory10 as colorScheme } from "d3-scale-chromatic";
 import ObjectFixup from "./ObjectFixup";
 
-// fast string hash https://stackoverflow.com/a/15710692
-var hashCode = (s) =>
-  s.split("").reduce((a, b) => {
-    a = (a << 5) - a + b.charCodeAt(0);
-    return a & a;
-  }, 0);
+const COLORS = [
+  "rgba(0,200,0,.5)",
+  "rgba(200,0,0,.5)",
+  "rgba(0,100,255,.5)",
+  "rgba(255,150,0,.5)",
+  "rgba(100,255,200,.5)",
+  "rgba(200,200,0,.5)",
+  "rgba(0,200,150,.5)",
+  "rgba(200,0,200,.5)",
+  "rgba(0,204,255,.5)",
+];
 
 /**
  * Displays an image along with the object bounding boxes.
@@ -25,6 +29,7 @@ var hashCode = (s) =>
 class LiveObjects extends React.Component {
   constructor(props) {
     super(props);
+    this.addObject = this.addObject.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onFixup = this.onFixup.bind(this);
     this.initialState = {
@@ -34,6 +39,13 @@ class LiveObjects extends React.Component {
       objects: null,
     };
     this.state = this.initialState;
+  }
+
+  addObject(object) {
+    let newObjects = this.state.objects ? this.state.objects.concat(object) : [object]
+    this.setState({
+      objects: newObjects
+    })
   }
 
   onResize(e, direction, ref, delta, position) {
@@ -53,9 +65,27 @@ class LiveObjects extends React.Component {
         }
       });
       if (fixer !== undefined) {
+        // Scale points
+        // quad nested array: obj, masks for obj, points in mask, x/y
+        let canvas_dim = 500; // hardcoded 500... not sure where this comes from
+        let objects = this.state.objects.map((obj) => ({
+          mask: obj.mask
+            ? obj.mask.map((masks) =>
+                masks.map((pt) => ({
+                  x: pt[0] / canvas_dim,
+                  y: pt[1] / canvas_dim,
+                }))
+              )
+            : [],
+          label: obj.label,
+          properties: obj.properties.split("\n "),
+          type: obj.type,
+        }));
         fixer.setState({
           image: this.state.rgb,
+          objects,
         });
+
         var myLayout = stateManager.dashboardLayout;
         // switch the active tab in the layout to the annotation tab
         for (var i = 0; i < myLayout._getAllContentItems().length; i++) {
@@ -107,12 +137,11 @@ class LiveObjects extends React.Component {
       parsed_objects = [];
     }
     let j = 0;
-    parsed_objects.forEach((obj) => {
+    parsed_objects.forEach((obj, i) => {
       let obj_id = obj.id;
       let label = String(obj_id).concat(obj.label);
       let properties = obj.properties;
-      let hash = hashCode(label.concat(properties));
-      let color = colorScheme[Math.abs(hash % colorScheme.length)];
+      let color = COLORS[i % COLORS.length];
       let scale = height / 512;
       let x1 = parseInt(obj.bbox[0] * scale);
       let y1 = parseInt(obj.bbox[1] * scale);
@@ -141,25 +170,27 @@ class LiveObjects extends React.Component {
           fontSize={10}
         />
       );
-      for (let i = 0; i < obj.mask.length; i++) {
-        let mask = obj.mask[i];
-        renderedObjects.push(
-          <Shape
-            sceneFunc={(context, shape) => {
-              context.beginPath();
-              context.moveTo(mask[0][0] * scale, mask[0][1] * scale);
-              for (let i = 1; i < mask.length; i++) {
-                context.lineTo(mask[i][0] * scale, mask[i][1] * scale);
-              }
-              context.closePath();
-              context.fillStrokeShape(shape);
-            }}
-            fill={color}
-            opacity={0.3}
-            stroke="black"
-            strokeWidth={1}
-          />
-        );
+      if (obj && obj.mask) {
+        for (let i = 0; i < obj.mask.length; i++) {
+          let mask = obj.mask[i].map((x) => [x[0] * scale, x[1] * scale]);
+          renderedObjects.push(
+            <Shape
+              sceneFunc={(context, shape) => {
+                context.beginPath();
+                context.moveTo(...mask[0]);
+                for (let i = 1; i < mask.length; i++) {
+                  context.lineTo(...mask[i]);
+                }
+                context.closePath();
+                context.fillStrokeShape(shape);
+              }}
+              fill={color}
+              opacity={0.5}
+              stroke={obj.type === "detector" ? "white" : "black"}
+              strokeWidth={1}
+            />
+          );
+        }
       }
     });
 

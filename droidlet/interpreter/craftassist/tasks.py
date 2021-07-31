@@ -14,10 +14,10 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID
+from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID, to_block_pos
 from droidlet.perception.craftassist import search
 from droidlet.perception.craftassist.heuristic_perception import ground_height
-from droidlet.lowlevel.minecraft.mc_util import to_block_pos, manhat_dist, strip_idmeta
+from droidlet.lowlevel.minecraft.mc_util import manhat_dist, strip_idmeta
 
 from droidlet.interpreter.task import BaseMovementTask, Task
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
@@ -674,8 +674,8 @@ class Fill(Task):
         self.finished = True
 
     def undo(self, agent):
-        triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]
-        build_mems = self.agent.memory.basic_search({"base_table": "tasks", "triples": triples})
+        query = "SELECT MEMORY FROM Task WHERE _has_parent_task=#={}".format(self.memid)
+        _, build_mems = self.agent.memory.basic_search(query)
         if build_mems:
             build_mems[0].task.undo(agent)
 
@@ -749,8 +749,8 @@ class Destroy(Task):
             self.submitted_build_task = True
 
     def undo(self, agent):
-        triples = [{"obj": self.memid, "pred_text": "_has_parent_task"}]
-        build_mems = self.agent.memory.basic_search({"base_table": "tasks", "triples": triples})
+        query = "SELECT MEMORY FROM Task WHERE _has_parent_task=#={}".format(self.memid)
+        _, build_mems = self.agent.memory.basic_search(query)
         if build_mems:
             build_mems[0].task.undo(agent)
 
@@ -945,7 +945,7 @@ class Get(Task):
         self.idm = task_data["idm"]
         self.pos = task_data["pos"]
         self.eid = task_data["eid"]
-        self.memid = task_data["memid"]
+        self.obj_memid = task_data["obj_memid"]
         self.approx = 1
         self.attempts = 10
         self.item_count_before_get = agent.get_inventory_item_count(self.idm[0], self.idm[1])
@@ -959,14 +959,14 @@ class Get(Task):
             agent.get_inventory_item_count(self.idm[0], self.idm[1]) - self.item_count_before_get
         )
         if delta > 0:
-            agent.inventory.add_item_stack(self.idm, (self.memid, delta))
+            agent.inventory.add_item_stack(self.idm, (self.obj_memid, delta))
             agent.send_chat("Got Item!")
-            agent.memory.tag(self.memid, "_in_inventory")
+            agent.memory.tag(self.obj_memid, "_in_inventory")
             self.finished = True
             return
 
         if self.attempts == 0:
-            agent.send_chat("I can't get this item. Give up now")
+            agent.send_chat("I can't get this item. Giving up now")
             self.finished = True
             return
 
@@ -974,8 +974,8 @@ class Get(Task):
 
         # walk through the area
         target = (self.pos[0] + randint(-1, 1), self.pos[1], self.pos[2] + randint(-1, 1))
-        self.move_task = Move(agent, {"target": target, "approx": self.approx})
-        self.add_child_task(self.move_task)
+        move_task = Move(agent, {"target": target, "approx": self.approx})
+        self.add_child_task(move_task)
         return
 
 
@@ -999,7 +999,7 @@ class Drop(Task):
         super().__init__(agent)
         self.eid = task_data["eid"]
         self.idm = task_data["idm"]
-        self.memid = task_data["memid"]
+        self.obj_memid = task_data["obj_memid"]
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def find_nearby_new_item_stack(self, agent, id, meta):
@@ -1029,19 +1029,19 @@ class Drop(Task):
             self.finished = False
             return
         id, m = self.idm
-        count = self.inventory.get_item_stack_count_from_memid(self.memid)
+        count = self.inventory.get_item_stack_count_from_memid(self.obj_memid)
         agent.drop_inventory_item_stack(id, m, count)
-        agent.inventory.remove_item_stack(self.idm, self.memid)
+        agent.inventory.remove_item_stack(self.idm, self.obj_memid)
 
         mindist, dropped_item_stack = self.get_nearby_new_item_stack(agent, id, m)
         if dropped_item_stack:
-            agent.memory.update_item_stack_eid(self.memid, dropped_item_stack.entityId)
+            agent.memory.update_item_stack_eid(self.obj_memid, dropped_item_stack.entityId)
             agent.memory.set_item_stack_position(dropped_item_stack)
-            agent.memory.tag(self.memid, "_on_ground")
+            agent.memory.tag(self.obj_memid, "_on_ground")
 
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)
-        self.move_task = Move(agent, {"target": target, "approx": 1})
-        self.add_child_task(self.move_task)
+        move_task = Move(agent, {"target": target, "approx": 1})
+        self.add_child_task(move_task)
 
         self.finished = True

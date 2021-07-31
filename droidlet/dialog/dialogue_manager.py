@@ -2,9 +2,9 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-from typing import Tuple, Optional
-from droidlet.dialog.dialogue_objects import DialogueObject
-
+import datetime
+from droidlet.event import dispatch
+from typing import Tuple, Dict
 
 class DialogueManager(object):
     """
@@ -36,12 +36,20 @@ class DialogueManager(object):
 
     """
 
-    def __init__(self, memory, dialogue_object_classes, semantic_parsing_model_wrapper, opts):
+    def __init__(self,
+                 memory,
+                 dialogue_object_classes,
+                 dialogue_object_mapper,
+                 opts,
+                 low_level_interpreter_data={}):
         self.memory = memory
         # FIXME in stage III; need a sensible interface for this
         self.dialogue_stack = memory.dialogue_stack
-        self.semantic_parsing_model_wrapper = semantic_parsing_model_wrapper(
-            dialogue_object_classes=dialogue_object_classes, opts=opts, dialogue_manager=self
+        self.dialogue_object_mapper = dialogue_object_mapper(
+            dialogue_object_classes=dialogue_object_classes,
+            opts=opts,
+            low_level_interpreter_data=low_level_interpreter_data,
+            dialogue_manager=self
         )
 
     def get_last_m_chats(self, m=1):
@@ -50,12 +58,22 @@ class DialogueManager(object):
         chat_list_text = []
         for chat in all_chats:
             speaker = self.memory.get_player_by_id(chat.speaker_id).name
+            chat_memid = chat.memid
+            # get logical form if any else None
+            logical_form, chat_status = None, ""
+            logical_form_triples = self.memory.get_triples(subj=chat_memid, pred_text="has_logical_form")
+            processed_status = self.memory.get_triples(subj=chat_memid, pred_text="has_tag", obj_text="unprocessed")
+            if logical_form_triples:
+                logical_form = self.memory.get_logical_form_by_id(logical_form_triples[0][2]).logical_form
+
+            if processed_status:
+                chat_status = processed_status[0][2]
             chat_str = chat.chat_text
-            chat_list_text.append((speaker, chat_str))
+            chat_list_text.append((speaker, chat_str, logical_form, chat_status, chat_memid))
 
         return chat_list_text
 
-    def step(self, chat: Tuple[str, str]):
+    def step(self):
         """Process a chat and step through the dialogue manager task stack.
 
         The chat is given as input to the model, which returns a logical form.
@@ -71,16 +89,32 @@ class DialogueManager(object):
                 Example: ("player_1", "build a red cube")
 
         """
+        start_time = datetime.datetime.now()
         # chat is a single line command
-        speaker, chatstr = chat
+        chat_list = self.get_last_m_chats(m=1)
+        # TODO: this can be moved to get_d_o
 
-        if chatstr:
+        if chat_list:
+            # TODO: remove this and have mapper take in full list
+            speaker, chatstr, logical_form, chat_status, chat_memid = chat_list[0]
             logging.debug("Dialogue stack pre-run_model: {}".format(self.dialogue_stack.stack))
 
             # NOTE: the model is responsible for not putting a new
             # object on the stack if it sees that whatever is on
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
-            obj = self.semantic_parsing_model_wrapper.get_dialogue_object()
+            # TODO: Change this to only take parse and use get_last_m_chats to get chat + speaker
+            obj = self.dialogue_object_mapper.get_dialogue_object(speaker, chatstr, logical_form, chat_status, chat_memid)
             if obj is not None:
                 self.dialogue_stack.append(obj)
+                end_time = datetime.datetime.now()
+                hook_data = {
+                    "name" : "dialogue",
+                    "start_time" : start_time,
+                    "end_time" : end_time,
+                    "elapsed_time" : (end_time - start_time).total_seconds(),
+                    "agent_time" : self.memory.get_time(),
+                    "object" : str(obj)
+                }
+                dispatch.send("dialogue", data=hook_data)
+                return obj

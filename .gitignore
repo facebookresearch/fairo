@@ -17,7 +17,7 @@ __pycache__
 *.sql
 !*memory_schema.sql
 *~
-base_agent/documents/internal/*.txt
+droidlet/documents/internal/*.txt
 bin/*
 writeups/*.pdf
 writeups/*.aux
@@ -44,8 +44,13 @@ incoming_chat.txt
 locobot/test/test_assets/perception_handlers/
 locobot/agent/dashboard_data.db*
 nsp_outputs.csv
+agents/locobot/*.json
+agents/locobot/*.csv
+agents.locobot/*.log
 agents/locobot/models
 agents/locobot/datasets
 agents/locobot/dashboard_data.db
+agents/locobot/dashboard_data.db-journal
 droidlet/perception/robot/tests/test_assets/perception_handlers
 .ropeproject
+agents/craftassist/timeline_log*

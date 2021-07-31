@@ -16,7 +16,7 @@ import logging
 import os
 
 
-class TrackingHandler(AbstractHandler):
+class ObjectTracking(AbstractHandler):
     """Class for real-time 2D object tracking.
 
     We use the results of DetectionHandler and the norfair tracking library (https://github.com/tryolabs/norfair)
@@ -41,7 +41,7 @@ class TrackingHandler(AbstractHandler):
             d.append(NorfairDetection(points=np.asarray([x.center])))
         return d
 
-    def handle(self, rgb_depth, detections):
+    def __call__(self, rgb_depth, detections):
         """run tracker on the current rgb_depth frame for the detections found"""
         logging.info("In TrackingHandlerNorfair ... ")
         detections = self.to_norfair(detections)

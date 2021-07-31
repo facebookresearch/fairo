@@ -5,7 +5,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import numpy as np
 import random
-from droidlet.perception.craftassist import heuristic_perception
 from typing import Tuple, Dict, Any, Optional
 from copy import deepcopy
 from word2number.w2n import word_to_num
@@ -59,8 +58,13 @@ class MCInterpreter(Interpreter):
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
+        # These are coming from agent's low level
         self.block_data = low_level_data["block_data"]
         self.special_shape_functions = low_level_data["special_shape_functions"]
+        self.color_bid_map = low_level_data["color_bid_map"]
+        # These come from agent's perception
+        self.astar_search = low_level_data["astar_search"]
+        self.get_all_holes_fn = low_level_data["get_all_holes_fn"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
         self.subinterpret["condition"] = ConditionInterpreter()
@@ -126,7 +130,12 @@ class MCInterpreter(Interpreter):
                 destroy_task_data, build_task_data = handle_thicken(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "REPLACE":
                 destroy_task_data, build_task_data = handle_replace(
-                    self, speaker, m_d, obj, block_data=self.block_data
+                    self,
+                    speaker,
+                    m_d,
+                    obj,
+                    block_data=self.block_data,
+                    color_bid_map=self.color_bid_map,
                 )
             elif m_d["modify_type"] == "SCALE":
                 destroy_task_data, build_task_data = handle_scale(self, speaker, m_d, obj)
@@ -134,7 +143,12 @@ class MCInterpreter(Interpreter):
                 destroy_task_data, build_task_data = handle_rigidmotion(self, speaker, m_d, obj)
             elif m_d["modify_type"] == "FILL" or m_d["modify_type"] == "HOLLOW":
                 destroy_task_data, build_task_data = handle_fill(
-                    self, speaker, m_d, obj, block_data=self.block_data
+                    self,
+                    speaker,
+                    m_d,
+                    obj,
+                    block_data=self.block_data,
+                    color_bid_map=self.color_bid_map,
                 )
             else:
                 raise ErrorWithResponse(
@@ -221,12 +235,15 @@ class MCInterpreter(Interpreter):
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
         else:  # a schematic
-            interprets = interpret_schematic(self,
-                                             speaker,
-                                             d.get("schematic", {}),
-                                             self.block_data,
-                                             self.special_shape_functions)
-
+            interprets = interpret_schematic(
+                self,
+                speaker,
+                d.get("schematic", {}),
+                self.block_data,
+                self.color_bid_map,
+                self.special_shape_functions,
+            )
+            
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
         mems = self.subinterpret["reference_locations"](self, speaker, location_d)
@@ -284,8 +301,13 @@ class MCInterpreter(Interpreter):
         steps, reldir = interpret_relative_direction(self, location_d)
         location, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
 
+        """
+        FIXME: We need to fix this and perhaps put this in reasoning. Agent should run perception
+        and put into memory. Interpreter shouldn't be perceiving, but should be able to
+        ask the agent to do it when needed.
+        """
         # Get nearby holes
-        holes = heuristic_perception.get_all_nearby_holes(agent, location, self.block_data)
+        holes = self.get_all_holes_fn(agent, location, self.block_data)
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
 
@@ -305,7 +327,13 @@ class MCInterpreter(Interpreter):
                 # FIXME use a constant name
                 fill_idm = (3, 0)
             schematic, tags = interpret_fill_schematic(
-                self, speaker, d.get("schematic", {}), poss, fill_idm, self.block_data
+                self,
+                speaker,
+                d.get("schematic", {}),
+                poss,
+                fill_idm,
+                self.block_data,
+                self.color_bid_map,
             )
             origin = np.min([xyz for (xyz, bid) in schematic], axis=0)
             task_data = {
@@ -371,8 +399,17 @@ class MCInterpreter(Interpreter):
 
         def new_tasks():
             attrs = {}
-            schematic_d = d.get("schematic", {"has_size": 2})
+            schematic_triples = (
+                d.get("schematic", {})
+                .get("filters", {})
+                .get("triples", [{"pred_text": "has_size", "obj_text": "2"}])
+            )
+            # schematic_d = d.get("schematic", {"has_size": 2})
             # set the attributes of the hole to be dug.
+            schematic_d = {}
+            for triple in schematic_triples:
+                schematic_d[triple["pred_text"]] = triple["obj_text"]
+
             for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
                 key = "has_{}".format(dim)
                 if key in schematic_d:
@@ -405,22 +442,10 @@ class MCInterpreter(Interpreter):
                 tasks_todo.append(t)
             return maybe_task_list_to_control_block(tasks_todo, agent)
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks": new_tasks,
-                            "stop_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
 
@@ -442,7 +467,7 @@ class MCInterpreter(Interpreter):
             if location_d is not None:
                 rd = location_d.get("relative_direction")
                 if rd is not None and (
-                        rd == "AROUND" or rd == "CLOCKWISE" or rd == "ANTICLOCKWISE"
+                    rd == "AROUND" or rd == "CLOCKWISE" or rd == "ANTICLOCKWISE"
                 ):
                     ref_obj = None
                     location_reference_object = location_d.get("reference_object")
@@ -504,27 +529,15 @@ class MCInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return maybe_task_list_to_control_block(tasks_to_do, agent)
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks_fn": new_tasks,
-                            "stop_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
-    def handle_get(self, speaker, d) -> Tuple[Any, Optional[str], Any]:
+    def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'get' command by either pushing a dialogue object
         or pushing a Get task to the task stack.
@@ -545,7 +558,7 @@ class MCInterpreter(Interpreter):
         obj = [obj for obj in objs if isinstance(obj, ItemStackNode)][0]
         item_stack = agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
-        task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "memid": obj.memid}
+        task_data = {"idm": idm, "pos": obj.pos, "eid": obj.eid, "obj_memid": obj.memid}
         return self.task_objects["get"](agent, task_data), None, None
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
@@ -571,5 +584,5 @@ class MCInterpreter(Interpreter):
         obj = [obj for obj in objs if isinstance(obj, ItemStackNode)][0]
         item_stack = agent.get_item_stack(obj.eid)
         idm = (item_stack.item.id, item_stack.item.meta)
-        task_data = {"eid": obj.eid, "idm": idm, "memid": obj.memid}
+        task_data = {"eid": obj.eid, "idm": idm, "obj_memid": obj.memid}
         return self.task_objects["drop"](agent, task_data), None, None

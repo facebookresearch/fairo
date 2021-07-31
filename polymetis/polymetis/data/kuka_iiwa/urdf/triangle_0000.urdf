@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!-- created with Phobos 0.7 -->
+  <robot name="triangle_0000">
+
+    <link name="prism_base_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="0.01"/>
+        <inertia ixx="0.001" ixy="0" ixz="3e-05" iyy="0.001" iyz="0" izz="0.001"/>
+      </inertial>
+      <visual name="visual_0_prism_base_link">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="../meshes/obj/triangle_0000_visual.obj" scale="1.0 1.0 1.0"/>
+        </geometry>
+        <material name="Material"/>
+      </visual>
+      <collision name="collision_0_prism_base_link">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <mesh filename="../meshes/obj/triangle_0000_coll.obj" scale="1.0 1.0 1.0"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <material name="Material">
+      <color rgba="0.64 0.64 0.64 1.0"/>
+    </material>
+
+  </robot>

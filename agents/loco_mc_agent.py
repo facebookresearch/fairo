@@ -2,16 +2,16 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
-import os
 import random
 import re
 import time
 import numpy as np
+import datetime
+import os
 
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.event import sio
-
+from droidlet.event import sio, dispatch
 from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 
@@ -54,6 +54,16 @@ class LocoMCAgent(BaseAgent):
                 {"msg": "", "failed": False},
             ],
         }
+        # Add optional logging for timeline
+        if opts.log_timeline:
+            self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
+        
+        # Add optional hooks for timeline
+        if opts.enable_timeline:
+            dispatch.connect(self.log_to_dashboard, "perceive")
+            dispatch.connect(self.log_to_dashboard, "memory")
+            dispatch.connect(self.log_to_dashboard, "interpreter")
+            dispatch.connect(self.log_to_dashboard, "dialogue")
 
     def init_event_handlers(self):
         ## emit event from statemanager and send dashboard memory from here
@@ -110,17 +120,18 @@ class LocoMCAgent(BaseAgent):
                 return back a socket emit with parse of command and success status
             """
             logging.debug("in send_text_command_to_agent, got the command: %r" % (command))
+
             agent_chat = (
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
-            dialogue_manager = self.dialogue_manager
             logical_form = {}
             status = ""
             try:
-                logical_form = dialogue_manager.semantic_parsing_model_wrapper.get_logical_form(
-                    chat=command, parsing_model=dialogue_manager.semantic_parsing_model_wrapper.parsing_model
+                chat_parse = self.chat_parser.get_logical_form(
+                    chat=command, parsing_model=self.chat_parser.parsing_model
                 )
+                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=command, logical_form=chat_parse)
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
             except Exception as e:
@@ -137,12 +148,28 @@ class LocoMCAgent(BaseAgent):
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
-
-        @sio.on("receiveTimelineHandshake")
-        def receive_timeline_handshake(sid, timelineHandshake):
-            if timelineHandshake == "Sent message!":
-                logging.debug("in receive_timeline_handshake, received handshake message")
-                sio.emit("returnTimelineHandshake", "Received message!")
+        
+        @sio.on("terminateAgent")
+        def terminate_agent(sid, msg):
+            logging.info("Terminating agent")
+            turk_experiment_id = msg.get("turk_experiment_id", "null")
+            mephisto_agent_id = msg.get("mephisto_agent_id", "null")
+            turk_worker_id = msg.get("turk_worker_id", "null")
+            if turk_experiment_id != "null":
+                logging.info("turk worker ID: {}".format(turk_worker_id))
+                logging.info("mephisto agent ID: {}".format(mephisto_agent_id))
+                with open("turk_experiment_id.txt", "w+") as f:
+                    f.write(turk_experiment_id)
+                # Write metadata associated with crowdsourced run such as the experiment ID
+                # and worker identification
+                job_metadata = { 
+                    "turk_experiment_id": turk_experiment_id,
+                    "mephisto_agent_id": mephisto_agent_id,
+                    "turk_worker_id": turk_worker_id
+                }
+                with open("job_metadata.json", "w+") as f:
+                    json.dump(job_metadata, f)
+            os._exit(0)
 
     def init_physical_interfaces(self):
         """
@@ -195,7 +222,6 @@ class LocoMCAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
-
         # we check if the exception raised is in one of our whitelisted exceptions
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
@@ -221,15 +247,15 @@ class LocoMCAgent(BaseAgent):
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
-        query = {"base_table": "Tasks", "base_exact": {"prio": -1}}
-        task_mems = self.memory.basic_search(query)
+        query = "SELECT MEMORY FROM Task WHERE prio=-1"
+        _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.init_condition.check():
                 mem.get_update_status({"prio": 0})
 
         # this is "select TaskNodes whose priority is >= 0 and are not paused"
-        query = {"base_table": "Tasks", "base_range": {"minprio": -0.5, "maxpaused": 0.5}}
-        task_mems = self.memory.basic_search(query)
+        query = "SELECT MEMORY FROM Task WHERE ((prio>=0) AND (paused <= 0))"
+        _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
             if mem.task.run_condition.check():
                 # eventually we need to use the multiplex filter to decide what runs
@@ -237,8 +263,8 @@ class LocoMCAgent(BaseAgent):
             if mem.task.stop_condition.check():
                 mem.get_update_status({"prio": 0, "running": 0})
         # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
-        query = {"base_table": "Tasks", "base_range": {"minrunning": 0.5, "maxpaused": 0.5}}
-        task_mems = self.memory.basic_search(query)
+        query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
+        _, task_mems = self.memory.basic_search(query)
         if not task_mems:
             time.sleep(sleep_time)
             return
@@ -252,14 +278,11 @@ class LocoMCAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
-    def perceive(self, force=False):
-        for v in self.perception_modules.values():
-            v.perceive(force=force)
-
-    def controller_step(self):
-        # FIXME agent these should be moved to perception
-        # from here ###########################################
-        """Process incoming chats and modify task stack"""
+    def perceive(self, force=False, parser_only=False):
+        # NOTE: the processing chats block here
+        # will move to chat_parser.perceive() once Soumith's changes are in
+        start_time = datetime.datetime.now()
+        """Process incoming chats and run through parser"""
         raw_incoming_chats = self.get_incoming_chats()
         if raw_incoming_chats:
             logging.info("Incoming chats: {}".format(raw_incoming_chats))
@@ -276,22 +299,49 @@ class LocoMCAgent(BaseAgent):
             if chat.startswith("/"):
                 continue
             incoming_chats.append((speaker, chat))
-            self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, chat)
 
         if len(incoming_chats) > 0:
             # force to get objects, speaker info
             if self.perceive_on_chat:
-                self.perceive(force=True)
-            # change this to memory.get_time() format?
+                force = True
             self.last_chat_time = time.time()
-            # to here ###########################################
-            # for now just process the first incoming chat
-            self.dialogue_manager.step(incoming_chats[0])
-        else:
+            # For now just process the first incoming chat, where chat -> [speaker, chat]
+            speaker, chat = incoming_chats[0]
+            preprocessed_chat, chat_parse = self.chat_parser.get_parse(chat)
+            # add postprocessed chat here
+            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
+            logical_form_memid = self.memory.add_logical_form(chat_parse)
+            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            # New chat, mark as unprocessed.
+            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            # Send data to the dashboard timeline
+            end_time = datetime.datetime.now()
+            hook_data = {
+                "name" : "perceive",
+                "start_time" : start_time,
+                "end_time" : end_time,
+                "elapsed_time" : (end_time - start_time).total_seconds(),
+                "agent_time" : self.get_time(),
+                "speaker" : speaker, 
+                "chat" : chat, 
+                "preprocessed_form" : preprocessed_chat, 
+                "logical_form" : chat_parse,
+            }
+            dispatch.send("perceive", data=hook_data)
+
+        if not parser_only:
+            for v in self.perception_modules.values():
+                v.perceive(force=force)
+
+    def controller_step(self):
+        """Process incoming chats and modify task stack"""
+
+        obj = self.dialogue_manager.step()
+        if not obj:
             # Maybe add default task
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
-            self.dialogue_manager.step((None, ""))
+            self.dialogue_manager.step()
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.memory.dialogue_stack) > 0:
@@ -305,26 +355,29 @@ class LocoMCAgent(BaseAgent):
 
         # default behaviors of the agent not visible in the game
         invisible_defaults = []
-
         defaults = (
             self.visible_defaults + invisible_defaults
             if time.time() - self.last_chat_time > DEFAULT_BEHAVIOUR_TIMEOUT
             else invisible_defaults
         )
-
         defaults = [(p, f) for (p, f) in defaults if f not in self.memory.banned_default_behaviors]
 
         def noop(*args):
             pass
-
         defaults.append((1 - sum(p for p, _ in defaults), noop))  # noop with remaining prob
-
         # weighted random choice of functions
         p, fns = zip(*defaults)
         fn = np.random.choice(fns, p=p)
         if fn != noop:
             logging.debug("Default behavior: {}".format(fn))
-        fn(self)
+
+        if type(fn) == tuple:
+            # this function has arguments
+            f, args = fn
+            f(self, args)
+        else:
+            # run defualt
+            fn(self)
 
     def maybe_dump_memory_to_dashboard(self):
         if time.time() - self.dashboard_memory_dump_time > MEMORY_DUMP_KEYFRAME_TIME:
@@ -340,6 +393,28 @@ class LocoMCAgent(BaseAgent):
                 "named_abstractions": named_abstractions,
             }
             sio.emit("memoryState", self.dashboard_memory["db"])
+
+    def log_to_dashboard(self, **kwargs):
+        """Emits the event to the dashboard and/or logs it in a file"""
+        if self.opts.enable_timeline:
+            result = kwargs['data']
+            # a sample filter for logging data from perceive and dialogue
+            allowed = ["perceive", "dialogue", "interpreter",]
+            if result["name"] in allowed:
+                # JSONify the data, then send it to the dashboard and/or log it
+                result = json.dumps(result, default=str)
+                self.agent_emit(result)
+                if self.opts.log_timeline:
+                    self.timeline_log_file.flush()
+                    print(result, file=self.timeline_log_file)
+
+    def agent_emit(self, result):
+        sio.emit("newTimelineEvent", result)
+
+    def __del__(self):
+        """Close the timeline log file"""
+        if getattr(self, "timeline_log_file", None):
+            self.timeline_log_file.close()
 
 
 def default_agent_name():

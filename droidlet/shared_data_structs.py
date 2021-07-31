@@ -87,16 +87,33 @@ class RGBDepth:
             rgb = cv2.resize(rgb, (size, size), interpolation=cv2.INTER_LINEAR)
             depth = cv2.resize(depth, (size, size), interpolation=cv2.INTER_LINEAR)
 
-        depth = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
-        depth = 255 - depth
+        depth_img = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
+        depth_img = 255 - depth_img
 
         # webp seems to be better than png and jpg as a codec, in both compression and quality
         encode_param = [int(cv2.IMWRITE_WEBP_QUALITY), quality]
         fmt = ".webp"
 
         _, rgb_data = cv2.imencode(fmt, cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), encode_param)
-        _, depth_data = cv2.imencode(fmt, depth, encode_param)
+        _, depth_img_data = cv2.imencode(fmt, depth_img, encode_param)
         return {
             "rgb": base64.b64encode(rgb_data).decode("utf-8"),
-            "depth": base64.b64encode(depth_data).decode("utf-8"),
+            "depth_img": base64.b64encode(depth_img_data).decode("utf-8"),
+            "depth_max": str(np.max(depth)),
+            "depth_min": str(np.min(depth)),
         }
+
+
+class MockOpt:
+    def __init__(self):
+        self.no_default_behavior = False
+        self.nsp_models_dir = ""
+        self.nsp_data_dir = ""
+        self.ground_truth_data_dir = ""
+        self.semseg_model_path = ""
+        self.no_ground_truth = True
+        # test does not instantiate cpp client
+        self.port = -1
+        self.no_default_behavior = False
+        self.log_timeline = False
+        self.enable_timeline = False

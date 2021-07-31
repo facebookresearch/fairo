@@ -10,23 +10,28 @@ import os
 import pickle
 import sqlite3
 import uuid
+import datetime
 from itertools import zip_longest
 from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
-from droidlet.memory.memory_filters import BasicMemorySearcher
+from droidlet.memory.memory_filters import MemorySearcher
 from .dialogue_stack import DialogueStack
+from droidlet.event import dispatch
+from droidlet.memory.memory_util import parse_sql, format_query
 
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     TripleNode,
     PlayerNode,
+    ProgramNode,
     MemoryNode,
     ChatNode,
     TimeNode,
     LocationNode,
     ReferenceObjectNode,
     NamedAbstractionNode,
+    AttentionNode,
     NODELIST,
 )
 
@@ -69,7 +74,7 @@ class AgentMemory:
         all_tables (list): List of all table names
         nodes (dict): Mapping of node name to table name
         self_memid (str): MemoryID for the AgentMemory
-        basic_searcher (BasicMemorySearcher): A class to search through memory
+        searcher (MemorySearcher): A class to process searches through memory
         time (int): The time of the agent
     """
 
@@ -110,6 +115,15 @@ class AgentMemory:
         self.nodes = {}
         for node in nodelist:
             self.nodes[node.NODE_TYPE] = node
+        # FIXME, this is ugly.  using for memtype/FROM clauses in searches
+        # we also store .TABLE in each node, and use it.  this also should be fixed,
+        # it breaks the abstraction
+        self.node_children = {}
+        for node in nodelist:
+            self.node_children[node.NODE_TYPE] = []
+            for possible_child in nodelist:
+                if node in possible_child.__mro__:
+                    self.node_children[node.NODE_TYPE].append(possible_child.NODE_TYPE)
 
         # create a "self" memory to reference in Triples
         self.self_memid = "0" * len(uuid.uuid4().hex)
@@ -123,7 +137,7 @@ class AgentMemory:
         self.tag(self.self_memid, "AGENT")
         self.tag(self.self_memid, "SELF")
 
-        self.basic_searcher = BasicMemorySearcher(self_memid=self.self_memid)
+        self.searcher = MemorySearcher()
 
     def __del__(self):
         """Close the database file"""
@@ -300,7 +314,7 @@ class AgentMemory:
             >>> memid = '10517cc584844659907ccfa6161e9d32'
             >>> table = 'ReferenceObjects'
             >>> check_memid_exists(memid, table)
-        """
+et        """
         return bool(self._db_read_one("SELECT * FROM {} WHERE uuid=?".format(table), memid))
 
     # TODO forget should be a method of the memory object
@@ -337,22 +351,17 @@ class AgentMemory:
         for u in uuids:
             self.forget(u[0])
 
-    def basic_search(self, filter_dict):
-        """Perform a basic search using the filter_dict
+    def basic_search(self, query):
+        """Perform a basic search using the query
 
         Args:
-            filter_dict (dict): A dictionary indicating values that the memory should be filtered on
+            query (dict): A FILTERS dict or sqly query
 
         Returns:
-            list[MemoryNode]: A list of MemoryNode objects.
+            list[memid], list[value]: the memids and respective values from the search
 
-        Examples::
-            >>> filters_dict = {"base_table" : "ReferenceObject",
-                                "triples" : [{"pred_text" : "has_name",
-                                              "obj_text" : "house"}]}
-            >>> basic_search(filters_dict)
         """
-        return self.basic_searcher.search(self, search_data=filter_dict)
+        return self.searcher.search(self, query=query)
 
     #################
     ###  Triples  ###
@@ -578,6 +587,16 @@ class AgentMemory:
         """
         return ChatNode(self, memid)
 
+    def get_chat_id(self, speaker_id: str, chat: str) -> str:
+        """Return memid of ChatNode, given speaker and chat
+
+        Args:
+            speaker_id: memid of speaker
+            chat: chat string
+        """
+        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker_id, chat)
+        return r[0][0]
+
     def get_recent_chats(self, n=1) -> List["ChatNode"]:
         """Return a list of at most n chats
 
@@ -608,6 +627,26 @@ class AgentMemory:
             return ChatNode(self, r[0])
         else:
             return None
+
+    ###################
+    ## Logical form ###
+    ###################
+
+    def add_logical_form(self, logical_form: dict):
+        """Create a new ProgramNode
+
+        Args:
+            logical_form: the semantic parser's output
+        """
+        return ProgramNode.create(self, logical_form)
+
+    def get_logical_form_by_id(self, memid: str) -> "ProgramNode":
+        """Return ProgramNode, given memid
+
+        Args:
+            memid (string): Memory ID
+        """
+        return ProgramNode(self, memid)
 
     #################
     ###  Players  ###
@@ -886,7 +925,7 @@ class AgentMemory:
         )
         if recency is None:
             recency = self.time.round_time(300)
-        args: List = [self.get_time() - recency]
+        args: List = [max(self.get_time() - recency, 0)]
         if action_name:
             args.append(action_name)
         memids = [r[0] for r in self._db_read(q, *args)]
@@ -985,6 +1024,7 @@ class AgentMemory:
             >>> args = '10517cc584844659907ccfa6161e9d32'
             >>> db_write(query, args)
         """
+        start_time = datetime.datetime.now()
         r = self._db_write(query, *args)
         # some of this can be implemented with TRIGGERS and a python sqlite fn
         # but its a bit of a pain bc we want the agent's time in the update
@@ -997,6 +1037,23 @@ class AgentMemory:
         if self.on_delete_callback is not None and deleted:
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
+        # format the data to send to dashboard timeline
+        query_table, query_operation = parse_sql(query[:query.find("(") - 1])
+        query_dict = format_query(query, *args)
+        # data is sent to the dashboard as JSON to be displayed in the timeline
+        end_time = datetime.datetime.now()
+        hook_data = {
+            "name" : "memory", 
+            "start_time" : start_time,
+            "end_time" : end_time,
+            "elapsed_time" : (end_time - start_time).total_seconds(),
+            "agent_time" : self.get_time(),
+            "table_name" : query_table, 
+            "operation" : query_operation, 
+            "arguments" : query_dict, 
+            "result" : r,
+        }
+        dispatch.send("memory", data=hook_data)
         return r
 
     def _db_write(self, query: str, *args) -> int:

@@ -21,7 +21,7 @@ mturk = boto3.client(
 print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
 
 
-def create_turk_job(xml_file_path: str, tool_num: int):
+def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str):
     # Delete HITs
     # For use in dev only
     for item in mturk.list_hits()["HITs"]:
@@ -52,7 +52,7 @@ def create_turk_job(xml_file_path: str, tool_num: int):
     # Where we will save the turk job parameters
     turk_jobs_df = pd.DataFrame()
     # TODO: make this command line arg
-    with open("turk_input.csv", newline="") as csvfile:
+    with open(input_csv, newline="") as csvfile:
         turk_inputs = csv.reader(csvfile, delimiter=",")
         headers = next(turk_inputs, None)
         # Construct the URL query params
@@ -76,10 +76,10 @@ def create_turk_job(xml_file_path: str, tool_num: int):
             print(curr_question)
 
             new_hit = mturk.create_hit(
-                Title="Match Sentences",
-                Description="Given an original sentence, identify whether new sentences have the same structure as the original.",
+                Title="CraftAssist Instruction Annotations",
+                Description="Given a sentence, provide information about its intent and highlight key words",
                 Keywords="text, categorization, quick",
-                Reward="0.15",
+                Reward="1.0",
                 MaxAssignments=1,
                 LifetimeInSeconds=600,
                 AssignmentDurationInSeconds=600,
@@ -107,6 +107,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--xml_file", type=str, required=True)
     parser.add_argument("--tool_num", type=int, required=True)
+    parser.add_argument("--input_csv", type=str, required=True)
 
     args = parser.parse_args()
-    create_turk_job(args.xml_file, args.tool_num)
+    create_turk_job(args.xml_file, args.tool_num, args.input_csv)

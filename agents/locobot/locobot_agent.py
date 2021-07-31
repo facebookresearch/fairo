@@ -10,6 +10,10 @@ import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+import base64
+import cv2
+from imantics import Mask, Polygons
+import numpy as np
 
 from droidlet import dashboard
 
@@ -19,13 +23,16 @@ if __name__ == "__main__":
     dashboard.start()
 
 from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.droidlet_nsp_model_wrapper import DroidletNSPModelWrapper
+from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
-from droidlet.memory.robot.loco_memory import LocoAgentMemory
-from droidlet.perception.robot import Perception, SelfPerception
+from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
+from droidlet.perception.robot import Perception
+from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
+from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance, 
     default_behaviors,
@@ -37,6 +44,7 @@ from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
+from droidlet.perception.robot import LabelPropagate
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -79,11 +87,12 @@ class LocobotAgent(LocoMCAgent):
         self.init_event_handlers()
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
+        self.interaction_logger = InteractionLogger()
 
     def init_event_handlers(self):
         super().init_event_handlers()
 
-        @sio.on("command")
+        @sio.on("movement command")
         def test_command(sid, commands):
             movement = [0.0, 0.0, 0.0]
             for command in commands:
@@ -113,6 +122,75 @@ class LocobotAgent(LocoMCAgent):
         def _shutdown(sid, data):
             self.shutdown()
 
+        @sio.on("get_memory_objects")
+        def objects_in_memory(sid):
+            objects = DetectedObjectNode.get_all(self.memory)
+            for o in objects:
+                del o["feature_repr"] # pickling optimization
+            self.dashboard_memory["objects"] = objects
+            sio.emit("updateState", {"memory": self.dashboard_memory})
+        
+        @sio.on("interaction data")
+        def log_interaction_data(sid, interactionData):
+            self.interaction_logger.logInteraction(interactionData)
+
+        @sio.on("label_propagation")
+        def label_propagation(sid, postData): 
+                        
+            # Decode rgb map
+            rgb_bytes = base64.b64decode(postData["prevRgbImg"])
+            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
+            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
+            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
+            src_img = np.array(rgb)
+            height, width, _ = src_img.shape
+
+            # Convert depth map to meters
+            depth_imgs = []
+            for i, depth in enumerate([postData["prevDepth"], postData["depth"]]): 
+                depth_encoded = depth["depthImg"]
+                depth_bytes = base64.b64decode(depth_encoded)
+                depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
+                depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
+                depth_unscaled = (255 - np.copy(depth_decoded[:,:,0]))
+                depth_scaled = depth_unscaled / 255 * (float(depth["depthMax"]) - float(depth["depthMin"]))
+                depth_imgs.append(depth_scaled)
+            src_depth = np.array(depth_imgs[0])
+            cur_depth = np.array(depth_imgs[1])
+
+            # Convert mask points to mask maps then combine them
+            src_label = np.zeros((height, width)).astype(int)
+            for n, o in enumerate(postData["prevObjects"]): 
+                poly = Polygons(o["mask"])
+                bitmap = poly.mask(height, width) # not np array
+                for i in range(height): 
+                    for j in range(width): 
+                        if bitmap[i][j]: 
+                            src_label[i][j] = n + 1
+
+            # Attach base pose data
+            pose = postData["prevBasePose"]
+            src_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
+            pose = postData["basePose"]
+            cur_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
+            
+            LP = LabelPropagate()
+            res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
+
+            # Convert mask maps to mask points
+            objects = postData["prevObjects"]
+            for i_float in np.unique(res_labels): 
+                i = int(i_float)
+                if i == 0: 
+                    continue
+                mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
+                mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
+                objects[i-1]["mask"] = mask_points
+                objects[i-1]["type"] = "annotate"
+
+            # Returns an array of objects with updated masks
+            sio.emit("labelPropagationReturn", objects)
+
     def init_memory(self):
         """Instantiates memory for the agent.
 
@@ -133,10 +211,36 @@ class LocobotAgent(LocoMCAgent):
         Each perceptual module should have a perceive method that is
         called by the base agent event loop.
         """
+        self.chat_parser = NSPQuerier(self.opts)
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
         self.perception_modules["self"] = SelfPerception(self)
-        self.perception_modules["vision"] = Perception(self, self.opts.perception_model_dir)
+        self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
+
+    def perceive(self, force=False):
+        super().perceive(force=force, parser_only=True)
+        self.perception_modules["self"].perceive(force=force)
+        rgb_depth = self.mover.get_rgb_depth()
+        xyz = self.mover.get_base_pos_in_canonical_coords()
+        x, y, yaw = xyz
+        sio.emit("map", {
+            "x": x,
+            "y": y,
+            "yaw": yaw,
+            "map": self.mover.get_obstacles_in_canonical_coords()
+        })
+
+        previous_objects = DetectedObjectNode.get_all(self.memory)
+        new_state = self.perception_modules["vision"].perceive(rgb_depth,
+                                                               xyz,
+                                                               previous_objects,
+                                                               force=force)
+        if new_state is not None:
+            new_objects, updated_objects = new_state
+            for obj in new_objects:
+                obj.save_to_memory(self.memory)
+            for obj in updated_objects:
+                obj.save_to_memory(self.memory, update=True)
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
@@ -148,7 +252,7 @@ class LocobotAgent(LocoMCAgent):
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
-            semantic_parsing_model_wrapper=DroidletNSPModelWrapper,
+            dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
 
@@ -197,7 +301,18 @@ class LocobotAgent(LocoMCAgent):
 
     def shutdown(self):
         self._shutdown = True
-        self.perception_modules["vision"].vprocess_shutdown.set()
+        try:
+            self.perception_modules["vision"].vprocess_shutdown.set()
+        except:
+            """
+            the try/except is there in the event that
+            self.perception_modules["vision"] has either:
+            1. not been fully started yet
+            2. already crashed / shutdown due to other effects
+            """
+            pass
+        time.sleep(5) # let the other threads die
+        os._exit(0) # TODO: remove and figure out why multiprocess sometimes hangs on exit
 
 
 if __name__ == "__main__":

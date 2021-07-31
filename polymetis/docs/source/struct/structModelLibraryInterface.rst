@@ -1,0 +1,4 @@
+Struct ModelLibraryInterface
+============================
+
+.. doxygenstruct:: ModelLibraryInterface

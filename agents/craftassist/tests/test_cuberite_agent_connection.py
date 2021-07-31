@@ -7,7 +7,7 @@ import subprocess
 import time
 import unittest
 from ..craftassist_agent import CraftAssistAgent
-from .fake_agent import MockOpt
+from droidlet.shared_data_structs import MockOpt
 
 
 class MyTestCase(unittest.TestCase):

@@ -7,15 +7,13 @@ import numpy as np
 from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
-
 from .interpreter_utils import SPEAKERLOOK
 from droidlet.dialog.dialogue_objects import ConfirmReferenceObject
 from .location_helpers import interpret_relative_direction
-from droidlet.base_util import euclid_dist, number_from_span
+from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
-from droidlet.base_util import T, XYZ
-from ..shared_data_structs import ErrorWithResponse, NextDialogueStep
+from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from .filter_helper import interpret_selector
 
 
@@ -32,7 +30,7 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
 
 
 def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent_memory=None):
-    """make a search dictionary for a BasicMemorySearcher to return the special ReferenceObject"""
+    """make a search query for a MemorySearcher to return the special ReferenceObject"""
     # TODO/FIXME! add things to workspace memory
     agent_memory = agent_memory or interpreter.memory
     if type(S) is dict:
@@ -43,10 +41,15 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
             raise ErrorWithResponse("I don't understand what location you're referring to")
         memid = agent_memory.add_location((int(loc[0]), int(loc[1]), int(loc[2])))
         mem = agent_memory.get_location_by_id(memid)
-        f = {"special": {"DUMMY": mem}}
+        q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
-        f = {"special": {S: entity_id}}
-    return f
+        if S == "AGENT" or S == "SPEAKER":
+            q = "SELECT MEMORY FROM Player WHERE eid={}".format(entity_id)
+        elif S == "SPEAKER_LOOK":
+            q = "SELECT MEMORY FROM Attention WHERE type_name={}".format(entity_id)
+        else:
+            raise Exception("unknown special reference: {}".format(S))
+    return q
 
 
 def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid=None):
@@ -62,8 +65,8 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
     agent_memory = agent_memory or interpreter.memory
     if not eid:
         eid = get_eid_from_special(agent_memory, S, speaker=speaker)
-    sd = special_reference_search_data(None, speaker, S, entity_id=eid, agent_memory=agent_memory)
-    mems = agent_memory.basic_search(sd)
+    q = special_reference_search_data(None, speaker, S, entity_id=eid, agent_memory=agent_memory)
+    _, mems = agent_memory.basic_search(q)
     if not mems:
         # need a better interface for this, don't need to run full perception
         # just to force speakerlook in memory
@@ -187,8 +190,6 @@ def apply_memory_filters(interpreter, speaker, filters_d) -> List[ReferenceObjec
     F = interpreter.subinterpret["filters"](interpreter, speaker, filters_d)
     memids, _ = F()
     mems = [interpreter.memory.get_mem_by_id(i) for i in memids]
-    #    f = {"triples": [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]}
-    #    mems = interpreter.memory.basic_search(f)
     return mems
 
 
@@ -352,7 +353,8 @@ def object_looked_at(
         eid = memory.get_player_by_name(speaker).eid
     # TODO wrap in try/catch, handle failures in finding speaker or not having speakers LOS
     xsect = capped_line_of_sight(memory, eid=eid, cap=25)
-    speaker_mem = memory.basic_search({"special": {"SPEAKER": eid}})[0]
+    _, mems = memory.basic_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
+    speaker_mem = mems[0]
     pos = np.array(speaker_mem.get_pos())
     yaw, pitch = speaker_mem.get_yaw_pitch()
 
@@ -403,7 +405,8 @@ def capped_line_of_sight(memory, speaker=None, eid=None, cap=20):
     xsect_mem = get_special_reference_object(
         None, speaker, "SPEAKER_LOOK", agent_memory=memory, eid=eid
     )
-    speaker_mem = memory.basic_search({"special": {"SPEAKER": eid}})[0]
+    _, mems = memory.basic_search("SELECT MEMORY FROM Player WHERE eid={}".format(eid))
+    speaker_mem = mems[0]
     pos = speaker_mem.get_pos()
     if xsect_mem and np.linalg.norm(np.subtract(xsect_mem.get_pos(), pos)) <= cap:
         return np.array(xsect_mem.get_pos())

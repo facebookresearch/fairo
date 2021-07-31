@@ -12,7 +12,7 @@ from droidlet.memory.memory_attributes import (
 )
 from droidlet.memory.memory_values import LinearExtentValue, FixedValue, convert_comparison_value
 from droidlet.base_util import number_from_span
-from ..shared_data_structs import ErrorWithResponse
+from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import ReferenceObjectNode
 from .interpreter_utils import tags_from_dict
 
@@ -26,6 +26,8 @@ d: logical form from semantic parser
 
 
 def interpret_span_value(interpreter, speaker, d, comparison_measure=None):
+    # FIXME: This needs to be better named/documented. Seems like
+    # this is being used for value of key "value_extractor" only
     """
     Make a FixedValue object from a number span
 
@@ -50,7 +52,7 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
     memory now but to be searched for when checking the condition
     """
     mem = None
-    search_data = None
+    query = ""
     cands = None
     # FIXME! make a "get_special_reference" fn
     if ref_obj_d.get("special_reference"):
@@ -75,17 +77,19 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
                 raise ErrorWithResponse(
                     "I don't know which objects' attribute you are talking about"
                 )
-            # TODO if more than one? ask? use the filters?
+            # FIXME! if more than one? ask? use the filters?
             else:
                 mem = cands[0]
     else:
-        # FIXME use FILTERS
         # this object is only defined by the filters and might be different at different moments
+        # FIXME use FILTERS!!
+        # should interpret as normal filter at this point...
         tags = tags_from_dict(filters_d)
-        # make a function, reuse code with get_reference_objects FIXME
-        search_data = [{"pred_text": "has_tag", "obj_text": tag} for tag in tags]
+        if tags:
+            where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
+            query = "SELECT MEMORY FROM ReferenceObject WHERE (" + where + ")"
 
-    return mem, search_data
+    return mem, query
 
 
 def interpret_linear_extent(interpreter, speaker, d, force_value=False):
@@ -145,8 +149,8 @@ def interpret_linear_extent(interpreter, speaker, d, force_value=False):
         mem = None
         sd = None
         if rd:
-            mem, sd = maybe_specific_mem(interpreter, speaker, rd["filters"])
-        L = LinearExtentValue(interpreter.memory, L, mem=mem, search_data=sd)
+            mem, query = maybe_specific_mem(interpreter, speaker, rd["filters"])
+        L = LinearExtentValue(interpreter.memory, L, mem=mem, query=query)
 
     return L
 
@@ -183,6 +187,7 @@ class AttributeInterpreter:
                 return BBoxSize(interpreter.memory, d_attribute.lower())
             d_attribute = CANONICALIZE_ATTRIBUTES.get(d_attribute.lower())
             if d_attribute and type(d_attribute) is str:
+                # FIXME!!! merge/backoff to things like get_property_value
                 return TableColumn(interpreter.memory, d_attribute, get_all=get_all)
             elif d_attribute and type(d_attribute) is list:
                 alist = [self.__call__(interpreter, speaker, a) for a in d_attribute]
@@ -208,5 +213,6 @@ CANONICALIZE_ATTRIBUTES = {
     "born_time": "create_time",
     "modify_time": "updated_time",
     "visit_time": "attended_time",  # FIXME!!
+    "run_count": "run_count"
     # "speaker","finished_time", "chat", "logical_form" ... tasks not supported yet
 }

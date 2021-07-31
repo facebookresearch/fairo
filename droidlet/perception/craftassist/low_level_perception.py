@@ -5,7 +5,8 @@ import os
 import sys
 import numpy as np
 
-from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, to_block_pos, pos_to_np, euclid_dist, diag_adjacent
+from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, pos_to_np, euclid_dist, diag_adjacent
+from droidlet.base_util import to_block_pos
 from typing import Tuple, List
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS
 

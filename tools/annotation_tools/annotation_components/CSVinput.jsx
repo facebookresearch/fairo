@@ -14,16 +14,14 @@ visualize the results of a react experiment, and to export the results to a pyco
 const COLORS = [
     "rgba(0,200,0,.5)",
     "rgba(200,0,0,.5)",
-    "rgba(0,0,200,.5)",
+    "rgba(0,100,255,.5)",
+    "rgba(255,150,0,.5)",
+    "rgba(100,255,200,.5)",
     "rgba(200,200,0,.5)",
-    "rgba(0,200,200,.5)",
+    "rgba(0,200,150,.5)",
     "rgba(200,0,200,.5)",
-    "rgba(150,50,50,.5)",
-    "rgba(255, 153, .5)",
-    "rgba(128,0,128,.5)",
     "rgba(0,204,255,.5)",
-    "rgba(153,204,0,.5)",
-]
+];
 
 class CSVInput extends React.Component {
     constructor(props){

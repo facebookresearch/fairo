@@ -1,0 +1,4 @@
+Class ControlLoopWithElbow
+==========================
+
+.. doxygenclass:: ControlLoopWithElbow

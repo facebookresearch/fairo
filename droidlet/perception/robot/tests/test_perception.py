@@ -7,12 +7,10 @@ import logging
 from timeit import Timer
 from unittest.mock import MagicMock
 from droidlet.perception.robot import (
-    InputHandler,
-    DetectionHandler,
-    FaceRecognitionHandler,
-    ObjectDeduplicationHandler,
-    MemoryHandler,
-    SlowPerception,
+    ObjectDetection,
+    FaceRecognition,
+    ObjectDeduplicator,
+    Perception,
     Detection,
     Human,
 )
@@ -23,7 +21,7 @@ from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 import cv2
 import torch
 from PIL import Image
-from .utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -55,42 +53,27 @@ logging.getLogger().setLevel(logging.INFO)
 
 class PerceiveTimeTest(unittest.TestCase):
     def setUp(self) -> None:
-        m_agent = MagicMock()
-        m_agent.mover = LoCoBotMover(ip=IP, backend="habitat")
-        self.input_handler = InputHandler(m_agent, read_from_camera=True)
-        self.perception = SlowPerception(PERCEPTION_MODELS_DIR)
+        self.mover = LoCoBotMover(ip=IP, backend="habitat")
+        self.perception = Perception(PERCEPTION_MODELS_DIR)
 
     def test_time(self):
-        rgb_depth = self.input_handler.handle()
-        t = Timer(lambda: self.perception.perceive(rgb_depth))
-        logging.info("SlowPerception runtime {} s".format(t.timeit(number=1)))
-
-
-class InputHandlerTest(unittest.TestCase):
-    def setUp(self) -> None:
-        m_agent = MagicMock()
-        m_agent.mover = LoCoBotMover(ip=IP, backend="habitat")
-        self.input_handler = InputHandler(m_agent, read_from_camera=True)
-
-    def test_handler(self):
-        # check the type of the returned object from input handler function
-        rgb_depth = self.input_handler.handle()
-        # check if the returned object can return the actual image
-        get_pillow_method = getattr(rgb_depth, "get_pillow_image")
-        self.assertEqual(callable(get_pillow_method), True)
-        self.assertEqual(type(rgb_depth.get_pillow_image()), Image.Image)
+        rgb_depth = self.mover.get_rgb_depth()
+        xyz = (0, 0, 0)
+        previous_objects = []
+        t = Timer(lambda: self.perception.perceive(rgb_depth, xyz, previous_objects, force=True))
+        logging.info("Perception runtime {} s".format(t.timeit(number=1)))
 
 
 class DetectionHandlerTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.detect_handler = DetectionHandler(PERCEPTION_MODELS_DIR)
+        self.detect_handler = ObjectDetection(PERCEPTION_MODELS_DIR)
 
     def test_handler(self):
         # load the image and pass it to detectron2 model
         img = cv2.imread(OFFICE_IMG_PATH, 1)
         rgb_depth_mock = MagicMock()
         rgb_depth_mock.rgb = img
-        detections = self.detect_handler.handle(rgb_depth_mock)
+        detections = self.detect_handler.__call__(rgb_depth_mock)
 
         # check that most of the detected objects are detected
         self.assertGreaterEqual(len(detections), 5)  # 9 exactly
@@ -98,17 +81,27 @@ class DetectionHandlerTest(unittest.TestCase):
         # check the correct type of each detected object
         self.assertEqual(type(detections[0]), Detection)
 
+    def test_detection_to_struct(self): 
+        # use case: face detections have no mask but are still Detections
+        d = get_fake_detection("", "", "")
+        d.mask = None
 
-class MemoryHandlerTest(unittest.TestCase):
+        # check whether to_struct fails
+        try: 
+            d.to_struct() 
+        except: 
+            self.fail("detection's to_struct() fails when no mask is detected")
+
+
+class MemoryStoringTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.detect_handler = DetectionHandler(PERCEPTION_MODELS_DIR)
+        self.detect_handler = ObjectDetection(PERCEPTION_MODELS_DIR)
         self.agent = MagicMock()
         self.agent.memory = LocoAgentMemory()
         dance.add_default_dances(self.agent.memory)
-        self.memory = MemoryHandler(self.agent)
-        self.deduplicator = ObjectDeduplicationHandler()
+        self.deduplicator = ObjectDeduplicator()
 
-    def test_handler_basic_insertion(self):
+    def test_basic_insertion(self):
         # get fake detection
         r = get_fake_rgbd()
         props = ["dragon heartstring", "phoenix feather", "coral"]
@@ -116,7 +109,8 @@ class MemoryHandlerTest(unittest.TestCase):
         # get fake human pose
         h = get_fake_humanpose()
         # save to memory
-        self.memory([d, h], [])
+        for obj in [d, h]:
+            obj.save_to_memory(self.agent.memory)
 
         # retrieve detected objects
         o = DetectedObjectNode.get_all(self.agent.memory)
@@ -134,20 +128,25 @@ class MemoryHandlerTest(unittest.TestCase):
         img = cv2.imread(OFFICE_IMG_PATH, 1)
         rgbd = get_fake_rgbd(rgb=img)
         logging.getLogger().disabled = True
-        detections = self.detect_handler.handle(rgbd)
+        detections = self.detect_handler.__call__(rgbd)
 
         # check that most of the detected objects are detected
         self.assertGreaterEqual(len(detections), 5)  # 9 exactly
         # insert once to setup dedupe tests
         self.deduplicator(detections, [])
-        self.memory(detections, [])
+        for obj in detections:
+            obj.save_to_memory(self.agent.memory)
+
         objs_init = DetectedObjectNode.get_all(self.agent.memory)
 
         # Insert with dedupe
-        previous_objects = self.memory.get_objects()
+        previous_objects = DetectedObjectNode.get_all(self.agent.memory)
         if previous_objects is not None:
             new_objects, updated_objects = self.deduplicator(detections, previous_objects)
-            self.memory(new_objects, updated_objects)
+            for obj in new_objects:
+                obj.save_to_memory(self.agent.memory)
+            for obj in updated_objects:
+                obj.save_to_memory(self.agent.memory, update=True)
 
         # Assert that some objects get deduped
         objs_t1 = DetectedObjectNode.get_all(self.agent.memory)
@@ -159,7 +158,7 @@ class MemoryHandlerTest(unittest.TestCase):
 
 class TestFaceRecognition(unittest.TestCase):
     def setUp(self) -> None:
-        self.f_rec = FaceRecognitionHandler(FACES_IDS_DIR)
+        self.f_rec = FaceRecognition(FACES_IDS_DIR)
 
     def test_creation(self):
         """class can be created and faces loaded successfully."""

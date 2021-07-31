@@ -3,12 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import numpy as np
-
-import droidlet.base_util
 from droidlet.perception.craftassist import rotation, heuristic_perception
-from droidlet.lowlevel.minecraft import shapes
-
-from droidlet.lowlevel.minecraft.mc_util import pos_to_np, to_block_center, to_block_pos
+from droidlet.base_util import to_block_center, to_block_pos, arrange
 from droidlet.shared_data_structs import ErrorWithResponse
 
 DEFAULT_NUM_STEPS = 5
@@ -99,7 +95,7 @@ def get_repeat_arrangement(
         b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
         shapeparams["encircled_object_radius"] = b
 
-        offsets = droidlet.base_util.arrange("circle", schematic, shapeparams)
+        offsets = arrange("circle", schematic, shapeparams)
     else:
         reldir_vec = rotation.DIRECTIONS[repeat_dir]
         # this should be an inverse transform so we set inverted=True
@@ -108,6 +104,6 @@ def get_repeat_arrangement(
         max_ind = np.argmax(dir_vec)
         shapeparams["extra_space"] = padding[max_ind]
         shapeparams["orient"] = dir_vec
-        offsets = droidlet.base_util.arrange("line", schematic, shapeparams)
+        offsets = arrange("line", schematic, shapeparams)
     offsets = [tuple(to_block_pos(o)) for o in offsets]
     return offsets

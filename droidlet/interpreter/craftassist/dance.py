@@ -1,15 +1,12 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import droidlet.base_util
-
 """This file contain implementations of a collection of dances that the 
 agent can perform in game.
 """
+import droidlet.base_util
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
-from droidlet.perception.craftassist import search
-from droidlet.lowlevel.minecraft import shapes
 from droidlet.shared_data_structs import ErrorWithResponse
 
 # FIXME! actual jump on client
@@ -59,11 +56,13 @@ head_bob = [
 
 def add_default_dances(memory):
     """Add dances to agent's memory"""
-    memory.add_dance(generate_sequential_move_fn(jump), name="jump")
+    memory.add_dance(generate_sequential_move_fn(jump), name="jump", tags=["jump"])
     memory.add_dance(
         generate_sequential_move_fn(konami_dance), name="konami dance", tags=["dance", "konami"]
     )
-    memory.add_dance(generate_sequential_move_fn(head_bob), name="head bob", tags=["dance"])
+    memory.add_dance(
+        generate_sequential_move_fn(head_bob), name="head bob", tags=["dance", "head bob"]
+    )
 
 
 def generate_sequential_move_fn(sequence):

@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.interpreter.condition import (
+from droidlet.interpreter.condition_classes import (
     AlwaysCondition,
     NeverCondition,
     NotCondition,
@@ -17,6 +17,17 @@ from droidlet.memory.memory_nodes import TaskNode, LocationNode, TripleNode
 
 # FIXME agent, move this to a better place
 # from droidlet.shared_data_structs import Task
+
+
+def maybe_update_condition_memid(condition, memid, pos="value_left"):
+    if hasattr(condition, pos):
+        v = getattr(condition, pos)
+        if hasattr(v, "memory_filter"):
+            if hasattr(v.memory_filter.head, "memid"):
+                if v.memory_filter.head.memid == "NULL":
+                    # this was a special "THIS" filter condition, needed to wait till here
+                    # to get memid
+                    v.memory_filter.head.memid = memid
 
 
 class Task(object):
@@ -75,12 +86,10 @@ class Task(object):
                     {"prio": -2, "finished": True}
                 )
                 return
-            query = {
-                "base_table": "Tasks",
-                "base_range": {"minprio": 0.5},
-                "triples": [{"pred_text": "_has_parent_task", "obj": self.memid}],
-            }
-            child_task_mems = self.agent.memory.basic_search(query)
+            query = "SELECT MEMORY FROM Task WHERE ((prio>=1) AND (_has_parent_task=#={}))".format(
+                self.memid
+            )
+            _, child_task_mems = self.agent.memory.basic_search(query)
             if child_task_mems:  # this task has active children, step them
                 return
             r = stepfn(self)
@@ -120,6 +129,10 @@ class Task(object):
         remove_condition = task_data.get(
             "remove_condition", TaskStatusCondition(agent.memory, self.memid)
         )
+        # check/maybe update if special "THIS" filter condition
+        # FIXME do this for init, run, etc.
+        maybe_update_condition_memid(remove_condition, self.memid)
+
         return init_condition, stop_condition, run_condition, remove_condition
 
     # FIXME remove all this its dead now...

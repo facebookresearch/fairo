@@ -3,15 +3,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from typing import Optional, Union
 from word2number.w2n import word_to_num
-from ..shared_data_structs import ErrorWithResponse
-from droidlet.interpreter.condition import (
+from droidlet.shared_data_structs import ErrorWithResponse
+from droidlet.interpreter.condition_classes import (
     Condition,
     NeverCondition,
     AndCondition,
     OrCondition,
     TimeCondition,
 )
-from droidlet.memory.memory_values import MemoryColumnValue, FixedValue
 from .comparator_helper import interpret_comparator
 
 
@@ -24,13 +23,6 @@ class ConditionInterpreter:
             "OR": self.interpret_or,
             "TIME": self.interpret_time,
             "COMPARATOR": interpret_comparator,
-        }
-        # to avoid having to redefine interpret_comparator in agents if necessary ...
-        # TODO distance between
-        self.value_extractors = {
-            "filters": MemoryColumnValue,
-            "span": FixedValue,
-            "distance_between": None,
         }
 
     def __call__(self, interpreter, speaker, d) -> Optional[Condition]:

@@ -14,10 +14,14 @@ from droidlet.lowlevel.minecraft.mc_util import (
     manhat_dist,
     get_locs_from_entity,
     euclid_dist,
-    to_block_pos,
     fill_idmeta,
 )
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS, PASSABLE_BLOCKS, COLOR_BID_MAP
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
+    BORING_BLOCKS,
+    PASSABLE_BLOCKS,
+    COLOR_BID_MAP,
+)
+from droidlet.base_util import to_block_pos
 from droidlet.perception.craftassist.search import depth_first_search
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
@@ -349,7 +353,9 @@ def ground_height(agent, pos, radius, yfilt=5, xzfilt=5):
     return G - offset
 
 
-def get_nearby_airtouching_blocks(agent, location, block_data, color_data, block_property_data, radius=15):
+def get_nearby_airtouching_blocks(
+    agent, location, block_data, color_data, block_property_data, radius=15
+):
     """Get all blocks in 'radius' of 'location'
     that are touching air on either side.
     Returns:
@@ -377,9 +383,7 @@ def get_nearby_airtouching_blocks(agent, location, block_data, color_data, block
                                 blocktypes.append(idm)
                                 type_name = block_data["bid_to_name"][idm]
                                 tags = [type_name]
-                                colours = deepcopy(
-                                    color_data["name_to_colors"].get(type_name, [])
-                                )
+                                colours = deepcopy(color_data["name_to_colors"].get(type_name, []))
                                 colours.extend([c for c in COLOUR_LIST if c in type_name])
                                 if colours:
                                     tags.extend(colours)
@@ -507,12 +511,8 @@ def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=
             idm = (hole[1][0], 0)
             fill_block_name = block_data["bid_to_name"].get(idm)
         if fill_block_name:
-            fill_block_mems = agent.memory.basic_search(
-                {
-                    "base_table": "BlockTypes",
-                    "triples": [{"pred_text": "has_name", "obj_text": fill_block_name}],
-                }
-            )
+            query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
+            _, fill_block_mems = agent.memory.basic_search(query)
             fill_block_memid = fill_block_mems[0].memid
             agent.memory.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
         hole_mems.append(agent.memory.get_mem_by_id(memid))
@@ -558,7 +558,6 @@ class PerceptionWrapper:
         self.color_data = low_level_data["color_data"]
         self.block_property_data = low_level_data["block_property_data"]
 
-
     def perceive(self, force=False):
         """Called by the core event loop for the agent to run all perceptual
         models and save their state to memory.
@@ -586,12 +585,14 @@ class PerceptionWrapper:
                         )
 
                 get_all_nearby_holes(self.agent, pos, self.block_data, radius)
-                get_nearby_airtouching_blocks(self.agent,
-                                              pos,
-                                              self.block_data,
-                                              self.color_data,
-                                              self.block_property_data,
-                                              radius)
+                get_nearby_airtouching_blocks(
+                    self.agent,
+                    pos,
+                    self.block_data,
+                    self.color_data,
+                    self.block_property_data,
+                    radius,
+                )
             # perceive blocks near the agent
             for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
                 memid = BlockObjectNode.create(self.agent.memory, objs)
@@ -606,12 +607,14 @@ class PerceptionWrapper:
                     )
 
             get_all_nearby_holes(self.agent, self.agent.pos, self.block_data, radius=self.radius)
-            get_nearby_airtouching_blocks(self.agent,
-                                          self.agent.pos,
-                                          self.block_data,
-                                          self.color_data,
-                                          self.block_property_data,
-                                          radius=self.radius)
+            get_nearby_airtouching_blocks(
+                self.agent,
+                self.agent.pos,
+                self.block_data,
+                self.color_data,
+                self.block_property_data,
+                radius=self.radius,
+            )
 
 
 def build_safe_diag_adjacent(bounds):

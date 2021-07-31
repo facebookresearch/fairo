@@ -1,0 +1,182 @@
+{
+    "machine_info": {
+        "node": "robodev002.robots.thefacebook.com",
+        "processor": "x86_64",
+        "machine": "x86_64",
+        "python_compiler": "GCC 7.3.0",
+        "python_implementation": "CPython",
+        "python_implementation_version": "3.7.4",
+        "python_version": "3.7.4",
+        "python_build": [
+            "default",
+            "Aug 13 2019 20:35:49"
+        ],
+        "release": "4.4.0-166-generic",
+        "system": "Linux",
+        "cpu": {
+            "vendor_id": "GenuineIntel",
+            "hardware": "unknown",
+            "brand": "Intel(R) Core(TM) i7-7820X CPU @ 3.60GHz"
+        }
+    },
+    "commit_info": {
+        "id": "b097180b8fa0b4d40a0971284a82f473a5cd1b48",
+        "time": "2020-02-06T17:01:05-08:00",
+        "author_time": "2020-02-06T17:01:05-08:00",
+        "dirty": false,
+        "project": "controller-manager",
+        "branch": "yl-pybind-by-default"
+    },
+    "benchmarks": [
+        {
+            "group": null,
+            "name": "test_controller_step[PDControlPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[PDControlPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[PDControlPolicy()]"
+            },
+            "param": "PDControlPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00016053998842835426,
+                "max": 0.00021474715322256088,
+                "mean": 0.00016524322563782334,
+                "stddev": 7.730391441807064e-06,
+                "rounds": 200,
+                "median": 0.0001624138094484806,
+                "iqr": 3.3332034945487976e-06,
+                "q1": 0.00016197748482227325,
+                "q3": 0.00016531068831682205,
+                "iqr_outliers": 22,
+                "stddev_outliers": 18,
+                "outliers": "18;22",
+                "ld15iqr": 0.00016053998842835426,
+                "hd15iqr": 0.00017049815505743027,
+                "ops": 6051.685302922972,
+                "total": 0.03304864512756467,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[JointGoToPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[JointGoToPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[JointGoToPolicy()]"
+            },
+            "param": "JointGoToPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00013899803161621094,
+                "max": 0.00021328823640942574,
+                "mean": 0.0001431596752731724,
+                "stddev": 7.996408330600204e-06,
+                "rounds": 470,
+                "median": 0.0001404150389134884,
+                "iqr": 3.6247074604034424e-06,
+                "q1": 0.00013991491869091988,
+                "q3": 0.00014353962615132332,
+                "iqr_outliers": 38,
+                "stddev_outliers": 33,
+                "outliers": "33;38",
+                "ld15iqr": 0.00013899803161621094,
+                "hd15iqr": 0.00014995597302913666,
+                "ops": 6985.207238643383,
+                "total": 0.06728504737839103,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[DirectTorquePolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[DirectTorquePolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[DirectTorquePolicy()]"
+            },
+            "param": "DirectTorquePolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00013741385191679,
+                "max": 0.00020478898659348488,
+                "mean": 0.0001417570244772234,
+                "stddev": 7.175214049398661e-06,
+                "rounds": 667,
+                "median": 0.00013937335461378098,
+                "iqr": 3.1981617212295532e-06,
+                "q1": 0.00013887276872992516,
+                "q3": 0.0001420709304511547,
+                "iqr_outliers": 59,
+                "stddev_outliers": 53,
+                "outliers": "53;59",
+                "ld15iqr": 0.00013741385191679,
+                "hd15iqr": 0.00014691520482301712,
+                "ops": 7054.3241415219845,
+                "total": 0.09455193532630801,
+                "iterations": 1
+            }
+        },
+        {
+            "group": null,
+            "name": "test_controller_step[IlqrPolicy]",
+            "fullname": "python/tests/torch_policies/test_performance.py::test_controller_step[IlqrPolicy]",
+            "params": {
+                "controller_manager": "UNSERIALIZABLE[IlqrPolicy()]"
+            },
+            "param": "IlqrPolicy",
+            "extra_info": {},
+            "options": {
+                "disable_gc": false,
+                "timer": "perf_counter",
+                "min_rounds": 5,
+                "max_time": 1.0,
+                "min_time": 5e-06,
+                "warmup": false
+            },
+            "stats": {
+                "min": 0.00013858173042535782,
+                "max": 0.0002040807157754898,
+                "mean": 0.00014268130075461308,
+                "stddev": 7.997252902018597e-06,
+                "rounds": 488,
+                "median": 0.00014012306928634644,
+                "iqr": 2.8959475457668304e-06,
+                "q1": 0.00013962294906377792,
+                "q3": 0.00014251889660954475,
+                "iqr_outliers": 46,
+                "stddev_outliers": 41,
+                "outliers": "41;46",
+                "ld15iqr": 0.00013858173042535782,
+                "hd15iqr": 0.00014745723456144333,
+                "ops": 7008.626881807206,
+                "total": 0.06962847476825118,
+                "iterations": 1
+            }
+        }
+    ],
+    "datetime": "2020-02-07T01:11:49.331672",
+    "version": "3.2.3"
+}
