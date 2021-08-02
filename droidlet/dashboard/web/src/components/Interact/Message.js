@@ -109,6 +109,10 @@ class Message extends Component {
 
     recognition.onerror = (event) => {
       console.log("Error in recognition: " + event.error);
+      if (event.error === "not-allowed") {
+        alert("Please grant access to microphone");
+        recognition.stop();
+      }
     };
   }
 
