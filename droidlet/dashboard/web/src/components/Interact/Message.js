@@ -157,6 +157,8 @@ class Message extends Component {
           onClick={this.toggleListen.bind(this)}
         ></KeyboardVoiceIcon>
 
+        <p> {this.state.recognizing ? "Listening..." : ""} </p>
+
         <List>{this.renderChatHistory(this.props.status)}</List>
         {this.props.isMobile === true ? (
           <div
