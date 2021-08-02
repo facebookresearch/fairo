@@ -6,7 +6,7 @@ dlib==19.19.0
 opencv-python
 face_recognition
 norfair
-facenet-pytorch
+facenet-pytorch==2.5.2
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
 detectron2
 scipy==1.5.4
