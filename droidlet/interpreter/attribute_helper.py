@@ -14,7 +14,7 @@ from droidlet.memory.memory_values import LinearExtentValue, FixedValue, convert
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import ReferenceObjectNode
-from .interpreter_utils import tags_from_dict
+from .interpreter_utils import backoff_where
 
 """
 Each of these take args:
@@ -84,7 +84,7 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
         # this object is only defined by the filters and might be different at different moments
         # FIXME use FILTERS!!
         # should interpret as normal filter at this point...
-        tags = tags_from_dict(filters_d)
+        tags, _ = backoff_where(filters_d.get("where_clause", {}))
         if tags:
             where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
             query = "SELECT MEMORY FROM ReferenceObject WHERE (" + where + ")"

@@ -15,8 +15,14 @@ from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num
 from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPES_CANONICALIZE
 
+############################################################################
+# Plan: store virtual memories / generative models, and search over those
+# Until then FILTERs in schematcs are not fully compositional nor expressive
+############################################################################
 
-# this should eventually be replaced with sql query
+
+
+# this should eventually be replaced with db query
 def most_common_idm(idms):
     """idms is a list of tuples [(id, m) ,.... (id', m')]"""
     counts = {}
@@ -28,11 +34,13 @@ def most_common_idm(idms):
     return max(counts, key=counts.get)
 
 
-def get_properties_from_triples(triples_list, p):
+def get_properties_from_clauses(clause_list, p):
+    v = None
+    for 
     return [x.get("obj_text") for x in triples_list if p in x.values()]
 
 
-def get_attrs_from_triples(triples, interpreter, block_data_info, color_bid_map):
+def get_attrs_from_where(triples, interpreter, block_data_info, color_bid_map):
     numeric_keys = {
         "has_thickness": get_properties_from_triples(triples, "has_thickness"),
         "has_radius": get_properties_from_triples(triples, "has_radius"),

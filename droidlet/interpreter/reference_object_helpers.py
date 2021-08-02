@@ -136,10 +136,16 @@ def interpret_reference_object(
 
     if len(interpreter.progeny_data) == 0:
         if any(extra_tags):
-            if not filters_d.get("triples"):
-                filters_d["triples"] = []
+            extra_clauses = []
             for tag in extra_tags:
-                filters_d["triples"].append({"pred_text": "has_tag", "obj_text": tag})
+                extra_clauses.append({"pred_text": "has_tag", "obj_text": tag})
+            if not filters_d.get("where_clause"):
+                filters_d["where_clause"] = {"AND": []}
+            if filters_d["where_clause"].get("OR") or filters_d["where_clause"].get("NOT"):
+                subclause = deepcopy(filters_d["where_clause"])
+                filters_d["where_clause"] = {"AND": [subclause]}
+            filters_d["where_clause"]["AND"].extend(extra_clauses)
+
         # TODO Add ignore_player maybe?
 
         # FIXME! see above.  currently removing selector to get candidates, and filtering after
