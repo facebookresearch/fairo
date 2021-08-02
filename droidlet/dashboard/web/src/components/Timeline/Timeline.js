@@ -9,7 +9,7 @@ agent using the flags --enable_timeline --log_timeline.
 import React, { createRef } from "react";
 import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { handleClick } from "./TimelineUtils";
+import { handleClick, capitalizeEvent } from "./TimelineUtils";
 import TimelineDropdown from "./TimelineDropdown";
 import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
@@ -124,7 +124,13 @@ class DashboardTimeline extends React.Component {
       if (result.length) {
         result.forEach(({ item }) => {
           const eventObj = JSON.parse(item);
-          matches.push(eventObj);
+          if (
+            this.props.stateManager.memory.timelineFilters.includes(
+              capitalizeEvent(eventObj["name"])
+            )
+          ) {
+            matches.push(eventObj);
+          }
         });
       }
     }
@@ -182,7 +188,7 @@ class DashboardTimeline extends React.Component {
         />
 
         <div id="dropdown">
-          <TimelineDropdown />
+          <TimelineDropdown stateManager={this.props.stateManager} />
         </div>
 
         <div className="clearfloat"></div>

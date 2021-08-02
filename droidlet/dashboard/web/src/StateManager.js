@@ -62,6 +62,7 @@ class StateManager {
     timelineEventHistory: [],
     timelineSearchResults: [],
     timelineDetails: [],
+    timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
   };
   session_id = null;
 

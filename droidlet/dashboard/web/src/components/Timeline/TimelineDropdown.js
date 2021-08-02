@@ -31,14 +31,15 @@ const MenuProps = {
   },
 };
 
-const names = ["Perception", "Dialogue", "Interpreter", "Memory"];
+const names = ["Perceive", "Dialogue", "Interpreter", "Memory"];
 
-export default function TimelineDropdown() {
+export default function TimelineDropdown({ stateManager }) {
   const classes = useStyles();
-  const [eventName, setEventName] = React.useState([]);
+  const [eventName, setEventName] = React.useState(names);
 
   const handleChange = (event) => {
     setEventName(event.target.value);
+    stateManager.memory.timelineFilters = event.target.value;
   };
 
   return (
