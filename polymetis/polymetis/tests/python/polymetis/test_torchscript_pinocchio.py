@@ -17,7 +17,6 @@ from torchcontrol.utils import test_utils
 
 urdf_path = os.path.join(
     test_utils.project_root_dir,
-    # "polymetis/polymetis/data/kuka_iiwa/urdf/iiwa7.urdf",
     "polymetis/polymetis/data/franka_panda/panda_arm.urdf",
 )
 
