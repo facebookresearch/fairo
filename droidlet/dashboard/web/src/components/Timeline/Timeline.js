@@ -12,7 +12,14 @@ import { Timeline, DataSet } from "vis-timeline/standalone";
 import { handleClick, capitalizeEvent } from "./TimelineUtils";
 import TimelineDropdown from "./TimelineDropdown";
 import SearchIcon from "@material-ui/icons/Search";
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import "./Timeline.css";
+
+const theme = createMuiTheme({
+  palette: {
+    type: "dark",
+  },
+});
 
 const items = new DataSet();
 
@@ -188,7 +195,9 @@ class DashboardTimeline extends React.Component {
         />
 
         <div id="dropdown">
-          <TimelineDropdown stateManager={this.props.stateManager} />
+          <ThemeProvider theme={theme}>
+            <TimelineDropdown stateManager={this.props.stateManager} />
+          </ThemeProvider>
         </div>
 
         <div className="clearfloat"></div>
