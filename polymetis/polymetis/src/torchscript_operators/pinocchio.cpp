@@ -157,7 +157,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
   torch::Tensor inverse_kinematics(torch::Tensor ee_pos, torch::Tensor ee_quat,
                                    double eps = 1e-4, int64_t max_iters = 1000,
-                                   double dt = 0.1, double damping = 1e-6) {
+                                   double dt = 0.1, double damping = 1e-12) {
     ee_pos = validTensor(ee_pos);
     Eigen::Vector3d ee_pos_(
         Eigen::Map<Eigen::Vector3d>(ee_pos.data_ptr<double>(), 3));
@@ -174,6 +174,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
     Eigen::Matrix<double, 6, 1> err;
     ik_sol_v_ = Eigen::VectorXd(model_.nv);
+    ik_sol_v_.setZero();
 
     // Reset robot pose
     pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
@@ -183,19 +184,22 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     for (int i = 0; i < max_iters; i++) {
       // Compute forward kinematics error
       pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
+      pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
       const pinocchio::SE3 dMf =
           desired_ee.actInv(model_data_.oMf[ee_frame_idx_]);
       err = pinocchio::log6(dMf).toVector();
 
       // Check termination
       if (err.norm() < eps) {
+        std::cout << "Ending IK at " << i + 1 << "/" << max_iters
+                  << " iteration." << std::endl;
         break;
       }
 
       // Descent solution
-      pinocchio::computeFrameJacobian(
-          model_, model_data_, ik_sol_p_, ee_frame_idx_,
-          pinocchio::LOCAL_WORLD_ALIGNED, ik_sol_J_);
+      pinocchio::computeFrameJacobian(model_, model_data_, ik_sol_p_,
+                                      ee_frame_idx_, pinocchio::LOCAL,
+                                      ik_sol_J_);
 
       pinocchio::Data::Matrix6 JJt;
       JJt.noalias() = ik_sol_J_ * ik_sol_J_.transpose();

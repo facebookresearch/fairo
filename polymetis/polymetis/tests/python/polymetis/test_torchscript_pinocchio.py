@@ -127,6 +127,7 @@ def test_inverse_dynamics(pybullet_env, pinocchio_wrapper, joint_states):
 
 
 def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
+    max_iter = 1000
     # Setup
     joint_pos, joint_vel, joint_acc, num_dofs = joint_states
     sim, robot_id, ee_idx = pybullet_env
@@ -138,15 +139,19 @@ def test_inverse_kinematics(pybullet_env, pinocchio_wrapper, joint_states):
 
     # Inverse kinematics with Pinocchio
     pinocchio_joint_pos = pinocchio_wrapper.inverse_kinematics(
-        pinocchio_pos, pinocchio_quat, max_iters=100
+        pinocchio_pos, pinocchio_quat, max_iters=max_iter
     )
+
+    ik_fwd_kinematics = pinocchio_wrapper.forward_kinematics(pinocchio_joint_pos)
+
+    assert torch.allclose(pinocchio_fwd_kinematics[0], ik_fwd_kinematics[0], atol=1e-3), f"Positions off: \ncurr joint pos {joint_pos}, \nIK solution {pinocchio_joint_pos}; \nactual ee pos {pinocchio_fwd_kinematics[0]}, \nik ee pos {ik_fwd_kinematics[0]}"
+    assert torch.allclose(pinocchio_fwd_kinematics[1], ik_fwd_kinematics[1], atol=1e-3), f"Positions off: \ncurr joint pos {joint_pos}, \nIK solution {pinocchio_joint_pos}; \nactual ee orient {pinocchio_fwd_kinematics[1]}, \nik ee orient {ik_fwd_kinematics[1]}"
+
 
     # Inverse kinematics with Pybullet
     pos = pinocchio_pos.tolist()
     quat = pinocchio_quat.tolist()
-    pybullet_joint_pos = torch.Tensor(
-        sim.calculateInverseKinematics(robot_id, ee_idx, pos, quat)
-    )
+    pybullet_joint_pos = torch.Tensor(sim.calculateInverseKinematics(robot_id, ee_idx, pos, quat, restPoses=pinocchio_joint_pos.numpy().tolist(), maxNumIterations=max_iter))
 
     # Compare
-    assert torch.allclose(pinocchio_joint_pos, pybullet_joint_pos)
+    assert torch.allclose(pinocchio_joint_pos, pybullet_joint_pos, atol=1e-1)
