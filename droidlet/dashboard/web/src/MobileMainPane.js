@@ -74,7 +74,7 @@ class MobileMainPane extends React.Component {
     }
     return (
       <Container fluid>
-        <div style={{ paddingBottom: 200 }}>{displayPane}</div>
+        <div style={{ paddingBottom: 50 }}>{displayPane}</div>
         <div>
           <NavbarComponent paneHandler={this.paneHandler.bind(this)} />
         </div>
