@@ -10,7 +10,7 @@ class MobileCameraPane extends React.Component {
     this.state = {
       currentMode: "camera",
       img: null,
-      webCamPermissions: "denied",
+      webCamPermissions: "granted",
       videoConstraints: {
         facingMode: { exact: "environment" },
         height: this.props.imageWidth,
