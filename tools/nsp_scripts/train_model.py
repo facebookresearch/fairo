@@ -14,16 +14,30 @@ from os.path import isfile
 from os.path import join as pjoin
 from tqdm import tqdm
 
+import torch
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.optim import Adam
 from transformers import AutoModel, AutoTokenizer, BertConfig
 
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import *
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import *
-from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import *
-from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import *
-from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup import *
-from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import *
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import (
+    compute_accuracy,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_caip import (
+    make_full_tree,
+    process_txt_data,
+    caip_collate,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.decoder_with_loss import (
+    DecoderWithLoss,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.encoder_decoder import (
+    EncoderDecoderWithLoss,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.optimizer_warmup import (
+    OptimWarmupEncoderDecoder,
+)
+from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset import CAIPDataset
 
 
 class ModelTrainer:
@@ -32,8 +46,30 @@ class ModelTrainer:
     def __init__(self, args):
         self.args = args
         # Initialize logger for machine-readable logs
-        self.train_outputs_logger = NSPLogger("training_outputs.csv", ["epoch", "iteration", "loss", "accuracy", "text_span_loss", "text_span_accuracy", "time"])
-        self.valid_outputs_logger = NSPLogger("valid_outputs.csv", ["epoch", "data_type", "loss", "accuracy", "text_span_loss", "text_span_accuracy", "time"])
+        self.train_outputs_logger = NSPLogger(
+            "training_outputs.csv",
+            [
+                "epoch",
+                "iteration",
+                "loss",
+                "accuracy",
+                "text_span_loss",
+                "text_span_accuracy",
+                "time",
+            ],
+        )
+        self.valid_outputs_logger = NSPLogger(
+            "valid_outputs.csv",
+            [
+                "epoch",
+                "data_type",
+                "loss",
+                "accuracy",
+                "text_span_loss",
+                "text_span_accuracy",
+                "time",
+            ],
+        )
 
     def train(self, model, dataset, tokenizer, model_identifier, full_tree_voc):
         """Training loop (all epochs at once)
@@ -72,10 +108,7 @@ class ModelTrainer:
             lr=0.001,
         )
         fixed_span_optimizer = Adam(
-            [
-                {"params": model.decoder.fixed_span_head.parameters()},
-            ],
-            lr=0.001,
+            [{"params": model.decoder.fixed_span_head.parameters()}], lr=0.001
         )
         text_span_loss_attenuation_factor = self.args.alpha
         fixed_value_loss_attenuation_factor = self.args.fixed_value_weight
@@ -118,21 +151,16 @@ class ModelTrainer:
 
                 loss.backward()
                 # Add text span loss gradients
-                model.decoder.bert_final_layer_out.grad = (
-                    model.decoder.bert_final_layer_out.grad.add(
-                        text_span_loss_attenuation_factor
-                        * (
-                            model.decoder.text_span_start_hidden_z.grad
-                            + model.decoder.text_span_end_hidden_z.grad
-                        )
+                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
+                    text_span_loss_attenuation_factor
+                    * (
+                        model.decoder.text_span_start_hidden_z.grad
+                        + model.decoder.text_span_end_hidden_z.grad
                     )
                 )
                 # Add fixed value loss gradients
-                model.decoder.bert_final_layer_out.grad = (
-                    model.decoder.bert_final_layer_out.grad.add(
-                        fixed_value_loss_attenuation_factor
-                        * (model.decoder.fixed_span_hidden_z.grad)
-                    )
+                model.decoder.bert_final_layer_out.grad = model.decoder.bert_final_layer_out.grad.add(
+                    fixed_value_loss_attenuation_factor * (model.decoder.fixed_span_hidden_z.grad)
                 )
                 if step % self.args.param_update_freq == 0:
                     torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -186,7 +214,17 @@ class ModelTrainer:
                     logging.info("text span acc: {:.3f}".format(text_span_accuracy / loc_steps))
                     logging.info("text span loss: {:.3f}".format(text_span_loc_loss / loc_steps))
                     # Log training outputs to CSV
-                    self.train_outputs_logger.log_dialogue_outputs([e, step, loc_loss / loc_steps, loc_full_acc / loc_steps, text_span_accuracy / loc_steps, text_span_loc_loss / loc_steps, time() - st_time])
+                    self.train_outputs_logger.log_dialogue_outputs(
+                        [
+                            e,
+                            step,
+                            loc_loss / loc_steps,
+                            loc_full_acc / loc_steps,
+                            text_span_accuracy / loc_steps,
+                            text_span_loc_loss / loc_steps,
+                            time() - st_time,
+                        ]
+                    )
                     loc_loss = 0
                     loc_steps = 0
                     loc_int_acc = 0.0
@@ -282,7 +320,9 @@ class ModelTrainer:
         logging.info(
             "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
         )
-        self.valid_outputs_logger.log_dialogue_outputs([epoch, dtype, l, a, text_span_acc, text_span_loss, time()])
+        self.valid_outputs_logger.log_dialogue_outputs(
+            [epoch, dtype, l, a, text_span_acc, text_span_loss, time()]
+        )
 
 
 def generate_model_name(args, optional_identifier=""):

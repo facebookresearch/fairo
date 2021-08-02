@@ -112,6 +112,7 @@ class DialogueManager(object):
                     "name" : "dialogue",
                     "start_time" : start_time,
                     "end_time" : end_time,
+                    "elapsed_time" : (end_time - start_time).total_seconds(),
                     "agent_time" : self.memory.get_time(),
                     "object" : str(obj)
                 }

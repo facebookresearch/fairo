@@ -7,8 +7,10 @@ agent using the flags --enable_timeline --log_timeline.
 */
 
 import React, { createRef } from "react";
+import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import "vis-timeline/styles/vis-timeline-graph2d.css";
+import { handleClick } from "./TimelineUtils";
+import SearchIcon from "@material-ui/icons/Search";
 import "./Timeline.css";
 
 const items = new DataSet();
@@ -17,7 +19,7 @@ const groups = [
   {
     id: "timeline",
     content: "Timeline",
-    nestedGroups: ["perceive", "dialogue", "interpreter"],
+    nestedGroups: ["perceive", "dialogue", "interpreter", "memory"],
   },
   {
     id: "perceive",
@@ -30,6 +32,10 @@ const groups = [
   {
     id: "interpreter",
     content: "Interpreter",
+  },
+  {
+    id: "memory",
+    content: "Memory",
   },
 ];
 
@@ -52,7 +58,22 @@ const options = {
   rollingMode: {
     follow: true,
   },
-  stack: false,
+};
+
+const SearchBar = ({ onChange, placeholder }) => {
+  return (
+    <div className="search">
+      <input
+        className="searchInput"
+        type="text"
+        onChange={onChange}
+        placeholder={placeholder}
+      />
+      <span className="searchSpan">
+        <SearchIcon />
+      </span>
+    </div>
+  );
 };
 
 class DashboardTimeline extends React.Component {
@@ -61,10 +82,6 @@ class DashboardTimeline extends React.Component {
     this.timeline = {};
     this.appRef = createRef();
     this.prevEvent = "";
-    this.state = {
-      // used to construct table in results
-      tableBody: [],
-    };
   }
 
   componentDidMount() {
@@ -81,42 +98,37 @@ class DashboardTimeline extends React.Component {
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
         const item = items.get(properties["item"]);
-        that.handleClick(item);
+        handleClick(that.props.stateManager, item.title);
       }
     });
   }
 
-  handleClick(item) {
-    const eventObj = JSON.parse(item.title);
-    let tableArr = [];
-    for (let key in eventObj) {
-      if (eventObj.hasOwnProperty(key)) {
-        // stringify JSON object for logical form
-        if (key === "logical_form") {
-          tableArr.push({
-            event: this.capitalizeEvent(key),
-            description: JSON.stringify(eventObj[key]),
-          });
-        } else {
-          tableArr.push({
-            event: this.capitalizeEvent(key),
-            description: eventObj[key],
-          });
-        }
+  handleSearch(pattern) {
+    const matches = [];
+    if (pattern) {
+      const fuseOptions = {
+        // set ignoreLocation to true or else it searches the first 60 characters by default
+        ignoreLocation: true,
+        useExtendedSearch: true,
+      };
+
+      const fuse = new Fuse(
+        this.props.stateManager.memory.timelineEventHistory,
+        fuseOptions
+      );
+
+      // prepending Fuse operator to search for results that include the pattern
+      const result = fuse.search("'" + pattern);
+
+      if (result.length) {
+        result.forEach(({ item }) => {
+          const eventObj = JSON.parse(item);
+          matches.push(eventObj);
+        });
       }
     }
-    this.setState({
-      tableBody: tableArr,
-    });
-  }
-
-  capitalizeEvent(str) {
-    // replaces underscores with spaces
-    str = str.replace(/_/g, " ");
-    // capitalizes the first letter of every word
-    return str.replace(/\w\S*/g, function (txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
+    this.props.stateManager.memory.timelineSearchResults = matches;
+    this.props.stateManager.updateTimeline();
   }
 
   renderEvent() {
@@ -125,6 +137,7 @@ class DashboardTimeline extends React.Component {
     if (event && event !== this.prevEvent) {
       this.prevEvent = event;
       const eventObj = JSON.parse(event);
+
       // adds to the outer timeline group
       items.add([
         {
@@ -134,6 +147,7 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
+          type: "box",
         },
       ]);
       // adds the same item to the inner nested group
@@ -144,23 +158,10 @@ class DashboardTimeline extends React.Component {
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
+          type: "box",
         },
       ]);
     }
-  }
-
-  renderTable() {
-    return this.state.tableBody.map((data, index) => {
-      const { event, description } = data;
-      return (
-        <tr>
-          <td>
-            <strong>{event}</strong>
-          </td>
-          <td>{description}</td>
-        </tr>
-      );
-    });
   }
 
   render() {
@@ -170,14 +171,16 @@ class DashboardTimeline extends React.Component {
         <p id="description">
           A visualizer for viewing, inspecting, and searching through agent
           activities interactively.
+          <br />
+          Click an event to view more details!
         </p>
+
+        <SearchBar
+          placeholder="Search"
+          onChange={(e) => this.handleSearch(e.target.value)}
+        />
+
         <div ref={this.appRef} />
-        <div className="item">
-          <p id="result">Results:</p>
-          <table>
-            <tbody>{this.renderTable()}</tbody>
-          </table>
-        </div>
       </div>
     );
   }
