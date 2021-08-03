@@ -41,9 +41,7 @@ if __name__ == "__main__":
     # Go to ee_pose
     print("=== RobotInterface.set_ee_pose ===")
     ee_pos_desired = ee_pos + torch.Tensor([0.0, 0.05, -0.05])
-    r_current = R.from_quat(ee_quat)
-    dr_desired = R.from_rotvec(torch.Tensor([0.2, 0.0, 0.0]))
-    ee_quat_desired = (dr_desired * r_current).as_quat()
+    ee_quat_desired = torch.Tensor([1, 0, 0, 0])  # pointing straight down
 
     state_log = robot.set_ee_pose(ee_pos_desired, ee_quat_desired)
     time.sleep(0.5)

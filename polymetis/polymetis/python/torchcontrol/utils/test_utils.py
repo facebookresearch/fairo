@@ -61,7 +61,7 @@ def record_or_compare(test_name, dict_of_tensors, atol=1e-05):
     data, run once, and commit the new data to the repo.
     """
     # Locate data file
-    data_dirname = os.path.join(project_root_dir, "polymetis/tests/data")
+    data_dirname = os.path.join(project_root_dir, "polymetis/polymetis/tests/data")
     if not os.path.exists(data_dirname):
         os.makedirs(data_dirname)
 
