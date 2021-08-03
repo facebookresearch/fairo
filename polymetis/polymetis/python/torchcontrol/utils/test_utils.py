@@ -20,7 +20,7 @@ panda_urdf_path = os.path.abspath(
         project_root_dir, "polymetis/polymetis/data/franka_panda/panda_arm.urdf"
     )
 )
-panda_ee_joint_name = "panda_joint8"
+panda_ee_joint_name = "panda_link8"
 
 
 def create_robot_model(*args, **kwargs):
