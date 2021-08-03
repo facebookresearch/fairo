@@ -1,1 +1,0 @@
-move to the man	location	{"location": {"reference_object": {"contains_coreference": "no", "has_name": [[3, 3]]}}}
