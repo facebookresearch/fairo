@@ -180,10 +180,11 @@ class ModelTrainer:
                                     print("ADDING HE:", step, exple[0])
                                 dataset.add_hard_example(exple)
                 # book-keeping
-                loc_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
-                loc_full_acc += full_acc.sum().item() / full_acc.shape[0]
+                # shapes of accuracies are [B]
+                loc_int_acc += lm_acc.sum().item() / lm_acc.shape[0] # internal_nodes_accuracy / batch_size
+                loc_full_acc += full_acc.sum().item() / full_acc.shape[0] # weighted_accuracy / batch_size
                 tot_accuracy += full_acc.sum().item() / full_acc.shape[0]
-                text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0]
+                text_span_accuracy += text_span_acc.sum().item() / text_span_acc.shape[0] # text_span_accuracy / batch_size
                 if not self.args.tree_to_text:
                     loc_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
                 loc_loss += loss.item()
@@ -218,13 +219,14 @@ class ModelTrainer:
                         [
                             e,
                             step,
-                            loc_loss / loc_steps,
+                            loc_loss / loc_steps, # loss averaged over number of steps between gradient updates
                             loc_full_acc / loc_steps,
                             text_span_accuracy / loc_steps,
                             text_span_loc_loss / loc_steps,
                             time() - st_time,
                         ]
                     )
+                    # Local calculations are reset each iteration (depends on frequency of updates)
                     loc_loss = 0
                     loc_steps = 0
                     loc_int_acc = 0.0
@@ -257,9 +259,11 @@ class ModelTrainer:
         )
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=True)
         # training loop
-        # TODO: what these are supposed to be
+        # Totals are accumulated over all batches then divided by the number of iterations.
         tot_steps = 0
+        # Loss is not normalized
         tot_loss = 0.0
+        # 
         tot_int_acc = 0.0
         tot_span_acc = 0.0
         tot_accu = 0.0
@@ -279,14 +283,14 @@ class ModelTrainer:
                 # compute accuracy and add hard examples
                 lm_acc, sp_acc, text_span_acc, full_acc = compute_accuracy(outputs, y)
                 # book-keeping
-                # lm_acc: [B, ]
-                tot_int_acc += lm_acc.sum().item() / lm_acc.shape[0]
-                tot_span_acc += sp_acc.sum().item() / sp_acc.shape[0]
+                # shapes of accuracies are [B]
+                tot_int_acc += lm_acc.sum().item() / lm_acc.shape[0] # internal_nodes_accuracy / batch_size
+                tot_span_acc += sp_acc.sum().item() / sp_acc.shape[0] # weighted_accuracy / batch_size
                 tot_accu += full_acc.sum().item() / full_acc.shape[0]
                 tot_loss += loss.item()
                 tot_steps += 1
                 # text span stats
-                text_span_tot_acc += text_span_acc.sum().item() / text_span_acc.shape[0]
+                text_span_tot_acc += text_span_acc.sum().item() / text_span_acc.shape[0] # text_span_accuracy / batch_size
                 text_span_tot_loss += text_span_loss.item()
         return (
             tot_loss / tot_steps,

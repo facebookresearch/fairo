@@ -195,14 +195,16 @@ def compute_accuracy(outputs, y):
 
     Args:
         outputs: targets
+            A dictionary of output values from forward consisting of LM scores, span scores etc.
         y: predicted sequence
 
     Returns:
         Either a tuple of LM and span accuracies or just the language modeling accuracy.
 
-    # TODO: shape of these
-
+    Shape of inputs:
+    y: B x y_len x num_heads
     """
+    import ipdb; ipdb.set_trace()
     if len(y.shape) == 2:
         lm_targets = y
     else:
