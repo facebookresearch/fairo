@@ -263,7 +263,7 @@ class ModelTrainer:
         tot_steps = 0
         # Loss is not normalized
         tot_loss = 0.0
-        # 
+        # Accuracy of LM predictions/internal nodes
         tot_int_acc = 0.0
         tot_span_acc = 0.0
         tot_accu = 0.0
