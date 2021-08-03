@@ -261,6 +261,17 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
             .numpy()
         )
 
+    def render(self):
+        if self.gui:
+            import cv2
+
+            obs = self.sim.get_sensor_observations()
+            img = obs["rgba_camera_1stperson"]
+
+            cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
+            cv2.imshow("Habitat", img)
+            cv2.waitKey(1)
+
     def apply_joint_torques(self, torques: List[float]) -> List[float]:
         """Sets joint torques and steps simulation. Returns applied
         torques (possibly clipped & gravity compensated.)"""
@@ -287,14 +298,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_measured = np.array(applied_torques)
         self.sim.step_physics(self.dt)
 
-        if self.gui:
-            import cv2
-
-            obs = self.sim.get_sensor_observations()
-            img = obs["rgba_camera_1stperson"]
-
-            cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
-            cv2.imshow("Habitat", img)
-            cv2.waitKey(1)
+        self.render()
 
         return applied_torques

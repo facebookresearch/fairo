@@ -83,6 +83,7 @@ class RobotModelPinocchio(torch.nn.Module):
         self,
         ee_pos: torch.Tensor,
         ee_quat: torch.Tensor,
+        neutral_pose: torch.Tensor = None,
         eps: float = 1e-4,
         max_iters: int = 1000,
         dt: float = 0.1,
@@ -93,6 +94,14 @@ class RobotModelPinocchio(torch.nn.Module):
         Returns:
             torch.Tensor: joint positions
         """
+        if neutral_pose is None:
+            neutral_pose = torch.zeros(self.model.get_joint_angle_limits()[0].numel())
         return self.model.inverse_kinematics(
-            ee_pos.squeeze(), ee_quat.squeeze(), eps, max_iters, dt, damping
+            ee_pos.squeeze(),
+            ee_quat.squeeze(),
+            neutral_pose.squeeze(),
+            eps,
+            max_iters,
+            dt,
+            damping,
         ).to(ee_pos)
