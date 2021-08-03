@@ -122,10 +122,19 @@ class PolygonTool extends React.Component {
     if (this.props.imageWidth) {
       imageSize = this.props.imageWidth;
     }
-    let dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
-    let dataEntryY =
-      this.canvas &&
-      this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
+    let dataEntryX = 0;
+    let dataEntryY = 0;
+    if (this.props.isMobile) {
+      // if is mobile, display the dataEntry at a different location
+      dataEntryX = this.canvas && this.canvas.getBoundingClientRect().left;
+      dataEntryY =
+        this.canvas && this.canvas.getBoundingClientRect().bottom + 50;
+    } else {
+      dataEntryX = this.canvas && this.canvas.getBoundingClientRect().right;
+      dataEntryY =
+        this.canvas &&
+        this.canvas.getBoundingClientRect().top + this.canvas.height / 3;
+    }
     return (
       <div>
         <p>{this.state.message}</p>
@@ -663,7 +672,7 @@ class PolygonTool extends React.Component {
   }
 
   drawPoint(pt) {
-    this.ctx.fillStyle = "black";
+    this.ctx.fillStyle = this.props.originType === "detector" ? "white" : "black";
     if (
       this.distance(pt, this.localToImage(this.lastMouse)) <
       this.pointSize / 2
@@ -677,6 +686,7 @@ class PolygonTool extends React.Component {
     this.ctx.beginPath();
     this.ctx.moveTo(pt1.x, pt1.y);
     this.ctx.lineTo(pt2.x, pt2.y);
+    this.ctx.strokeStyle = this.props.originType === "detector" ? "white" : "black";
     this.ctx.stroke();
   }
 

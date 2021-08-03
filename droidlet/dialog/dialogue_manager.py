@@ -110,8 +110,9 @@ class DialogueManager(object):
                 end_time = datetime.datetime.now()
                 hook_data = {
                     "name" : "dialogue",
-                    "start_datetime" : start_time,
-                    "end_datetime" : end_time,
+                    "start_time" : start_time,
+                    "end_time" : end_time,
+                    "elapsed_time" : (end_time - start_time).total_seconds(),
                     "agent_time" : self.memory.get_time(),
                     "object" : str(obj)
                 }

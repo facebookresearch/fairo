@@ -278,7 +278,7 @@ class LocoMCAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
-    def perceive(self, force=False):
+    def perceive(self, force=False, parser_only=False):
         # NOTE: the processing chats block here
         # will move to chat_parser.perceive() once Soumith's changes are in
         start_time = datetime.datetime.now()
@@ -318,18 +318,20 @@ class LocoMCAgent(BaseAgent):
             end_time = datetime.datetime.now()
             hook_data = {
                 "name" : "perceive",
-                "start_datetime" : start_time,
-                "end_datetime" : end_time,
-                "speaker" : speaker, 
+                "start_time" : start_time,
+                "end_time" : end_time,
+                "elapsed_time" : (end_time - start_time).total_seconds(),
                 "agent_time" : self.get_time(),
+                "speaker" : speaker, 
                 "chat" : chat, 
-                "preprocessed" : preprocessed_chat, 
+                "preprocessed_form" : preprocessed_chat, 
                 "logical_form" : chat_parse,
             }
             dispatch.send("perceive", data=hook_data)
 
-        for v in self.perception_modules.values():
-            v.perceive(force=force)
+        if not parser_only:
+            for v in self.perception_modules.values():
+                v.perceive(force=force)
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""

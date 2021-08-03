@@ -95,7 +95,7 @@ jobs:
         name: Pull docker image
         command: |
           set -ex
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:7.0
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
           echo Pulling docker image $DOCKER_IMAGE
           docker pull $DOCKER_IMAGE >/dev/null
 
@@ -105,7 +105,7 @@ jobs:
           set -ex
 
           cd ${HOME}/project/
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:7.0
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           docker cp loco-img:/shared shared
@@ -143,18 +143,24 @@ jobs:
             conda activate polymetis-local
             cd polymetis/polymetis
 
-            export CFG="Release"
             export BUILD_DOCS="ON"
             ./install.sh
+      - run:
+          name: Install Xvfb
+          command: apt install -y xvfb
       - run:
           name: Run tests
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-local
+
             cd ./polymetis
             export PATH=$PWD/polymetis/build/:$PATH
 
-            pytest ./polymetis/tests/python
+            Xvfb :100 -screen 0 1024x768x24 &
+            DISPLAY=:100 pytest ./polymetis/tests/python
+            pkill Xvfb
+
             python ./polymetis/tests/cpp/test_server.py
       - run:
           name: Generate documentation
@@ -197,7 +203,7 @@ jobs:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda build -c fair-robotics -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
+            conda build -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
           destination: conda_pkg
@@ -213,13 +219,19 @@ jobs:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c conda-forge polymetis -y
+            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c aihabitat -c conda-forge polymetis -y
+      - run:
+          name: Install Xvfb
+          command: apt install -y xvfb
       - run:
           name: Run polymetis pytest
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            pytest ./polymetis/polymetis/tests/python
+
+            Xvfb :100 -screen 0 1024x768x24 &
+            DISPLAY=:100 pytest ./polymetis/polymetis/tests/python
+            pkill Xvfb
       - run:
           name: Run polymetis C++ unit tests
           command: |

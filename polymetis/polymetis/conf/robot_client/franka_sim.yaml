@@ -2,7 +2,7 @@ ip: localhost
 hz: 240
 gui: true
 use_grav_comp: true
-use_real_time: true
+use_real_time: false
 
 robot_client:
   _target_: polysim.grpc_sim_client.GrpcSimulationClient

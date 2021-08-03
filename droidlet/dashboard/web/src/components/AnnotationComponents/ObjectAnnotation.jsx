@@ -39,46 +39,57 @@ class ObjectAnnotation extends React.Component {
     if (!this.props.objects) {
       objects = this.props.stateManager.curFeedState.objects;
     }
+    if (objects === null) {
+      objects = [];
+    }
+    if (this.props.isFromCamera) {
+      // if component is from the mobile camera, there are no masks to draw
+      objects = [];
+    }
     this.state = {
       objectIds: [...Array(objects.length).keys()], // [0, ..., maskLength-1]
       currentMode: "select", // one of select, fill_data, draw_polygon, start_polygon
       currentOverlay: null,
       currentMaskId: null,
     };
-
-    this.nextId = objects.length;
-    this.nameMap = {};
-    this.pointMap = {};
-    this.propertyMap = {};
-    for (let i = 0; i < objects.length; i++) {
-      let curObject = objects[i];
-      this.nameMap[i] = curObject.label;
-      this.pointMap[i] = curObject.mask;
-      this.parsePoints(i);
-      this.propertyMap[i] = curObject.properties;
-    }
+    this.processProps(objects);
 
     this.registerClick = this.registerClick.bind(this);
-
-    if (this.props.image !== undefined) {
-      this.image = this.props.image;
-    } else {
-      this.image = new Image();
-      this.image.onload = () => {
-        this.forceUpdate();
-      };
-      this.image.src = this.props.imgUrl;
-    }
     this.segRef = React.createRef();
     this.overtime = false;
+    // only used because when segment renderer is first rendered, image isn't being displayed on canvas for some reason
+    this.displayImage = true;
     setInterval(() => {
       //alert("Please finish what you're working on and click Submit Task below")
       this.overtime = true;
     }, 1000 * 60 * window.MINUTES);
   }
 
+  componentDidUpdate() {
+    let objects = this.props.objects;
+    if (!this.props.objects) {
+      objects = this.props.stateManager.curFeedState.objects;
+    }
+    if (this.props.isFromCamera) {
+      // if component is from the mobile camera, there are no masks to draw
+      objects = [];
+    }
+    if (JSON.stringify(objects) !== JSON.stringify(this.objects)) {
+      this.setState({
+        objectIds: [...Array(objects.length).keys()],
+        currentMode: "select",
+        currentOverlay: null,
+        currentMaskId: null,
+      });
+      this.processProps(objects);
+    }
+  }
+
   render() {
     if (["draw_polygon", "start_polygon"].includes(this.state.currentMode)) {
+      // we have opened the polygontool
+      // only here because opening segmentRenderer for the first time on mobile camera pane doesn't draw on the canvas
+      this.displayImage = false;
       // Get color of object
       let curIndex = this.state.objectIds.indexOf(
         parseInt(this.state.currentMaskId)
@@ -94,6 +105,7 @@ class ObjectAnnotation extends React.Component {
           tags={this.drawing_data.tags}
           masks={this.pointMap[this.state.currentMaskId]}
           isMobile={this.props.isMobile}
+          originType={this.originTypeMap[this.state.currentMaskId]}
           color={color}
           exitCallback={() => {
             this.setState({ currentMode: "select" });
@@ -132,17 +144,47 @@ class ObjectAnnotation extends React.Component {
           <SegmentRenderer
             ref={this.segRef}
             img={this.image}
+            isFromCamera={this.props.isFromCamera}
             objects={this.state.objectIds}
             pointMap={this.pointMap}
+            originTypeMap={this.originTypeMap}
             colors={COLORS}
             imageWidth={this.props.imageWidth}
             onClick={this.registerClick}
+            displayImage={this.displayImage}
           />
           <button onClick={this.submit.bind(this)}>
             Finished annotating objects
           </button>
         </div>
       );
+    }
+  }
+
+  processProps(objects) {
+    this.nextId = objects.length;
+    this.objects = objects;
+    this.nameMap = {};
+    this.pointMap = {};
+    this.propertyMap = {};
+    this.originTypeMap = {};
+    for (let i = 0; i < objects.length; i++) {
+      let curObject = objects[i];
+      this.nameMap[i] = curObject.label;
+      this.pointMap[i] = curObject.mask;
+      this.parsePoints(i);
+      this.propertyMap[i] = curObject.properties;
+      this.originTypeMap[i] = curObject.type;
+    }
+
+    if (this.props.image !== undefined) {
+      this.image = this.props.image;
+    } else {
+      this.image = new Image();
+      this.image.onload = () => {
+        this.forceUpdate();
+      };
+      this.image.src = this.props.imgUrl;
     }
   }
 
@@ -165,7 +207,7 @@ class ObjectAnnotation extends React.Component {
         minY = Math.min(pt.y, minY);
       }
       let totalDiff = maxX - minX + maxY - minY;
-      let maxPoints = totalDiff < 0.015 ? 3 : totalDiff * 50;
+      let maxPoints = totalDiff < 0.06 ? 3 : totalDiff * 50;
       if (this.pointMap[i][j].length > maxPoints) {
         // Take every nth point so that the mask is maxPoints points
         let newArr = [];
@@ -222,9 +264,9 @@ class ObjectAnnotation extends React.Component {
   }
 
   dataEntrySubmit(objectData) {
-    this.drawing_data = objectData;
-    this.propertyMap[this.state.currentMaskId] = this.drawing_data.tags;
-    this.nameMap[this.state.currentMaskId] = this.drawing_data.name;
+    this.drawingData = objectData;
+    this.propertyMap[this.state.currentMaskId] = this.drawingData.tags;
+    this.nameMap[this.state.currentMaskId] = this.drawingData.name;
     this.setState({
       currentMode: "select",
       currentOverlay: null,
@@ -289,13 +331,20 @@ class ObjectAnnotation extends React.Component {
       return;
     }
 
+    for (let key in this.propertyMap) {
+      if (typeof this.propertyMap[key] === typeof "") {
+        this.propertyMap[key] = this.propertyMap[key].split("\n ");
+      }
+    }
     const postData = {
       nameMap: this.nameMap,
       propertyMap: this.propertyMap,
       pointMap: this.pointMap,
     };
+
     this.props.stateManager.socket.emit("saveObjectAnnotation", postData);
     this.props.stateManager.logInteractiondata("object annotation", postData);
+    this.props.stateManager.onObjectAnnotationSave(postData);
     if (this.props.not_turk === true) return;
 
     // TODO: uncomment this to get working in a turk setting again

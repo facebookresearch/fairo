@@ -1043,13 +1043,14 @@ et        """
         # data is sent to the dashboard as JSON to be displayed in the timeline
         end_time = datetime.datetime.now()
         hook_data = {
-            "name" : "db_write", 
+            "name" : "memory", 
+            "start_time" : start_time,
+            "end_time" : end_time,
+            "elapsed_time" : (end_time - start_time).total_seconds(),
             "agent_time" : self.get_time(),
-            "start_datetime" : start_time,
-            "end_datetime" : end_time,
             "table_name" : query_table, 
             "operation" : query_operation, 
-            "args" : query_dict, 
+            "arguments" : query_dict, 
             "result" : r,
         }
         dispatch.send("memory", data=hook_data)

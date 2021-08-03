@@ -8,7 +8,7 @@ from os.path import isfile, isdir
 from os.path import join as pjoin
 from torch.utils.data import Dataset
 from .tokenization_utils import fixed_span_values
-from .utils_caip import *
+from .utils_caip import make_full_tree, process_txt_data, tokenize_linearize
 
 
 class CAIPDataset(Dataset):

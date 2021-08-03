@@ -3,30 +3,26 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import os
-import subprocess
 from typing import Tuple
 
 import torch
+from polymetis.utils.data_dir import PKG_ROOT_DIR
 
 try:
     torch.classes.load_library(
         f"{os.environ['CONDA_PREFIX']}/lib/libtorchscript_pinocchio.so"
     )
 except OSError:
-    print(
-        "Warning: Failed to load 'libtorchscript_pinocchio.so' from CONDA_PREFIX, loading from default build directory 'polymetis/build' instead..."
-    )
-    project_root_dir = (
-        subprocess.run(["git", "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE)
-        .stdout.strip()
-        .decode("ascii")
-    )
-    torch.classes.load_library(
+    lib_path = os.path.abspath(
         os.path.join(
-            project_root_dir,
-            "polymetis/polymetis/build/libtorchscript_pinocchio.so",
+            PKG_ROOT_DIR,
+            "../../build/libtorchscript_pinocchio.so",
         )
     )
+    print(
+        f"Warning: Failed to load 'libtorchscript_pinocchio.so' from CONDA_PREFIX, loading from default build directory instead: '{lib_path}'"
+    )
+    torch.classes.load_library(lib_path)
 
 
 class RobotModelPinocchio(torch.nn.Module):
@@ -82,3 +78,21 @@ class RobotModelPinocchio(torch.nn.Module):
         return self.model.inverse_dynamics(
             joint_positions, joint_velocities, joint_accelerations
         ).to(joint_positions)
+
+    def inverse_kinematics(
+        self,
+        ee_pos: torch.Tensor,
+        ee_quat: torch.Tensor,
+        eps: float = 1e-4,
+        max_iters: int = 1000,
+        dt: float = 0.1,
+        damping: float = 1e-6,
+    ) -> torch.Tensor:
+        """Computes joint positions that achieve a given end-effector pose.
+
+        Returns:
+            torch.Tensor: joint positions
+        """
+        return self.model.inverse_kinematics(
+            ee_pos.squeeze(), ee_quat.squeeze(), eps, max_iters, dt, damping
+        ).to(ee_pos)
