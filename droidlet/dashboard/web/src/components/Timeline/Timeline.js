@@ -151,12 +151,16 @@ class DashboardTimeline extends React.Component {
     if (event && event !== this.prevEvent) {
       this.prevEvent = event;
       const eventObj = JSON.parse(event);
+      let description = "";
+      if (eventObj["name"] === "perceive") {
+        description = ' ("' + eventObj["chat"] + '")';
+      }
 
       // adds to the outer timeline group
       items.add([
         {
           title: JSON.stringify(eventObj, null, 2),
-          content: eventObj["name"],
+          content: eventObj["name"] + description,
           group: "timeline",
           className: eventObj["name"],
           start: eventObj["start_time"],
