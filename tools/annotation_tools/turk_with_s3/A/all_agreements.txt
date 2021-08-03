@@ -1,1 +1,0 @@
-move to the man	{"action_type": ["yes", "move"], "dialogue_type": ["yes", "HUMAN_GIVE_COMMAND"], "location": ["no", [[1, 1], [3, 3]]]}
