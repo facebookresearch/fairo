@@ -105,6 +105,13 @@ include_directories(
     ${pinocchio_INCLUDE_DIRS} 
 )
 
+add_library(torchrot SHARED
+    src/torchscript_operators/rotations.cpp
+)
+target_link_libraries(torchrot
+    ${TORCH_LIBRARIES}
+)
+
 # Add Torchscript Pinocchio wrapper
 add_library(torchscript_pinocchio SHARED
     src/torchscript_operators/pinocchio.cpp
@@ -112,13 +119,7 @@ add_library(torchscript_pinocchio SHARED
 target_link_libraries(torchscript_pinocchio
     ${pinocchio_LIBRARIES}
     ${TORCH_LIBRARIES}
-)
-
-add_library(torchrot SHARED
-    src/torchscript_operators/rotations.cpp
-)
-target_link_libraries(torchrot
-    ${TORCH_LIBRARIES}
+    torchrot
 )
 
 # Add server
