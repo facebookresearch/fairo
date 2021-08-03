@@ -19,3 +19,4 @@ krovetz
 open3d
 sklearn
 git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI
+git+git://github.com/waspinator/pycococreator.git@0.2.0
