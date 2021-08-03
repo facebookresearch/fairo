@@ -204,7 +204,6 @@ def compute_accuracy(outputs, y):
     Shape of inputs:
     y: B x y_len x num_heads
     """
-    import ipdb; ipdb.set_trace()
     if len(y.shape) == 2:
         lm_targets = y
     else:
