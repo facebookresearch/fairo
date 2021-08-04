@@ -155,7 +155,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     return torch::from_blob(tau.data(), dims, torch::kFloat64).clone();
   }
 
-  torch::Tensor inverse_kinematics(torch::Tensor ee_pos, torch::Tensor ee_quat, torch::Tensor neutral_pose,
+  torch::Tensor inverse_kinematics(torch::Tensor ee_pos, torch::Tensor ee_quat,
+                                   torch::Tensor neutral_pose,
                                    double eps = 1e-4, int64_t max_iters = 1000,
                                    double dt = 0.1, double damping = 1e-12) {
     ee_pos = validTensor(ee_pos);
