@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 
 import React from "react";
+import { handleSearch } from "./TimelineUtils";
 import { makeStyles } from "@material-ui/core/styles";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -41,6 +42,8 @@ export default function TimelineDropdown({ stateManager }) {
     setEventName(event.target.value);
     stateManager.memory.timelineFilters = event.target.value;
     stateManager.updateTimeline();
+    // update search results
+    handleSearch(stateManager, stateManager.memory.timelineSearchPattern);
   };
 
   return (

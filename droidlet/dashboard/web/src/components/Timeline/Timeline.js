@@ -7,9 +7,8 @@ agent using the flags --enable_timeline --log_timeline.
 */
 
 import React, { createRef } from "react";
-import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { handleClick, capitalizeEvent } from "./TimelineUtils";
+import { handleClick, capitalizeEvent, handleSearch } from "./TimelineUtils";
 import TimelineDropdown from "./TimelineDropdown";
 import SearchIcon from "@material-ui/icons/Search";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
@@ -117,41 +116,6 @@ class DashboardTimeline extends React.Component {
     });
   }
 
-  handleSearch(pattern) {
-    const matches = [];
-    if (pattern) {
-      this.searchPattern = pattern;
-      const fuseOptions = {
-        // set ignoreLocation to true or else it searches the first 60 characters by default
-        ignoreLocation: true,
-        useExtendedSearch: true,
-      };
-
-      const fuse = new Fuse(
-        this.props.stateManager.memory.timelineEventHistory,
-        fuseOptions
-      );
-
-      // prepending Fuse operator to search for results that include the pattern
-      const result = fuse.search("'" + pattern);
-
-      if (result.length) {
-        result.forEach(({ item }) => {
-          const eventObj = JSON.parse(item);
-          if (
-            this.props.stateManager.memory.timelineFilters.includes(
-              capitalizeEvent(eventObj["name"])
-            )
-          ) {
-            matches.push(eventObj);
-          }
-        });
-      }
-    }
-    this.props.stateManager.memory.timelineSearchResults = matches;
-    this.props.stateManager.updateTimelineResults();
-  }
-
   renderEvent() {
     const event = this.props.stateManager.memory.timelineEvent;
     // prevents duplicates because state changes cause the page to rerender
@@ -191,6 +155,7 @@ class DashboardTimeline extends React.Component {
 
   toggleVisibility() {
     const filters = this.props.stateManager.memory.timelineFilters;
+    // checks if filters have been changed
     if (filters !== this.searchFilters) {
       this.searchFilters = [...filters];
       let itemArr = items.get();
@@ -203,8 +168,6 @@ class DashboardTimeline extends React.Component {
         }
       }
       items.update(itemArr);
-      // update search results
-      this.handleSearch(this.searchPattern);
     }
   }
 
@@ -222,7 +185,9 @@ class DashboardTimeline extends React.Component {
 
         <SearchBar
           placeholder="Search"
-          onChange={(e) => this.handleSearch(e.target.value)}
+          onChange={(e) =>
+            handleSearch(this.props.stateManager, e.target.value)
+          }
         />
 
         <div id="dropdown">
