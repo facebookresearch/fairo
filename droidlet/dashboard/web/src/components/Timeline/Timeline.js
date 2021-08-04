@@ -166,6 +166,7 @@ class DashboardTimeline extends React.Component {
           start: eventObj["start_time"],
           end: eventObj["end_time"],
           type: "box",
+          // style: "",
         },
       ]);
       // adds the same item to the inner nested group
@@ -177,13 +178,29 @@ class DashboardTimeline extends React.Component {
           start: eventObj["start_time"],
           end: eventObj["end_time"],
           type: "box",
+          // style: "",
         },
       ]);
     }
   }
 
+  toggleVisibility() {
+    const filters = this.props.stateManager.memory.timelineFilters;
+    let itemArr = items.get();
+    // loop through all items and check if the filter applies
+    for (let i = 0; i < itemArr.length; i++) {
+      if (filters.includes(capitalizeEvent(itemArr[i].className))) {
+        itemArr[i].style = "opacity: 1;";
+      } else {
+        itemArr[i].style = "opacity: 0.2;";
+      }
+    }
+    items.update(itemArr);
+  }
+
   render() {
     this.renderEvent();
+    this.toggleVisibility();
     return (
       <div className="timeline">
         <p id="description">
