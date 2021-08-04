@@ -166,7 +166,6 @@ class DashboardTimeline extends React.Component {
           start: eventObj["start_time"],
           end: eventObj["end_time"],
           type: "box",
-          // style: "",
         },
       ]);
       // adds the same item to the inner nested group
@@ -178,7 +177,6 @@ class DashboardTimeline extends React.Component {
           start: eventObj["start_time"],
           end: eventObj["end_time"],
           type: "box",
-          // style: "",
         },
       ]);
     }
