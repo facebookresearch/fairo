@@ -176,7 +176,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
 
         # Create Pinocchio model (for gravity compensation)
         self.robot_model = toco.models.RobotModelPinocchio(
-            self.robot_description_path, self.robot_model_cfg.ee_joint_name
+            self.robot_description_path, self.robot_model_cfg.ee_link_name
         )
 
         # Start Habitat simulator

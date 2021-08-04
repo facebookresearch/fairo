@@ -14,7 +14,10 @@ try:
     )
 except OSError:
     lib_path = os.path.abspath(
-        os.path.join(PKG_ROOT_DIR, "../../build/libtorchscript_pinocchio.so",)
+        os.path.join(
+            PKG_ROOT_DIR,
+            "../../build/libtorchscript_pinocchio.so",
+        )
     )
     print(
         f"Warning: Failed to load 'libtorchscript_pinocchio.so' from CONDA_PREFIX, loading from default build directory instead: '{lib_path}'"
@@ -31,10 +34,10 @@ class RobotModelPinocchio(torch.nn.Module):
     a C++ rigid body dynamics library.
     """
 
-    def __init__(self, urdf_filename: str, ee_joint_name: str):
+    def __init__(self, urdf_filename: str, ee_link_name: str):
         super().__init__()
         self.model = torch.classes.torchscript_pinocchio.RobotModelPinocchio(
-            urdf_filename, ee_joint_name
+            urdf_filename, ee_link_name
         )
 
     def get_joint_angle_limits(self) -> torch.Tensor:
