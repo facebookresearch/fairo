@@ -90,10 +90,15 @@ class DashboardTimeline extends React.Component {
     this.timeline = {};
     this.appRef = createRef();
     this.prevEvent = "";
+    this.searchPattern = "";
   }
 
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
+
+    // make a shallow copy of search filters
+    this.searchFilters = [...this.props.stateManager.memory.timelineFilters];
+
     this.timeline = new Timeline(this.appRef.current, items, groups, options);
     // set current viewing window to 20 seconds for readability
     let currentTime = this.timeline.getCurrentTime();
@@ -101,6 +106,7 @@ class DashboardTimeline extends React.Component {
       start: currentTime.setSeconds(currentTime.getSeconds() - 10),
       end: currentTime.setSeconds(currentTime.getSeconds() + 20),
     });
+
     // store this keyword to access it inside the event handler
     const that = this;
     this.timeline.on("click", function (properties) {
@@ -114,6 +120,7 @@ class DashboardTimeline extends React.Component {
   handleSearch(pattern) {
     const matches = [];
     if (pattern) {
+      this.searchPattern = pattern;
       const fuseOptions = {
         // set ignoreLocation to true or else it searches the first 60 characters by default
         ignoreLocation: true,
@@ -184,16 +191,21 @@ class DashboardTimeline extends React.Component {
 
   toggleVisibility() {
     const filters = this.props.stateManager.memory.timelineFilters;
-    let itemArr = items.get();
-    // loop through all items and check if the filter applies
-    for (let i = 0; i < itemArr.length; i++) {
-      if (filters.includes(capitalizeEvent(itemArr[i].className))) {
-        itemArr[i].style = "opacity: 1;";
-      } else {
-        itemArr[i].style = "opacity: 0.2;";
+    if (filters !== this.searchFilters) {
+      this.searchFilters = [...filters];
+      let itemArr = items.get();
+      // loop through all items and check if the filter applies
+      for (let i = 0; i < itemArr.length; i++) {
+        if (filters.includes(capitalizeEvent(itemArr[i].className))) {
+          itemArr[i].style = "opacity: 1;";
+        } else {
+          itemArr[i].style = "opacity: 0.2;";
+        }
       }
+      items.update(itemArr);
+      // update search results
+      this.handleSearch(this.searchPattern);
     }
-    items.update(itemArr);
   }
 
   render() {
