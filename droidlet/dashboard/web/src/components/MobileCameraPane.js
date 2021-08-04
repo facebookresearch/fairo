@@ -10,6 +10,7 @@ class MobileCameraPane extends React.Component {
     this.state = {
       currentMode: "camera",
       img: null,
+      webCamPermissions: "granted",
       videoConstraints: {
         facingMode: { exact: "environment" },
         height: this.props.imageWidth,
@@ -17,6 +18,15 @@ class MobileCameraPane extends React.Component {
       },
     };
     this.webcamRef = React.createRef();
+    if (navigator.permissions && navigator.permissions.query) {
+      // has side effect that mobile devices/browsers that do not support navigator.permissions wont have this check
+      navigator.permissions.query({ name: "camera" }).then((permission) => {
+        console.log(permission);
+        this.setState({
+          webCamPermissions: permission.state,
+        });
+      });
+    }
   }
 
   screenshot() {
@@ -47,18 +57,27 @@ class MobileCameraPane extends React.Component {
 
   render() {
     if (this.state.currentMode === "camera") {
-      return (
-        <div>
-          <Webcam
-            height={this.props.imageWidth}
-            width={this.props.imageWidth}
-            videoConstraints={this.state.videoConstraints}
-            ref={this.webcamRef}
-          />
-          <button onClick={this.screenshot.bind(this)}> Capture </button>
-          <button onClick={this.switchCamera.bind(this)}>Switch Camera</button>
-        </div>
-      );
+      console.log("rendering");
+      console.log(this.state.webCamPermissions);
+      if (this.state.webCamPermissions === "denied") {
+        console.log("in the if statement");
+        return <div> Please grant camera permissions </div>;
+      } else {
+        return (
+          <div>
+            <Webcam
+              height={this.props.imageWidth}
+              width={this.props.imageWidth}
+              videoConstraints={this.state.videoConstraints}
+              ref={this.webcamRef}
+            />
+            <button onClick={this.screenshot.bind(this)}> Capture </button>
+            <button onClick={this.switchCamera.bind(this)}>
+              Switch Camera
+            </button>
+          </div>
+        );
+      }
     }
     if (this.state.currentMode === "annotation") {
       if (stateManager.useDesktopComponentOnMobile) {
