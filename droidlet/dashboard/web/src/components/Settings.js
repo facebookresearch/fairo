@@ -94,6 +94,7 @@ class Settings extends React.Component {
     }
   }
 
+  // switch which annotation component to use
   switchAnnotation = (event) => {
     stateManager.useDesktopComponentOnMobile = event.target.checked;
     this.setState({
