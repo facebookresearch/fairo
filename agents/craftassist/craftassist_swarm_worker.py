@@ -12,13 +12,17 @@ import sys
 from droidlet.lowlevel.minecraft.mc_util import MCTime
 from droidlet.memory.craftassist.swarm_worker_memory import SwarmWorkerMemory
 
-TASK_MAP = TASK_MAP = {
+TASK_MAP =  {
         "move": tasks.Move,
-        # "build": tasks.Build,
+        "build": tasks.Build,
         # "destroy": tasks.Destroy,
         # "dig": tasks.Dig,       
     }
 
+TASK_INFO = {
+    "move": ["target", "approx"],
+    "build": []
+}
 class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
     from a forked multiprocessing child
@@ -36,6 +40,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
     def __init__(self, opts, idx, memory_send_queue, memory_receive_queue):
         self.agent_idx = idx
         self.task_stacks = dict()
+        self.task_ghosts = []
         self.prio = dict()
         self.running = dict()
         self.pause = False
@@ -54,7 +59,8 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
     def init_memory(self):
         self.memory = SwarmWorkerMemory(agent_time=MCTime(self.get_world_time),
                                         memory_send_queue=self.memory_send_queue,
-                                        memory_receive_queue=self.memory_receive_queue)
+                                        memory_receive_queue=self.memory_receive_queue,
+                                        memory_tag="swarm_worker_{}".format(self.agent_idx))
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -64,6 +70,13 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         for v in self.perception_modules.values():
             v.perceive(force=force)
     
+    def check_task_info(self, task_name, task_data):
+        print("check task: ", task_name, task_data)
+        for key in TASK_INFO[task_name.lower()]:
+            if key not in task_data:
+                return False
+        return True
+        
     def task_step(self):
         queries = []
         task_updates = []
@@ -82,6 +95,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
                     self.running[memid] = 0
             cur_task_status = (self.prio[memid], self.running[memid], task.finished)
             if (not self.pause) and (self.running[memid] >=1):
+                # ForkedPdb().set_trace()
                 tmp_query = task.step()
                 # TODO: return queries if anything is missing
                 if task.finished:
@@ -91,6 +105,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
                     queries.append((memid, tmp_query))
             if cur_task_status!= pre_task_status:
                 task_updates.append((memid, cur_task_status))
+            # ForkedPdb().set_trace()
         
         for memid in finished_task_memids:
             del self.task_stacks[memid]
@@ -117,8 +132,9 @@ class CraftAssistSwarmWorker_Wrapper(Process):
 
     def send_task_updates(self, task_updates):
         # TODO: send task updates to master by pushing to self.query_from_worker
-        name = 'task_updates'
-        self.query_from_worker.put((name, task_updates))
+        if len(task_updates)>0:
+            name = 'task_updates'
+            self.query_from_worker.put((name, task_updates))
 
     def update_task(self, memid, info):
         # TODO: update task info based on information given by master agent
@@ -141,18 +157,30 @@ class CraftAssistSwarmWorker_Wrapper(Process):
                     self.update_task(memid, info)
 
             if not self.input_tasks.empty():
+                # ForkedPdb().set_trace()
                 task_class_name, task_data, task_memid = self.input_tasks.get_nowait()
-                if task_memid not in agent.task_stacks.keys():
+                if task_memid is None or ((task_memid not in agent.task_stacks.keys()) and (task_memid not in agent.task_ghosts)):
                 # TODO: implement stop and resume
-                    agent.task_stacks[task_memid] = TASK_MAP[task_class_name](agent, task_data)
-                    agent.prio[task_memid] = -1
-                    agent.running[task_memid] = -1
+                    print(task_class_name, task_data, task_memid)
+                    if agent.check_task_info(task_class_name, task_data):
+                        new_task = TASK_MAP[task_class_name](agent, task_data)
+                        if task_memid is None:
+                            task_memid = new_task.memid
+                        else:
+                            agent.task_ghosts.append(new_task.memid)
+                            # can send updates back to main agent to mark as finished
+                        agent.task_stacks[task_memid] = new_task
+                        agent.prio[task_memid] = -1
+                        agent.running[task_memid] = -1
+                elif task_memid in agent.task_stacks.keys():
+                    self.send_task_updates([(task_memid, (agent.prio[task_memid], agent.running[task_memid], agent.task_stacks[task_memid].finished))])
+                elif task_memid in agent.task_ghosts:
+                    self.send_task_updates([(task_memid, (0, 0, True))])
             
             if not self.input_chats.empty():
                 chat = self.input_chats.get_nowait()
                 agent.send_chat(chat)
 
-            
             queries, task_updates = agent.task_step()
             self.send_queries(queries)
             self.send_task_updates(task_updates)
