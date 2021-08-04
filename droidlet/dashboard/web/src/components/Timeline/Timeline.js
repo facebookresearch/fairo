@@ -142,7 +142,7 @@ class DashboardTimeline extends React.Component {
       }
     }
     this.props.stateManager.memory.timelineSearchResults = matches;
-    this.props.stateManager.updateTimeline();
+    this.props.stateManager.updateTimelineResults();
   }
 
   renderEvent() {

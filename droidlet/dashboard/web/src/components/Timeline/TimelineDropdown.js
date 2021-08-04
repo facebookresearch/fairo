@@ -40,6 +40,7 @@ export default function TimelineDropdown({ stateManager }) {
   const handleChange = (event) => {
     setEventName(event.target.value);
     stateManager.memory.timelineFilters = event.target.value;
+    stateManager.updateTimeline();
   };
 
   return (

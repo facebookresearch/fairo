@@ -35,7 +35,7 @@ export function handleClick(stateManager, item) {
   const eventObj = JSON.parse(item);
   let tableArr = jsonToArray(eventObj);
   stateManager.memory.timelineDetails = tableArr;
-  stateManager.updateTimeline();
+  stateManager.updateTimelineResults();
 
   var config = {
     title: capitalizeEvent(eventObj["name"]),
