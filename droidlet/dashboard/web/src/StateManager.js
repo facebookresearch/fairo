@@ -132,7 +132,7 @@ class StateManager {
       objects: false,
       pose: false,
     };
-    this.useDesktopComponentOnMobile = false; // switch to use either desktop or mobile annotation on mobile device
+    this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
     // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
 
