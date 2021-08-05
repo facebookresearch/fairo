@@ -411,12 +411,17 @@ class MemorySearcher:
         if not query:
             return [], []
         query = self.maybe_convert_query(query)
-        # TODO/FIXME memtype all
+        # TODO/FIXME memtype ALL
         memtype = query.get("memory_type", default_memtype)
         if query.get("where_clause"):
             memids = self.handle_where(agent_memory, query["where_clause"], memtype)
         else:
-            memids = []
+            node_types = agent_memory.node_children.get(memtype, [])
+            memids = [
+                m[0]
+                for nt in node_types
+                for m in agent_memory._db_read("SELECT uuid FROM Memories WHERE node_type=?", nt)
+            ]
         memids = self.handle_selector(agent_memory, query, memids)
         if self.ignore_self:
             try:
@@ -430,7 +435,7 @@ class MemorySearcher:
 # TODO subclass for filters that return at most one memory,value?
 # TODO base_query instead of table
 class MemoryFilter:
-    def __init__(self, agent_memory, table="ReferenceObjects", preceding=None):
+    def __init__(self, agent_memory, memtype="ReferenceObject", preceding=None):
         """
         An object to search an agent memory, or to filter memories.
 
@@ -451,7 +456,7 @@ class MemoryFilter:
         if the __call__ gets no inputs, its a .search(); otherwise its a .filter on the value and memids
         """
         self.memory = agent_memory
-        self.table = table
+        self.memtype = memtype
         self.head = None
         self.is_tail = True
         self.preceding = None
@@ -474,8 +479,9 @@ class MemoryFilter:
         self.head = F.head or F
 
     def all_table_memids(self):
-        cmd = "SELECT uuid FROM " + self.table
-        return [m[0] for m in self.memory._db_read(cmd)]
+        cmd = "SELECT MEMORY FROM " + self.memtype
+        memids, _ = self.memory.basic_search(cmd)
+        return memids
 
     # returns a list of memids, a list of vals
     # no input
@@ -619,8 +625,8 @@ class ExtremeValueMemorySelector(MemoryFilter):
 
 
 class LogicalOperationFilter(MemoryFilter):
-    def __init__(self, agent_memory, searchers):
-        super().__init__(agent_memory)
+    def __init__(self, agent_memory, searchers, memtype="ReferenceObject"):
+        super().__init__(agent_memory, memtype=memtype)
         self.searchers = searchers
         if not self.searchers:
             raise Exception("empty filter list input into LogicalOperationFilter constructor")
@@ -656,7 +662,7 @@ class OrFilter(LogicalOperationFilter):
         all_mems = []
         vals = []
         for f in self.searchers:
-            mems, v = f.search()
+            mems, v = f()
             all_mems.extend(mems)
             vals.extend(v)
         return self.filter(mems, vals)
@@ -671,12 +677,11 @@ class OrFilter(LogicalOperationFilter):
 
 # FIXME!!! (base_filters.table)
 class NotFilter(LogicalOperationFilter):
-    def __init__(self, agent_memory, searchers, base_table="Memories"):
-        super().__init__(agent_memory, searchers)
+    def __init__(self, agent_memory, searchers, memtype="ReferenceObject"):
+        super().__init__(agent_memory, searchers, memtype=memtype)
 
     def search(self):
-        cmd = "SELECT uuid FROM " + self.base_filters.table
-        all_memids = self.memory._db_read(cmd)
+        all_memids = self.all_table_memids()
         out_memids = list(set(all_memids) - set(self.searchers[0].search()))
         out_vals = [None] * len(out_memids)
         return out_memids, out_vals
@@ -712,14 +717,15 @@ class FixedMemFilter(MemoryFilter):
             return [], []
 
 
+# TODO unify ComparatorAttribute and this
 class ComparatorFilter(MemoryFilter):
-    def __init__(self, agent_memory, comparator_attribute):
+    def __init__(self, agent_memory, comparator_attribute, memtype="Memories"):
         super().__init__(agent_memory)
         self.comparator = comparator_attribute
+        self.memtype = memtype
 
     def search(self):
-        cmd = "SELECT uuid FROM " + self.base_filters.table
-        all_memids = self.memory._db_read(cmd)
+        all_memids = self.all_table_memids()
         return self.filter(all_memids, [None] * len(all_memids))
 
     def filter(self, memids, vals):
@@ -729,6 +735,9 @@ class ComparatorFilter(MemoryFilter):
             [memids[i] for i in range(len(mems)) if T[i]],
             [vals[i] for i in range(len(mems)) if T[i]],
         )
+
+    def _selfstr(self):
+        return str(self.comparator)
 
 
 class BasicFilter(MemoryFilter):

@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from copy import deepcopy
 from .attribute_helper import AttributeInterpreter, maybe_specific_mem
 from droidlet.memory.memory_attributes import LinearExtentAttribute
 from droidlet.memory.memory_filters import (
@@ -8,6 +9,7 @@ from droidlet.memory.memory_filters import (
     AndFilter,
     OrFilter,
     NotFilter,
+    ComparatorFilter,
     MemidList,
     FixedMemFilter,
     BasicFilter,
@@ -102,7 +104,10 @@ def interpret_where_clause(
             return NotFilter(interpreter.memory, clause_filters)
     if where_d.get("input_left"):
         # this is a comparator leaf
-        return interpret_comparator(interpreter, speaker, where_d, is_condition=False)
+        comparator_attribute = interpret_comparator(
+            interpreter, speaker, where_d, is_condition=False
+        )
+        return ComparatorFilter(interpreter.memory, comparator_attribute, memtype=memory_type)
     else:
         # this is a triple leaf
         query = {"memory_type": memory_type, "where_clause": {"AND": [{}]}}
@@ -252,33 +257,36 @@ def convert_task_where(where_clause):
     """
     new_where_clause = deepcopy(where_clause)
     # doesn't check if where_clause is well formed
-    conj = where_clause.get("AND") or where_clause.get("OR") or where_clause.get("NOT")
-    if conj:  # recurse
-        for i in range(where_clause[conj]):
+    subwhere = where_clause.get("AND") or where_clause.get("OR") or where_clause.get("NOT")
+    if subwhere:  # recurse
+        conj = list(where_clause.keys())[0]
+        for i in range(len(subwhere)):
             new_where_clause[conj][i] = convert_task_where(where_clause[conj][i])
     else:  # a leaf
         if "input_left" in where_clause:  # a comparator, leave alone
             pass
         else:  # triple...
-            o = where_clause.get("obj_text")
+            o = where_clause.get("obj_text").lower()
             if o == "currently_running":
                 new_where_clause = {
-                    "input_left": "running",
-                    "input_right": 1,
+                    "input_left": {"value_extractor": {"attribute": "running"}},
+                    "input_right": {"value_extractor": "1"},
                     "comparison_type": "EQUAL",
                 }
-            if o == "paused":
+            elif o == "paused":
                 new_where_clause = {
-                    "input_left": "paused",
-                    "input_right": 1,
+                    "input_left": {"value_extractor": {"attribute": "paused"}},
+                    "input_right": {"value_extractor": "1"},
                     "comparison_type": "EQUAL",
                 }
-            if o == "finished":
+            elif o == "finished":
                 new_where_clause = {
-                    "input_left": "finished",
-                    "input_right": 0,
+                    "input_left": {"value_extractor": {"attribute": "finished"}},
+                    "input_right": {"value_extractor": "0"},
                     "comparison_type": "GREATER_THAN",
                 }
+            else:
+                new_where_clause["obj_text"] = o
     return new_where_clause
 
 

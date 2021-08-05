@@ -150,7 +150,9 @@ class ProgramNode(MemoryNode):
         memid = cls.new(memory, snapshot=snapshot)
         logical_form_text = json.dumps(logical_form)
         memory.db_write(
-            "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)", memid, format(logical_form_text)
+            "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)",
+            memid,
+            format(logical_form_text),
         )
         return memid
 
@@ -710,7 +712,7 @@ class ChatNode(MemoryNode):
 
     TABLE_COLUMNS = ["uuid", "speaker", "chat", "time"]
     TABLE = "Chats"
-    NODE_TYPE = "Time"
+    NODE_TYPE = "Chat"
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
