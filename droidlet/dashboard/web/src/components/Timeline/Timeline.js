@@ -23,11 +23,13 @@ const theme = createMuiTheme({
 
 const timelineEvents = new DataSet();
 
+const timelineTypes = ["perceive", "dialogue", "interpreter", "memory"];
+
 const groups = [
   {
     id: "timeline",
     content: "Timeline",
-    nestedGroups: ["perceive", "dialogue", "interpreter", "memory"],
+    nestedGroups: timelineTypes,
   },
   {
     id: "perceive",
@@ -213,3 +215,4 @@ class DashboardTimeline extends React.Component {
 }
 
 export default DashboardTimeline;
+export { timelineTypes };

@@ -4,6 +4,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import React from "react";
 import { handleSearch } from "./TimelineSearch";
+import { timelineTypes } from "./Timeline";
+import { capitalizeEvent } from "./TimelineUtils";
+
 import { makeStyles } from "@material-ui/core/styles";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -32,13 +35,13 @@ const MenuProps = {
   },
 };
 
-const names = ["Perceive", "Dialogue", "Interpreter", "Memory"];
-
 export default function TimelineDropdown({ stateManager }) {
   const classes = useStyles();
+  const names = timelineTypes;
   const [eventName, setEventName] = React.useState(names);
 
   const handleChange = (event) => {
+    console.log(timelineTypes);
     setEventName(event.target.value);
     stateManager.memory.timelineFilters = event.target.value;
     stateManager.updateTimeline();
@@ -49,10 +52,10 @@ export default function TimelineDropdown({ stateManager }) {
   return (
     <div>
       <FormControl className={classes.formControl}>
-        <InputLabel id="mutiple-checkbox-label">Filters</InputLabel>
+        <InputLabel id="multiple-checkbox-label">Filters</InputLabel>
         <Select
-          labelId="mutiple-checkbox-label"
-          id="mutiple-checkbox"
+          labelId="multiple-checkbox-label"
+          id="multiple-checkbox"
           multiple
           value={eventName}
           onChange={handleChange}
@@ -63,7 +66,7 @@ export default function TimelineDropdown({ stateManager }) {
           {names.map((name) => (
             <MenuItem key={name} value={name}>
               <Checkbox checked={eventName.indexOf(name) > -1} />
-              <ListItemText primary={name} />
+              <ListItemText primary={capitalizeEvent(name)} />
             </MenuItem>
           ))}
         </Select>
