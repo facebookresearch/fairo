@@ -20,7 +20,7 @@ const theme = createMuiTheme({
   },
 });
 
-const items = new DataSet();
+const timelineEvents = new DataSet();
 
 const groups = [
   {
@@ -98,7 +98,12 @@ class DashboardTimeline extends React.Component {
     // make a shallow copy of search filters
     this.searchFilters = [...this.props.stateManager.memory.timelineFilters];
 
-    this.timeline = new Timeline(this.appRef.current, items, groups, options);
+    this.timeline = new Timeline(
+      this.appRef.current,
+      timelineEvents,
+      groups,
+      options
+    );
     // set current viewing window to 20 seconds for readability
     let currentTime = this.timeline.getCurrentTime();
     let startTime = currentTime.setSeconds(currentTime.getSeconds() - 10);
@@ -112,7 +117,7 @@ class DashboardTimeline extends React.Component {
     const that = this;
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
-        const item = items.get(properties["item"]);
+        const item = timelineEvents.get(properties["item"]);
         handleClick(that.props.stateManager, item.title);
       }
     });
@@ -130,7 +135,7 @@ class DashboardTimeline extends React.Component {
       }
 
       // adds to the outer timeline group
-      items.add([
+      timelineEvents.add([
         {
           title: JSON.stringify(eventObj, null, 2),
           content: eventObj["name"] + description,
@@ -142,7 +147,7 @@ class DashboardTimeline extends React.Component {
         },
       ]);
       // adds the same item to the inner nested group
-      items.add([
+      timelineEvents.add([
         {
           title: JSON.stringify(eventObj, null, 2),
           group: eventObj["name"],
@@ -160,16 +165,16 @@ class DashboardTimeline extends React.Component {
     // checks if filters have been changed
     if (filters !== this.searchFilters) {
       this.searchFilters = [...filters];
-      let itemArr = items.get();
+      let items = timelineEvents.get();
       // loop through all items and check if the filter applies
-      for (let i = 0; i < itemArr.length; i++) {
-        if (filters.includes(capitalizeEvent(itemArr[i].className))) {
-          itemArr[i].style = "opacity: 1;";
+      for (let i = 0; i < items.length; i++) {
+        if (filters.includes(capitalizeEvent(items[i].className))) {
+          items[i].style = "opacity: 1;";
         } else {
-          itemArr[i].style = "opacity: 0.2;";
+          items[i].style = "opacity: 0.2;";
         }
       }
-      items.update(itemArr);
+      timelineEvents.update(items);
     }
   }
 
