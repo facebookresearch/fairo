@@ -140,7 +140,6 @@ class StateManager {
     this.categories = new Set()
     this.properties = new Set()
     this.annotationsSaved = true
-    };
     this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
     // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
