@@ -491,14 +491,14 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\t" + v + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\t" + v + "\n")
 
     # write disagreements to a file
     f = folder_name + "0_disagreements.txt"
     with open(f, "w") as outfile:
         for k, v in disagreement.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\n")
             for item in v:
                 outfile.write(item + "\n")
             outfile.write("\n")
