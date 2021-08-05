@@ -29,7 +29,7 @@ from droidlet.perception.robot.perception_helpers import get_color_tag
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
 detector_weights = "model_999.pth"
-default_json_dir = "annotation_data/model"
+default_json_dir = "./annotation_data/model"
 props_filename = "props.json"
 things_filename = "things.json"
 
@@ -93,6 +93,7 @@ class DetectorBase:
         things_file = os.path.join(model_data_dir, things_filename) \
             if things_filename in files \
             else os.path.join(default_json_dir, things_filename)
+        print("cheesecake", os.listdir("./"), os.abspath, '\n', root_dir = os.path.abspath(os.path.dirname(__file__)))
 
         with open(props_file, "r") as h:
             self.properties = json.load(h)["items"]
