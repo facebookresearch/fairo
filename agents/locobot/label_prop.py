@@ -27,8 +27,7 @@ def label_propagation(postData):
     # Decode rgb map
     rgb_bytes = base64.b64decode(postData["prevRgbImg"])
     rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
-    rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
-    rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
+    rgb = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
     src_img = np.array(rgb)
     height, width, _ = src_img.shape
 
@@ -41,7 +40,7 @@ def label_propagation(postData):
         depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
         depth_unscaled = (255 - np.copy(depth_decoded[:,:,0]))
         depth_scaled = depth_unscaled / 255 * (float(depth["depthMax"]) - float(depth["depthMin"]))
-        depth_imgs.append(depth_scaled)
+        depth_imgs.append(depth_scaled + float(depth["depthMin"]))
     src_depth = np.array(depth_imgs[0])
     cur_depth = np.array(depth_imgs[1])
 
