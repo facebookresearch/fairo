@@ -25,6 +25,7 @@ import {
   TimelineResults,
   TimelineDetails,
 } from "./components/Timeline";
+import Retrainer from "./components/Retrainer";
 import { isMobile } from "react-device-detect";
 
 import "./index.css";
@@ -149,6 +150,12 @@ var config = {
                   component: "ObjectFixup",
                   props: { stateManager: stateManager },
                 },
+                {
+                  title: "Retrainer",
+                  type: "react-component",
+                  component: "Retrainer",
+                  props: { stateManager: stateManager },
+                },
               ],
             },
           ],
@@ -173,6 +180,7 @@ dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
 dashboardLayout.registerComponent("DashboardTimeline", DashboardTimeline);
 dashboardLayout.registerComponent("TimelineResults", TimelineResults);
 dashboardLayout.registerComponent("TimelineDetails", TimelineDetails);
+dashboardLayout.registerComponent("Retrainer", Retrainer);
 
 // allows for css styling, e.g. to be scrollable
 dashboardLayout.on("itemCreated", function (item) {

@@ -32,11 +32,16 @@ class LiveObjects extends React.Component {
     this.addObject = this.addObject.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onFixup = this.onFixup.bind(this);
+    this.onAnnotationSave = this.onAnnotationSave.bind(this);
+    this.onRetrain = this.onRetrain.bind(this);
+    this.onModelSwitch = this.onModelSwitch.bind(this);
+
     this.initialState = {
       height: props.height,
       width: props.width,
       rgb: null,
       objects: null,
+      modelMetrics: null,
     };
     this.state = this.initialState;
   }
@@ -97,6 +102,26 @@ class LiveObjects extends React.Component {
           }
         }
       }
+    }
+  }
+
+  onAnnotationSave() {
+    if (this.props.stateManager) {
+      this.props.stateManager.onSave()
+    }
+  }
+
+  onRetrain() {
+    if (this.props.stateManager) {
+      console.log('retraining detector...')
+      this.props.stateManager.socket.emit("retrain_detector")
+    }
+  }
+
+  onModelSwitch() {
+    if (this.props.stateManager) {
+      console.log("switching model...")
+      this.props.stateManager.socket.emit("switch_detector")
     }
   }
 
@@ -171,15 +196,15 @@ class LiveObjects extends React.Component {
         />
       );
       if (obj && obj.mask) {
-        for (let i = 0; i < obj.mask.length; i++) {
-          let mask = obj.mask[i].map((x) => [x[0] * scale, x[1] * scale]);
+        for (let j = 0; j < obj.mask.length; j++) {
+          let mask = obj.mask[j].map((x) => [x[0] * scale, x[1] * scale]);
           renderedObjects.push(
             <Shape
               sceneFunc={(context, shape) => {
                 context.beginPath();
                 context.moveTo(...mask[0]);
-                for (let i = 1; i < mask.length; i++) {
-                  context.lineTo(...mask[i]);
+                for (let k = 1; k < mask.length; k++) {
+                  context.lineTo(...mask[k]);
                 }
                 context.closePath();
                 context.fillStrokeShape(shape);
@@ -188,11 +213,25 @@ class LiveObjects extends React.Component {
               opacity={0.5}
               stroke={obj.type === "detector" ? "white" : "black"}
               strokeWidth={1}
+              key={`${i}-${j}`}
             />
           );
         }
       }
     });
+
+    let updatedModelDiv = null;
+    if (this.state.modelMetrics) {
+      let segm = this.state.modelMetrics.segm
+      let evalText = Object.keys(segm).map(key => <div>{key + ": " + segm[key]}</div>)
+      updatedModelDiv = (
+        <div>
+          <div>New model trained!</div>
+          Evalution: {evalText}
+          <button onClick={this.onModelSwitch}>Switch</button>
+        </div>
+      )
+    }
 
     return (
       <Rnd
@@ -212,6 +251,9 @@ class LiveObjects extends React.Component {
           </Layer>
         </Stage>
         <button onClick={this.onFixup}>Fix</button>
+        <button onClick={this.onAnnotationSave}>Save</button>
+        <button onClick={this.onRetrain}>Retrain</button>
+        {updatedModelDiv}
       </Rnd>
     );
   }
