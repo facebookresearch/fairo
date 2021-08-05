@@ -104,20 +104,24 @@ class LocobotAgent(LocoMCAgent):
         super().init_event_handlers()
 
         @sio.on("movement command")
-        def test_command(sid, commands):
+        def test_command(sid, commands, movement_values={}):
+            if len(movement_values) == 0: 
+                movement_values["yaw"] = 0.01
+                movement_values["velocity"] = 0.1
+
             movement = [0.0, 0.0, 0.0]
             for command in commands:
                 if command == "MOVE_FORWARD":
-                    movement[0] += 0.1
+                    movement[0] += movement_values["velocity"]
                     print("action: FORWARD")
                 elif command == "MOVE_BACKWARD":
-                    movement[0] -= 0.1
+                    movement[0] -= movement_values["velocity"]
                     print("action: BACKWARD")
                 elif command == "MOVE_LEFT":
-                    movement[2] += 0.01
+                    movement[2] += movement_values["yaw"]
                     print("action: LEFT")
                 elif command == "MOVE_RIGHT":
-                    movement[2] -= 0.01
+                    movement[2] -= movement_values["yaw"]
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
                     self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
