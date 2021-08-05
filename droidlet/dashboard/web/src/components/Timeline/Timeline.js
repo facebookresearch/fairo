@@ -164,7 +164,7 @@ class DashboardTimeline extends React.Component {
   toggleVisibility() {
     const filters = this.props.stateManager.memory.timelineFilters;
     // checks if filters have been changed
-    if (filters !== this.searchFilters) {
+    if (filters && filters !== this.searchFilters) {
       this.searchFilters = [...filters];
       let items = timelineEvents.get();
       // loop through all items and check if the filter applies
