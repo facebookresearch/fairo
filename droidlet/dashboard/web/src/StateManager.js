@@ -94,6 +94,8 @@ class StateManager {
     this.onSave = this.onSave.bind(this);
     this.saveAnnotations = this.saveAnnotations.bind(this);
     this.annotationRetrain = this.annotationRetrain.bind(this);
+    this.goOffline = this.goOffline.bind(this);
+    this.handleMaxFrames = this.handleMaxFrames.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -105,7 +107,7 @@ class StateManager {
     this.setTurkWorkerId(turkWorkerId);
 
     // set default url to actual ip:port
-    this.default_url = window.location.host;
+    // this.default_url = window.location.host;
     this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");
@@ -118,16 +120,16 @@ class StateManager {
 
     // Assumes that all socket events for a frame are received before the next frame
     this.curFeedState = {
-      rgbImg: null,
-      depth: null,
-      objects: null, // Can be changed by annotation tool
-      origObjects: null, // Original objects sent from backend
+      rgbImg: null, 
+      depth: null, 
+      objects: [], // Can be changed by annotation tool
+      origObjects: [], // Original objects sent from backend
       pose: null,
     };
     this.prevFeedState = {
-      rgbImg: null,
-      depth: null,
-      objects: null,
+      rgbImg: null, 
+      depth: null, 
+      objects: [],
       pose: null,
     };
     this.stateProcessed = {
@@ -136,11 +138,13 @@ class StateManager {
       objects: false,
       pose: false,
     }
-    this.frameCount = 0
+    this.frameCount = 0 // For filenames when saving
     this.categories = new Set()
     this.properties = new Set()
     this.annotationsSaved = true
-    };
+    this.offline = false
+    this.frameId = 0 // Offline frame count
+    this.offlineObjects = {} // Maps frame ids to masks
     this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
     // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
@@ -251,6 +255,7 @@ class StateManager {
     socket.on("labelPropagationReturn", this.labelPropagationReturn);
     socket.on("annotationRetrain", this.annotationRetrain);
     socket.on("saveRgbSegCallback", this.saveAnnotations);
+    socket.on("handleMaxFrames", this.handleMaxFrames);
   }
 
   updateStateManagerMemory(data) {
@@ -458,14 +463,18 @@ class StateManager {
     }
     this.curFeedState.objects = newObjects
     this.annotationsSaved = false
-
+    
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
         ref.setState({
           objects: this.curFeedState.objects,
+          updateFixup: true,
         });
       }
-    });
+    })
+    if (this.offline) {
+      this.offlineObjects[this.frameId] = this.curFeedState.objects
+    }
   }
 
   getNewBbox(maskSet) {
@@ -542,6 +551,9 @@ class StateManager {
         }
       }
     })
+    if (this.offline) {
+      this.offlineObjects[this.frameId] = this.curFeedState.objects
+    }
     if (Object.keys(res).length > 0) {
       this.annotationsSaved = false
     }
@@ -551,11 +563,11 @@ class StateManager {
     return (
       this.curFeedState.rgbImg &&
       this.curFeedState.depth &&
-      this.curFeedState.objects &&
+      this.curFeedState.objects.length > 0 &&
       this.curFeedState.pose &&
       this.prevFeedState.rgbImg &&
       this.prevFeedState.depth &&
-      this.prevFeedState.objects &&
+      this.prevFeedState.objects.length > 0 &&
       this.prevFeedState.pose &&
       !this.stateProcessed.rgbImg &&
       !this.stateProcessed.depth &&
@@ -567,25 +579,60 @@ class StateManager {
   onSave() {
     console.log("saving annotations, categories, and properties")
     
-    // Save rgb/seg if needed
-    if (!this.annotationsSaved) {
-      let curObjects = this.curFeedState.objects.filter(o => o.type === "annotate")
-      for (let i in curObjects) {
-        this.categories.add(curObjects[i].label)
-        let props = curObjects[i].properties.split("\n ")
-        props.forEach(p => this.properties.add(p))
+    if (this.offline) {
+      // Save categories and properties
+      for (let key in this.offlineObjects) {
+        let objects = this.offlineObjects[key]
+        for (let i in objects) {
+          let obj = objects[i]
+          this.categories.add(obj.label)
+          let properties = obj.properties.split("\n ")
+          properties.forEach(p => this.properties.add(p))
+        }
       }
-      let saveProps = {
-        rgb: this.curFeedState.rgbImg, 
-        objects: curObjects, 
-        frameCount: this.frameCount,
-        categories: [null, ...this.categories], // Include null so category indices start at 1
-        callback: true, // Include boolean param to save annotations after -- ensures whatever the noun form of synchronous is
+      let categories = [null, ...this.categories] // Include null so category indices start at 1
+      let properties = [...this.properties]
+      this.socket.emit("save_categories_properties", categories, properties)
+      
+      // Save rgb/seg
+      let outputId = 0
+      for (let key in this.offlineObjects) {
+        let objects = this.offlineObjects[key]
+        let finalFrame = outputId === Object.keys(this.offlineObjects).length - 1
+        let saveProps = {
+          filepath: this.filepath,
+          frameId: parseInt(key),
+          outputId,
+          objects, 
+          categories, 
+          finalFrame, // When true, backend will save all annotations to COCO format
+        }
+        this.socket.emit("offline_save_rgb_seg", saveProps)
+        outputId++
       }
-      this.socket.emit("save_rgb_seg", saveProps)
-      this.annotationsSaved = true
+
     } else {
-      this.saveAnnotations()
+      // Save current rgb/seg if needed
+      if (!this.annotationsSaved) {
+        let curObjects = this.curFeedState.objects.filter(o => o.type === "annotate")
+        for (let i in curObjects) {
+          this.categories.add(curObjects[i].label)
+          let props = curObjects[i].properties.split("\n ")
+          props.forEach(p => this.properties.add(p))
+        }
+        let saveProps = {
+          rgb: this.curFeedState.rgbImg, 
+          objects: curObjects, 
+          frameCount: this.frameCount,
+          categories: [null, ...this.categories], // Include null so category indices start at 1
+          callback: true, // Include boolean param to save annotations after -- ensures whatever the noun form of synchronous is
+        }
+        // This emit has a callback that calls saveAnnotations() 
+        this.socket.emit("save_rgb_seg", saveProps)
+        this.annotationsSaved = true
+      } else {
+        this.saveAnnotations()
+      }
     }
   }
 
@@ -606,6 +653,102 @@ class StateManager {
         })
       }
     });
+  }
+
+  goOffline(filepath) {
+    console.log("Going offline with filepath", filepath)
+    this.filepath = filepath
+    this.frameId = 0
+    this.offline = true
+
+    this.socket.emit("get_offline_frame", {
+      filepath: this.filepath, 
+      frameId: this.frameId,
+    })
+    this.socket.emit("start_offline_dashboard", filepath)
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          objects: [],
+          modelMetrics: null,
+          offline: true,
+        })
+      }
+    })
+  }
+
+  handleMaxFrames(maxFrames) {
+    this.maxOfflineFrames = maxFrames
+    console.log("max frames:", maxFrames)
+  }
+
+  offlineLabelProp(srcFrame, curFrame) {
+    // Get src frame's objects
+    let srcObjects = this.offlineObjects[srcFrame]
+    let props = {
+      filepath: this.filepath,
+      srcFrame,
+      curFrame, 
+      objects: srcObjects,
+    }
+
+    // Send objs and id to backend
+    this.socket.emit("offline_label_propagation", props)
+  }
+
+  previousFrame() {
+    if (this.frameId === 0) {
+      console.log("no frames under 0")
+      return
+    }
+    this.frameId--
+    console.log("Prev frame", this.frameId)
+    this.socket.emit("get_offline_frame", {
+      filepath: this.filepath, 
+      frameId: this.frameId
+    })
+    // Get objects
+    this.curFeedState.objects = this.offlineObjects[this.frameId] || []
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          objects: this.curFeedState.objects,
+        });
+      }
+    })
+
+    // Run label prop
+    let curFrameHasObjects = this.offlineObjects[this.frameId] && this.offlineObjects[this.frameId].length > 0
+    if (this.offlineObjects[this.frameId + 1] && !curFrameHasObjects) {
+      this.offlineLabelProp(this.frameId + 1, this.frameId)
+    }
+  }
+
+  nextFrame() {
+    if (this.frameId === this.maxOfflineFrames) {
+      console.log("no frames over", this.maxOfflineFrames)
+      return
+    }
+    this.frameId++
+    console.log("Next frame", this.frameId)
+    this.socket.emit("get_offline_frame", {
+      filepath: this.filepath, 
+      frameId: this.frameId
+    })
+    this.curFeedState.objects = this.offlineObjects[this.frameId] || []
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          objects: this.curFeedState.objects,
+        });
+      }
+    })
+
+    // Run label prop
+    let curFrameHasObjects = this.offlineObjects[this.frameId] && this.offlineObjects[this.frameId].length > 0
+    if (this.offlineObjects[this.frameId - 1] && !curFrameHasObjects) {
+      this.offlineLabelProp(this.frameId - 1, this.frameId)
+    }
   }
 
   processMemoryState(msg) {
@@ -629,6 +772,9 @@ class StateManager {
               rgb: rgb,
             });
           }
+        }
+        if (this.offline && ref instanceof LiveObjects) {
+          ref.setState({ rgb });
         }
       });
       // Update state

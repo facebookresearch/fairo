@@ -273,8 +273,8 @@ class LocobotAgent(LocoMCAgent):
                 image_id = int(x.split(".")[0])
                 # load the annotation file
                 try:
-                    prop_path = os.path.join(seg_dir, "{:05d}.npy".format(image_id))
-                    annot = np.load(prop_path).astype(np.uint8)
+                    seg_path = os.path.join(seg_dir, "{:05d}.npy".format(image_id))
+                    annot = np.load(seg_path, allow_pickle=True).astype(np.uint8)
                 except Exception as e:
                     print(e)
                     continue
