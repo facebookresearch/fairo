@@ -62,7 +62,7 @@ Currently the tool supports all of `HUMAN_GIVE_COMMAND`, `GET_MEMORY`, `PUT_MEMO
 
 The tool autocompletes children for tree nodes based on matches in the filters spec on key expansion, indicated by `<key>: [space] [space] [Enter]`.
 
-For dialogue type autocomplete, type the dialogue type in lower case, eg. `"get_memory":[space][space]<enter>` -->
+For dialogue type autocomplete, type the dialogue type in lower case, without surrounding brackets, eg. `"get_memory":[space][space]<enter>` -->
 ```
 {
     "dialogue_type": "GET_MEMORY",
@@ -113,6 +113,8 @@ will autocomplete to
 
 Note that there is a comma after "filters", which ensures that the subtree inserted by autocomplete will complete to correct JSON. Otherwise, this will not work.
 
+You need to type out the brackets for some keys, like "action_sequence", since it does not autocomplete.
+
 If labelling fragments, you need to start with an empty dictionary, eg.
 ```
 {"filters":[space][space]<enter>}
@@ -128,7 +130,7 @@ To pretty print a JSON valid dictionary, press Enter in the text box.
 ## Save and Upload
 On `Save Annotations`, the current command and parse tree are saved to `command_dict_pairs.json` in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/`.
 
-On `Create Dataset from Annotations`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. 
+On `Create Dataset`, the new data pairs in `~/droidlet/tools/annotation_tools/template_tool/frontend/src/command_dict_pairs.json` are first postprocessed into the format required for droidlet NLU components (fill span ranges, remove empty keys), using `~/droidlet/tools/data_processing/autocomplete_postprocess.py`. 
 
 By default, the results are written to a new file under `~/droidlet/craftassist/agent/datasets/full_data/autocomplete_<DATE>.txt`. If you want to overwrite an existing data file, you need to specify the source file and output path in args, eg.
 
@@ -147,4 +149,7 @@ Final data is in the format
 ```
 
 Then, you may rename and upload this file to the S3 URI `s3://craftassist/pubr/`. You can also submit a PR to update the datasets. It is now ready to be used in training, validation or ground truth actions!
+
+## How to write templates
+
 
