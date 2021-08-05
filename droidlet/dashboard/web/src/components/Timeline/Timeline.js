@@ -23,28 +23,28 @@ const theme = createMuiTheme({
 
 const timelineEvents = new DataSet();
 
-const timelineTypes = ["perceive", "dialogue", "interpreter", "memory"];
+const timelineTypes = ["Perceive", "Dialogue", "Interpreter", "Memory"];
 
 const groups = [
   {
-    id: "timeline",
+    id: "Timeline",
     content: "Timeline",
     nestedGroups: timelineTypes,
   },
   {
-    id: "perceive",
+    id: "Perceive",
     content: "Perception",
   },
   {
-    id: "dialogue",
+    id: "Dialogue",
     content: "Dialogue",
   },
   {
-    id: "interpreter",
+    id: "Interpreter",
     content: "Interpreter",
   },
   {
-    id: "memory",
+    id: "Memory",
     content: "Memory",
   },
 ];
@@ -142,7 +142,7 @@ class DashboardTimeline extends React.Component {
         {
           title: JSON.stringify(eventObj, null, 2),
           content: eventObj["name"] + description,
-          group: "timeline",
+          group: "Timeline",
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
@@ -153,7 +153,7 @@ class DashboardTimeline extends React.Component {
       timelineEvents.add([
         {
           title: JSON.stringify(eventObj, null, 2),
-          group: eventObj["name"],
+          group: capitalizeEvent(eventObj["name"]),
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
@@ -167,6 +167,7 @@ class DashboardTimeline extends React.Component {
     const filters = this.props.stateManager.memory.timelineFilters;
     // checks if filters have been changed
     if (filters && filters !== this.searchFilters) {
+      console.log(filters);
       this.searchFilters = [...filters];
       let items = timelineEvents.get();
       // loop through all items and check if the filter applies

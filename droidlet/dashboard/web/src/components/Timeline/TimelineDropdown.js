@@ -5,7 +5,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import { handleSearch } from "./TimelineSearch";
 import { timelineTypes } from "./Timeline";
-import { capitalizeEvent } from "./TimelineUtils";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Input from "@material-ui/core/Input";
@@ -41,7 +40,6 @@ export default function TimelineDropdown({ stateManager }) {
   const [eventName, setEventName] = React.useState(names);
 
   const handleChange = (event) => {
-    console.log(timelineTypes);
     setEventName(event.target.value);
     stateManager.memory.timelineFilters = event.target.value;
     stateManager.updateTimeline();
@@ -66,7 +64,7 @@ export default function TimelineDropdown({ stateManager }) {
           {names.map((name) => (
             <MenuItem key={name} value={name}>
               <Checkbox checked={eventName.indexOf(name) > -1} />
-              <ListItemText primary={capitalizeEvent(name)} />
+              <ListItemText primary={name} />
             </MenuItem>
           ))}
         </Select>
