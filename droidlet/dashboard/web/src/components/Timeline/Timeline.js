@@ -101,9 +101,11 @@ class DashboardTimeline extends React.Component {
     this.timeline = new Timeline(this.appRef.current, items, groups, options);
     // set current viewing window to 20 seconds for readability
     let currentTime = this.timeline.getCurrentTime();
+    let startTime = currentTime.setSeconds(currentTime.getSeconds() - 10);
+    let endTime = currentTime.setSeconds(currentTime.getSeconds() + 10);
     this.timeline.setOptions({
-      start: currentTime.setSeconds(currentTime.getSeconds() - 10),
-      end: currentTime.setSeconds(currentTime.getSeconds() + 20),
+      start: startTime,
+      end: endTime,
     });
 
     // store this keyword to access it inside the event handler
