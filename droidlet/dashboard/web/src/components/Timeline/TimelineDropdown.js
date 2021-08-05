@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 */
 
 import React from "react";
-import { handleSearch } from "./TimelineUtils";
+import { handleSearch } from "./TimelineSearch";
 import { makeStyles } from "@material-ui/core/styles";
 import Input from "@material-ui/core/Input";
 import InputLabel from "@material-ui/core/InputLabel";

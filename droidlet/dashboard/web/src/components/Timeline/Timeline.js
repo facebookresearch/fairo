@@ -8,7 +8,8 @@ agent using the flags --enable_timeline --log_timeline.
 
 import React, { createRef } from "react";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { handleClick, capitalizeEvent, handleSearch } from "./TimelineUtils";
+import { handleClick, capitalizeEvent } from "./TimelineUtils";
+import { handleSearch } from "./TimelineSearch";
 import TimelineDropdown from "./TimelineDropdown";
 import SearchIcon from "@material-ui/icons/Search";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
