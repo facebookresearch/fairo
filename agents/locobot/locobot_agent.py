@@ -114,10 +114,10 @@ class LocobotAgent(LocoMCAgent):
                     movement[0] -= 0.1
                     print("action: BACKWARD")
                 elif command == "MOVE_LEFT":
-                    movement[2] += 0.3
+                    movement[2] += 0.01
                     print("action: LEFT")
                 elif command == "MOVE_RIGHT":
-                    movement[2] -= 0.3
+                    movement[2] -= 0.01
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
                     self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
