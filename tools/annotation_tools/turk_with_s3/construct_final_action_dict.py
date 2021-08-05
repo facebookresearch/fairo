@@ -5,7 +5,6 @@ from pprint import pprint
 import os
 import argparse
 
-
 # Construct maps of tools A->D
 toolC_map = {}
 toolD_map = {}
@@ -26,7 +25,8 @@ def collect_tool_outputs(tool_C_out_file, tool_D_out_file):
                     toolC_map[cmd].update(ast.literal_eval(a_d))
                 else:
                     toolC_map[cmd] = ast.literal_eval(a_d)
-    print(len(toolC_map.keys()))
+    # print("toolC map keys")
+    # print(toolC_map.keys())
 
     if os.path.exists(tool_D_out_file):
         with open(tool_D_out_file) as f2:
@@ -37,7 +37,8 @@ def collect_tool_outputs(tool_C_out_file, tool_D_out_file):
                     print("Error: command {} is in the tool D outputs".format(cmd))
                 # add the comparison dict to command -> dict
                 toolD_map[cmd] = ast.literal_eval(comparison_dict)
-    print(len(toolD_map.keys()))
+    # print("toolD map keys")
+    # print(toolD_map.keys())
 
 
 def all_yes(a_dict):
@@ -122,11 +123,10 @@ def fix_ref_obj(clean_dict):
     return new_clean_dict
 
 
-def combine_and_write_outputs(tool_A_out_file, tool_B_out_file):
+def combine_tool_cd_make_ab(tool_A_out_file, tool_B_out_file):
     # combine and write output to a file
-    i = 0
     # what these action will look like in the map
-
+    i = 0
     # update dict of toolC with tool D and keep that in tool C's map
     for cmd, a_dict in toolC_map.items():
         # remove the ['yes', val] etc
@@ -153,11 +153,8 @@ def combine_and_write_outputs(tool_A_out_file, tool_B_out_file):
             valid_dict[key]["filters"] = new_clean_dict
             valid_dict[key]["filters"].update(comparison_dict)
             toolC_updated_map[cmd] = valid_dict  # only gets populated if filters exist
-    pprint(toolC_updated_map)
-
-
-    print(len(toolC_updated_map.keys()))
-    print(len(toolC_map.keys()))
+    # print("in combine_tool_cd_make_ab...")
+    # pprint(toolC_updated_map)
 
     # combine outputs
     # check if all keys of t1 annotated yes -> put directly
@@ -167,8 +164,9 @@ def combine_and_write_outputs(tool_A_out_file, tool_B_out_file):
         for line in f.readlines():
             line = line.strip()
             cmd, a_d = line.split("\t")
+            cmd = cmd.strip()
             toolA_map[cmd] = a_d
-    print(len(toolA_map.keys()))
+    # pprint(toolA_map)
 
     # construct map of tool 2
 
@@ -177,12 +175,14 @@ def combine_and_write_outputs(tool_A_out_file, tool_B_out_file):
             for line in f2.readlines():
                 line = line.strip()
                 cmd, child, child_dict = line.split("\t")
+                cmd = cmd.strip()
+                child = child.strip()
                 if cmd in toolB_map and child in toolB_map[cmd]:
                     print("BUGGG")
                 if cmd not in toolB_map:
                     toolB_map[cmd] = {}
                 toolB_map[cmd][child] = child_dict
-    print(len(toolB_map.keys()))
+    # pprint(toolB_map)
 
 
 def all_yes(a_dict):
@@ -268,17 +268,17 @@ def update_action_dictionaries(all_combined_path):
     # combine and write output to a file
     i = 0
     # what these action will look like in the map
-    dance_type_map = {"point": "point", "look": "look_turn", "turn": "body_turn"}
+    dance_type_map = {"point": "point",
+                      "look": "look_turn",
+                      "turn": "body_turn"}
 
     # update dict of tool1 with tool 2
     with open(all_combined_path, "w") as f:
         for cmd, a_dict in toolA_map.items():
             # remove the ['yes', val] etc
             clean_dict = clean_dict_1(a_dict)
-            print(clean_dict)
             if all_yes(a_dict):
                 action_type = clean_dict["action_type"]
-
                 valid_dict = {}
                 valid_dict["dialogue_type"] = clean_dict["dialogue_type"]
                 del clean_dict["dialogue_type"]
@@ -370,5 +370,5 @@ if __name__ == "__main__":
     all_combined_path = '{}/all_combined.txt'.format(args.write_dir_path)
 
     collect_tool_outputs(folder_name_C, folder_name_D)
-    combine_and_write_outputs(folder_name_A, folder_name_B)
+    combine_tool_cd_make_ab(folder_name_A, folder_name_B)
     update_action_dictionaries(all_combined_path)
