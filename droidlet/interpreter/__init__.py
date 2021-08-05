@@ -26,7 +26,12 @@ from .interpreter import Interpreter
 from .get_memory_handler import GetMemoryHandler
 
 from .condition_helper import ConditionInterpreter, get_repeat_num
-from .filter_helper import FilterInterpreter, interpret_dance_filter
+from .filter_helper import (
+    FilterInterpreter,
+    interpret_dance_filter,
+    interpret_where_backoff,
+    maybe_apply_selector,
+)
 from .attribute_helper import AttributeInterpreter
 
 __all__ = [
@@ -50,6 +55,8 @@ __all__ = [
     interpret_relative_direction,
     ConditionInterpreter,
     get_repeat_num,
+    interpret_where_backoff,
+    maybe_apply_selector,
     FilterInterpreter,
     AttributeInterpreter,
     GetMemoryHandler,

@@ -581,6 +581,9 @@ class RandomMemorySelector(MemoryFilter):
         idxs = random_subsample_idx(len(memids), self.n, same=self.same)
         return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
+    def _selfstr(self):
+        return "Random " + str(self.n) + " SAME " + self.same
+
 
 class ExtremeValueMemorySelector(MemoryFilter):
     def __init__(self, agent_memory, polarity="argmax", ordinal=1):

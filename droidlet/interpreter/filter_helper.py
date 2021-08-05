@@ -124,7 +124,7 @@ def interpret_where_backoff(
     )
     _, modified_where = backoff_where(where_d)
     G = interpret_where_clause(
-        interpreter, speaker, where_d, memory_type=memory_type, ignore_self=ignore_self
+        interpreter, speaker, modified_where, memory_type=memory_type, ignore_self=ignore_self
     )
     return BackoffFilter(interpreter.memory, [F, G])
 

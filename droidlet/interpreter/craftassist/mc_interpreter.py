@@ -26,6 +26,7 @@ from .schematic_helper import (
     interpret_schematic,
     interpret_size,
     interpret_fill_schematic,
+    interpret_mob_schematic,
 )
 
 from .facing_helper import FacingInterpreter
@@ -174,33 +175,15 @@ class MCInterpreter(Interpreter):
         """
         # FIXME! use filters appropriately, don't search by hand
         filters_d = d.get("reference_object", {}).get("filters", {})
-        spawn_triples = filters_d.get("triples", [])
-        if not spawn_triples:
-            raise ErrorWithResponse("I don't understand what you want me to spawn.")
-        names = [t.get("obj_text") for t in spawn_triples if t.get("pred_text", "") == "has_name"]
-        if not any(names):
-            raise ErrorWithResponse("I don't understand what you want me to spawn.")
-        # if multiple possible has_name triples, just pick the first:
-        object_name = names[0]
-        #############################################################
-        # FIXME! use FILTERS handle this properly...!
-        # repeats are hacky (and wrong) too because not using FILTERS
-        #############################################################
-        schematic = self.memory.get_mob_schematic_by_name(object_name)
-        if not schematic:
-            raise ErrorWithResponse("I don't know how to spawn: %r." % (object_name))
+        object_idms = interpret_mob_schematic(self, speaker, filters_d)
 
-        object_idm = list(schematic.blocks.values())[0]
         location_d = d.get("location", SPEAKERLOOK)
-        mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+        locmems = self.subinterpret["reference_locations"](self, speaker, location_d)
         steps, reldir = interpret_relative_direction(self, location_d)
-        pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
-        # FIXME, not using selector properly (but need to use FILTERS first)
-        repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
-        repeat_times = int(number_from_span(repeat))
+        pos, _ = self.subinterpret["specify_locations"](self, speaker, locmems, steps, reldir)
         tasks = []
-        for i in range(repeat_times):
-            task_data = {"object_idm": object_idm, "pos": pos, "action_dict": d}
+        for i in range(len(object_idms)):
+            task_data = {"object_idm": object_idms[i], "pos": pos, "action_dict": d}
             tasks.append(self.task_objects["spawn"](agent, task_data))
         return maybe_task_list_to_control_block(tasks, agent), None, None
 
@@ -243,7 +226,7 @@ class MCInterpreter(Interpreter):
                 self.color_bid_map,
                 self.special_shape_functions,
             )
-            
+
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
         mems = self.subinterpret["reference_locations"](self, speaker, location_d)

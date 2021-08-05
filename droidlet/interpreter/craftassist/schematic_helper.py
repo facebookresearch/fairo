@@ -5,15 +5,18 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import re
 import numpy as np
+from copy import deepcopy
 from typing import List, Tuple, Union, Optional
 
 # TODO with subinterpret
+from droidlet.memory.craftassist.mc_memory_nodes import SchematicNode
 from droidlet.interpreter.craftassist import size_words
 from .block_helpers import get_block_type
 from droidlet.base_util import number_from_span, Block
 from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num
 from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPES_CANONICALIZE
+from droidlet.interpreter import interpret_where_backoff, maybe_apply_selector
 
 ############################################################################
 # Plan: store virtual memories / generative models, and search over those
@@ -277,3 +280,24 @@ def get_repeat_dir(d):
     else:
         direction_name = None
     return direction_name
+
+
+def interpret_mob_schematic(interpreter, speaker, filters_d):
+    spawn_clause = {"pred_text": "has_tag", "obj_text": "_spawn"}
+    where = filters_d.get("where_clause", {"AND": [spawn_clause]})
+    if where.get("AND"):
+        where["AND"].append(spawn_clause)
+    else:
+        new_where = {"AND": [spawn_clause, deepcopy(where)]}
+        where = new_where
+
+    # FIXME! we don't need to recopy this here, do more composably
+    W = interpret_where_backoff(interpreter, speaker, where, memory_type="Schematic")
+    F = maybe_apply_selector(interpreter, speaker, filters_d, W)
+    schematic_memids, _ = F()
+    object_idms = [
+        list(SchematicNode(interpreter.memory, m).blocks.values())[0] for m in schematic_memids
+    ]
+    if not object_idms:
+        raise ErrorWithResponse("I don't know how to spawn that")
+    return object_idms
