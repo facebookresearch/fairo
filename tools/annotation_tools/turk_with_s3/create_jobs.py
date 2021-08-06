@@ -11,7 +11,7 @@ from datetime import datetime
 def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str, use_sandbox: bool):
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("AWS_REGION", default="us-east-1")
+    aws_region = os.getenv("AWS_REGION", default="us-west-2")
 
     if use_sandbox:
         MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)

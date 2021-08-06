@@ -118,7 +118,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     access_key = os.getenv("AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("AWS_REGION", default="us-east-1")
+    aws_region = os.getenv("AWS_REGION", default="us-west-2")
 
     if args.dev:
         MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)
