@@ -7,34 +7,44 @@ agent using the flags --enable_timeline --log_timeline.
 */
 
 import React, { createRef } from "react";
-import Fuse from "fuse.js";
 import { Timeline, DataSet } from "vis-timeline/standalone";
-import { handleClick } from "./TimelineUtils";
+import { handleClick, capitalizeEvent } from "./TimelineUtils";
+import { handleSearch } from "./TimelineSearch";
+import TimelineDropdown from "./TimelineDropdown";
 import SearchIcon from "@material-ui/icons/Search";
+import { createMuiTheme, ThemeProvider } from "@material-ui/core/styles";
 import "./Timeline.css";
 
-const items = new DataSet();
+const theme = createMuiTheme({
+  palette: {
+    type: "dark",
+  },
+});
+
+const timelineEvents = new DataSet();
+
+const timelineTypes = ["Perceive", "Dialogue", "Interpreter", "Memory"];
 
 const groups = [
   {
-    id: "timeline",
+    id: "Timeline",
     content: "Timeline",
-    nestedGroups: ["perceive", "dialogue", "interpreter", "memory"],
+    nestedGroups: timelineTypes,
   },
   {
-    id: "perceive",
+    id: "Perceive",
     content: "Perception",
   },
   {
-    id: "dialogue",
+    id: "Dialogue",
     content: "Dialogue",
   },
   {
-    id: "interpreter",
+    id: "Interpreter",
     content: "Interpreter",
   },
   {
-    id: "memory",
+    id: "Memory",
     content: "Memory",
   },
 ];
@@ -82,53 +92,39 @@ class DashboardTimeline extends React.Component {
     this.timeline = {};
     this.appRef = createRef();
     this.prevEvent = "";
+    this.searchPattern = "";
   }
 
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
-    this.timeline = new Timeline(this.appRef.current, items, groups, options);
-    // set current viewing window to 10 seconds for readability
-    let currentTime = this.timeline.getCurrentTime();
+
+    // make a shallow copy of search filters
+    this.searchFilters = [...this.props.stateManager.memory.timelineFilters];
+
+    this.timeline = new Timeline(
+      this.appRef.current,
+      timelineEvents,
+      groups,
+      options
+    );
+    // set current viewing window to 20 seconds for readability
+    let startTime = this.timeline.getCurrentTime();
+    let endTime = this.timeline.getCurrentTime();
+    startTime = startTime.setSeconds(startTime.getSeconds() - 10);
+    endTime = endTime.setSeconds(endTime.getSeconds() + 10);
     this.timeline.setOptions({
-      start: currentTime.setSeconds(currentTime.getSeconds() - 5),
-      end: currentTime.setSeconds(currentTime.getSeconds() + 10),
+      start: startTime,
+      end: endTime,
     });
+
     // store this keyword to access it inside the event handler
     const that = this;
     this.timeline.on("click", function (properties) {
       if (properties["item"]) {
-        const item = items.get(properties["item"]);
+        const item = timelineEvents.get(properties["item"]);
         handleClick(that.props.stateManager, item.title);
       }
     });
-  }
-
-  handleSearch(pattern) {
-    const matches = [];
-    if (pattern) {
-      const fuseOptions = {
-        // set ignoreLocation to true or else it searches the first 60 characters by default
-        ignoreLocation: true,
-        useExtendedSearch: true,
-      };
-
-      const fuse = new Fuse(
-        this.props.stateManager.memory.timelineEventHistory,
-        fuseOptions
-      );
-
-      // prepending Fuse operator to search for results that include the pattern
-      const result = fuse.search("'" + pattern);
-
-      if (result.length) {
-        result.forEach(({ item }) => {
-          const eventObj = JSON.parse(item);
-          matches.push(eventObj);
-        });
-      }
-    }
-    this.props.stateManager.memory.timelineSearchResults = matches;
-    this.props.stateManager.updateTimeline();
   }
 
   renderEvent() {
@@ -137,13 +133,17 @@ class DashboardTimeline extends React.Component {
     if (event && event !== this.prevEvent) {
       this.prevEvent = event;
       const eventObj = JSON.parse(event);
+      let description = "";
+      if (eventObj["name"] === "perceive") {
+        description = ' ("' + eventObj["chat"] + '")';
+      }
 
       // adds to the outer timeline group
-      items.add([
+      timelineEvents.add([
         {
           title: JSON.stringify(eventObj, null, 2),
-          content: eventObj["name"],
-          group: "timeline",
+          content: eventObj["name"] + description,
+          group: "Timeline",
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
@@ -151,10 +151,10 @@ class DashboardTimeline extends React.Component {
         },
       ]);
       // adds the same item to the inner nested group
-      items.add([
+      timelineEvents.add([
         {
           title: JSON.stringify(eventObj, null, 2),
-          group: eventObj["name"],
+          group: capitalizeEvent(eventObj["name"]),
           className: eventObj["name"],
           start: eventObj["start_time"],
           end: eventObj["end_time"],
@@ -164,8 +164,28 @@ class DashboardTimeline extends React.Component {
     }
   }
 
+  toggleVisibility() {
+    const filters = this.props.stateManager.memory.timelineFilters;
+    // checks if filters have been changed
+    if (filters && filters !== this.searchFilters) {
+      console.log(filters);
+      this.searchFilters = [...filters];
+      let items = timelineEvents.get();
+      // loop through all items and check if the filter applies
+      for (let i = 0; i < items.length; i++) {
+        if (filters.includes(capitalizeEvent(items[i].className))) {
+          items[i].style = "opacity: 1;";
+        } else {
+          items[i].style = "opacity: 0.2;";
+        }
+      }
+      timelineEvents.update(items);
+    }
+  }
+
   render() {
     this.renderEvent();
+    this.toggleVisibility();
     return (
       <div className="timeline">
         <p id="description">
@@ -177,8 +197,18 @@ class DashboardTimeline extends React.Component {
 
         <SearchBar
           placeholder="Search"
-          onChange={(e) => this.handleSearch(e.target.value)}
+          onChange={(e) =>
+            handleSearch(this.props.stateManager, e.target.value)
+          }
         />
+
+        <div id="dropdown">
+          <ThemeProvider theme={theme}>
+            <TimelineDropdown stateManager={this.props.stateManager} />
+          </ThemeProvider>
+        </div>
+
+        <div className="clearfloat"></div>
 
         <div ref={this.appRef} />
       </div>
@@ -187,3 +217,4 @@ class DashboardTimeline extends React.Component {
 }
 
 export default DashboardTimeline;
+export { timelineTypes };

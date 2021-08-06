@@ -65,6 +65,8 @@ class StateManager {
     timelineEventHistory: [],
     timelineSearchResults: [],
     timelineDetails: [],
+    timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
+    timelineSearchPattern: "",
   };
   session_id = null;
 
@@ -331,9 +333,7 @@ class StateManager {
     });
   }
 
-  returnTimelineEvent(res) {
-    this.memory.timelineEventHistory.push(res);
-    this.memory.timelineEvent = res;
+  updateTimeline() {
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
@@ -341,7 +341,13 @@ class StateManager {
     });
   }
 
-  updateTimeline() {
+  returnTimelineEvent(res) {
+    this.memory.timelineEventHistory.push(res);
+    this.memory.timelineEvent = res;
+    this.updateTimeline();
+  }
+
+  updateTimelineResults() {
     this.refs.forEach((ref) => {
       if (ref instanceof TimelineResults) {
         ref.forceUpdate();
