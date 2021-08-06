@@ -32,6 +32,16 @@ class EncoderDecoderWithLoss(nn.Module):
         x_mask: [B, x_len]
         y: [B, y_len, num_heads]
         y_mask: [B, y_len]
+
+        Outputs: a dictionary of output scores.
+        lm_scores: [B, y_len, V] # Note - excludes first token
+        span_b_scores: [B, y_len, span_range]
+        span_e_scores: [B, y_len, span_range]
+        loss: [float]
+        text_span_start_scores: [B, y_len, span_range]
+        text_span_end_scores: [B, y_len, span_range]
+        text_span_loss: [float]
+        fixed_span_loss: [float]
         """
         if x_reps is None:
             model = self.encoder(input_ids=x, attention_mask=x_mask)
@@ -39,4 +49,5 @@ class EncoderDecoderWithLoss(nn.Module):
         if not self.train_encoder:
             x_reps = x_reps.detach()
         outputs = self.decoder(y, y, y_mask, x_reps, x_mask, is_eval)
+        import ipdb; ipdb.set_trace()
         return outputs
