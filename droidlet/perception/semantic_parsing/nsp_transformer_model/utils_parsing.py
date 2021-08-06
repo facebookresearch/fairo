@@ -196,6 +196,14 @@ def compute_accuracy(outputs, y):
     Args:
         outputs: targets
             A dictionary of output values from forward consisting of LM scores, span scores etc.
+            -- lm_scores: [B, y_len, V] # Note - excludes first token
+            -- span_b_scores: [B, y_len, span_range]
+            -- span_e_scores: [B, y_len, span_range]
+            -- loss: [float]
+            -- text_span_start_scores: [B, y_len, span_range]
+            -- text_span_end_scores: [B, y_len, span_range]
+            -- text_span_loss: [float]
+            -- fixed_span_loss: [float]
         y: predicted sequence
 
     Returns:

@@ -33,15 +33,17 @@ class EncoderDecoderWithLoss(nn.Module):
         y: [B, y_len, num_heads]
         y_mask: [B, y_len]
 
-        Outputs: a dictionary of output scores.
-        lm_scores: [B, y_len, V] # Note - excludes first token
-        span_b_scores: [B, y_len, span_range]
-        span_e_scores: [B, y_len, span_range]
-        loss: [float]
-        text_span_start_scores: [B, y_len, span_range]
-        text_span_end_scores: [B, y_len, span_range]
-        text_span_loss: [float]
-        fixed_span_loss: [float]
+        Shapes of outputs:
+
+        outputs: a dictionary of output scores.
+        -- lm_scores: [B, y_len, V] # Note - excludes first token
+        -- span_b_scores: [B, y_len, span_range]
+        -- span_e_scores: [B, y_len, span_range]
+        -- loss: [float]
+        -- text_span_start_scores: [B, y_len, span_range]
+        -- text_span_end_scores: [B, y_len, span_range]
+        -- text_span_loss: [float]
+        -- fixed_span_loss: [float]
         """
         if x_reps is None:
             model = self.encoder(input_ids=x, attention_mask=x_mask)
