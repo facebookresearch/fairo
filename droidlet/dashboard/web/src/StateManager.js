@@ -501,15 +501,17 @@ class StateManager {
     }
 
     // Label prop
-    let labelProps = {
-      prevRgbImg: this.prevFeedState.rgbImg, 
-      depth: this.curFeedState.depth, 
-      prevDepth: this.prevFeedState.depth, 
-      objects: prevObjects, 
-      basePose: this.curFeedState.pose,
-      prevBasePose: this.prevFeedState.pose,
+    if (prevObjects.length > 0) {
+      let labelProps = {
+        prevRgbImg: this.prevFeedState.rgbImg, 
+        depth: this.curFeedState.depth, 
+        prevDepth: this.prevFeedState.depth, 
+        objects: prevObjects, 
+        basePose: this.curFeedState.pose,
+        prevBasePose: this.prevFeedState.pose,
+      }
+      this.socket.emit("label_propagation", labelProps)
     }
-    this.socket.emit("label_propagation", labelProps)
 
     // Save rgb/seg if needed
     if (!this.annotationsSaved) {
