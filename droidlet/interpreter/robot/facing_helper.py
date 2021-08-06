@@ -55,7 +55,7 @@ class FacingInterpreter:
             w = float(word_to_num(d["pitch"].strip(" degrees").strip(" degree")))
             return {"yaw": current_pitch - w}
         elif d.get("relative_yaw"):
-            if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
+            if any(x in d["relative_yaw"] for x in ["left", "leave", "right"]):
                 left = "left" in d["relative_yaw"] or "leave" in d["relative_yaw"]  # lemmatizer :)
                 degrees = number_from_span(d["relative_yaw"]) or 90
                 # these are different than mc for no reason...? mc uses relative_yaw, these use yaw
@@ -65,8 +65,8 @@ class FacingInterpreter:
                     return {"yaw": degrees}
             else:
                 try:
-                    deg = int(d["relative_yaw"])
-                    return {"yaw": deg}
+                    deg = int(word_to_num(d["relative_yaw"].strip(" degree")))
+                    return {"yaw": -deg if deg > 0 else deg} 
                 except:
                     pass
         elif d.get("relative_pitch"):
