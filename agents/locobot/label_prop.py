@@ -348,6 +348,7 @@ def retrain_detector(settings):
     cfg.DATASETS.TRAIN = (train_data,)
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(categories)
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
     cfg.OUTPUT_DIR = output_path
