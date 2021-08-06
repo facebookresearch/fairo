@@ -16,6 +16,7 @@ import TimelineResults from "./components/Timeline/TimelineResults";
 import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
 import Retrainer from "./components/Retrainer";
+import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 
 /**
@@ -397,7 +398,14 @@ class StateManager {
       }
     }
     if (commands.length > 0) {
-      this.socket.emit("movement command", commands);
+      let movementValues = {};
+      this.refs.forEach((ref) => {
+        if (ref instanceof Navigator) {
+          movementValues = ref.state;
+        }
+      });
+
+      this.socket.emit("movement command", commands, movementValues);
 
       // Reset keys to prevent duplicate commands
       for (let i in keys) {
