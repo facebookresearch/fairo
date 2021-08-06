@@ -98,6 +98,7 @@ def fix_ref_obj(clean_dict):
     if "special_reference" in val:
         new_clean_dict["special_reference"] = val["special_reference"]
         val.pop("special_reference")
+    # NOTE: this needs to be changed
     if "repeat" in val:
         new_clean_dict["repeat"] = val["repeat"]
         val.pop("repeat")
@@ -109,6 +110,7 @@ def fix_ref_obj(clean_dict):
             }
             del val["location"]
         # Put has_x attributes in triples
+        # Put triples inside "where_clause"
         triples = []
         for k, v in [x for x in val.items()]:
             if "has_" in k:
@@ -118,7 +120,10 @@ def fix_ref_obj(clean_dict):
                 })
                 del val[k]
         if len(triples) > 0:
-            val["triples"] = triples
+            if "where_clause" not in val:
+                val["where_clause"] = {"AND": []}
+            val["where_clause"]["AND"] =  triples
+            # val["triples"] = triples
         new_clean_dict["filters"] = val
     return new_clean_dict
 
