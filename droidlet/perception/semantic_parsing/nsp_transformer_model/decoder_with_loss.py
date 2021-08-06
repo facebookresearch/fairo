@@ -166,6 +166,7 @@ class DecoderWithLoss(nn.Module):
         x_mask: B x x_len x H
 
         output heads are (lm, span_start, span_end, text_span_start, text_span_end, fixed_value)
+        For shape of outputs, see forward() in encoder_decoder.py
         """
         if self.tree_to_text:
             bert_model = self.bert(
