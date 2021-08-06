@@ -94,6 +94,8 @@ class DetectorBase:
             if things_filename in files \
             else os.path.join(default_json_dir, things_filename)
 
+        print("cheesecake", os.path.abspath(os.path.dirname(__file__)), os.listdir(default_json_dir))
+
         with open(props_file, "r") as h:
             self.properties = json.load(h)["items"]
             logging.info("{} properties".format(len(self.properties)))
