@@ -382,16 +382,17 @@ class MCInterpreter(Interpreter):
 
         def new_tasks():
             attrs = {}
-            schematic_triples = (
-                d.get("schematic", {})
-                .get("filters", {})
-                .get("triples", [{"pred_text": "has_size", "obj_text": "2"}])
+            default_where = {"AND": [{"pred_text": "has_size", "obj_text": "2"}]}
+            schematic_where = (
+                d.get("schematic", {}).get("filters", {}).get("where_clause", default_where)
             )
-            # schematic_d = d.get("schematic", {"has_size": 2})
-            # set the attributes of the hole to be dug.
+            if not schematic_where.get("AND"):
+                raise ErrorWithResponse("I can't interpret complicated Dig commands like that yet")
             schematic_d = {}
-            for triple in schematic_triples:
-                schematic_d[triple["pred_text"]] = triple["obj_text"]
+            # FIXME!  TORCH this whole thing, put in schematic_helper
+            for t in schematic_where["AND"]:
+                if t.get("pred_text"):
+                    schematic_d[t["pred_text"]] = t["obj_text"]
 
             for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
                 key = "has_{}".format(dim)
@@ -401,6 +402,7 @@ class MCInterpreter(Interpreter):
                     attrs[dim] = interpret_size(self, schematic_d["has_size"])
                 else:
                     attrs[dim] = default
+
             padding = (attrs["depth"] + 4, attrs["length"] + 4, attrs["width"] + 4)
             location_d = d.get("location", SPEAKERLOOK)
             repeat_num = get_repeat_num(d)
