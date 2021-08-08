@@ -21,7 +21,6 @@ class MobileCameraPane extends React.Component {
     if (navigator.permissions && navigator.permissions.query) {
       // has side effect that mobile devices/browsers that do not support navigator.permissions wont have this check
       navigator.permissions.query({ name: "camera" }).then((permission) => {
-        console.log(permission);
         this.setState({
           webCamPermissions: permission.state,
         });
@@ -57,10 +56,7 @@ class MobileCameraPane extends React.Component {
 
   render() {
     if (this.state.currentMode === "camera") {
-      console.log("rendering");
-      console.log(this.state.webCamPermissions);
       if (this.state.webCamPermissions === "denied") {
-        console.log("in the if statement");
         return <div> Please grant camera permissions </div>;
       } else {
         return (

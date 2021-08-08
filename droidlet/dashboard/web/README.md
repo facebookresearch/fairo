@@ -33,6 +33,13 @@ To access on a physical device, find your computers ip address. Open http://[ip 
 
 If you are running into issues, look at this link: [https://docs.google.com/document/d/1chTdtbW2t1swpWe4NMfyxn31tK_Bta3ZXwLfgM9w5rs/edit?usp=sharing](https://docs.google.com/document/d/1chTdtbW2t1swpWe4NMfyxn31tK_Bta3ZXwLfgM9w5rs/edit?usp=sharing)
 
+### Mobile Dashboard Codeflow
+
+When going to http://localhost:3000/mobile.html, react will serve the component in mobile.js (the mobile entry point), that renders MobileMainPane.js
+
+MobileMainPane.js controls what is being displayed, all mobile bugs can be found following the code in MobileMainPane and the components that are used in it
+
+
 ### Files to check-in
 
 Check-in the following files or folders:
