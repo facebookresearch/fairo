@@ -156,9 +156,9 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   }
 
   torch::Tensor inverse_kinematics(torch::Tensor ee_pos, torch::Tensor ee_quat,
-                                   torch::Tensor rest_pose,
-                                   double eps = 1e-4, int64_t max_iters = 1000,
-                                   double dt = 0.1, double damping = 1e-12) {
+                                   torch::Tensor rest_pose, double eps = 1e-4,
+                                   int64_t max_iters = 1000, double dt = 0.1,
+                                   double damping = 1e-12) {
     ee_pos = validTensor(ee_pos);
     Eigen::Vector3d ee_pos_(
         Eigen::Map<Eigen::Vector3d>(ee_pos.data_ptr<double>(), 3));
