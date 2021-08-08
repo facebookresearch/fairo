@@ -156,7 +156,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   }
 
   torch::Tensor inverse_kinematics(torch::Tensor ee_pos, torch::Tensor ee_quat,
-                                   torch::Tensor neutral_pose,
+                                   torch::Tensor rest_pose,
                                    double eps = 1e-4, int64_t max_iters = 1000,
                                    double dt = 0.1, double damping = 1e-12) {
     ee_pos = validTensor(ee_pos);
@@ -169,8 +169,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
     // Initialize IK variables
     const pinocchio::SE3 desired_ee(ee_orient_, ee_pos_);
-    neutral_pose = validTensor(neutral_pose);
-    ik_sol_p_ = matrixToVector(dtt::libtorch2eigen<double>(neutral_pose));
+    rest_pose = validTensor(rest_pose);
+    ik_sol_p_ = matrixToVector(dtt::libtorch2eigen<double>(rest_pose));
 
     ik_sol_J_.setZero();
 
