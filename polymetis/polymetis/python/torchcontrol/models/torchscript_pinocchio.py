@@ -90,6 +90,17 @@ class RobotModelPinocchio(torch.nn.Module):
         damping: float = 1e-6,
     ) -> torch.Tensor:
         """Computes joint positions that achieve a given end-effector pose.
+        Uses CLIK algorithm from
+        https://gepettoweb.laas.fr/doc/stack-of-tasks/pinocchio/master/doxygen-html/md_doc_b-examples_i-inverse-kinematics.html
+
+        Args:
+            ee_pos (torch.Tensor): desired end-effector position
+            ee_quat (torch.Tensor): desired end-effector orientation
+            rest_pose (torch.Tensor): (optional) initial solution for IK
+            eps (float): (optional) maximum allowed error
+            max_iters (int): (optional) maximum number of iterations
+            dt (float): (optional) time step for integration
+            damping: (optional) damping factor for numerical stability
 
         Returns:
             torch.Tensor: joint positions
