@@ -31,7 +31,7 @@ LINEAR_EXTENTS = {
 
 ATTRIBUTES = {
     "x": {"attribute": "x"},
-    "distance from me": {"attribute": LINEAR_EXTENTS["distance from me"]},
+    "distance from me": {"attribute": {"linear_extent": LINEAR_EXTENTS["distance from me"]}},
     "visit time": {"attribute": "VISIT_TIME"},
     "create time": {"attribute": "BORN_TIME"},
     "number of blocks": {"num_blocks": {"block_filters": {}}},
