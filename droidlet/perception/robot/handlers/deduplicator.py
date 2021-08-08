@@ -104,6 +104,8 @@ class ObjectDeduplicator(AbstractHandler):
             previous_objects (list[WorldObject]): a list of all previous WorldObjects ever detected
         """
         logging.info("In ObjectDeduplicationHandler ... ")
+        if self.object_id_counter <= len(previous_objects): # Ensure unique eids
+            self.object_id_counter = len(previous_objects) + 1
         new_objects = []
         updated_objects = []
         for current_object in current_objects:

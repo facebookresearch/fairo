@@ -2,6 +2,7 @@ import React from "react";
 import Webcam from "react-webcam";
 import ObjectFixup from "./ObjectFixup";
 import stateManager from ".././StateManager";
+import MobileObjectAnnotation from "./MobileAnnotationComponents/MobileObjectAnnotation";
 
 class MobileCameraPane extends React.Component {
   constructor(props) {
@@ -9,6 +10,7 @@ class MobileCameraPane extends React.Component {
     this.state = {
       currentMode: "camera",
       img: null,
+      webCamPermissions: "granted",
       videoConstraints: {
         facingMode: { exact: "environment" },
         height: this.props.imageWidth,
@@ -16,6 +18,14 @@ class MobileCameraPane extends React.Component {
       },
     };
     this.webcamRef = React.createRef();
+    if (navigator.permissions && navigator.permissions.query) {
+      // has side effect that mobile devices/browsers that do not support navigator.permissions wont have this check
+      navigator.permissions.query({ name: "camera" }).then((permission) => {
+        this.setState({
+          webCamPermissions: permission.state,
+        });
+      });
+    }
   }
 
   screenshot() {
@@ -46,29 +56,45 @@ class MobileCameraPane extends React.Component {
 
   render() {
     if (this.state.currentMode === "camera") {
-      return (
-        <div>
-          <Webcam
-            height={this.props.imageWidth}
-            width={this.props.imageWidth}
-            videoConstraints={this.state.videoConstraints}
-            ref={this.webcamRef}
-          />
-          <button onClick={this.screenshot.bind(this)}> Capture </button>
-          <button onClick={this.switchCamera.bind(this)}>Switch Camera</button>
-        </div>
-      );
+      if (this.state.webCamPermissions === "denied") {
+        return <div> Please grant camera permissions </div>;
+      } else {
+        return (
+          <div>
+            <Webcam
+              height={this.props.imageWidth}
+              width={this.props.imageWidth}
+              videoConstraints={this.state.videoConstraints}
+              ref={this.webcamRef}
+            />
+            <button onClick={this.screenshot.bind(this)}> Capture </button>
+            <button onClick={this.switchCamera.bind(this)}>
+              Switch Camera
+            </button>
+          </div>
+        );
+      }
     }
     if (this.state.currentMode === "annotation") {
-      return (
-        <ObjectFixup
-          imageWidth={this.props.imageWidth}
-          image={this.state.img}
-          stateManager={stateManager}
-          isMobile={true}
-          isFromCamera={true}
-        />
-      );
+      if (stateManager.useDesktopComponentOnMobile) {
+        return (
+          <ObjectFixup
+            imageWidth={this.props.imageWidth}
+            image={this.state.img}
+            stateManager={stateManager}
+            isMobile={true}
+            isFromCamera={true}
+          />
+        );
+      } else {
+        return (
+          <MobileObjectAnnotation
+            imageWidth={this.props.imageWidth - 25}
+            image={this.state.img}
+            stateManager={stateManager}
+          />
+        );
+      }
     }
   }
 }

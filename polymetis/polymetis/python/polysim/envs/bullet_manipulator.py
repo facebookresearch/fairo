@@ -49,7 +49,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         self.n_dofs = self.robot_model_cfg.num_dofs
         assert len(self.controlled_joints) == self.n_dofs
         self.ee_link_idx = self.robot_model_cfg.ee_link_idx
-        self.ee_joint_name = self.robot_model_cfg.ee_joint_name
+        self.ee_link_name = self.robot_model_cfg.ee_link_name
         self.rest_pose = self.robot_model_cfg.rest_pose
         self.joint_limits_low = np.array(self.robot_model_cfg.joint_limits_low)
         self.joint_limits_high = np.array(self.robot_model_cfg.joint_limits_high)

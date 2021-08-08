@@ -108,7 +108,10 @@ class Message extends Component {
     };
 
     recognition.onerror = (event) => {
-      console.log("Error in recognition: " + event.error);
+      if (event.error === "not-allowed") {
+        alert("Please grant access to microphone");
+        recognition.stop();
+      }
     };
   }
 
@@ -156,6 +159,8 @@ class Message extends Component {
           fontSize="large"
           onClick={this.toggleListen.bind(this)}
         ></KeyboardVoiceIcon>
+
+        <p> {this.state.recognizing ? "Listening..." : ""} </p>
 
         <List>{this.renderChatHistory(this.props.status)}</List>
         {this.props.isMobile === true ? (

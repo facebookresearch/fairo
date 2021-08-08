@@ -124,12 +124,12 @@ class CartesianSpaceMinJerkPlanner(toco.ControlModule):
         # Plan rotation
         r_start = start.rotation()
         r_goal = goal.rotation()
-        r_delta = r_start.inv() * r_goal
+        r_delta = r_goal * r_start.inv()
         rv_delta = r_delta.as_rotvec()
 
         r_traj = torch.empty([steps, 4])
         for i in range(steps):
-            r = r_start * R.from_rotvec(rv_delta * p_traj[i])
+            r = R.from_rotvec(rv_delta * p_traj[i]) * r_start
             r_traj[i, :] = r.as_quat()
         rd_traj = rv_delta[None, :] * pd_traj[:, None]
         rdd_traj = rv_delta[None, :] * pdd_traj[:, None]

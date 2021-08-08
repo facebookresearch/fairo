@@ -1,19 +1,22 @@
 -r ../../requirements.txt
 pyro4
 scikit-build
-webcolors==1.10
-dlib==19.19.0
+webcolors>=1.10
+dlib>=19.19.0
 opencv-python
 face_recognition
 norfair
 facenet-pytorch
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
 detectron2
-scipy==1.5.4
+scipy>=1.5.4
 scikit-fmm
 scikit-image
+scikit-learn
 tenacity
 wordcloud
 fuzzywuzzy
 krovetz
 open3d
+git+git://github.com/waspinator/pycococreator.git@0.2.0
+pycocotools

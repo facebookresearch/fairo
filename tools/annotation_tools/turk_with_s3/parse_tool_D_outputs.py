@@ -408,7 +408,7 @@ if __name__ == "__main__":
     # convert csv to txt
     result_dict = {}
     folder_name = opts.folder_name
-    f_name = folder_name + "../processed_outputs.csv"
+    f_name = folder_name + "processed_outputs.csv"
     only_show_disagreements = True
     sentence_mapping = {}
     with open(f_name, "r") as f:
