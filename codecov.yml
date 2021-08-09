@@ -1,5 +1,5 @@
 ignore:
-      - "test_*.py" 
+      - "**/tests/*.py"
 codecov:
   notify:
     require_ci_to_pass: no
@@ -11,17 +11,24 @@ coverage:
             target: 0%
             if_not_found: success
             if_ci_failed: success
-        Locobot:
+        Robot:
             target: 0%
             paths:
-                - python/locobot/*
+                - agents/locobot/*
             if_not_found: success
             if_ci_failed: success
                 
         Mincraft:
             target: 0%
             paths:
-                - python/craftassist/*
+                - agents/minecraft/*
+            if_not_found: success
+            if_ci_failed: success
+	    
+        Droidlet:
+            target: 0%
+            paths:
+                - droidlet/*
             if_not_found: success
             if_ci_failed: success
 
