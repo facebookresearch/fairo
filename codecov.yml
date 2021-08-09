@@ -4,6 +4,9 @@ codecov:
   notify:
     require_ci_to_pass: no
 
+fixes:
+  - "/shared/droidlet::"
+
 coverage:
   status:
     project:
