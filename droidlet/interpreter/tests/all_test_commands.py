@@ -976,7 +976,7 @@ PUT_MEMORY_COMMANDS = {
         "upsert": {
             "memory_data": {
                 "memory_type": "TRIPLE",
-                "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "fluff"}]},
+                "triples": [{"pred_text": "has_tag", "obj_text": "fluff"}],
             }
         },
     },
@@ -990,7 +990,7 @@ PUT_MEMORY_COMMANDS = {
         "upsert": {
             "memory_data": {
                 "memory_type": "TRIPLE",
-                "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "fluffy"}]},
+                "triples": [{"pred_text": "has_tag", "obj_text": "fluffy"}],
             }
         },
     },
