@@ -88,7 +88,7 @@ source activate /root/miniconda3/envs/droidlet_env
 # kill habitat
 kill -9 $BGPID
 
-if [ ! -f coverage.xml ];
+if [ ! -f coverage.xml ]; then
    pip install coverage
    coverage xml -i
 fi

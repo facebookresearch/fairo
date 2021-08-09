@@ -13,8 +13,9 @@ pytest --cov-report=xml:$SHARED_PATH/droidlet_craftassist_tests.xml --cov=droidl
        --ignore droidlet/interpreter/robot/ \
        --ignore droidlet/lowlevel/locobot/
 
-if [ ! -f coverage.xml ];
+if [ ! -f coverage.xml ]; then
    pip install coverage
    coverage xml -i
 fi
+
 cp coverage.xml /shared
