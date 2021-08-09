@@ -33,7 +33,7 @@ jobs:
               docker run --name mc-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /droidlet/.circleci/craftassist_tests.sh"
               pip3 install codecov
               export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              codecov -f 'shared/*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
+              codecov -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
           no_output_timeout: 50m
 
       - run:
@@ -108,7 +108,7 @@ jobs:
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           pip3 install codecov
           export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-          codecov -f 'test_*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
+          codecov -n "locobot tests"|| echo "Codecov did not collect coverage reports"
 
   polymetis-build-local:
     docker:
