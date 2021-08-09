@@ -408,16 +408,15 @@ def handle_components(d, child_name):
                 if updated_value == None:
                     del child_d["location"]
                 else:
-                    if "reference_object" in child_d["location"]:
+                    if "reference_object" not in child_d["location"]:
+                        child_d["location"]["reference_object"] = {}
+                    if type(updated_value) == dict:
+                        child_d["location"]["reference_object"]["special_reference"] = updated_value
+                    else:
                         child_d["location"]["reference_object"]["special_reference"] = {
                             "fixed_value": updated_value
                         }
-                    else:
-                        child_d["location"]["reference_object"] = {
-                            "special_reference": {
-                                "fixed_value": updated_value
-                            }
-                        }
+
 
                     if "coordinates" in child_d["location"]:
                         del child_d["location"]["coordinates"]

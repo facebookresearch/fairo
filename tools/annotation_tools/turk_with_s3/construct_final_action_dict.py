@@ -74,40 +74,26 @@ def merge_indices(indices):
     return [a, b]
 
 
-def fix_spans(d):
-    new_d = {}
-    if type(d) == str:
-        d = ast.literal_eval(d)
-    for k, v in d.items():
-        if k == "contains_coreference" and v == "no":
-            continue
-        if type(v) == list:
-            new_d[k] = [0, merge_indices(v)]
-            continue
-        elif type(v) == dict:
-            new_d[k] = fix_spans(v)
-            continue
-        else:
-            new_d[k] = v
-    return new_d
-
-
 def fix_ref_obj(clean_dict):
     val = clean_dict
     new_clean_dict = {}
     if "special_reference" in val:
         new_clean_dict["special_reference"] = val["special_reference"]
         val.pop("special_reference")
-    # NOTE: this needs to be changed
-    if "repeat" in val:
-        new_clean_dict["repeat"] = val["repeat"]
-        val.pop("repeat")
     if val:
         # Add selectors to filters if there is a location
+        '''
+        "selector": {
+        "return_quantity": <ARGVAL> / "RANDOM" / "ALL",
+        "ordinal": {"fixed_value" : "FIRST"} / <span>, 
+        "location": <LOCATION>,
+        "same":"ALLOWED"/"DISALLOWED"/"REQUIRED"
+        },
+        '''
         if "location" in val:
-            val["selector"] = {
-                    "location": val["location"]
-            }
+            if "selector" not in val:
+                val["selector"] = {}
+            val["selector"]["location"] = val["location"]
             del val["location"]
         # Put has_x attributes in triples
         # Put triples inside "where_clause"
@@ -119,9 +105,16 @@ def fix_ref_obj(clean_dict):
                     "obj_text": v
                 })
                 del val[k]
+        '''
+        "where_clause" : {
+        "AND": [<COMPARATOR>/<TRIPLES>], 
+        "OR": [<COMPARATOR>/<TRIPLES>], 
+        "NOT": [<COMPARATOR>/<TRIPLES>]
+        }
+        '''
         if len(triples) > 0:
             if "where_clause" not in val:
-                val["where_clause"] = {"AND": []}
+                val["where_clause"] = {}
             val["where_clause"]["AND"] =  triples
             # val["triples"] = triples
         new_clean_dict["filters"] = val
@@ -142,7 +135,7 @@ def combine_tool_cd_make_ab(tool_A_out_file, tool_B_out_file):
             if "location" in clean_dict and "reference_object" in clean_dict["location"]:
                 value = clean_dict["location"]["reference_object"]
                 clean_dict["location"]["reference_object"] = fix_ref_obj(value)
-            new_clean_dict = fix_ref_obj(clean_dict)
+            new_clean_dict = fix_ref_obj(clean_dict)["filters"]
 
             if all_yes(a_dict_child):
                 if cmd in toolC_updated_map:
@@ -172,7 +165,6 @@ def combine_tool_cd_make_ab(tool_A_out_file, tool_B_out_file):
             cmd = cmd.strip()
             toolA_map[cmd] = a_d
     # pprint(toolA_map)
-
     # construct map of tool 2
 
     if os.path.isfile(tool_B_out_file):
@@ -253,7 +245,7 @@ def fix_spans(d):
         if k == "contains_coreference" and v == "no":
             continue
         if type(v) == list:
-            if k != "triples":
+            if k not in ["triples", "AND", "OR", "NOT"]:
                 if k == "tag_val":
                     new_d["has_tag"] = [0, merge_indices(v)]
                 else:
@@ -282,6 +274,7 @@ def update_action_dictionaries(all_combined_path):
         for cmd, a_dict in toolA_map.items():
             # remove the ['yes', val] etc
             clean_dict = clean_dict_1(a_dict)
+            # TODO: check repeats here for action level repeat
             if all_yes(a_dict):
                 action_type = clean_dict["action_type"]
                 valid_dict = {}
@@ -289,6 +282,7 @@ def update_action_dictionaries(all_combined_path):
                 del clean_dict["dialogue_type"]
                 clean_dict["action_type"] = clean_dict["action_type"].upper()
                 act_dict = fix_spans(clean_dict)
+
                 valid_dict["action_sequence"] = [act_dict]
 
                 f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
@@ -297,13 +291,16 @@ def update_action_dictionaries(all_combined_path):
                 print("All yes")
                 print("*" * 20)
                 continue
+
             if clean_dict["action_type"] == "noop":
                 f.write(cmd + "\t" + json.dumps(clean_dict) + "\n")
                 print(clean_dict)
                 print("NOOP")
                 print("*" * 20)
                 continue
+
             if clean_dict["action_type"] == "otheraction":
+                print("OTHER_ACTION")
                 f.write(cmd + "\t" + str(a_dict) + "\n")
                 continue
 
@@ -342,7 +339,7 @@ def update_action_dictionaries(all_combined_path):
                 clean_dict["receiver"] = {"location": clean_dict["receiver_location"]}
                 clean_dict.pop("receiver_location")
 
-            actual_dict = copy.deepcopy((clean_dict))
+            actual_dict = copy.deepcopy(clean_dict)
 
             action_type = actual_dict["action_type"]
 
@@ -351,7 +348,25 @@ def update_action_dictionaries(all_combined_path):
             del actual_dict["dialogue_type"]
             actual_dict["action_type"] = actual_dict["action_type"].upper()
             act_dict = fix_spans(actual_dict)
+            if 'repeat' in act_dict:
+                if act_dict["repeat"]["repeat_key"] == "FOR":
+                    valid_dict["remove_condition"] = {'condition': {'comparison_type': 'EQUAL',
+                                                   'input_left': {'filters': {'output': {'attribute': 'RUN_COUNT'},
+                                                                              'special': {'fixed_value': 'THIS'}}},
+                                                   'input_right': {'value': act_dict["repeat"]["repeat_count"]}},
+                                                    'condition_type': 'COMPARATOR'}
+                elif act_dict["repeat"]["repeat_key"] == "ALL":
+                    if "reference_object" not in act_dict:
+                        act_dict["reference_object"] = {}
+                    if "filters" not in act_dict["reference_object"]:
+                        act_dict["reference_object"]["filters"] = {}
+                    if "selector" not in act_dict["reference_object"]["filters"]:
+                        act_dict["reference_object"]["filters"]["selector"] = {}
+                    act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
+
+                act_dict.pop("repeat", None)
             valid_dict["action_sequence"] = [act_dict]
+
             print(cmd)
             pprint(valid_dict)
             print("*" * 40)
