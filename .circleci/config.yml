@@ -33,7 +33,7 @@ jobs:
               docker run --name mc-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /droidlet/.circleci/craftassist_tests.sh"
               pip3 install codecov
               export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              codecov -f 'test*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
+              codecov -s "shared" -f 'test*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
           no_output_timeout: 50m
 
       - run:
@@ -44,7 +44,7 @@ jobs:
 
   locobot:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     resource_class: gpu.small
     steps:
     - checkout
@@ -59,6 +59,7 @@ jobs:
           sudo apt-get update
 
           sudo apt-get install \
+              python3 python3-pip \
               apt-transport-https \
               ca-certificates \
               curl \
@@ -108,7 +109,7 @@ jobs:
           export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
-          pip install codecov
+          pip3 install codecov
           export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
           codecov -f 'test_*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
 
