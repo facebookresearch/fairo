@@ -12,7 +12,7 @@ from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 
 POS_RANGE_UPPER = [0.6, 0.2, 0.6]
-POS_RANGE_LOWER = [0.3, -0.2, 0.2]
+POS_RANGE_LOWER = [0.4, -0.2, 0.2]
 ORI_RANGE = [0.5, 0.5, 0.5]
 
 DEFAULT_MAX_ITERS = 3
