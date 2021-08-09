@@ -6,6 +6,7 @@ codecov:
 
 fixes:
   - "/shared/droidlet::"
+  - "/droidlet::"
 
 coverage:
   status:
