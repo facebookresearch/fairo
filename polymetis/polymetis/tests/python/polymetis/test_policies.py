@@ -20,8 +20,8 @@ project_root_dir = (
 panda_urdf_path = path.abspath(
     path.join(project_root_dir, "polymetis/polymetis/data/franka_panda/panda_arm.urdf")
 )
-panda_ee_joint_name = "panda_link8"
-robot_model = toco.models.RobotModelPinocchio(panda_urdf_path, panda_ee_joint_name)
+panda_ee_link_name = "panda_link8"
+robot_model = toco.models.RobotModelPinocchio(panda_urdf_path, panda_ee_link_name)
 
 num_dofs = 7
 hz = 120
