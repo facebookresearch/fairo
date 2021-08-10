@@ -146,12 +146,6 @@ def interpret_shape_schematic(
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
     - a list of (pred, val) tags
-
-    warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
-                     {"pred_text": "has_colour", "obj_text": "blue"}]
-    will currently just pick red.   Same for other properties encoded in triples
     """
     # FIXME this is not compositional, and does not properly use FILTERS
     filters_d = d.get("filters", {})
@@ -193,12 +187,6 @@ def interpret_named_schematic(
     - the schematic blocks, list[(xyz, idm)]
     - a SchematicNode memid, or None
     - a list of (pred, val) tags
-
-    warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is
-        "where_clause" : [{"pred_text": "has_colour", "obj_text": "red"},
-                          {"pred_text": "has_colour", "obj_text": "blue"}]
-    will currently just pick red.   Same for other properties encoded in triples
     """
     # FIXME! this is not compositional, and is not using full FILTERS handlers
     filters_d = d.get("filters", {})
