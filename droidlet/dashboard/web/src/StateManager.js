@@ -108,7 +108,7 @@ class StateManager {
     this.setTurkWorkerId(turkWorkerId);
 
     // set default url to actual ip:port
-    // this.default_url = window.location.host;
+    this.default_url = window.location.host;
     this.setUrl(this.default_url);
 
     let url = localStorage.getItem("server_url");

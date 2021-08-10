@@ -23,6 +23,21 @@ from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 from droidlet.perception.robot import LabelPropagate
 
 def label_propagation(postData): 
+    """
+    postData: 
+        prevRgbImg: source rgb image
+        prevDepth: source depth object
+            depthImg: depth map image
+            depthMax: maximum value in original depth map
+            depthMin: minimum value in original depth map
+        depth: current depth object
+            same properties as prevDepth
+        objects: array of objects
+        prevBasePose: source base pose data
+        basePose: current base pose data
+
+    Returns a dictionary mapping objects ids to the objects with new masks
+    """
 
     # Decode rgb map
     rgb_bytes = base64.b64decode(postData["prevRgbImg"])
@@ -44,15 +59,8 @@ def label_propagation(postData):
     src_depth = np.array(depth_imgs[0])
     cur_depth = np.array(depth_imgs[1])
 
-    # Convert mask points to mask maps then combine them
-    src_label = np.zeros((height, width)).astype(int)
-    for n, o in enumerate(postData["objects"]): 
-        poly = Polygons(o["mask"])
-        bitmap = poly.mask(height, width)
-        for i in range(height): 
-            for j in range(width): 
-                if bitmap[i][j]: 
-                    src_label[i][j] = n + 1
+    # Labels map
+    src_label = mask_to_map(postData["objects"], height, width)
 
     # Attach base pose data
     pose = postData["prevBasePose"]
@@ -64,21 +72,48 @@ def label_propagation(postData):
     res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
 
     # Convert mask maps to mask points
-    objects = {}
-    for i_float in np.unique(res_labels): 
-        i = int(i_float)
-        if i == 0: 
-            continue
-        objects[i-1] = postData["objects"][i-1] # Do this in the for loop cause some objects aren't returned
-        mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
-        mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
-        objects[i-1]["mask"] = mask_points
-        objects[i-1]["type"] = "annotate"
+    objects = labels_to_objects(res_labels, postData["objects"])
 
     # Returns an array of objects with updated masks
     return objects
 
+# LP helper: Convert mask points to mask maps then combine them
+def mask_to_map(objects, height, width): 
+    res = np.zeros((height, width)).astype(int)
+    for n, o in enumerate(objects): 
+        poly = Polygons(o["mask"])
+        bitmap = poly.mask(height, width)
+        for i in range(height): 
+            for j in range(width): 
+                if bitmap[i][j]: 
+                    res[i][j] = n + 1
+    return res
+
+# LP helper: Convert mask maps to mask points in object structure
+def labels_to_objects(labels, objects): 
+    res = {}
+    for i_float in np.unique(labels): 
+        i = int(i_float)
+        if i == 0: 
+            continue
+        res[i-1] = objects[i-1] # Do this in the for loop cause some objects aren't returned
+        mask_points_nd = Mask(np.where(labels == i, 1, 0)).polygons().points
+        mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
+        res[i-1]["mask"] = mask_points
+        res[i-1]["type"] = "annotate"
+    return res
+
 def save_rgb_seg(postData): 
+    """
+    postData: 
+        rgb: rgb image to be saved
+        categories: array starting with null of categories saved in dashboard
+        objects: array of objects with masks and labels
+        frameCount: counter to help name output files
+
+    Saves rgb image into annotation_data/rgb and creates a segmentation map to
+    be saved in annotation_data/seg. 
+    """
 
     # Decode rgb map
     rgb_bytes = base64.b64decode(postData["rgb"])
@@ -107,8 +142,15 @@ def save_rgb_seg(postData):
     im = Image.fromarray(src_img)
     im.save("annotation_data/rgb/{:05d}.jpg".format(postData["frameCount"]))
 
-
 def save_annotations(categories): 
+    """
+    categories: array starting with null of categories saved in dashboard
+
+    Saves the annotations in annotation/seg/ and annotation/rgb/ into COCO 
+    format for use in retraining. The resulting file is located at the filepath
+    for coco_file_name. 
+    """
+
     seg_dir = "annotation_data/seg/"
     img_dir = "annotation_data/rgb/"
     coco_file_name = "annotation_data/coco/coco_results.json"
@@ -180,6 +222,14 @@ def save_annotations(categories):
         print("Saved annotations to", coco_file_name)
 
 def save_categories_properties(categories, properties): 
+    """
+    categories: array starting with null of categories saved in dashboard
+    properties: array of properties used to describe objects
+
+    Adds the new categories and properties to the json files that already 
+    exist. The updated categories and properties are stored in things_path
+    and props_path, respectively. 
+    """
 
     # Load existing categories & properties
     file_dir = "annotation_data/model"
@@ -217,6 +267,16 @@ def save_categories_properties(categories, properties):
         print("saved properties to", props_path)
 
 def retrain_detector(settings): 
+    """
+    settings: properties to be used in the retraining process
+
+    Splits the COCO-formatted data located in annotation_path, then trains and 
+    evaluates a Detectron2 model from scratch. The resulting model is saved in 
+    the model_path/ folder. 
+
+    Returns an object mapping different AP (average precision) metrics to the 
+    model's scores. 
+    """
 
     if len(settings) == 0: 
         settings["trainSplit"] = 0.7
@@ -275,12 +335,10 @@ def retrain_detector(settings):
     train_data = dataset_name + "_train"
     test_data = dataset_name + "_test"
 
-    if train_data in DatasetCatalog.list(): 
-        DatasetCatalog.remove(train_data)
+    DatasetCatalog.clear()
+    MetadataCatalog.clear()
     register_coco_instances(train_data, {}, train_path, image_dir)
-    if test_data in DatasetCatalog.list(): 
-        DatasetCatalog.remove(test_data)
-    register_coco_instances(test_data, {}, train_path, image_dir)
+    register_coco_instances(test_data, {}, test_path, image_dir)
 
     MetadataCatalog.get(train_data)
     coco_yaml = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
@@ -316,6 +374,14 @@ def retrain_detector(settings):
     return inference_json
 
 def get_offline_frame(data): 
+    """
+    data: 
+        filepath: where to access rgb data on disk
+        frameId: which file to access on disk 
+
+    Reads in the specified rgb image and depth map, then encodes and sends the 
+    processed rgb image and depth map. Mimics RGBDepth.to_struct(). 
+    """
 
     rgb_path = os.path.join(data["filepath"], "rgb")
     depth_path = os.path.join(data["filepath"], "depth")

@@ -39,7 +39,17 @@ class OfflineInstance():
     def init_event_handlers(self): 
         @sio.on("offline_label_propagation")
         def offline_label_propagation(sid, postData): 
-                        
+            """
+            postData: 
+                filepath: where to access rgb/depth/pose data on disk
+                srcFrame: source frame id
+                curFrame: current frame id (label prop can go in either dir)
+                objects: array of objects
+                
+            Returns a dictionary mapping objects ids to the objects with new 
+            masks. Different from online LP because offline uses data from disk. 
+            """
+
             # Get rgb image and depth map
             rgb_path = os.path.join(postData["filepath"], "rgb")
             depth_path = os.path.join(postData["filepath"], "depth")
@@ -57,15 +67,8 @@ class OfflineInstance():
             src_depth_filename = os.path.join(depth_path, src_file_num + ".npy")
             src_depth = np.load(src_depth_filename)
 
-            # Convert mask points to mask maps then combine them
-            src_label = np.zeros((height, width)).astype(int)
-            for n, o in enumerate(postData["objects"]): 
-                poly = Polygons(o["mask"])
-                bitmap = poly.mask(height, width)
-                for i in range(height): 
-                    for j in range(width): 
-                        if bitmap[i][j]: 
-                            src_label[i][j] = n + 1
+            # Labels map
+            src_label = LP.mask_to_map(postData["objects"], height, width)
 
             # Attach base pose data
             pose_filepath = os.path.join(postData["filepath"], "data.json")
@@ -74,27 +77,30 @@ class OfflineInstance():
             src_pose = pose_dict[str(postData["srcFrame"])]
             cur_pose = pose_dict[str(postData["curFrame"])]
             
-            LP = LabelPropagate()
-            res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
-            print("label prop output shape:", res_labels.shape)
+            LabelProp = LabelPropagate()
+            res_labels = LabelProp(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
 
             # Convert mask maps to mask points
-            objects = {}
-            for i_float in np.unique(res_labels): 
-                i = int(i_float)
-                if i == 0: 
-                    continue
-                objects[i-1] = postData["objects"][i-1] # Do this in the for loop cause some objects aren't returned
-                mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
-                mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
-                objects[i-1]["mask"] = mask_points
-                objects[i-1]["type"] = "annotate"
+            objects = LP.labels_to_objects(res_labels, postData["objects"])
 
             # Returns an array of objects with updated masks
             sio.emit("labelPropagationReturn", objects)
         
         @sio.on("offline_save_rgb_seg")
         def offline_save_rgb_seg(sid, postData): 
+            """
+            postData: 
+                filepath: where to access rgb data on disk
+                frameId: which file to access on disk
+                outputId: counter to help name output files
+                categories: array starting with null of categories saved in dashboard
+                objects: array of objects with masks and labels
+                finalFrame: boolean for when to save annotations to COCO format
+
+            Saves rgb image into annotation_data/rgb and creates a segmentation 
+            map to be saved in annotation_data/seg. Also saves all annotations 
+            to COCO format if needed. 
+            """
 
             # Get rgb image
             rgb_path = os.path.join(postData["filepath"], "rgb")
