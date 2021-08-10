@@ -1,6 +1,6 @@
 import os
 from droidlet.memory.sql_memory import AgentMemory
-from grid.agent.grid_memory_nodes import BotNode
+from grid_memory_nodes import BotNode
 
 SCHEMAS = [os.path.join(os.path.dirname(__file__), "../../base_agent/base_memory_schema.sql")]
 
