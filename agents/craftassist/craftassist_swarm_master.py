@@ -82,7 +82,7 @@ class empty_object():
         pass
 
 class CraftAssistSwarmMaster(CraftAssistAgent):
-    default_num_agents = 2
+    default_num_agents = 3
 
     def __init__(self, opts):
         try:
@@ -140,7 +140,8 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "_update_voxel_mean": self.memory._update_voxel_mean,
             "remove_voxel": self.memory.remove_voxel,
             "set_memory_updated_time": self.memory.set_memory_updated_time,
-            "set_memory_attended_time": self.memory.set_memory_attended_time
+            "set_memory_attended_time": self.memory.set_memory_attended_time,
+            "add_chat": self.memory.add_chat
         }
     
     def if_swarm_task(self, mem):
@@ -184,7 +185,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         if i == 0:
             TASK_MAP[task_name](self, task_data)
         else:
-            self.swarm_workers[i-1].input_tasks.put((task_name, task_data, None)) 
+            self.swarm_workers[i-1].input_tasks.put((task_name, task_data, None))
 
     def handle_memory_query(self, query):
         query_id = query[0]
@@ -243,50 +244,55 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
                 memid = mem.task.memid
                 task_list.append((task_name, task_data, memid))
         return task_list
+    
+    def step_assign_new_tasks_to_workers(self):
+        for i in range(self.num_agents-1):
+            task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i+1))
+            for new_task in task_list:
+                self.swarm_workers[i].input_tasks.put(new_task)
 
+    def step_update_tasks_with_worker_data(self):
+        # task updates xinfo from swarm worker process
+        for i in range(self.num_agents-1):
+            flag = True
+            while flag:
+                if self.swarm_workers[i].query_from_worker.empty():
+                    flag = False
+                else:
+                    name, obj = self.swarm_workers[i].query_from_worker.get_nowait()
+                    if name == "task_updates":
+                        for (memid, cur_task_status) in obj:
+                            mem = self.memory.get_mem_by_id(memid)
+                            mem.get_update_status({"prio": cur_task_status[0], "running": cur_task_status[1]})
+                            if cur_task_status[2]:
+                                mem.task.finished = True
+                    elif name == "initialization":
+                        self.init_status[i] = True
+
+    def step_handle_worker_memory_queries(self):
+        for i in range(self.num_agents-1):
+            flag = True
+            while flag:
+                if self.swarm_workers[i].memory_send_queue.empty():
+                    flag = False
+                else:
+                    query = self.swarm_workers[i].memory_send_queue.get_nowait()
+                    response = self.handle_memory_query(query)
+                    self.swarm_workers[i].memory_receive_queue.put(response)
 
     def start(self):
         # count forever unless the shutdown signal is given
         for swarm_worker in self.swarm_workers:
             swarm_worker.start()
 
-        init_status = [False] * (self.num_agents - 1)
+        self.init_status = [False] * (self.num_agents - 1)
         while not self._shutdown:
             try:
-                if all(init_status):
+                if all(self.init_status):
                     self.step()
-                for i in range(self.num_agents-1):
-                    flag = True
-                    task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i+1))
-                    for new_task in task_list:
-                        self.swarm_workers[i].input_tasks.put(new_task)
-                        
-                    # task updates xinfo from swarm worker process
-                    flag = True
-                    while flag:
-                        if self.swarm_workers[i].query_from_worker.empty():
-                            flag = False
-                        else:
-                            name, obj = self.swarm_workers[i].query_from_worker.get_nowait()
-                            if name == "task_updates":
-                                for (memid, cur_task_status) in obj:
-                                    mem = self.memory.get_mem_by_id(memid)
-                                    mem.get_update_status({"prio": cur_task_status[0], "running": cur_task_status[1]})
-                                    if cur_task_status[2]:
-                                        mem.task.finished = True
-                            elif name == "initialization":
-                                init_status[i] = True
-                    
-                    # memory query from swarm worker process
-                    flag = True
-                    while flag:
-                        if self.swarm_workers[i].memory_send_queue.empty():
-                            flag = False
-                        else:
-                            query = self.swarm_workers[i].memory_send_queue.get_nowait()
-                            response = self.handle_memory_query(query)
-                            self.swarm_workers[i].memory_receive_queue.put(response)
-                        
+                self.step_assign_new_tasks_to_workers()
+                self.step_update_tasks_with_worker_data()
+                self.step_handle_worker_memory_queries()
                                 
             except Exception as e:
                 self.handle_exception(e)

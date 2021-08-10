@@ -51,16 +51,8 @@ class SwarmWorkerMemory():
     def __init__(self,
         memory_send_queue,
         memory_receive_queue,
-        # db_file=":memory:",
-        # db_log_path=None,
-        # schema_paths=SCHEMAS,
-        # load_minecraft_specs=True,
-        # load_block_types=True,
-        # preception_range=PERCEPTION_RANGE,
         memory_tag,
         agent_time=None,
-        # coordinate_transforms=None,
-        # agent_low_level_data={},
     ):
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
@@ -229,6 +221,14 @@ class SwarmWorkerMemory():
     def set_memory_attended_time(self, memid):
         return self._db_command("set_memory_attended_time", memid)
     
-    def set_mob_position()
+    # def set_mob_position(self, mob) -> "MobNode":
+    #     return self._db_command("set_mob_position", mob)
+    
+    def add_chat(self, speaker_memid: str, chat: str) -> str:
+        return self._db_command("add_chat", speaker_memid, chat)
+    
+
+    
+
 
 
