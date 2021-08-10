@@ -10,6 +10,7 @@ import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+import shutil
 
 from droidlet import dashboard
 if __name__ == "__main__":
@@ -82,6 +83,8 @@ class LocobotAgent(LocoMCAgent):
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
         self.interaction_logger = InteractionLogger()
+        shutil.rmtree("annotation_data/rgb")
+        shutil.rmtree("annotation_data/seg")
         
     def init_event_handlers(self):
         super().init_event_handlers()
