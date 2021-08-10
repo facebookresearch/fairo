@@ -1,5 +1,5 @@
 import numpy as np
-from droidlet.shared_data_structs import Task
+from droidlet.interpreter.task import Task
 
 
 class Move(Task):
