@@ -37,13 +37,13 @@ git submodule update --recursive
 Once the install step completes, the docker container has now been created successfully and you'll be automatically logged into the container.
 If you aren't already in the container shell (because you didn't do the step above), run:
 ```
-docker start minecraft_container
+docker start droidlet_container
 ```
 
 to start the docker container. You have now successfully started the docker container, once you've done this you can directly go to [run cuberite instance](#run-the-cuberite-instance) and [starting your agent](#running-the-interactive-v0-agent) steps from here.
 After you are done playing with the bot, run:
 ```
-docker stop minecraft_container
+docker stop droidlet_container
 ```
 to stop the docker container.
 
@@ -77,7 +77,7 @@ make
 Run
 
 ```
-docker exec -it minecraft_container bash
+docker exec -it droidlet_container bash
 ```
 
 to open a shell in the docker container, and then run:
@@ -120,7 +120,7 @@ and the [client](#connecting-your-minecraft-game-client-so-you-can-see-whats-hap
 
 Run:
 ```
-docker exec -it minecraft_container bash
+docker exec -it droidlet_container bash
 ```
 
 to open a shell in the docker container, and then run:
