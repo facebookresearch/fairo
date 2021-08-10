@@ -58,6 +58,8 @@ def clean_up_dict(a_dict):
         if type(val) == list:
             if val[0] in ["yes", "no"]:
                 new_d[k] = val[1]
+            else:
+                new_d[k] = val
         elif type(val) == dict:
             new_d[k] = clean_up_dict(val)
         else:
@@ -135,20 +137,19 @@ def combine_tool_cd_make_ab(tool_A_out_file, tool_B_out_file):
             if "location" in clean_dict and "reference_object" in clean_dict["location"]:
                 value = clean_dict["location"]["reference_object"]
                 clean_dict["location"]["reference_object"] = fix_ref_obj(value)
-            new_clean_dict = fix_ref_obj(clean_dict)["filters"]
-
+            new_clean_dict = fix_ref_obj(clean_dict)
             if all_yes(a_dict_child):
                 if cmd in toolC_updated_map:
                     toolC_updated_map[cmd][key] = new_clean_dict
                 else:
                     toolC_updated_map[cmd] = {key: new_clean_dict}
                 continue
-            new_clean_dict.pop("comparison", None)
+            new_clean_dict['filters'].pop("comparison", None)
             comparison_dict = toolD_map[cmd]  # check on this again
 
             valid_dict = {}
             valid_dict[key] = {}
-            valid_dict[key]["filters"] = new_clean_dict
+            valid_dict[key].update(new_clean_dict)
             valid_dict[key]["filters"].update(comparison_dict)
             toolC_updated_map[cmd] = valid_dict  # only gets populated if filters exist
     # print("in combine_tool_cd_make_ab...")
@@ -225,13 +226,12 @@ def merge_indices(indices):
 
 
 def fix_put_mem(d):
-
     if type(d) == str:
         d = ast.literal_eval(d)
     new_d = copy.deepcopy(d)
     del new_d["action_type"]
     if "has_tag" in new_d and "upsert" in new_d:
-        new_d["upsert"]["memory_data"]["has_tag"] = new_d["has_tag"]
+        new_d["upsert"]["memory_data"]["triples"] = [{"pred_text": "has_tag", "obj_text": new_d["has_tag"]}]
         del new_d["has_tag"]
 
     return new_d
@@ -286,22 +286,16 @@ def update_action_dictionaries(all_combined_path):
                 valid_dict["action_sequence"] = [act_dict]
 
                 f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
-                print(cmd)
-                print(valid_dict)
-                print("All yes")
-                print("*" * 20)
                 continue
 
             if clean_dict["action_type"] == "noop":
                 f.write(cmd + "\t" + json.dumps(clean_dict) + "\n")
-                print(clean_dict)
                 print("NOOP")
-                print("*" * 20)
                 continue
 
-            if clean_dict["action_type"] == "otheraction":
-                print("OTHER_ACTION")
-                f.write(cmd + "\t" + str(a_dict) + "\n")
+            if clean_dict["action_type"] == "composite_action":
+                print("COMPOSITE_ACTION")
+                f.write(cmd + "\t" + json.dumps(a_dict) + "\n")
                 continue
 
             if toolB_map and cmd in toolB_map:
@@ -311,11 +305,10 @@ def update_action_dictionaries(all_combined_path):
                     if k not in clean_dict:
                         print("BUGGGG")
                     if type(v) == str:
-                        v = ast.literal_eval(v)
+                        v = json.loads(v)
                     if not v:
                         continue
-
-                    if "reference_object" in v[k]:
+                    if (k in v) and ("reference_object" in v[k]):
                         value = v[k]["reference_object"]
                         v[k]["reference_object"] = fix_ref_obj(value)
                     if k == "tag_val":
@@ -363,14 +356,39 @@ def update_action_dictionaries(all_combined_path):
                     if "selector" not in act_dict["reference_object"]["filters"]:
                         act_dict["reference_object"]["filters"]["selector"] = {}
                     act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
-
                 act_dict.pop("repeat", None)
             valid_dict["action_sequence"] = [act_dict]
 
-            print(cmd)
-            pprint(valid_dict)
-            print("*" * 40)
             f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
+
+
+def postprocess_step(combined_path, post_processed_path):
+    with open(combined_path) as f, open(post_processed_path, 'w') as f_w:
+        for line in f.readlines():
+            line = line.strip()
+            text, d = line.split("\t")
+
+            d = json.loads(d)
+            action_dict = d['action_sequence'][0]
+            action_type = action_dict['action_type']
+            if action_type == 'TAG':
+                updated_dict = fix_put_mem(action_dict)
+                new_d = {'dialogue_type': d['dialogue_type']}
+                new_d.update(updated_dict)
+            elif action_type == 'ANSWER':
+                # print(d)
+                new_d = {'dialogue_type': 'GET_MEMORY'}
+            elif action_type == "NOOP":
+                new_d = {'dialogue_type': action_type}
+            else:
+                if action_type == 'COPY':
+                    action_dict['action_type'] = 'BUILD'
+                d['action_sequence'] = [action_dict]
+                new_d = d
+            print(text)
+            pprint(new_d)
+            print("*" * 40)
+            f_w.write(text + "\t" + json.dumps(new_d) + "\n")
 
 
 if __name__ == "__main__":
@@ -388,7 +406,9 @@ if __name__ == "__main__":
     folder_name_C = '{}/C/all_agreements.txt'.format(args.write_dir_path)
     folder_name_D = '{}/D/all_agreements.txt'.format(args.write_dir_path)
     all_combined_path = '{}/all_combined.txt'.format(args.write_dir_path)
+    postprocessed_path = '{}/final_dict_postprocessed.txt'.format(args.write_dir_path)
 
     collect_tool_outputs(folder_name_C, folder_name_D)
     combine_tool_cd_make_ab(folder_name_A, folder_name_B)
     update_action_dictionaries(all_combined_path)
+    postprocess_step(all_combined_path, postprocessed_path)
