@@ -39,7 +39,6 @@ from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
-from droidlet.perception.robot import LabelPropagate
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -83,7 +82,7 @@ class LocobotAgent(LocoMCAgent):
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
         self.interaction_logger = InteractionLogger()
-
+        
     def init_event_handlers(self):
         super().init_event_handlers()
 
@@ -161,7 +160,11 @@ class LocobotAgent(LocoMCAgent):
 
         @sio.on("switch_detector")
         def switch_detector(sid): 
-            model_path = "annotation_data/model"
+            model_dir = "annotation_data/model"
+            model_names = os.listdir(model_dir)
+            model_nums = list(map(lambda x: int(x.split("v")[1]), model_names))
+            last_model_num = max(model_nums) 
+            model_path = os.path.join(model_dir, "v" + str(last_model_num))
             detector_weights = "model_999.pth"
             properties_file = "props.json"
             things_file = "things.json"
