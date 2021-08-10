@@ -111,7 +111,7 @@ jobs:
 
   polymetis-build-local:
     docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-18
+      - image: fairrobotics/kuka-workspace:ubuntu-20
         auth:
           username: yixinlin
           password: $DOCKERHUB_PASSWORD
@@ -174,7 +174,7 @@ jobs:
 
   polymetis-build-conda-pkg:
     docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-18
+      - image: fairrobotics/kuka-workspace:ubuntu-20
         auth:
           username: yixinlin
           password: $DOCKERHUB_PASSWORD
