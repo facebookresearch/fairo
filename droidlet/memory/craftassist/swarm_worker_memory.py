@@ -19,20 +19,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import (  # noqa
     # SchematicNode,
     # NODELIST,
 )
-from droidlet.memory.memory_nodes import (  # noqa
-    TaskNode,
-    TripleNode,
-    PlayerNode,
-    ProgramNode,
-    MemoryNode,
-    ChatNode,
-    TimeNode,
-    LocationNode,
-    ReferenceObjectNode,
-    NamedAbstractionNode,
-    AttentionNode,
-    NODELIST,
-)
+
 NONPICKLE_ATTRS = [
     "agent",
     "memory",
@@ -174,6 +161,12 @@ class SwarmWorkerMemory():
     def tag(self, subj_memid: str, tag_text: str):
         return self._db_command("tag", subj_memid, tag_text)
 
+    def untag(self, subj_memid: str, tag_text: str):
+        return self._db_command("untag", subj_memid, tag_text)
+
+    def forget(self, memid):
+        return self._db_command("forget", memid)
+
     def add_triple(self,
         subj: str = None,  # this is a memid if given
         obj: str = None,  # this is a memid if given
@@ -210,5 +203,32 @@ class SwarmWorkerMemory():
     
     def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         return self._db_command("get_instseg_object_ids_by_xyz", xyz)
+    
+    def upsert_block(self,
+        block: Block,
+        memid: str,
+        ref_type: str,
+        player_placed: bool = False,
+        agent_placed: bool = False,
+        update: bool = True,  # if update is set to False, forces a write
+    ):
+        return self._db_command("upsert_block", block, memid, ref_type, player_placed, agent_placed, update)
+    
+    def _update_voxel_count(self, memid, dn):
+        return self._db_command("_update_voxel_count", memid, dn)
+
+    def _update_voxel_mean(self, memid, count, loc):
+        return self._db_command("_update_voxel_mean", memid, count, loc)
+
+    def remove_voxel(self, x, y, z, ref_type):
+        return self._db_command("remove_voxel", self, x, y, z, ref_type)
+
+    def set_memory_updated_time(self, memid):
+        return self._db_command("set_memory_updated_time", memid)
+
+    def set_memory_attended_time(self, memid):
+        return self._db_command("set_memory_attended_time", memid)
+    
+    def set_mob_position()
 
 

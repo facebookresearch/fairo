@@ -123,6 +123,8 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "_db_write": self.memory._db_write,
             "db_write": self.memory.db_write,
             "tag": self.memory.tag,
+            "untag": self.memory.untag,
+            "forget": self.memory.forget,
             "add_triple": self.memory.add_triple,
             "check_memid_exists": self.memory.check_memid_exists,
             "get_mem_by_id": self.memory.get_mem_by_id,
@@ -132,7 +134,13 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "get_object_info_by_xyz": self.memory.get_object_info_by_xyz,
             "get_block_object_by_id": self.memory.get_block_object_by_id,
             "get_object_by_id": self.memory.get_object_by_id,
-            "get_instseg_object_ids_by_xyz": self.memory.get_instseg_object_ids_by_xyz
+            "get_instseg_object_ids_by_xyz": self.memory.get_instseg_object_ids_by_xyz,
+            "upsert_block": self.memory.upsert_block,
+            "_update_voxel_count": self.memory._update_voxel_count,
+            "_update_voxel_mean": self.memory._update_voxel_mean,
+            "remove_voxel": self.memory.remove_voxel,
+            "set_memory_updated_time": self.memory.set_memory_updated_time,
+            "set_memory_attended_time": self.memory.set_memory_attended_time
         }
     
     def if_swarm_task(self, mem):
@@ -182,8 +190,6 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         query_id = query[0]
         query_name = query[1]
         query_args = query[2:]
-        # if query_name == "db_write" and query_args[0]=="UPDATE Tasks SET run_count=?, pickled=? WHERE uuid=?":
-        #     ForkedPdb().set_trace()
         if query_name in self.handle_query_dict.keys():
             to_return = self.handle_query_dict[query_name](*query_args)
         else:
@@ -210,7 +216,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
         for attr in all_attrs:
             if attr.startswith("__"):
                 continue
-            if type(getattr(input_object, attr)).__name__ in dir(__builtins__):
+            if is_picklable(getattr(input_object, attr)):
                 return_dict[attr] = all_attrs[attr]
         return return_dict
 
@@ -233,12 +239,6 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
                 continue
             else:
                 task_name = mem.task.__class__.__name__.lower()
-                # ForkedPdb().set_trace()
-                if task_name == "move":
-                    ForkedPdb().set_trace()
-                    x, y = self.memory.basic_search(query)
-                    x, y = self.memory.basic_search(query)
-                    x, y = self.memory.basic_search(query)
                 task_data = self.get_safe_single_object_attr_dict(mem.task)
                 memid = mem.task.memid
                 task_list.append((task_name, task_data, memid))
@@ -251,21 +251,17 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             swarm_worker.start()
 
         init_status = [False] * (self.num_agents - 1)
-
         while not self._shutdown:
             try:
                 if all(init_status):
                     self.step()
                 for i in range(self.num_agents-1):
                     flag = True
-                    # TODO: implement perception memory --> handle the perceiptions queue
-                    
-                    # send swarm worker i's new task
                     task_list = self.get_new_tasks(tag="swarm_worker_{}".format(i+1))
                     for new_task in task_list:
-                        self.swarm_workers[i].input_tasks.put(new_task) 
+                        self.swarm_workers[i].input_tasks.put(new_task)
                         
-                    # task updates info from swarm worker process
+                    # task updates xinfo from swarm worker process
                     flag = True
                     while flag:
                         if self.swarm_workers[i].query_from_worker.empty():
@@ -274,7 +270,6 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
                             name, obj = self.swarm_workers[i].query_from_worker.get_nowait()
                             if name == "task_updates":
                                 for (memid, cur_task_status) in obj:
-                                    print("task updates", memid, cur_task_status)
                                     mem = self.memory.get_mem_by_id(memid)
                                     mem.get_update_status({"prio": cur_task_status[0], "running": cur_task_status[1]})
                                     if cur_task_status[2]:
