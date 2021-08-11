@@ -134,6 +134,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         joint_damping: float = 0.1,
         grav_comp: bool = True,
         gui: bool = False,
+        save_vid: bool = False,
         habitat_scene_path: str = "data/scene_datasets/habitat-test-scenes/apartment_1.glb",
         agent_pos: list = [-0.15, -0.1, 1.0],
         agent_orient: list = [-0.83147, 0, 0.55557, 0],
@@ -159,12 +160,16 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
 
             gui: whether to show a GUI window.
 
+            save_vid: whether to save a video of the simulation.
+
             habitat_scene_path: path to the .glb file containing the scene.
         """
         # Save static parameters
         self.hz = hz
         self.dt = 1.0 / self.hz
         self.gui = gui
+        self.save_vid = save_vid
+        self.vid_out = None
         self.n_dofs = robot_model_cfg.num_dofs
         self.grav_comp = grav_comp
 
@@ -219,6 +224,10 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_measured = np.zeros(self.n_dofs)
         self.prev_torques_external = np.zeros(self.n_dofs)
 
+    def __del__(self):
+        if self.vid_out is not None:
+            self.vid_out.release()
+
     def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
         """Reset joint positions / velocities to given values (0s by default)"""
         if joint_pos is None:
@@ -262,15 +271,29 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         )
 
     def render(self):
-        if self.gui:
-            import cv2
-
+        if self.gui or self.save_vid:
             obs = self.sim.get_sensor_observations()
             img = obs["rgba_camera_1stperson"]
 
-            cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
-            cv2.imshow("Habitat", img)
-            cv2.waitKey(1)
+            import cv2
+
+            if self.gui:
+                cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
+                cv2.imshow("Habitat", img)
+                cv2.waitKey(1)
+            if self.save_vid:
+                if self.vid_out is None:
+                    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+                    self.vid_out = cv2.VideoWriter(
+                        "out.mp4",
+                        fourcc,
+                        24,
+                        (img.shape[1], img.shape[0]),
+                    )
+
+                self.vid_out.write(img[:, :, :-1])
+
+        return img
 
     def apply_joint_torques(self, torques: List[float]) -> List[float]:
         """Sets joint torques and steps simulation. Returns applied
