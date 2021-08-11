@@ -82,6 +82,7 @@ docker exec -it droidlet_container bash
 
 to open a shell in the docker container, and then run:
 ```
+python setup.py develop
 python droidlet/lowlevel/minecraft/cuberite_process.py --config flat_world
 ```
 to start an instance of cuberite instance listening on `localhost:25565`
@@ -125,7 +126,7 @@ docker exec -it droidlet_container bash
 
 to open a shell in the docker container, and then run:
 ```
-python craftassist_agent.py
+python agents/craftassist/craftassist_agent.py
 ```
 
 #### For local user
