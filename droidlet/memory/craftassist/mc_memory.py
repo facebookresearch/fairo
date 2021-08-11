@@ -75,15 +75,21 @@ class MCAgentMemory(AgentMemory):
         self._safe_pickle_saved_attrs = {}
         self.schematics = {}
 
-        self._load_schematics(schematics=agent_low_level_data.get("schematics", {}),
-                              block_data=agent_low_level_data.get("block_data", {}),
-                              load_minecraft_specs=load_minecraft_specs)
-        self._load_block_types(block_data=agent_low_level_data.get("block_data", {}),
-                               color_data=agent_low_level_data.get("color_data", {}),
-                               block_property_data=agent_low_level_data.get("block_property_data", {}),
-                               load_block_types=load_block_types)
-        self._load_mob_types(mobs=agent_low_level_data.get("mobs", {}),
-                             mob_property_data=agent_low_level_data.get("mob_property_data", {}))
+        self._load_schematics(
+            schematics=agent_low_level_data.get("schematics", {}),
+            block_data=agent_low_level_data.get("block_data", {}),
+            load_minecraft_specs=load_minecraft_specs,
+        )
+        self._load_block_types(
+            block_data=agent_low_level_data.get("block_data", {}),
+            color_data=agent_low_level_data.get("color_data", {}),
+            block_property_data=agent_low_level_data.get("block_property_data", {}),
+            load_block_types=load_block_types,
+        )
+        self._load_mob_types(
+            mobs=agent_low_level_data.get("mobs", {}),
+            mob_property_data=agent_low_level_data.get("mob_property_data", {}),
+        )
         self.dances = {}
         self.perception_range = preception_range
 
@@ -316,11 +322,6 @@ class MCAgentMemory(AgentMemory):
         else:
             return None
 
-    def get_mob_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
-        """Get the Mob type memory node using name"""
-        return self._get_schematic_by_property_name(name, "MobTypes")
-
-    # TODO call this in get_schematic_by_property_name
     def get_schematic_by_name(self, name: str) -> Optional["SchematicNode"]:
         """Get the id of Schematic type memory node using name"""
         r = self._db_read(
@@ -447,17 +448,17 @@ class MCAgentMemory(AgentMemory):
             # load single mob as schematics
             memid = SchematicNode.create(self, [((0, 0, 0), (383, m))])
             self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
-            if "block" in type_name:
-                self.add_triple(
-                    subj=memid, pred_text="has_name", obj_text=type_name.strip("block").strip()
-                )
+            self.tag(memid, "_spawn")
+            self.tag(memid, name)
+            if "block" in name:
+                self.tag(memid, name.strip("block").strip())
 
             # then load properties
             memid = MobTypeNode.create(self, type_name, (383, m))
             self.add_triple(subj=memid, pred_text="has_name", obj_text=type_name)
             if mob_name_to_properties.get(type_name) is not None:
-                for property in mob_name_to_properties[type_name]:
-                    self.add_triple(subj=memid, pred_text="has_name", obj_text=property)
+                for prop in mob_name_to_properties[type_name]:
+                    self.tag(memid, prop)
 
     ##############
     ###  Mobs  ###

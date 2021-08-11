@@ -5,7 +5,7 @@ from .interpreter_utils import (
     is_loc_speakerlook,
     process_spans_and_remove_fixed_value,
     coref_resolve,
-    tags_from_dict,
+    backoff_where,
     strip_prefix,
     ref_obj_lf_to_selector,
     convert_location_to_selector,
@@ -26,7 +26,12 @@ from .interpreter import Interpreter
 from .get_memory_handler import GetMemoryHandler
 
 from .condition_helper import ConditionInterpreter, get_repeat_num
-from .filter_helper import FilterInterpreter, interpret_dance_filter
+from .filter_helper import (
+    FilterInterpreter,
+    interpret_dance_filter,
+    interpret_where_backoff,
+    maybe_apply_selector,
+)
 from .attribute_helper import AttributeInterpreter
 
 __all__ = [
@@ -38,7 +43,7 @@ __all__ = [
     is_loc_speakerlook,
     coref_resolve,
     process_spans_and_remove_fixed_value,
-    tags_from_dict,
+    backoff_where,
     strip_prefix,
     special_reference_search_data,
     get_eid_from_special,
@@ -50,6 +55,8 @@ __all__ = [
     interpret_relative_direction,
     ConditionInterpreter,
     get_repeat_num,
+    interpret_where_backoff,
+    maybe_apply_selector,
     FilterInterpreter,
     AttributeInterpreter,
     GetMemoryHandler,

@@ -52,19 +52,67 @@ def strip_prefix(s, pre):
     return s
 
 
-# FIXME!? maybe start using triples appropriately now?
-def tags_from_dict(filters_d):
+# FIXME... be more careful with OR and NOT
+def backoff_where(where_clause, triples_to_tags=True, canonicalize=True, lower=False):
     """
-    flattens all triples in the "triples" subdict of filters_d,
-    pulling just the obj_text if exists and if the pred_text is a "has_"
+    util to canonicalize where clauses.
+    if triples_to_tags:  flattens triples, pulling just the obj_text if exists and if the pred_text is a "has_"
+    if canonicalize: removing the word "the"
+    if lower: lowercases subj_text, obj_text, pred_text, value_left, and value_right
+
+    returns the list of obj_texts and modified dict
     """
-    triples = filters_d.get("triples", [])
-    tag_list = [
-        strip_prefix(t.get("obj_text"), "the ")
-        for t in triples
-        if t.get("pred_text", "").startswith("has_")
-    ]
-    return list(set(tag_list))
+    new_where_clause = deepcopy(where_clause)
+    tags = []
+    # doesn't check if where_clause is well formed
+    conj = list(set(["AND", "OR", "NOT"]).intersection(set(where_clause.keys())))
+    if conj:  # recurse
+        conj = conj[0]
+        for i in range(len(where_clause[conj])):
+            clause_tags, new_subclause = backoff_where(
+                where_clause[conj][i],
+                triples_to_tags=triples_to_tags,
+                canonicalize=canonicalize,
+                lower=lower,
+            )
+            tags.extend(clause_tags)
+            new_where_clause[conj][i] = new_subclause
+    else:  # a leaf
+        if "input_left" in where_clause:
+            # a triple expressed as a comparator
+            if type(where_clause["input_left"]) is str and where_clause["input_left"].startswith(
+                "has_"
+            ):
+                new_o = where_clause["input_right"]
+                if type(new_o) is str:
+                    if canonicalize:
+                        new_o = strip_prefix(new_o, "the ")
+                    tags.append(new_o)
+                    if triples_to_tags:
+                        new_where_clause["input_left"] = "has_tag"
+                    new_where_clause["input_right"] = new_o
+            if lower:
+                if type(new_where_clause["input_right"]) is str:
+                    new_where_clause["input_right"] = new_where_clause["input_right"].lower()
+                if type(new_where_clause["input_left"]) is str:
+                    new_where_clause["input_left"] = new_where_clause["input_left"].lower()
+        else:  # triple...
+            p = where_clause.get("pred_text")
+            if p and type(p) is str and p.startswith("has_"):
+                new_o = where_clause.get("obj_text")
+                if new_o and type(new_o) is str:  # don't try to fix subqueries
+                    if canonicalize:
+                        new_o = strip_prefix(new_o, "the ")
+                    tags.append(new_o)
+                    if triples_to_tags:
+                        new_where_clause["pred_text"] = "has_tag"
+                    new_where_clause["obj_text"] = new_o
+            if lower:
+                for k in ["subj_text", "pred_text", "obj_text"]:
+                    if new_where_clause.get(k) is str:
+                        new_where_clause[k] = new_where_clause[k].lower()
+
+    return list(set(tags)), new_where_clause
 
 
 def is_loc_speakerlook(d):

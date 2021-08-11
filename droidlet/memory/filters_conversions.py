@@ -71,30 +71,9 @@ def convert_triple_to_comparator(triple):
 
 
 def old_filters_to_new_filters(d):
-    where_clause = []
     new_filters = deepcopy(d)
-    if d.get("triples"):
-        del new_filters["triples"]
-        for triple in d["triples"]:
-            c = convert_triple_to_comparator(triple)
-            where_clause.append(c)
-    if d.get("comparator"):
-        del new_filters["comparator"]
-        for c in d["comparator"]:
-            where_clause.append(c)
-    if d.get("author"):
-        del new_filters["author"]
-        c = (
-            {
-                "input_left": {"value_extractor": "author"},
-                "input_right": {"value_extractor": d["author"]},
-                "comparison_type": "EQUAL",
-            },
-        )
-        where_clause.append(c)
-    if where_clause:
-        new_filters["where_clause"] = {"AND": where_clause}
     # FIXME: moving ordinal in to root of selector dict
+    # NOTE: This changes hasn't been made yet
     if d.get("selector"):
         s = d["selector"]
         if s.get("return_quantity", {}).get("argval", {}).get("ordinal"):
