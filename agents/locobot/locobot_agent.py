@@ -176,10 +176,10 @@ class LocobotAgent(LocoMCAgent):
 
             files = os.listdir(model_path)
             if detector_weights not in files: 
-                print("Error switching model:", os.path.join(model_path, things_file), "not found")
+                print("Error switching model:", os.path.join(model_path, detector_weights), "not found")
                 return
             if properties_file not in files: 
-                print("Error switching model:", os.path.join(model_path, things_file), "not found")
+                print("Error switching model:", os.path.join(model_path, properties_file), "not found")
                 return
             if things_file not in files: 
                 print("Error switching model:", os.path.join(model_path, things_file), "not found")
