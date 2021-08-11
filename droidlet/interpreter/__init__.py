@@ -8,7 +8,6 @@ from .interpreter_utils import (
     backoff_where,
     strip_prefix,
     ref_obj_lf_to_selector,
-    convert_location_to_selector,
 )
 
 from .reference_object_helpers import (
@@ -39,7 +38,6 @@ __all__ = [
     SPEAKERPOS,
     AGENTPOS,
     ref_obj_lf_to_selector,
-    convert_location_to_selector,
     is_loc_speakerlook,
     coref_resolve,
     process_spans_and_remove_fixed_value,
