@@ -29,10 +29,9 @@ from droidlet.perception.robot.perception_helpers import get_color_tag
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
 detector_weights = "model_999.pth"
-properties_default = "prop.pickle"
-properties_new = "props.json"
-things_default = "things.pickle"
-things_new = "things.json"
+default_json_dir = os.path.abspath(os.path.dirname(__file__)) + "/../../../../annotation_data/model"
+props_filename = "props.json"
+things_filename = "things.json"
 
 file_root = os.path.dirname(os.path.realpath(__file__))
 
@@ -87,30 +86,20 @@ class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
     def __init__(self, model_data_dir):
-        # Need these if statements for pickle files that are downloaded from s3
-        # Can take most of this section out when prop.pickle and things.pickle are removed from s3
-        # Will also need to hardcode the things.json and props.json filepaths used below
         files = os.listdir(model_data_dir)
-        for f in files: 
-            fs = f.split(".")
-            if fs[0] == "prop" or fs[0] == "props": 
-                if fs[1] == "pickle": 
-                    with open(os.path.join(model_data_dir, properties_default), "rb") as h:
-                        self.properties = pickle.load(h)
-                        logging.info("{} properties".format(len(self.properties)))
-                if fs[1] == "json": 
-                    with open(os.path.join(model_data_dir, properties_new), "r") as h:
-                        self.properties = json.load(h)["items"]
-                        logging.info("{} properties".format(len(self.properties)))
-            if fs[0] == "things": 
-                if fs[1] == "pickle": 
-                    with open(os.path.join(model_data_dir, things_default), "rb") as h:
-                        self.things = pickle.load(h)
-                        logging.info("{} things".format(len(self.things)))
-                if fs[1] == "json": 
-                    with open(os.path.join(model_data_dir, things_new), "r") as h:
-                        self.things = json.load(h)["items"]
-                        logging.info("{} things".format(len(self.things)))
+        props_file = os.path.join(model_data_dir, props_filename) \
+            if props_filename in files \
+            else os.path.join(default_json_dir, props_filename)
+        things_file = os.path.join(model_data_dir, things_filename) \
+            if things_filename in files \
+            else os.path.join(default_json_dir, things_filename)
+
+        with open(props_file, "r") as h:
+            self.properties = json.load(h)["items"]
+            logging.info("{} properties".format(len(self.properties)))
+        with open(things_file, "r") as h:
+            self.things = json.load(h)["items"]
+            logging.info("{} things".format(len(self.things)))
 
         weights = os.path.join(model_data_dir, detector_weights)
         self.dataset_name = "dummy_dataset"
