@@ -16,6 +16,7 @@ logical_form_before_processing = {
     "go forward": common_functional_commands["go forward"],
 }
 
+# FIXME! put these in the main file
 logical_form_post_processing = {
     "turn right": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -27,7 +28,7 @@ logical_form_post_processing = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": "keys"}],
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "keys"}]},
         },
     },
     "go forward": {
