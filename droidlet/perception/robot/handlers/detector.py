@@ -29,7 +29,7 @@ from droidlet.perception.robot.perception_helpers import get_color_tag
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
 detector_weights = "model_999.pth"
-default_json_dir = os.path.abspath(os.path.dirname(__file__)) + "/../../../../annotation_data/model"
+default_json_dir = os.path.abspath(os.path.dirname(__file__)) + "/../../../../annotation_data/model/v0"
 props_filename = "props.json"
 things_filename = "things.json"
 
