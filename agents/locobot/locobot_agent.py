@@ -83,8 +83,10 @@ class LocobotAgent(LocoMCAgent):
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
         self.interaction_logger = InteractionLogger()
-        shutil.rmtree("annotation_data/rgb")
-        shutil.rmtree("annotation_data/seg")
+        if os.path.exists("annotation_data/rgb"): 
+            shutil.rmtree("annotation_data/rgb")
+        if os.path.exists("annotation_data/seg"): 
+            shutil.rmtree("annotation_data/seg")
         
     def init_event_handlers(self):
         super().init_event_handlers()
