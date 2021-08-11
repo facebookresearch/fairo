@@ -18,7 +18,6 @@ from droidlet.interpreter import (
     get_repeat_num,
     filter_by_sublocation,
     interpret_dance_filter,
-    convert_location_to_selector,
 )
 
 from .schematic_helper import (
@@ -201,7 +200,6 @@ class MCInterpreter(Interpreter):
             # handle copy
             ##########FIXME remove this when DSL updated!!!
             md = deepcopy(d)
-            convert_location_to_selector(md["reference_object"])
             objs = self.subinterpret["reference_objects"](
                 self,
                 speaker,
