@@ -50,8 +50,12 @@ def make_configuration(
 
     # simulator configuration
     backend_cfg = habitat_sim.SimulatorConfiguration()
-    backend_cfg.scene_id = glb_path
+    # backend_cfg.scene_id = glb_path
+    backend_cfg.scene_dataset_config_file = "/private/home/yixinlin/dev/farsighted-mpc/third_party/kitchen_arrange/data/lighthouse_kitchen_dataset/lighthouse_kitchen.scene_dataset_config.json"
+    backend_cfg.scene_id = "/private/home/yixinlin/dev/farsighted-mpc/third_party/kitchen_arrange/data/lighthouse_kitchen_dataset/scenes/scene0_unloaded.scene_instance.json"
     backend_cfg.enable_physics = True
+    backend_cfg.scene_light_setup = ""
+    backend_cfg.override_scene_light_defaults = True
     backend_cfg.physics_config_file = os.path.join(
         habitat_dir, backend_cfg.physics_config_file
     )
@@ -136,9 +140,9 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         gui: bool = False,
         save_vid: bool = False,
         habitat_scene_path: str = "data/scene_datasets/habitat-test-scenes/apartment_1.glb",
-        agent_pos: list = [-0.15, -0.1, 1.0],
+        agent_pos: list = [-0.15, 1.5, 1.0],
         agent_orient: list = [-0.83147, 0, 0.55557, 0],
-        local_base_pos: list = [0.0, -1.1, -2.0],
+        local_base_pos: list = [-0.25, -0.8, -1.0],
         orientation_vector: list = [1.0, 0, 0],
         angle_correction: float = -1.56,
     ):
@@ -192,7 +196,9 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         # Load robot
         self.robot = (
             self.sim.get_articulated_object_manager().add_articulated_object_from_urdf(
-                self.robot_description_path, fixed_base=True
+                self.robot_description_path,
+                fixed_base=True,
+                light_setup_key=habitat_sim.gfx.DEFAULT_LIGHTING_KEY,
             )
         )
         assert self.robot is not None
@@ -292,8 +298,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
                     )
 
                 self.vid_out.write(img[:, :, :-1])
-
-        return img
 
     def apply_joint_torques(self, torques: List[float]) -> List[float]:
         """Sets joint torques and steps simulation. Returns applied
