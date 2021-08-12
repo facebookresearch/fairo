@@ -30,7 +30,7 @@ lvis_yaml2 = "LVIS-InstanceSegmentation/mask_rcnn_R_101_FPN_1x.yaml"
 pano_yaml = "COCO-PanopticSegmentation/panoptic_fpn_R_50_3x.yaml"
 
 jsons_root = '/checkpoint/apratik/finals/jsons/active_vision/'
-logdir = '/checkpoint/apratik/finals/logs/act2'
+logdir = '/checkpoint/apratik/finals/logs/default1k_gtfix_final'
 
 try:
     os.mkdir(logdir)
@@ -77,27 +77,33 @@ img_dir_train = '/checkpoint/apratik/finals/straightline/apartment_0/rgb'
 
 # Table 2 - prop fixed, label prop, different GT frames
 # train_jsons = [
-#     'active_vision/straightline_apt0_gt5p2fix_corlnn.json',
-#     'active_vision/straightline_apt0_gt10p2fix_corlnn.json',
-#     'active_vision/straightline_apt0_gt15p2fix_corlnn.json',
-#     'active_vision/straightline_apt0_gt20p2fix_corlnn.json',
-#     'active_vision/straightline_apt0_gt25p2fix_corlnn.json',
+#     'straightline_apt0_gt5p2fix_corlnn.json',
+#     'straightline_apt0_gt10p2fix_corlnn.json',
+#     'straightline_apt0_gt15p2fix_corlnn.json',
+#     'straightline_apt0_gt20p2fix_corlnn.json',
+#     'straightline_apt0_gt25p2fix_corlnn.json',
 # ]
 
-train_jsons=[f'straightline_apt0_gt{x}p2_rand_{y}.json' for x in range(5,30,5) for y in range(3)]
+# train_jsons = [
+#     'default_apt0_gt5p2fix_corlnn.json',
+#     'default_apt0_gt10p2fix_corlnn.json',
+#     'default_apt0_gt15p2fix_corlnn.json',
+#     'default_apt0_gt20p2fix_corlnn.json',
+#     'default_apt0_gt25p2fix_corlnn.json',
+# ]
+# train_jsons=[f'straightline_apt0_gt{x}p2_rand_{y}.json' for x in range(5,30,5) for y in range(3)]
 
-train_jsons = [os.path.join(jsons_root, x) for x in train_jsons]
 
 # train_jsons = [f'active_vision/straightline_apt0_gt{x}p2fix_corlnn.json' for x in range(5, 30, 5)]
 
-# train_jsons = [f'active_vision/straightline_apt0_gt10p{x}_h1nn.json' for x in range(2, 10, 2)]
+train_jsons = [f'default_apt0_gt10p{x}_h1nn.json' for x in range(2, 10, 2)]
 
 # Table 1 - gt fixed, different label prop lengths
 # train_jsons = [
-#     'active_vision/straightline_apt0_gt100p1_corln.json',
-#     'active_vision/straightline_apt0_gt100p2_corln.json',
-#     'active_vision/straightline_apt0_gt100p4_corln.json',
-#     'active_vision/straightline_apt0_gt100p6_corln.json',
+#     'straightline_apt0_gt100p1_corln.json',
+#     'straightline_apt0_gt100p2_corln.json',
+#     'straightline_apt0_gt100p4_corln.json',
+#     'straightline_apt0_gt100p6_corln.json',
 # ]
 
 # train_jsons = [
@@ -106,7 +112,9 @@ train_jsons = [os.path.join(jsons_root, x) for x in train_jsons]
 #     'active_vision/default_apt0_gt100p4_corln.json',
 #     'active_vision/default_apt0_gt100p6_corln.json',
 # ]
-    
+
+train_jsons = [os.path.join(jsons_root, x) for x in train_jsons]
+
 
 dataset_name = 'habitat_1'
 
@@ -263,7 +271,7 @@ class COCOTrain:
         self.trainer.train()
 
     def run_eval(self, dataset_name, test_json, img_dir_test):
-        self.val_data = dataset_name + "_val"
+        self.val_data = dataset_name + "_val" + str(self.seed)
         self.test_json = test_json
         self.cfg.DATASETS.TEST = (self.val_data,)
         register_coco_instances(self.val_data, {}, test_json, img_dir_test)
@@ -330,14 +338,14 @@ def main_loop(train_json, n):
 import submitit
 
 # executor is the submission interface (logs are dumped in the folder)
-executor = submitit.AutoExecutor(folder="log_test_active2")
+executor = submitit.AutoExecutor(folder="log_test_default1k_gtfix_final")
 # set timeout in min, and partition for running the job
 executor.update_parameters(
-    slurm_partition="learnfair", #scavenge
-    timeout_min=1000,
+    slurm_partition="scavenge", #scavenge
+    timeout_min=2000,
     mem_gb=256,
     gpus_per_node=4,
-    tasks_per_node=4,  # one task per GPU
+    tasks_per_node=1,  # one task per GPU
     cpus_per_task=8,
     additional_parameters={
         "mail-user": f"{os.environ['USER']}@fb.com",
@@ -348,7 +356,7 @@ executor.update_parameters(
 jobs = []
 with executor.batch():
     for x in train_jsons:
-        job = executor.submit(main_loop, x, 2)
+        job = executor.submit(main_loop, x, 1000)
         jobs.append(job)
         
 print(jobs)
