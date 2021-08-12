@@ -1,4 +1,4 @@
 <ExternalQuestion xmlns="http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd">
-  <ExternalURL>https://craftassist.s3-us-west-2.amazonaws.com/pubr/tool_A.html?{}</ExternalURL>
+  <ExternalURL>https://craftassist.s3-us-west-2.amazonaws.com/pubr/tool_A_multi.html?{}</ExternalURL>
   <FrameHeight>0</FrameHeight>
 </ExternalQuestion>
