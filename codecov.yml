@@ -1,9 +1,3 @@
-ignore:
-      - "**/tests/*.py"
-codecov:
-  notify:
-    require_ci_to_pass: no
-
 fixes:
   - "/shared/droidlet::"
   - "/droidlet::"
@@ -13,29 +7,18 @@ coverage:
     project:
         default:
             target: 0%
-            if_not_found: success
-            if_ci_failed: success
         Robot:
             target: 0%
             paths:
                 - agents/locobot/*
-            if_not_found: success
-            if_ci_failed: success
-                
-        Mincraft:
+        Minecraft:
             target: 0%
             paths:
                 - agents/minecraft/*
-            if_not_found: success
-            if_ci_failed: success
-	    
         Droidlet:
             target: 0%
             paths:
                 - droidlet/*
-            if_not_found: success
-            if_ci_failed: success
-
     patch: off
     changes: off
 
