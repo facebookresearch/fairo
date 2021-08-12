@@ -51,5 +51,4 @@ class EncoderDecoderWithLoss(nn.Module):
         if not self.train_encoder:
             x_reps = x_reps.detach()
         outputs = self.decoder(y, y, y_mask, x_reps, x_mask, is_eval)
-        import ipdb; ipdb.set_trace()
         return outputs
