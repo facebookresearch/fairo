@@ -1,11 +1,15 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from copy import deepcopy
 from .attribute_helper import AttributeInterpreter, maybe_specific_mem
 from droidlet.memory.memory_attributes import LinearExtentAttribute
 from droidlet.memory.memory_filters import (
     MemoryFilter,
+    AndFilter,
+    OrFilter,
     NotFilter,
+    ComparatorFilter,
     MemidList,
     FixedMemFilter,
     BasicFilter,
@@ -19,7 +23,7 @@ from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
 from .location_helpers import interpret_relative_direction
 from .comparator_helper import interpret_comparator
-from .interpreter_utils import tags_from_dict
+from .interpreter_utils import backoff_where
 
 CARDINAL_RADIUS = 20
 
@@ -53,43 +57,81 @@ def maybe_append_left(F, to_append=None):
 
 def maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map):
     # is this a specific memory?
-    # ... then return
-    mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
-    if mem:
-        return maybe_append_left(FixedMemFilter(interpreter.memory, mem.memid), to_append=val_map)
+    # ... then return it
+    F = None
+    if filters_d.get("special") and filters_d["special"] == "THIS":
+        F = FixedMemFilter(interpreter.memory, "NULL")
+    else:
+        mem, _ = maybe_specific_mem(interpreter, speaker, {"filters": filters_d})
+        if mem:
+            F = FixedMemFilter(interpreter.memory, mem.memid)
+    if F is not None:
+        return maybe_append_left(F, to_append=val_map)
     else:
         return None
 
 
-# FIXME!!  properly use new FILTERS spec
-def interpret_ref_obj_filter(interpreter, speaker, filters_d):
-    F = MemoryFilter(interpreter.memory)
+def interpret_where_clause(
+    interpreter, speaker, where_d, memory_type="ReferenceObject", ignore_self=False
+):
+    """ 
+    where_d is a sentence (nested dict/list) of the recursive form 
+    COMPARATOR, TRIPLE, or {CONJUNCTION, [where_clauses]}
+    where each CONJUCTION is either "AND", "OR", or "NOT"
+    """
+    subclause = where_d.get("AND") or where_d.get("OR") or where_d.get("NOT")
+    if subclause:
+        clause_filters = []
+        for c in subclause:
+            clause_filters.append(
+                interpret_where_clause(
+                    interpreter, speaker, c, memory_type=memory_type, ignore_self=ignore_self
+                )
+            )
+        if "AND" in where_d:
+            return AndFilter(interpreter.memory, clause_filters)
+        elif "OR" in where_d:
+            return OrFilter(interpreter.memory, clause_filters)
+        else:  # NOT
+            try:
+                assert len(clause_filters) == 1
+            except:
+                raise Exception(
+                    "tried to make a NOT filter with a list of clauses longer than 1 {}".format(
+                        where_d
+                    )
+                )
+            return NotFilter(interpreter.memory, clause_filters)
+    if where_d.get("input_left"):
+        # this is a comparator leaf
+        comparator_attribute = interpret_comparator(
+            interpreter, speaker, where_d, is_condition=False
+        )
+        return ComparatorFilter(interpreter.memory, comparator_attribute, memtype=memory_type)
+    else:
+        # this is a triple leaf
+        query = {"memory_type": memory_type, "where_clause": {"AND": [{}]}}
+        for k, v in where_d.items():
+            if type(v) is dict:
+                query["where_clause"]["AND"][0][k] = interpreter.subinterpet["filters"](
+                    interpreter, speaker, v
+                )
+            else:
+                query["where_clause"]["AND"][0][k] = v
+        return BasicFilter(interpreter.memory, query, ignore_self=ignore_self)
 
-    # currently spec intersects all comparators TODO?
-    comparator_specs = filters_d.get("comparator")
-    if comparator_specs:
-        for s in comparator_specs:
-            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
 
-    # FIXME!!! AUTHOR
-    # FIXME!!! has_x=FILTERS
-    # currently spec intersects all has_x, TODO?
-    # FIXME!!! tags_from_dict is crude, use tags/relations appropriately
-    #        triples = []
-    #        for k, v in filters_d.items():
-    #            if type(k) is str and "has" in k:
-    #                if type(v) is str:
-    #                    triples.append({"pred_text": k, "obj_text": v})
-    # Warning: BasicFilters will filter out agent's self
-    # FIXME !! finer control over this ^
-
-    tags = tags_from_dict(filters_d)
-    if tags:
-        where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
-        query = "SELECT MEMORY FROM ReferenceObject WHERE (" + where + ")"
-        F.append(BasicFilter(interpreter.memory, query, ignore_self=not ("SELF" in tags)))
-
-    return F
+def interpret_where_backoff(
+    interpreter, speaker, where_d, memory_type="ReferenceObject", ignore_self=False
+):
+    F = interpret_where_clause(
+        interpreter, speaker, where_d, memory_type=memory_type, ignore_self=ignore_self
+    )
+    _, modified_where = backoff_where(where_d)
+    G = interpret_where_clause(
+        interpreter, speaker, modified_where, memory_type=memory_type, ignore_self=ignore_self
+    )
+    return BackoffFilter(interpreter.memory, [F, G])
 
 
 def interpret_random_selector(interpreter, speaker, selector_d):
@@ -206,59 +248,57 @@ def maybe_apply_selector(interpreter, speaker, filters_d, F):
         return F
 
 
+# FIXME!  update DSL so this is unnecessary
+def convert_task_where(where_clause):
+    """
+    converts special tags for tasks to comparators.
+    REMOVE ME ASAP!!
+    returns the modified where_clause dict
+    """
+    new_where_clause = deepcopy(where_clause)
+    # doesn't check if where_clause is well formed
+    subwhere = where_clause.get("AND") or where_clause.get("OR") or where_clause.get("NOT")
+    if subwhere:  # recurse
+        conj = list(where_clause.keys())[0]
+        for i in range(len(subwhere)):
+            new_where_clause[conj][i] = convert_task_where(where_clause[conj][i])
+    else:  # a leaf
+        if "input_left" in where_clause:  # a comparator, leave alone
+            pass
+        else:  # triple...
+            o = where_clause.get("obj_text").lower()
+            if o == "currently_running":
+                new_where_clause = {
+                    "input_left": {"value_extractor": {"attribute": "running"}},
+                    "input_right": {"value_extractor": "1"},
+                    "comparison_type": "EQUAL",
+                }
+            elif o == "paused":
+                new_where_clause = {
+                    "input_left": {"value_extractor": {"attribute": "paused"}},
+                    "input_right": {"value_extractor": "1"},
+                    "comparison_type": "EQUAL",
+                }
+            elif o == "finished":
+                new_where_clause = {
+                    "input_left": {"value_extractor": {"attribute": "finished"}},
+                    "input_right": {"value_extractor": "0"},
+                    "comparison_type": "GREATER_THAN",
+                }
+            else:
+                new_where_clause["obj_text"] = o
+    return new_where_clause
+
+
 def interpret_task_filter(interpreter, speaker, filters_d, get_all=False):
-    F = MemoryFilter(interpreter.memory)
-
-    task_tags = ["currently_running", "running", "paused", "finished"]
-
-    T = filters_d.get("triples")
-    task_properties = [
-        a.get("obj_text").lower() for a in T if a.get("obj_text", "").lower() in task_tags
-    ]
-    if "currently_running" in task_properties:
-        where = "(running=1) AND "
-    else:
-        where = ""
-    if "paused" in task_properties:
-        where = where + "(paused=1)"
-    else:
-        where = where + "(paused=0)"
-    if "finished" in task_properties:
-        where = where + " AND (finished>0)"
-    query = "SELECT MEMORY FROM Task WHERE (" + where + ")"
-    F.append(BasicFilter(interpreter.memory, query))
-
-    # currently spec intersects all comparators TODO?
-    comparator_specs = filters_d.get("comparator")
-    if comparator_specs:
-        for s in comparator_specs:
-            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
-
-    return F
+    modified_where = convert_task_where(filters_d.get("where_clause", {}))
+    return interpret_where_clause(interpreter, speaker, modified_where, memory_type="Task")
 
 
 def interpret_dance_filter(interpreter, speaker, filters_d, get_all=False):
-    F = MemoryFilter(interpreter.memory)
-    triples = ["({}={})".format(t["pred_text"], t["obj_text"]) for t in filters_d.get("triples", [])]
-    triple_filter = None
-    if len(triples) > 0:
-        where = " AND ".join(triples)
-        triple_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
-        
-    tags = tags_from_dict(filters_d)
-    tag_filter = None
-    triples = ["(has_tag={})".format(tag) for tag in tags]
-    if triples:
-        where = " AND ".join(triples)
-        tag_filter = BasicFilter(interpreter.memory, "SELECT MEMORY FROM Dance WHERE (" + where + ")")
-
-    F.append(BackoffFilter(interpreter.memory, [triple_filter, tag_filter]))
-    # currently spec intersects all comparators TODO?
-    comparator_specs = filters_d.get("comparator")
-    if comparator_specs:
-        for s in comparator_specs:
-            F.append(interpret_comparator(interpreter, speaker, s, is_condition=False))
-    return F
+    return interpret_where_backoff(
+        interpreter, speaker, filters_d.get("where_clause", {}), memory_type="Dance"
+    )
 
 
 class FilterInterpreter:
@@ -280,14 +320,21 @@ class FilterInterpreter:
 
         # is this a specific memory?
         # ... then return
-        specific_mem = maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map)
-        if specific_mem is not None:
-            return specific_mem
-
+        specific_mem_filter = maybe_handle_specific_mem(interpreter, speaker, filters_d, val_map)
+        if specific_mem_filter is not None:
+            return specific_mem_filter
         memtype = filters_d.get("memory_type", "REFERENCE_OBJECT")
         # FIXME/TODO: these share lots of code, refactor
         if memtype == "REFERENCE_OBJECT":
-            F = interpret_ref_obj_filter(interpreter, speaker, filters_d)
+            # just using this to check if SELF is a possibility, TODO finer control
+            tags, _ = backoff_where(filters_d.get("where_clause"), {})
+            F = interpret_where_backoff(
+                interpreter,
+                speaker,
+                filters_d.get("where_clause", {}),
+                memory_type="ReferenceObject",
+                ignore_self=not ("SELF" in tags),
+            )
         elif memtype == "TASKS":
             F = interpret_task_filter(interpreter, speaker, filters_d)
         else:

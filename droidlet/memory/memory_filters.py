@@ -6,10 +6,10 @@ import torch
 from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_new_filters
 
 ####################################################################################
-### FIXME!!! memory searcher and basic filters need to be merged
-### and several of the FILTER interpreter files (comparator_helper, filter_helper, etc.)
-### need to be updated
-### also, need to update memory searcher semantics for multiple output values
+### This file is split between the basic memory searcher, and memory filters objects
+### these now duplicate a lot of logic as the "internal" and "external" (FILTERs DSL)
+### have converged.  TODO merge- some work is needed to deal with logic
+### in various filter interpreters
 ####################################################################################
 
 
@@ -28,6 +28,19 @@ def maybe_or(sql, a):
         return sql + " OR "
     else:
         return sql
+
+
+def check_well_formed_triple(clause):
+    # TODO search by pred?
+    assert any(
+        [
+            "subj" in clause or "subj_text" in clause,
+            "pred_text" in clause,
+            "obj" in clause or "obj_text" in clause,
+        ]
+    )
+    assert not ("subj" in clause and "subj_text" in clause)
+    assert not ("obj" in clause and "obj_text" in clause)
 
 
 def get_property_value(agent_memory, mem, prop, get_all=False):
@@ -235,6 +248,9 @@ class MemorySearcher:
             return query
 
     def handle_where(self, agent_memory, where_clause, memtype):
+        """ 
+        returns a list of memids whose memories satisfy the where clause
+        """
         # do this brutally for now, if we need can make more efficient
         if where_clause.get("AND"):
             memid_lists = []
@@ -258,13 +274,14 @@ class MemorySearcher:
             memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
             return list(all_memids - set(memids))
 
+        # TODO: if input_left or input_right are subqueries...
         if where_clause.get("input_left"):
             # this is a leaf, actually search:
             input_left = where_clause["input_left"]["value_extractor"]
             input_right = where_clause["input_right"]["value_extractor"]
             if type(input_left) is dict or type(input_right) is dict:
                 raise Exception(
-                    "currently search assumes attributes are explicitly stored property of the memory: {}".format(
+                    "currently search assumes comparator attributes are explicitly stored property of the memory: {}".format(
                         where_clause
                     )
                 )
@@ -284,6 +301,38 @@ class MemorySearcher:
             else:
                 value = (input_right,)
             return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
+
+        # if we made it here, this is a triple leaf, actually search...
+
+        # check if triples dict is well formed:
+        try:
+            check_well_formed_triple(where_clause)
+        except:
+            raise Exception("poorly formed triple dict{}".format(where_clause))
+        # run any subqueries:
+        for k, v in where_clause.items():
+            if callable(v):
+                # this should be a searcher, run it
+                try:
+                    mems, vals = v()
+                    # FIXME, throw an error? the subquery could not
+                    # get a value, so the whole query returns nothing:
+                    if len(vals) == 0:
+                        return []
+                    # FIXME?  handle this better (don't choose the first?)
+                    # should we force subqueries to have proper selectors?
+                    where_clause[k] = vals[0]
+                except:
+                    raise Exception("error in subquery {}".format(where_clause))
+
+        triples = agent_memory.get_triples(**where_clause)
+        node_children = agent_memory.node_children[memtype]
+        if len(triples) > 0:
+            return [
+                t[0] for t in triples if agent_memory.get_node_from_memid(t[0]) in node_children
+            ]
+        else:
+            return []
 
     def handle_selector(self, agent_memory, query, memids):
         if query.get("selector"):
@@ -362,12 +411,17 @@ class MemorySearcher:
         if not query:
             return [], []
         query = self.maybe_convert_query(query)
-        # TODO/FIXME memtype all
+        # TODO/FIXME memtype ALL
         memtype = query.get("memory_type", default_memtype)
         if query.get("where_clause"):
             memids = self.handle_where(agent_memory, query["where_clause"], memtype)
         else:
-            memids = []
+            node_types = agent_memory.node_children.get(memtype, [])
+            memids = [
+                m[0]
+                for nt in node_types
+                for m in agent_memory._db_read("SELECT uuid FROM Memories WHERE node_type=?", nt)
+            ]
         memids = self.handle_selector(agent_memory, query, memids)
         if self.ignore_self:
             try:
@@ -381,7 +435,7 @@ class MemorySearcher:
 # TODO subclass for filters that return at most one memory,value?
 # TODO base_query instead of table
 class MemoryFilter:
-    def __init__(self, agent_memory, table="ReferenceObjects", preceding=None):
+    def __init__(self, agent_memory, memtype="ReferenceObject", preceding=None):
         """
         An object to search an agent memory, or to filter memories.
 
@@ -402,7 +456,7 @@ class MemoryFilter:
         if the __call__ gets no inputs, its a .search(); otherwise its a .filter on the value and memids
         """
         self.memory = agent_memory
-        self.table = table
+        self.memtype = memtype
         self.head = None
         self.is_tail = True
         self.preceding = None
@@ -425,8 +479,9 @@ class MemoryFilter:
         self.head = F.head or F
 
     def all_table_memids(self):
-        cmd = "SELECT uuid FROM " + self.table
-        return [m[0] for m in self.memory._db_read(cmd)]
+        cmd = "SELECT MEMORY FROM " + self.memtype
+        memids, _ = self.memory.basic_search(cmd)
+        return memids
 
     # returns a list of memids, a list of vals
     # no input
@@ -532,6 +587,9 @@ class RandomMemorySelector(MemoryFilter):
         idxs = random_subsample_idx(len(memids), self.n, same=self.same)
         return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
+    def _selfstr(self):
+        return "Random " + str(self.n) + " SAME " + self.same
+
 
 class ExtremeValueMemorySelector(MemoryFilter):
     def __init__(self, agent_memory, polarity="argmax", ordinal=1):
@@ -567,8 +625,8 @@ class ExtremeValueMemorySelector(MemoryFilter):
 
 
 class LogicalOperationFilter(MemoryFilter):
-    def __init__(self, agent_memory, searchers):
-        super().__init__(agent_memory)
+    def __init__(self, agent_memory, searchers, memtype="ReferenceObject"):
+        super().__init__(agent_memory, memtype=memtype)
         self.searchers = searchers
         if not self.searchers:
             raise Exception("empty filter list input into LogicalOperationFilter constructor")
@@ -604,7 +662,7 @@ class OrFilter(LogicalOperationFilter):
         all_mems = []
         vals = []
         for f in self.searchers:
-            mems, v = f.search()
+            mems, v = f()
             all_mems.extend(mems)
             vals.extend(v)
         return self.filter(mems, vals)
@@ -617,13 +675,13 @@ class OrFilter(LogicalOperationFilter):
         return list(memids), list(vals)
 
 
+# FIXME!!! (base_filters.table)
 class NotFilter(LogicalOperationFilter):
-    def __init__(self, agent_memory, searchers):
-        super().__init__(agent_memory, searchers)
+    def __init__(self, agent_memory, searchers, memtype="ReferenceObject"):
+        super().__init__(agent_memory, searchers, memtype=memtype)
 
     def search(self):
-        cmd = "SELECT uuid FROM " + self.base_filters.table
-        all_memids = self.memory._db_read(cmd)
+        all_memids = self.all_table_memids()
         out_memids = list(set(all_memids) - set(self.searchers[0].search()))
         out_vals = [None] * len(out_memids)
         return out_memids, out_vals
@@ -642,10 +700,16 @@ class FixedMemFilter(MemoryFilter):
         super().__init__(agent_memory)
         self.memid = memid
 
+    def check_null(self):
+        if self.memid == "NULL":
+            raise Exception("Tried to run a FixedMemFilter with a NULL fixed memid")
+
     def search(self):
+        self.check_null()
         return [self.memid], [None]
 
     def filter(self, memids, vals):
+        self.check_null()
         try:
             i = memids.index(self.memid)
             return [memids[i]], vals[i]
@@ -653,14 +717,15 @@ class FixedMemFilter(MemoryFilter):
             return [], []
 
 
+# TODO unify ComparatorAttribute and this
 class ComparatorFilter(MemoryFilter):
-    def __init__(self, agent_memory, comparator_attribute):
+    def __init__(self, agent_memory, comparator_attribute, memtype="Memories"):
         super().__init__(agent_memory)
         self.comparator = comparator_attribute
+        self.memtype = memtype
 
     def search(self):
-        cmd = "SELECT uuid FROM " + self.base_filters.table
-        all_memids = self.memory._db_read(cmd)
+        all_memids = self.all_table_memids()
         return self.filter(all_memids, [None] * len(all_memids))
 
     def filter(self, memids, vals):
@@ -670,6 +735,9 @@ class ComparatorFilter(MemoryFilter):
             [memids[i] for i in range(len(mems)) if T[i]],
             [vals[i] for i in range(len(mems)) if T[i]],
         )
+
+    def _selfstr(self):
+        return str(self.comparator)
 
 
 class BasicFilter(MemoryFilter):
@@ -692,7 +760,7 @@ class BasicFilter(MemoryFilter):
 
     def _selfstr(self):
         return "Basic: (" + str(self.query) + ")"
-    
+
 
 class BackoffFilter(MemoryFilter):
     """
@@ -725,5 +793,3 @@ class BackoffFilter(MemoryFilter):
 
     def _selfstr(self):
         return "Backoff (" + str([f for f in self.filters]) + ")"
-
-

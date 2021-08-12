@@ -157,7 +157,17 @@ class DecoderWithLoss(nn.Module):
         return res
 
     def forward(self, labels, y, y_mask, x_reps, x_mask, is_eval=False):
-        """Same as step, except with loss. Set is_eval=True for validation."""
+        """Same as step, except with loss. Set is_eval=True for validation.
+
+        labels: B x y_len x num_heads
+        y: B x y_len x num_heads
+        y_mask: B x y_len x num_heads
+        x_reps: B x x_len x H
+        x_mask: B x x_len x H
+
+        output heads are (lm, span_start, span_end, text_span_start, text_span_end, fixed_value)
+        For shape of outputs, see forward() in encoder_decoder.py
+        """
         if self.tree_to_text:
             bert_model = self.bert(
                 input_ids=y,

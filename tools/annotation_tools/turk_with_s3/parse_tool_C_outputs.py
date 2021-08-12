@@ -488,7 +488,7 @@ if __name__ == "__main__":
 
     # convert csv to txt
     result_dict = {}
-    f_name = folder_name + "../processed_outputs.csv"
+    f_name = folder_name + "processed_outputs.csv"
 
     only_show_disagreements = True
     sentence_mapping = {}

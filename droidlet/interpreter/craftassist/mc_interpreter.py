@@ -18,7 +18,6 @@ from droidlet.interpreter import (
     get_repeat_num,
     filter_by_sublocation,
     interpret_dance_filter,
-    convert_location_to_selector,
 )
 
 from .schematic_helper import (
@@ -26,6 +25,7 @@ from .schematic_helper import (
     interpret_schematic,
     interpret_size,
     interpret_fill_schematic,
+    interpret_mob_schematic,
 )
 
 from .facing_helper import FacingInterpreter
@@ -174,33 +174,15 @@ class MCInterpreter(Interpreter):
         """
         # FIXME! use filters appropriately, don't search by hand
         filters_d = d.get("reference_object", {}).get("filters", {})
-        spawn_triples = filters_d.get("triples", [])
-        if not spawn_triples:
-            raise ErrorWithResponse("I don't understand what you want me to spawn.")
-        names = [t.get("obj_text") for t in spawn_triples if t.get("pred_text", "") == "has_name"]
-        if not any(names):
-            raise ErrorWithResponse("I don't understand what you want me to spawn.")
-        # if multiple possible has_name triples, just pick the first:
-        object_name = names[0]
-        #############################################################
-        # FIXME! use FILTERS handle this properly...!
-        # repeats are hacky (and wrong) too because not using FILTERS
-        #############################################################
-        schematic = self.memory.get_mob_schematic_by_name(object_name)
-        if not schematic:
-            raise ErrorWithResponse("I don't know how to spawn: %r." % (object_name))
+        object_idms = interpret_mob_schematic(self, speaker, filters_d)
 
-        object_idm = list(schematic.blocks.values())[0]
         location_d = d.get("location", SPEAKERLOOK)
-        mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+        locmems = self.subinterpret["reference_locations"](self, speaker, location_d)
         steps, reldir = interpret_relative_direction(self, location_d)
-        pos, _ = self.subinterpret["specify_locations"](self, speaker, mems, steps, reldir)
-        # FIXME, not using selector properly (but need to use FILTERS first)
-        repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
-        repeat_times = int(number_from_span(repeat))
+        pos, _ = self.subinterpret["specify_locations"](self, speaker, locmems, steps, reldir)
         tasks = []
-        for i in range(repeat_times):
-            task_data = {"object_idm": object_idm, "pos": pos, "action_dict": d}
+        for i in range(len(object_idms)):
+            task_data = {"object_idm": object_idms[i], "pos": pos, "action_dict": d}
             tasks.append(self.task_objects["spawn"](agent, task_data))
         return maybe_task_list_to_control_block(tasks, agent), None, None
 
@@ -218,7 +200,6 @@ class MCInterpreter(Interpreter):
             # handle copy
             ##########FIXME remove this when DSL updated!!!
             md = deepcopy(d)
-            convert_location_to_selector(md["reference_object"])
             objs = self.subinterpret["reference_objects"](
                 self,
                 speaker,
@@ -399,16 +380,17 @@ class MCInterpreter(Interpreter):
 
         def new_tasks():
             attrs = {}
-            schematic_triples = (
-                d.get("schematic", {})
-                .get("filters", {})
-                .get("triples", [{"pred_text": "has_size", "obj_text": "2"}])
+            default_where = {"AND": [{"pred_text": "has_size", "obj_text": "2"}]}
+            schematic_where = (
+                d.get("schematic", {}).get("filters", {}).get("where_clause", default_where)
             )
-            # schematic_d = d.get("schematic", {"has_size": 2})
-            # set the attributes of the hole to be dug.
+            if not schematic_where.get("AND"):
+                raise ErrorWithResponse("I can't interpret complicated Dig commands like that yet")
             schematic_d = {}
-            for triple in schematic_triples:
-                schematic_d[triple["pred_text"]] = triple["obj_text"]
+            # FIXME!  TORCH this whole thing, put in schematic_helper
+            for t in schematic_where["AND"]:
+                if t.get("pred_text"):
+                    schematic_d[t["pred_text"]] = t["obj_text"]
 
             for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
                 key = "has_{}".format(dim)
@@ -418,6 +400,7 @@ class MCInterpreter(Interpreter):
                     attrs[dim] = interpret_size(self, schematic_d["has_size"])
                 else:
                     attrs[dim] = default
+
             padding = (attrs["depth"] + 4, attrs["length"] + 4, attrs["width"] + 4)
             location_d = d.get("location", SPEAKERLOOK)
             repeat_num = get_repeat_num(d)
@@ -442,22 +425,10 @@ class MCInterpreter(Interpreter):
                 tasks_todo.append(t)
             return maybe_task_list_to_control_block(tasks_todo, agent)
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks": new_tasks,
-                            "stop_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
 
@@ -541,22 +512,10 @@ class MCInterpreter(Interpreter):
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
             return maybe_task_list_to_control_block(tasks_to_do, agent)
 
-        if "stop_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["stop_condition"])
-            return (
-                [
-                    self.task_objects["control"](
-                        agent,
-                        data={
-                            "new_tasks_fn": new_tasks,
-                            "stop_condition": condition,
-                            "action_dict": d,
-                        },
-                    )
-                ],
-                None,
-                None,
-            )
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
+            return self.task_objects["control"](agent, task_data), None, None
         else:
             return new_tasks(), None, None
 

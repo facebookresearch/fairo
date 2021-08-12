@@ -1,4 +1,4 @@
 cython
-pillow<7
+pillow
 pycocotools
 submitit

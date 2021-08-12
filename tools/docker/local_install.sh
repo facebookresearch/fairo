@@ -14,4 +14,4 @@ if [ "$(docker ps -aq -f name="droidlet_container")" ]; then
 fi
 
 # build new container
-docker run -it -p 25565:25565 -p 3000:3000 -p 2556:2556 -p 2557:2557 -p 9000:9000 -p 5000:5000 --name droidlet_container droidlet
+docker run -it -p 25565:25565 -p 3000:3000 -p 2556:2556 -p 2557:2557 -p 9000:9000 -p 5000:5000 -p 8000:8000 --name droidlet_container droidlet

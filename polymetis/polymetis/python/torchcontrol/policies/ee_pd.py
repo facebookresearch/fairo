@@ -32,7 +32,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
             Kp: P gains in Cartesian space
             Kd: D gains in Cartesian space
             urdf_path: Path to robot urdf
-            ee_joint_name: Name of designated end-effector joint as specified in the urdf
+            ee_link_name: Name of designated end-effector joint as specified in the urdf
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
         """
         super().__init__()

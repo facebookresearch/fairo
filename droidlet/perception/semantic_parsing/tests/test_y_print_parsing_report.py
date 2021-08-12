@@ -43,7 +43,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "point at the table": {
@@ -55,7 +57,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -73,10 +77,12 @@ common_functional_commands = {
                 "action_type": "DIG",
                 "schematic": {
                     "filters": {
-                        "triples": [
-                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                            {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
-                        ],
+                        "where_clause": {
+                            "AND": [
+                                {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                                {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
+                            ]
+                        },
                         "selector": {
                             "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
@@ -98,7 +104,9 @@ common_functional_commands = {
                     "relative_direction": "UP",
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                            }
                         }
                     },
                 },
@@ -113,7 +121,9 @@ common_functional_commands = {
                 "location": {
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                            }
                         }
                     }
                 },
@@ -125,7 +135,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "triples": [{"pred_text": "has_colour", "obj_text": [0, [6, 6]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [6, 6]]}]
+            },
         },
     },
     "what can you do": {"dialogue_type": "GET_CAPABILITIES", "action_type": "ANY"},
@@ -133,7 +145,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "NAME"},
-            "triples": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]
+            },
             "contains_coreference": "yes",
         },
     },
@@ -143,10 +157,12 @@ common_functional_commands = {
             {
                 "schematic": {
                     "filters": {
-                        "triples": [
+                        "where_clause": {
+                            "AND": [
                             {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
                             {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
-                        ],
+                            ]
+                        },
                         "selector": {
                             "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
@@ -165,7 +181,9 @@ common_functional_commands = {
                 "location": {
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                            }
                         }
                     }
                 },
@@ -182,7 +200,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -201,7 +221,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -229,12 +251,18 @@ common_functional_commands = {
             {
                 "schematic": {
                     "filters": {
-                        "triples": [{"pred_text": "has_block_type", "obj_text": [0, [5, 5]]}]
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_block_type", "obj_text": [0, [5, 5]]}]
+                        }
                     }
                 },
                 "action_type": "FILL",
                 "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]},
+                    "filters": {
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+                        }
+                    },
                     "contains_coreference": "yes",
                 },
             }
@@ -244,7 +272,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "SIZE"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "what is outside the window": {
@@ -258,7 +288,9 @@ common_functional_commands = {
                     "reference_object": {
                         "text_span": [0, [4, 4]],
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+                            }
                         },
                     },
                 }
@@ -269,7 +301,7 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "stop_condition": {"condition_type": "NEVER"},
+                "remove_condition": {"condition_type": "NEVER"},
                 "location": {
                     "reference_object": {"special_reference": {"fixed_value": "SPEAKER"}}
                 },
@@ -283,10 +315,12 @@ common_functional_commands = {
             {
                 "schematic": {
                     "filters": {
-                        "triples": [
-                            {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
-                            {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
-                        ]
+                        "where_clause": {
+                            "AND": [
+                                {"pred_text": "has_name", "obj_text": [0, [3, 3]]},
+                                {"pred_text": "has_colour", "obj_text": [0, [2, 2]]},
+                            ]
+                        }
                     }
                 },
                 "action_type": "BUILD",
@@ -294,7 +328,9 @@ common_functional_commands = {
                     "relative_direction": "LEFT",
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [9, 9]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [9, 9]]}]
+                            }
                         }
                     },
                 },
@@ -305,7 +341,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "triples": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "can you topple the circle": {"dialogue_type": "GET_CAPABILITIES", "action_type": "UNKNOWN"},
@@ -316,7 +354,9 @@ common_functional_commands = {
                 "action_type": "SPAWN",
                 "reference_object": {
                     "filters": {
-                        "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+                        },
                         "selector": {
                             "return_quantity": {"random": [0, [1, 1]]},
                             "same": "DISALLOWED",
@@ -348,7 +388,9 @@ common_functional_commands = {
                     "relative_direction": "LEFT",
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                            }
                         }
                     },
                 }
@@ -363,7 +405,9 @@ common_functional_commands = {
                 "location": {
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                            }
                         }
                     }
                 },
@@ -375,14 +419,18 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "what size is the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "SIZE"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "destroy that": {
@@ -415,7 +463,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -431,11 +481,13 @@ common_functional_commands = {
             {
                 "schematic": {
                     "filters": {
-                        "triples": [
+                        "where_clause": {
+                            "AND": [
                             {"pred_text": "has_name", "obj_text": [0, [4, 4]]},
                             {"pred_text": "has_colour", "obj_text": [0, [3, 3]]},
                             {"pred_text": "has_size", "obj_text": [0, [2, 2]]},
-                        ]
+                            ]
+                        }
                     }
                 },
                 "action_type": "BUILD",
@@ -450,11 +502,13 @@ common_functional_commands = {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
         "action_sequence": [
             {
-                "stop_condition": {"condition_type": "NEVER"},
+                "remove_condition": {"condition_type": "NEVER"},
                 "location": {
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+                            }
                         }
                     }
                 },
@@ -466,7 +520,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "can you climb on top of the couch": {
@@ -477,7 +533,9 @@ common_functional_commands = {
                     "relative_direction": "UP",
                     "reference_object": {
                         "filters": {
-                            "triples": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": [0, [7, 7]]}]
+                            }
                         }
                     },
                 },
@@ -490,20 +548,26 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "LOCATION"},
             "memory_type": "REFERENCE_OBJECT",
-            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SPEAKER"}}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SPEAKER"}}]
+            },
         },
     },
     "how many pencils are there": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "what color is the chair": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
             "output": {"attribute": "COLOUR"},
         },
     },
@@ -515,7 +579,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "make two circles there": {
@@ -526,7 +592,9 @@ common_functional_commands = {
                 "action_type": "BUILD",
                 "schematic": {
                     "filters": {
-                        "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+                        },
                         "selector": {
                             "return_quantity": {"random": [0, [1, 1]]},
                             "same": "ALLOWED",
@@ -540,7 +608,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "point to the jacket": {
@@ -552,7 +622,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -571,7 +643,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -598,35 +672,45 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "is there anything big": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "triples": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "what color is the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "COLOUR"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "show me to the square": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "have you seen the pig": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [4, 4]]}]
+            },
         },
     },
     "can you topple the chair": {"dialogue_type": "GET_CAPABILITIES", "action_type": "UNKNOWN"},
@@ -639,7 +723,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -678,7 +764,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "triples": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_size", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "look at the hole": {
@@ -690,7 +778,9 @@ common_functional_commands = {
                         "location": {
                             "reference_object": {
                                 "filters": {
-                                    "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    "where_clause": {
+                                        "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+                                    }
                                 }
                             }
                         }
@@ -704,21 +794,27 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "COUNT",
-            "triples": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
     "is there anything red": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": "MEMORY",
-            "triples": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_colour", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "where is the circle": {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [3, 3]]}]
+            },
         },
     },
     "turn left": {
@@ -734,7 +830,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SELF"}}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_tag", "obj_text": {"fixed_value": "SELF"}}]
+            },
             "memory_type": "REFERENCE_OBJECT",
         },
     },
@@ -791,7 +889,9 @@ common_functional_commands = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}],
+            "where_clause": {
+                "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
+            },
         },
     },
 }
@@ -804,10 +904,12 @@ GROUND_TRUTH_PARSES = {
                 "location": {
                     "reference_object": {
                         "filters": {
-                            "triples": [
-                                {"pred_text": "has_colour", "obj_text": "gray"},
-                                {"pred_text": "has_name", "obj_text": "chair"},
-                            ]
+                            "where_clause": {
+                                "AND": [
+                                    {"pred_text": "has_colour", "obj_text": "gray"},
+                                    {"pred_text": "has_name", "obj_text": "chair"},
+                                ]
+                            }
                         }
                     }
                 },
@@ -821,7 +923,11 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "MOVE",
                 "location": {
                     "reference_object": {
-                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                        "filters": {
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": "chair"}]
+                            }
+                        }
                     }
                 },
             }
@@ -968,7 +1074,11 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "DANCE",
                 "dance_type": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "wave"}]}
+                    "filters": {
+                        "where_clause": {
+                            "AND" : [{"pred_text": "has_name", "obj_text": "wave"}]
+                        }
+                    }
                 },
             }
         ],
@@ -980,10 +1090,14 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "MOVE",
                 "location": {
                     "reference_object": {
-                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "chair"}]}
+                        "filters": {
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": "chair"}]
+                            }
+                        }
                     }
                 },
-                "stop_condition": {"condition_type": "NEVER"},
+                "remove_condition": {"condition_type": "NEVER"},
             }
         ],
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -993,7 +1107,11 @@ GROUND_TRUTH_PARSES = {
             {
                 "action_type": "SCOUT",
                 "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Laurens"}]}
+                    "filters": {
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": "Laurens"}]
+                        }
+                    }
                 },
             }
         ],
@@ -1005,11 +1123,19 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "GET",
                 "receiver": {
                     "reference_object": {
-                        "filters": {"triples": [{"pred_text": "has_name", "obj_text": "Mary"}]}
+                        "filters": {
+                            "where_clause": {
+                                "AND": [{"pred_text": "has_name", "obj_text": "Mary"}]
+                            }
+                        }
                     }
                 },
                 "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "cup"}]}
+                    "filters": {
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": "cup"}]
+                        }
+                    }
                 },
             }
         ],
@@ -1021,7 +1147,11 @@ GROUND_TRUTH_PARSES = {
                 "action_type": "GET",
                 "receiver": {"reference_object": {"special_reference": "SPEAKER"}},
                 "reference_object": {
-                    "filters": {"triples": [{"pred_text": "has_name", "obj_text": "lunch"}]}
+                    "filters": {
+                        "where_clause": {
+                            "AND": [{"pred_text": "has_name", "obj_text": "lunch"}]
+                        }
+                    }
                 },
             }
         ],

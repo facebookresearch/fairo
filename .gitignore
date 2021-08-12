@@ -54,3 +54,8 @@ agents/locobot/dashboard_data.db-journal
 droidlet/perception/robot/tests/test_assets/perception_handlers
 .ropeproject
 agents/craftassist/timeline_log*
+annotation_data/rgb/*
+annotation_data/seg/*
+annotation_data/coco/*
+annotation_data/output/*
+annotation_data/model/model_999.pth

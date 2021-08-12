@@ -20,15 +20,15 @@ panda_urdf_path = os.path.abspath(
         project_root_dir, "polymetis/polymetis/data/franka_panda/panda_arm.urdf"
     )
 )
-panda_ee_joint_name = "panda_joint8"
+panda_ee_link_name = "panda_link8"
 
 
 def create_robot_model(*args, **kwargs):
     if "urdf_path" not in kwargs:
         kwargs["urdf_path"] = panda_urdf_path
-    if "ee_joint_name" not in kwargs:
-        kwargs["ee_joint_name"] = panda_ee_joint_name
-    return toco.models.RobotModelPinocchio(panda_urdf_path, panda_ee_joint_name)
+    if "ee_link_name" not in kwargs:
+        kwargs["ee_link_name"] = panda_ee_link_name
+    return toco.models.RobotModelPinocchio(panda_urdf_path, panda_ee_link_name)
 
 
 class FakeRobotModel(torch.nn.Module):
@@ -61,7 +61,7 @@ def record_or_compare(test_name, dict_of_tensors, atol=1e-05):
     data, run once, and commit the new data to the repo.
     """
     # Locate data file
-    data_dirname = os.path.join(project_root_dir, "polymetis/tests/data")
+    data_dirname = os.path.join(project_root_dir, "polymetis/polymetis/tests/data")
     if not os.path.exists(data_dirname):
         os.makedirs(data_dirname)
 
