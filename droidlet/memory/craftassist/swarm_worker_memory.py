@@ -3,6 +3,8 @@ from multiprocessing import Queue
 from droidlet.shared_data_structs import Time
 from typing import Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ, Block, npy_to_blocks_list
+from droidlet.interpreter.task import *
+from droidlet.interpreter.craftassist.tasks import *
 import pickle
 import uuid
 from droidlet.memory.craftassist.mc_memory_nodes import (  # noqa
@@ -49,18 +51,12 @@ class SwarmWorkerMemory():
     def __init__(self,
         memory_send_queue,
         memory_receive_queue,
-        # db_file=":memory:",
-        # db_log_path=None,
-        # schema_paths=SCHEMAS,
-        # load_minecraft_specs=True,
-        # load_block_types=True,
-        # preception_range=PERCEPTION_RANGE,
+        memory_tag,
         agent_time=None,
-        # coordinate_transforms=None,
-        # agent_low_level_data={},
     ):
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
+        self.memory_tag = memory_tag
         self.receive_dict = {}
         self.init_time_interface(agent_time)
         self._safe_pickle_saved_attrs = {}
@@ -85,15 +81,6 @@ class SwarmWorkerMemory():
 
     def get_time(self):
         return self.time.get_time()
-    
-    # def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
-    #     pass
-    
-    # def get_triples(self):
-    #     pass
-
-    # def untag(self):
-    #     pass
 
     def reinstate_attrs(self, obj):
         """
@@ -151,7 +138,11 @@ class SwarmWorkerMemory():
         return self._db_command("_db_read_one", query, *args)
     
     def _db_write(self, query: str, *args) -> int:
-        return self._db_command("_db_write", query, *args)
+        if query == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)":
+            memid = args[0]
+            self.tag(memid, self.memory_tag)
+        to_return = self._db_command("_db_write", query, *args)
+        return to_return
 
     def db_write(self, query: str, *args) -> int:
         return self._db_command("db_write", query, *args)
@@ -161,6 +152,12 @@ class SwarmWorkerMemory():
     
     def tag(self, subj_memid: str, tag_text: str):
         return self._db_command("tag", subj_memid, tag_text)
+
+    def untag(self, subj_memid: str, tag_text: str):
+        return self._db_command("untag", subj_memid, tag_text)
+
+    def forget(self, memid):
+        return self._db_command("forget", memid)
 
     def add_triple(self,
         subj: str = None,  # this is a memid if given
@@ -180,7 +177,58 @@ class SwarmWorkerMemory():
     
     def basic_search(self, query):
         return self._db_command("basic_search", query)
-       
+    
+    def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
+        return self._db_command("get_block_object_by_xyz", xyz)
+    
+    def get_block_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
+        return self._db_command("get_block_object_ids_by_xyz", xyz)
+    
+    def get_object_info_by_xyz(self, xyz: XYZ, ref_type: str, just_memid=True):
+        return self._db_command("get_object_info_by_xyz", xyz, ref_type, just_memid)
+    
+    def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
+        return self._db_command("get_block_object_by_id", memid)
+    
+    def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
+        return self._db_command("get_object_by_id", memid, table)
+    
+    def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
+        return self._db_command("get_instseg_object_ids_by_xyz", xyz)
+    
+    def upsert_block(self,
+        block: Block,
+        memid: str,
+        ref_type: str,
+        player_placed: bool = False,
+        agent_placed: bool = False,
+        update: bool = True,  # if update is set to False, forces a write
+    ):
+        return self._db_command("upsert_block", block, memid, ref_type, player_placed, agent_placed, update)
+    
+    def _update_voxel_count(self, memid, dn):
+        return self._db_command("_update_voxel_count", memid, dn)
+
+    def _update_voxel_mean(self, memid, count, loc):
+        return self._db_command("_update_voxel_mean", memid, count, loc)
+
+    def remove_voxel(self, x, y, z, ref_type):
+        return self._db_command("remove_voxel", self, x, y, z, ref_type)
+
+    def set_memory_updated_time(self, memid):
+        return self._db_command("set_memory_updated_time", memid)
+
+    def set_memory_attended_time(self, memid):
+        return self._db_command("set_memory_attended_time", memid)
+    
+    # def set_mob_position(self, mob) -> "MobNode":
+    #     return self._db_command("set_mob_position", mob)
+    
+    def add_chat(self, speaker_memid: str, chat: str) -> str:
+        return self._db_command("add_chat", speaker_memid, chat)
+    
+
+    
 
 
 
