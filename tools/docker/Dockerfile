@@ -9,7 +9,7 @@ ARG AWS_SECRET_ACCESS_KEY
 RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/droidlet
 WORKDIR droidlet
 
-RUN apt-get install libblas-dev  liblapack-dev
+RUN apt-get install -y libblas-dev  liblapack-dev
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
