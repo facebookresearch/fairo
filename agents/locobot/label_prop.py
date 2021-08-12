@@ -161,14 +161,11 @@ def save_annotations(categories):
     LICENSES = [{}]
     CATEGORIES = []
     id_to_label = {}
-    removed_categories = []
     for i, label in enumerate(categories):
         if not label: 
             continue
         CATEGORIES.append({"id": i, "name": label, "supercategory": "shape"})
         id_to_label[i] = label
-        if label in ("floor", "wall", "ceiling", "wall-plug"):
-            removed_categories.append(i)
 
     coco_output = {
         "info": INFO,
@@ -234,9 +231,11 @@ def save_categories_properties(categories, properties):
     # Create new versioned models folder
     models_dir = "annotation_data/model"
     model_files = os.listdir(models_dir)
+    # Get highest numbered x for model/vx directories
     model_dirs = list(filter(lambda n: os.path.isdir(os.path.join(models_dir, n)), model_files))
     model_nums = list(map(lambda x: int(x.split("v")[1]), model_dirs))
     cur_model_num = max(model_nums) + 1
+    # Create new folder for model/v(x+1)
     model_dir = os.path.join(models_dir, "v" + str(cur_model_num))
     Path(model_dir).mkdir(parents=True, exist_ok=True)
 
@@ -356,8 +355,11 @@ def retrain_detector(settings):
     # Move model to most recent model folder
     model_dir = os.path.join(base_path, "model")
     model_names = os.listdir(model_dir)
-    model_nums = list(map(lambda x: int(x.split("v")[1]), model_names))
+    # Get highest x for model/vx
+    model_dirs = list(filter(lambda n: os.path.isdir(os.path.join(model_dir, n)), model_names))
+    model_nums = list(map(lambda x: int(x.split("v")[1]), model_dirs))
     last_model_num = max(model_nums) 
+    # Add model to new folder
     model_path = os.path.join(model_dir, "v" + str(last_model_num))
     new_model_path = os.path.join(model_path, "model_999.pth")
     old_model_path = os.path.join(output_path, "model_final.pth")
