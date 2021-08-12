@@ -198,8 +198,7 @@ def save_annotations(categories):
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             try:
                 category_info = {"id": int(i), "is_crowd": False}
-                if category_info["id"] < 1 or category_info["id"] in removed_categories:
-                    # Exclude wall, ceiling, floor, wall-plug
+                if category_info["id"] < 1:
                     continue
             except:
                 print("label value doesnt exist for", i)
