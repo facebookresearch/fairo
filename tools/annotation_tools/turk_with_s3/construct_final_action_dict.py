@@ -230,9 +230,39 @@ def fix_put_mem(d):
         d = ast.literal_eval(d)
     new_d = copy.deepcopy(d)
     del new_d["action_type"]
-    if "has_tag" in new_d and "upsert" in new_d:
+    memory_type = "TRIPLES"
+    if "dialogue_target" in new_d:
+        if new_d["dialogue_target"] == "f1":
+            memory_type = "SET"
+            if "selector" in new_d["filters"]:
+                new_d["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
+                new_d["filters"]["selector"]["same"] = "DISALLOWED"
+        elif new_d["dialogue_target"] == "SWARM":
+            memory_type = "SET"
+            new_d["filters"] = {
+                "selector": {
+                    "return_quantity": "ALL",
+                    "same": "DISALLOWED"
+                },
+                "memory_type": "AGENT"}
+        elif new_d["dialogue_target"] == "AGENT":
+            new_d["filters"] = {
+                "memory_type": "AGENT",
+                "selector" : {"location" : "SPEAKER_LOOK"}
+                }
+        del new_d['dialogue_target']
+
+    if "has_tag" in new_d:
+        new_d["upsert"] = {"memory_data" :{"memory_type" : memory_type}}
         new_d["upsert"]["memory_data"]["triples"] = [{"pred_text": "has_tag", "obj_text": new_d["has_tag"]}]
         del new_d["has_tag"]
+    '''
+    {'action_type': ['yes', 'tag'],
+     'dialogue_target': ['yes', 'f1'],
+     'dialogue_type': ['yes', 'PUT_MEMORY'],
+     'filters': ['yes', {'selector': {'return_quantity': [[1, 1]]}}],
+     'tag_val': ['no', [[4, 4], [5, 5]]]}
+    '''
 
     return new_d
 
@@ -274,6 +304,8 @@ def update_action_dictionaries(all_combined_path):
         for cmd, a_dict in toolA_map.items():
             # remove the ['yes', val] etc
             clean_dict = clean_dict_1(a_dict)
+            # if cmd!="i will call you alpha":
+            #     continue
             # TODO: check repeats here for action level repeat
             if all_yes(a_dict):
                 action_type = clean_dict["action_type"]
@@ -281,8 +313,23 @@ def update_action_dictionaries(all_combined_path):
                 valid_dict["dialogue_type"] = clean_dict["dialogue_type"]
                 del clean_dict["dialogue_type"]
                 clean_dict["action_type"] = clean_dict["action_type"].upper()
+                if clean_dict["action_type"] == "TAG":
+                    if "dialogue_target" in clean_dict:
+                        if clean_dict["dialogue_target"] == "f1":
+                            filters_sub_dict = clean_dict["filters"]
+                            if "where_clause" in filters_sub_dict:
+                                if len(filters_sub_dict["where_clause"]) > 1:
+                                    # OR
+                                    triples = []
+                                    for item in filters_sub_dict["where_clause"]:
+                                        triples.append({"pred_text": "has_name", "obj_text": [item]})
+                                    clean_dict["filters"]["where_clause"] = {"OR": triples}
+                                elif len(filters_sub_dict["where_clause"]) == 1:
+                                    # AND
+                                    clean_dict["filters"]["where_clause"] = {
+                                        "OR": [filters_sub_dict["where_clause"][0]]
+                                    }
                 act_dict = fix_spans(clean_dict)
-
                 valid_dict["action_sequence"] = [act_dict]
 
                 f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
@@ -374,6 +421,7 @@ def postprocess_step(combined_path, post_processed_path):
             if action_type == 'TAG':
                 updated_dict = fix_put_mem(action_dict)
                 new_d = {'dialogue_type': d['dialogue_type']}
+
                 new_d.update(updated_dict)
             elif action_type == 'ANSWER':
                 # print(d)
