@@ -59,10 +59,6 @@ def insert_spaces(chat):
 
 
 def preprocess_chat(chat: str) -> List[str]:
-    # For debug mode, return as is.
-    if chat == "_debug_" or chat.startswith("_ttad_"):
-        return [chat]
-
     # Tokenize
     tokenized_line = word_tokenize(chat)
     tokenized_sentences = [sen for sen in sentence_split(tokenized_line)]
@@ -242,6 +238,8 @@ def process_dict(d):
             "FREEBUILD.FREEBUILD.",
             "coref_resolve_check.yes.",
             "coref_resolve_check.no.",
+            "dialogue_target.f1.",
+            "dialogue_target.f2."
         ],
     )
     if "location" in d:
@@ -341,7 +339,7 @@ def handle_commands(d):
             child_d.pop("source")
 
     for k, v in child_d.items():
-        if k in ["target_action_type", "has_block_type", "dance_type_name"]:
+        if k in ["target_action_type", "has_block_type", "dance_type_name", "tag_val"]:
             output[k] = ["yes", v]
 
         elif type(v) == list or (k == "receiver"):
@@ -352,7 +350,6 @@ def handle_commands(d):
 
 
 def process_result(full_d):
-
     worker_id = full_d["WorkerId"]
     d = with_prefix(full_d, "Answer.root.")
     if not d:
@@ -361,7 +358,6 @@ def process_result(full_d):
         action = d["action_type"]
     except KeyError:
         return worker_id, {}, full_d["Input.command"].split()
-
     action_dict = handle_commands(d)
 
     ##############
@@ -518,7 +514,6 @@ if __name__ == "__main__":
         default="{}/A/".format(default_write_dir),
     )
     opts = parser.parse_args()
-    print(opts)
     tokenizer = English().Defaults.create_tokenizer()
 
     # convert csv to txt first
@@ -531,10 +526,10 @@ if __name__ == "__main__":
         r = csv.DictReader(f)
         for i, d in enumerate(r):
             worker_id = d["WorkerId"]
-            sentence = preprocess_chat(d["Input.command"])[0]
+            sentence = d["Input.command"]
             _, action_dict, words = process_result(d)
             a_dict = fix_cnt_in_schematic(words, action_dict)
-            print(sentence)
+            print(" ".join(words))
             pprint(a_dict)
             print("*" * 20)
             if a_dict is None:
