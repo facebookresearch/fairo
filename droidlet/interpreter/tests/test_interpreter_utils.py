@@ -9,6 +9,7 @@ from droidlet.perception.semantic_parsing.tests.test_y_print_parsing_report impo
     common_functional_commands,
     compare_full_dictionaries,
 )
+from .all_test_commands import INTERPRETER_POSSIBLE_ACTIONS, FILTERS, REFERENCE_OBJECTS
 
 logical_form_before_processing = {
     "turn right": common_functional_commands["turn right"],
@@ -16,6 +17,7 @@ logical_form_before_processing = {
     "go forward": common_functional_commands["go forward"],
 }
 
+# FIXME! put these in the main file
 logical_form_post_processing = {
     "turn right": {
         "dialogue_type": "HUMAN_GIVE_COMMAND",
@@ -27,7 +29,7 @@ logical_form_post_processing = {
         "dialogue_type": "GET_MEMORY",
         "filters": {
             "output": {"attribute": "LOCATION"},
-            "triples": [{"pred_text": "has_name", "obj_text": "keys"}],
+            "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "keys"}]},
         },
     },
     "go forward": {
@@ -45,7 +47,7 @@ logical_form_post_processing = {
 }
 
 
-class TestProcessSpans(unittest.TestCase):
+class TestInterpreterUtils(unittest.TestCase):
     def test_process_spans(self):
         for k, v in logical_form_before_processing.items():
             processed = deepcopy(v)
@@ -55,6 +57,22 @@ class TestProcessSpans(unittest.TestCase):
                 processed, original_words, lemmatized_words
             )  # process spans and fixed_values. Implemented in: interpreter_utils.
             assert compare_full_dictionaries(processed, logical_form_post_processing[k])
+
+    def test_location_reference_object(self):
+        def check_location_in_filters(action_dict):
+            for key, value in action_dict.items():
+                if key == "filters" and "location" in value:
+                    return False
+                elif type(value) == dict:
+                    return check_location_in_filters(value)
+            return True
+
+        all_dicts = INTERPRETER_POSSIBLE_ACTIONS
+        all_dicts.update(FILTERS)
+        all_dicts.update(REFERENCE_OBJECTS)
+        for key, action_dict in all_dicts.items():
+            self.assertTrue(check_location_in_filters(action_dict))
+
 
 
 if __name__ == "__main__":

@@ -18,7 +18,6 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
     d: logical form from semantic parser
     """
     # TODO add some input checks
-    get_attribute = interpreter.subinterpret.get("attributes", AttributeInterpreter())
     value_extractors = {}
     for inp_pos in ["input_left", "input_right"]:
         inp = d[inp_pos]["value_extractor"]
@@ -33,6 +32,13 @@ def interpret_comparator(interpreter, speaker, d, is_condition=True):
         elif inp.get("filters"):
             F = interpreter.subinterpret["filters"](interpreter, speaker, inp["filters"])
             value_extractors[inp_pos] = FilterValue(interpreter.memory, F)
+        elif inp.get("attribute"):
+            attribute_interpreter = interpreter.subinterpret.get(
+                "attributes", AttributeInterpreter()
+            )
+            value_extractors[inp_pos] = attribute_interpreter(
+                interpreter, speaker, inp["attribute"]
+            )
         else:
             raise ErrorWithResponse(
                 "I don't know understand that condition, looks like a comparator but value is not filters or span"

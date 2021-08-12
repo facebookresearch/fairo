@@ -15,6 +15,8 @@ import Timeline from "./components/Timeline/Timeline";
 import TimelineResults from "./components/Timeline/TimelineResults";
 import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
+import Retrainer from "./components/Retrainer";
+import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 
 /**
@@ -63,6 +65,8 @@ class StateManager {
     timelineEventHistory: [],
     timelineSearchResults: [],
     timelineDetails: [],
+    timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
+    timelineSearchPattern: "",
   };
   session_id = null;
 
@@ -90,6 +94,9 @@ class StateManager {
     this.onObjectAnnotationSave = this.onObjectAnnotationSave.bind(this);
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
     this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
+    this.onSave = this.onSave.bind(this);
+    this.saveAnnotations = this.saveAnnotations.bind(this);
+    this.annotationRetrain = this.annotationRetrain.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -131,8 +138,12 @@ class StateManager {
       depth: false,
       objects: false,
       pose: false,
-    };
-    this.useDesktopComponentOnMobile = false; // switch to use either desktop or mobile annotation on mobile device
+    }
+    this.frameCount = 0
+    this.categories = new Set()
+    this.properties = new Set()
+    this.annotationsSaved = true
+    this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
     // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
 
@@ -240,6 +251,8 @@ class StateManager {
     socket.on("map", this.processMap);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
     socket.on("labelPropagationReturn", this.labelPropagationReturn);
+    socket.on("annotationRetrain", this.annotationRetrain);
+    socket.on("saveRgbSegCallback", this.saveAnnotations);
   }
 
   updateStateManagerMemory(data) {
@@ -320,9 +333,7 @@ class StateManager {
     });
   }
 
-  returnTimelineEvent(res) {
-    this.memory.timelineEventHistory.push(res);
-    this.memory.timelineEvent = res;
+  updateTimeline() {
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
@@ -330,7 +341,13 @@ class StateManager {
     });
   }
 
-  updateTimeline() {
+  returnTimelineEvent(res) {
+    this.memory.timelineEventHistory.push(res);
+    this.memory.timelineEvent = res;
+    this.updateTimeline();
+  }
+
+  updateTimelineResults() {
     this.refs.forEach((ref) => {
       if (ref instanceof TimelineResults) {
         ref.forceUpdate();
@@ -381,7 +398,14 @@ class StateManager {
       }
     }
     if (commands.length > 0) {
-      this.socket.emit("movement command", commands);
+      let movementValues = {};
+      this.refs.forEach((ref) => {
+        if (ref instanceof Navigator) {
+          movementValues = ref.state;
+        }
+      });
+
+      this.socket.emit("movement command", commands, movementValues);
 
       // Reset keys to prevent duplicate commands
       for (let i in keys) {
@@ -414,6 +438,7 @@ class StateManager {
   }
 
   onObjectAnnotationSave(res) {
+    // Process annotations
     let { nameMap, pointMap, propertyMap } = res;
     let newObjects = [];
     let scale = 500; // hardcoded from somewhere else
@@ -421,9 +446,17 @@ class StateManager {
       let oldObj = id < this.curFeedState.objects.length;
       let newId = oldObj ? this.curFeedState.objects[id].id : null;
       let newXyz = oldObj ? this.curFeedState.objects[id].xyz : null;
-      let newMask = pointMap[id].map((mask) =>
-        mask.map((pt, i) => [pt.x * scale, pt.y * scale])
-      );
+      // Get rid of masks with <3 points
+      // We have this check because detector sometimes sends masks with <3 points to frontend
+      let i = 0
+      while (i < pointMap[id].length) {
+        if (!pointMap[id][i] || pointMap[id][i].length < 3) {
+          pointMap[id].splice(i, 1);
+          continue
+        }
+        i++
+      }
+      let newMask = pointMap[id].map(mask => mask.map((pt, i) => [pt.x * scale, pt.y * scale]))
       let newBbox = this.getNewBbox(newMask);
 
       newObjects.push({
@@ -436,7 +469,8 @@ class StateManager {
         xyz: newXyz,
       });
     }
-    this.curFeedState.objects = newObjects;
+    this.curFeedState.objects = newObjects
+    this.annotationsSaved = false
 
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
@@ -464,28 +498,50 @@ class StateManager {
   }
 
   startLabelPropagation() {
-    let props = {
-      prevRgbImg: this.prevFeedState.rgbImg,
-      depth: this.curFeedState.depth,
-      prevDepth: this.prevFeedState.depth,
-      prevObjects: this.prevFeedState.objects.filter(
-        (o) => o.type === "annotate"
-      ),
-      basePose: this.curFeedState.pose,
-      prevBasePose: this.prevFeedState.pose,
-    };
-    this.socket.emit("label_propagation", props);
+    // Update categories and properties
+    let prevObjects = this.prevFeedState.objects.filter(o => o.type === "annotate")
+    for (let i in prevObjects) {
+      this.categories.add(prevObjects[i].label)
+      let prevProperties = prevObjects[i].properties.split("\n ")
+      prevProperties.forEach(p => this.properties.add(p))
+    }
+
+    // Label prop
+    if (prevObjects.length > 0) {
+      let labelProps = {
+        prevRgbImg: this.prevFeedState.rgbImg, 
+        depth: this.curFeedState.depth, 
+        prevDepth: this.prevFeedState.depth, 
+        objects: prevObjects, 
+        basePose: this.curFeedState.pose,
+        prevBasePose: this.prevFeedState.pose,
+      }
+      this.socket.emit("label_propagation", labelProps)
+    }
+
+    // Save rgb/seg if needed
+    if (!this.annotationsSaved) {
+      let saveProps = {
+        rgb: this.prevFeedState.rgbImg, 
+        objects: prevObjects, 
+        frameCount: this.frameCount,
+        categories: [null, ...this.categories], // Include null so category indices start at 1
+      }
+      this.socket.emit("save_rgb_seg", saveProps)
+      this.annotationsSaved = true
+    }
     // Reset
     this.stateProcessed.rgbImg = true;
     this.stateProcessed.depth = true;
     this.stateProcessed.objects = true;
     this.stateProcessed.pose = true;
+    this.frameCount++
   }
 
   labelPropagationReturn(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
-        for (let i = 0; i < res.length; i++) {
+        for (let i in res) {
           // Get rid of masks with <3 points
           let j = 0;
           while (j < res[i].mask.length) {
@@ -500,7 +556,10 @@ class StateManager {
           this.curFeedState.objects.push(res[i]);
         }
       }
-    });
+    })
+    if (Object.keys(res).length > 0) {
+      this.annotationsSaved = false
+    }
   }
 
   checkRunLabelProp() {
@@ -518,6 +577,50 @@ class StateManager {
       !this.stateProcessed.objects &&
       !this.stateProcessed.pose
     );
+  }
+
+  onSave() {
+    console.log("saving annotations, categories, and properties")
+    
+    // Save rgb/seg if needed
+    if (!this.annotationsSaved) {
+      let curObjects = this.curFeedState.objects.filter(o => o.type === "annotate")
+      for (let i in curObjects) {
+        this.categories.add(curObjects[i].label)
+        let props = curObjects[i].properties.split("\n ")
+        props.forEach(p => this.properties.add(p))
+      }
+      let saveProps = {
+        rgb: this.curFeedState.rgbImg, 
+        objects: curObjects, 
+        frameCount: this.frameCount,
+        categories: [null, ...this.categories], // Include null so category indices start at 1
+        callback: true, // Include boolean param to save annotations after -- ensures whatever the noun form of synchronous is
+      }
+      this.socket.emit("save_rgb_seg", saveProps)
+      this.annotationsSaved = true
+    } else {
+      this.saveAnnotations()
+    }
+  }
+
+  saveAnnotations() {
+    // Save annotations
+    let categories = [null, ...this.categories] // Include null so category indices start at 1
+    let properties = [...this.properties]
+    this.socket.emit("save_annotations", categories)
+    this.socket.emit("save_categories_properties", categories, properties)
+  }
+
+  annotationRetrain(res) {
+    console.log("retrained!")
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects || ref instanceof Retrainer) {
+        ref.setState({
+          modelMetrics: res
+        })
+      }
+    });
   }
 
   processMemoryState(msg) {

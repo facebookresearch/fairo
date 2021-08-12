@@ -11,6 +11,7 @@ agent using the following flags:
 
 - A scrollable, zoomable timeline visualizer that can display perception, dialogue, and interpreter events
 - Supports search functionality and shows detailed activity panes for each event
+- Allows users to filter events and search results
 
 ## Libraries and Frameworks
 

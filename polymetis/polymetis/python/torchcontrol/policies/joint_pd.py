@@ -31,7 +31,7 @@ class JointImpedanceControl(toco.PolicyModule):
             Kp: P gains in joint space
             Kd: D gains in joint space
             urdf_path: Path to robot urdf
-            ee_joint_name: Name of designated end-effector joint as specified in the urdf
+            ee_link_name: Name of designated end-effector joint as specified in the urdf
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
         """
         super().__init__()

@@ -31,10 +31,9 @@ jobs:
           name: CraftAssist Python unit tests
           command: |
               docker run --name mc-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /droidlet/.circleci/craftassist_tests.sh"
-              docker cp mc-tests:/shared shared
               pip3 install codecov
-              CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
+              export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
+              codecov -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
           no_output_timeout: 50m
 
       - run:
@@ -45,7 +44,7 @@ jobs:
 
   locobot:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     resource_class: gpu.small
     steps:
     - checkout
@@ -57,33 +56,31 @@ jobs:
           curl -L https://packagecloud.io/circleci/trusty/gpgkey | sudo apt-key add -
           curl -L https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 
-          sudo apt-get update
+          sudo apt update
 
-          sudo apt-get install \
+          sudo apt install \
+              python3 python3-pip \
               apt-transport-https \
               ca-certificates \
               curl \
               gnupg-agent \
               software-properties-common
 
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-
-          sudo add-apt-repository \
-             "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-             $(lsb_release -cs) \
-             stable"
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo \
+            "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
           sudo apt-get update
-          export DOCKER_VERSION="5:19.03.2~3-0~ubuntu-xenial"
-          sudo apt-get install docker-ce=${DOCKER_VERSION} docker-ce-cli=${DOCKER_VERSION} containerd.io=1.2.6-3
+          sudo apt-get install docker-ce docker-ce-cli containerd.io
 
           # Add the package repositories
-          distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
-          curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
-          curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+          distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+             && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+                && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
 
-          export NVIDIA_CONTAINER_VERSION="1.3.0-1"
-          sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit=${NVIDIA_CONTAINER_VERSION}
+          sudo apt-get update
+          sudo apt-get install -y nvidia-docker2
           sudo systemctl restart docker
 
           DRIVER_FN="NVIDIA-Linux-x86_64-460.39.run"
@@ -101,6 +98,7 @@ jobs:
 
     - run:
         name: Build and run tests
+        no_output_timeout: 50m
         command: |
           set -ex
 
@@ -108,10 +106,9 @@ jobs:
           export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
           mkdir shared
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
-          docker cp loco-img:/shared shared
-          pip install codecov
-          CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-          bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "/shared" -f 'test*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
+          pip3 install codecov
+          export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
+          codecov -n "locobot tests"|| echo "Codecov did not collect coverage reports"
 
   polymetis-build-local:
     docker:

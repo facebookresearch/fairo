@@ -20,7 +20,7 @@ franka_panda = OmegaConf.create(
         "robot_description_path": "franka_panda/panda_arm.urdf",
         "controlled_joints": [0, 1, 2, 3, 4, 5, 6],
         "ee_link_idx": 7,
-        "ee_joint_name": "panda_joint8",
+        "ee_link_name": "panda_link8",
         "rest_pose": [
             -0.13935425877571106,
             -0.020481698215007782,
@@ -60,7 +60,7 @@ kuka_iiwa = OmegaConf.create(
         "robot_description_path": "kuka_iiwa/urdf/iiwa7.urdf",
         "controlled_joints": [0, 1, 2, 3, 4, 5, 6],
         "ee_link_idx": 7,
-        "ee_joint_name": "panda_joint8",
+        "ee_link_name": "panda_link8",
         "rest_pose": [0.0, 0.0, 0.0, -1.1, 0.0, 1.0, 0.0],
         "joint_limits_low": [
             -2.9671,
@@ -162,7 +162,7 @@ kuka_gripper_sdf = OmegaConf.create(
         "joint_damping": None,
         "torque_limits": [200, 200, 100, 100, 100, 30, 30, 10, 10, 10, 10, 10],
         "ee_link_idx": 5,
-        "ee_joint_name": "J5",
+        "ee_link_name": "J5",
         "using_camera": False,
         "gpu_renderer": False,
     },
