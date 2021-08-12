@@ -148,7 +148,7 @@ class StateManager {
     this.offline = false
     this.frameId = 0 // Offline frame count
     this.offlineObjects = {} // Maps frame ids to masks
-    this.updateDashboard = false
+    this.updateObjects = [false, false] // Update objects on the frame after the rgb image changes
     this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
     // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
@@ -798,7 +798,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
-      this.updateDashboard = true;
+      this.updateObjects = [true, false]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
@@ -869,15 +869,13 @@ class StateManager {
 
     // If new objects, update state and feed
     if (
-      // JSON.stringify(this.curFeedState.origObjects) !==
-      // JSON.stringify(res.objects)
-      this.updateDashboard
+      this.updateObjects[1] // Frame after rgb changes
     ) {
       this.prevFeedState.objects = this.curFeedState.objects;
       this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)); // deep clone
       this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)); // deep clone
       this.stateProcessed.objects = false;
-      this.updateDashboard = false;
+      this.updateObjects = [false, false];
 
       this.refs.forEach((ref) => {
         if (ref instanceof LiveObjects) {
@@ -892,6 +890,10 @@ class StateManager {
           });
         }
       });
+    } 
+    if (this.updateObjects[0]) {
+      // Current frame is when rgb changes. This is needed to ensure correctness
+      this.updateObjects[1] = true 
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
