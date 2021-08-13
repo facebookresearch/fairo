@@ -148,6 +148,7 @@ class StateManager {
     this.offline = false
     this.frameId = 0 // Offline frame count
     this.offlineObjects = {} // Maps frame ids to masks
+    this.updateObjects = [false, false] // Update objects on the frame after the rgb image changes
     this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
     // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
@@ -797,6 +798,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
+      this.updateObjects = [true, false]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
@@ -844,19 +846,36 @@ class StateManager {
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
+    // Get rid of empty masks
+    let i = 0;
+    while (i < res.objects.length) {
+      let j = 0;
+      while (j < res.objects[i].mask.length) {
+        if (!res.objects[i].mask[j] || res.objects[i].mask[j].length < 3) {
+          res.objects[i].mask.splice(j, 1);
+          continue;
+        }
+        j++;
+      }
+      if (res.objects[i].mask.length == 0) {
+        res.objects.splice(i, 1);
+        continue;
+      }
+      i++;
+    }
     res.objects.forEach((o) => {
       o["type"] = "detector";
     });
 
     // If new objects, update state and feed
     if (
-      JSON.stringify(this.curFeedState.origObjects) !==
-      JSON.stringify(res.objects)
+      this.updateObjects[1] // Frame after rgb changes
     ) {
       this.prevFeedState.objects = this.curFeedState.objects;
       this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)); // deep clone
       this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)); // deep clone
       this.stateProcessed.objects = false;
+      this.updateObjects = [false, false];
 
       this.refs.forEach((ref) => {
         if (ref instanceof LiveObjects) {
@@ -871,6 +890,10 @@ class StateManager {
           });
         }
       });
+    } 
+    if (this.updateObjects[0]) {
+      // Current frame is when rgb changes. This is needed to ensure correctness
+      this.updateObjects[1] = true 
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();

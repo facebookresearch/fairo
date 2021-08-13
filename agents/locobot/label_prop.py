@@ -161,14 +161,11 @@ def save_annotations(categories):
     LICENSES = [{}]
     CATEGORIES = []
     id_to_label = {}
-    removed_categories = []
     for i, label in enumerate(categories):
         if not label: 
             continue
         CATEGORIES.append({"id": i, "name": label, "supercategory": "shape"})
         id_to_label[i] = label
-        if label in ("floor", "wall", "ceiling", "wall-plug"):
-            removed_categories.append(i)
 
     coco_output = {
         "info": INFO,
@@ -201,8 +198,7 @@ def save_annotations(categories):
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             try:
                 category_info = {"id": int(i), "is_crowd": False}
-                if category_info["id"] < 1 or category_info["id"] in removed_categories:
-                    # Exclude wall, ceiling, floor, wall-plug
+                if category_info["id"] < 1:
                     continue
             except:
                 print("label value doesnt exist for", i)
@@ -231,29 +227,25 @@ def save_categories_properties(categories, properties):
     and props_path, respectively. 
     """
 
-    # Load existing categories & properties
-    file_dir = "annotation_data/model"
-    things_path = os.path.join(file_dir, "things.json")
-    if os.path.exists(things_path): 
-        with open(things_path, "rt") as file: 
-            things_dict = json.load(file)
-            cats = set(things_dict["items"])
-    else: 
-        cats = set()
-    props_path = os.path.join(file_dir, "props.json")
-    if os.path.exists(props_path): 
-        with open(props_path, "rt") as file: 
-            props_dict = json.load(file)
-            props = set(props_dict["items"])
-    else: 
-        props = set()
+    # Create new versioned models folder
+    models_dir = "annotation_data/model"
+    model_files = os.listdir(models_dir)
+    # Get highest numbered x for model/vx directories
+    model_dirs = list(filter(lambda n: os.path.isdir(os.path.join(models_dir, n)), model_files))
+    model_nums = list(map(lambda x: int(x.split("v")[1]), model_dirs))
+    cur_model_num = max(model_nums) + 1
+    # Create new folder for model/v(x+1)
+    model_dir = os.path.join(models_dir, "v" + str(cur_model_num))
+    Path(model_dir).mkdir(parents=True, exist_ok=True)
 
-    # Add new categories & properties
-    cats.update(categories[1:]) # Don't add null
+    # Get categories and properties
+    things_path = os.path.join(model_dir, "things.json")
+    cats = set(categories[1:])
     cats_json = {
         "items": list(cats), 
     }
-    props.update(properties)
+    props_path = os.path.join(model_dir, "props.json")
+    props = set(properties)
     props_json = {
         "items": list(props), 
     }
@@ -284,18 +276,16 @@ def retrain_detector(settings):
         settings["maxIters"] = 100
 
     base_path = "annotation_data/"
-    coco_path = base_path + "coco/"
-    output_path = base_path + "output/"
-    model_path = base_path + "model/"
-    annotation_path = coco_path + "coco_results.json"
-    train_path = coco_path + "train.json"
-    test_path = coco_path + "test.json"
-    train_split = settings["trainSplit"]
+    coco_path = os.path.join(base_path, "coco")
+    output_path = os.path.join(base_path, "output")
+    annotation_path = os.path.join(coco_path, "coco_results.json")
+    train_path = os.path.join(coco_path, "train.json")
+    test_path = os.path.join(coco_path, "test.json")
 
     # 1) Split coco json file into train and test using cocosplit code
     # Adapted from https://github.com/akarazniewicz/cocosplit/blob/master/cocosplit.py
     with open(annotation_path, "rt", encoding="UTF-8") as annotations_file: 
-
+        
         # Extract info from json
         coco = json.load(annotations_file)
         info = coco["info"]
@@ -309,7 +299,7 @@ def retrain_detector(settings):
         images = list(filter(lambda i: i["id"] in images_with_annotations, images))
 
         # Split images and annotations
-        x_images, y_images = train_test_split(images, train_size=train_split)
+        x_images, y_images = train_test_split(images, train_size=settings["trainSplit"])
         x_ids = list(map(lambda i: int(i["id"]), x_images))
         x_annots = list(filter(lambda a: int(a["image_id"]) in x_ids, annotations))
         y_ids = list(map(lambda i: int(i["id"]), y_images))
@@ -329,7 +319,6 @@ def retrain_detector(settings):
         save_coco(test_path, info, licenses, y_images, y_annots, categories)
 
     # 2) Use train/test files to retrain detector
-    # Adapted from train_detector.ipynb
     dataset_name = "annotation_coco"
     image_dir = base_path + "rgb/"
     train_data = dataset_name + "_train"
@@ -348,26 +337,38 @@ def retrain_detector(settings):
     cfg.DATASETS.TRAIN = (train_data,)
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(categories)
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
     cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
     cfg.OUTPUT_DIR = output_path
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = settings["learningRate"] # Make sure LR is good
     cfg.SOLVER.MAX_ITER = settings["maxIters"] # 300 is good for small datasets
-
+    
     # Train
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
     trainer = DefaultTrainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
+
+    # Move model to most recent model folder
+    model_dir = os.path.join(base_path, "model")
+    model_names = os.listdir(model_dir)
+    # Get highest x for model/vx
+    model_dirs = list(filter(lambda n: os.path.isdir(os.path.join(model_dir, n)), model_names))
+    model_nums = list(map(lambda x: int(x.split("v")[1]), model_dirs))
+    last_model_num = max(model_nums) 
+    # Add model to new folder
+    model_path = os.path.join(model_dir, "v" + str(last_model_num))
     new_model_path = os.path.join(model_path, "model_999.pth")
-    os.replace(os.path.join(output_path, "model_final.pth"), new_model_path)
+    old_model_path = os.path.join(output_path, "model_final.pth")
+    os.replace(old_model_path, new_model_path)
 
     # Evaluate
     evaluator = COCOEvaluator(test_data, ("bbox", "segm"), False, output_dir="../../annotation_data/output/")
     val_loader = build_detection_test_loader(cfg, test_data)
     inference = inference_on_dataset(trainer.model, val_loader, evaluator)
-
+    
     # inference keys: bbox, semg
     # bbox and segm keys: AP, AP50, AP75, APs, APm, AP1, AP-category1, ...
     inference_json = json.loads(json.dumps(inference).replace("NaN", "null"))
