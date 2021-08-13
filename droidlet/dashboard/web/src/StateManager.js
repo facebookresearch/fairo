@@ -657,7 +657,7 @@ class StateManager {
     // Save annotations
     let categories = [null, ...this.categories] // Include null so category indices start at 1
     let properties = [...this.properties]
-    this.socket.emit("save_annotations", categories)
+    this.socket.emit("save_annotations", categories, properties)
     this.socket.emit("save_categories_properties", categories, properties)
   }
 

@@ -87,6 +87,8 @@ class LocobotAgent(LocoMCAgent):
             shutil.rmtree("annotation_data/rgb")
         if os.path.exists("annotation_data/seg"): 
             shutil.rmtree("annotation_data/seg")
+        if os.path.exists("annotation_data/props.json"): 
+            os.remove("annotation_data/props.json")
         
     def init_event_handlers(self):
         super().init_event_handlers()
@@ -150,8 +152,8 @@ class LocobotAgent(LocoMCAgent):
                 sio.emit("saveRgbSegCallback")
 
         @sio.on("save_annotations")
-        def save_annotations(sid, categories): 
-            LP.save_annotations(categories)
+        def save_annotations(sid, categories, properties): 
+            LP.save_annotations(categories, properties)
 
 
         @sio.on("save_categories_properties")

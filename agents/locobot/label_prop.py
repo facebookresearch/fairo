@@ -12,14 +12,20 @@ from pathlib import Path
 import json
 from pycococreatortools import pycococreatortools
 from sklearn.model_selection import train_test_split
+import glob
+import random
+import torch
 
+from detectron2.structures.boxes import BoxMode
 from detectron2 import model_zoo
 from detectron2.config import get_cfg
-from detectron2.data.datasets import register_coco_instances
-from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_test_loader
+from detectron2.config import CfgNode as CN
+from detectron2.data.datasets import register_coco_instances, load_coco_json
+from detectron2.data import DatasetCatalog, MetadataCatalog, build_detection_train_loader, build_detection_test_loader
 from detectron2.engine import DefaultTrainer
 from detectron2.evaluation import COCOEvaluator, inference_on_dataset
 
+from droidlet.perception.robot.detectron.detector.dataset_mapper import LocobotDatasetMapper
 from droidlet.perception.robot import LabelPropagate
 
 def label_propagation(postData): 
@@ -123,6 +129,15 @@ def save_rgb_seg(postData):
     src_img = np.array(rgb)
     height, width, _ = src_img.shape
 
+    # Properties
+    frameId = str(postData["frameCount"])
+    if "props.json" in os.listdir("annotation_data"): 
+        with open("annotation_data/props.json") as f:
+            props = json.load(f)
+    else: 
+        props = {}
+    props[frameId] = {}
+
     # Convert mask points to mask maps then combine them
     categories = postData["categories"]
     display_map = np.zeros((height, width)).astype(int) # 2 separate chair masks will be same color here
@@ -134,6 +149,14 @@ def save_rgb_seg(postData):
             for j in range(width): 
                 if bitmap[i][j]: 
                     display_map[i][j] = index
+        # Add properties
+        o_props = o["properties"].split("\n ")
+        if index in props[frameId]: 
+            prop_set = set(props[frameId][index])
+            prop_set.update(o_props)
+            props[frameId][index] = list(prop_set)
+        else: 
+            props[frameId][index] = o_props
 
     # Save annotation data to disk for retraining
     Path("annotation_data/seg").mkdir(parents=True, exist_ok=True)
@@ -141,8 +164,10 @@ def save_rgb_seg(postData):
     np.save("annotation_data/seg/{:05d}.npy".format(postData["frameCount"]), display_map)
     im = Image.fromarray(src_img)
     im.save("annotation_data/rgb/{:05d}.jpg".format(postData["frameCount"]))
+    with open("annotation_data/props.json", "w") as file: 
+        json.dump(props, file)
 
-def save_annotations(categories): 
+def save_annotations(categories, properties): 
     """
     categories: array starting with null of categories saved in dashboard
 
@@ -173,6 +198,7 @@ def save_annotations(categories):
         "categories": CATEGORIES,
         "images": [],
         "annotations": [],
+        "properties": properties,
     }
 
     count = 0
@@ -209,6 +235,7 @@ def save_annotations(categories):
                 count, image_id, category_info, binary_mask, img.size, tolerance=2
             )
             if annotation_info is not None:
+                annotation_info["properties"] = []
                 coco_output["annotations"].append(annotation_info)
                 count += 1
 
@@ -258,6 +285,13 @@ def save_categories_properties(categories, properties):
         json.dump(props_json, file)
         print("saved properties to", props_path)
 
+# Used for retraining
+class Trainer(DefaultTrainer):
+    @classmethod
+    def build_train_loader(cls, cfg):
+        mapper = LocobotDatasetMapper(cfg, True)
+        return build_detection_train_loader(cfg, mapper=mapper)
+
 def retrain_detector(settings): 
     """
     settings: properties to be used in the retraining process
@@ -293,6 +327,7 @@ def retrain_detector(settings):
         images = coco["images"]
         annotations = coco["annotations"]
         categories = coco["categories"]
+        properties = coco["properties"]
 
         # Remove images without annotations
         images_with_annotations = set(map(lambda a: int(a["image_id"]), annotations))
@@ -313,7 +348,7 @@ def retrain_detector(settings):
                     "licenses": licenses, 
                     "images": images, 
                     "annotations": annotations, 
-                    "categories": categories
+                    "categories": categories,
                 }, coco, indent=2, sort_keys=True)
         save_coco(train_path, info, licenses, x_images, x_annots, categories)
         save_coco(test_path, info, licenses, y_images, y_annots, categories)
@@ -324,22 +359,74 @@ def retrain_detector(settings):
     train_data = dataset_name + "_train"
     test_data = dataset_name + "_test"
 
+    # Builds dict to be used in DatasetCatalog
+    def get_dataset_dicts(json_file, props_dict):
+        with open(json_file) as f: 
+            coco_info = json.load(f)
+        annots = coco_info["annotations"]
+        images = coco_info["images"]
+
+        dataset_dicts = []
+        for _, img in enumerate(images):
+            record = {}
+            dirname = os.path.dirname(os.path.realpath(__file__))
+            relative_rgb_path = "../../annotation_data/rgb"
+            rgb_path = os.path.join(dirname, relative_rgb_path)
+            record["file_name"] = os.path.join(rgb_path, img["file_name"])
+            record["image_id"] = img["id"]
+            record["height"] = img["height"]
+            record["width"] = img["width"]
+            objs = []
+            keep_rec = False
+            for _, anno in enumerate(annots):
+                if anno["image_id"] == img["id"]:
+                    keep_rec = True
+                    obj_props = props_dict[str(img["id"])][str(anno["category_id"])]
+                    obj = {
+                        "bbox": anno["bbox"],
+                        "bbox_mode": BoxMode.XYXY_ABS,
+                        "segmentation": anno["segmentation"],
+                        "category_id": anno["category_id"],
+                        "iscrowd": 0,
+                        "properties": obj_props,
+                    }
+                    objs.append(obj)
+
+            record["annotations"] = objs
+            if keep_rec:
+                dataset_dicts.append(record)
+        return dataset_dicts
+
+    # Create DatasetCatalog and MetadataCatalog
     DatasetCatalog.clear()
-    MetadataCatalog.clear()
-    register_coco_instances(train_data, {}, train_path, image_dir)
-    register_coco_instances(test_data, {}, test_path, image_dir)
+    with open("annotation_data/props.json") as f: 
+        props_dict = json.load(f)
+    DatasetCatalog.register(train_data, lambda: get_dataset_dicts(train_path, props_dict))
+    DatasetCatalog.register(test_data, lambda: get_dataset_dicts(test_path, props_dict))
+    MetadataCatalog.get(train_data).set(
+        property_classes=properties, thing_classes=categories, json_file=train_path, image_root=image_dir, evaluator_type="coco"
+    )
+    MetadataCatalog.get(test_data).set(
+        property_classes=properties, thing_classes=categories, json_file=test_path, image_root=image_dir, evaluator_type="coco"
+    )
 
-    MetadataCatalog.get(train_data)
-    coco_yaml = "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"
+    # Path for model lyaml
+    dirname = os.path.dirname(os.path.realpath(__file__))
+    coco_yaml = "../../droidlet/perception/robot/detectron/detector/configs/mask_rcnn_R_101_FPN_1x.yaml"
+    config_path = os.path.join(dirname, coco_yaml)
 
+     # Set config
     cfg = get_cfg()
-    cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
+    cfg.MODEL.DENSEPOSE_ON = True
+    cfg.MODEL.ROI_PROPERTY_HEAD = CN()
+    cfg.MODEL.ROI_PROPERTY_HEAD.NAME = ""
+    cfg.MODEL.ROI_PROPERTY_HEAD.NUM_CLASSES = len(properties)
+    cfg.merge_from_file(config_path)
     cfg.DATASETS.TRAIN = (train_data,)
     cfg.DATASETS.TEST = ()
     cfg.DATALOADER.NUM_WORKERS = 2
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(categories)
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
-    cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
     cfg.OUTPUT_DIR = output_path
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = settings["learningRate"] # Make sure LR is good
@@ -347,7 +434,7 @@ def retrain_detector(settings):
     
     # Train
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-    trainer = DefaultTrainer(cfg)
+    trainer = Trainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
 
