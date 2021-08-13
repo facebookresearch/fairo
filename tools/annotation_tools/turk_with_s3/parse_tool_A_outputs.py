@@ -239,7 +239,7 @@ def process_dict(d):
             "coref_resolve_check.yes.",
             "coref_resolve_check.no.",
             "dialogue_target.f1.",
-            "dialogue_target.f2."
+            "dialogue_target.f2.",
         ],
     )
     if "location" in d:

@@ -75,6 +75,14 @@ def merge_indices(indices):
         b = max(b, indices[i][1])
     return [a, b]
 
+def contiguous_spans(indices):
+    a, b = indices[0]
+    for i in range(1, len(indices)):
+        a1, b1 = indices[i]
+        if a1 != b +1 :
+            return False
+        a, b = a1, b1
+    return True
 
 def fix_ref_obj(clean_dict):
     val = clean_dict
@@ -313,22 +321,20 @@ def update_action_dictionaries(all_combined_path):
                 valid_dict["dialogue_type"] = clean_dict["dialogue_type"]
                 del clean_dict["dialogue_type"]
                 clean_dict["action_type"] = clean_dict["action_type"].upper()
-                if clean_dict["action_type"] == "TAG":
-                    if "dialogue_target" in clean_dict:
-                        if clean_dict["dialogue_target"] == "f1":
-                            filters_sub_dict = clean_dict["filters"]
-                            if "where_clause" in filters_sub_dict:
-                                if len(filters_sub_dict["where_clause"]) > 1:
-                                    # OR
-                                    triples = []
-                                    for item in filters_sub_dict["where_clause"]:
-                                        triples.append({"pred_text": "has_name", "obj_text": [item]})
-                                    clean_dict["filters"]["where_clause"] = {"OR": triples}
-                                elif len(filters_sub_dict["where_clause"]) == 1:
-                                    # AND
-                                    clean_dict["filters"]["where_clause"] = {
-                                        "OR": [filters_sub_dict["where_clause"][0]]
-                                    }
+                if "dialogue_target" in clean_dict and clean_dict["dialogue_target"] == "f1":
+                    filters_sub_dict = clean_dict["filters"]
+                    if "where_clause" in filters_sub_dict:
+                        if len(filters_sub_dict["where_clause"]) > 1:
+                            # OR
+                            triples = []
+                            for item in filters_sub_dict["where_clause"]:
+                                triples.append({"pred_text": "has_name", "obj_text": [item]})
+                            clean_dict["filters"]["where_clause"] = {"OR": triples}
+                        elif len(filters_sub_dict["where_clause"]) == 1:
+                            # AND
+                            clean_dict["filters"]["where_clause"] = {
+                                "OR": [filters_sub_dict["where_clause"][0]]
+                            }
                 act_dict = fix_spans(clean_dict)
                 valid_dict["action_sequence"] = [act_dict]
 
@@ -379,6 +385,27 @@ def update_action_dictionaries(all_combined_path):
                 clean_dict["receiver"] = {"location": clean_dict["receiver_location"]}
                 clean_dict.pop("receiver_location")
 
+            if "dialogue_target" in clean_dict and clean_dict["dialogue_target"] == "f1":
+                filters_sub_dict = clean_dict["filters"]
+                if "team" in filters_sub_dict:
+                    new_filters = filters_sub_dict["team"]
+                    del filters_sub_dict["team"]
+                    filters_sub_dict = new_filters
+                if "where_clause" in filters_sub_dict:
+                    if len(filters_sub_dict["where_clause"]) > 1 and (not contiguous_spans(filters_sub_dict["where_clause"])):
+                        # OR
+                        triples = []
+                        for item in filters_sub_dict["where_clause"]:
+                            triples.append({"pred_text": "has_name", "obj_text": [item]})
+                        clean_dict["filters"]["where_clause"] = {"OR": triples}
+                    else: # length 1, >1 but contiguous
+                        # AND
+                        clean_dict["filters"]["where_clause"] = {
+                            "AND": [
+                                {"pred_text": "has_name",
+                                 "obj_text": [merge_indices(filters_sub_dict["where_clause"])]
+                                 }]
+                        }
             actual_dict = copy.deepcopy(clean_dict)
 
             action_type = actual_dict["action_type"]
@@ -414,17 +441,14 @@ def postprocess_step(combined_path, post_processed_path):
         for line in f.readlines():
             line = line.strip()
             text, d = line.split("\t")
-
             d = json.loads(d)
             action_dict = d['action_sequence'][0]
             action_type = action_dict['action_type']
             if action_type == 'TAG':
                 updated_dict = fix_put_mem(action_dict)
                 new_d = {'dialogue_type': d['dialogue_type']}
-
                 new_d.update(updated_dict)
             elif action_type == 'ANSWER':
-                # print(d)
                 new_d = {'dialogue_type': 'GET_MEMORY'}
             elif action_type == "NOOP":
                 new_d = {'dialogue_type': action_type}
@@ -432,6 +456,27 @@ def postprocess_step(combined_path, post_processed_path):
                 if action_type == 'COPY':
                     action_dict['action_type'] = 'BUILD'
                 d['action_sequence'] = [action_dict]
+                if "dialogue_target" in action_dict:
+                    if action_dict["dialogue_target"] == "f1":
+                        if "selector" in action_dict["filters"]:
+                            d["dialogue_target"] = {"filters": action_dict["filters"]}
+                            del action_dict["filters"]
+                            d["dialogue_target"]["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
+                            d["dialogue_target"]["filters"]["selector"]["same"] = "DISALLOWED"
+                    # elif new_d["dialogue_target"] == "SWARM":
+                    #     memory_type = "SET"
+                    #     new_d["filters"] = {
+                    #         "selector": {
+                    #             "return_quantity": "ALL",
+                    #             "same": "DISALLOWED"
+                    #         },
+                    #         "memory_type": "AGENT"}
+                    # elif new_d["dialogue_target"] == "AGENT":
+                    #     new_d["filters"] = {
+                    #         "memory_type": "AGENT",
+                    #         "selector": {"location": "SPEAKER_LOOK"}
+                    #     }
+                    del action_dict["dialogue_target"]
                 new_d = d
             print(text)
             pprint(new_d)
