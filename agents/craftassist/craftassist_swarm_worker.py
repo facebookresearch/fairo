@@ -15,14 +15,17 @@ from droidlet.memory.craftassist.swarm_worker_memory import SwarmWorkerMemory
 TASK_MAP =  {
         "move": tasks.Move,
         "build": tasks.Build,
-        # "destroy": tasks.Destroy,
-        # "dig": tasks.Dig,       
+        "destroy": tasks.Destroy,
+        "dig": tasks.Dig,       
     }
 
 TASK_INFO = {
     "move": ["target"],
-    "build": []
+    "build": ["blocks_list"],
+    "destroy": ["schematic"],
+    "dig": ["origin", "length", "width", "depth"]
 }
+
 class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
     from a forked multiprocessing child
@@ -71,12 +74,20 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         for v in self.perception_modules.values():
             v.perceive(force=force)
     
+    def preprocess_data(self, task_name, task_data):
+        if "task_data" in task_data:
+            return task_data["task_data"]
+        else:
+            return task_data
+
     def check_task_info(self, task_name, task_data):
         if task_name not in TASK_INFO.keys():
             logging.info("task {} received without checking arguments")
             return True
         for key in TASK_INFO[task_name.lower()]:
             if key not in task_data:
+            #     if "task_data" in task_data and key in task_data["task_data"]:
+            #         continue
                 return False
         return True
 
@@ -176,6 +187,7 @@ class CraftAssistSwarmWorker_Wrapper(Process):
                 task_class_name, task_data, task_memid = self.input_tasks.get_nowait()
                 if task_memid is None or ((task_memid not in agent.task_stacks.keys()) and (task_memid not in agent.task_ghosts)):
                 # TODO: implement stop and resume
+                    task_data = agent.preprocess_data(task_class_name, task_data)
                     if agent.check_task_info(task_class_name, task_data):
                         new_task = TASK_MAP[task_class_name](agent, task_data)
                         if task_memid is None:
