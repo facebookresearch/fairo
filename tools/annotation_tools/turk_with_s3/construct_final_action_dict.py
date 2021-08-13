@@ -463,8 +463,12 @@ def postprocess_step(combined_path, post_processed_path):
                             del action_dict["filters"]
                             d["dialogue_target"]["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
                             d["dialogue_target"]["filters"]["selector"]["same"] = "DISALLOWED"
+                        else:
+                            # where clause
+                            d["dialogue_target"] = {"filters" : action_dict["filters"]}
+                            del action_dict["filters"]
                     # elif new_d["dialogue_target"] == "SWARM":
-                    #     memory_type = "SET"
+                    #     d["dialogue_target"]
                     #     new_d["filters"] = {
                     #         "selector": {
                     #             "return_quantity": "ALL",
