@@ -339,7 +339,7 @@ def handle_commands(d):
             child_d.pop("source")
 
     for k, v in child_d.items():
-        if k in ["target_action_type", "has_block_type", "dance_type_name", "tag_val"]:
+        if k in ["target_action_type", "has_block_type", "dance_type_name", "tag_val", "dance_type_span"]:
             output[k] = ["yes", v]
 
         elif type(v) == list or (k == "receiver"):
