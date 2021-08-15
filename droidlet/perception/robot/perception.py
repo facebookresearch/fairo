@@ -30,7 +30,6 @@ class Perception:
 
     def __init__(self, model_data_dir, default_keypoints_path=False):
         self.model_data_dir = model_data_dir
-        self.agent = agent
         def slow_perceive_init(weights_dir):
             return AttributeDict(
                 {
@@ -78,57 +77,34 @@ class Perception:
         )
         return handlers
 
-    def perceive(self, force=False):
+    def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
         models and save their state to memory. It fetches the results of
         SlowPerception if they are ready.
-
         Args:
             force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
                 (default: False)
         """
-        rgb_depth = self.agent.mover.get_rgb_depth()
-        xyz = self.agent.mover.get_base_pos_in_canonical_coords()
-        x, y, yaw = xyz
-        sio.emit("map", {
-            "x": x,
-            "y": y,
-            "yaw": yaw,
-            "map": self.agent.mover.get_obstacles_in_canonical_coords()
-        })
+        if self.slow_vision_ready:
+            self.vprocess.put(rgb_depth, xyz)
+            self.slow_vision_ready = False
 
-        previous_objects = DetectedObjectNode.get_all(self.agent.memory)
+        try:
+            old_image, detections, humans, old_xyz = self.vprocess.get(block=force)
+            self.slow_vision_ready = True
+        except queue.Empty:
+            old_image, detections, humans, old_xyz = None, None, None, None
 
-        def see(rgb_depth, xyz, previous_objects, force=force):
-            if self.slow_vision_ready:
-                self.vprocess.put(rgb_depth, xyz)
-                self.slow_vision_ready = False
-
-            try:
-                old_image, detections, humans, old_xyz = self.vprocess.get(block=force)
-                self.slow_vision_ready = True
-            except queue.Empty:
-                old_image, detections, humans, old_xyz = None, None, None, None
-
-            self.log(rgb_depth, detections, humans, old_image)
-            if detections is not None:
-                current_objects = detections + humans
-                if previous_objects is not None:
-                    new_objects, updated_objects = self.vision.deduplicate(
-                        current_objects, previous_objects
-                    )
-                return (new_objects, updated_objects)
-            return None
-
-        new_state = see(rgb_depth, xyz, previous_objects, force=force)
-
-        if new_state is not None:
-            new_objects, updated_objects = new_state
-            for obj in new_objects:
-                obj.save_to_memory(self.agent.memory)
-            for obj in updated_objects:
-                obj.save_to_memory(self.agent.memory, update=True)
+        self.log(rgb_depth, detections, humans, old_image)
+        if detections is not None:
+            current_objects = detections + humans
+            if previous_objects is not None:
+                new_objects, updated_objects = self.vision.deduplicate(
+                    current_objects, previous_objects
+                )
+            return (new_objects, updated_objects)
+        return None
         
         
 
