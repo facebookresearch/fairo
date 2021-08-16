@@ -1,3 +1,4 @@
+import time
 from concurrent import futures
 
 import grpc
@@ -24,8 +25,10 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         print("Activating gripper...")
         self.gripper.activate_emergency_release()
         self.gripper.sendCommand()
+        time.sleep(1)
         self.gripper.deactivate_emergency_release()
         self.gripper.sendCommand()
+        time.sleep(1)
         self.gripper.activate_gripper()
         self.gripper.sendCommand()
         if (
