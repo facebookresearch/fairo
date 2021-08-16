@@ -28,7 +28,7 @@ def build_model(args, tree_i2w):
 def load_model(model_dir, model_name="caip_test_model"):
     path = os.path.join(model_dir, model_name + ".pth")
     try:
-        M = torch.load(path)
+        M = torch.load(path, map_location="cpu")
         sd = M["state_dict"]
         tree_voc = M["tree_voc"]
         tree_idxs = M["tree_idxs"]
@@ -37,7 +37,7 @@ def load_model(model_dir, model_name="caip_test_model"):
     except:
         try:
             print("WARNING: failed to load model, trying old-style model load")
-            sd = torch.load(path)
+            sd = torch.load(path, map_location="cpu")
             args_path = os.path.join(model_dir, model_name + "_args.pk")
             args = pickle.load(open(args_path, "rb"))
             tree_path = os.path.join(model_dir, model_name + "_tree.json")
