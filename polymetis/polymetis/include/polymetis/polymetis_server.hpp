@@ -18,7 +18,7 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 
-#include "polymetis.grpc.pb.h"
+#include "polymetis.grpc.fb.h"
 
 #include "polymetis/utils.h"
 #include "yaml-cpp/yaml.h"
@@ -94,67 +94,67 @@ public:
   /**
   TODO
   */
-  Status InitRobotClient(ServerContext *context,
-                         const RobotClientMetadata *robot_client_metadata,
-                         Empty *) override;
+  // Status InitRobotClient(ServerContext *context,
+  //                        const RobotClientMetadata *robot_client_metadata,
+  //                        Empty *) override;
 
   /**
   TODO
   */
-  Status ControlUpdate(ServerContext *context, const RobotState *robot_state,
-                       TorqueCommand *torque_command) override;
+  // Status ControlUpdate(ServerContext *context, const RobotState *robot_state,
+  //                      TorqueCommand *torque_command) override;
 
-  // User client methods
+  // // User client methods
 
-  /**
-  TODO
-  */
-  Status GetRobotClientMetadata(ServerContext *context, const Empty *,
-                                RobotClientMetadata *metadata) override;
+  // /**
+  // TODO
+  // */
+  // Status GetRobotClientMetadata(ServerContext *context, const Empty *,
+  //                               RobotClientMetadata *metadata) override;
 
-  /**
-  TODO
-  */
-  Status GetRobotState(ServerContext *context, const Empty *,
-                       RobotState *robot_state) override;
+  // /**
+  // TODO
+  // */
+  // Status GetRobotState(ServerContext *context, const Empty *,
+  //                      RobotState *robot_state) override;
 
-  /**
-  TODO
-  */
-  Status GetRobotStateStream(ServerContext *context, const Empty *,
-                             ServerWriter<RobotState> *writer) override;
+  // /**
+  // TODO
+  // */
+  // Status GetRobotStateStream(ServerContext *context, const Empty *,
+  //                            ServerWriter<RobotState> *writer) override;
 
-  /**
-  TODO
-  */
-  Status GetRobotStateLog(ServerContext *context, const LogInterval *interval,
-                          ServerWriter<RobotState> *writer) override;
+  // /**
+  // TODO
+  // */
+  // Status GetRobotStateLog(ServerContext *context, const LogInterval *interval,
+  //                         ServerWriter<RobotState> *writer) override;
 
-  /**
-  TODO
-  */
-  Status SetController(ServerContext *context,
-                       ServerReader<ControllerChunk> *stream,
-                       LogInterval *interval) override;
+  // /**
+  // TODO
+  // */
+  // Status SetController(ServerContext *context,
+  //                      ServerReader<ControllerChunk> *stream,
+  //                      LogInterval *interval) override;
 
-  /**
-  TODO
-  */
-  Status UpdateController(ServerContext *context,
-                          ServerReader<ControllerChunk> *stream,
-                          LogInterval *interval) override;
+  // /**
+  // TODO
+  // */
+  // Status UpdateController(ServerContext *context,
+  //                         ServerReader<ControllerChunk> *stream,
+  //                         LogInterval *interval) override;
 
-  /**
-  TODO
-  */
-  Status TerminateController(ServerContext *context, const Empty *,
-                             LogInterval *interval) override;
+  // /**
+  // TODO
+  // */
+  // Status TerminateController(ServerContext *context, const Empty *,
+  //                            LogInterval *interval) override;
 
-  /**
-  TODO
-  */
-  Status GetEpisodeInterval(ServerContext *context, const Empty *,
-                            LogInterval *interval) override;
+  // /**
+  // TODO
+  // */
+  // Status GetEpisodeInterval(ServerContext *context, const Empty *,
+  //                           LogInterval *interval) override;
 
 private:
   std::vector<char> controller_model_buffer_; // buffer for loading controllers

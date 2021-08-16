@@ -10,7 +10,7 @@
 #include <streambuf>
 #include <vector>
 
-#include "polymetis.grpc.pb.h"
+#include "polymetis.grpc.fb.h"
 
 /**
 Circular buffer class. Preallocates a std::vector with a certain capacity, then
@@ -103,10 +103,12 @@ inline long int getNanoseconds() {
 /**
 Sets timestamp to current time.
 */
-inline bool setTimestampToNow(google::protobuf::Timestamp *timestamp_ptr) {
+inline bool setTimestampToNow(Timestamp *timestamp_ptr) {
   long int ns = getNanoseconds();
-  timestamp_ptr->set_seconds(ns / 1e9);
-  timestamp_ptr->set_nanos(ns % (long int)1e9);
+  // timestamp_ptr->set_seconds(ns / 1e9);
+  // timestamp_ptr->set_nanos(ns % (long int)1e9);
+  timestamp_ptr->mutate_seconds(ns / 1e9);
+  timestamp_ptr->mutate_nanos(ns % (long int)1e9);
   return true;
 }
 
