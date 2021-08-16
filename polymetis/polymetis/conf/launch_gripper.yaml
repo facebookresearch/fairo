@@ -1,0 +1,4 @@
+ip: localhost
+port: 50052
+
+comport: /dev/ttyUSB0
