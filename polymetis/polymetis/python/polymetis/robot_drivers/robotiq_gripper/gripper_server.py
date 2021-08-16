@@ -1,7 +1,12 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
 import time
 from concurrent import futures
 
 import grpc
+
 import polymetis_pb2
 import polymetis_pb2_grpc
 
@@ -41,7 +46,7 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
             raise Exception(f"Unable to activate!")
 
     def GetState(self, request, context):
-        state = polymetis_pb2_grpc.GripperState()
+        state = polymetis_pb2.GripperState()
 
         state.timestamp.GetCurrentTime()
         state.pos = self.gripper.get_pos()
@@ -55,7 +60,7 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         self.gripper.goto(pos=request.pos, vel=request.vel, force=request.force)
         self.gripper.sendCommand()
 
-        return polymetis_pb2_grpc.Empty()
+        return polymetis_pb2.Empty()
 
 
 def run_server(ip, port, comport):
