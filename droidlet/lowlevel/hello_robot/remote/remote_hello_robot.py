@@ -101,6 +101,7 @@ class RemoteHelloRobot(object):
         if self._done:
             self._done = False
             if not self._slam.whole_area_explored:
+                self.set_tilt(radians(-45))
                 self._slam.set_goal(
                     (10, 10, 0)
                 )  # set  far away goal for exploration, default map size [-20,20]

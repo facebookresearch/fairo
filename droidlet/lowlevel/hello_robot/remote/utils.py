@@ -24,7 +24,15 @@ def transform_global_to_base(XYT, current_pose):
 
 from math import *
 import time
-def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False):
+
+ctr = 1
+def save_depth(depth):
+    global ctr
+    save_dir = '/home/hello1/data/depth'
+    np.save(save_dir + "/{:05d}.npy".format(ctr), depth)
+    ctr += 1
+
+def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, depth_fn=None):
         """
         Moves the robot to the given goal state in
         the relative frame (base frame).
@@ -72,6 +80,29 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False):
         print("translate by ", dist)
         if not dryrun:
             print("not a dryrun")
+
+            # check here if obstacle is within dist, return false.
+
+            def is_obstacle_ahead(dist): 
+                #FIXME need to tilt camera?
+
+                _, depth = depth_fn()
+                # save depth frames
+                # depth /= 1000 # convert to meters
+                save_depth(depth)
+
+                c = [int(depth.shape[0]/2), int(depth.shape[1]/2)]
+                cropped_depth = depth[c[0]-100 : c[0]+100, c[1]-200:c[1]]
+                obstacle_dist = np.min(cropped_depth[cropped_depth > 0]) * cos(radians(45))
+                print(f'obstacle at {obstacle_dist}, moving {dist}')
+                if obstacle_dist < dist:
+                    print(f'ICEBERG!!')
+                    return True
+                return False
+
+            if is_obstacle_ahead(dist):
+                return False
+
             robot.base.translate_by(dist, v_m=0.03)
             robot.push_command()
             time.sleep(5)
