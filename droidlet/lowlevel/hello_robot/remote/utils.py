@@ -11,6 +11,7 @@ def transform_global_to_base(XYT, current_pose):
     Output:
         XYZ : ...x3
     """
+    XYT = np.asarray(XYT)
     new_T = XYT[2] - current_pose[2]
     R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
     print(R)

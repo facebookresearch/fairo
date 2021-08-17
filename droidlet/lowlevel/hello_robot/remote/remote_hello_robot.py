@@ -14,8 +14,12 @@ import json
 import time
 import pyrealsense2 as rs
 import cv2
+from math import *
+from slam_pkg.slam import Slam
+import copy
+from .utils import transform_global_to_base, goto
+from slam_pkg.utils import depth_util as du
 
-from utils import transform_global_to_base, goto
 
 # Configure depth and color streams
 CAMERA_HEIGHT = 1.5
@@ -39,25 +43,33 @@ def val_in_range(val_name, val,vmin, vmax):
 
 @Pyro4.expose
 class RemoteHelloRobot(object):
-    """PyRobot interface for the Locobot.
-
-    Args:
-        backend (string): the backend for the Locobot ("habitat" for the locobot in Habitat, and "locobot" for the physical LocoBot)
-        (default: locobot)
-        backend_config (dict): the backend config used for connecting to Habitat (default: None)
-    """
+    """Hello Robot interface"""
 
     def __init__(self):
         self._robot = Robot()
         self._robot.startup()
         if not self._robot.is_calibrated():
-            self._robot.home() 
-
+            self._robot.home()
+        self._robot.stow()
         self._done = True
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
-        self._check_battery() 
+        self._check_battery()
         self._connect_to_realsense()
-    
+        # Slam stuff
+        #uv_one_in_cam
+        intrinsic_mat = np.asarray(self.get_intrinsics())
+        intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+        img_resolution = self.get_img_resolution()
+        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+        img_pixs = img_pixs.reshape(2, -1)
+        img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+        uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+        self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        self._slam = Slam(self, robot_name='hello')
+        self._slam_step_size = 25  # step size in cm
+
+        
+
     def _connect_to_realsense(self):
         cfg = rs.config()
         pipeline = rs.pipeline()
@@ -65,7 +77,7 @@ class RemoteHelloRobot(object):
         cfg.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, 30)
         pipeline.start(cfg)
         self.realsense = pipeline
-        
+
         profile = pipeline.get_active_profile()
         depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
         i = depth_profile.get_intrinsics()
@@ -76,7 +88,7 @@ class RemoteHelloRobot(object):
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
-    
+
     def _check_battery(self):
         p = self._robot.pimu
         p.pull_status()
@@ -84,20 +96,31 @@ class RemoteHelloRobot(object):
         val_in_range('Current',p.status['current'], vmin=0.1, vmax=p.config['high_current_alert'])
         val_in_range('CPU Temp',p.status['cpu_temp'], vmin=15, vmax=80)
         print(Style.RESET_ALL)
+    
+    def explore(self):
+        if self._done:
+            self._done = False
+            if not self._slam.whole_area_explored:
+                self._slam.set_goal(
+                    (19, 19, 0)
+                )  # set  far away goal for exploration, default map size [-20,20]
+                self._slam.take_step(self._slam_step_size)
+            self._done = True
+            return True
 
     def get_intrinsics(self):
         return self.intrinsic_mat.tolist()
-    
+
     def get_img_resolution(self):
         return (CH, CW)
-    
+
     def get_status(self):
         return self._robot.get_status()
-    
+
     def get_base_state(self):
         s = self._robot.get_status()
         return (s['base']['x'], s['base']['y'], s['base']['theta'])
-    
+
     def get_pan(self):
         s = self._robot.get_status()
         return s['head']['head_pan']['pos']
@@ -105,37 +128,41 @@ class RemoteHelloRobot(object):
     def get_tilt(self):
         s = self._robot.get_status()
         return s['head']['head_tilt']['pos']
-    
+
     def set_pan(self, pan):
         self._robot.head.move_to('head_pan', pan)
-    
+
     def set_tilt(self, tilt):
         self._robot.head.move_to('head_tilt', tilt)
     
+    def reset_camera(self):
+        self.set_pan(0)
+        self.set_tilt(0)
+
     def set_pan_tilt(self, pan, tilt):
         """Sets both the pan and tilt joint angles of the robot camera  to the
         specified values.
 
         :param pan: value to be set for pan joint in radian
         :param tilt: value to be set for the tilt joint in radian
-        
+
         :type pan: float
         :type tilt: float
         :type wait: bool
         """
         self._robot.head.move_to('head_pan', pan)
         self._robot.head.move_to('head_tilt', tilt)
-    
+
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
         return "Connected!"  # should print on client terminal
-    
+
     def home(self):
         self._robot.home()
-    
+
     def stow(self):
         self._robot.stow()
-    
+
     def push_command(self):
         self._robot.push_command()
 
@@ -184,9 +211,14 @@ class RemoteHelloRobot(object):
                 self._slam.set_absolute_goal_in_robot_frame(xyt_position)
             else:
                 global_xyt = xyt_position
-                base_state = self.get_base_state()
-                base_xyt = transform_global_to_base(global_xyt, base_state)
-                goto(self._robot, list(base_xyt), dryrun=False)
+                while True:
+                    base_state = self.get_base_state()
+                    base_xyt = transform_global_to_base(global_xyt, base_state)
+                    dist = sqrt(base_xyt[0] ** 2 + base_xyt[1] ** 2)
+                    print(f'dist {dist}')
+                    if dist < 0.2:
+                        break
+                    goto(self._robot, list(base_xyt), dryrun=False)
             self._done = True
 
     def go_to_relative(
@@ -254,7 +286,7 @@ class RemoteHelloRobot(object):
         print('get_rgb_depth', time.time() - tm)
         return color_image, depth_image
 
-    
+
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth()
@@ -269,10 +301,30 @@ class RemoteHelloRobot(object):
         rot = np.array([[0., 0., 1.], [-1., 0., 0.], [0., -1.,0.]])
         T = np.eye(4)
         T[:3,:3] = rot
-        T[:3,3] = trans 
+        T[:3,3] = trans
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
         return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
+
+    def get_current_pcd(self):
+        rgb, depth, rot, trans = self.get_pcd_data()
+        rgb = np.asarray(rgb).astype(np.uint8)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+        depth = np.asarray(depth)
+        rot = np.asarray(rot)
+        trans = np.asarray(trans)
+        depth = depth.astype(np.float32)
+        d = copy.deepcopy(depth)
+        print(f'type depth {type(depth)}')
+        depth /= 1000.0
+        depth = depth.reshape(-1)
+        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
+        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
+        pts = pts_in_cam[:3, :].T
+        pts = np.dot(pts, rot.T)
+        pts = pts + trans.reshape(-1)
+        pts = du.transform_pose(pts, self.get_base_state())
+        return pts
 
 
 if __name__ == "__main__":
@@ -285,7 +337,7 @@ if __name__ == "__main__":
         type=str,
         default="172.20.7.104",
     )
-    
+
     args = parser.parse_args()
 
     np.random.seed(123)
