@@ -63,7 +63,7 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False):
         # first rotate by theta1
         print("rotate by ", theta_1)
         if not dryrun:
-            robot.base.rotate_by(theta_1)
+            robot.base.rotate_by(theta_1, v_r=0.1)
             robot.push_command()
             time.sleep(0.2)
             while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
@@ -72,7 +72,7 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False):
         print("translate by ", dist)
         if not dryrun:
             print("not a dryrun")
-            robot.base.translate_by(dist)
+            robot.base.translate_by(dist, v_m=0.03)
             robot.push_command()
             time.sleep(5)
             # time.sleep(0.2)

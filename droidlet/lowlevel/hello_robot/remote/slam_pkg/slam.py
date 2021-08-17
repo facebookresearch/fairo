@@ -7,7 +7,7 @@ import argparse
 from scipy import ndimage
 from copy import deepcopy as copy
 import time
-from math import ceil, floor
+from math import ceil, floor, sqrt
 import sys
 import cv2
 # for slam modules
@@ -203,7 +203,10 @@ class Slam(object):
         print("bot_state before executing action = {}".format(robot_state))
 
         # orient the robot
-        exec = self.robot.go_to_relative(
+        print('orienting robot')
+        from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
+        exec = goto(
+            self.robot._robot,
             (
                 0,
                 0,
@@ -211,11 +214,16 @@ class Slam(object):
                     stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
                 )
                 - robot_state[2],
-            )
+            ),
+            dryrun=False
         )
+        if exec:
+            print('finished orienting')
 
         # update map
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
+        robstate = tuple((round(x) for x in robot_state))
+        print(f'robot_state {robstate}')
         self.map_builder.update_map(
             self.robot.get_current_pcd(), robot_state
         )
@@ -240,17 +248,20 @@ class Slam(object):
             print("Obstacle in path")
         else:
             # go to the location the robot
-            exec = False
-            # exec = self.robot.go_to_absolute(
-            #     (
-            #         stg_real_g[0],
-            #         stg_real_g[1],
-            #         np.arctan2(
-            #             stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
-            #         )
-            #         + self.init_state[2],
-            #     )
-            # )
+            print('Moving Robot')
+            global_xyt = (
+                    stg_real_g[0],
+                    stg_real_g[1],
+                    np.arctan2(
+                        stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
+                    )
+                    + self.init_state[2],
+                )
+            base_state = self.robot.get_base_state()
+            base_xyt = transform_global_to_base(global_xyt, base_state)
+            exec = goto(self.robot._robot, list(base_xyt), dryrun=False)
+            if exec:
+                print('finished moving robot')
 
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         print("bot_state after executing action = {}".format(robot_state))
