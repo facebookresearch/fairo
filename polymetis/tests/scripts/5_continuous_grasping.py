@@ -34,14 +34,7 @@ class ManipulatorSystem:
         time.sleep(0.5)
 
         # Send PD controller
-        joint_pos_current = self.arm.get_joint_angles()
-        policy = toco.policies.JointImpedanceControl(
-            joint_pos_current=joint_pos_current,
-            Kp=self.arm.metadata.default_Kq,
-            Kd=self.arm.metadata.default_Kqd,
-            robot_model=self.arm.robot_model,
-        )
-        self.arm.send_torch_policy(policy, blocking=False)
+        self.reset_policy()
 
         # Reset to rest pose
         self.rest_pos = torch.Tensor(REST_POSE[0])
@@ -54,6 +47,16 @@ class ManipulatorSystem:
     def reset(self, time_to_go=2.0):
         self.move_to(self.rest_pos, self.rest_quat, time_to_go)
         self.open_gripper()
+
+    def reset_policy(self):
+        joint_pos_current = self.arm.get_joint_angles()
+        policy = toco.policies.JointImpedanceControl(
+            joint_pos_current=joint_pos_current,
+            Kp=self.arm.metadata.default_Kq,
+            Kd=self.arm.metadata.default_Kqd,
+            robot_model=self.arm.robot_model,
+        )
+        self.arm.send_torch_policy(policy, blocking=False)
 
     def move_to(self, pos, quat, time_to_go=3.0):
         # Plan trajectory
@@ -122,6 +125,12 @@ class ManipulatorSystem:
 
         # Release
         self.open_gripper()
+
+        # Check if policy terminated due to issues
+        if self.arm.get_previous_interval().end != -1:
+            print("Interrupt detected. Reinstantiating control policy...")
+            time.sleep(3)
+            self.reset_policy()
 
         # Reset
         self.reset()
