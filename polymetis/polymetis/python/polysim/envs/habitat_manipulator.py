@@ -173,7 +173,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.dt = 1.0 / self.hz
         self.gui = gui
         self.save_vid = save_vid
-        self.vid_out = None
+        self.observations = []
         self.n_dofs = robot_model_cfg.num_dofs
         self.grav_comp = grav_comp
 
@@ -193,15 +193,18 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.sim = habitat_sim.Simulator(self.habitat_cfg)
         place_agent(self.sim, agent_pos=agent_pos, agent_orient=agent_orient)
 
+        self.artic_mgr = self.sim.get_articulated_object_manager()
+        self.rigid_mgr = self.sim.get_rigid_object_manager()
+
         # Load robot
-        self.robot = (
-            self.sim.get_articulated_object_manager().add_articulated_object_from_urdf(
-                self.robot_description_path,
-                fixed_base=True,
-                light_setup_key=habitat_sim.gfx.DEFAULT_LIGHTING_KEY,
+        self.robot = self.artic_mgr.add_articulated_object_from_urdf(
+            self.robot_description_path,
+            fixed_base=True,
+            light_setup_key=habitat_sim.gfx.DEFAULT_LIGHTING_KEY,
             )
         )
         assert self.robot is not None
+
         place_robot_from_agent(
             self.sim,
             self.robot,
@@ -231,8 +234,13 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_external = np.zeros(self.n_dofs)
 
     def __del__(self):
-        if self.vid_out is not None:
-            self.vid_out.release()
+        vut.make_video(
+            self.observations,
+            "rgba_camera_1stperson",
+            "color",
+            "out",
+            open_vid=False,
+        )
 
     def reset(self, joint_pos: List[float] = None, joint_vel: List[float] = None):
         """Reset joint positions / velocities to given values (0s by default)"""
@@ -279,25 +287,7 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
     def render(self):
         if self.gui or self.save_vid:
             obs = self.sim.get_sensor_observations()
-            img = obs["rgba_camera_1stperson"]
-
-            import cv2
-
-            if self.gui:
-                cv2.namedWindow("Habitat", cv2.WINDOW_AUTOSIZE)
-                cv2.imshow("Habitat", img)
-                cv2.waitKey(1)
-            if self.save_vid:
-                if self.vid_out is None:
-                    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-                    self.vid_out = cv2.VideoWriter(
-                        "out.mp4",
-                        fourcc,
-                        24,
-                        (img.shape[1], img.shape[0]),
-                    )
-
-                self.vid_out.write(img[:, :, :-1])
+            self.observations.append(obs)
 
     def apply_joint_torques(self, torques: List[float]) -> List[float]:
         """Sets joint torques and steps simulation. Returns applied
