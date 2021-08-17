@@ -46,7 +46,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         self.task_ghosts = []
         self.prio = dict()
         self.running = dict()
-        self.pause = False
+        self.pause = dict()
         self.memory_send_queue = memory_send_queue
         self.memory_receive_queue = memory_receive_queue
         self.query_from_worker = query_from_worker
@@ -116,7 +116,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         finished_task_memids = []
         for memid, task in self.task_stacks.items():
             pre_task_status = (self.prio[memid], self.running[memid], task.finished)
-            if (not self.pause) and (self.prio[memid] >=0):
+            if (not self.pause[memid]) and (self.prio[memid] >=0):
                 if task.run_condition.check():
                     self.prio[memid] = 1
                     self.running[memid] = 1
@@ -133,7 +133,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         finished_task_memids = []
         for memid, task in self.task_stacks.items():
             pre_task_status = (self.prio[memid], self.running[memid], task.finished)    
-            if (not self.pause) and (self.running[memid] >=1):
+            if (not self.pause[memid]) and (self.running[memid] >=1):
                 tmp_query = task.step()
                 # TODO: return queries if anything is missing
                 if task.finished:
@@ -162,6 +162,7 @@ class CraftAssistSwarmWorker_Wrapper(Process):
         self.query_from_master = Queue()
         self.memory_send_queue = Queue()
         self.memory_receive_queue = Queue()
+        self.stop = 0
 
     def send_queries(self, queries):
         # TODO: send queries to master by pushing to self.query_from_worker
@@ -198,10 +199,30 @@ class CraftAssistSwarmWorker_Wrapper(Process):
                         agent.task_stacks[task_memid] = new_task
                         agent.prio[task_memid] = -1
                         agent.running[task_memid] = -1
+                        agent.pause[task_memid] = False
                 elif task_memid in agent.task_stacks.keys():
                     self.send_task_updates([(task_memid, (agent.prio[task_memid], agent.running[task_memid], agent.task_stacks[task_memid].finished))])
                 elif task_memid in agent.task_ghosts:
                     self.send_task_updates([(task_memid, (0, 0, True))])
+
+    def handle_master_query(self, agent):
+        flag = True
+        while flag:
+            if self.query_from_master.empty():
+                flag = False
+            else:
+                query_name, query_data = self.query_from_master.get_nowait()
+                if query_name == "stop":
+                    for memid, task in agent.task_stacks.items():
+                        if not task.finished:
+                            agent.pause[memid] = True
+                elif query_name == "resume":
+                    for memid, task in agent.task_stacks.items():
+                        agent.pause[memid] = False
+                else:
+                    logging.info("Query not handled: {}".format(query_name))
+                    raise NotImplementedError
+    
 
     def run(self):
         agent = CraftAssistSwarmWorker(self.opts, self.idx, memory_send_queue=self.memory_send_queue, memory_receive_queue=self.memory_receive_queue, query_from_worker=self.query_from_worker)
@@ -212,5 +233,6 @@ class CraftAssistSwarmWorker_Wrapper(Process):
             
             self.handle_input_task(agent)
             queries, _ = agent.task_step()
+            self.handle_master_query(agent)
             self.send_queries(queries)
             agent.count += 1
