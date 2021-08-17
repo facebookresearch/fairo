@@ -27,7 +27,7 @@ def main(argv):
         try:
             max_iters = int(argv[1])
         except ValueError as exc:
-            print("Usage: python 3_free_space.py <max_iterations>")
+            print("Usage: python 4_free_space.py <max_iterations>")
             return
     else:
         max_iters = DEFAULT_MAX_ITERS
