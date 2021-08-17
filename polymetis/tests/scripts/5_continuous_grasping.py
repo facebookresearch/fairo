@@ -33,7 +33,7 @@ class ManipulatorSystem:
         self.gripper = GripperInterface()
         time.sleep(0.5)
 
-        # Send PD controller
+        # Set continuous control policy
         self.reset_policy()
 
         # Reset to rest pose
@@ -49,6 +49,10 @@ class ManipulatorSystem:
         self.open_gripper()
 
     def reset_policy(self):
+        # Go home
+        self.arm.go_home()
+
+        # Send PD controller
         joint_pos_current = self.arm.get_joint_angles()
         policy = toco.policies.JointImpedanceControl(
             joint_pos_current=joint_pos_current,
