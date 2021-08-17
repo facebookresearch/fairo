@@ -115,6 +115,35 @@ Status PolymetisControllerServerImpl::InitRobotClient(
 
   resetControllerContext();
 
+  if (robot_client_context_.metadata.shm_enabled()) {
+    std::cout << "Initializing shared memory block..." << std::endl;
+
+    boost::interprocess::shared_memory_object::remove("RobotStateSharedMemory");
+    segment_ = boost::interprocess::managed_shared_memory(
+        boost::interprocess::create_only, "RobotStateSharedMemory", SHM_SIZE);
+    const ShmemAllocatorFloat alloc_inst(segment_.get_segment_manager());
+
+    auto shm_timestamp = segment_.construct<ShmTimestamp>("shm_timestamp")();
+
+    auto joint_positions =
+        segment_.construct<ShmVectorFloat>("joint_positions")(alloc_inst);
+    auto joint_velocities =
+        segment_.construct<ShmVectorFloat>("joint_velocities")(alloc_inst);
+    auto joint_torques_measured = segment_.construct<ShmVectorFloat>(
+        "joint_torques_measured")(alloc_inst);
+    auto joint_torques_external = segment_.construct<ShmVectorFloat>(
+        "joint_torques_external")(alloc_inst);
+
+    std::cout << "Done. Initializing shared memory robot state..." << std::endl;
+
+    for (int i = 0; i < num_dofs_; i++) {
+      joint_positions->push_back(0.0);
+      joint_velocities->push_back(0.0);
+      joint_torques_measured->push_back(0.0);
+      joint_torques_external->push_back(0.0);
+    }
+  }
+
   std::cout << "Success.\n\n";
   return Status::OK;
 }
@@ -149,16 +178,41 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // Parse robot state
-  auto timestamp_msg = robot_state->timestamp();
-  rs_timestamp_[0] = timestamp_msg.seconds();
-  rs_timestamp_[1] = timestamp_msg.nanos();
-  for (int i = 0; i < num_dofs_; i++) {
-    rs_joint_positions_[i] = robot_state->joint_positions(i);
-    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
-    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
-    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
-  }
+  // // Parse robot state
+  if (robot_client_context_.metadata.shm_enabled()) {
+    // Parse robot state from shared memory
 
+    auto timestamp = *segment_.find<ShmTimestamp>("shm_timestamp").first;
+
+    auto joint_positions =
+        *segment_.find<ShmVectorFloat>("joint_positions").first;
+    auto joint_velocities =
+        *segment_.find<ShmVectorFloat>("joint_velocities").first;
+    auto joint_torques_measured =
+        *segment_.find<ShmVectorFloat>("joint_torques_measured").first;
+    auto joint_torques_external =
+        *segment_.find<ShmVectorFloat>("joint_torques_external").first;
+
+    rs_timestamp_[0] = timestamp.timestamp_s;
+    rs_timestamp_[1] = timestamp.timestamp_ns;
+
+    for (int i = 0; i < num_dofs_; i++) {
+      rs_joint_positions_[i] = joint_positions[i];
+      rs_joint_velocities_[i] = joint_velocities[i];
+      rs_motor_torques_measured_[i] = joint_torques_measured[i];
+      rs_motor_torques_external_[i] = joint_torques_external[i];
+    }
+  } else {
+    auto timestamp_msg = robot_state->timestamp();
+    rs_timestamp_[0] = timestamp_msg.seconds();
+    rs_timestamp_[1] = timestamp_msg.nanos();
+    for (int i = 0; i < num_dofs_; i++) {
+      rs_joint_positions_[i] = robot_state->joint_positions(i);
+      rs_joint_velocities_[i] = robot_state->joint_velocities(i);
+      rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
+      rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
+    }
+  }
   // Lock to prevent 1) controller updates while controller is running; 2)
   // external termination during controller selection, which might cause loading
   // of a uninitialized default controller

@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include <vector>
 
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/server.h>
@@ -29,6 +32,7 @@
 #define MAX_MODEL_BYTES 1048576         // 1 megabyte
 #define THRESHOLD_NS 1000000000         // 1s
 #define SPIN_INTERVAL_USEC 20000        // 0.02s (50hz)
+#define SHM_SIZE 65536                  // 64K
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -170,6 +174,7 @@ private:
 
   CustomControllerContext custom_controller_context_;
   RobotClientContext robot_client_context_;
+  boost::interprocess::managed_shared_memory segment_;
 
   // Robot states
   torch::Tensor rs_timestamp_;

@@ -7,6 +7,9 @@
 #include <numeric>
 #include <thread>
 
+#include <sys/ipc.h>
+#include <sys/shm.h>
+
 #include "yaml-cpp/yaml.h"
 
 #include "real_time.hpp"
@@ -62,6 +65,10 @@ public:
     Empty empty;
     Status status = stub_->InitRobotClient(&context, metadata, &empty);
     assert(status.ok());
+
+    // Load shared memory
+    segment_ = boost::interprocess::managed_shared_memory(
+        boost::interprocess::open_only, "RobotStateSharedMemory");
 
     for (int i = 0; i < num_requests; i++) {
       auto start = std::chrono::high_resolution_clock::now();
@@ -119,21 +126,33 @@ public:
 
 private:
   std::unique_ptr<PolymetisControllerServer::Stub> stub_;
+  boost::interprocess::managed_shared_memory segment_;
   bool SendCommand(int num_dofs) {
-    RobotState state_;
-    setTimestampToNow(state_.mutable_timestamp());
-    for (int i = 0; i < num_dofs; i++) {
-      state_.add_joint_positions(0.0);
-      state_.add_joint_velocities(0.0);
-      state_.add_motor_torques_measured(0.0);
-      state_.add_motor_torques_external(0.0);
-    }
+    RobotState dummy_state;
 
-    setTimestampToNow(state_.mutable_timestamp());
+    auto timestamp = *segment_.find<ShmTimestamp>("shm_timestamp").first;
+
+    auto joint_positions =
+        *segment_.find<ShmVectorFloat>("joint_positions").first;
+    auto joint_velocities =
+        *segment_.find<ShmVectorFloat>("joint_velocities").first;
+    auto joint_torques_measured =
+        *segment_.find<ShmVectorFloat>("joint_torques_measured").first;
+    auto joint_torques_external =
+        *segment_.find<ShmVectorFloat>("joint_torques_external").first;
+
+    setTimestampToNow(&timestamp);
+    for (int i = 0; i < num_dofs; i++) {
+      joint_positions[i] = 0.0;
+      joint_velocities[i] = 0.0;
+      joint_torques_measured[i] = 0.0;
+      joint_torques_external[i] = 0.0;
+    }
 
     TorqueCommand torque_command;
     ClientContext context;
-    Status status = stub_->ControlUpdate(&context, state_, &torque_command);
+    Status status =
+        stub_->ControlUpdate(&context, dummy_state, &torque_command);
     if (!status.ok()) {
       std::cout << "SendCommand failed." << std::endl;
       return false;

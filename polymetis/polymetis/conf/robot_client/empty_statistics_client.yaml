@@ -7,6 +7,7 @@ robot_client:
     default_Kqd: [0, 0, 0, 0, 0, 0, 0]
     hz: 1000
     robot_model_cfg: ${robot_model}
+    shm_enabled: true
   executable_cfg:
     server_address: "localhost:50051"
     num_requests: ${num_requests}

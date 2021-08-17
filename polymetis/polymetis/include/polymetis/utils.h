@@ -10,7 +10,21 @@
 #include <streambuf>
 #include <vector>
 
+#include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/containers/vector.hpp>
+#include <boost/interprocess/managed_shared_memory.hpp>
+
 #include "polymetis.grpc.pb.h"
+
+typedef boost::interprocess::allocator<
+    float, boost::interprocess::managed_shared_memory::segment_manager>
+    ShmemAllocatorFloat;
+typedef boost::interprocess::vector<float, ShmemAllocatorFloat> ShmVectorFloat;
+
+struct ShmTimestamp {
+  long timestamp_s;
+  int timestamp_ns;
+};
 
 /**
 Circular buffer class. Preallocates a std::vector with a certain capacity, then
@@ -107,6 +121,13 @@ inline bool setTimestampToNow(google::protobuf::Timestamp *timestamp_ptr) {
   long int ns = getNanoseconds();
   timestamp_ptr->set_seconds(ns / 1e9);
   timestamp_ptr->set_nanos(ns % (long int)1e9);
+  return true;
+}
+
+inline bool setTimestampToNow(ShmTimestamp *robot_state_ptr) {
+  long int ns = getNanoseconds();
+  robot_state_ptr->timestamp_s = ns / 1e9;
+  robot_state_ptr->timestamp_ns = ns % (long int)1e9;
   return true;
 }
 

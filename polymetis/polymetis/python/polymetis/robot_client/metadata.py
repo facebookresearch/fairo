@@ -66,6 +66,7 @@ class RobotClientMetadata:
         default_Kqd: List[float],
         hz: int,
         robot_model_cfg: RobotModelConfig,
+        shm_enabled: bool = False,
     ):
         # Generate default controller and convert to TorchScript binary
         default_controller = DefaultController(Kq=default_Kq, Kqd=default_Kqd)
@@ -80,6 +81,7 @@ class RobotClientMetadata:
         robot_client_metadata.dof = robot_model_cfg.num_dofs
         robot_client_metadata.ee_link_name = robot_model_cfg.ee_link_name
         robot_client_metadata.ee_link_idx = robot_model_cfg.ee_link_idx
+        robot_client_metadata.shm_enabled = shm_enabled
 
         # Set gains as shared metadata
         robot_client_metadata.default_Kq[:] = default_Kq
