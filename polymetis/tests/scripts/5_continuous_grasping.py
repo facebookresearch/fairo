@@ -22,7 +22,7 @@ GP_RANGE_LOWER = [0.4, -0.1, -np.pi / 2]
 
 # Grasp params
 REST_POSE = ([0.5, 0.0, 0.7], [1.0, 0.0, 0.0, 0.0])
-PREGRASP_HEIGHT = 0.4
+PREGRASP_HEIGHT = 0.55
 GRASP_HEIGHT = 0.25
 PLANNER_DT = 0.02
 
