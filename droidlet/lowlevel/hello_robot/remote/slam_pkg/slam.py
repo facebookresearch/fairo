@@ -16,6 +16,7 @@ from skimage.morphology import disk, binary_dilation
 from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils.fmm_planner import FMMPlanner
 from slam_pkg.utils import depth_util as du
+from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 
 
 class Slam(object):
@@ -204,7 +205,6 @@ class Slam(object):
 
         # orient the robot
         print('orienting robot')
-        from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
         exec = goto(
             self.robot._robot,
             (
@@ -259,7 +259,7 @@ class Slam(object):
                 )
             base_state = self.robot.get_base_state()
             base_xyt = transform_global_to_base(global_xyt, base_state)
-            exec = goto(self.robot._robot, list(base_xyt), dryrun=False)
+            exec = goto(self.robot._robot, list(base_xyt), dryrun=False, depth_fn = self.robot.get_rgb_depth)
             if exec:
                 print('finished moving robot')
 
