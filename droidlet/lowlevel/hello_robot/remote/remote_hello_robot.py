@@ -17,7 +17,7 @@ import cv2
 from math import *
 from slam_pkg.slam import Slam
 import copy
-from .utils import transform_global_to_base, goto
+from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from slam_pkg.utils import depth_util as du
 
 
@@ -102,7 +102,7 @@ class RemoteHelloRobot(object):
             self._done = False
             if not self._slam.whole_area_explored:
                 self._slam.set_goal(
-                    (19, 19, 0)
+                    (10, 10, 0)
                 )  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.take_step(self._slam_step_size)
             self._done = True
@@ -211,14 +211,9 @@ class RemoteHelloRobot(object):
                 self._slam.set_absolute_goal_in_robot_frame(xyt_position)
             else:
                 global_xyt = xyt_position
-                while True:
-                    base_state = self.get_base_state()
-                    base_xyt = transform_global_to_base(global_xyt, base_state)
-                    dist = sqrt(base_xyt[0] ** 2 + base_xyt[1] ** 2)
-                    print(f'dist {dist}')
-                    if dist < 0.2:
-                        break
-                    goto(self._robot, list(base_xyt), dryrun=False)
+                base_state = self.get_base_state()
+                base_xyt = transform_global_to_base(global_xyt, base_state)
+                goto(self._robot, list(base_xyt), dryrun=False)
             self._done = True
 
     def go_to_relative(
@@ -283,7 +278,6 @@ class RemoteHelloRobot(object):
             color_image = np.moveaxis(color_image, 0, 1)
             depth_colormap = np.moveaxis(depth_colormap, 0, 1)
 
-        print('get_rgb_depth', time.time() - tm)
         return color_image, depth_image
 
 
@@ -315,7 +309,6 @@ class RemoteHelloRobot(object):
         trans = np.asarray(trans)
         depth = depth.astype(np.float32)
         d = copy.deepcopy(depth)
-        print(f'type depth {type(depth)}')
         depth /= 1000.0
         depth = depth.reshape(-1)
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
@@ -326,6 +319,16 @@ class RemoteHelloRobot(object):
         pts = du.transform_pose(pts, self.get_base_state())
         return pts
 
+    def get_map(self):
+        """returns the location of obstacles created by slam only for the obstacles,"""
+        # get the index correspnding to obstacles
+        indices = np.where(self._slam.map_builder.map[:, :, 1] >= 1.0)
+        # convert them into robot frame
+        real_world_locations = [
+            self._slam.map2real([indice[0], indice[1]]).tolist()
+            for indice in zip(indices[0], indices[1])
+        ]
+        return real_world_locations
 
 if __name__ == "__main__":
     import argparse
