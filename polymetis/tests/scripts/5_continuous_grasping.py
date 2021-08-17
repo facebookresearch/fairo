@@ -17,13 +17,13 @@ from polymetis import RobotInterface, GripperInterface
 DEFAULT_MAX_ITERS = 3
 
 # Sampling params
-GP_RANGE_UPPER = [0.7, 0.2, np.pi / 2]
-GP_RANGE_LOWER = [0.3, -0.2, -np.pi / 2]
+GP_RANGE_UPPER = [0.7, 0.1, np.pi / 2]
+GP_RANGE_LOWER = [0.4, -0.1, -np.pi / 2]
 
 # Grasp params
 REST_POSE = ([0.5, 0.0, 0.7], [1.0, 0.0, 0.0, 0.0])
-PREGRASP_HEIGHT = 0.5
-GRASP_HEIGHT = 0.3
+PREGRASP_HEIGHT = 0.4
+GRASP_HEIGHT = 0.25
 PLANNER_DT = 0.02
 
 
@@ -52,10 +52,10 @@ class ManipulatorSystem:
         self.arm.terminate_current_policy()
 
     def reset(self, time_to_go=2.0):
-        self.move_to(self.rest_pos, self.rest_quat)
+        self.move_to(self.rest_pos, self.rest_quat, time_to_go)
         self.open_gripper()
 
-    def move_to(self, pos, quat, time_to_go=2.0):
+    def move_to(self, pos, quat, time_to_go=3.0):
         # Plan trajectory
         joint_pos_current = self.arm.get_joint_angles()
         N = int(time_to_go / PLANNER_DT)
@@ -85,9 +85,11 @@ class ManipulatorSystem:
 
     def close_gripper(self):
         self.gripper.goto(pos=0, vel=0.1, force=1.0)
+        time.sleep(0.5)
 
     def open_gripper(self):
         self.gripper.goto(pos=0.14, vel=0.1, force=1.0)
+        time.sleep(0.5)
 
     def grasp_pose_to_pos_quat(self, grasp_pose, z):
         x, y, rz = grasp_pose
@@ -112,7 +114,7 @@ class ManipulatorSystem:
 
         # Lift to pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, PREGRASP_HEIGHT)
-        self.move_to(pos, quat)
+        self.move_to(pos, quat, time_to_go=2.0)
 
         # Move to new pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose1, PREGRASP_HEIGHT)
