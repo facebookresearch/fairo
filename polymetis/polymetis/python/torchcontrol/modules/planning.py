@@ -238,7 +238,19 @@ class CartesianSpaceMinJerkJointPlanner(toco.ControlModule):
             # Convert next step to joint plan
             self.qdd_traj[i + 1, :] = jacobian_pinv @ ee_accel_desired
             self.qd_traj[i + 1, :] = jacobian_pinv @ ee_twist_desired
-            self.q_traj[i + 1, :] = joint_pos_current + self.qd_traj[i + 1, :] * dt
+            q_delta = self.qd_traj[i + 1, :] * dt
+            self.q_traj[i + 1, :] = joint_pos_current + q_delta
+
+            # Null space correction (norm of correction clamped to norm of current action)
+            null_space_proj = (
+                torch.eye(joint_pos_start.shape[0]) - jacobian_pinv @ jacobian
+            )
+            q_null_err = -null_space_proj @ self.q_traj[i + 1, :]
+            q_null_err_norm = q_null_err.norm()
+            q_null_err_clamped = (
+                q_null_err / q_null_err_norm * min(q_null_err_norm, q_delta.norm())
+            )
+            self.q_traj[i + 1, :] = self.q_traj[i + 1, :] + q_null_err_clamped
 
     def forward(self, step: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Queries the planned trajectory for the desired states at the input step
