@@ -114,7 +114,7 @@ class ManipulatorSystem:
 
         # Lower
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, GRASP_HEIGHT)
-        self.move_to(pos, quat)
+        self.move_to(pos, quat, time_to_go=4.0)
 
         # Grasp
         self.close_gripper()
