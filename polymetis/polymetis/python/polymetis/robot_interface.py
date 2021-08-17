@@ -132,6 +132,7 @@ class BaseRobotInterface:
         return self.grpc_connection.GetRobotState(EMPTY)
 
     def get_previous_interval(self, timeout: float = None) -> LogInterval:
+        """Get the log indices associated with the currently running policy."""
         log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
         assert log_interval.start != -1, "Cannot find previous episode."
         return log_interval
