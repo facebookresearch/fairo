@@ -29,8 +29,8 @@ lvis_yaml = "LVIS-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml"
 lvis_yaml2 = "LVIS-InstanceSegmentation/mask_rcnn_R_101_FPN_1x.yaml"
 pano_yaml = "COCO-PanopticSegmentation/panoptic_fpn_R_50_3x.yaml"
 
-jsons_root = '/checkpoint/apratik/finals/jsons/active_vision/'
-logdir = '/checkpoint/apratik/finals/logs/default1k_gtfix_final'
+jsons_root = '/checkpoint/apratik/finals/jsons/active_vision/default_apt0_gt5p2fix_corlnn.json'
+logdir = '/checkpoint/apratik/finals/logs/default1k_final_v3_4tpn'
 
 try:
     os.mkdir(logdir)
@@ -42,7 +42,7 @@ test_jsons = ['frlapt1_20n0.json', 'frlapt1_20n1.json', 'frlapt1_20n2.json']
 
 
 test_jsons = [os.path.join(jsons_root, x) for x in test_jsons]
-img_dir_train = '/checkpoint/apratik/finals/straightline/apartment_0/rgb'
+img_dir_train = '/checkpoint/apratik/finals/default/apartment_0/rgb'
 
 # sanity checking, subsetS of the training set.
 # train_jsons = [
@@ -84,19 +84,19 @@ img_dir_train = '/checkpoint/apratik/finals/straightline/apartment_0/rgb'
 #     'straightline_apt0_gt25p2fix_corlnn.json',
 # ]
 
-# train_jsons = [
-#     'default_apt0_gt5p2fix_corlnn.json',
-#     'default_apt0_gt10p2fix_corlnn.json',
-#     'default_apt0_gt15p2fix_corlnn.json',
-#     'default_apt0_gt20p2fix_corlnn.json',
-#     'default_apt0_gt25p2fix_corlnn.json',
-# ]
+train_jsons = [
+    'default_apt0_gt5p2fix_corlnn.json',
+    'default_apt0_gt10p2fix_corlnn.json',
+    'default_apt0_gt15p2fix_corlnn.json',
+    'default_apt0_gt20p2fix_corlnn.json',
+    'default_apt0_gt25p2fix_corlnn.json',
+]
 # train_jsons=[f'straightline_apt0_gt{x}p2_rand_{y}.json' for x in range(5,30,5) for y in range(3)]
 
 
 # train_jsons = [f'active_vision/straightline_apt0_gt{x}p2fix_corlnn.json' for x in range(5, 30, 5)]
 
-train_jsons = [f'default_apt0_gt10p{x}_h1nn.json' for x in range(2, 10, 2)]
+# train_jsons = [f'default_apt0_gt10p{x}_h1nn.json' for x in range(2, 10, 2)]
 
 # Table 1 - gt fixed, different label prop lengths
 # train_jsons = [
@@ -338,14 +338,14 @@ def main_loop(train_json, n):
 import submitit
 
 # executor is the submission interface (logs are dumped in the folder)
-executor = submitit.AutoExecutor(folder="log_test_default1k_gtfix_final")
+executor = submitit.AutoExecutor(folder="log_test_default1k_final_v3_4tpn")
 # set timeout in min, and partition for running the job
 executor.update_parameters(
-    slurm_partition="scavenge", #scavenge
+    slurm_partition="learnfair", #scavenge
     timeout_min=2000,
     mem_gb=256,
     gpus_per_node=4,
-    tasks_per_node=1,  # one task per GPU
+    tasks_per_node=4,  # one task per GPU
     cpus_per_task=8,
     additional_parameters={
         "mail-user": f"{os.environ['USER']}@fb.com",
@@ -356,7 +356,7 @@ executor.update_parameters(
 jobs = []
 with executor.batch():
     for x in train_jsons:
-        job = executor.submit(main_loop, x, 1000)
+        job = executor.submit(main_loop, x, 200)
         jobs.append(job)
         
 print(jobs)

@@ -5,8 +5,8 @@ mkdir -p $base_dir
 codedir=$base_dir/code/
 mkdir -p $codedir
 
-cp slurm_train.py $codedir/slurm_train_default1k_gtfix_final.py
+cp slurm_train.py $codedir/slurm_train_default1k_final_v3_4tpn.py
 cd $codedir
 echo $PWD
-chmod +x slurm_train_default1k_gtfix_final.py
-./slurm_train_default1k_gtfix_final.py
+chmod +x slurm_train_default1k_final_v3_4tpn.py
+./slurm_train_default1k_final_v3_4tpn.py
