@@ -60,13 +60,16 @@ try_download() {
         SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
     fi
     echo "Downloading using script " $SCRIPT_PATH
-    "$SCRIPT_PATH" "$AGENT" "$CHKSUM"
+    "$SCRIPT_PATH" "$AGENT" "$CHKSUM" "$FOLDER"
 }
 
 pushd $AGENT_PATH
 
 # Comparing hashes for local directories
 # Default models and datasets shared by all agents
+# Remove existing checksum files so that they can be re-calculated
+rm ${AGENT_PATH}models/*checksum.txt
+
 calculate_sha1sum "${AGENT_PATH}models/semantic_parser" "${AGENT_PATH}models/nsp_checksum.txt"
 compare_checksum_try_download "models/nsp_checksum.txt" "nsp" 
 
