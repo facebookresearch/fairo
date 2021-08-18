@@ -246,7 +246,7 @@ class CartesianSpaceMinJerkJointPlanner(toco.ControlModule):
                 torch.eye(joint_pos_start.shape[0]) - jacobian_pinv @ jacobian
             )
             q_null_err = -null_space_proj @ self.q_traj[i + 1, :]
-            q_null_err_norm = q_null_err.norm()
+            q_null_err_norm = q_null_err.norm() + 1e-27  # prevent zero division
             q_null_err_clamped = (
                 q_null_err / q_null_err_norm * min(q_null_err_norm, q_delta.norm())
             )
