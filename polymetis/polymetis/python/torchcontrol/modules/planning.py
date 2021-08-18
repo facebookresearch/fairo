@@ -241,7 +241,7 @@ class CartesianSpaceMinJerkJointPlanner(toco.ControlModule):
             q_delta = self.qd_traj[i + 1, :] * dt
             self.q_traj[i + 1, :] = joint_pos_current + q_delta
 
-            # Null space correction (norm of correction clamped to norm of current action)
+            # Null space correction
             null_space_proj = (
                 torch.eye(joint_pos_start.shape[0]) - jacobian_pinv @ jacobian
             )
@@ -249,7 +249,7 @@ class CartesianSpaceMinJerkJointPlanner(toco.ControlModule):
             q_null_err_norm = q_null_err.norm() + 1e-27  # prevent zero division
             q_null_err_clamped = (
                 q_null_err / q_null_err_norm * min(q_null_err_norm, q_delta.norm())
-            )
+            )  # norm of correction clamped to norm of current action
             self.q_traj[i + 1, :] = self.q_traj[i + 1, :] + q_null_err_clamped
 
     def forward(self, step: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
