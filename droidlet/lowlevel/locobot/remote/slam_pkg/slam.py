@@ -245,7 +245,6 @@ class Slam(object):
             print("Obstacle in path")
         else:
             # go to the location the robot
-            # use the passed in goto fn from remote hello 
             exec = self.robot.base.go_to_absolute(
                 (
                     stg_real_g[0],
@@ -272,7 +271,6 @@ class Slam(object):
             # add obstacle in front of  cur location
             self.col_map += self.get_collision_map(robot_state)
         # in case of locobot we need to check bumper state
-        # add is_obstacle fn inside goto 
         if self.robot_name == "locobot":
             if len(self.bumper_state.bumper_state) > 0:
                 for bumper_num in self.bumper_state.bumper_state:
