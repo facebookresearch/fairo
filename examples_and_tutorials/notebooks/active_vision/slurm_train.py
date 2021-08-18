@@ -3,7 +3,7 @@
 
 # ## Detectron2 Training
 # 
-# Psuedo-code of what this notebook does
+# Psuedo-code of what this code does
 # 
 # ```
 # for train_json in train_jsons:
@@ -19,8 +19,15 @@
 # 
 # We also do training and evaluation loop for each `train_json` n times to check the variance in the setup. 
 
-# In[11]:
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--job_folder", type=str, default="", help="")
+parser.add_argument("--partition", type=str, default="learnfair", help="")
+parser.add_argument("--samples", type=int, default=10, help="")
+args = parser.parse_args()
+
+print(f'args {args}')
 
 import os
 
@@ -29,8 +36,8 @@ lvis_yaml = "LVIS-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml"
 lvis_yaml2 = "LVIS-InstanceSegmentation/mask_rcnn_R_101_FPN_1x.yaml"
 pano_yaml = "COCO-PanopticSegmentation/panoptic_fpn_R_50_3x.yaml"
 
-jsons_root = '/checkpoint/apratik/finals/jsons/active_vision/default_apt0_gt5p2fix_corlnn.json'
-logdir = '/checkpoint/apratik/finals/logs/default1k_final_v3_4tpn'
+jsons_root = '/checkpoint/apratik/finals/jsons/active_vision/'
+logdir = os.path.join(args.job_folder, 'logs')
 
 try:
     os.mkdir(logdir)
@@ -39,9 +46,9 @@ except OSError as error:
     
 img_dir_test = '/checkpoint/apratik/ActiveVision/active_vision/replica_random_exploration_data/frl_apartment_1/rgb'
 test_jsons = ['frlapt1_20n0.json', 'frlapt1_20n1.json', 'frlapt1_20n2.json']
-
-
 test_jsons = [os.path.join(jsons_root, x) for x in test_jsons]
+
+# Pick the train jsons below
 img_dir_train = '/checkpoint/apratik/finals/default/apartment_0/rgb'
 
 # sanity checking, subsetS of the training set.
@@ -84,19 +91,19 @@ img_dir_train = '/checkpoint/apratik/finals/default/apartment_0/rgb'
 #     'straightline_apt0_gt25p2fix_corlnn.json',
 # ]
 
-train_jsons = [
-    'default_apt0_gt5p2fix_corlnn.json',
-    'default_apt0_gt10p2fix_corlnn.json',
-    'default_apt0_gt15p2fix_corlnn.json',
-    'default_apt0_gt20p2fix_corlnn.json',
-    'default_apt0_gt25p2fix_corlnn.json',
-]
+# train_jsons = [
+#     'default_apt0_gt5p2fix_corlnn.json',
+#     'default_apt0_gt10p2fix_corlnn.json',
+#     'default_apt0_gt15p2fix_corlnn.json',
+#     'default_apt0_gt20p2fix_corlnn.json',
+#     'default_apt0_gt25p2fix_corlnn.json',
+# ]
 # train_jsons=[f'straightline_apt0_gt{x}p2_rand_{y}.json' for x in range(5,30,5) for y in range(3)]
 
 
 # train_jsons = [f'active_vision/straightline_apt0_gt{x}p2fix_corlnn.json' for x in range(5, 30, 5)]
 
-# train_jsons = [f'default_apt0_gt10p{x}_h1nn.json' for x in range(2, 10, 2)]
+train_jsons = [f'default_apt0_gt10p{x}_h1nn.json' for x in range(2, 10, 2)]
 
 # Table 1 - gt fixed, different label prop lengths
 # train_jsons = [
@@ -115,12 +122,12 @@ train_jsons = [
 
 train_jsons = [os.path.join(jsons_root, x) for x in train_jsons]
 
+print(f'train_jsons {train_jsons}')
+print(f'test_jsons {test_jsons}')
+print(f'train_img_dir {img_dir_train}')
+print(f'test_img_dir {img_dir_test}')
 
 dataset_name = 'habitat_1'
-
-
-# In[12]:
-
 
 import torchvision
 
@@ -192,9 +199,6 @@ display(HTML(
 
 
 ## Detectron2 Setup
-
-# from copy_paste import CopyPaste
-# import albumentations as A
 
 class Trainer(DefaultTrainer):
 #     @classmethod
@@ -289,10 +293,6 @@ class COCOTrain:
         self.train()
 
 
-# In[13]:
-
-
-
 maxiters = 500
 lr = [0.001, 0.002, 0.005, 0.01, 0.02]
 warmup = [100, 200]
@@ -330,39 +330,30 @@ def main_loop(train_json, n):
         write_summary_to_file(os.path.join(logdir, dataset_name + '_granular.txt'), c.results, f'\ntrain_json {x}')
 
     write_summary_to_file(os.path.join(logdir, dataset_name + '_averaged.txt'), results, f'\ntrain_json {train_json}, average over {n} runs')
-   
-            
-# for x in train_jsons:
-#     main_loop(x, 1)
 
 import submitit
 
+
 # executor is the submission interface (logs are dumped in the folder)
-executor = submitit.AutoExecutor(folder="log_test_default1k_final_v3_4tpn")
+executor = submitit.AutoExecutor(folder=args.job_folder)
 # set timeout in min, and partition for running the job
 executor.update_parameters(
-    slurm_partition="learnfair", #scavenge
+    slurm_partition=args.partition, #scavenge
     timeout_min=2000,
     mem_gb=256,
     gpus_per_node=4,
-    tasks_per_node=4,  # one task per GPU
+    tasks_per_node=1, 
     cpus_per_task=8,
     additional_parameters={
         "mail-user": f"{os.environ['USER']}@fb.com",
-        "mail-type": "fail",
+        "mail-type": "fail", "success",
     },
 )
 
 jobs = []
 with executor.batch():
     for x in train_jsons:
-        job = executor.submit(main_loop, x, 200)
+        job = executor.submit(main_loop, x, args.samples)
         jobs.append(job)
         
 print(jobs)
-
-# In[ ]:
-
-
-
-
