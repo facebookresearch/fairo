@@ -62,7 +62,7 @@ class ManipulatorSystem:
         )
         self.arm.send_torch_policy(policy, blocking=False)
 
-    def move_to(self, pos, quat, time_to_go=3.0):
+    def move_to(self, pos, quat, time_to_go=2.0):
         # Plan trajectory
         joint_pos_current = self.arm.get_joint_angles()
         N = int(time_to_go / PLANNER_DT)
@@ -112,7 +112,7 @@ class ManipulatorSystem:
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, PREGRASP_HEIGHT)
         self.move_to(pos, quat)
 
-        # Lower
+        # Lower (slower than other motions to prevent sudden collisions)
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, GRASP_HEIGHT)
         self.move_to(pos, quat, time_to_go=4.0)
 
@@ -121,7 +121,7 @@ class ManipulatorSystem:
 
         # Lift to pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, PREGRASP_HEIGHT)
-        self.move_to(pos, quat, time_to_go=2.0)
+        self.move_to(pos, quat)
 
         # Move to new pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose1, PREGRASP_HEIGHT)
