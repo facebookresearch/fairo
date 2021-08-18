@@ -122,18 +122,27 @@ target_link_libraries(torchscript_pinocchio
     torchrot
 )
 
+
+# Add wrapper around all Torch ops in server
+add_library(torch_server_ops SHARED
+    src/torchscript_operators/torch_server_ops.cpp
+)
+target_link_libraries(torchscript_pinocchio
+    ${TORCH_LIBRARIES}
+)
+
 # Add server
 add_library(polymetis_server "src/polymetis_server.cpp")
 
 target_link_libraries(polymetis_server
     generated_grpc_protos
-    ${TORCH_LIBRARIES}
     yaml-cpp
     torchscript_pinocchio
     torchrot
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
+target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 
 add_executable(run_server "src/run_server.cpp")
 target_link_libraries(run_server polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
