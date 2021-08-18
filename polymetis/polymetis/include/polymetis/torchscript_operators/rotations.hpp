@@ -10,7 +10,7 @@
 #include <iostream>
 #include <string>
 
-#include "dtt.h"
+#include "polymetis/torchscript_operators/dtt.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
