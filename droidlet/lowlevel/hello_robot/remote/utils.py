@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 from scipy.spatial.transform import Rotation
 
 def transform_global_to_base(XYT, current_pose):
@@ -26,10 +27,16 @@ from math import *
 import time
 
 ctr = 1
-def save_depth(depth):
+def save_rgbd(rgb, depth):
     global ctr
-    save_dir = '/home/hello1/data/depth'
-    np.save(save_dir + "/{:05d}.npy".format(ctr), depth)
+    depth_dir = '/home/hello1/data/depth'
+    np.save(depth_dir + "/{:05d}.npy".format(ctr), depth)
+
+    img_dir = '/home/hello1/data/rgb'
+    cv2.imwrite(
+        img_dir + "/{:05d}.jpg".format(ctr),
+        cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
+    )
     ctr += 1
 
 def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, depth_fn=None):
@@ -86,10 +93,10 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
             def is_obstacle_ahead(dist): 
                 #FIXME need to tilt camera?
 
-                _, depth = depth_fn()
-                # save depth frames
-                # depth /= 1000 # convert to meters
-                save_depth(depth)
+                for _ in range(5):
+                    rgb, depth = depth_fn()
+                    # save depth frames
+                    save_rgbd(rgb, depth)
 
                 c = [int(depth.shape[0]/2), int(depth.shape[1]/2)]
                 cropped_depth = depth[c[0]-100 : c[0]+100, c[1]-200:c[1]]

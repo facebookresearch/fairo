@@ -40,6 +40,23 @@ def val_in_range(val_name, val,vmin, vmax):
 
 # #####################################################
 
+ctr = 1
+def save_rgbd(rgb, depth, pts):
+    global ctr
+    depth_dir = '/home/hello1/data/depth'
+    np.save(depth_dir + "/{:05d}.npy".format(ctr), depth)
+
+    pcd_dir = '/home/hello1/data/pcd'
+    np.save(pcd_dir + "/{:05d}.npy".format(ctr), pts)
+
+    img_dir = '/home/hello1/data/rgb'
+    cv2.imwrite(
+        img_dir + "/{:05d}.jpg".format(ctr),
+        cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
+    )
+    ctr += 1
+    print(f'ctr {ctr}')
+
 @Pyro4.expose
 class RemoteHelloRobot(object):
     """Hello Robot interface"""
@@ -49,6 +66,7 @@ class RemoteHelloRobot(object):
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home()
+        self._load_urdf()
         self._robot.stow()
         self._done = True
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
@@ -57,17 +75,122 @@ class RemoteHelloRobot(object):
         # Slam stuff
         #uv_one_in_cam
         intrinsic_mat = np.asarray(self.get_intrinsics())
+        print(f'intrinsic_mat {intrinsic_mat}')
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
         img_resolution = self.get_img_resolution()
+        print(f'img_resolution {img_resolution}')
         img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+        print(f'uv_one {uv_one}')
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self._slam = Slam(self, robot_name='hello')
         self._slam_step_size = 25  # step size in cm
+    
+    def _load_urdf(self):
+        import os
+        urdf_path = os.path.join(os.getenv("HELLO_FLEET_PATH"), os.getenv("HELLO_FLEET_ID"), "exported_urdf", "stretch.urdf")
 
+        from pytransform3d.urdf import UrdfTransformManager
+        import pytransform3d.transformations as pt
+        import pytransform3d.visualizer as pv
+        import numpy as np
+
+        self.tm = UrdfTransformManager()
+        with open(urdf_path, "r") as f:
+            urdf = f.read()
+            self.tm.load_urdf(urdf)
         
+    def get_camera_transform(self):
+        s = self._robot.get_status()
+        head_pan = s['head']['head_pan']['pos']
+        head_tilt = s['head']['head_tilt']['pos']
+        print('head_pan:', head_pan, 'head_tilt', head_tilt)
+
+
+        # Get Camera transform
+        self.tm.set_joint("joint_head_pan", head_pan)
+        self.tm.set_joint("joint_head_pan", head_pan)
+        camera_transform = self.tm.get_transform('camera_link', 'base_link')
+
+        print(type(camera_transform), camera_transform.shape)
+        return camera_transform
+
+    def get_rgb_depth(self):
+        tm = time.time()
+        frames = None
+        while not frames:
+            frames = self.realsense.wait_for_frames()
+            aligned_frames = self.align.process(frames)
+
+            # Get aligned frames
+            aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+            color_frame = aligned_frames.get_color_frame()
+
+            # Validate that both frames are valid
+            if not aligned_depth_frame or not color_frame:
+                continue
+
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())/1000.0 # convert to meters
+            color_image = np.asanyarray(color_frame.get_data())
+
+            # rotate 
+            depth_image = np.rot90(depth_image, k=1, axes=(1,0))
+            color_image = np.rot90(color_image, k=1, axes=(1,0))
+
+        return color_image, depth_image
+
+
+    def get_pcd_data(self):
+        """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
+        rgb, depth = self.get_rgb_depth()
+        depth *= 1000  # convert to mm
+        # cap anything more than np.power(2,16)~ 65 meter
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        T = self.get_camera_transform()
+        # print(type(t), t.shape)
+        #FIXME THIS IS BROKEN!! (deal with pitch)
+        rot = T[:3, :3]
+        # T[:3, :3] = rot
+        # T[:3, 3] = trans
+        trans = T[:3, 3]
+        # print(f'{t, rot}')
+        # trans = [0, 0, CAMERA_HEIGHT]
+        # rot = np.array([[0., 0., 1.], [-1., 0., 0.], [0., -1.,0.]])
+        # T = np.eye(4)
+        # T[:3,:3] = rot
+        # T[:3,3] = trans
+        base2cam_trans = np.array(trans).reshape(-1, 1)
+        base2cam_rot = np.array(rot)
+        return rgb.tolist(), depth.tolist(), base2cam_trans.tolist(), base2cam_rot.tolist()
+
+    def get_current_pcd(self):
+        rgb, depth, trans, rot = self.get_pcd_data()
+        rgb = np.asarray(rgb).astype(np.uint8)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+        depth = np.asarray(depth)
+        rot = np.asarray(rot)
+        trans = np.asarray(trans)
+        depth = depth.astype(np.float32)
+        d = copy.deepcopy(depth)
+        depth /= 1000.0
+        depth = depth.reshape(-1)
+        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
+        
+        print(f'pts_in_cam.shape {pts_in_cam.shape}')
+        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
+        pts = pts_in_cam[:3, :].T
+        print(f'pts_in_cam.shape {pts.shape}')
+        save_rgbd(rgb, d, pts)
+        pts = np.dot(pts, rot.T)
+        pts = pts + trans.reshape(-1)
+        pts = du.transform_pose(pts, self.get_base_state())
+        print(f'pts.shape {pts.shape}')
+        save_rgbd(rgb, d, pts)
+        return pts
+
 
     def _connect_to_realsense(self):
         cfg = rs.config()
@@ -254,67 +377,6 @@ class RemoteHelloRobot(object):
                 goto(self._robot, list(xyt_position), dryrun=False)
             self._done = True
 
-
-    def get_rgb_depth(self):
-        tm = time.time()
-        frames = None
-        while not frames:
-            frames = self.realsense.wait_for_frames()
-            aligned_frames = self.align.process(frames)
-
-            # Get aligned frames
-            aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
-            color_frame = aligned_frames.get_color_frame()
-
-            # Validate that both frames are valid
-            if not aligned_depth_frame or not color_frame:
-                continue
-
-            depth_image = np.asanyarray(aligned_depth_frame.get_data())/1000 # convert to meters
-            color_image = np.asanyarray(color_frame.get_data())
-
-            # rotate 
-            depth_image = np.rot90(depth_image, k=1, axes=(1,0))
-            color_image = np.rot90(color_image, k=1, axes=(1,0))
-
-        return color_image, depth_image
-
-
-    def get_pcd_data(self):
-        """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
-        rgb, depth = self.get_rgb_depth()
-        depth *= 1000  # convert to mm
-        # cap anything more than np.power(2,16)~ 65 meter
-        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-        depth = depth.astype(np.uint16)
-        #FIXME THIS IS BROKEN!! (deal with pitch)
-        trans = [0, 0, CAMERA_HEIGHT]
-        rot = np.array([[0., 0., 1.], [-1., 0., 0.], [0., -1.,0.]])
-        T = np.eye(4)
-        T[:3,:3] = rot
-        T[:3,3] = trans
-        base2cam_trans = np.array(trans).reshape(-1, 1)
-        base2cam_rot = np.array(rot)
-        return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
-
-    def get_current_pcd(self):
-        rgb, depth, rot, trans = self.get_pcd_data()
-        rgb = np.asarray(rgb).astype(np.uint8)
-        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
-        depth = np.asarray(depth)
-        rot = np.asarray(rot)
-        trans = np.asarray(trans)
-        depth = depth.astype(np.float32)
-        d = copy.deepcopy(depth)
-        depth /= 1000.0
-        depth = depth.reshape(-1)
-        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
-        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
-        pts = pts_in_cam[:3, :].T
-        pts = np.dot(pts, rot.T)
-        pts = pts + trans.reshape(-1)
-        pts = du.transform_pose(pts, self.get_base_state())
-        return pts
 
     def get_map(self):
         """returns the location of obstacles created by slam only for the obstacles,"""

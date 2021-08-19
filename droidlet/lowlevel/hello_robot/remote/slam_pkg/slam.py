@@ -28,7 +28,7 @@ class Slam(object):
         resolution=5,
         robot_rad=25,
         agent_min_z=5,
-        agent_max_z=70,
+        agent_max_z=200,
         vis=False,
         save_vis=False,
         save_folder="../slam_logs",
@@ -39,7 +39,7 @@ class Slam(object):
         :param robot_name: name of the robot [habitat, locobot]
         :param map_size: size of map to be build in cm, assumes square map
         :param resolution: resolution of map, 1 pix = resolution distance(in cm) in real world
-        :param robot_rad: radius of the agent, used to explode the map
+        :param robot_rad: radius of the agent, used to explore the map
         :param agent_min_z: robot min z (in cm), depth points below this will be considered as free space
         :param agent_max_z: robot max z (in cm), depth points above this will be considered as free space
         :param vis: whether to show visualization
@@ -167,7 +167,7 @@ class Slam(object):
         :param step_size:
         :return:
         """
-        # explode the map by robot shape
+        # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
@@ -308,6 +308,7 @@ class Slam(object):
             >= self.planner.fmm_dist.max()
         ):
             print("whole area is explored")
+            print(f"{self.planner.fmm_dist[int(robot_state_map[1]), int(robot_state_map[0])]} > {self.planner.fmm_dist.max()}")
             self.whole_area_explored = True
             return False
         return None
