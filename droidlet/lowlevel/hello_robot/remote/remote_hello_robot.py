@@ -40,7 +40,6 @@ def val_in_range(val_name, val,vmin, vmax):
 
 # #####################################################
 
-
 @Pyro4.expose
 class RemoteHelloRobot(object):
     """Hello Robot interface"""
@@ -84,7 +83,6 @@ class RemoteHelloRobot(object):
         self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
                                        [0,    i.fy, i.ppy],
                                        [0,    0,    1]])
-        self.depth_img_size = [i.height, i.width]
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
@@ -101,9 +99,9 @@ class RemoteHelloRobot(object):
         if self._done:
             self._done = False
             if not self._slam.whole_area_explored:
-                self.set_tilt(radians(-45))
+                self.set_tilt(radians(-20))
                 self._slam.set_goal(
-                    (10, 10, 0)
+                    (19, 19, 0)
                 )  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.take_step(self._slam_step_size)
             self._done = True
@@ -272,12 +270,12 @@ class RemoteHelloRobot(object):
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data()).astype(np.single)/1000.0
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())/1000 # convert to meters
             color_image = np.asanyarray(color_frame.get_data())
 
-            depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=-0.04, beta=255.0), cv2.COLORMAP_OCEAN)
-            color_image = np.moveaxis(color_image, 0, 1)
-            depth_colormap = np.moveaxis(depth_colormap, 0, 1)
+            # rotate 
+            depth_image = np.rot90(depth_image, k=1, axes=(1,0))
+            color_image = np.rot90(color_image, k=1, axes=(1,0))
 
         return color_image, depth_image
 
@@ -285,8 +283,6 @@ class RemoteHelloRobot(object):
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth()
-        rgb = np.asarray(rgb)
-        depth = np.asarray(depth)
         depth *= 1000  # convert to mm
         # cap anything more than np.power(2,16)~ 65 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
