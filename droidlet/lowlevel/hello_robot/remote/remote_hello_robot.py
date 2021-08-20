@@ -59,15 +59,97 @@ class RemoteHelloRobot(object):
         intrinsic_mat = np.asarray(self.get_intrinsics())
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
         img_resolution = self.get_img_resolution()
-        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+        img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1] # Camera on the hello is oriented vertically
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self._slam = Slam(self, robot_name='hello')
         self._slam_step_size = 25  # step size in cm
+    
+    def _load_urdf(self):
+        import os
+        urdf_path = os.path.join(os.getenv("HELLO_FLEET_PATH"), os.getenv("HELLO_FLEET_ID"), "exported_urdf", "stretch.urdf")
 
+        from pytransform3d.urdf import UrdfTransformManager
+        import pytransform3d.transformations as pt
+        import pytransform3d.visualizer as pv
+        import numpy as np
+
+        self.tm = UrdfTransformManager()
+        with open(urdf_path, "r") as f:
+            urdf = f.read()
+            self.tm.load_urdf(urdf)
         
+    def get_camera_transform(self):
+        s = self._robot.get_status()
+        head_pan = s['head']['head_pan']['pos']
+        head_tilt = s['head']['head_tilt']['pos']
+
+        # Get Camera transform
+        self.tm.set_joint("joint_head_pan", head_pan)
+        self.tm.set_joint("joint_head_pan", head_pan)
+        camera_transform = self.tm.get_transform('camera_link', 'base_link')
+
+        return camera_transform
+
+    def get_rgb_depth(self):
+        tm = time.time()
+        frames = None
+        while not frames:
+            frames = self.realsense.wait_for_frames()
+            aligned_frames = self.align.process(frames)
+
+            # Get aligned frames
+            aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+            color_frame = aligned_frames.get_color_frame()
+
+            # Validate that both frames are valid
+            if not aligned_depth_frame or not color_frame:
+                continue
+
+            depth_image = np.asanyarray(aligned_depth_frame.get_data())/1000.0 # convert to meters
+            color_image = np.asanyarray(color_frame.get_data())
+
+            # rotate 
+            depth_image = np.rot90(depth_image, k=1, axes=(1,0))
+            color_image = np.rot90(color_image, k=1, axes=(1,0))
+
+        return color_image, depth_image
+
+
+    def get_pcd_data(self):
+        """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
+        rgb, depth = self.get_rgb_depth()
+        depth *= 1000  # convert to mm
+        # cap anything more than np.power(2,16)~ 65 meter
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        T = self.get_camera_transform()
+        rot = T[:3, :3]
+        trans = T[:3, 3]
+        base2cam_trans = np.array(trans).reshape(-1, 1)
+        base2cam_rot = np.array(rot)
+        return rgb.tolist(), depth.tolist(), base2cam_trans.tolist(), base2cam_rot.tolist()
+
+    def get_current_pcd(self):
+        rgb, depth, trans, rot = self.get_pcd_data()
+        rgb = np.asarray(rgb).astype(np.uint8)
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+        depth = np.asarray(depth)
+        rot = np.asarray(rot)
+        trans = np.asarray(trans)
+        depth = depth.astype(np.float32)
+        d = copy.deepcopy(depth)
+        depth /= 1000.0
+        depth = depth.reshape(-1)
+        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
+        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
+        pts = pts_in_cam[:3, :].T
+        pts = np.dot(pts, rot.T)
+        pts = pts + trans.reshape(-1)
+        pts = du.transform_pose(pts, self.get_base_state())
+        return pts
 
     def _connect_to_realsense(self):
         cfg = rs.config()
@@ -80,8 +162,9 @@ class RemoteHelloRobot(object):
         profile = pipeline.get_active_profile()
         depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
         i = depth_profile.get_intrinsics()
-        self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
-                                       [0,    i.fy, i.ppy],
+        # camera on the robot is oriented vertically, so x and y axes are swapped
+        self.intrinsic_mat = np.array([[i.fy, 0,    i.ppy],
+                                       [0,    i.fx, i.ppx],
                                        [0,    0,    1]])
         align_to = rs.stream.color
         self.align = rs.align(align_to)
