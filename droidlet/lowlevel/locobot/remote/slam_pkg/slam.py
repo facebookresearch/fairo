@@ -13,6 +13,7 @@ import time
 from math import ceil, floor
 import sys
 import json
+import logging
 from pyrobot.locobot.base_control_utils import LocalActionStatus
 
 cv2 = try_cv2_import()
@@ -36,7 +37,7 @@ class Slam(object):
         agent_min_z=5,
         agent_max_z=70,
         vis=False,
-        save_vis=os.getenv("SAVE_VIS", 'False').lower() in ('true', 'True'),
+        save_vis=os.getenv("SAVE_VIS", 'False').lower() in ('true'),
         save_folder=os.getenv("SLAM_SAVE_FOLDER", '../slam_logs'),
     ):
         """
@@ -96,7 +97,8 @@ class Slam(object):
         self.vis = vis
         self.save_vis = save_vis
         self.save_folder = save_folder
-        print(f"save_vis {save_vis}, save_folder {save_folder}")
+        if save_vis:
+            print(f"Slam Visualization Enabled. Saving to {save_folder} ...")
         # to visualize robot heading
         triangle_scale = 0.5
         self.triangle_vertex = np.array([[0.0, 0.0], [-2.0, 1.0], [-2.0, -1.0]])
@@ -122,7 +124,7 @@ class Slam(object):
 
         self.start_vis = False
         self.vis_count = 0
-        self.skp =0
+        self.save_vis_skip_frames = 0
 
         # for bumper check of locobot
         if self.robot_name == "locobot":
@@ -136,7 +138,7 @@ class Slam(object):
 
         # for storing data
         self.img_count = 0
-        self.pos_dic = {}
+        self.pos_dict = {}
         self.exec_wait = not (self.save_vis)
 
     def set_goal(self, goal):
@@ -194,7 +196,7 @@ class Slam(object):
             continue
 
     def update_map(self):
-        """Updtes map , explode it by the radius of robot, add collison map to it and return the traversible area
+        """Updtes map , explore it by the radius of robot, add collison map to it and return the traversible area
 
         Returns:
             [np.ndarray]: [traversible space]
@@ -301,8 +303,6 @@ class Slam(object):
             while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
                 if self.save_vis:
                     self.save_rgb_depth_seg()
-                else:
-                    pass
 
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         print("bot_state after executing action = {}".format(robot_state))
@@ -360,14 +360,16 @@ class Slam(object):
         return None
 
     def save_rgb_depth_seg(self):
-        rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
+        if self.save_vis_skip_frames % 10 != 0: 
+            return
         pos = self.robot.base.get_state()
-        self.skp += 1
-        if pos != self.last_pos and self.skp % 10 == 0:
+        self.save_vis_skip_frames += 1
+        if pos != self.last_pos:
+            rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
             self.last_pos = pos
             # store the images and depth
             cv2.imwrite(
-                self.img_folder + "/{:05d}.jpg".format(self.img_count),
+                os.path.join(self.img_folder, "{:05d}.jpg".format(self.img_count)),
                 cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
             )
 
@@ -375,17 +377,17 @@ class Slam(object):
             depth *= 1e3
             depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
             depth = depth.astype(np.uint16)
-            np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+            np.save(os.path.join(self.depth_folder, "{:05d}.npy".format(self.img_count)), depth)
 
             # store seg
-            np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+            np.save(os.path.join(self.seg_folder, "{:05d}.npy".format(self.img_count)), seg)
 
             # store pos
-            self.pos_dic[self.img_count] = copy(pos)
+            self.pos_dict[self.img_count] = copy(pos)
             self.img_count += 1
-            print(f"img_count {self.img_count}, skp {self.skp}, base_pos {pos}")
+            print(f"img_count {self.img_count}, save_vis_skip_frames {self.save_vis_skip_frames}, base_pos {pos}")
             with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
-                json.dump(self.pos_dic, fp)
+                json.dump(self.pos_dict, fp)
 
     def get_absolute_goal(self, loc):
         """
@@ -648,7 +650,7 @@ def main(args):
 
             # save pos dic
             with open(os.path.join(slam.save_folder, "data.json"), "w") as fp:
-                json.dump(slam.pos_dic, fp)
+                json.dump(slam.pos_dict, fp)
             slam.visualize()
 
             """
@@ -687,7 +689,7 @@ def main(args):
 
         # save pos dic
         with open(os.path.join(slam.save_folder, "data.json"), "w") as fp:
-            json.dump(slam.pos_dic, fp)
+            json.dump(slam.pos_dict, fp)
         slam.visualize()
 
 
