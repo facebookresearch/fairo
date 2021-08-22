@@ -360,10 +360,10 @@ class Slam(object):
         return None
 
     def save_rgb_depth_seg(self):
+        self.save_vis_skip_frames += 1
         if self.save_vis_skip_frames % 10 != 0: 
             return
         pos = self.robot.base.get_state()
-        self.save_vis_skip_frames += 1
         if pos != self.last_pos:
             rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
             self.last_pos = pos
