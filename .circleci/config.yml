@@ -211,11 +211,16 @@ jobs:
             cd ./polymetis/polymetis/conda/
             PKG_PATH="/opt/conda/conda-bld/linux-64/polymetis*.tar.bz2" ./build_conda_package.sh
       - run:
+          name: Install mamba
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda install mamba -n base -c conda-forge -y
+      - run:
           name: Install from conda
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda install -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c aihabitat -c conda-forge polymetis -y
+            mamba install --override-channels -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c aihabitat -c conda-forge polymetis -y
       - run:
           name: Install Xvfb
           command: apt install -y xvfb
