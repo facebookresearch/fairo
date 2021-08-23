@@ -26,3 +26,5 @@ pushd $(dirname ${BASH_SOURCE[0]})
 echo $ip
 python remote_locobot.py --ip $ip --backend habitat
 BGPID2=$!
+
+export LOCOBOT_IP=$ip

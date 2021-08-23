@@ -709,7 +709,7 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=json.loads,
-        default='{"scene_path": "/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply", \
+        default='{"scene_path": "/Replica-Dataset/' + os.getenv("SCENE") + '/habitat/mesh_semantic.ply", \
             "physics_config": "DEFAULT"}',
     )
     parser.add_argument(
