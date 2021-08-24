@@ -7,7 +7,7 @@ import argparse
 from scipy import ndimage
 from copy import deepcopy as copy
 import time
-from math import ceil, floor, sqrt
+from math import ceil, floor, sqrt, degrees, radians
 import sys
 import cv2
 # for slam modules
@@ -31,7 +31,7 @@ class Slam(object):
         agent_max_z=70,
         vis=False,
         save_vis=False,
-        save_folder="../slam_logs",
+        save_folder="./slam_logs",
     ):
         """
 
@@ -69,6 +69,7 @@ class Slam(object):
 
         # initialize variable
         self.robot.reset_camera()
+        self.robot.set_tilt(radians(-45))
         time.sleep(2)
 
         self.init_state = self.get_robot_global_state()
@@ -91,7 +92,7 @@ class Slam(object):
         self.triangle_vertex = np.array([[0.0, 0.0], [-2.0, 1.0], [-2.0, -1.0]])
         self.triangle_vertex *= triangle_scale
         if self.save_vis:
-            self.save_folder = os.path.join(save_folder, str(int(time.time())))
+            self.save_folder = os.path.join(save_folder, 'l' + str(int(time.time())))
             if not os.path.isdir(self.save_folder):
                 os.makedirs(self.save_folder)
         self.start_vis = False
@@ -205,15 +206,16 @@ class Slam(object):
 
         # orient the robot
         print('orienting robot')
+        delta = np.arctan2(
+                    stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
+                ) % radians(360)
+        print(f'delta in deg {degrees(delta), delta}, robot state {degrees(robot_state[2]), robot_state[2]}')
         exec = goto(
             self.robot._robot,
             (
                 0,
                 0,
-                np.arctan2(
-                    stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
-                )
-                - robot_state[2],
+                (delta - (robot_state[2] % radians(360))) % radians(360),
             ),
             dryrun=False
         )
@@ -262,6 +264,8 @@ class Slam(object):
             exec = goto(self.robot._robot, list(base_xyt), dryrun=False, depth_fn = self.robot.get_rgb_depth)
             if exec:
                 print('finished moving robot')
+            else:
+                print(f'Obstacle detected.')
 
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         print("bot_state after executing action = {}".format(robot_state))
@@ -458,7 +462,8 @@ class Slam(object):
         :return: return the global state of the robot [x_robot_loc, y_robot_loc, yaw_robot]
         :rtype: tuple
         """
-        return self.robot.get_base_state()
+        state = self.robot.get_base_state()
+        return state
 
     def visualize(self):
         """
@@ -529,6 +534,7 @@ class Slam(object):
         if self.vis:
             plt.pause(0.1)
         self.vis_count += 1
+        print(f'saving visual {self.vis_count} to {self.save_folder}')
 
 
 def main(args):
