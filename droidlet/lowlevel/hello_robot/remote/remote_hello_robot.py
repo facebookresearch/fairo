@@ -130,10 +130,10 @@ class RemoteHelloRobot(object):
         trans = T[:3, 3]
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
-        return rgb.tolist(), depth.tolist(), base2cam_trans.tolist(), base2cam_rot.tolist()
+        return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
 
     def get_current_pcd(self):
-        rgb, depth, trans, rot = self.get_pcd_data()
+        rgb, depth, rot, trans = self.get_pcd_data()
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         depth = np.asarray(depth)
@@ -182,7 +182,6 @@ class RemoteHelloRobot(object):
         if self._done:
             self._done = False
             if not self._slam.whole_area_explored:
-                self.set_tilt(radians(-20))
                 self._slam.set_goal(
                     (19, 19, 0)
                 )  # set  far away goal for exploration, default map size [-20,20]
@@ -201,7 +200,7 @@ class RemoteHelloRobot(object):
 
     def get_base_state(self):
         s = self._robot.get_status()
-        return (s['base']['x'], s['base']['y'], s['base']['theta'])
+        return (s['base']['x'], s['base']['y'], (s['base']['theta'] % radians(360)))
 
     def get_pan(self):
         s = self._robot.get_status()
