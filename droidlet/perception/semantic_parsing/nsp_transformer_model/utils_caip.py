@@ -125,14 +125,11 @@ def tree_to_seq(full_tree, tree, idx_map=None):
 
     """
     res = []
-    sorted_keys = (
-        sorted(
-            [k for k in tree.keys() if k in full_tree],
-            key=lambda x: full_tree[x]["count"],
-            reverse=True,
-        )
-        + sorted([k for k, v in tree.items() if k not in full_tree])
-    )
+    sorted_keys = sorted(
+        [k for k in tree.keys() if k in full_tree],
+        key=lambda x: full_tree[x]["count"],
+        reverse=True,
+    ) + sorted([k for k, v in tree.items() if k not in full_tree])
     try:
         for k in sorted_keys:
             if k == "fixed_value":
@@ -164,7 +161,8 @@ def tree_to_seq(full_tree, tree, idx_map=None):
             else:
                 print(tree)
                 print(k)
-                raise NotImplementedError
+                # FIXME!  fixme when data mod complete, this should be uncommented by end of Aug 2021
+                # raise NotImplementedError
     except IndexError as e:
         raise e
     return res

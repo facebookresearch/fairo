@@ -4,8 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from droidlet.dialog.dialogue_manager import DialogueManager
 
 class SwarmDialogueManager(DialogueManager):
-    def __init__(self, memory, dialogue_object_classes, dialogue_object_mapper, opts):
-        super(SwarmDialogueManager, self).__init__(memory, dialogue_object_classes, dialogue_object_mapper, opts)
+    def __init__(self, 
+                 memory, 
+                 dialogue_object_classes, 
+                 dialogue_object_mapper, 
+                 opts,
+                 low_level_interpreter_data={}):
+        super(SwarmDialogueManager, self).__init__(memory, dialogue_object_classes, dialogue_object_mapper, opts, low_level_interpreter_data)
 
     def neglect(self, name):
         if "bot" in name:

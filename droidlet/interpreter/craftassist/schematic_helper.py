@@ -5,18 +5,26 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import random
 import re
 import numpy as np
+from copy import deepcopy
 from typing import List, Tuple, Union, Optional
 
 # TODO with subinterpret
+from droidlet.memory.craftassist.mc_memory_nodes import SchematicNode
 from droidlet.interpreter.craftassist import size_words
 from .block_helpers import get_block_type
 from droidlet.base_util import number_from_span, Block
 from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num
 from droidlet.interpreter.craftassist.word_maps import SPECIAL_SHAPES_CANONICALIZE
+from droidlet.interpreter import interpret_where_backoff, maybe_apply_selector
+
+############################################################################
+# Plan: store virtual memories / generative models, and search over those
+# Until then FILTERs in schematics are not fully compositional nor expressive
+############################################################################
 
 
-# this should eventually be replaced with sql query
+# this should eventually be replaced with db query
 def most_common_idm(idms):
     """idms is a list of tuples [(id, m) ,.... (id', m')]"""
     counts = {}
@@ -28,47 +36,77 @@ def most_common_idm(idms):
     return max(counts, key=counts.get)
 
 
-def get_properties_from_triples(triples_list, p):
-    return [x.get("obj_text") for x in triples_list if p in x.values()]
+def get_flattened_clauses(filters_d, default={}):
+    where_clause = filters_d.get("where_clause", {})
+    # FIXME!  maybe wait till virtual memories:  separate out the flattened clauses and others
+    return [
+        c for c in where_clause.get("AND", [default]) if ("value_left" in c or "pred_text" in c)
+    ]
 
 
-def get_attrs_from_triples(triples, interpreter, block_data_info, color_bid_map):
-    numeric_keys = {
-        "has_thickness": get_properties_from_triples(triples, "has_thickness"),
-        "has_radius": get_properties_from_triples(triples, "has_radius"),
-        "has_depth": get_properties_from_triples(triples, "has_depth"),
-        "has_width": get_properties_from_triples(triples, "has_width"),
-        "has_height": get_properties_from_triples(triples, "has_height"),
-        "has_length": get_properties_from_triples(triples, "has_length"),
-        "has_slope": get_properties_from_triples(triples, "has_slope"),
-        "has_distance": get_properties_from_triples(triples, "has_distance"),
-        "has_base": get_properties_from_triples(triples, "has_base"),
-    }
+def get_triples_from_flattened_clauses(flattened_clauses):
+    triples = []
+    for t in flattened_clauses:
+        key = t.get("pred_text", "")
+        if key.startswith("has_"):
+            val = t.get("obj_text", "")
+            if val and type(val) is str:
+                triples.append((key, val))
+    return triples
 
-    attrs = {key[4:]: word_to_num(val[0]) for key, val in numeric_keys.items() if any(val)}
 
-    text_keys = {
-        "has_orientation": get_properties_from_triples(triples, "has_orientation"),
-        "has_size": get_properties_from_triples(triples, "has_size"),
-        "has_block_type": get_properties_from_triples(triples, "has_block_type"),
-        "has_colour": get_properties_from_triples(triples, "has_colour"),
-    }
+# this does not allow a list of props for a given key, TODO?
+def get_properties_from_clauses(clause_list, predicates):
+    props = {}
+    for clause in clause_list:
+        if clause.get("pred_text") in predicates:
+            # it wouldn't be too hard to recurse here, TODO?
+            if type(clause.get("obj_text", {})) is not dict:
+                props[clause["pred_text"]] = clause["obj_text"]
+        if clause.get("value_left") in predicates:
+            if clause.get("comparison_type", "EQUAL") == "EQUAL":
+                if clause.get("value_right", {}) is not dict:
+                    props[clause["value_left"]] = clause["value_right"]
+    return props
 
-    if any(text_keys["has_orientation"]):
-        attrs["orient"] = text_keys["has_orientation"][0]
 
-    if any(text_keys["has_size"]):
-        attrs["size"] = interpret_size(interpreter, text_keys["has_size"][0])
+def get_attrs_from_where(where_clauses, interpreter, block_data_info, color_bid_map):
+    numeric_props = [
+        "has_thickness",
+        "has_radius",
+        "has_depth",
+        "has_width",
+        "has_height",
+        "has_length",
+        "has_slope",
+        "has_distance",
+        "has_base",
+    ]
+    numeric_keys = get_properties_from_clauses(where_clauses, numeric_props)
+    attrs = {key[4:]: word_to_num(val[0]) for key, val in numeric_keys.items()}
 
-    if any(text_keys["has_block_type"]):
+    text_props = ["has_orientation", "has_size", "has_block_type", "has_colour"]
+    text_keys = get_properties_from_clauses(where_clauses, text_props)
+
+    if text_keys.get("has_orientation"):
+        attrs["orient"] = text_keys["has_orientation"]
+
+    if text_keys.get("has_size"):
+        attrs["size"] = interpret_size(interpreter, text_keys["has_size"])
+
+    if text_keys.get("has_block_type"):
         block_type = get_block_type(
-            text_keys["has_block_type"][0], block_data_info=block_data_info, color_bid_map=color_bid_map
+            text_keys["has_block_type"],
+            block_data_info=block_data_info,
+            color_bid_map=color_bid_map,
         )
         attrs["bid"] = block_type
-    elif any(text_keys["has_colour"]):
-        c = color_bid_map.get(text_keys["has_colour"][0])
+    elif text_keys.get("has_colour"):
+        c = color_bid_map.get(text_keys["has_colour"])
         if c is not None:
             attrs["bid"] = random.choice(c)
+    else:
+        pass
 
     return attrs
 
@@ -86,8 +124,8 @@ def interpret_fill_schematic(
     """
 
     filters_d = d.get("filters", {})
-    triples = filters_d.get("triples", [])
-    attrs = get_attrs_from_triples(triples, interpreter, block_data_info, color_bid_map)
+    flattened_clauses = get_flattened_clauses(filters_d)
+    attrs = get_attrs_from_where(flattened_clauses, interpreter, block_data_info, color_bid_map)
 
     h = attrs.get("height") or attrs.get("depth") or attrs.get("thickness")
     bid = attrs.get("bid") or hole_idm or (1, 0)
@@ -98,15 +136,8 @@ def interpret_fill_schematic(
     else:
         blocks_list = [((x, y, z), bid) for (x, y, z) in hole_locs]
     tags = []
-    for t in triples:
-        key = t.get("pred_text", "")
-        if key.startswith("has_"):
-            val = t.get("obj_text", "")
-            stemmed_val = val
-            if val:
-                tags.append((key, stemmed_val))
-
-    return blocks_list, tags
+    triples = get_triples_from_flattened_clauses(flattened_clauses)
+    return blocks_list, triples
 
 
 def interpret_shape_schematic(
@@ -115,37 +146,24 @@ def interpret_shape_schematic(
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
     - a list of (pred, val) tags
-
-    warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
-                     {"pred_text": "has_colour", "obj_text": "blue"}]
-    will currently just pick red.   Same for other properties encoded in triples
     """
     # FIXME this is not compositional, and does not properly use FILTERS
     filters_d = d.get("filters", {})
-    triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
-    shape  = ""
+    cube_triple = [{"pred_text": "has_shape", "obj_text": "cube"}]
+    flattened_clauses = get_flattened_clauses(filters_d, default=cube_triple)
+    attrs = get_attrs_from_where(flattened_clauses, interpreter, block_data_info, color_bid_map)
+
+    shape = ""
     if shapename is not None:
         shape = shapename
     else:
         # For sentences like "Stack" and "Place" that have the shapename in dict
-        shapes = get_properties_from_triples(triples, "has_shape")
-        if any(shapes):
-            # see warning above w.r.t. 0
-            shape = shapes[0]
+        shape = get_properties_from_clauses(flattened_clauses, ["has_shape"]).get(
+            "has_shape", "cube"
+        )
 
-    attrs = get_attrs_from_triples(triples, interpreter, block_data_info, color_bid_map)
-    tags = []
-    for t in triples:
-        key = t.get("pred_text", "")
-        if key.startswith("has_"):
-            val = t.get("obj_text", "")
-            stemmed_val = val
-            if val:
-                tags.append((key, stemmed_val))
-
-    return special_shape_function[shape.upper()](**attrs), tags
+    triples = get_triples_from_flattened_clauses(flattened_clauses)
+    return special_shape_function[shape.upper()](**attrs), triples
 
 
 def interpret_size(interpreter, text) -> Union[int, List[int]]:
@@ -169,27 +187,26 @@ def interpret_named_schematic(
     - the schematic blocks, list[(xyz, idm)]
     - a SchematicNode memid, or None
     - a list of (pred, val) tags
-
-    warning:  if multiple possibilities are given for the same tag, current
-    heursitic just picks one.  e.g. if the lf is
-        "triples" : [{"pred_text": "has_colour", "obj_text": "red"},
-                     {"pred_text": "has_colour", "obj_text": "blue"}]
-    will currently just pick red.   Same for other properties encoded in triples
     """
     # FIXME! this is not compositional, and is not using full FILTERS handlers
     filters_d = d.get("filters", {})
-    triples = filters_d.get("triples", [])
-    names = get_properties_from_triples(triples, "has_name")
-    if not any(names):
+    flattened_clauses = get_flattened_clauses(filters_d)
+    name = get_properties_from_clauses(flattened_clauses, ["has_name"]).get("has_name", "")
+    if not name:
         raise ErrorWithResponse("I don't know what you want me to build.")
-    name = names[0]
     stemmed_name = name.strip("s")  # why aren't we using stemmer anymore?
     shapename = SPECIAL_SHAPES_CANONICALIZE.get(name) or SPECIAL_SHAPES_CANONICALIZE.get(
         stemmed_name
     )
     if shapename:
         shape_blocks, tags = interpret_shape_schematic(
-            interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function, shapename=shapename
+            interpreter,
+            speaker,
+            d,
+            block_data_info,
+            color_bid_map,
+            special_shape_function,
+            shapename=shapename,
         )
         return shape_blocks, None, tags
 
@@ -198,13 +215,12 @@ def interpret_named_schematic(
         schematic = interpreter.memory.get_schematic_by_name(stemmed_name)
         if schematic is None:
             raise ErrorWithResponse("I don't know what you want me to build.")
-    tags = [(p, v) for (_, p, v) in interpreter.memory.get_triples(subj=schematic.memid)]
+    triples = [(p, v) for (_, p, v) in interpreter.memory.get_triples(subj=schematic.memid)]
     blocks = schematic.blocks
     # TODO generalize to more general block properties
     # Longer term: remove and put a call to the modify model here
-    colours = get_properties_from_triples(triples, "has_colour")
-    if any(colours):
-        colour = colours[0]
+    colour = get_properties_from_clauses(flattened_clauses, ["has_colour"]).get("has_colour", "")
+    if colour:
         old_idm = most_common_idm(blocks.values())
         c = color_bid_map.get(colour)
         if c is not None:
@@ -212,7 +228,7 @@ def interpret_named_schematic(
             for l in blocks:
                 if blocks[l] == old_idm:
                     blocks[l] = new_idm
-    return list(blocks.items()), schematic.memid, tags
+    return list(blocks.items()), schematic.memid, triples
 
 
 def interpret_schematic(
@@ -226,16 +242,22 @@ def interpret_schematic(
 
     # FIXME! this is not compositional, and is not using full FILTERS handlers
     filters_d = d.get("filters", {})
-    triples = filters_d.get("triples", [{"pred_text": "has_shape", "obj_text": "cube"}])
-    shapes = get_properties_from_triples(triples, "has_shape")
+    flattened_clauses = get_flattened_clauses(filters_d)
+    shape = get_properties_from_clauses(flattened_clauses, ["has_shape"]).get("has_shape")
     # AND this FIXME, not using selector properly
     repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
     repeat = int(number_from_span(repeat))
-    if any(shapes):
-        blocks, tags = interpret_shape_schematic(interpreter, speaker, d, block_data_info, color_bid_map)
+    if shape:
+        blocks, tags = interpret_shape_schematic(
+            interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function
+        )
         return [(blocks, None, tags)] * repeat
     else:
-        return [interpret_named_schematic(interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function)] * repeat
+        return [
+            interpret_named_schematic(
+                interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function
+            )
+        ] * repeat
 
 
 def get_repeat_dir(d):
@@ -246,3 +268,24 @@ def get_repeat_dir(d):
     else:
         direction_name = None
     return direction_name
+
+
+def interpret_mob_schematic(interpreter, speaker, filters_d):
+    spawn_clause = {"pred_text": "has_tag", "obj_text": "_spawn"}
+    where = filters_d.get("where_clause", {"AND": [spawn_clause]})
+    if where.get("AND"):
+        where["AND"].append(spawn_clause)
+    else:
+        new_where = {"AND": [spawn_clause, deepcopy(where)]}
+        where = new_where
+
+    # FIXME! we don't need to recopy this here, do more composably
+    W = interpret_where_backoff(interpreter, speaker, where, memory_type="Schematic")
+    F = maybe_apply_selector(interpreter, speaker, filters_d, W)
+    schematic_memids, _ = F()
+    object_idms = [
+        list(SchematicNode(interpreter.memory, m).blocks.values())[0] for m in schematic_memids
+    ]
+    if not object_idms:
+        raise ErrorWithResponse("I don't know how to spawn that")
+    return object_idms

@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import math
 from droidlet.shared_data_structs import ErrorWithResponse
-from .interpreter_utils import SPEAKERLOOK, tags_from_dict
+from .interpreter_utils import SPEAKERLOOK, backoff_where
 
 
 def interpret_relative_direction(interpreter, location_d):
@@ -67,12 +67,15 @@ class ReferenceLocationInterpreter:
 
         # FIXME use FILTERS here!!
         if len(mems) < expected_num:
-            tags = set(tags_from_dict(ref_obj))
-            for memtype in interpreter.workspace_memory_prio:
-                cands = interpreter.memory.get_recent_entities(memtype)
-                mems = [c for c in cands if any(set.intersection(set(c.get_tags()), tags))]
-                if len(mems) >= expected_num:
-                    break
+            w = refobj.get("filters", {}).get("where_clause")
+            if w:
+                tags, _ = backoff_where(w)
+                tags = set(tags)
+                for memtype in interpreter.workspace_memory_prio:
+                    cands = interpreter.memory.get_recent_entities(memtype)
+                    mems = [c for c in cands if any(set.intersection(set(c.get_tags()), tags))]
+                    if len(mems) >= expected_num:
+                        break
 
         if len(mems) < expected_num:
             raise ErrorWithResponse("I don't know what you're referring to")

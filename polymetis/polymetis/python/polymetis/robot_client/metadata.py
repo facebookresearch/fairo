@@ -21,7 +21,7 @@ class RobotModelConfig:
     controlled_joints: List[float]
     num_dofs: int
     ee_link_idx: int
-    ee_joint_name: str
+    ee_link_name: str
     rest_pose: List[float]
     joint_limits_low: List[float]
     joint_limits_high: List[float]
@@ -78,7 +78,7 @@ class RobotClientMetadata:
         robot_client_metadata = polymetis_pb2.RobotClientMetadata()
         robot_client_metadata.hz = hz
         robot_client_metadata.dof = robot_model_cfg.num_dofs
-        robot_client_metadata.ee_joint_name = robot_model_cfg.ee_joint_name
+        robot_client_metadata.ee_link_name = robot_model_cfg.ee_link_name
         robot_client_metadata.ee_link_idx = robot_model_cfg.ee_link_idx
 
         # Set gains as shared metadata

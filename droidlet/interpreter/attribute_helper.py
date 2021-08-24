@@ -14,7 +14,7 @@ from droidlet.memory.memory_values import LinearExtentValue, FixedValue, convert
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import ReferenceObjectNode
-from .interpreter_utils import tags_from_dict
+from .interpreter_utils import backoff_where
 
 """
 Each of these take args:
@@ -84,7 +84,7 @@ def maybe_specific_mem(interpreter, speaker, ref_obj_d):
         # this object is only defined by the filters and might be different at different moments
         # FIXME use FILTERS!!
         # should interpret as normal filter at this point...
-        tags = tags_from_dict(filters_d)
+        tags, _ = backoff_where(filters_d.get("where_clause", {}))
         if tags:
             where = " AND ".join(["(has_tag={})".format(tag) for tag in tags])
             query = "SELECT MEMORY FROM ReferenceObject WHERE (" + where + ")"
@@ -185,13 +185,17 @@ class AttributeInterpreter:
                 or d_attribute.lower() == "size"
             ):
                 return BBoxSize(interpreter.memory, d_attribute.lower())
-            d_attribute = CANONICALIZE_ATTRIBUTES.get(d_attribute.lower())
-            if d_attribute and type(d_attribute) is str:
-                # FIXME!!! merge/backoff to things like get_property_value
+            d_attribute = d_attribute.lower()
+            canonicalized = CANONICALIZE_ATTRIBUTES.get(d_attribute)
+            if canonicalized:
+                if type(canonicalized) is str:
+                    # FIXME!!! merge/backoff to things like get_property_value
+                    return TableColumn(interpreter.memory, canonicalized, get_all=get_all)
+                elif canonicalized and type(canonicalized) is list:
+                    alist = [self.__call__(interpreter, speaker, a) for a in canonicalized]
+                    return ListAttribute(interpreter.memory, alist)
+            else:
                 return TableColumn(interpreter.memory, d_attribute, get_all=get_all)
-            elif d_attribute and type(d_attribute) is list:
-                alist = [self.__call__(interpreter, speaker, a) for a in d_attribute]
-                return ListAttribute(interpreter.memory, alist)
         elif d_attribute.get("task_info"):
             return interpret_task_info(interpreter, speaker, d_attribute)
         elif d_attribute.get("linear_extent"):
@@ -199,11 +203,7 @@ class AttributeInterpreter:
 
 
 CANONICALIZE_ATTRIBUTES = {
-    "x": "x",
-    "y": "y",
-    "z": "z",
     "location": ["x", "y", "z"],
-    "ref_type": "ref_type",
     "head_pitch": "pitch",
     "head_yaw": "yaw",  # FIXME!!! prob should have pose type in memory
     "body_yaw": "yaw",  # FIXME!!! prob should have pose type in memory
@@ -213,6 +213,4 @@ CANONICALIZE_ATTRIBUTES = {
     "born_time": "create_time",
     "modify_time": "updated_time",
     "visit_time": "attended_time",  # FIXME!!
-    "run_count": "run_count"
-    # "speaker","finished_time", "chat", "logical_form" ... tasks not supported yet
 }

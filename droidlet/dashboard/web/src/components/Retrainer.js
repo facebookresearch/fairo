@@ -79,7 +79,6 @@ class Navigator extends React.Component {
         <div>
           <div>New model trained!</div>
           Evalution: {evalText}
-          <button onClick={this.onModelSwitch}>Switch</button>
         </div>
       )
     }
@@ -127,6 +126,7 @@ class Navigator extends React.Component {
         </div>
         <button onClick={this.onAnnotationSave}>Save Annotations</button>
         <button onClick={this.onRetrain}>Retrain</button>
+        <button onClick={this.onModelSwitch}>Switch</button>
         {updatedModelDiv}
       </div>
     );

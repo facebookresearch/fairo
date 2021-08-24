@@ -93,7 +93,7 @@ message RobotClientMetadata {
   repeated float default_Kqd = 4;
   bytes default_controller = 5;
   int32 dof = 6;
-  string ee_joint_name = 7;
+  string ee_link_name = 7;
   int32 ee_link_idx = 8;
   repeated float rest_pose = 9;
 }
