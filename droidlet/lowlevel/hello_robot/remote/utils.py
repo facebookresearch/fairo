@@ -147,11 +147,11 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
             xyt_position = [0.0, 0.0, 0.0]
         x = xyt_position[0]    # in meters
         y = xyt_position[1]    # in meters
-        rot = xyt_position[2] % radians(360)  # in radians
+        rot = xyt_position[2]  # in radians
 
         if sqrt(x * x + y * y) < translation_threshold:
             print("translation distance ", sqrt(x * x + y * y))
-            print("rotate by ", rot)
+            print(f'rotate by {xyt_position[2], rot}')
             if not dryrun:
                 robot.base.rotate_by(rot)
                 robot.push_command()
@@ -172,9 +172,10 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         theta_2 = -theta_1 + rot
 
         # first rotate by theta1
-        print("rotate by ", theta_1)
+        theta_1 = np.sign(theta_1) * (abs(theta_1) % radians(360))
+        print("rotate by theta_1", theta_1)
         if not dryrun:
-            robot.base.rotate_by(theta_1, v_r=0.1)
+            robot.base.rotate_by(theta_1)
             robot.push_command()
             time.sleep(0.2)
             while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
@@ -196,7 +197,8 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
             #     print(robot.base.left_wheel.status['vel'], robot.base.right_wheel.status['vel'])
             #     time.sleep(0.05)
         # second rotate by theta2
-        print("rotate by ", theta_2)
+        theta_2 = np.sign(theta_2) * (abs(theta_2) % radians(360))
+        print("rotate by theta_2", theta_2)
         if not dryrun:
             robot.base.rotate_by(theta_2)
             robot.push_command()

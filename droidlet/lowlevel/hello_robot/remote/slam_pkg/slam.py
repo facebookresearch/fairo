@@ -30,7 +30,7 @@ class Slam(object):
         agent_min_z=5,
         agent_max_z=70,
         vis=False,
-        save_vis=False,
+        save_vis=True,
         save_folder="./slam_logs",
     ):
         """
@@ -94,6 +94,7 @@ class Slam(object):
         if self.save_vis:
             self.save_folder = os.path.join(save_folder, 'l' + str(int(time.time())))
             if not os.path.isdir(self.save_folder):
+                print(f'making save_folder {self.save_folder}')
                 os.makedirs(self.save_folder)
         self.start_vis = False
         self.vis_count = 0
@@ -173,12 +174,12 @@ class Slam(object):
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
-        """
+        
         # add robot collision map to traversable area
         unknown_region = self.map_builder.map.sum(axis=-1) < 1
         col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
         traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
-        """
+        
 
         # call the planner
         self.planner = FMMPlanner(
@@ -208,14 +209,14 @@ class Slam(object):
         print('orienting robot')
         delta = np.arctan2(
                     stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
-                ) % radians(360)
+                )
         print(f'delta in deg {degrees(delta), delta}, robot state {degrees(robot_state[2]), robot_state[2]}')
         exec = goto(
             self.robot._robot,
             (
                 0,
                 0,
-                (delta - (robot_state[2] % radians(360))) % radians(360),
+                delta - robot_state[2],
             ),
             dryrun=False
         )
