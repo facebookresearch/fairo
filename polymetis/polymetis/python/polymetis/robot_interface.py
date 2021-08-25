@@ -131,12 +131,6 @@ class BaseRobotInterface:
         """Returns the latest RobotState."""
         return self.grpc_connection.GetRobotState(EMPTY)
 
-    def get_previous_interval(self, timeout: float = None) -> LogInterval:
-        """Get the log indices associated with the currently running policy."""
-        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
-        assert log_interval.start != -1, "Cannot find previous episode."
-        return log_interval
-
     def get_previous_log(self, timeout: float = None) -> List[RobotState]:
         """Get the list of RobotStates associated with the currently running policy.
 
@@ -147,7 +141,8 @@ class BaseRobotInterface:
             If successful, returns a list of RobotState objects.
 
         """
-        log_interval = self.get_previous_interval(timeout)
+        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
+        assert log_interval.start != -1, "Cannot find previous episode."
         return self._get_robot_state_log(log_interval, timeout=timeout)
 
     def send_torch_policy(
