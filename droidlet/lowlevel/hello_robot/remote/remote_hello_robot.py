@@ -200,7 +200,7 @@ class RemoteHelloRobot(object):
 
     def get_base_state(self):
         s = self._robot.get_status()
-        return (s['base']['x'], s['base']['y'], (s['base']['theta'] % radians(360)))
+        return (s['base']['x'], s['base']['y'], s['base']['theta'])
 
     def get_pan(self):
         s = self._robot.get_status()
