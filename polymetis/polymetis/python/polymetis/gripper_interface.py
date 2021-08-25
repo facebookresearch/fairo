@@ -25,9 +25,19 @@ class GripperInterface:
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
     def get_state(self) -> polymetis_pb2.GripperState:
+        """Returns the state of the gripper
+        Returns:
+            gripper state (polymetis_pb2.GripperState)
+        """
         return self.grpc_connection.GetState(EMPTY)
 
     def goto(self, pos, vel, force):
+        """Commands the gripper to a certain width
+        Args:
+            pos: Target width
+            vel: Velocity of the movement
+            force: Maximum force the gripper will exert
+        """
         self.grpc_connection.Goto(
             polymetis_pb2.GripperCommand(pos=pos, vel=vel, force=force)
         )
