@@ -16,7 +16,3 @@
 [submodule "polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka"]
 	path = polymetis/polymetis/src/clients/franka_panda_client/third_party/libfranka
 	url = https://github.com/frankaemika/libfranka.git
-
-[submodule "polymetis/polymetis/python/polymetis/robot_drivers/robotiq_gripper/third_party/robotiq_2finger_grippers"]
-	path = polymetis/polymetis/python/polymetis/robot_drivers/robotiq_gripper/third_party/robotiq_2finger_grippers
-	url = https://github.com/Danfoa/robotiq_2finger_grippers

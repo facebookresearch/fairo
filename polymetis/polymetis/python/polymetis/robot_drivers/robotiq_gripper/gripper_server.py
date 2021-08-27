@@ -10,7 +10,9 @@ import grpc
 import polymetis_pb2
 import polymetis_pb2_grpc
 
-from robotiq_2f_gripper_control.robotiq_2f_gripper import Robotiq2FingerGripper
+from .third_party.robotiq_2f_gripper_control.robotiq_2f_gripper import (
+    Robotiq2FingerGripper,
+)
 
 
 class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
