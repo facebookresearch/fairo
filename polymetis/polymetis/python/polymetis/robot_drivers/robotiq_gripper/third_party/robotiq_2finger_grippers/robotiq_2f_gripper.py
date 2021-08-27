@@ -1,8 +1,15 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Modified from: https://github.com/Danfoa/robotiq_2finger_grippers/blob/master/robotiq_2f_gripper_control/src/robotiq_2f_gripper_control/robotiq_2f_gripper.py
+
 import serial
 from serial.serialutil import SerialException
 
 from pymodbus.client.sync import ModbusSerialClient
-from ..robotiq_modbus_rtu import comModbusRtu
+from .robotiq_modbus_rtu import comModbusRtu
 
 from math import ceil
 
