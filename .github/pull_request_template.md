@@ -42,4 +42,4 @@ Please describe the tests that you ran to verify your changes and how we can rep
 - [ ] I have added tests that show that the PR is functional.
 - [ ] New and existing unit tests pass locally with my changes.
 - [ ] I have added relevant collaborators to review the PR before merge.
-
+- [ ] [Polymetis only] I have verified that all scripts in `tests/scripts` runs on hardware.
