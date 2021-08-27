@@ -1,3 +1,10 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Obtained from https://github.com/Danfoa/robotiq_2finger_grippers/blob/master/robotiq_modbus_rtu/src/robotiq_modbus_rtu/comModbusRtu.py
+
 # Software License Agreement (BSD License)
 #
 # Copyright (c) 2012, Robotiq, Inc.
