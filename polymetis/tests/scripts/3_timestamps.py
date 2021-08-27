@@ -45,7 +45,7 @@ class TimestampCheckController(toco.PolicyModule):
         if self.i > self.total_steps:
             self.set_terminated()
 
-        return {"torque_desired": torch.zeros(7)}
+        return {"joint_torques": torch.zeros(7)}
 
 
 if __name__ == "__main__":
