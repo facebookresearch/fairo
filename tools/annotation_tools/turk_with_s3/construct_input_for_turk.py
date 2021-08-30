@@ -129,7 +129,7 @@ def print_csv_format(filename, option_num, max_words=40):
                 words = command.split()
                 l.append(",".join([command, *words, *([""] * (max_words - len(words)))]))
             print(",".join(l))
-    elif option_num == 4:
+    elif option_num == 6:
         # composite command tool
         print("sentence")
 
