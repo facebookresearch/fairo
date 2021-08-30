@@ -470,7 +470,7 @@ def process_result(full_d):
     # Grab words based on number of inputs
     words = []
     for key in full_d:
-        if "Input.word" in key:
+        if "Input.word" in key and full_d[key] != "NONE":
             words.append(full_d[key])
 
     return worker_id, action_dict, words, original_child_name

@@ -28,7 +28,6 @@ def get_hit_list_status(mturk):
     for hit_id in hit_ids:
         # Get HIT status
         status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
-        print(status)
         if status == "Assignable":
             hit_status["assignable"].append(hit_id)
         elif status == "Reviewable":
@@ -73,19 +72,18 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
             worker_results = mturk.list_assignments_for_hit(
                 HITId=hit_id, AssignmentStatuses=["Submitted"]
             )
+            print(worker_results)
             if worker_results["NumResults"] > 0:
                 for assignment in worker_results["Assignments"]:
                     new_row["WorkerId"] = assignment["WorkerId"]
                     xml_doc = xmltodict.parse(assignment["Answer"])
-
-                    print("Worker's answer was:")
                     if type(xml_doc["QuestionFormAnswers"]["Answer"]) is list:
                         # Multiple fields in HIT layout
                         for answer_field in xml_doc["QuestionFormAnswers"]["Answer"]:
                             input_field = answer_field["QuestionIdentifier"]
                             answer = answer_field["FreeText"]
-                            print("For input field: " + input_field)
-                            print("Submitted answer: " + answer)
+                            print("For input field: %r" % input_field)
+                            print("Submitted answer: %r" % answer)
                             new_row["Answer.{}".format(input_field)] = answer
 
                         res = res.append(new_row, ignore_index=True)
@@ -94,8 +92,8 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
                         # One field found in HIT layout
                         answer = xml_doc["QuestionFormAnswers"]["Answer"]["FreeText"]
                         input_field = xml_doc["QuestionFormAnswers"]["Answer"]["QuestionIdentifier"]
-                        print("For input field: " + input_field)
-                        print("Submitted answer: " + answer)
+                        print("For input field: %r" % input_field)
+                        print("Submitted answer: %r" % answer)
                         new_row["Answer.{}".format(input_field)] = answer
                         res = res.append(new_row, ignore_index=True)
                         res.to_csv(output_csv, index=False)

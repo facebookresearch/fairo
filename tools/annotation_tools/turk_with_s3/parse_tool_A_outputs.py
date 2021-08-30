@@ -388,7 +388,7 @@ def process_result(full_d):
     # Fix empty words messing up spans
     words = []
     for key in full_d:
-        if "Input.word" in key:
+        if "Input.word" in key and full_d[key] != "NONE":
             words.append(full_d[key])
 
     return worker_id, action_dict, words
