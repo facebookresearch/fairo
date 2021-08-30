@@ -24,6 +24,8 @@ install_requires = [
     "breathe >= 4.29.1",
     "myst-parser >= 0.13.7",
     "pybullet==3.1.6",
+    "pyserial",
+    "pymodbus",
 ]
 
 script_dir = "python/scripts"
