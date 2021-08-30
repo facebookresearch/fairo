@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file D/input.txt --tool_num 4 > D/turk_input.csv"
+        "python3 construct_input_for_turk.py --input_file D/input.txt --tool_num 4 > D/turk_input.csv"
     ],
     shell=True,
 )

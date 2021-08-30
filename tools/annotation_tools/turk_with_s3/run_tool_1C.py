@@ -22,7 +22,7 @@ if len(sys.argv) > 1:
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file C/input.txt --tool_num 3 > C/turk_input.csv"
+        "python3 construct_input_for_turk.py --input_file C/input.txt --tool_num 3 > C/turk_input.csv"
     ],
     shell=True,
 )
@@ -75,7 +75,7 @@ if rc != 0:
 
 # Create inputs for other tools
 print("*"*50)
-print("*** Postprocessing results ***")
+print("*** Postprocessing results and generating input for tool D***")
 rc = subprocess.call(["python3 generate_input_for_tool_D.py"], shell=True)
 if rc != 0:
     print("Error generating input for other tools. Exiting.")

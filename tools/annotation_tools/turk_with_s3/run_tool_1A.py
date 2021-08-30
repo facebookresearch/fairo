@@ -25,7 +25,7 @@ if len(sys.argv) > 1:
 # CSV input
 rc = subprocess.call(
     [
-        "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file input.txt > A/turk_input.csv"
+        "python3 construct_input_for_turk.py --input_file input.txt > A/turk_input.csv"
     ],
     shell=True,
 )
@@ -47,7 +47,7 @@ if rc != 0:
 print("Turk jobs created for tool A at : %s \n Waiting for results..." % time.ctime())
 print("*"*50)
 
-time.sleep(150)
+time.sleep(200)
 # Check if results are ready
 rc = subprocess.call(
     [
