@@ -26,7 +26,7 @@ def collect_tool_outputs(tool_C_out_file, tool_D_out_file):
                 else:
                     toolC_map[cmd] = ast.literal_eval(a_d)
     # print("toolC map keys")
-    # print(toolC_map.keys())
+    print(toolC_map.keys())
 
     if os.path.exists(tool_D_out_file):
         with open(tool_D_out_file) as f2:
@@ -38,7 +38,7 @@ def collect_tool_outputs(tool_C_out_file, tool_D_out_file):
                 # add the comparison dict to command -> dict
                 toolD_map[cmd] = ast.literal_eval(comparison_dict)
     # print("toolD map keys")
-    # print(toolD_map.keys())
+    print(toolD_map.keys())
 
 
 def all_yes(a_dict):
@@ -299,6 +299,32 @@ def fix_spans(d):
     return new_d
 
 
+def process_repeat(valid_dict, act_dict):
+    if 'repeat' in act_dict:
+        if 'repeat_key' in act_dict["repeat"]:
+            if act_dict["repeat"]["repeat_key"] == "FOR":
+                valid_dict["remove_condition"] = {'condition': {'comparison_type': 'EQUAL',
+                                                                'input_left': {
+                                                                    'filters': {'output': {'attribute': 'RUN_COUNT'},
+                                                                                'special': {'fixed_value': 'THIS'}}},
+                                                                'input_right': {
+                                                                    'value': act_dict["repeat"]["repeat_count"]}},
+                                                  'condition_type': 'COMPARATOR'}
+            elif act_dict["repeat"]["repeat_key"] == "ALL":
+                if "reference_object" not in act_dict:
+                    act_dict["reference_object"] = {}
+                if "filters" not in act_dict["reference_object"]:
+                    act_dict["reference_object"]["filters"] = {}
+                if "selector" not in act_dict["reference_object"]["filters"]:
+                    act_dict["reference_object"]["filters"]["selector"] = {}
+                act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
+        elif 'stop_condition' in act_dict['repeat']:
+            act_dict["remove_condition"] = act_dict['repeat']["stop_condition"]
+        act_dict.pop("repeat", None)
+
+    return valid_dict, act_dict
+
+
 def update_action_dictionaries(all_combined_path):
     # combine and write output to a file
     i = 0
@@ -312,7 +338,7 @@ def update_action_dictionaries(all_combined_path):
         for cmd, a_dict in toolA_map.items():
             # remove the ['yes', val] etc
             clean_dict = clean_dict_1(a_dict)
-            # if cmd!="i will call you alpha":
+            # if cmd!="dance in a circle with each other for 30 seconds":
             #     continue
             # TODO: check repeats here for action level repeat
             if all_yes(a_dict):
@@ -336,6 +362,7 @@ def update_action_dictionaries(all_combined_path):
                                 "OR": [filters_sub_dict["where_clause"][0]]
                             }
                 act_dict = fix_spans(clean_dict)
+                valid_dict, act_dict = process_repeat(valid_dict, act_dict)
                 valid_dict["action_sequence"] = [act_dict]
 
                 f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
@@ -370,6 +397,9 @@ def update_action_dictionaries(all_combined_path):
                         action_type = clean_dict["action_type"]
                         # set to dance
                         clean_dict["action_type"] = "DANCE"
+                        facing_dict = v["facing"]
+                        if 'location' in facing_dict and 'reference_object' in facing_dict['location']:
+                            facing_dict['location']['reference_object'] = fix_ref_obj(facing_dict['location']['reference_object'])
                         clean_dict["dance_type"] = {dance_type_map[action_type]: v["facing"]}
                         clean_dict.pop("facing")
                     else:
@@ -407,7 +437,6 @@ def update_action_dictionaries(all_combined_path):
                                  }]
                         }
             actual_dict = copy.deepcopy(clean_dict)
-
             action_type = actual_dict["action_type"]
 
             valid_dict = {}
@@ -415,22 +444,26 @@ def update_action_dictionaries(all_combined_path):
             del actual_dict["dialogue_type"]
             actual_dict["action_type"] = actual_dict["action_type"].upper()
             act_dict = fix_spans(actual_dict)
-            if 'repeat' in act_dict:
-                if act_dict["repeat"]["repeat_key"] == "FOR":
-                    valid_dict["remove_condition"] = {'condition': {'comparison_type': 'EQUAL',
-                                                   'input_left': {'filters': {'output': {'attribute': 'RUN_COUNT'},
-                                                                              'special': {'fixed_value': 'THIS'}}},
-                                                   'input_right': {'value': act_dict["repeat"]["repeat_count"]}},
-                                                    'condition_type': 'COMPARATOR'}
-                elif act_dict["repeat"]["repeat_key"] == "ALL":
-                    if "reference_object" not in act_dict:
-                        act_dict["reference_object"] = {}
-                    if "filters" not in act_dict["reference_object"]:
-                        act_dict["reference_object"]["filters"] = {}
-                    if "selector" not in act_dict["reference_object"]["filters"]:
-                        act_dict["reference_object"]["filters"]["selector"] = {}
-                    act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
-                act_dict.pop("repeat", None)
+            # if 'repeat' in act_dict:
+            #     if 'repeat_key' in act_dict["repeat"]:
+            #         if act_dict["repeat"]["repeat_key"] == "FOR":
+            #             valid_dict["remove_condition"] = {'condition': {'comparison_type': 'EQUAL',
+            #                                            'input_left': {'filters': {'output': {'attribute': 'RUN_COUNT'},
+            #                                                                       'special': {'fixed_value': 'THIS'}}},
+            #                                            'input_right': {'value': act_dict["repeat"]["repeat_count"]}},
+            #                                             'condition_type': 'COMPARATOR'}
+            #         elif act_dict["repeat"]["repeat_key"] == "ALL":
+            #             if "reference_object" not in act_dict:
+            #                 act_dict["reference_object"] = {}
+            #             if "filters" not in act_dict["reference_object"]:
+            #                 act_dict["reference_object"]["filters"] = {}
+            #             if "selector" not in act_dict["reference_object"]["filters"]:
+            #                 act_dict["reference_object"]["filters"]["selector"] = {}
+            #             act_dict["reference_object"]["filters"]["selector"]["return_quantity"] = "ALL"
+            #     elif 'stop_condition' in act_dict['repeat']:
+            #         act_dict["remove_condition"] = act_dict['repeat']["stop_condition"]
+            #     act_dict.pop("repeat", None)
+            valid_dict, act_dict = process_repeat(valid_dict, act_dict)
             valid_dict["action_sequence"] = [act_dict]
 
             f.write(cmd + "\t" + json.dumps(valid_dict) + "\n")
