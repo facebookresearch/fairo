@@ -11,21 +11,15 @@ BEFORE = """
 <div class="panel-heading"><strong>Instructions</strong></div>
 
 <div class="panel-body" style="font-size:14px;">
-<h1><strong>Split a composite command into individuals.</strong></h1>
+<h1><strong>Split a composite command into individual commands.</strong></h1>
 
-<p>Please help us split a command into individual single commands. The command shown to you here is given to an AI assistant to help out a player in the game of Minecraft. You will be show a command that possibly implies a sequence or list of single commands and your task is to give us single complete actions that are intended by the command shown to you.</p>
+<p>Please help us split a command into individual single commands. The command shown to you here is given to an AI assistant. 
+You will be shown a command that possibly has a sequence or list of single commands and your task is to give us multiple single 
+complete actions that are intended by the command shown to you.</p>
 &nbsp;
 
+<p><b>When splitting the commands, please only use the exact words shown in the original command.</b></p>
 <p>Few valid examples below:</p>
-
-<p>For <b>&quot;hey bot please build a house and a cube&quot;</b> the answer is the following:</p>
-
-<ul>
-	<li>&quot;hey bot please build a house&quot; and</li>
-	<li>&quot;hey bot please build a cube&quot;</li>
-</ul>
-
-<p>&nbsp;</p>
 
 <p>For <b>&quot;build a castle and then come back here&quot;</b> the answer is the following:</p>
 
@@ -49,7 +43,7 @@ BEFORE = """
 
 <ul>
 	<li>&quot;move to the door&quot; and</li>
-	<li>&quot;open the door&quot;</li>
+	<li>&quot;open it&quot;</li>
 </ul>
 
 <p>&nbsp;</p>
@@ -57,27 +51,37 @@ BEFORE = """
 <p>For <b>&quot;i want you to undo the last two spawns and try again with new spawns&quot; </b></p>
 
 <ul>
-	<li>&quot;undo the last two spawns&quot; and</li>
-	<li>&quot;do a new spawn&quot;</li>
+	<li>&quot;i want you to undo the last two spawns&quot; and</li>
+	<li>&quot;try again with new spawns&quot;</li>
 </ul>
-<b>Note that: &quot;do a new spawn&quot; is a rewrite of &quot;and try again with new spawns&quot; to make that sub-command clear when seen in isolation.</b>
+
+<p>&nbsp;</p>
+
+<p>For <b>&quot;can you turn around and start moving to the left&quot; </b></p>
+
+<ul>
+	<li>&quot;can you turn around&quot; and</li>
+	<li>&quot;start moving to the left&quot;</li>
+</ul>
 
 <p>&nbsp;</p>
 
 <p>Note that:<br />
-<b>1. Some commands might have more than two splits. We&#39;ve given you two more optional boxes.</b><br />
-<b>2. Make sure that the commands you enter in text boxes are single and complete sentences by their own.</b><br />
-<b>3. You might need to rewrite some commands when you split them, to make them clear in isolation.</b></p>
+<b>1. Some commands might have more than two splits. We&#39;ve given you three more optional boxes.</b><br />
+<b>2. Make sure that the commands you enter in text boxes are single and complete sentences using the exact words written in the original command.</b><br />
+<b>3. Please copy and use the exact words shown in the original commands. Do not rephrase the sentences.</b></p>
 </div>
 </div>
 <div class="well" style="position:sticky;position:-webkit-sticky;top:0;z-index:9999">
-        
+
 <h2><strong>Command:</strong> <b id="sentence"></b></h2> 
 </div>
 <!-- Content Body -->
 
 <section>
+"""
 
+BETWEEN = """
 <section>
 <fieldset>
 <div class="input-group"><span style="font-family: verdana, geneva, sans-serif;font-size: 18px;">The individual commands.&nbsp;</span>
@@ -89,6 +93,9 @@ BEFORE = """
 <p>Command 3 (optional)<textarea class="form-control" cols="150" name="command_3" rows="2"></textarea></p>
 
 <p>Command 4 (optional)<textarea class="form-control" cols="150" name="command_4" rows="2"></textarea></p>
+
+<p>Command 5 (optional)<textarea class="form-control" cols="150" name="command_5" rows="2"></textarea></p>
+
 </div>
 </fieldset>
 """
@@ -116,7 +123,6 @@ if __name__ == "__main__":
     """
     )
 
-
     print(BEFORE)
     print(
         """
@@ -124,6 +130,7 @@ if __name__ == "__main__":
         <form name='mturk_form' method='post' id='mturk_form' action='https://workersandbox.mturk.com/mturk/externalSubmit'><input type='hidden' value='' name='assignmentId' id='assignmentId'/>
     """
     )
+    print(BETWEEN)
     print(
         """
         <p><input type='submit' id='submitButton' value='Submit' /></p></form>
