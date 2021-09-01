@@ -87,7 +87,7 @@ class HelloRobotAgent(LocoMCAgent):
         super().init_event_handlers()
 
         @sio.on("movement command")
-        def test_command(sid, commands):
+        def test_command(sid, commands, movement_values={}):
             for command in commands:
                 if command == "MOVE_FORWARD":
                     self.mover.bot.translate_by(0.1)

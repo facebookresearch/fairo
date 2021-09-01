@@ -37,6 +37,24 @@ Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION=2
 
+import cv2
+ctr = 1
+def save_rgbd(rgb, depth, pts):
+    global ctr
+    if ctr < 10:
+        depth_dir = '/home/locobotm/hello_data/depth'
+        np.save(depth_dir + "/{:05d}.npy".format(ctr), depth)
+
+        pcd_dir = '/home/locobotm/hello_data/pcd'
+        np.save(pcd_dir + "/{:05d}.npy".format(ctr), pts)
+
+        img_dir = '/home/locobotm/hello_data/rgb'
+        cv2.imwrite(
+            img_dir + "/{:05d}.jpg".format(ctr),
+            cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
+        )
+        ctr += 1
+    print(f'ctr {ctr}')
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))
 def safe_call(f, *args):
@@ -61,7 +79,7 @@ class HelloRobotMover(MoverInterface):
         intrinsic_mat = np.asarray(safe_call(self.bot.get_intrinsics))
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
         img_resolution = safe_call(self.bot.get_img_resolution)
-        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+        img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
@@ -196,15 +214,18 @@ class HelloRobotMover(MoverInterface):
         trans = np.asarray(trans)
         depth = depth.astype(np.float32)
         d = copy.deepcopy(depth)
-        print(f'type depth {type(depth)}')
+        print(f'shapes depth {depth.shape}, rgb {rgb.shape}')
         depth /= 1000.0
+        # rgb = rgb.reshape(-1)
         depth = depth.reshape(-1)
+        print(f'shapes depth {depth.shape}, rot {rot.shape}')
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
         pts = pts + trans.reshape(-1)
         pts = transform_pose(pts, self.bot.get_base_state())
+        save_rgbd(rgb, d, pts)
         logging.info("Fetched all camera sensor input.")
         return RGBDepth(rgb, d, pts)
 
@@ -218,7 +239,15 @@ class HelloRobotMover(MoverInterface):
         self.bot.rotate_by(turn_rad)
 
     def get_obstacles_in_canonical_coords(self):
-        print("no-op get_obstacles_in_canonical_coords")
+        cordinates_in_robot_frame = self.bot.get_map()
+        cordinates_in_standard_frame = [
+            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
+        ]
+        cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
+        return cordinates_in_standard_frame
+    
+    def explore(self):
+        return self.bot.explore()
 
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
