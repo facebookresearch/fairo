@@ -5,7 +5,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import React from "react";
 import "status-indicator/styles.css";
 import Slider from "rc-slider";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 import "rc-slider/assets/index.css";
+import stateManager from "../StateManager";
 
 let slider_style = { width: 600, margin: 50 };
 const labelStyle = { minWidth: "60px", display: "inline-block" };
@@ -19,6 +22,7 @@ class Settings extends React.Component {
       connected: false,
       image_quality: -1,
       image_resolution: -1,
+      use_old_annotation: stateManager.useDesktopComponentOnMobile,
     };
 
     if (this.props.isMobile) {
@@ -90,6 +94,14 @@ class Settings extends React.Component {
     }
   }
 
+  // switch which annotation component to use
+  switchAnnotation = (event) => {
+    stateManager.useDesktopComponentOnMobile = event.target.checked;
+    this.setState({
+      use_old_annotation: stateManager.useDesktopComponentOnMobile,
+    });
+  };
+
   render() {
     var status_indicator;
     if (this.state.connected === true) {
@@ -119,6 +131,19 @@ class Settings extends React.Component {
         <form onSubmit={this.handleClearSettings}>
           <input type="submit" value="Clear Saved Settings" />
         </form>
+
+        {this.props.isMobile && (
+          <FormControlLabel
+            control={
+              <Switch
+                checked={stateManager.useDesktopComponentOnMobile}
+                onChange={this.switchAnnotation}
+              />
+            }
+            label="Use Old Annotation Tool"
+          />
+        )}
+
         <p>FPS: {this.state.fps}</p>
         <p> Connection Status: {status_indicator} </p>
         <div style={slider_style}>

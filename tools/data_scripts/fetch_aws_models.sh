@@ -33,22 +33,28 @@ MODELS_DIRNAME=models_folder
 
 cd $ROOTDIR
 
-echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz ======"
-curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz 
+if [ $3 == "nsp" ]; then
+	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz ======"
+	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz 
 
-if [ -d "agents/${AGENT}/models" ]
-then
-	echo "Overwriting models directory"
-	rm -rf agents/${AGENT}/models
+# if [ -d "agents/${AGENT}/models" ]
+# then
+# 	echo "Overwriting models directory"
+# 	rm -rf agents/${AGENT}/models
+# fi
+
+# mkdir -p agents/${AGENT}/models
+
+	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
 fi
 
-mkdir -p agents/${AGENT}/models
-
-tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
-
-if [ $AGENT == "locobot" ]; then
-    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models.tar.gz -o locobot_models.tar.gz
-    tar -xzvf locobot_models.tar.gz -C agents/${AGENT}/models
+if [ $3 == "locobot" ]; then
+	echo "Now downloading robot models"
+	LOCO_CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt"
+	LOCO_CHECKSUM=`cat $LOCO_CHECKSUM_FILE` 
+	echo "==== Donwload https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${LOCO_CHECKSUM}.tar.gz ===="
+    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${LOCO_CHECKSUM}.tar.gz -o locobot_models.tar.gz
+    tar -xzvf locobot_models.tar.gz -C agents/${AGENT}/models/perception
 
     mkdir -p droidlet/perception/robot/tests/test_assets/
     curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz | tar -xzv -C droidlet/perception/robot/tests/test_assets/

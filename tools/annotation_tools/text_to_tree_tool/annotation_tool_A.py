@@ -140,24 +140,6 @@ if __name__ == "__main__":
     """
     )
     print(render_q(Q_ACTION, "root", show=True))
-    with open("span_names.txt", "r") as fd:
-        span_names = fd.read().split("\n")
-
-    for span_name in span_names:
-        # root.action_type.BUILD.COPY.yes.reference_object.span
-        print(
-            """
-          <script>
-            for (i = 0; i < 40; i++) {{
-            div = document.getElementById('{sp}')
-            var label = '<label class="btn btn-default word' + i + '" name="root.action_type.BUILD.COPY.yes.reference_object.span#' + i + '"><input type="checkbox" autocomplete="off" id="root.action_type.BUILD.COPY.yes.reference_object.span#' + i + '" name="root.action_type.BUILD.COPY.yes.reference_object.span#' + i + '">' + '${{word' + i + '}}</label>';
-            div.insertAdjacentHTML('beforeend', label);
-            }}
-          </script>
-          """.format(
-                sp=span_name
-            )
-        )
     print(render_q(Q_ACTION_LOOP, "root", show=True))
     print(
         """

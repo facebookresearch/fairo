@@ -56,6 +56,25 @@ service PolymetisControllerServer {
   rpc GetRobotClientMetadata(Empty) returns(RobotClientMetadata) {}
 }
 
+service GripperServer {
+    rpc GetState(Empty) returns(GripperState) {}
+    rpc Goto(GripperCommand) returns(Empty) {}
+}
+
+message GripperCommand {
+    float pos = 1;
+    float vel = 2;
+    float force = 3;
+}
+
+message GripperState {
+    google.protobuf.Timestamp timestamp = 1;
+    float pos = 2;
+    bool is_ready = 3;
+    bool is_moving = 4;
+    bool is_stopped = 5;
+}
+
 message LogInterval {
   int32 start = 1;
   int32 end = 2;
@@ -74,7 +93,7 @@ message RobotClientMetadata {
   repeated float default_Kqd = 4;
   bytes default_controller = 5;
   int32 dof = 6;
-  string ee_joint_name = 7;
+  string ee_link_name = 7;
   int32 ee_link_idx = 8;
   repeated float rest_pose = 9;
 }

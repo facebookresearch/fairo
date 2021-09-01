@@ -264,9 +264,9 @@ class ObjectAnnotation extends React.Component {
   }
 
   dataEntrySubmit(objectData) {
-    this.drawing_data = objectData;
-    this.propertyMap[this.state.currentMaskId] = this.drawing_data.tags;
-    this.nameMap[this.state.currentMaskId] = this.drawing_data.name;
+    this.drawingData = objectData;
+    this.propertyMap[this.state.currentMaskId] = this.drawingData.tags;
+    this.nameMap[this.state.currentMaskId] = this.drawingData.name;
     this.setState({
       currentMode: "select",
       currentOverlay: null,

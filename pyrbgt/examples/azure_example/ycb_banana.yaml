@@ -1,0 +1,11 @@
+name: "rbgt_tracker"
+
+conf:
+  visualize: True
+  evaluate: False
+  models:
+    - model: "banana"
+      name: "banana"
+      path: "/home/fair-pitt/RBGT_PY/011_banana/google_16k/"
+      model_filename: "textured.obj"
+      unit_in_meter: 1

@@ -327,6 +327,7 @@ class LookRayDistance(Attribute):
         return "LookRayDistance"
 
 
+# FIXME use new FILTERs code
 class ComparatorAttribute(Attribute):
     def __init__(
         self, memory, comparison_type="EQUAL", value_left=None, value_right=None, epsilon=0

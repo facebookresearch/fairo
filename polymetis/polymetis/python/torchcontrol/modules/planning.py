@@ -124,12 +124,12 @@ class CartesianSpaceMinJerkPlanner(toco.ControlModule):
         # Plan rotation
         r_start = start.rotation()
         r_goal = goal.rotation()
-        r_delta = r_start.inv() * r_goal
+        r_delta = r_goal * r_start.inv()
         rv_delta = r_delta.as_rotvec()
 
         r_traj = torch.empty([steps, 4])
         for i in range(steps):
-            r = r_start * R.from_rotvec(rv_delta * p_traj[i])
+            r = R.from_rotvec(rv_delta * p_traj[i]) * r_start
             r_traj[i, :] = r.as_quat()
         rd_traj = rv_delta[None, :] * pd_traj[:, None]
         rdd_traj = rv_delta[None, :] * pdd_traj[:, None]
@@ -238,7 +238,19 @@ class CartesianSpaceMinJerkJointPlanner(toco.ControlModule):
             # Convert next step to joint plan
             self.qdd_traj[i + 1, :] = jacobian_pinv @ ee_accel_desired
             self.qd_traj[i + 1, :] = jacobian_pinv @ ee_twist_desired
-            self.q_traj[i + 1, :] = joint_pos_current + self.qd_traj[i + 1, :] * dt
+            q_delta = self.qd_traj[i + 1, :] * dt
+            self.q_traj[i + 1, :] = joint_pos_current + q_delta
+
+            # Null space correction
+            null_space_proj = (
+                torch.eye(joint_pos_start.shape[0]) - jacobian_pinv @ jacobian
+            )
+            q_null_err = -null_space_proj @ self.q_traj[i + 1, :]
+            q_null_err_norm = q_null_err.norm() + 1e-27  # prevent zero division
+            q_null_err_clamped = (
+                q_null_err / q_null_err_norm * min(q_null_err_norm, q_delta.norm())
+            )  # norm of correction clamped to norm of current action
+            self.q_traj[i + 1, :] = self.q_traj[i + 1, :] + q_null_err_clamped
 
     def forward(self, step: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Queries the planned trajectory for the desired states at the input step

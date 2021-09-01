@@ -29,6 +29,7 @@ def get_predictor(config, model_weights, dataset, properties, things):
     add_property_config(cfg)
     cfg.merge_from_file(os.path.join(dirname, config))
     cfg.MODEL.WEIGHTS = model_weights
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(things)
     DatasetCatalog.clear()
     DatasetCatalog.register(dataset, get_dicts)
     MetadataCatalog.get(dataset).set(thing_classes=things)

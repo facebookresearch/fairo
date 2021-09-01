@@ -11,6 +11,7 @@ import tempfile
 import logging
 from imantics import Mask
 import torch
+import json
 
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
@@ -28,8 +29,9 @@ from droidlet.perception.robot.perception_helpers import get_color_tag
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
 detector_weights = "model_999.pth"
-properties = "prop.pickle"
-things = "things.pickle"
+default_json_dir = os.path.abspath(os.path.dirname(__file__)) + "/../../../../annotation_data/model/v0"
+props_filename = "props.json"
+things_filename = "things.json"
 
 file_root = os.path.dirname(os.path.realpath(__file__))
 
@@ -84,12 +86,19 @@ class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
     def __init__(self, model_data_dir):
-        with open(os.path.join(model_data_dir, properties), "rb") as h:
-            self.properties = pickle.load(h)
-            logging.info("{} properties".format(len(self.properties)))
+        files = os.listdir(model_data_dir)
+        props_file = os.path.join(model_data_dir, props_filename) \
+            if props_filename in files \
+            else os.path.join(default_json_dir, props_filename)
+        things_file = os.path.join(model_data_dir, things_filename) \
+            if things_filename in files \
+            else os.path.join(default_json_dir, things_filename)
 
-        with open(os.path.join(model_data_dir, things), "rb") as h:
-            self.things = pickle.load(h)
+        with open(props_file, "r") as h:
+            self.properties = json.load(h)["items"]
+            logging.info("{} properties".format(len(self.properties)))
+        with open(things_file, "r") as h:
+            self.things = json.load(h)["items"]
             logging.info("{} things".format(len(self.things)))
 
         weights = os.path.join(model_data_dir, detector_weights)

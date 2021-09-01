@@ -1,0 +1,19 @@
+name: "rbgt_tracker"
+
+conf:
+  visualize: True
+  evaluate: False
+  evaluate_dataset_path: "/home/fair-pitt/RBGT_PY/RBOT_dataset/"
+  models:
+    - model: "ape"
+      name: "ape"
+      path: "/home/fair-pitt/RBGT_PY/RBOT_dataset/ape/"
+      model_filename: "ape.obj"
+      unit_in_meter: 0.001
+
+    - model: "squirrel_small"
+      name: "squirrel_small"
+      path: "/home/fair-pitt/RBGT_PY/RBOT_dataset/"
+      model_filename: "squirrel_small.obj"
+      unit_in_meter: 0.001
+

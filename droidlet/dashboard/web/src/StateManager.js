@@ -12,9 +12,12 @@ import History from "./components/History";
 import InteractApp from "./components/Interact/InteractApp";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 import Timeline from "./components/Timeline/Timeline";
-import TimelineDetails from "./components/Timeline/TimelineDetails";
 import TimelineResults from "./components/Timeline/TimelineResults";
+import TimelineDetails from "./components/Timeline/TimelineDetails";
 import MobileMainPane from "./MobileMainPane";
+import Retrainer from "./components/Retrainer";
+import Navigator from "./components/Navigator";
+import { isMobile } from "react-device-detect";
 
 /**
  * The main state manager for the dashboard.
@@ -62,6 +65,8 @@ class StateManager {
     timelineEventHistory: [],
     timelineSearchResults: [],
     timelineDetails: [],
+    timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
+    timelineSearchPattern: "",
   };
   session_id = null;
 
@@ -89,6 +94,11 @@ class StateManager {
     this.onObjectAnnotationSave = this.onObjectAnnotationSave.bind(this);
     this.startLabelPropagation = this.startLabelPropagation.bind(this);
     this.labelPropagationReturn = this.labelPropagationReturn.bind(this);
+    this.onSave = this.onSave.bind(this);
+    this.saveAnnotations = this.saveAnnotations.bind(this);
+    this.annotationRetrain = this.annotationRetrain.bind(this);
+    this.goOffline = this.goOffline.bind(this);
+    this.handleMaxFrames = this.handleMaxFrames.bind(this);
 
     // set turk related params
     const urlParams = new URLSearchParams(window.location.search);
@@ -115,22 +125,32 @@ class StateManager {
     this.curFeedState = {
       rgbImg: null, 
       depth: null, 
-      objects: null, // Can be changed by annotation tool
-      origObjects: null, // Original objects sent from backend
+      objects: [], // Can be changed by annotation tool
+      origObjects: [], // Original objects sent from backend
       pose: null,
-    }
+    };
     this.prevFeedState = {
       rgbImg: null, 
       depth: null, 
-      objects: null,
+      objects: [],
       pose: null,
-    }
+    };
     this.stateProcessed = {
-      rgbImg: false, 
-      depth: false, 
+      rgbImg: false,
+      depth: false,
       objects: false,
       pose: false,
     }
+    this.frameCount = 0 // For filenames when saving
+    this.categories = new Set()
+    this.properties = new Set()
+    this.annotationsSaved = true
+    this.offline = false
+    this.frameId = 0 // Offline frame count
+    this.offlineObjects = {} // Maps frame ids to masks
+    this.updateObjects = [false, false] // Update objects on the frame after the rgb image changes
+    this.useDesktopComponentOnMobile = true; // switch to use either desktop or mobile annotation on mobile device
+    // TODO: Finish mobile annotation component (currently UI is finished, not linked up with backend yet)
   }
 
   setDefaultUrl() {
@@ -214,8 +234,10 @@ class StateManager {
       this.memory = this.initialMemoryState;
       // clear state of all components
       this.refs.forEach((ref) => {
-        ref.setState(ref.initialState);
-        ref.forceUpdate();
+        if (!(ref instanceof TimelineDetails)) {
+          ref.setState(ref.initialState);
+          ref.forceUpdate();
+        }
       });
       console.log("disconnected");
     });
@@ -235,6 +257,9 @@ class StateManager {
     socket.on("map", this.processMap);
     socket.on("newTimelineEvent", this.returnTimelineEvent);
     socket.on("labelPropagationReturn", this.labelPropagationReturn);
+    socket.on("annotationRetrain", this.annotationRetrain);
+    socket.on("saveRgbSegCallback", this.saveAnnotations);
+    socket.on("handleMaxFrames", this.handleMaxFrames);
   }
 
   updateStateManagerMemory(data) {
@@ -263,6 +288,9 @@ class StateManager {
   }
 
   setChatResponse(res) {
+    if (isMobile) {
+      alert("Received text message: " + res.chat);
+    }
     this.memory.chats = res.allChats;
     this.memory.chatResponse[res.chat] = res.chatResponse;
 
@@ -305,7 +333,6 @@ class StateManager {
   showAssistantReply(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
-        console.log("set assistant reply");
         ref.setState({
           agent_reply: res.agent_reply,
         });
@@ -313,9 +340,7 @@ class StateManager {
     });
   }
 
-  returnTimelineEvent(res) {
-    this.memory.timelineEventHistory.push(res);
-    this.memory.timelineEvent = res;
+  updateTimeline() {
     this.refs.forEach((ref) => {
       if (ref instanceof Timeline) {
         ref.forceUpdate();
@@ -323,9 +348,15 @@ class StateManager {
     });
   }
 
-  updateTimeline() {
+  returnTimelineEvent(res) {
+    this.memory.timelineEventHistory.push(res);
+    this.memory.timelineEvent = res;
+    this.updateTimeline();
+  }
+
+  updateTimelineResults() {
     this.refs.forEach((ref) => {
-      if (ref instanceof TimelineDetails || ref instanceof TimelineResults) {
+      if (ref instanceof TimelineResults) {
         ref.forceUpdate();
       }
     });
@@ -374,7 +405,14 @@ class StateManager {
       }
     }
     if (commands.length > 0) {
-      this.socket.emit("movement command", commands);
+      let movementValues = {};
+      this.refs.forEach((ref) => {
+        if (ref instanceof Navigator) {
+          movementValues = ref.state;
+        }
+      });
+
+      this.socket.emit("movement command", commands, movementValues);
 
       // Reset keys to prevent duplicate commands
       for (let i in keys) {
@@ -405,30 +443,289 @@ class StateManager {
     interactionData[key] = value;
     this.socket.emit("interaction data", interactionData);
   }
-  
+
   onObjectAnnotationSave(res) {
+    // Process annotations
     let { nameMap, pointMap, propertyMap } = res;
-    let newObjects = []
-    let scale = 500  // hardcoded from somewhere else
+    let newObjects = [];
+    let scale = 500; // hardcoded from somewhere else
     for (let id in nameMap) {
       let oldObj = id < this.curFeedState.objects.length;
       let newId = oldObj ? this.curFeedState.objects[id].id : null;
       let newXyz = oldObj ? this.curFeedState.objects[id].xyz : null;
+      // Get rid of masks with <3 points
+      // We have this check because detector sometimes sends masks with <3 points to frontend
+      let i = 0
+      while (i < pointMap[id].length) {
+        if (!pointMap[id][i] || pointMap[id][i].length < 3) {
+          pointMap[id].splice(i, 1);
+          continue
+        }
+        i++
+      }
       let newMask = pointMap[id].map(mask => mask.map((pt, i) => [pt.x * scale, pt.y * scale]))
       let newBbox = this.getNewBbox(newMask);
 
       newObjects.push({
-        label: nameMap[id], 
-        mask: newMask, 
+        label: nameMap[id],
+        mask: newMask,
         properties: propertyMap[id].join("\n "),
         type: "annotate", // either "annotate" or "detector"
-        id: newId, 
-        bbox: newBbox, 
-        xyz: newXyz, 
-      })
+        id: newId,
+        bbox: newBbox,
+        xyz: newXyz,
+      });
     }
     this.curFeedState.objects = newObjects
+    this.annotationsSaved = false
+    
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          objects: this.curFeedState.objects,
+          updateFixup: true,
+        });
+      }
+    })
+    if (this.offline) {
+      this.offlineObjects[this.frameId] = this.curFeedState.objects
+    }
+  }
 
+  getNewBbox(maskSet) {
+    let xs = [],
+      ys = [];
+    for (let i = 0; i < maskSet.length; i++) {
+      for (let j = 0; j < maskSet[i].length; j++) {
+        xs.push(maskSet[i][j][0]);
+        ys.push(maskSet[i][j][1]);
+      }
+    }
+    let minX = Math.min.apply(null, xs),
+      maxX = Math.max.apply(null, xs),
+      minY = Math.min.apply(null, ys),
+      maxY = Math.max.apply(null, ys);
+    return [minX, minY, maxX, maxY];
+  }
+
+  startLabelPropagation() {
+    // Update categories and properties
+    let prevObjects = this.prevFeedState.objects.filter(o => o.type === "annotate")
+    for (let i in prevObjects) {
+      this.categories.add(prevObjects[i].label)
+      let prevProperties = prevObjects[i].properties.split("\n ")
+      prevProperties.forEach(p => this.properties.add(p))
+    }
+
+    // Label prop
+    if (prevObjects.length > 0) {
+      let labelProps = {
+        prevRgbImg: this.prevFeedState.rgbImg, 
+        depth: this.curFeedState.depth, 
+        prevDepth: this.prevFeedState.depth, 
+        objects: prevObjects, 
+        basePose: this.curFeedState.pose,
+        prevBasePose: this.prevFeedState.pose,
+      }
+      this.socket.emit("label_propagation", labelProps)
+    }
+
+    // Save rgb/seg if needed
+    if (!this.annotationsSaved) {
+      let saveProps = {
+        rgb: this.prevFeedState.rgbImg, 
+        objects: prevObjects, 
+        frameCount: this.frameCount,
+        categories: [null, ...this.categories], // Include null so category indices start at 1
+      }
+      this.socket.emit("save_rgb_seg", saveProps)
+      this.annotationsSaved = true
+    }
+    // Reset
+    this.stateProcessed.rgbImg = true;
+    this.stateProcessed.depth = true;
+    this.stateProcessed.objects = true;
+    this.stateProcessed.pose = true;
+    this.frameCount++
+  }
+
+  labelPropagationReturn(res) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        for (let i in res) {
+          // Get rid of masks with <3 points
+          let j = 0;
+          while (j < res[i].mask.length) {
+            if (!res[i].mask[j] || res[i].mask[j].length < 3) {
+              res[i].mask.splice(j, 1);
+              continue;
+            }
+            j++;
+          }
+          res[i].bbox = this.getNewBbox(res[i].mask);
+          ref.addObject(res[i]);
+          this.curFeedState.objects.push(res[i]);
+        }
+      }
+    })
+    if (this.offline) {
+      this.offlineObjects[this.frameId] = this.curFeedState.objects
+    }
+    if (Object.keys(res).length > 0) {
+      this.annotationsSaved = false
+    }
+  }
+
+  checkRunLabelProp() {
+    return (
+      this.curFeedState.rgbImg &&
+      this.curFeedState.depth &&
+      this.curFeedState.objects.length > 0 &&
+      this.curFeedState.pose &&
+      this.prevFeedState.rgbImg &&
+      this.prevFeedState.depth &&
+      this.prevFeedState.objects.length > 0 &&
+      this.prevFeedState.pose &&
+      !this.stateProcessed.rgbImg &&
+      !this.stateProcessed.depth &&
+      !this.stateProcessed.objects &&
+      !this.stateProcessed.pose
+    );
+  }
+
+  onSave() {
+    console.log("saving annotations, categories, and properties")
+    
+    if (this.offline) {
+      // Save categories and properties
+      for (let key in this.offlineObjects) {
+        let objects = this.offlineObjects[key]
+        for (let i in objects) {
+          let obj = objects[i]
+          this.categories.add(obj.label)
+          let properties = obj.properties.split("\n ")
+          properties.forEach(p => this.properties.add(p))
+        }
+      }
+      let categories = [null, ...this.categories] // Include null so category indices start at 1
+      let properties = [...this.properties]
+      this.socket.emit("save_categories_properties", categories, properties)
+      
+      // Save rgb/seg
+      let outputId = 0
+      for (let key in this.offlineObjects) {
+        let objects = this.offlineObjects[key]
+        let finalFrame = outputId === Object.keys(this.offlineObjects).length - 1
+        let saveProps = {
+          filepath: this.filepath,
+          frameId: parseInt(key),
+          outputId,
+          objects, 
+          categories, 
+          finalFrame, // When true, backend will save all annotations to COCO format
+        }
+        this.socket.emit("offline_save_rgb_seg", saveProps)
+        outputId++
+      }
+
+    } else {
+      // Save current rgb/seg if needed
+      if (!this.annotationsSaved) {
+        let curObjects = this.curFeedState.objects.filter(o => o.type === "annotate")
+        for (let i in curObjects) {
+          this.categories.add(curObjects[i].label)
+          let props = curObjects[i].properties.split("\n ")
+          props.forEach(p => this.properties.add(p))
+        }
+        let saveProps = {
+          rgb: this.curFeedState.rgbImg, 
+          objects: curObjects, 
+          frameCount: this.frameCount,
+          categories: [null, ...this.categories], // Include null so category indices start at 1
+          callback: true, // Include boolean param to save annotations after -- ensures whatever the noun form of synchronous is
+        }
+        // This emit has a callback that calls saveAnnotations() 
+        this.socket.emit("save_rgb_seg", saveProps)
+        this.annotationsSaved = true
+      } else {
+        this.saveAnnotations()
+      }
+    }
+  }
+
+  saveAnnotations() {
+    // Save annotations
+    let categories = [null, ...this.categories] // Include null so category indices start at 1
+    let properties = [...this.properties]
+    this.socket.emit("save_annotations", categories)
+    this.socket.emit("save_categories_properties", categories, properties)
+  }
+
+  annotationRetrain(res) {
+    console.log("retrained!")
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects || ref instanceof Retrainer) {
+        ref.setState({
+          modelMetrics: res
+        })
+      }
+    });
+  }
+
+  goOffline(filepath) {
+    console.log("Going offline with filepath", filepath)
+    this.filepath = filepath
+    this.frameId = 0
+    this.offline = true
+
+    this.socket.emit("get_offline_frame", {
+      filepath: this.filepath, 
+      frameId: this.frameId,
+    })
+    this.socket.emit("start_offline_dashboard", filepath)
+    this.refs.forEach((ref) => {
+      if (ref instanceof LiveObjects) {
+        ref.setState({
+          objects: [],
+          modelMetrics: null,
+          offline: true,
+        })
+      }
+    })
+  }
+
+  handleMaxFrames(maxFrames) {
+    this.maxOfflineFrames = maxFrames
+    console.log("max frames:", maxFrames)
+  }
+
+  offlineLabelProp(srcFrame, curFrame) {
+    // Get src frame's objects
+    let srcObjects = this.offlineObjects[srcFrame]
+    let props = {
+      filepath: this.filepath,
+      srcFrame,
+      curFrame, 
+      objects: srcObjects,
+    }
+
+    // Send objs and id to backend
+    this.socket.emit("offline_label_propagation", props)
+  }
+
+  previousFrame() {
+    if (this.frameId === 0) {
+      console.log("no frames under 0")
+      return
+    }
+    this.frameId--
+    console.log("Prev frame", this.frameId)
+    this.socket.emit("get_offline_frame", {
+      filepath: this.filepath, 
+      frameId: this.frameId
+    })
+    // Get objects
+    this.curFeedState.objects = this.offlineObjects[this.frameId] || []
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
         ref.setState({
@@ -436,76 +733,39 @@ class StateManager {
         });
       }
     })
-  }
 
-  getNewBbox(maskSet) {
-    let xs = [], ys = []
-    for (let i = 0; i < maskSet.length; i++) {
-      for (let j = 0; j < maskSet[i].length; j++) {
-        xs.push(maskSet[i][j][0])
-        ys.push(maskSet[i][j][1])
-      }
+    // Run label prop
+    let curFrameHasObjects = this.offlineObjects[this.frameId] && this.offlineObjects[this.frameId].length > 0
+    if (this.offlineObjects[this.frameId + 1] && !curFrameHasObjects) {
+      this.offlineLabelProp(this.frameId + 1, this.frameId)
     }
-    let minX = Math.min.apply(null, xs), 
-        maxX = Math.max.apply(null, xs), 
-        minY = Math.min.apply(null, ys), 
-        maxY = Math.max.apply(null, ys)
-    return [minX, minY, maxX, maxY]
   }
 
-  startLabelPropagation() {
-    let props = {
-      prevRgbImg: this.prevFeedState.rgbImg, 
-      depth: this.curFeedState.depth, 
-      prevDepth: this.prevFeedState.depth, 
-      prevObjects: this.prevFeedState.objects.filter(o => o.type === "annotate"), 
-      basePose: this.curFeedState.pose,
-      prevBasePose: this.prevFeedState.pose,
+  nextFrame() {
+    if (this.frameId === this.maxOfflineFrames) {
+      console.log("no frames over", this.maxOfflineFrames)
+      return
     }
-    this.socket.emit("label_propagation", props)
-    // Reset
-    this.stateProcessed.rgbImg = true;
-    this.stateProcessed.depth = true;
-    this.stateProcessed.objects = true;
-    this.stateProcessed.pose = true;
-  }
-
-  labelPropagationReturn(res) {
+    this.frameId++
+    console.log("Next frame", this.frameId)
+    this.socket.emit("get_offline_frame", {
+      filepath: this.filepath, 
+      frameId: this.frameId
+    })
+    this.curFeedState.objects = this.offlineObjects[this.frameId] || []
     this.refs.forEach((ref) => {
       if (ref instanceof LiveObjects) {
-        for (let i = 0; i < res.length; i++) {
-          // Get rid of masks with <3 points
-          let j = 0
-          while (j < res[i].mask.length) {
-            if (!res[i].mask[j] || res[i].mask[j].length < 3) {
-              res[i].mask.splice(j, 1);
-              continue
-            }
-            j++
-          }
-          res[i].bbox = this.getNewBbox(res[i].mask)
-          ref.addObject(res[i])
-          this.curFeedState.objects.push(res[i])
-        }
+        ref.setState({
+          objects: this.curFeedState.objects,
+        });
       }
     })
-  }
 
-  checkRunLabelProp() {
-    return (
-      this.curFeedState.rgbImg && 
-      this.curFeedState.depth && 
-      this.curFeedState.objects && 
-      this.curFeedState.pose && 
-      this.prevFeedState.rgbImg && 
-      this.prevFeedState.depth && 
-      this.prevFeedState.objects && 
-      this.prevFeedState.pose && 
-      !this.stateProcessed.rgbImg && 
-      !this.stateProcessed.depth && 
-      !this.stateProcessed.objects && 
-      !this.stateProcessed.pose  
-    )
+    // Run label prop
+    let curFrameHasObjects = this.offlineObjects[this.frameId] && this.offlineObjects[this.frameId].length > 0
+    if (this.offlineObjects[this.frameId - 1] && !curFrameHasObjects) {
+      this.offlineLabelProp(this.frameId - 1, this.frameId)
+    }
   }
 
   processMemoryState(msg) {
@@ -530,14 +790,18 @@ class StateManager {
             });
           }
         }
+        if (this.offline && ref instanceof LiveObjects) {
+          ref.setState({ rgb });
+        }
       });
       // Update state
-      this.prevFeedState.rgbImg = this.curFeedState.rgbImg
-      this.curFeedState.rgbImg = res
-      this.stateProcessed.rgbImg = false
+      this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
+      this.curFeedState.rgbImg = res;
+      this.stateProcessed.rgbImg = false;
+      this.updateObjects = [true, false]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 
@@ -557,16 +821,16 @@ class StateManager {
         }
       });
       // Update state
-      this.prevFeedState.depth = this.curFeedState.depth
+      this.prevFeedState.depth = this.curFeedState.depth;
       this.curFeedState.depth = {
         depthImg: res.depthImg,
         depthMax: res.depthMax,
-        depthMin: res.depthMin
-      }
-      this.stateProcessed.depth = false
+        depthMin: res.depthMin,
+      };
+      this.stateProcessed.depth = false;
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 
@@ -582,23 +846,43 @@ class StateManager {
     let rgb = new Image();
     rgb.src = "data:image/webp;base64," + res.image.rgb;
 
-    res.objects.forEach(o => {
-      o["type"] = "detector"
-    })
+    // Get rid of empty masks
+    let i = 0;
+    while (i < res.objects.length) {
+      let j = 0;
+      while (j < res.objects[i].mask.length) {
+        if (!res.objects[i].mask[j] || res.objects[i].mask[j].length < 3) {
+          res.objects[i].mask.splice(j, 1);
+          continue;
+        }
+        j++;
+      }
+      if (res.objects[i].mask.length == 0) {
+        res.objects.splice(i, 1);
+        continue;
+      }
+      i++;
+    }
+    res.objects.forEach((o) => {
+      o["type"] = "detector";
+    });
 
     // If new objects, update state and feed
-    if (JSON.stringify(this.curFeedState.origObjects) !== JSON.stringify(res.objects)) {
-      this.prevFeedState.objects = this.curFeedState.objects
-      this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)) // deep clone
-      this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)) // deep clone
-      this.stateProcessed.objects = false
+    if (
+      this.updateObjects[1] // Frame after rgb changes
+    ) {
+      this.prevFeedState.objects = this.curFeedState.objects;
+      this.curFeedState.objects = JSON.parse(JSON.stringify(res.objects)); // deep clone
+      this.curFeedState.origObjects = JSON.parse(JSON.stringify(res.objects)); // deep clone
+      this.stateProcessed.objects = false;
+      this.updateObjects = [false, false];
 
       this.refs.forEach((ref) => {
         if (ref instanceof LiveObjects) {
           ref.setState({
             objects: res.objects,
             rgb: rgb,
-          })
+          });
         } else if (ref instanceof MobileMainPane) {
           // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
           ref.setState({
@@ -606,9 +890,13 @@ class StateManager {
           });
         }
       });
+    } 
+    if (this.updateObjects[0]) {
+      // Current frame is when rgb changes. This is needed to ensure correctness
+      this.updateObjects[1] = true 
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 
@@ -642,20 +930,23 @@ class StateManager {
       }
     });
 
-    if (!this.curFeedState.pose || (res &&  
-      (res.x !== this.curFeedState.pose.x || 
-      res.y !== this.curFeedState.pose.y || 
-      res.yaw !== this.curFeedState.pose.yaw))) {
-      this.prevFeedState.pose = this.curFeedState.pose
+    if (
+      !this.curFeedState.pose ||
+      (res &&
+        (res.x !== this.curFeedState.pose.x ||
+          res.y !== this.curFeedState.pose.y ||
+          res.yaw !== this.curFeedState.pose.yaw))
+    ) {
+      this.prevFeedState.pose = this.curFeedState.pose;
       this.curFeedState.pose = {
-        x: res.x, 
-        y: res.y, 
-        yaw: res.yaw, 
-      }
-      this.stateProcessed.pose = false
+        x: res.x,
+        y: res.y,
+        yaw: res.yaw,
+      };
+      this.stateProcessed.pose = false;
     }
     if (this.checkRunLabelProp()) {
-      this.startLabelPropagation()
+      this.startLabelPropagation();
     }
   }
 

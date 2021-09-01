@@ -2,11 +2,6 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 */
 
-.Navbar {
-  position: fixed;
-  bottom: 0px;
-}
-
 .button {
   background-color: white;
   color: black;

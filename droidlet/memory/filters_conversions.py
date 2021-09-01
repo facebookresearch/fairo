@@ -69,6 +69,7 @@ def convert_triple_to_comparator(triple):
         }
     return c
 
+
 def sqlyify_where_clause(c):
     """
     c should be a dict of of the (recursive) form {"AND"/"OR"/"NOT": [clause_0, ... , clause_m]}, 

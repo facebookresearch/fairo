@@ -5,28 +5,23 @@
 from __future__ import annotations
 
 import os
-import subprocess
-
 import torch
+from polymetis.utils.data_dir import PKG_ROOT_DIR
 
 
 try:
     torch.ops.load_library(f"{os.environ['CONDA_PREFIX']}/lib/libtorchrot.so")
 except OSError:
-    print(
-        "Warning: Failed to load 'libtorchrot.so' from CONDA_PREFIX, loading from default build directory 'polymetis/build' instead..."
-    )
-    project_root_dir = (
-        subprocess.run(["git", "rev-parse", "--show-toplevel"], stdout=subprocess.PIPE)
-        .stdout.strip()
-        .decode("ascii")
-    )
-    torch.ops.load_library(
+    lib_path = os.path.abspath(
         os.path.join(
-            project_root_dir,
-            "polymetis/polymetis/build/libtorchrot.so",
+            PKG_ROOT_DIR,
+            "../../build/libtorchrot.so",
         )
     )
+    print(
+        f"Warning: Failed to load 'libtorchrot.so' from CONDA_PREFIX, loading from default build directory instead: '{lib_path}'"
+    )
+    torch.ops.load_library(lib_path)
 
 functional = torch.ops.torchrot
 

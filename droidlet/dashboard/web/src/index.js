@@ -25,6 +25,8 @@ import {
   TimelineResults,
   TimelineDetails,
 } from "./components/Timeline";
+import Retrainer from "./components/Retrainer";
+import OfflinePanel from "./components/OfflinePanel";
 import { isMobile } from "react-device-detect";
 
 import "./index.css";
@@ -109,11 +111,10 @@ var config = {
                           props: { stateManager: stateManager },
                         },
                         {
-                          title: "Details",
-                          cssClass: "scrollable",
-                          type: "react-component",
-                          component: "TimelineDetails",
-                          props: { stateManager: stateManager },
+                          type: "stack",
+                          id: "timelineDetails",
+                          // empty content to be populated with detail panes on click
+                          content: [],
                         },
                       ],
                     },
@@ -150,6 +151,18 @@ var config = {
                   component: "ObjectFixup",
                   props: { stateManager: stateManager },
                 },
+                {
+                  title: "Retrainer",
+                  type: "react-component",
+                  component: "Retrainer",
+                  props: { stateManager: stateManager },
+                },
+                {
+                  title: "Offline",
+                  type: "react-component",
+                  component: "OfflinePanel",
+                  props: { stateManager: stateManager },
+                },
               ],
             },
           ],
@@ -174,6 +187,8 @@ dashboardLayout.registerComponent("MemoryDetail", MemoryDetail);
 dashboardLayout.registerComponent("DashboardTimeline", DashboardTimeline);
 dashboardLayout.registerComponent("TimelineResults", TimelineResults);
 dashboardLayout.registerComponent("TimelineDetails", TimelineDetails);
+dashboardLayout.registerComponent("Retrainer", Retrainer);
+dashboardLayout.registerComponent("OfflinePanel", OfflinePanel);
 
 // allows for css styling, e.g. to be scrollable
 dashboardLayout.on("itemCreated", function (item) {

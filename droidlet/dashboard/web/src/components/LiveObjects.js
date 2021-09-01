@@ -32,13 +32,28 @@ class LiveObjects extends React.Component {
     this.addObject = this.addObject.bind(this);
     this.onResize = this.onResize.bind(this);
     this.onFixup = this.onFixup.bind(this);
+    this.onAnnotationSave = this.onAnnotationSave.bind(this);
+    this.onModelSwitch = this.onModelSwitch.bind(this);
+    this.onPrevFrame = this.onPrevFrame.bind(this);
+    this.onNextFrame = this.onNextFrame.bind(this);
+
     this.initialState = {
       height: props.height,
       width: props.width,
       rgb: null,
       objects: null,
+      modelMetrics: null,
+      offline: false,
+      updateFixup: false,
     };
     this.state = this.initialState;
+  }
+
+  componentDidUpdate() {
+    if (this.state.updateFixup) {
+      this.onFixup()
+      this.setState({ updateFixup: false })
+    }
   }
 
   addObject(object) {
@@ -97,6 +112,31 @@ class LiveObjects extends React.Component {
           }
         }
       }
+    }
+  }
+
+  onAnnotationSave() {
+    if (this.props.stateManager) {
+      this.props.stateManager.onSave()
+    }
+  }
+
+  onModelSwitch() {
+    if (this.props.stateManager) {
+      console.log("switching model...")
+      this.props.stateManager.socket.emit("switch_detector")
+    }
+  }
+
+  onPrevFrame() {
+    if (this.props.stateManager) {
+      this.props.stateManager.previousFrame()
+    }
+  }
+
+  onNextFrame() {
+    if (this.props.stateManager) {
+      this.props.stateManager.nextFrame()
     }
   }
 
@@ -171,15 +211,15 @@ class LiveObjects extends React.Component {
         />
       );
       if (obj && obj.mask) {
-        for (let i = 0; i < obj.mask.length; i++) {
-          let mask = obj.mask[i].map((x) => [x[0] * scale, x[1] * scale]);
+        for (let j = 0; j < obj.mask.length; j++) {
+          let mask = obj.mask[j].map((x) => [x[0] * scale, x[1] * scale]);
           renderedObjects.push(
             <Shape
               sceneFunc={(context, shape) => {
                 context.beginPath();
                 context.moveTo(...mask[0]);
-                for (let i = 1; i < mask.length; i++) {
-                  context.lineTo(...mask[i]);
+                for (let k = 1; k < mask.length; k++) {
+                  context.lineTo(...mask[k]);
                 }
                 context.closePath();
                 context.fillStrokeShape(shape);
@@ -188,11 +228,20 @@ class LiveObjects extends React.Component {
               opacity={0.5}
               stroke={obj.type === "detector" ? "white" : "black"}
               strokeWidth={1}
+              key={`${i}-${j}`}
             />
           );
         }
       }
     });
+
+    let offlineButtons = null
+    if (this.state.offline) {
+      offlineButtons = <span style={{ float: "right" }}>
+        <button onClick={this.onPrevFrame}>{"<-"}</button>
+        <button onClick={this.onNextFrame}>{"->"}</button>
+      </span>
+    }
 
     return (
       <Rnd
@@ -212,6 +261,8 @@ class LiveObjects extends React.Component {
           </Layer>
         </Stage>
         <button onClick={this.onFixup}>Fix</button>
+        <button onClick={this.onAnnotationSave}>Save</button>
+        {offlineButtons}
       </Rnd>
     );
   }

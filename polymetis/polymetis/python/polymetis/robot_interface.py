@@ -131,6 +131,12 @@ class BaseRobotInterface:
         """Returns the latest RobotState."""
         return self.grpc_connection.GetRobotState(EMPTY)
 
+    def get_previous_interval(self, timeout: float = None) -> LogInterval:
+        """Get the log indices associated with the currently running policy."""
+        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
+        assert log_interval.start != -1, "Cannot find previous episode."
+        return log_interval
+
     def get_previous_log(self, timeout: float = None) -> List[RobotState]:
         """Get the list of RobotStates associated with the currently running policy.
 
@@ -141,8 +147,7 @@ class BaseRobotInterface:
             If successful, returns a list of RobotState objects.
 
         """
-        log_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
-        assert log_interval.start != -1, "Cannot find previous episode."
+        log_interval = self.get_previous_interval(timeout)
         return self._get_robot_state_log(log_interval, timeout=timeout)
 
     def send_torch_policy(
@@ -258,7 +263,7 @@ class RobotInterface(BaseRobotInterface):
 
         with tempfile.NamedTemporaryFile("w+") as urdf_file:
             urdf_file.write(self.metadata.urdf_file)
-            self.set_robot_model(urdf_file.name, self.metadata.ee_joint_name)
+            self.set_robot_model(urdf_file.name, self.metadata.ee_link_name)
 
         self.set_home_pose(torch.Tensor(self.metadata.rest_pose))
 
@@ -278,11 +283,11 @@ class RobotInterface(BaseRobotInterface):
         """Sets the home pose for `go_home()` to use."""
         self.home_pose = home_pose
 
-    def set_robot_model(self, robot_description_path: str, ee_joint_name: str):
+    def set_robot_model(self, robot_description_path: str, ee_link_name: str):
         """Loads the URDF as a RobotModelPinocchio."""
         # Create Torchscript Pinocchio model for DynamicsControllers
         self.robot_model = toco.models.RobotModelPinocchio(
-            robot_description_path, ee_joint_name
+            robot_description_path, ee_link_name
         )
 
     """
@@ -328,7 +333,7 @@ class RobotInterface(BaseRobotInterface):
         """Uses JointGoToPolicy to move to the desired positions with the given gains."""
         assert (
             self.robot_model is not None
-        ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_joint_name>)' to enable use of dynamics controllers"
+        ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
         if time_to_go is None:
             time_to_go = self.time_to_go_default
@@ -378,7 +383,7 @@ class RobotInterface(BaseRobotInterface):
         """Uses OperationalSpaceController to move to a desired end-effector position (and, optionally orientation)."""
         assert (
             self.robot_model is not None
-        ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_joint_name>)' to enable use of dynamics controllers"
+        ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
         if time_to_go is None:
             time_to_go = self.time_to_go_default

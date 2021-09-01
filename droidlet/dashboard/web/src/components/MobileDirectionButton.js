@@ -65,25 +65,25 @@ class MobileDirectionButton extends React.Component {
           className="directionButton left"
           onClick={() => this.addCommand("MOVE_LEFT")}
         >
-          LEFT
+          Turn Left
         </button>
         <button
           className="directionButton up"
           onClick={() => this.addCommand("MOVE_FORWARD")}
         >
-          UP
+          Forward
         </button>
         <button
           className="directionButton down"
           onClick={() => this.addCommand("MOVE_DOWN")}
         >
-          DOWN
+          Backward
         </button>
         <button
           className="directionButton right"
           onClick={() => this.addCommand("MOVE_RIGHT")}
         >
-          RIGHT
+          Turn Right
         </button>
       </div>
     );

@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 from typing import List
 import logging
-from os import path
+import os
 
 import numpy as np
 import pybullet
@@ -37,6 +37,7 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         robot_model_cfg: DictConfig,
         gui: bool,
         use_grav_comp: bool = True,
+        gravity: float = 9.81,
     ):
         self.robot_model_cfg = robot_model_cfg
         self.robot_description_path = get_full_path_to_urdf(
@@ -48,12 +49,12 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         self.n_dofs = self.robot_model_cfg.num_dofs
         assert len(self.controlled_joints) == self.n_dofs
         self.ee_link_idx = self.robot_model_cfg.ee_link_idx
-        self.ee_joint_name = self.robot_model_cfg.ee_joint_name
+        self.ee_link_name = self.robot_model_cfg.ee_link_name
         self.rest_pose = self.robot_model_cfg.rest_pose
         self.joint_limits_low = np.array(self.robot_model_cfg.joint_limits_low)
         self.joint_limits_high = np.array(self.robot_model_cfg.joint_limits_high)
         if self.robot_model_cfg.joint_damping is None:
-            self.joint_damping = np.zeros(self.n_dofs)
+            self.joint_damping = None
         else:
             self.joint_damping = np.array(self.robot_model_cfg.joint_damping)
         if self.robot_model_cfg.torque_limits is None:
@@ -68,10 +69,20 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         else:
             self.sim = BulletClient(connection_mode=pybullet.DIRECT)
 
+        self.sim.setGravity(0, 0, -gravity)
+
         # Load robot
-        self.world_id, self.robot_id = self.load_robot_description_from_urdf(
-            self.robot_description_path, self.sim
-        )
+        ext = os.path.splitext(self.robot_description_path)[-1][1:]
+        if ext == "urdf":
+            self.world_id, self.robot_id = self.load_robot_description_from_urdf(
+                self.robot_description_path, self.sim
+            )
+        elif ext == "sdf":
+            self.world_id, self.robot_id = self.load_robot_description_from_sdf(
+                self.robot_description_path, self.sim
+            )
+        else:
+            raise Exception(f"Unknown robot definition extension {ext}!")
 
         # Enable torque control
         self.sim.setJointMotorControlArray(
@@ -97,6 +108,18 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             useFixedBase=True,
             flags=pybullet.URDF_USE_INERTIA_FROM_FILE,
         )
+
+        pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
+        world_id = pybullet.loadURDF("plane.urdf", [0.0, 0.0, 0.0])
+        return world_id, robot_id
+
+    @staticmethod
+    def load_robot_description_from_sdf(abs_urdf_path: str, sim: BulletClient):
+        """Loads a SDF file into the simulation."""
+        log.info("loading sdf file: {}".format(abs_urdf_path))
+        robot_id = sim.loadSDF(
+            abs_urdf_path,
+        )[0]
 
         pybullet.setAdditionalSearchPath(pybullet_data.getDataPath())
         world_id = pybullet.loadURDF("plane.urdf", [0.0, 0.0, 0.0])
@@ -228,15 +251,17 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             target_position = target_position.tolist()
         if isinstance(target_orientation, np.ndarray):
             target_orientation = target_orientation.tolist()
-        joint_des_pos = self.sim.calculateInverseKinematics(
-            self.robot_id,
-            self.ee_link_idx,
-            target_position,
+        ik_kwargs = dict(
+            bodyUniqueId=self.robot_id,
+            endEffectorLinkIndex=self.ee_link_idx,
+            targetPosition=target_position,
             targetOrientation=target_orientation,
             upperLimits=self.joint_limits_high.tolist(),
             lowerLimits=self.joint_limits_low.tolist(),
-            jointDamping=self.joint_damping.tolist(),
         )
+        if self.joint_damping is not None:
+            ik_kwargs["joint_damping"] = self.joint_damping.tolist()
+        joint_des_pos = self.sim.calculateInverseKinematics(**ik_kwargs)
         return np.array(joint_des_pos)
 
     def compute_inverse_dynamics(

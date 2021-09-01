@@ -42,7 +42,7 @@ sleep 4
 # Run RobotInterface tests (previous agent.py tests)
 echo "=== Running controller tests in simulation to check tracking... ==="
 for entry in "tests/scripts"/*; do
-    if [ ${entry: -3} == ".py" ]; then
+    if [[ ${entry: -3} == ".py" && ${entry: -6} != "_hw.py" ]]; then
         echo $entry
         python $entry
     fi

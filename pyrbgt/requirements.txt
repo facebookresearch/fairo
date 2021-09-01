@@ -1,0 +1,4 @@
+matplotlib~=3.4.2
+opencv-python~=4.5.3
+plotly~=5.1.0
+scipy~=1.7.1

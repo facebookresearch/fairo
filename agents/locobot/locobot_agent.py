@@ -10,18 +10,13 @@ import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
-import base64
-import cv2
-from imantics import Mask, Polygons
-import numpy as np
+import shutil
 
 from droidlet import dashboard
-
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
     dashboard.start()
-
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
@@ -29,6 +24,7 @@ from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
+import agents.locobot.label_prop as LP
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
@@ -44,7 +40,6 @@ from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
-from droidlet.perception.robot import LabelPropagate
 
 faulthandler.register(signal.SIGUSR1)
 
@@ -88,25 +83,33 @@ class LocobotAgent(LocoMCAgent):
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
         self.interaction_logger = InteractionLogger()
-
+        if os.path.exists("annotation_data/rgb"): 
+            shutil.rmtree("annotation_data/rgb")
+        if os.path.exists("annotation_data/seg"): 
+            shutil.rmtree("annotation_data/seg")
+        
     def init_event_handlers(self):
         super().init_event_handlers()
 
         @sio.on("movement command")
-        def test_command(sid, commands):
+        def test_command(sid, commands, movement_values={}):
+            if len(movement_values) == 0: 
+                movement_values["yaw"] = 0.01
+                movement_values["velocity"] = 0.1
+
             movement = [0.0, 0.0, 0.0]
             for command in commands:
                 if command == "MOVE_FORWARD":
-                    movement[0] += 0.1
+                    movement[0] += movement_values["velocity"]
                     print("action: FORWARD")
                 elif command == "MOVE_BACKWARD":
-                    movement[0] -= 0.1
+                    movement[0] -= movement_values["velocity"]
                     print("action: BACKWARD")
                 elif command == "MOVE_LEFT":
-                    movement[2] += 0.3
+                    movement[2] += movement_values["yaw"]
                     print("action: LEFT")
                 elif command == "MOVE_RIGHT":
-                    movement[2] -= 0.3
+                    movement[2] -= movement_values["yaw"]
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
                     self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
@@ -134,62 +137,57 @@ class LocobotAgent(LocoMCAgent):
         def log_interaction_data(sid, interactionData):
             self.interaction_logger.logInteraction(interactionData)
 
+        # Returns an array of objects with updated masks
         @sio.on("label_propagation")
-        def label_propagation(sid, postData): 
-                        
-            # Decode rgb map
-            rgb_bytes = base64.b64decode(postData["prevRgbImg"])
-            rgb_np = np.frombuffer(rgb_bytes, dtype=np.uint8)
-            rgb_bgr = cv2.imdecode(rgb_np, cv2.IMREAD_COLOR)
-            rgb = cv2.cvtColor(rgb_bgr, cv2.COLOR_BGR2RGB)
-            src_img = np.array(rgb)
-            height, width, _ = src_img.shape
-
-            # Convert depth map to meters
-            depth_imgs = []
-            for i, depth in enumerate([postData["prevDepth"], postData["depth"]]): 
-                depth_encoded = depth["depthImg"]
-                depth_bytes = base64.b64decode(depth_encoded)
-                depth_np = np.frombuffer(depth_bytes, dtype=np.uint8)
-                depth_decoded = cv2.imdecode(depth_np, cv2.IMREAD_COLOR)
-                depth_unscaled = (255 - np.copy(depth_decoded[:,:,0]))
-                depth_scaled = depth_unscaled / 255 * (float(depth["depthMax"]) - float(depth["depthMin"]))
-                depth_imgs.append(depth_scaled)
-            src_depth = np.array(depth_imgs[0])
-            cur_depth = np.array(depth_imgs[1])
-
-            # Convert mask points to mask maps then combine them
-            src_label = np.zeros((height, width)).astype(int)
-            for n, o in enumerate(postData["prevObjects"]): 
-                poly = Polygons(o["mask"])
-                bitmap = poly.mask(height, width) # not np array
-                for i in range(height): 
-                    for j in range(width): 
-                        if bitmap[i][j]: 
-                            src_label[i][j] = n + 1
-
-            # Attach base pose data
-            pose = postData["prevBasePose"]
-            src_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
-            pose = postData["basePose"]
-            cur_pose = np.array([pose["x"], pose["y"], pose["yaw"]])
-            
-            LP = LabelPropagate()
-            res_labels = LP(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
-
-            # Convert mask maps to mask points
-            objects = postData["prevObjects"]
-            for i_float in np.unique(res_labels): 
-                i = int(i_float)
-                if i == 0: 
-                    continue
-                mask_points_nd = Mask(np.where(res_labels == i, 1, 0)).polygons().points
-                mask_points = list(map(lambda x: x.tolist(), mask_points_nd))
-                objects[i-1]["mask"] = mask_points
-                objects[i-1]["type"] = "annotate"
-
-            # Returns an array of objects with updated masks
+        def label_propagation(sid, postData):        
+            objects = LP.label_propagation(postData)
             sio.emit("labelPropagationReturn", objects)
+        
+        @sio.on("save_rgb_seg")
+        def save_rgb_seg(sid, postData): 
+            LP.save_rgb_seg(postData)
+            if "callback" in postData and postData["callback"]: 
+                sio.emit("saveRgbSegCallback")
+
+        @sio.on("save_annotations")
+        def save_annotations(sid, categories): 
+            LP.save_annotations(categories)
+
+
+        @sio.on("save_categories_properties")
+        def save_categories_properties(sid, categories, properties): 
+            LP.save_categories_properties(categories, properties)
+
+        @sio.on("retrain_detector")
+        def retrain_detector(sid, settings={}): 
+            inference_json = LP.retrain_detector(settings)
+            sio.emit("annotationRetrain", inference_json)
+
+        @sio.on("switch_detector")
+        def switch_detector(sid): 
+            model_dir = "annotation_data/model"
+            model_names = os.listdir(model_dir)
+            model_nums = list(map(lambda x: int(x.split("v")[1]), model_names))
+            last_model_num = max(model_nums) 
+            model_path = os.path.join(model_dir, "v" + str(last_model_num))
+            detector_weights = "model_999.pth"
+            properties_file = "props.json"
+            things_file = "things.json"
+
+            files = os.listdir(model_path)
+            if detector_weights not in files: 
+                print("Error switching model:", os.path.join(model_path, detector_weights), "not found")
+                return
+            if properties_file not in files: 
+                print("Error switching model:", os.path.join(model_path, properties_file), "not found")
+                return
+            if things_file not in files: 
+                print("Error switching model:", os.path.join(model_path, things_file), "not found")
+                return
+
+            print("switching to", model_path)
+            self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
+
 
     def init_memory(self):
         """Instantiates memory for the agent.
@@ -218,9 +216,8 @@ class LocobotAgent(LocoMCAgent):
         self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
 
     def perceive(self, force=False):
+        super().perceive(force=force, parser_only=True)
         self.perception_modules["self"].perceive(force=force)
-
-
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()
         x, y, yaw = xyz
