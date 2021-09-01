@@ -31,7 +31,7 @@ class BaseSwarmTask(Task):
     def __init__(self, agent, task_data={}, subcontrol='equal'):
         super().__init__(agent, task_data)
         # movement should be a Movement object from dance.py
-        assert hasattr(self.agent, 'swarm_workers')
+        # assert hasattr(self.agent, 'swarm_workers')
         self.num_agents = self.agent.num_agents
         self.last_stepped_time = agent.memory.get_time()
         
