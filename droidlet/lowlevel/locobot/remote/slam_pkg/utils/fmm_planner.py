@@ -15,6 +15,7 @@ class FMMPlanner(object):
         """
         self.step_size = step_size
         self.traversable = traversable
+        self.last_goal = None
 
     def set_goal(self, goal):
         """
@@ -44,7 +45,7 @@ class FMMPlanner(object):
         dist = np.pad(
             self.fmm_dist, self.step_size, "constant", constant_values=self.fmm_dist.shape[0] ** 2
         )
-        # take subset fo distance around the start, as its padded start should be corner instead of center
+        # take subset of distance around the start, as its padded start should be corner instead of center
         subset = dist[
             state[0] : state[0] + 2 * self.step_size + 1,
             state[1] : state[1] + 2 * self.step_size + 1,
@@ -52,6 +53,12 @@ class FMMPlanner(object):
 
         # find the index which has minimum distance
         (stg_x, stg_y) = np.unravel_index(np.argmin(subset), subset.shape)
-
+        # print(f'self.last_goal {self.last_goal}')
+        if self.last_goal:
+            if stg_x == self.last_goal[0] and stg_y == self.last_goal[1]:
+                print('last goal was same')
+                (stg_x, stg_y) = np.unravel_index(np.argpartition(subset, 2), subset.shape)
+                self.last_goal = (stg_x, stg_y)
+        self.last_goal = (stg_x, stg_y)
         # convert index from subset frame
         return (stg_x + state[0] - self.step_size) + 0.5, (stg_y + state[1] - self.step_size) + 0.5

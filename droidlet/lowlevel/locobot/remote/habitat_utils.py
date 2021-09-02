@@ -5,6 +5,7 @@ import habitat_sim
 import magnum as mn
 import numpy as np
 import os
+from copy import deepcopy as copy
 
 
 def reconfigure_scene(env, scene_path):
@@ -25,12 +26,25 @@ def reconfigure_scene(env, scene_path):
     agent = sim.get_agent(0)
 
     # keep the initial rotation consistent across runs
-    old_agent_state = agent.get_state()
+    agent_state = agent.get_state()
+    # print(f'\ninit agent_state {agent_state}')
+    # p = sim.pathfinder.get_random_navigable_point()
+    # print(f'\nrandom navigable point {p}')
+    # p = sim.pathfinder.get_random_navigable_point()
+    # print(f'\nrandom navigable point {p}')
+    # agent_state.position = copy(p)
+    # agent_state.sensor_states["rgb"].position = copy(p + np.array([0.0, 0.6, 0.0]))
+    # agent_state.sensor_states["depth"].position = copy(p + np.array([0.0, 0.6, 0.0]))
+    # agent_state.sensor_states["semantic"].position = copy(p + np.array([0.0, 0.6, 0.0]))
+
+
     new_agent_state = habitat_sim.AgentState()
-    new_agent_state.position = old_agent_state.position
+    new_agent_state.position = agent_state.position
     new_agent_state.rotation = np.quaternion(1.0, 0.0, 0.0, 0.0)
     agent.set_state(new_agent_state)
+
     env._robot.base.init_state = agent.get_state()
+    print(f'\nenv._robot.base.init_state {env._robot.base.init_state}')
     env.initial_rotation = new_agent_state.rotation
 
     ###########################

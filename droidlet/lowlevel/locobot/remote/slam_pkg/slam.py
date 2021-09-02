@@ -73,6 +73,11 @@ class Slam(object):
             agent_max_z=agent_max_z,
         )
 
+        self.maxx = 0
+        self.maxy = 0
+        self.minx = 0
+        self.miny = 0
+
         # initialize variable
         robot.camera.reset()
         time.sleep(2)
@@ -93,36 +98,15 @@ class Slam(object):
         )
 
         # for visualization purpose #
+        self.init_save(save_folder, save_vis)
+        self.root_folder = save_folder
         self.vis = vis
-        self.save_vis = save_vis
-        self.save_folder = save_folder
-        print(f"save_vis {save_vis}, save_folder {save_folder}")
         # to visualize robot heading
         triangle_scale = 0.5
         self.triangle_vertex = np.array([[0.0, 0.0], [-2.0, 1.0], [-2.0, -1.0]])
         self.triangle_vertex *= triangle_scale
-        if self.save_vis:
-            self.save_folder = save_folder
-            self.img_folder = os.path.join(self.save_folder, "rgb")
-            self.depth_folder = os.path.join(self.save_folder, "depth")
-            self.seg_folder = os.path.join(self.save_folder, "seg")
-            if not os.path.isdir(self.save_folder):
-                os.makedirs(self.save_folder)
-
-            if not os.path.isdir(self.img_folder):
-                os.makedirs(self.img_folder)
-
-            if not os.path.isdir(self.depth_folder):
-                os.makedirs(self.depth_folder)
-
-            if not os.path.isdir(self.seg_folder):
-                os.makedirs(self.seg_folder)
         
         self.last_pos = self.robot.base.get_state()
-
-        self.start_vis = False
-        self.vis_count = 0
-        self.skp =0
 
         # for bumper check of locobot
         if self.robot_name == "locobot":
@@ -132,12 +116,45 @@ class Slam(object):
             # for mapping refer to http://docs.ros.org/groovy/api/kobuki_msgs/html/msg/BumperEvent.html
             self.bumper_num2ang = {0: np.deg2rad(30), 1: 0, 2: np.deg2rad(-30)}
 
-        self.whole_area_explored = False
+        self.whole_area_explored = True
 
-        # for storing data
+
+    def init_save(self, save_folder, save_vis=True):
+        self.save_vis = save_vis
+        self.start_vis = False
+        self.save_folder = save_folder
+        print(f"save_vis {save_vis}, save_folder {save_folder}")
+
+        self.img_folder = os.path.join(self.save_folder, "rgb")
+        self.depth_folder = os.path.join(self.save_folder, "depth")
+        self.seg_folder = os.path.join(self.save_folder, "seg")
+        self.trav_folder = os.path.join(self.save_folder, "trav")
+
+        if not os.path.isdir(self.save_folder):
+            os.makedirs(self.save_folder)
+
+        if not os.path.isdir(self.img_folder):
+            os.makedirs(self.img_folder)
+
+        if not os.path.isdir(self.depth_folder):
+            os.makedirs(self.depth_folder)
+
+        if not os.path.isdir(self.seg_folder):
+            os.makedirs(self.seg_folder)
+        
+        if not os.path.isdir(self.trav_folder):
+            os.makedirs(self.trav_folder)
+        
+        self.vis_count = 0
+        self.active_count = 0
+        self.skp = 0
+        self.trav_count = 0
+
         self.img_count = 0
         self.pos_dic = {}
         self.exec_wait = not (self.save_vis)
+        print(f'exec_wait {self.exec_wait}')
+
 
     def set_goal(self, goal):
         """
@@ -204,15 +221,15 @@ class Slam(object):
             self.robot.camera.get_current_pcd(in_cam=False)[0], robot_state
         )
 
-        # explode the map by robot shape
+        # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
 
         # add robot collision map to traversable area
-        unknown_region = self.map_builder.map.sum(axis=-1) < 1
-        col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
-        traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
+        # unknown_region = self.map_builder.map.sum(axis=-1) < 1
+        # col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
+        # traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
         return traversable
 
     def take_step(self, step_size):
@@ -221,6 +238,7 @@ class Slam(object):
         :param step_size:
         :return:
         """
+        print(f'maxx {self.maxx}, maxy {self.maxy}, minx {self.minx}, miny {self.miny}')
         # update map
         traversable = self.update_map()
 
@@ -237,6 +255,12 @@ class Slam(object):
             self.get_rel_state(self.get_robot_global_state(), self.init_state)
         )
         self.stg = self.planner.get_short_term_goal((robot_map_loc[1], robot_map_loc[0]))
+
+        # if self.last_goal:
+        #     if stg_x == self.last_goal[0] and stg_y == self.last_goal[1]:
+        #         print('last goal was same')
+        #         (stg_x, stg_y) = self.planner.get_short_term_goal((robot_map_loc[1], robot_map_loc[0]), 2)
+        #         self.last_goal = (stg_x, stg_y)
 
         # convert goal from map space to robot space
         stg_real = self.map2real([self.stg[1], self.stg[0]])
@@ -268,14 +292,17 @@ class Slam(object):
 
         # update map
         traversable = self.update_map()
-
-        """
+        if exec:
+            print(f'finished rotation')
+        else:
+            print(f'rotation failed')
+    
         # add robot collision map to traversable area
         # commented it as on real robot this gives issue sometime
-        unknown_region = self.map_builder.map.sum(axis=-1) < 1
-        col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
-        traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
-        """
+        # unknown_region = self.map_builder.map.sum(axis=-1) < 1
+        # col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
+        # traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
+        
 
         # check whether goal is on collision
         if not np.logical_or.reduce(
@@ -284,7 +311,11 @@ class Slam(object):
             ],
             axis=(0, 1),
         ):
+            np.save(self.trav_folder + "/{:05d}.npy".format(self.trav_count), traversable)
+            print(f'trav_count {self.trav_count}')
+            self.trav_count += 1
             print("Obstacle in path")
+
         else:
             # go to the location the robot
             exec = self.robot.base.go_to_absolute(
@@ -303,7 +334,11 @@ class Slam(object):
                     self.save_rgb_depth_seg()
                 else:
                     pass
-
+        
+        if exec:
+            print(f'finished translation')
+        else:
+            print(f'translation failed')
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         print("bot_state after executing action = {}".format(robot_state))
 
@@ -329,6 +364,8 @@ class Slam(object):
                             robot_state[2] + self.bumper_num2ang[bumper_num],
                         )
                     )
+        
+        self.visualize()
 
         # return True if robot reaches within threshold
         if (
@@ -355,6 +392,11 @@ class Slam(object):
             >= self.planner.fmm_dist.max()
         ):
             print("whole area is explored")
+            np.save(self.trav_folder + "/{:05d}.npy".format(self.trav_count), traversable)
+            print(f'trav_count {self.trav_count}')
+            self.trav_count += 1
+            print(f'robot_state_map {int(robot_state_map[1]), int(robot_state_map[0])}') 
+            print(f'planner.fmm_dist {self.planner.fmm_dist[int(robot_state_map[1]), int(robot_state_map[0])]}, planner.fmm_dist.max {self.planner.fmm_dist.max()}')
             self.whole_area_explored = True
             return False
         return None
@@ -363,7 +405,8 @@ class Slam(object):
         rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
         pos = self.robot.base.get_state()
         self.skp += 1
-        if pos != self.last_pos and self.skp % 10 == 0:
+        is_active = 0 if self.goal_loc == (19, 19, 0) else 1
+        if pos[:2] != self.last_pos[:2] and self.skp % 10 == 0: # and is_active:
             self.last_pos = pos
             # store the images and depth
             cv2.imwrite(
@@ -383,7 +426,9 @@ class Slam(object):
             # store pos
             self.pos_dic[self.img_count] = copy(pos)
             self.img_count += 1
-            print(f"img_count {self.img_count}, skp {self.skp}, base_pos {pos}")
+            
+            self.active_count += is_active
+            # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
             with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
                 json.dump(self.pos_dic, fp)
 
@@ -526,6 +571,11 @@ class Slam(object):
             ]
         )
         rel_x, rel_y = np.matmul(R, np.array([rel_X, rel_Y]).reshape(-1, 1))
+        self.maxx = max(self.maxx, rel_x)
+        self.maxy = max(self.maxy, rel_y)
+        self.minx = min(self.minx, rel_x)
+        self.miny = min(self.miny, rel_y)
+
         return rel_x[0], rel_y[0], cur_state[2] - init_state[2]
 
     def get_robot_global_state(self):

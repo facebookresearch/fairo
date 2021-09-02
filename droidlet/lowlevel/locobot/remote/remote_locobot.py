@@ -9,14 +9,17 @@ from scipy.spatial.transform import Rotation
 import logging
 import os
 import json
+import random
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
 from slam_pkg.slam import Slam
+from copy import deepcopy as copy
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
+random.seed(2)
 
 @Pyro4.expose
 class RemoteLocobot(object):
@@ -57,21 +60,30 @@ class RemoteLocobot(object):
             print("backend_config", backend_config)
             self.backend_config = backend_config
             # we do it this way to have the ability to restart from the client at arbitrary times
-            self.restart_habitat()
+            self.restart_habitat()            
+
         else:
             raise RuntimeError("Unknown backend", backend)
 
+        
         # check skfmm, skimage in installed, its necessary for slam
         self._slam = Slam(self._robot, backend)
         self._slam_step_size = 25  # step size in cm
         self._done = True
+        self._slam_traj_ctr = 0
         self.backend = backend
+    
+    def restart_slam(self): # sim only
+        self.restart_habitat()
+        self._slam = Slam(self._robot, backend)
 
     def restart_habitat(self):
+        print('Restarting ')
         if hasattr(self, "_robot"):
             del self._robot
         backend_config = self.backend_config
         self._robot = Robot("habitat", common_config=backend_config)
+
         # todo: a bad package seems to override python logging after the line above is run.
         # So, all `logging.warn` and `logging.info` calls are failing to route
         # to STDOUT/STDERR after this.
@@ -661,18 +673,37 @@ class RemoteLocobot(object):
                 return False
             # grasp_pose = self._grasper.compute_grasp(dims=dims)
             # self._grasper.grasp(grasp_pose)
-            self._done = True
+            self._done = Trues
             return True
+
+    def get_distant_goal(self, x, y, t, l1_thresh=25):
+        # Get a distant goal for the slam exploration
+        # Pick a random quadrant, get 
+        while True:
+            xt = random.randint(-19, 19)
+            yt = random.randint(-19, 19)
+            d = np.linalg.norm(np.asarray([x,y]) - np.asarray([xt,yt]), ord=1)
+            if d > l1_thresh:
+                return (xt, yt, 0)
 
     # slam wrapper
     def explore(self):
         if self._done:
             self._done = False
             if not self._slam.whole_area_explored:
-                self._slam.set_goal(
-                    (19, 19, 0)
-                )  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.take_step(self._slam_step_size)
+            else:
+                self._slam_traj_ctr += 1
+                save_folder = os.path.join(self._slam.root_folder, str(self._slam_traj_ctr))
+                self._slam.init_save(save_folder)
+                x,y,t = self._slam.get_rel_state(self._slam.get_robot_global_state(), self._slam.init_state)
+                print(f'x {x}, y {y}, t {t}')
+                goal = self.get_distant_goal(x,y,t)
+                print(f'setting slam goal {goal}')
+                self._slam.set_goal(goal)  # set  far away goal for exploration, default map size [-20,20]
+                self._slam.whole_area_explored = False
+                # Reset map
+                self._slam.map_builder.reset_map(map_size=4000)
             self._done = True
             return True
 

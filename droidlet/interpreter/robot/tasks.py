@@ -395,7 +395,7 @@ class CuriousExplore(Task):
                         # check for line of sight and if within a certain distance
                         yaw_rad, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], x['xyz'])
                         dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
-                        if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 5:
+                        if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 3:
                             logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
                             return x
                 return None
@@ -410,7 +410,7 @@ class CuriousExplore(Task):
             return
 
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
-            self.logger.info(f"CuriousExplore exploration step")
+            # self.logger.info(f"CuriousExplore exploration step")
             self.agent.mover.explore()
             self.steps[1] = "finished"
         else:
