@@ -1,4 +1,3 @@
-from agents.craftassist.craftassist_swarm_master import CraftAssistSwarmMaster
 import os
 import logging
 from agents.craftassist.craftassist_agent import CraftAssistAgent
@@ -20,6 +19,7 @@ from droidlet.memory.craftassist.swarm_worker_memory import SwarmWorkerMemory
 from droidlet.lowlevel.minecraft.mc_util import MCTime
 from agents.argument_parser import ArgumentParser
 import subprocess
+import pdb, sys
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
@@ -38,6 +38,19 @@ TASK_INFO = {
     "dig": ["origin", "length", "width", "depth"]
 }
 
+
+class ForkedPdb(pdb.Pdb):
+    """A Pdb subclass that may be used
+    from a forked multiprocessing child
+    """
+
+    def interaction(self, *args, **kwargs):
+        _stdin = sys.stdin
+        try:
+            sys.stdin = open("/dev/stdin")
+            pdb.Pdb.interaction(self, *args, **kwargs)
+        finally:
+            sys.stdin = _stdin
 
 class SwarmMasterWrapper():
     def __init__(self, base_agent, worker_agents, opts) -> None:
@@ -139,12 +152,6 @@ class SwarmMasterWrapper():
             for new_task in task_list:
                 self.swarm_workers[i].input_tasks.put(new_task)
 
-    def assign_task_to_worker(self, i, task_name, task_data):
-        if i == 0:
-            TASK_MAP[task_name](self, task_data)
-        else:
-            self.swarm_workers[i-1].input_tasks.put((task_name, task_data, None))
-
     def update_tasks_with_worker_data(self):
         for i in range(self.num_workers):
             flag = True
@@ -225,8 +232,7 @@ class SwarmWorkerWrapper(Process):
         agent.task_ghosts = []
         agent.prio = dict()
         agent.running = dict()
-        self.pause = dict()
-        agent.pause = False
+        agent.pause = dict()
         agent.memory_send_queue = self.memory_send_queue
         agent.memory_receive_queue = self.memory_receive_queue
         agent.query_from_worker = self.query_from_worker
@@ -255,6 +261,10 @@ class SwarmWorkerWrapper(Process):
         else:
             logging.info("agent type not implemented for swarm")
             raise NotImplementedError
+        
+        # controller
+        if 'craft' in self.agent_type:
+            agent.disable_chat = True
     
     def check_task_info(self, task_name, task_data):
         if task_name not in TASK_INFO.keys():
@@ -334,7 +344,7 @@ class SwarmWorkerWrapper(Process):
         task_updates = []
         finished_task_memids = []
         for memid, task in agent.task_stacks.items():
-            pre_task_status = (agent.prio[memid], agent.running[memid], agent.finished)
+            pre_task_status = (agent.prio[memid], agent.running[memid], task.finished)
             if agent.prio[memid] == -1:
                 if task.init_condition.check():
                     agent.prio[memid] = 0
