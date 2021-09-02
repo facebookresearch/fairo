@@ -308,7 +308,7 @@ if __name__ == "__main__":
     scene_stored_path = args.scene_path
     for scene in ['apartment_0']:
     # for scene in os.listdir(scene_stored_path):
-        root_path = os.path.join(scene_stored_path, scene)
+        root_path = os.path.join(scene_stored_path)
         out_dir = args.out_dir #os.path.join(root_path, args.out_dir)
         ray.shutdown()
         # use all avialeble cpus -1
