@@ -33,7 +33,7 @@ MODELS_DIRNAME=models_folder
 
 cd $ROOTDIR
 
-if [ $3 == "nsp" ]; then
+if [ "$3" == "nsp" ]; then
 	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz ======"
 	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz 
 
@@ -48,7 +48,7 @@ if [ $3 == "nsp" ]; then
 	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
 fi
 
-if [ $3 == "locobot" ]; then
+if [ "$3" == "locobot" ]; then
 	echo "Now downloading robot models"
 	LOCO_CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt"
 	LOCO_CHECKSUM=`cat $LOCO_CHECKSUM_FILE` 
