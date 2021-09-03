@@ -84,7 +84,8 @@ common_functional_commands = {
                             ]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "ALLOWED",
                         },
                     }
@@ -164,7 +165,8 @@ common_functional_commands = {
                             ]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "ALLOWED",
                         },
                     }
@@ -358,7 +360,8 @@ common_functional_commands = {
                             "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "DISALLOWED",
                         },
                     }
@@ -596,7 +599,8 @@ common_functional_commands = {
                             "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "ALLOWED",
                         },
                     }
@@ -740,9 +744,9 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "NAME"},
             "selector": {
+                "ordinal": {"fixed_value": "FIRST"},
                 "return_quantity": {
                     "argval": {
-                        "ordinal": {"fixed_value": "FIRST"},
                         "polarity": "MIN",
                         "quantity": {
                             "attribute": {
@@ -853,9 +857,9 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "NAME"},
             "selector": {
+                "ordinal": {"fixed_value": "FIRST"},
                 "return_quantity": {
                     "argval": {
-                        "ordinal": {"fixed_value": "FIRST"},
                         "polarity": "MIN",
                         "quantity": {
                             "attribute": {

@@ -52,11 +52,11 @@ FILTERS = {
     },
     "a cow": {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cow"}]}},
     "a random cube": {
-        "selector": {"return_quantity": {"random": "1"}},
+        "selector": {"return_quantity": "RANDOM", "ordinal": "1"},
         "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]},
     },
     "two random cubes": {
-        "selector": {"return_quantity": {"random": "2"}},
+        "selector": {"return_quantity": "RANDOM", "ordinal": "2"},
         "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]},
     },
     "a cube": {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]}},
@@ -100,64 +100,39 @@ ATTRIBUTES["distance from that cube"] = {
 # FIXME "built" should check for player made or agent made
 FILTERS["the first thing that was built"] = {
     "selector": {
-        "return_quantity": {
-            "argval": {
-                "polarity": "MIN",
-                "ordinal": "FIRST",
-                "quantity": ATTRIBUTES["create time"],
-            }
-        }
+        "ordinal": "FIRST",
+        "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
     "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
 }
 FILTERS["the last thing that was built"] = {
     "selector": {
-        "return_quantity": {
-            "argval": {
-                "polarity": "MAX",
-                "ordinal": "FIRST",
-                "quantity": ATTRIBUTES["create time"],
-            }
-        }
+        "ordinal": "FIRST",
+        "return_quantity": {"argval": {"polarity": "MAX", "quantity": ATTRIBUTES["create time"]}},
     },
     "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the first thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
     "selector": {
-        "return_quantity": {
-            "argval": {
-                "polarity": "MIN",
-                "ordinal": "FIRST",
-                "quantity": ATTRIBUTES["create time"],
-            }
-        }
+        "ordinal": "FIRST",
+        "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
     "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the second thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
     "selector": {
-        "return_quantity": {
-            "argval": {
-                "polarity": "MIN",
-                "ordinal": "SECOND",
-                "quantity": ATTRIBUTES["create time"],
-            }
-        }
+        "ordinal": "SECOND",
+        "return_quantity": {"argval": {"polarity": "MIN", "quantity": ATTRIBUTES["create time"]}},
     },
     "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
 }
 FILTERS["number of blocks in the last thing built"] = {
     "output": {"attribute": ATTRIBUTES["number of blocks"]},
     "selector": {
-        "return_quantity": {
-            "argval": {
-                "polarity": "MAX",
-                "ordinal": "FIRST",
-                "quantity": ATTRIBUTES["create time"],
-            }
-        }
+        "ordinal": "FIRST",
+        "return_quantity": {"argval": {"polarity": "MAX", "quantity": ATTRIBUTES["create time"]}},
     },
     "where_clause": {"AND": [{"pred_text": "has_tag", "obj_text": "VOXEL_OBJECT"}]},
 }
@@ -176,7 +151,7 @@ INTERPRETER_POSSIBLE_ACTIONS = {
         "reference_object": {
             "filters": {
                 "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "sheep"}]},
-                "selector": {"return_quantity": {"random": "5"}, "same": "ALLOWED"},
+                "selector": {"ordinal": "5", "return_quantity": "RANDOM", "same": "ALLOWED"},
             },
             "text_span": "sheep",
         },
@@ -928,9 +903,9 @@ GET_MEMORY_COMMANDS = {
         "filters": {
             "output": {"attribute": "name"},
             "selector": {
+                "ordinal": "FIRST",
                 "return_quantity": {
                     "argval": {
-                        "ordinal": "FIRST",
                         "polarity": "MIN",
                         "quantity": {
                             "attribute": {
@@ -940,7 +915,7 @@ GET_MEMORY_COMMANDS = {
                             }
                         },
                     }
-                }
+                },
             },
         },
     },
@@ -949,9 +924,9 @@ GET_MEMORY_COMMANDS = {
         "filters": {
             "output": {"attribute": "name"},
             "selector": {
+                "ordinal": "FIRST",
                 "return_quantity": {
                     "argval": {
-                        "ordinal": "FIRST",
                         "polarity": "MIN",
                         "quantity": {
                             "attribute": {
@@ -963,7 +938,7 @@ GET_MEMORY_COMMANDS = {
                             }
                         },
                     }
-                }
+                },
             },
         },
     },

@@ -42,23 +42,19 @@ def number_from_span(s):
             return
     return n
 
+
 def hash_user(username):
     """Encrypt username"""
     # uuid is used to generate a random number
     salt = uuid.uuid4().hex
     return hashlib.sha256(salt.encode() + username.encode()).hexdigest() + ":" + salt
 
+
 def check_username(hashed_username, username):
     """Compare the username with the hash to check if they
     are same"""
     user, salt = hashed_username.split(":")
     return user == hashlib.sha256(salt.encode() + username.encode()).hexdigest()
-
-
-def get_bounds(locs):
-    M = np.max(locs, axis=0)
-    m = np.min(locs, axis=0)
-    return m[0], M[0], m[1], M[1], m[2], M[2]
 
 
 def group_by(items, key_fn):
@@ -205,9 +201,7 @@ def arrange(arrangement, schematic=None, shapeparams={}):
         if orient == "yz":
             offsets = [np.round(np.asarray(0, offsets[i][0], offsets[i][2])) for i in range(N)]
         if orient == "xz":
-            offsets = [
-                np.round(np.asarray((offsets[i][0], offsets[i][2], 0))) for i in range(N)
-            ]
+            offsets = [np.round(np.asarray((offsets[i][0], offsets[i][2], 0))) for i in range(N)]
     elif arrangement == "line":
         orient = shapeparams.get("orient")  # this is a vector here
         b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])

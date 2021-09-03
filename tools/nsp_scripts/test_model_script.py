@@ -19,7 +19,7 @@ from droidlet.perception.semantic_parsing.nsp_transformer_model.caip_dataset imp
 from pprint import pprint
 
 map_location = None if torch.cuda.is_available() else torch.device("cpu")
-model_dir = "craftassist/agent/models/semantic_parser/ttad_bert_updated/"
+model_dir = "agents/craftassist/models/semantic_parser/ttad_bert_updated/"
 sd, tree_voc, tree_idxs, args, full_tree_voc = load_model(model_dir)
 decoder_with_loss, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
 encoder_decoder.load_state_dict(sd, strict=True)

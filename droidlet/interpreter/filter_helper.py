@@ -138,14 +138,7 @@ def interpret_random_selector(interpreter, speaker, selector_d):
     """
     returns a RandomMemorySelector from the selector_d
     """
-    return_d = selector_d.get("return_quantity", {})
-    random_num = return_d.get("random")
-    if not random_num:
-        raise Exception(
-            "tried to build random selector from logical form without random clause {}".format(
-                selector_d
-            )
-        )
+    random_num = selector_d.get("ordinal", 1)
     n = number_from_span(random_num)
     try:
         n = int(n)
@@ -224,15 +217,14 @@ def interpret_selector(interpreter, speaker, selector_d):
         if return_d == "ALL":
             # no selector, just return everything
             pass
+        elif return_d == "RANDOM":
+            selector = interpret_random_selector(interpreter, speaker, selector_d)
         else:
             raise Exception("malformed selector dict {}".format(selector_d))
     else:
         argval_d = return_d.get("argval")
-        random_num = return_d.get("random")
         if argval_d:
             selector = interpret_argval_selector(interpreter, speaker, selector_d)
-        elif random_num:
-            selector = interpret_random_selector(interpreter, speaker, selector_d)
         else:
             raise Exception("malformed selector dict {}".format(selector_d))
     return selector
