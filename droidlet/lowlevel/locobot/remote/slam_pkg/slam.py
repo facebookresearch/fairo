@@ -406,7 +406,7 @@ class Slam(object):
         pos = self.robot.base.get_state()
         self.skp += 1
         is_active = 0 if self.goal_loc == (19, 19, 0) else 1
-        if pos[:2] != self.last_pos[:2] and self.skp % 10 == 0: # and is_active:
+        if pos != self.last_pos and self.skp % 10 == 0: # and is_active:
             self.last_pos = pos
             # store the images and depth
             cv2.imwrite(
@@ -428,7 +428,7 @@ class Slam(object):
             self.img_count += 1
             
             self.active_count += is_active
-            # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
+            print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
             with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
                 json.dump(self.pos_dic, fp)
 

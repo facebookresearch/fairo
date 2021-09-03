@@ -19,7 +19,7 @@ from copy import deepcopy as copy
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
-random.seed(2)
+# random.seed(30)
 
 @Pyro4.expose
 class RemoteLocobot(object):
@@ -692,7 +692,7 @@ class RemoteLocobot(object):
             self._done = False
             if not self._slam.whole_area_explored:
                 self._slam.take_step(self._slam_step_size)
-            else:
+            elif self._slam_traj_ctr < 200:
                 self._slam_traj_ctr += 1
                 save_folder = os.path.join(self._slam.root_folder, str(self._slam_traj_ctr))
                 self._slam.init_save(save_folder)
