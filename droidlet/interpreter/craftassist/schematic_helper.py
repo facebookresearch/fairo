@@ -245,7 +245,7 @@ def interpret_schematic(
     flattened_clauses = get_flattened_clauses(filters_d)
     shape = get_properties_from_clauses(flattened_clauses, ["has_shape"]).get("has_shape")
     # AND this FIXME, not using selector properly
-    repeat = filters_d.get("selector", {}).get("return_quantity", {}).get("random", "1")
+    repeat = filters_d.get("selector", {}).get("ordinal", "1")
     repeat = int(number_from_span(repeat))
     if shape:
         blocks, tags = interpret_shape_schematic(
