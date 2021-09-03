@@ -156,6 +156,9 @@ class Slam(object):
         print(f'exec_wait {self.exec_wait}')
 
 
+    def explore_goal(self, goal):
+        self.explore_goal = goal
+
     def set_goal(self, goal):
         """
         goal is 3 len tuple with position in real world in robot start frame
@@ -405,8 +408,8 @@ class Slam(object):
         rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
         pos = self.robot.base.get_state()
         self.skp += 1
-        is_active = 0 if self.goal_loc == (19, 19, 0) else 1
-        if pos != self.last_pos and self.skp % 10 == 0: # and is_active:
+        is_active = 0 if self.goal_loc == self.explore_goal else 1
+        if pos != self.last_pos and self.skp % 10 == 0 and is_active:
             self.last_pos = pos
             # store the images and depth
             cv2.imwrite(

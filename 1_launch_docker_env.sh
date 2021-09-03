@@ -1,4 +1,4 @@
-heu=default #default straightline
+heu=straightline #default straightline
 scene=apartment_0 # apartment_0 room_0 office_2
 x=noise # no_noise noise
 datetime=mul_traj_200 #$(date +%s)

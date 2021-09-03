@@ -700,6 +700,7 @@ class RemoteLocobot(object):
                 print(f'x {x}, y {y}, t {t}')
                 goal = self.get_distant_goal(x,y,t)
                 print(f'setting slam goal {goal}')
+                self._slam.explore_goal(goal)
                 self._slam.set_goal(goal)  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.whole_area_explored = False
                 # Reset map
