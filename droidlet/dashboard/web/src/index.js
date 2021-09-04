@@ -14,6 +14,7 @@ import Settings from "./components/Settings";
 import Navigator from "./components/Navigator";
 import Memory2D from "./components/Memory2D";
 import MemoryList from "./components/MemoryList";
+import World3D from "./components/World3D";
 import QuerySemanticParser from "./components/QuerySemanticParser";
 import History from "./components/History";
 import TeachApp from "./components/TeachApp/TeachApp";
@@ -60,6 +61,12 @@ var config = {
             {
               type: "stack",
               content: [
+                {
+                  title: "World 3D",
+                  type: "react-component",
+                  component: "World3D",
+                  props: { stateManager: stateManager },
+                },
                 {
                   title: "Memory 2D",
                   type: "react-component",
@@ -177,6 +184,7 @@ dashboardLayout.registerComponent("MainPane", MainPane);
 dashboardLayout.registerComponent("Console", Console);
 dashboardLayout.registerComponent("Settings", Settings);
 dashboardLayout.registerComponent("Navigator", Navigator);
+dashboardLayout.registerComponent("World3D", World3D);
 dashboardLayout.registerComponent("Memory2D", Memory2D);
 dashboardLayout.registerComponent("MemoryList", MemoryList);
 dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);

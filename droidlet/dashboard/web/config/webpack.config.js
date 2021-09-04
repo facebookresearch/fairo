@@ -364,6 +364,17 @@ module.exports = function(webpackEnv) {
         // Disable require.ensure as it's not a standard language feature.
         { parser: { requireEnsure: false } },
 
+	// needed for draco3d loading.
+	// see https://github.com/webpack/webpack/issues/7352 for more info
+	{
+	  test: /draco_decoder\.wasm$/,
+	  type: "javascript/auto", // ← !!
+	  loader: "file-loader",
+	  options: {
+	    publicPath: "dist/"
+	  }
+	},
+
         // First, run the linter.
         // It's important to do this before Babel processes the JS.
         {
