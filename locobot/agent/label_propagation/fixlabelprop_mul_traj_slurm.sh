@@ -3,7 +3,7 @@ source activate /private/home/apratik/.conda/envs/locobot_env
 export EXPPREFIX=_multraj_test1
 
 # Base dir for all jobs
-base_dir=/checkpoint/apratik/jobs/active_vision/label_propagation
+base_dir=/checkpoint/kavyasrinet/jobs/active_vision/label_propagation
 mkdir -p $base_dir
 
 # Create a directory for each job 
