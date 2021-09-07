@@ -273,6 +273,8 @@ if __name__ == "__main__":
         type=str,
         default="pred_label_using_traj1",
     )
+    parser.add_argument("--job_folder", type=str, default="", help="")
+
     args = parser.parse_args()
     # code assumes the following structure of data
     """
@@ -302,57 +304,80 @@ if __name__ == "__main__":
         .
         .     
     """
+    
+    def run(args):
+        start = time.time()
+        # load the file for train images to be used for label propogation
+        scene_stored_path = args.scene_path
+        for scene in ['apartment_0']:
+        # for scene in os.listdir(scene_stored_path):
+            root_path = os.path.join(scene_stored_path)
+            out_dir = args.out_dir #os.path.join(root_path, args.out_dir)
+            ray.shutdown()
+            # use all avialeble cpus -1
+            ray.init(num_cpus=os.cpu_count() - 1)
+            result_ids = []
+            if not os.path.isdir(out_dir):
+                os.makedirs(out_dir)
 
-    start = time.time()
-    # load the file for train images to be used for label propogation
-    scene_stored_path = args.scene_path
-    for scene in ['apartment_0']:
-    # for scene in os.listdir(scene_stored_path):
-        root_path = os.path.join(scene_stored_path)
-        out_dir = args.out_dir #os.path.join(root_path, args.out_dir)
-        ray.shutdown()
-        # use all avialeble cpus -1
-        ray.init(num_cpus=os.cpu_count() - 1)
-        result_ids = []
-        if not os.path.isdir(out_dir):
-            os.makedirs(out_dir)
+            with open(os.path.join(root_path, "data.json"), "r") as f:
+                base_pose_data = json.load(f)
 
-        with open(os.path.join(root_path, "data.json"), "r") as f:
-            base_pose_data = json.load(f)
+            num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
 
-        num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
+            propogation_step = args.propogation_step
 
-        propogation_step = args.propogation_step
-
-        result = []
-        train_img_id = {"img_id": []}
-        src_img_indx = 0
-        delta = int(num_imgs / args.gtframes)
-        propogation_step = min(propogation_step, int(delta/2))
-        train_img_id['propagation_step'] = propogation_step
-        
-        for x in range(args.gtframes):
-            src_img_indx += delta
-            # print(f'delta {delta}, prop_length {prop_length}')
+            result = []
+            train_img_id = {"img_id": []}
+            src_img_indx = 0
+            delta = int(num_imgs / args.gtframes)
+            propogation_step = min(propogation_step, int(delta/2))
+            train_img_id['propagation_step'] = propogation_step
             
-            # print(f'{len(src_img_indx {src_img_indx}')
-        # for src_img_indx in range(0, num_imgs - propogation_step, args.freq):
-            if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
-                result.append(
-                    propogate_label.remote(
-                        root_path=root_path,
-                        src_img_indx=src_img_indx,
-                        src_label=np.load(
-                            os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
-                        ),
-                        propogation_step=propogation_step,
-                        base_pose_data=base_pose_data,
-                        out_dir=out_dir,
+            for x in range(args.gtframes):
+                src_img_indx += delta
+                # print(f'delta {delta}, prop_length {prop_length}')
+                
+                # print(f'{len(src_img_indx {src_img_indx}')
+            # for src_img_indx in range(0, num_imgs - propogation_step, args.freq):
+                if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
+                    result.append(
+                        propogate_label.remote(
+                            root_path=root_path,
+                            src_img_indx=src_img_indx,
+                            src_label=np.load(
+                                os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
+                            ),
+                            propogation_step=propogation_step,
+                            base_pose_data=base_pose_data,
+                            out_dir=out_dir,
+                        )
                     )
-                )
-                train_img_id["img_id"].append(src_img_indx)
+                    train_img_id["img_id"].append(src_img_indx)
 
-        with open(os.path.join(args.out_dir, "train_img_id.json"), "w") as fp:
-            json.dump(train_img_id, fp)
-        ray.get(result)
-    print("duration =", time.time() - start)
+            with open(os.path.join(args.out_dir, "train_img_id.json"), "w") as fp:
+                json.dump(train_img_id, fp)
+            ray.get(result)
+        print("duration =", time.time() - start)
+    
+    import submitit
+
+
+    # executor is the submission interface (logs are dumped in the folder)
+    executor = submitit.AutoExecutor(folder=args.job_folder)
+    # set timeout in min, and partition for running the job
+    executor.update_parameters(
+        slurm_partition="learnfair", #scavenge
+        timeout_min=2000,
+        mem_gb=256,
+        gpus_per_node=4,
+        tasks_per_node=1, 
+        cpus_per_task=8,
+        additional_parameters={
+            "mail-user": f"{os.environ['USER']}@fb.com",
+            "mail-type": "all",
+        },
+    )
+
+    job = executor.submit(run, args)  # will compute add(5, 7)
+    print(job.job_id) 
