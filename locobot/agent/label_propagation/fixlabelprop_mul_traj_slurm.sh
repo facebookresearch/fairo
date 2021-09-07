@@ -1,4 +1,4 @@
-source activate ~/.conda/envs/locobot_env
+source activate /private/home/apratik/.conda/envs/locobot_env
 
 export EXPPREFIX=_multraj_test1
 
@@ -11,7 +11,7 @@ mkdir -p $base_dir
 dt=$(date '+%d-%m-%Y_%H:%M:%S');
 echo $dt
 
-jobdir=$base_dir/"${EXPPREFIX}_${dt}"
+jobdir=$base_dir/"${1}_${EXPPREFIX}_${dt}"
 echo $jobdir
 mkdir -p $jobdir
 
@@ -42,7 +42,7 @@ export SCENE_ROOTD=/checkpoint/apratik/data_devfair0187/apartment_0/straightline
 # done
 
 # Test on one scene
-export i=50
+export i=$2
 echo $SCENE_ROOTD/$i
 for gt in 5 10 15 20 25
     do
