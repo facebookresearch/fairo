@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import Dict
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from agents.loco_mc_agent import LocoMCAgent
 from agents.craftassist.swarm_utils import get_safe_single_object_attr_dict, safe_object
@@ -152,6 +153,39 @@ class SwarmMasterWrapper():
             for new_task in task_list:
                 self.swarm_workers[i].input_tasks.put(new_task)
 
+    def handle_worker_perception(self):
+        tmp_perceptoins = [dict() for i in range(self.num_workers)]
+        worker_eids = dict()
+        for i in range(self.num_workers):
+            flag = True
+            while flag:
+                if self.swarm_workers[i].perceptions.empty():
+                    flag = False
+                else:
+                    eid, name, obj = self.swarm_workers[i].perceptions.get_nowait()
+                    tmp_perceptoins[i][name] = obj
+                    worker_eids[i] = eid
+        
+        # resolve conflicts code
+        
+                                        
+
+        # write back to memory
+        for i in range(self.num_workers):
+            if i not in worker_eids.keys():
+                continue
+            eid = worker_eids[i]
+            if "pos" in tmp_perceptoins[i].keys():
+                mem = self.base_agent.memory.get_player_by_eid(eid)
+                memid = mem.memid
+                cmd = (
+                    "UPDATE ReferenceObjects SET eid=?, x=?,  y=?, z=? WHERE "
+                )
+                cmd = cmd + "uuid=?"
+                self.base_agent.memory.db_write(cmd, eid, tmp_perceptoins[i]["pos"].x, 
+                                                tmp_perceptoins[i]["pos"].y, 
+                                                tmp_perceptoins[i]["pos"].z, memid)
+
     def update_tasks_with_worker_data(self):
         for i in range(self.num_workers):
             flag = True
@@ -203,6 +237,7 @@ class SwarmMasterWrapper():
                 if all(self.init_status):
                     # TODO: enable adding filters for general task step
                     self.base_agent.step()
+                self.handle_worker_perception()
                 self.assign_new_tasks_to_workers()
                 self.update_tasks_with_worker_data()
                 self.handle_worker_memory_queries()
@@ -237,10 +272,16 @@ class SwarmWorkerWrapper(Process):
         agent.memory_receive_queue = self.memory_receive_queue
         agent.query_from_worker = self.query_from_worker
 
+        # craftassist 
+        p = agent.get_player()
+        agent.entityId = p.entityId
+
         # perception
+        self.perception_updates = []
         if 'craft' in self.agent_type:
             agent.perception_modules = {}
             agent.perception_modules["low_level"] = SwarmLowLevelMCPerception(agent)
+            self.perception_updates=['pos']
 
         elif 'loco' in self.agent_type:
             # TODO: implement for locobot
@@ -335,6 +376,15 @@ class SwarmWorkerWrapper(Process):
                     logging.info("Query not handled: {}".format(query_name))
                     raise NotImplementedError
 
+    def send_perception_updates(self, agent):
+        for attr in self.perception_updates:
+            if hasattr(agent, attr):
+                if attr == "pos":
+                    to_send = safe_object(agent.get_player().pos)
+                else:
+                    to_send = safe_object(getattr(agent, attr))
+                self.perceptions.put((agent.entityId, attr, to_send))
+
     def perceive(self, agent, force=False):
         for v in agent.perception_modules.values():
             v.perceive(force=force)
@@ -398,9 +448,8 @@ class SwarmWorkerWrapper(Process):
         self.init_worker(agent)
         self.query_from_worker.put(("initialization", True))
         while True:
-            worker_perception = self.perceive(agent)
-            self.perceptions.put(worker_perception)
-            
+            self.perceive(agent)
+            self.send_perception_updates(agent)
             self.handle_input_task(agent)
             queries, _ = self.task_step(agent)
             self.handle_master_query(agent)
