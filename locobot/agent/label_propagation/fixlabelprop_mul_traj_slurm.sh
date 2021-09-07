@@ -46,7 +46,7 @@ export i=$2
 echo $SCENE_ROOTD/$i
 for gt in 5 10 15 20 25
     do
-    export OUTDIR=$SCENE_ROOTD/$i/pred_label_gt${gt}p2fix$EXPPREFIX
+    export OUTDIR=$jobdir/$i/pred_label_gt${gt}p2fix$EXPPREFIX
     echo $OUTDIR
     python label_propagation.py --scene_path $SCENE_ROOTD/$i --gtframes $gt --propogation_step 2 --out_dir $OUTDIR --job_folder $jobdir
 done    
