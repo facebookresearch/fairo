@@ -337,19 +337,20 @@ if __name__ == "__main__":
             
             # print(f'{len(src_img_indx {src_img_indx}')
         # for src_img_indx in range(0, num_imgs - propogation_step, args.freq):
-            result.append(
-                propogate_label.remote(
-                    root_path=root_path,
-                    src_img_indx=src_img_indx,
-                    src_label=np.load(
-                        os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
-                    ),
-                    propogation_step=propogation_step,
-                    base_pose_data=base_pose_data,
-                    out_dir=out_dir,
+            if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
+                result.append(
+                    propogate_label.remote(
+                        root_path=root_path,
+                        src_img_indx=src_img_indx,
+                        src_label=np.load(
+                            os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
+                        ),
+                        propogation_step=propogation_step,
+                        base_pose_data=base_pose_data,
+                        out_dir=out_dir,
+                    )
                 )
-            )
-            train_img_id["img_id"].append(src_img_indx)
+                train_img_id["img_id"].append(src_img_indx)
 
         with open(os.path.join(args.out_dir, "train_img_id.json"), "w") as fp:
             json.dump(train_img_id, fp)

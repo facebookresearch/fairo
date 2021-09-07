@@ -18,10 +18,12 @@ export EXPPREFIX=_mul_traj
 # python label_propagation.py --scene_path $SCENE_ROOT --gtframes 25 --propogation_step 2 --out_dir $OUTDIRx5
 
 
-export SCENE_ROOTD=/checkpoint/apratik/data/apartment_0/default/no_noise_test_mul_traj
+# export SCENE_ROOTD=/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200
+# export SCENE_ROOTD=/checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200
+export SCENE_ROOTD=/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/mul_traj_201
 # echo $SCENE_ROOTD 
 
-END=19
+END=100
 for i in $(seq $END); 
     do echo $SCENE_ROOTD/$i
     for gt in 5 10 15 20 25
@@ -31,6 +33,19 @@ for i in $(seq $END);
         python label_propagation.py --scene_path $SCENE_ROOTD/$i --gtframes $gt --propogation_step 2 --out_dir $OUTDIR
     done    
 done
+
+# Test on one scene
+# END=1
+# for i in $(seq $END); 
+# export i=50
+# echo $SCENE_ROOTD/$i
+# for gt in 5 10 15 20 25
+#     do
+#     export OUTDIR=$SCENE_ROOTD/$i/pred_label_gt${gt}p2fix$EXPPREFIX
+#     echo $OUTDIR
+#     python label_propagation.py --scene_path $SCENE_ROOTD/$i --gtframes $gt --propogation_step 2 --out_dir $OUTDIR
+# done    
+# # done
 
 
 # export OUTDIRy1=/checkpoint/apratik/finals/default/apartment_0/pred_label_gt5p2fix$EXPPREFIX
