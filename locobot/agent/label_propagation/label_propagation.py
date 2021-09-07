@@ -367,7 +367,7 @@ if __name__ == "__main__":
     executor = submitit.AutoExecutor(folder=args.job_folder)
     # set timeout in min, and partition for running the job
     executor.update_parameters(
-        slurm_partition="learnfair", #scavenge
+        slurm_partition="prioritylab", #scavenge
         timeout_min=2000,
         mem_gb=256,
         gpus_per_node=4,
@@ -377,6 +377,7 @@ if __name__ == "__main__":
             "mail-user": f"{os.environ['USER']}@fb.com",
             "mail-type": "all",
         },
+        slurm_comment="ICRA 2022 deadline, 9/14"
     )
 
     job = executor.submit(run, args)  # will compute add(5, 7)
