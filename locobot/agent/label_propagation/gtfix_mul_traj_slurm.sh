@@ -64,29 +64,29 @@ esac
 echo $SCENE_ROOT
 echo ${samples[*]}
 
-for x in "${samples[@]}"
-    do echo $x
-done
-# for i in $samples
-#     do echo $SCENE_ROOTD/$i
-#     for gt in 5 10 15 20 25
-#         do
-#         export OUTDIR=$SCENE_ROOTD/$i/pred_label_gt${gt}p2fix${EXPPREFIX}_${dt}
-#         echo $OUTDIR
-#         python label_propagation.py --scene_path $SCENE_ROOTD/$i --gtframes $gt --propogation_step 2 --out_dir $OUTDIR --job_folder $jobdir
-#     done    
+# for x in "${samples[@]}"
+#     do echo $x
 # done
-
-# # Test on one scene
 export FRAMES=5
-export i=$3
-echo $SCENE_ROOT/$i
-for p in 2 4 6 8
+for i in ${samples[@]}
+    do echo $SCENE_ROOT/$i
+    for p in 2 4 6 8
     do 
-        export OUTDIR=$SCENE_ROOT/$i/pred_label_gt5fixp${p}_${EXPPREFIX}_${dt}
+        export OUTDIR=$jobdir/$i/pred_label_gt${FRAMES}fixp${p}
         echo $OUTDIR
         python label_propagation.py --scene_path $SCENE_ROOT/$i --gtframes $FRAMES --propogation_step $p --out_dir $OUTDIR --job_folder $jobdir
+    done  
 done
+
+# # Test on one scene
+# export i=$3
+# echo $SCENE_ROOT/$i
+# for p in 2 4 6 8
+#     do 
+#         export OUTDIR=$jobdir/$i/pred_label_gt${FRAMES}fixp${p}
+#         echo $OUTDIR
+#         python label_propagation.py --scene_path $SCENE_ROOT/$i --gtframes $FRAMES --propogation_step $p --out_dir $OUTDIR --job_folder $jobdir
+# done
 
 # for gt in 5 10 15 20 25
 #     do
