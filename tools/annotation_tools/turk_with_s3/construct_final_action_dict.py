@@ -26,7 +26,7 @@ def collect_tool_outputs(tool_C_out_file, tool_D_out_file):
                 else:
                     toolC_map[cmd] = ast.literal_eval(a_d)
     # print("toolC map keys")
-    print(toolC_map.keys())
+    # print(toolC_map.keys())
 
     if os.path.exists(tool_D_out_file):
         with open(tool_D_out_file) as f2:
@@ -38,7 +38,7 @@ def collect_tool_outputs(tool_C_out_file, tool_D_out_file):
                 # add the comparison dict to command -> dict
                 toolD_map[cmd] = ast.literal_eval(comparison_dict)
     # print("toolD map keys")
-    print(toolD_map.keys())
+    # print(toolD_map.keys())
 
 
 def all_yes(a_dict):
@@ -358,8 +358,9 @@ def update_action_dictionaries(all_combined_path):
                             clean_dict["filters"]["where_clause"] = {"OR": triples}
                         elif len(filters_sub_dict["where_clause"]) == 1:
                             # AND
+                            triples = [{"pred_text": "has_name", "obj_text": filters_sub_dict["where_clause"]}]
                             clean_dict["filters"]["where_clause"] = {
-                                "OR": [filters_sub_dict["where_clause"][0]]
+                                "AND": triples
                             }
                 act_dict = fix_spans(clean_dict)
                 valid_dict, act_dict = process_repeat(valid_dict, act_dict)
