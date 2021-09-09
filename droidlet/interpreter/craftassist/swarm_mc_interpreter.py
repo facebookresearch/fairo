@@ -20,6 +20,7 @@ class SwarmMCInterpreter(MCInterpreter):
         #     "drop": tasks.Drop,
         #     "control": ControlBlock,
         # }
+        self.task_objects = super(SwarmMCInterpreter, self).task_objects
         self.task_objects["move"] = swarm_tasks.SwarmMove
         self.task_objects["build"] = swarm_tasks.SwarmBuild
         self.task_objects["destroy"] = swarm_tasks.SwarmDestroy

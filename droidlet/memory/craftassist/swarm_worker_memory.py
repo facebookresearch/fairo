@@ -52,16 +52,16 @@ class SwarmWorkerMemory():
         memory_send_queue,
         memory_receive_queue,
         memory_tag,
-        agent_time=None,
     ):
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
         self.memory_tag = memory_tag
         self.receive_dict = {}
-        self.init_time_interface(agent_time)
         self._safe_pickle_saved_attrs = {}
         mem_id_len = len(uuid.uuid4().hex)
         self.self_memid = "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
+        
+        # FIXME: insert player for locobot?
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Player", 0, 0, -1, False
         )
@@ -71,16 +71,6 @@ class SwarmWorkerMemory():
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
         # self.tag(self.self_memid, "SELF")
-    
-    def init_time_interface(self, agent_time=None):
-        """Initialiaze the current time in memory
-        Args:
-            agent_time (int): value of time from agent process
-        """
-        self.time = agent_time or Time()
-
-    def get_time(self):
-        return self.time.get_time()
 
     def reinstate_attrs(self, obj):
         """
@@ -133,6 +123,9 @@ class SwarmWorkerMemory():
         to_return = self.receive_dict[query_id]
         del self.receive_dict[query_id]
         return to_return
+
+    def get_time(self):
+        return self._db_command("get_time")
 
     def _db_read_one(self, query:str, *args):
         return self._db_command("_db_read_one", query, *args)
@@ -237,6 +230,9 @@ class SwarmWorkerMemory():
     
     def add_chat(self, speaker_memid: str, chat: str) -> str:
         return self._db_command("add_chat", speaker_memid, chat)
+    
+    def task_stack_peek(self) -> Optional["TaskNode"]:
+        return self._db_command("task_stack_peek")
     
 
     
