@@ -15,17 +15,17 @@ class JobListener:
         self._finished = False
         self._started = False
         self._parent_jobs = []
-    
+
     def run(self):
         pass
-    
+
     def start(self, *args):
         if not self._started:
             thread = threading.Thread(target=self.run, args=(args))
             thread.daemon = True
             thread.start()
             self._started = True
-    
+
     def set_finished(self, finished=True):
         self._finished = finished
 
@@ -41,5 +41,3 @@ class JobListener:
 
     def add_parent_jobs(self, jobs: List[DataGenerator]):
         self._parent_jobs.extend(jobs)
-
-    

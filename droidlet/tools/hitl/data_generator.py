@@ -5,12 +5,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import threading
 import time
 
+
 class DataGenerator:
     def __init__(self, timeout=-1):
         self._finished = False
         self._started = False
         self.start_time = time.time()
-        self.timeout = timeout # in minutes, -1 if no timeout is set
+        self.timeout = timeout  # in minutes, -1 if no timeout is set
 
     def run(self):
         pass

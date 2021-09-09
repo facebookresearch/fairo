@@ -22,6 +22,7 @@ sh = logging.StreamHandler()
 sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
+
 class TaskRunner:
     def __init__(self):
         self._data_generators = []
@@ -31,7 +32,7 @@ class TaskRunner:
     def register_data_generators(self, data_generators: List[DataGenerator]):
         for data_generator in data_generators:
             self._data_generators.append(data_generator)
-        
+
     def register_job_listeners(self, job_listeners: List[JobListener]):
         for job_listener in job_listeners:
             self._job_listeners.append(job_listener)
@@ -47,13 +48,20 @@ class TaskRunner:
             self._finished = self._check_is_finished()
             logging.info(f"Task is running...")
             time.sleep(RUN_POLL_TIME)
-            
+
     def _check_is_finished(self) -> bool:
         finished = True
-        if any([data_generator.check_is_finished() == False for data_generator in self._data_generators]):
+        if any(
+            [
+                data_generator.check_is_finished() == False
+                for data_generator in self._data_generators
+            ]
+        ):
             logging.debug("Remaining data generator jobs, not finished...")
             finished = False
-        if any([job_listener.check_is_finished() == False for job_listener in self._job_listeners]):
+        if any(
+            [job_listener.check_is_finished() == False for job_listener in self._job_listeners]
+        ):
             logging.debug("Remaining job listener jobs, not finished...")
             finished = False
         return finished
