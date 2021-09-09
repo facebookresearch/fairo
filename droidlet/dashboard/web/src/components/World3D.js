@@ -5,7 +5,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
 // src/components/World3D.js
 
 import React from "react";
-import Worldview, { Cubes, Axes } from "regl-worldview";
+import Worldview, {
+  Points,
+  Cylinders,
+  Cones,
+  Cubes,
+  Axes,
+  Arrows,
+  Lines,
+} from "regl-worldview";
 
 var hashCode = function (s) {
   return s.split("").reduce(function (a, b) {
@@ -21,6 +29,9 @@ class World3D extends React.Component {
       height: 400,
       width: 600,
       isLoaded: false,
+      points: [],
+      colors: [],
+      base: false,
     };
     this.state = this.initialState;
     this.outer_div = React.createRef();
@@ -34,20 +45,62 @@ class World3D extends React.Component {
   }
 
   render() {
-    const markers = [
-      {
-        pose: {
-          orientation: { x: 0, y: 0, z: 0, w: 1 },
-          position: { x: 0, y: 0, z: 0 },
-        },
-        scale: { x: 15, y: 15, z: 15 },
-        color: { r: 1, g: 0, b: 1, a: 0.9 },
+    const { isLoaded, all_points, all_colors, points, colors, base } =
+      this.state;
+    if (!isLoaded) return null;
+
+    console.log(base);
+    const x = base[0];
+    const y = base[1];
+    const yaw = base[2];
+    const points_marker = {
+      points: points,
+      scale: { x: 3, y: 3, z: 3 },
+      colors: colors,
+      pose: {
+        position: { x: 0, y: 0, z: 0 },
+        orientation: { x: 0, y: 0, z: 0, w: 1 },
       },
-    ];
+    };
+
+    const cone_marker = {
+      pose: {
+        orientation: { x: 0, y: 0, z: 0, w: 1 },
+        position: { x: y, y: -x, z: 1 },
+      },
+      scale: { x: 0.1, y: 0.1, z: 1 },
+      color: { r: 0, g: 1, b: 1, a: 1 },
+    };
+
+    const line_marker = {
+      closed: false,
+      pose: {
+        position: { x: y, y: -x, z: 1 },
+        orientation: { x: 0, y: 0, z: yaw, w: 1 },
+      },
+      scaleInvariant: false,
+      scale: { x: 0.1, y: 0.1, z: 0.1 },
+      points: [
+        [0, 0, 0],
+        [0.1, 0.1, 0.1],
+      ],
+      color: { r: 1, g: 0, b: 1, a: 1 },
+    };
+
+    const camera_state = {
+      distance: 10,
+      target: [y, -x, 1],
+      targetOrientation: [0, 0, yaw, 1],
+      perspective: true,
+      phi: Math.PI / 3,
+      thetaOffset: Math.PI / 3,
+    };
 
     return (
-      <Worldview>
-        <Cubes>{markers}</Cubes>
+      <Worldview defaultCameraState={camera_state}>
+        <Points>{[points_marker]}</Points>
+        <Cylinders>{[cone_marker]}</Cylinders>
+        <Lines>{[line_marker]}</Lines>
         <Axes />
       </Worldview>
     );
