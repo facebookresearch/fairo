@@ -353,6 +353,10 @@ class LoCoBotMover:
         logging.info("Fetched all camera sensor input.")
         return RGBDepth(rgb, d, pts)
 
+    def get_current_pcd(self, in_cam=False, in_global=False):
+        """Gets the current point cloud"""
+        return self.bot.get_current_pcd(in_cam=in_cam, in_global=in_global)
+
     def dance(self):
         self.bot.dance()
 
