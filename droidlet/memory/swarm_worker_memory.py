@@ -377,4 +377,4 @@ class SwarmWorkerMemory():
         return self._db_command("get_detected_objects_tagged", *tags)
 
     def add_dance(self, dance_fn, name=None, tags=[]):
-        return self._db_command("add_dance", dance_fn, name tags)
+        return self._db_command("add_dance", dance_fn, name, tags)

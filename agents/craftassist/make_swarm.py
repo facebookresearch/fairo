@@ -7,17 +7,13 @@ from agents.craftassist.swarm_utils import get_safe_single_object_attr_dict, saf
 from agents.craftassist.swarm_configs import get_default_task_info, get_swarm_interpreter, get_memory_handlers_dict
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from multiprocessing import Process, Queue, set_start_method
+from multiprocessing import Process, Queue
 from droidlet.perception.craftassist.swarm_worker_perception import SwarmLowLevelMCPerception
-from droidlet.memory.craftassist.swarm_worker_memory import SwarmWorkerMemory
-from agents.argument_parser import ArgumentParser
-import subprocess
+from droidlet.memory.swarm_worker_memory import SwarmWorkerMemory
+
 import pdb, sys
 from copy import deepcopy
 
-log_formatter = logging.Formatter(
-    "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
-)
 
 class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
@@ -219,8 +215,11 @@ class SwarmWorkerWrapper(Process):
         # disable perception modules
         for module_key in self.disable_perception_modules:
             del agent.perception_modules[module_key]
+        
+        #### temporary for debug
         agent.perception_modules = dict()
         agent.perception_modules["low_level"] = SwarmLowLevelMCPerception(agent)
+        #### end temporary for debug
         
         # memory
         agent.memory = SwarmWorkerMemory(memory_send_queue=self.memory_send_queue,
@@ -300,14 +299,7 @@ class SwarmWorkerWrapper(Process):
     # TOFIX --> 
     def send_perception_updates(self, agent):
         pass
-        # perception_updates = []
-        # for attr in self.perception_updates:
-        #     if hasattr(agent, attr):
-        #         if attr == "pos":
-        #             to_send = safe_object(agent.get_player().pos)
-        #         else:
-        #             to_send = safe_object(getattr(agent, attr))
-        #         self.perceptions.put((agent.entityId, attr, to_send))
+
 
     def perceive(self, agent, force=False):
         for v in agent.perception_modules.values():
@@ -373,31 +365,3 @@ class SwarmWorkerWrapper(Process):
             self.handle_master_query(agent)
             agent.count += 1
 
-def test_mc_swarm():
-    from swarm_configs import get_default_config
-    num_workers = 1
-    base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("Minecraft", base_path)
-    opts = parser.parse()
-
-    logging.basicConfig(level=opts.log_level.upper())
-
-    # set up stdout logging
-    sh = logging.StreamHandler()
-    sh.setFormatter(log_formatter)
-    logger = logging.getLogger()
-    logger.addHandler(sh)
-    logging.info("LOG LEVEL: {}".format(logger.level))
-
-    # Check that models and datasets are up to date and download latest resources.
-    # Also fetches additional resources for internal users.
-    if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
-
-    set_start_method("spawn", force=True)
-    sa = CraftAssistAgent(opts)
-    master = SwarmMasterWrapper(sa, [None] * num_workers, opts, get_default_config(sa))
-    master.start()
-
-if __name__ == "__main__":
-    test_mc_swarm()
