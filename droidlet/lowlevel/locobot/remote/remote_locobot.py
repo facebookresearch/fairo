@@ -687,6 +687,13 @@ class RemoteLocobot(object):
         ]
         return real_world_locations
 
+    def get_slam_goal(self):
+        goal_loc, goal_loc_map, stg_real, stg_real_g = None, None, None, None
+        if hasattr(self._slam, "goal_loc"):
+            goal_loc, goal_loc_map = self._slam.goal_loc, self._slam.goal_loc_map
+        if hasattr(self._slam, "stg_real"):
+            stg_real, stg_real_g = self._slam.stg_real, self._slam.stg_real_g
+        return goal_loc, goal_loc_map, stg_real, stg_real_g
 
 if __name__ == "__main__":
     import argparse

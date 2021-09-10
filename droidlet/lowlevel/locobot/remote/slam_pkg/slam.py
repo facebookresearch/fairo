@@ -247,6 +247,8 @@ class Slam(object):
 
         # convert stg real from init frame to global frame of pyrobot
         stg_real_g = self.get_absolute_goal((stg_real[0], stg_real[1], 0))
+        self.stg_real = stg_real        
+        self.stg_real_g = stg_real_g
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         print("bot_state before executing action = {}".format(robot_state))
 
