@@ -105,6 +105,8 @@ class CraftAssistAgent(LocoMCAgent):
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
+        if self.disable_chat:
+            return
         all_chats = self.cagent.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
