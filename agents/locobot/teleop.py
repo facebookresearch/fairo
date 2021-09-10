@@ -12,6 +12,7 @@ from multiprocessing import set_start_method
 
 from droidlet import dashboard
 import numpy as np
+from scipy.spatial import distance
 
 os.environ["WEBRTC_IP"] = "0.0.0.0"
 os.environ["WEBRTC_PORT"] = "8889"
@@ -49,14 +50,18 @@ class O3dViz(threading.Thread):
 
             try:
                 name, command, geometry = self.q.get_nowait()
-                if command == 'remove':
-                    w.remove_geometry(name)
-                elif command == 'replace':
-                    w.remove_geometry(name)
-                    w.add_geometry(name, geometry)
-                elif command == 'add':
-                    w.add_geometry(name, geometry)
 
+                try:
+                    if command == 'remove':
+                        w.remove_geometry(name)
+                    elif command == 'replace':
+                        w.remove_geometry(name)
+                        w.add_geometry(name, geometry)
+                    elif command == 'add':
+                        w.add_geometry(name, geometry)
+
+                except:
+                    print("failed to add geometry to scene")
                 if not reset_camera:
                     w.reset_camera_to_default()
                     reset_camera = True
@@ -155,6 +160,8 @@ if __name__ == "__main__":
     all_points = None
     all_colors = None
     first = True
+    prev_stg = None
+    path_count = 0
 
     while True:
         base_state = mover.get_base_pos_in_canonical_coords()
@@ -190,7 +197,18 @@ if __name__ == "__main__":
         opcd.colors = o3d.utility.Vector3dVector(all_colors)
         opcd = opcd.voxel_down_sample(0.05)
 
-        # opcd = opcd.uniform_down_sample(10)
+
+        # remove the rooftop / ceiling points in the point-cloud to make it easier to see the robot in the visualization
+        crop_bounds = o3d.utility.Vector3dVector([
+            [-1000., -1000., -1000.],
+            [1000., 1000., 2.0],
+            ])
+        opcd = opcd.crop(
+            o3d.geometry.AxisAlignedBoundingBox.create_from_points(
+                crop_bounds,
+            )
+        )
+
         all_points = np.asarray(opcd.points)
         all_colors = np.asarray(opcd.colors)
 
@@ -205,6 +223,8 @@ if __name__ == "__main__":
             
         o3dviz.put('pointcloud', cmd, opcd)
 
+
+        # Plot the robot
         x, y, yaw = base_state.tolist()
 
         robot_orientation = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.05,
@@ -215,7 +235,7 @@ if __name__ == "__main__":
         robot_orientation.compute_vertex_normals()
         robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
         
-        robot_orientation.translate([y, -x, 0], relative=False)
+        robot_orientation.translate([y, -x, 0.5], relative=False)
         robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
         robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
 
@@ -223,17 +243,69 @@ if __name__ == "__main__":
 
         robot_base = o3d.geometry.TriangleMesh.create_cylinder(radius=.1,
                                                           height=1.,)
-        robot_base.translate([y, -x, 0], relative=False)
+        robot_base.translate([y, -x, 0.4], relative=False)
         robot_base.compute_vertex_normals()
-        robot_base.paint_uniform_color([0.9, 0.1, 0.1])
+        robot_base.paint_uniform_color([1.0, 1.0, 0.1])
 
         o3dviz.put('bot_base', cmd, robot_base)
+
+
+        # start the SLAM
+        mover.explore()
         
-        # serialized_pcd = {}
-        # serialized_pcd['points'] = points.tolist()
-        # serialized_pcd['colors'] = colors.tolist()
-        # serialized_pcd['base'] = base_state.tolist()
-        # sio.emit("pointcloud", serialized_pcd)
+        # get the SLAM goals
+        goal_loc, goal_loc_map, stg_real, stg_real_g = mover.bot.get_slam_goal()    
+        print('goals: ', goal_loc, goal_loc_map, stg_real, stg_real_g)
+
+        # plot the final goal
+        if goal_loc is not None:
+            goal_x, goal_y, goal_z = goal_loc
+            cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
+                                                             height=3.,)
+            cone.translate([goal_x, goal_y, 0.4], relative=False)
+            cone.compute_vertex_normals()
+            cone.paint_uniform_color([0.0, 1.0, 1.0])
+            o3dviz.put('goal_cone', cmd, cone)
+
+        # plot the short term goal in yellow and the path in green
+        if stg_real is not None:
+            stg_x, stg_y = stg_real
+            cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
+                                                             height=3.,)
+            cone.translate([stg_x, stg_y, 1.4], relative=False)
+            cone.compute_vertex_normals()
+            cone.paint_uniform_color([1.0, 1.0, 0.0])
+            # o3dviz.put('stg_real', cmd, cone)
+
+            if prev_stg is None:
+                prev_stg = [y, -x]
+            cur_stg = [stg_x, stg_y]
+
+            arrow_length = distance.euclidean(cur_stg, prev_stg)
+            if arrow_length > 0.0001:                
+                path = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.03,
+                                                              cone_radius=.04,
+                                                              cylinder_height = arrow_length / 2,
+                                                              cone_height = arrow_length / 2,)
+                path.compute_vertex_normals()
+                path.paint_uniform_color([0.0, 1.0, 0.0])
         
+                path.translate([prev_stg[0], prev_stg[1], 0.2], relative=False)
+                path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
+                path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
+                o3dviz.put('short_term_goal_path_{}'.format(path_count), 'add', path)
+                path_count = path_count + 1
+            prev_stg = cur_stg
+
+        # get the obstacle map and plot it
+        obstacles = mover.bot.get_map()
+        obstacles = np.asarray(obstacles)
+        obstacles = np.concatenate((-obstacles[:, [1]], -obstacles[:, [0]], np.zeros((obstacles.shape[0], 1))), axis=1)
+        obspcd = o3d.geometry.PointCloud()
+        obspcd.points = o3d.utility.Vector3dVector(obstacles)
+        obspcd.paint_uniform_color([1.0, 0., 0.])
+        obsvox = o3d.geometry.VoxelGrid.create_from_point_cloud(obspcd, 0.03)
+        o3dviz.put('obstacles', cmd, obsvox)                
+            
         
         time.sleep(0.001)
