@@ -11,8 +11,8 @@ service PolymetisControllerServer {
   /*
   ***** Gripper Methods *****
   */
-  rpc GetState(Empty) returns(GripperState) {}
-  rpc Goto(GripperCommand) returns(Empty) {}
+  rpc GripperGetState(Empty) returns(GripperState) {}
+  rpc GripperGoto(GripperCommand) returns(Empty) {}
 
   /*
   ***** User client methods *****
