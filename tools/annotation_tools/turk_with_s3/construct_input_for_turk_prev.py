@@ -2,7 +2,10 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import argparse
+import os
 
+# Construct a string containing inputs for the turk task
+TURK_INPUT_CSV = ""
 
 def print_csv_format(filename, option_num, max_words=40):
     if option_num == 1:
@@ -141,10 +144,19 @@ def print_csv_format(filename, option_num, max_words=40):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+
+    # Default to directory of script being run for writing inputs and outputs
+    default_write_dir = os.path.dirname(os.path.abspath(__file__))
+    parser.add_argument("--write_dir_path", type=str, default=default_write_dir)
     parser.add_argument("--input_file", type=str, required=True)
     parser.add_argument("--tool_num", type=int, default=1)
     parser.add_argument("--max_words", type=int, default=40)
 
     args = parser.parse_args()
+    folder_name_A = '{}/A/'.format(args.write_dir_path)
+    print(folder_name_A)
+    # If the tool specific write directories do not exist, create them
+    if not os.path.isdir(folder_name_A):
+        os.mkdir(folder_name_A)
 
     print_csv_format(args.input_file, args.tool_num, args.max_words)

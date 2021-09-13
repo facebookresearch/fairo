@@ -7,10 +7,10 @@ import argparse
 
 def collate_answers(turk_output_csv, collate_output_csv, job_spec_csv):
     # load Turk inputs CSV
-    input_data = pd.read_csv(job_spec_csv)
+    input_data = pd.read_csv(job_spec_csv, dtype=str)
     # load Turk outputs CSV
-    output_data = pd.read_csv(turk_output_csv)
-    merged_inner = pd.merge(left=input_data, right=output_data, left_on="HITId", right_on="HITId")
+    output_data = pd.read_csv(turk_output_csv, dtype=str)
+    merged_inner = pd.merge(left=input_data, right=output_data, left_on="HITId", right_on="HITId", sort=False)
     merged_inner.to_csv(collate_output_csv, index=False)
 
 if __name__ == "__main__":

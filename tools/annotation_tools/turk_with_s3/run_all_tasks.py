@@ -58,8 +58,6 @@ if os.path.exists("B/input.txt") and os.path.getsize("B/input.txt") > 0:
     if rc != 0:
         print("Error creating HIT jobs. Exiting.")
         sys.exit()
-    # Wait for results to be ready
-    print("Turk jobs created at : %s \n Waiting for results..." % time.ctime())
 
 # If the tool C input file is not empty, kick off a job
 if os.path.exists("C/input.txt") and os.path.getsize("C/input.txt") > 0:
@@ -72,6 +70,7 @@ if os.path.exists("C/input.txt") and os.path.getsize("C/input.txt") > 0:
 # If the tool B input file is not empty, kick off a job
 if os.path.exists("D/input.txt") and os.path.getsize("D/input.txt") > 0:
     # Collate datasets
+    print("*"*40)
     print("*** Collating turk outputs and input job specs ***")
     rc = subprocess.call(["python3 run_tool_1D.py {}".format(dev_flag)], shell=True)
     if rc != 0:

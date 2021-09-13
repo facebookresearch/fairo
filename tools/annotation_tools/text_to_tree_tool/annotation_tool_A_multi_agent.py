@@ -123,7 +123,7 @@ AFTER = """
 if __name__ == "__main__":
     from render_questions_for_tools.render_questions import *
 
-    from question_flow_in_tools.question_flow_for_tool_A import *
+    from question_flow_in_tools.question_flow_for_tool_A_multi_agent import *
 
     # XML: yes, gross, I know. but Turk requires XML for its API, so we deal
     print(
@@ -140,38 +140,6 @@ if __name__ == "__main__":
     """
     )
     print(render_q(Q_ACTION, "root", show=True))
-    # with open("span_names.txt", "r") as fd:
-    #     span_names = fd.read().split("\n")
-
-    # for span_name in span_names:
-    #     root.action_type.BUILD.COPY.yes.reference_object.span
-    #     print(
-    #         """
-    #       <script>
-    #         for (i = 0; i < 40; i++) {{
-    #         div = document.getElementById('{sp}')
-    #         var label = '<label class="btn btn-default word' + i + '" name="root.action_type.BUILD.COPY.yes.reference_object.span#' + i + '"><input type="checkbox" autocomplete="off" id="root.action_type.BUILD.COPY.yes.reference_object.span#' + i + '" name="root.action_type.BUILD.COPY.yes.reference_object.span#' + i + '">' + '${{word' + i + '}}</label>';
-    #         div.insertAdjacentHTML('beforeend', label);
-    #         }}
-    #       </script>
-    #       """.format(
-    #             sp=span_name
-    #         )
-    #     )
-    #     print(
-    #         """
-    #       <script>
-    #         for (i = 0; i < 40; i++) {{
-    #         div = document.getElementById('{sp}')
-    #         var label = '<label class="btn btn-default word' + i + '" name="{sp}' + '#' + i + '"><input type="checkbox" autocomplete="off" id="{sp}' + '#' + i + '" name="{sp}' + '#' + i + '">' + '${{word' + i + '}}</label>';
-    #         div.insertAdjacentHTML('beforeend', label);
-    #         }}
-    #       </script>
-    #       """.format(
-    #             sp=span_name
-    #         )
-    #     )
-
     print(render_q(Q_ACTION_LOOP, "root", show=True))
     print(
         """

@@ -351,167 +351,19 @@ def handle_commands(d):
 
 def process_result(full_d):
     worker_id = full_d["WorkerId"]
-    d = with_prefix(full_d, "Answer.root.")
-    if not d:
-        return worker_id, {}, full_d["Input.command"].split()
-    try:
-        action = d["action_type"]
-    except KeyError:
-        return worker_id, {}, full_d["Input.command"].split()
-    action_dict = handle_commands(d)
+    answers = []
+    for i in range(1, 6):
+        if full_d["Answer.command_"+ str(i)]:
+            answers.append(full_d["Answer.command_"+ str(i)])
 
-    ##############
-    # repeat dict
-    ##############
-    # NOTE: this can probably loop over or hold indices of which specific action ?
-    if action_dict.get("dialogue_type", [None, None])[1] == "HUMAN_GIVE_COMMAND":
-        if d.get("loop") not in [None, "Other"]:
-            repeat_dict = process_repeat_dict(d)
-            if repeat_dict:
-                # Some turkers annotate a repeat dict for a repeat_count of 1.
-                # Don't include the repeat dict if that's the case
-                if repeat_dict.get("repeat_dir", None) == "Other":
-                    repeat_dict.pop("repeat_dir")
-                if repeat_dict.get("repeat_count"):
-                    a, b = repeat_dict["repeat_count"][0]
-                    repeat_count_str = " ".join(
-                        [full_d["Input.word{}".format(x)] for x in range(a, b + 1)]
-                    )
-                    if repeat_count_str not in ("a", "an", "one", "1"):
-                        action_dict["repeat"] = ["yes", repeat_dict]
-                else:
-                    action_dict["repeat"] = ["yes", repeat_dict]
-
-    ##################
-    # post-processing
-    ##################
-    # Fix empty words messing up spans
-    words = []
-    for key in full_d:
-        if "Input.word" in key and full_d[key] != "NONE":
-            words.append(full_d[key])
-
-    return worker_id, action_dict, words
-
-
-def fix_cnt_in_schematic(words, action_dict):
-    if "repeat" not in action_dict:
-        return action_dict
-    repeat = action_dict["repeat"]
-    val = []
-    if "repeat_count" in repeat[1]:
-        val = repeat[1]["repeat_count"]
-    elif "repeat_key" in repeat[1] and repeat[1]["repeat_key"] == "ALL":
-        if any(x in ["all", "every", "each"] for x in words):
-            if "all" in words:
-                all_val = words.index("all")
-            elif "each" in words:
-                all_val = words.index("each")
-            elif "every" in words:
-                all_val = words.index("every")
-            val = [[all_val, all_val]]
-    else:
-        return action_dict
-
-    for k, v in action_dict.items():
-        if k in ["schematic", "reference_object"]:
-            for i, meh in enumerate(v[1]):
-                if meh in val:
-                    v[1].pop(i)
-            action_dict[k] = [v[0], v[1]]
-    return action_dict
-
-
-def remove_definite_articles(cmd, d):
-    words = cmd.split()
-    if type(d) == str:
-        d = ast.literal_eval(d)
-    new_d = {}
-    for k, v in d.items():
-        # for level 1
-        if type(v) == list and v[0] in ["yes", "no"]:
-            if type(v[1]) == list:
-                new_v = []
-                for span in v[1]:
-                    # if words[span[0]] in ["the", "a", "an"]:
-                    #     continue
-                    new_v.append(span)
-                new_d[k] = [v[0], new_v]
-            elif type(v[1]) == dict:
-                v_new = remove_definite_articles(cmd, v[1])
-                new_d[k] = [v[0], v_new]
-
-            else:
-                new_d[k] = v
-        # for recursion on normal internal dict
-        else:
-            if type(v) == list:
-                new_v = []
-                for span in v:
-                    # if words[span[0]] in ["the", "a", "an"]:
-                    #     continue
-                    new_v.append(span)
-                new_d[k] = new_v
-            elif type(v) == dict:
-                v_new = remove_definite_articles(cmd, v)
-                new_d[k] = v_new
-
-            else:
-                new_d[k] = v
-
-    return new_d
-
-
-# ONLY FOR DEBUGGING
-def resolve_spans(words, dicts):
-    result = {}
-    mapping_old_dicts = {}
-    for d, val in dicts.items():
-        new_d = {}
-        d = ast.literal_eval(d)
-        for k, v in d.items():
-            if type(v[1]) == list:
-                new_v = []
-                for item in v[1]:
-                    new_v.append(words[item[0]])
-                new_d[k] = [v[0], new_v]
-            elif k == "repeat":
-                # v[1] = ast.literal_eval(v[1])
-                if "stop_condition" in v[1]:
-                    new_v = {}
-                    new_v["stop_condition"] = {}
-                    x = {}
-
-                    if "condition_type" in v[1]["stop_condition"]:
-                        x["condition_type"] = v[1]["stop_condition"]["condition_type"]
-                    new_vals = []
-                    if "block_type" in v[1]["stop_condition"]:
-                        for item in v[1]["stop_condition"]["block_type"]:
-                            new_vals.append(words[item[0]])
-                        x["block_type"] = new_vals
-                    elif "condition_span" in v[1]["stop_condition"]:
-                        for item in v[1]["stop_condition"]["condition_span"]:
-                            new_vals.append(words[item[0]])
-                        x["condition_span"] = new_vals
-                    new_v["stop_condition"] = x
-                    new_d["repeat"] = [v[0], new_v]
-                else:
-                    new_d[k] = v
-            else:
-                new_d[k] = v
-        result[str(new_d)] = val
-        mapping_old_dicts[str(new_d)] = str(d)
-    return result, mapping_old_dicts
+    return worker_id, answers
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    # Default to directory of script being run for writing inputs and outputs
-    default_write_dir = os.path.dirname(os.path.abspath(__file__))
-
     parser.add_argument(
-        "--folder_name",
-        default="{}/A/".format(default_write_dir),
+        "--input_file",
+        default="processed_outputs_combined.csv"
     )
     opts = parser.parse_args()
     tokenizer = English().Defaults.create_tokenizer()
@@ -519,133 +371,33 @@ if __name__ == "__main__":
     # convert csv to txt first
     num_agreements = 2
     result_dict = {}
-    folder_name = opts.folder_name
-    f_name = folder_name + "/processed_outputs.csv"
+    f_name = opts.input_file
     only_show_disagreements = True
     with open(f_name, "r") as f:
         r = csv.DictReader(f)
         for i, d in enumerate(r):
             worker_id = d["WorkerId"]
-            sentence = d["Input.command"]
-            _, action_dict, words = process_result(d)
-            a_dict = fix_cnt_in_schematic(words, action_dict)
-            print(" ".join(words))
-            pprint(a_dict)
+            sentence = d["Input.sentence"]
+            worker_id, answers = process_result(d)
+            print("Original sentence: %r" % sentence)
+            print("Split commands: %r " % (" , ".join(answers)))
             print("*" * 20)
-            if a_dict is None:
-                continue
-            command = " ".join(words)
-            result = json.dumps(a_dict)
-            if command in result_dict:
-                if len(result_dict[command]) == 3:
-                    print(command)
-                    continue
-                result_dict[command].append(result)
+            if sentence in result_dict:
+                print("DUPLICATES!!!")
+                print(sentence)
             else:
-                result_dict[command] = [result]
+                result_dict[sentence] = answers
 
     print(len(result_dict.keys()))
 
     # write to txt
-    f_name = folder_name + "out.txt"
-    with open(f_name, "w") as outfile:
+    f_name = "combined_out.txt"
+    # write out combined mapping, add to input.txt
+    with open(f_name, "w") as outfile, open("input.txt", "a") as inp_file:
         for k, v in result_dict.items():
             cmd = k
-            if len(v) == 1:
-                items = v[0] + "\t" + v[0] + "\t" + v[0]
-            else:
-                items = "\t".join(v)
-            outfile.write(cmd + "\t" + items + "\n")
-
-    # construct counter from txt
-    result_counts = defaultdict(Counter)
-    f_name = folder_name + "out.txt"
-    import ast
-
-    with open(f_name) as in_data:
-        for line in in_data.readlines():
-            line = line.strip()
-            # print(len(line.split("\t")))
-            parts = line.split("\t")
-            if len(parts) == 4:
-                cmd, r1, r2, r3 = parts
-            elif len(parts) == 3:  # for just one answer
-                cmd, r1, r2 = parts
-                r3 = r2
-            else:
-                cmd, r = parts
-                r1, r2, r3 = r, r, r
-            for r in [r1, r2, r3]:
-                r_new = remove_definite_articles(cmd, r)
-                result_counts[cmd][json.dumps(r_new)] += 1
-    print(len(result_counts.keys()))
-
-    no_agreement = 0
-    agreement = 0
-    disagreement = defaultdict(Counter)
-    only_show_disagreements = False
-    all_agreements_dict = {}
-    disagreements_dict = {}
-
-    for command, counts in sorted(result_counts.items()):
-        if not any(v >= num_agreements for v in counts.values()):
-            if only_show_disagreements:
-                print(command)
-            disagreement[command] = counts
-            no_agreement += 1
-            for result, count in counts.items():
-                if command not in disagreements_dict:
-                    disagreements_dict[command] = [result]
-                else:
-                    disagreements_dict[command].append(result)
-
-            continue
-        elif only_show_disagreements:
-            continue
-
-        for result, count in counts.items():
-            if count >= num_agreements:
-                all_agreements_dict[command] = result
-                agreement += 1
-
-        print(agreement)
-        print(no_agreement)
-
-    # write out agreements to a file
-    ## format is : command child dict
-    ag = str(agreement)
-    f = folder_name + ag + "_agreements.txt"
-    with open(f, "w") as outfile:
-        for k, v in all_agreements_dict.items():
-            cmd = k
-            outfile.write(cmd.strip() + "\t" + v + "\n")
-
-    # write disagreements to a file
-    disag = str(no_agreement)
-    f = folder_name + disag + "_disagreements.txt"
-    with open(f, "w") as outfile:
-        for k, v in disagreements_dict.items():
-            cmd = k
-            outfile.write(cmd.strip() + "\n")
-            for item in v:
-                outfile.write(item + "\n")
-            outfile.write("\n")
-
-    for command, counts in disagreement.items():
-        words = command.split()
-        c, mapping_old_dicts = resolve_spans(words, counts)
-        print(command)
-        for k, v in c.items():
-            pprint(ast.literal_eval(k))
-        print("*" * 30)
-
-    with open(folder_name + "all_agreements.txt", "w") as f_out, open(
-        folder_name + ag + "_agreements.txt"
-    ) as f1, open(folder_name + disag + "_disagreements.txt") as f_in:
-        for line in f1.readlines():
-            cmd, out = line.strip().split("\t")
-            cmd = preprocess_chat(cmd)[0]
-            f_out.write(cmd.strip() + "\t" + out + "\n")
-        for line in f_in.readlines():
-            cmd, out = line.strip().split("\t")
-            f_out.write(cmd.strip() + "\t" + out + "\n")
+            all_ans = ""
+            for answer in v:
+                inp_file.write(answer + "\n")
+                all_ans = all_ans + answer + "\t"
+            outfile.write(cmd + "\t" + all_ans.strip() + "\n")
