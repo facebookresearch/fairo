@@ -15,7 +15,7 @@ from .third_party.robotiq_2finger_grippers.robotiq_2f_gripper import (
 )
 
 
-class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
+class RobotiqGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer):
     """gRPC server that exposes a Robotiq gripper controls to the client
     Communicates with the gripper through modbus
     """
@@ -68,7 +68,7 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
 def run_server(ip, port, comport):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
 
-    polymetis_pb2_grpc.add_GripperServerServicer_to_server(
+    polymetis_pb2_grpc.add_PolymetisControllerServerServicer_to_server(
         RobotiqGripperServer(comport), server
     )
     server.add_insecure_port(f"{ip}:{port}")

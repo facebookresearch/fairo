@@ -9,6 +9,12 @@ import "google/protobuf/timestamp.proto";
 service PolymetisControllerServer {
 
   /*
+  ***** Gripper Methods *****
+  */
+  rpc GetState(Empty) returns(GripperState) {}
+  rpc Goto(GripperCommand) returns(Empty) {}
+
+  /*
   ***** User client methods *****
 
   These are user-facing methods allowing you to change
@@ -54,11 +60,6 @@ service PolymetisControllerServer {
   rpc ControlUpdate(RobotState) returns(TorqueCommand) {}
 
   rpc GetRobotClientMetadata(Empty) returns(RobotClientMetadata) {}
-}
-
-service GripperServer {
-    rpc GetState(Empty) returns(GripperState) {}
-    rpc Goto(GripperCommand) returns(Empty) {}
 }
 
 message GripperCommand {
