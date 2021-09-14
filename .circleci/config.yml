@@ -6,17 +6,6 @@ commands:
           name: Initialize Git submodules
           command: |
             git submodule update --init --recursive
-      - restore_cache:
-          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
-      - run:
-          name: Create Conda environment
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
-      - save_cache:
-          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
-          paths:
-            - "/opt/conda/envs/polymetis-local"
       - run:
           name: Install
           command: |
@@ -258,6 +247,17 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - run:
+          name: Create Conda environment
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+      - save_cache:
+          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+          paths:
+            - "/opt/conda/envs/polymetis-local"
       - polymetis_local_build
   polymetis-local-ubuntu-20:
     docker:
@@ -267,6 +267,17 @@ jobs:
           password: $DOCKERHUB_PASSWORD
     steps:
       - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - run:
+          name: Create Conda environment
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+      - save_cache:
+          key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
+          paths:
+            - "/opt/conda/envs/polymetis-local"
       - polymetis_local_build
   polymetis-conda-ubuntu-18:
     docker:
