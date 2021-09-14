@@ -28,6 +28,8 @@ from typing import List, Any
 
 from pilot_config import PILOT_ALLOWLIST_QUAL_NAME, PILOT_BLOCK_QUAL_NAME, PILOT_QUAL_ANSWERS, KEYWORD_LIST
 
+from droidlet.dialog.load_datasets import get_safety_words
+
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
@@ -41,6 +43,7 @@ from mephisto.operations.hydra_config import RunScriptConfig, register_script_co
 
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
+SAFETY_WORDS = get_safety_words()
 
 @dataclass
 class TestScriptConfig(RunScriptConfig):
@@ -62,15 +65,19 @@ def validate_answers(answers, gt):
     if len(filtered_commands) < 4:
         return False
 
-    # 2: Length check: Check that the average number of words in commands > 2
-    commands_split = [x.split(" ") for x in filtered_commands]
+    # 2: Length check: Check that the average number of words in commands >= 2
+    commands_split = [x.lower().split(" ") for x in filtered_commands]
     avg_words_in_commands = sum(map(len, commands_split)) / len(commands_split)
-    if avg_words_in_commands <= 2:
+    if avg_words_in_commands < 2:
         return False
 
     # 3: Keyword matching: Check that at least 2 keywords appear in the commands
     occurrence = sum([True if keyword in command.lower() else False for command in filtered_commands for keyword in KEYWORD_LIST])
     if occurrence < 2:
+        return False
+
+    # 4: Safety check
+    if any([len(set(cmd) & SAFETY_WORDS) > 0 for cmd in commands_split]):
         return False
 
     # Validate multiple choice questions
@@ -127,7 +134,7 @@ def main(cfg: DictConfig) -> None:
     shared_state = SharedStaticTaskState(
         on_unit_submitted=validator,
     )
-    # Do not allow workers to take pilot task the second time
+    Do not allow workers to take pilot task the second time
     shared_state.qualifications = [
         make_qualification_dict(
             PILOT_BLOCK_QUAL_NAME,
