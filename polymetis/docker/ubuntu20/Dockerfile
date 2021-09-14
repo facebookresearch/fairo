@@ -21,4 +21,7 @@ RUN apt install -y build-essential cmake libtinfo-dev lsb-release libmpfr-dev li
     freeglut3-dev libxmu-dev libxmu-headers libhiredis-dev unzip libnuma-dev
 
 # install nvidia drivers
-RUN apt install -y nvidia-driver-460-server
+RUN apt install -y nvidia-driver-460-server --fix-missing
+
+# install Python=3.8 into conda `base` environment
+RUN . /opt/conda/etc/profile.d/conda.sh && conda install python=3.8 -n base
