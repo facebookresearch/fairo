@@ -1,10 +1,10 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG current_branch
 
 RUN apt-get -y update
-RUN apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
 	curl \
         cmake \
         g++ \
