@@ -134,7 +134,7 @@ def main(cfg: DictConfig) -> None:
     shared_state = SharedStaticTaskState(
         on_unit_submitted=validator,
     )
-    Do not allow workers to take pilot task the second time
+    # Do not allow workers to take pilot task the second time
     shared_state.qualifications = [
         make_qualification_dict(
             PILOT_BLOCK_QUAL_NAME,
