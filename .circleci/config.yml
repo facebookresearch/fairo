@@ -126,7 +126,7 @@ commands:
                 conda activate polymetis-env
                 conda install anaconda-client
                 anaconda login --username $ANACONDA_USER --password $ANACONDA_PASSWORD
-                anaconda upload --user fair-robotics /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
+                anaconda upload --user --skip fair-robotics /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
             fi
 
 
