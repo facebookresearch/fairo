@@ -47,10 +47,17 @@ class CAIPDataset(Dataset):
         self.data = {"hard": []}
         self.sampling = sampling
         self.word_noise = word_noise
-        dtype_samples = json.loads(args.dtype_samples)
         self.dtype = dtype
-        self.dtypes = [t for t, p in dtype_samples]
-        self.sample_probas = np.array([p for t, p in dtype_samples])
+        try:
+            self.dtypes = list(args.dtype_samples.keys())
+            self.sample_probas = np.array([args.dtype_samples[k] for k in self.dtypes])
+        except:
+            # this is to fix a mismatch between old and new args format,
+            # to be removed by oct 2021
+            # FIXME
+            dtypes = json.loads(args.dtype_samples)
+            self.dtypes = [e[0] for e in dtypes]
+            self.sample_probas = np.array([k[1] for k in dtypes])
         self.sample_probas /= self.sample_probas.sum()
         if prefix == "train":
             for k in self.dtypes:
