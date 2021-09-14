@@ -47,10 +47,9 @@ class CAIPDataset(Dataset):
         self.data = {"hard": []}
         self.sampling = sampling
         self.word_noise = word_noise
-        dtype_samples = json.loads(args.dtype_samples)
         self.dtype = dtype
-        self.dtypes = [t for t, p in dtype_samples]
-        self.sample_probas = np.array([p for t, p in dtype_samples])
+        self.dtypes = list(args.dtype_samples.keys())
+        self.sample_probas = np.array([args.dtype_samples[k] for k in self.dtypes])
         self.sample_probas /= self.sample_probas.sum()
         if prefix == "train":
             for k in self.dtypes:
