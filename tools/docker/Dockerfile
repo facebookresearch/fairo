@@ -7,7 +7,7 @@ ARG AWS_SECRET_ACCESS_KEY
 
 # Clone/make repo
 RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/fairo
-WORKDIR droidlet
+WORKDIR fairo
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
@@ -33,7 +33,7 @@ RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.
     rm -rf client_ccache.tar.gz /cache/.ccache /client_ccache.tar.gz
 
 RUN npm install -g yarn
-RUN cd /droidlet/droidlet/dashboard/web && yarn install
+RUN cd /fairo/droidlet/dashboard/web && yarn install
 
 RUN mkdir workdir
 WORKDIR workdir

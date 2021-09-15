@@ -24,8 +24,8 @@ RUN pip3 install torch
 
 
 # Clone/make repo
-ADD . /droidlet
-WORKDIR /droidlet
+ADD . /fairo
+WORKDIR /fairo
 
 RUN cd droidlet/lowlevel/minecraft && \
     make clean && \
