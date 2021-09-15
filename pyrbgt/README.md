@@ -36,14 +36,14 @@ python3 -m pip install \
 
 **Step 2: install the package**
 ```
-cd droidlet/pyrbgt
+cd fairo/pyrbgt
 python3 -m pip install -r ./requirements.txt
 python3 -m pip install .
 ```
 
 **Alternatively, you may use the provided docker image**
 ```
-cd droidlet/pyrbgt
+cd fairo/pyrbgt
 docker build -t pyrbgt .
 ```
 
@@ -65,7 +65,7 @@ The result video can be found here: https://drive.google.com/file/d/1j3tayDE09-J
 
 If you built the docker image, you can run the example, as given or modified with:
 ```
-cd droidlet/pyrbgt
+cd fairo/pyrbgt
 xhost +local:docker
 docker run --rm -it \
   --privileged \

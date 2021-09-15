@@ -1,8 +1,8 @@
 """
 This file updates the data format as of 03/12 to add the filters to
 schematics change
-proposed in : https://github.com/facebookresearch/droidlet/pull/253
-issue: https://github.com/facebookresearch/droidlet/issues/219
+proposed in : https://github.com/facebookresearch/fairo/pull/253
+issue: https://github.com/facebookresearch/fairo/issues/219
 """
 import json
 import copy

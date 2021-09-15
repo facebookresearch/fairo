@@ -11,7 +11,7 @@ assert os.path.isdir(PATH), (
     "Not found: "
     + PATH
     + "\n\nDid you follow the instructions at "
-    + "https://github.com/facebookresearch/droidlet#getting-started"
+    + "https://github.com/facebookresearch/fairo#getting-started"
 )
 
 

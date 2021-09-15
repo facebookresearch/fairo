@@ -24,7 +24,7 @@
 
 1. Clone repo:
     ```bash
-    git clone git@github.com:facebookresearch/droidlet
+    git clone git@github.com:facebookresearch/fairo
     cd droidlet/polymetis
     ```
 

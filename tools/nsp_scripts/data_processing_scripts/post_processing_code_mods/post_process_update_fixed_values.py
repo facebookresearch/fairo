@@ -1,7 +1,7 @@
 """
 This file updates the data format as of 02/24 to add fixed values change
-proposed in : https://github.com/facebookresearch/droidlet/pull/190
-issue: https://github.com/facebookresearch/droidlet/issues/191
+proposed in : https://github.com/facebookresearch/fairo/pull/190
+issue: https://github.com/facebookresearch/fairo/issues/191
 Examples of change : https://www.internalfb.com/phabricator/paste/view/P217893342 
 """
 import argparse

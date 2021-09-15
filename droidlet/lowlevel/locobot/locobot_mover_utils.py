@@ -91,7 +91,7 @@ def get_move_target_for_point(base_pos, target, eps=1):
 
 
 """
-Co-ordinate transform utils. Read more at https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
+Co-ordinate transform utils. Read more at https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD
 """
 
 pyrobot_to_canonical_frame = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])

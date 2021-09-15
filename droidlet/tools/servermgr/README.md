@@ -2,13 +2,13 @@
 
 - servermgr itself is a python Flask app that runs on Heroku
 - There is a Craftassist docker image
-    - its Dockerfile is at [tools/docker/Dockerfile](https://github.com/facebookresearch/droidlet/blob/main/tools/docker/Dockerfile)
-    - its Makefile is at [tools/docker/Makefile](https://github.com/facebookresearch/droidlet/blob/main/tools/docker/Makefile)
+    - its Dockerfile is at [tools/docker/Dockerfile](https://github.com/facebookresearch/fairo/blob/main/tools/docker/Dockerfile)
+    - its Makefile is at [tools/docker/Makefile](https://github.com/facebookresearch/fairo/blob/main/tools/docker/Makefile)
     - it is remotely stored using AWS ECR.
 
 - When a servermgr user hits the big green button to launch a server, servermgr
   makes a request to AWS ECS to launch a container from this image, using this
-  script: [craftassist/servermgr/run.withagent.sh](https://github.com/facebookresearch/droidlet/blob/main/craftassist/servermgr/run.withagent.sh) which
+  script: [craftassist/servermgr/run.withagent.sh](https://github.com/facebookresearch/fairo/blob/main/craftassist/servermgr/run.withagent.sh) which
   launches a Cuberite server, launches an agent, waits for the end of the session, then
   bundles up the workdir and copies it to S3
 
@@ -18,7 +18,7 @@
 
 - On every successful CircleCI run on master, a docker image is pushed to ECR
   and tagged with the master commit SHA1, see the "Push versioned docker
-  containers" step in the CircleCI config at [.circleci/config.yml](https://github.com/facebookresearch/droidlet/blob/main/.circleci/config.yml)
+  containers" step in the CircleCI config at [.circleci/config.yml](https://github.com/facebookresearch/fairo/blob/main/.circleci/config.yml)
 - servermgr always deploys the image with the `latest` tag
 - To cause servermgr to use a newer commit, the versioned docker image pushed
   by CircleCI must be tagged `latest`. No changes to the servermgr codebase are
@@ -34,7 +34,7 @@
 
 Notice that tag is the SHA1 of the latest master commit
 
-2. Run [tools/docker/promote.sh](https://github.com/facebookresearch/droidlet/blob/main/tools/docker/promote.sh) using the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY credentials like this:
+2. Run [tools/docker/promote.sh](https://github.com/facebookresearch/fairo/blob/main/tools/docker/promote.sh) using the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY credentials like this:
 
 ```
 AWS_ACCESS_KEY_ID="key id here" AWS_SECRET_ACCESS_KEY="secret access key here" ./tools/docker/promote.sh <DIGEST from above>
