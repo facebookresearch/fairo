@@ -39,11 +39,14 @@ If you use Polymetis in your research, please use the following BibTeX entry.
 ```
 @misc{Polymetis2021,
   author =       {Yixin Lin and Austin S. Wang},
+  author =       {Lin, Yixin and Wang, Austin S. and Sutanto, Giovanni and Rai, Akshara and Meier, Franziska},
   title =        {Polymetis},
   howpublished = {\url{https://polymetis-docs.github.io/}},
   year =         {2021}
 }
 ```
+
+Note: Giovanni Sutanto contributed to the repository during his research internship at Facebook Artificial Intelligence Research (FAIR) in Fall 2019.
 
 ## Contributing
 
