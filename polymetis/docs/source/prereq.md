@@ -29,7 +29,7 @@ Your client code should then connect to the server over network and execute any 
 
 _The following guide is written with specific, known-good version numbers to get you up and running as quickly as possible; other versions will also likely work._
 
-1. Install [Ubuntu 18.04.5](https://releases.ubuntu.com/18.04/)
+1. Install [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
 
 1. The Franka documentation has a [comprehensive guide](https://frankaemika.github.io/docs/installation_linux.html#setting-up-the-real-time-kernel) on installing real-time kernel. Here are some additional pointers[^2]:
     1. Known-good versions: [patch](https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/5.4/older/patch-5.4.70-rt40.patch.xz) and [kernel](https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.70.tar.xz), which have to be compatible with each other, but not necessarily with the output of `uname -a`. 
