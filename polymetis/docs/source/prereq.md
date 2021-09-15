@@ -66,7 +66,7 @@ _The following guide is written with specific, known-good version numbers to get
     
     4. Install the kernel:
             
-            sudo dpkg -i ../linux-headers-5.11-rt7_*.deb ../linux-image-5.11-rt7_*.deb
+            sudo dpkg -i ../linux-headers-5.11.0-rt7_*.deb ../linux-image-5.11.0-rt7_*.deb
     
     5. Follow the rest of the instructions in [Franka's guide](https://frankaemika.github.io/docs/installation_linux.html#verifying-the-new-kernel) to verify the kernel and allow a user to set real-time permissions.
 
