@@ -2,7 +2,7 @@
 .. _droidlet_agents:
 ```
 # Agents
-We instantiate a droidlet [agent](https://github.com/facebookresearch/droidlet/tree/agent_docs/locobot/agent) on a [Locobot](http://www.locobot.org/) and an [agent](https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/agent) in Minecraft using the [Craftassist](https://arxiv.org/abs/1907.08584) framework (the droidlet project evolved from Craftassist).  
+We instantiate a droidlet [agent](https://github.com/facebookresearch/fairo/tree/agent_docs/locobot/agent) on a [Locobot](http://www.locobot.org/) and an [agent](https://github.com/facebookresearch/fairo/tree/agent_docs/craftassist/agent) in Minecraft using the [Craftassist](https://arxiv.org/abs/1907.08584) framework (the droidlet project evolved from Craftassist).  
 
 ## Locobot ##
 
@@ -75,7 +75,7 @@ Additionally, on the server-side, we have a `LoCoBotMover` class that communicat
 ```
 
 ## Craftassist ##
-Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/)
+Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/facebookresearch/fairo/tree/agent_docs/craftassist/)
 
 ### Craftassist Perception ###
 
@@ -88,7 +88,7 @@ The craftassist perception modules are mostly heuristic.
    :members: perceive
 ```
 
-However, there are voxel models for semantic segmentation, one is [here](https://github.com/facebookresearch/droidlet/tree/agent_docs/craftassist/agent/voxel_models/detection-transformer).  Its interface is:
+However, there are voxel models for semantic segmentation, one is [here](https://github.com/facebookresearch/fairo/tree/agent_docs/craftassist/agent/voxel_models/detection-transformer).  Its interface is:
 ```eval_rst
   .. autoclass:: craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper
     :members: perceive

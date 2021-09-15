@@ -33,7 +33,7 @@ You want to do one of three things:
         <td colspan="3"  align="left">
           1. Clone the source code
             <sub><pre lang="bash">
-git clone --recursive https://github.com/facebookresearch/droidlet.git
+git clone --recursive https://github.com/facebookresearch/fairo.git
 cd droidlet
             </pre></sub>
         </td>    
@@ -83,17 +83,17 @@ pip install -r requirements.txt
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-        <td> 4. <a href="https://github.com/facebookresearch/droidlet/blob/main/agents/locobot/README.md"> Instructions for running the Locobot agent</a>
+        <td> 4. <a href="https://github.com/facebookresearch/fairo/blob/main/agents/locobot/README.md"> Instructions for running the Locobot agent</a>
         </td>
         <td>
-        <a href='https://github.com/facebookresearch/droidlet/blob/main/agents/craftassist/README.md'> Instructions for running the Craftassist agent</a>
+        <a href='https://github.com/facebookresearch/fairo/blob/main/agents/craftassist/README.md'> Instructions for running the Craftassist agent</a>
         </td>
         <td>
         <br/>
         </td>
     </tr>
         <tr valign="top">
-        <td colspan=3> 5. <a href="https://github.com/facebookresearch/droidlet/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
+        <td colspan=3> 5. <a href="https://github.com/facebookresearch/fairo/blob/main/tutorials"> Tutorials, runnable in Google Colab (more coming soon).</a><p> The tutorials introduce the `base_agent` architecture and take you through the 4 components of an Agent</p>
         </td>      
     </tr>    
     <tr valign="top" align="center">

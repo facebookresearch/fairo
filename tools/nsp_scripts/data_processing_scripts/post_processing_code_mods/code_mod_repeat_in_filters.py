@@ -1,8 +1,8 @@
 """
 This file updates the data format as of 03/24 to add the filters to
 schematics change
-proposed in : https://github.com/facebookresearch/droidlet/pull/276
-issue: https://github.com/facebookresearch/droidlet/issues/219
+proposed in : https://github.com/facebookresearch/fairo/pull/276
+issue: https://github.com/facebookresearch/fairo/issues/219
 changeset: https://www.internalfb.com/phabricator/paste/view/P359634791
 """
 import argparse

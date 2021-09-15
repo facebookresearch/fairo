@@ -1,6 +1,6 @@
 # [Polymetis](https://polymetis-docs.github.io/): a real-time PyTorch controller manager
 
-[![CircleCI](https://circleci.com/gh/facebookresearch/droidlet/tree/main.svg?style=svg&circle-token=7fadbd3989ab8e76003fd5193ad62e26686bc4a6)](https://circleci.com/gh/facebookresearch/droidlet/tree/main)
+[![CircleCI](https://circleci.com/gh/facebookresearch/fairo/tree/main.svg?style=svg&circle-token=7fadbd3989ab8e76003fd5193ad62e26686bc4a6)](https://circleci.com/gh/facebookresearch/fairo/tree/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 > **Polymetis**: adj., Ancient Greek. _Clever in many ways._ Applied to Odysseus by Homer in the _Odyssey_.
@@ -23,7 +23,7 @@ To get started, you only need one line:
 conda install -c fair-robotics -c aihabitat -c conda-forge polymetis
 ```
 
-You can immediately start running the [example scripts](https://github.com/facebookresearch/droidlet/tree/main/polymetis/examples) in both simulation and hardware. See [installation](https://polymetis-docs.github.io/installation.html) and [usage](https://polymetis-docs.github.io/usage.html) documentation for details.
+You can immediately start running the [example scripts](https://github.com/facebookresearch/fairo/tree/main/polymetis/examples) in both simulation and hardware. See [installation](https://polymetis-docs.github.io/installation.html) and [usage](https://polymetis-docs.github.io/usage.html) documentation for details.
 
 ## Documentation
 
@@ -47,7 +47,7 @@ If you use Polymetis in your research, please use the following BibTeX entry.
 
 ## Contributing
 
-See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out. [Make an issue](https://github.com/facebookresearch/droidlet/issues/new/choose) for bugs and feature requests, or contribute a new robot controller by making a [pull request](https://github.com/facebookresearch/droidlet/pulls)!
+See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out. [Make an issue](https://github.com/facebookresearch/fairo/issues/new/choose) for bugs and feature requests, or contribute a new robot controller by making a [pull request](https://github.com/facebookresearch/fairo/pulls)!
 
 ## License
 Polymetis is MIT licensed, as found in the [LICENSE](LICENSE) file.
