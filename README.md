@@ -97,7 +97,7 @@ pip install -r requirements.txt
         </td>      
     </tr>    
     <tr valign="top" align="center">
-        <td colspan=3> 6. <a href="https://facebookresearch.github.io/droidlet/"> API Documentation</a>
+        <td colspan=3> 6. <a href="https://facebookresearch.github.io/fairo/"> API Documentation</a>
         </td>
     </tr>
     <tr valign="top" align="center">
@@ -105,10 +105,10 @@ pip install -r requirements.txt
         </td>
     </tr>
     <tr valign="top">        
-        <td align="center"><br/><a href="https://facebookresearch.github.io/droidlet/droidlet_agents.html#locobot"> Locobot agent API</a>
+        <td align="center"><br/><a href="https://facebookresearch.github.io/fairo/droidlet_agents.html#locobot"> Locobot agent API</a>
         </td>
         <td align="center">
-        <br/><a href="https://facebookresearch.github.io/droidlet/droidlet_agents.html#craftassist"> CraftAssist agent API</a>
+        <br/><a href="https://facebookresearch.github.io/fairo/droidlet_agents.html#craftassist"> CraftAssist agent API</a>
         </td>
         <td align="center">
         <br/>
