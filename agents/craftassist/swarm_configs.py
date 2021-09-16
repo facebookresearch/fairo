@@ -18,9 +18,9 @@ def get_default_task_info(task_map):
 
 def get_swarm_interpreter(swarm_master_agent):
     agent_type = swarm_master_agent.__class__.__name__.lower()
-    if "craft" in agent_type:
+    if agent_type == "craftassistagent":
         return SwarmMCInterpreter
-    elif "loco" in agent_type:
+    elif agent_type == "locobotagent":
         # TODO: check if implementation works
         return SwarmLocoInterpreter
     else:
@@ -82,7 +82,7 @@ def get_memory_handlers_dict(swarm_master_agent):
             "dump": swarm_master_agent.memory.dump,
         }
         
-    if "craft" in agent_type:
+    if agent_type == "craftassistagent":
         mc_handle_query_dict = {
             "get_entity_by_eid": swarm_master_agent.memory.get_entity_by_eid,
             "_update_voxel_count": swarm_master_agent.memory._update_voxel_count,
@@ -105,7 +105,7 @@ def get_memory_handlers_dict(swarm_master_agent):
         }
         handle_query_dict.update(mc_handle_query_dict)
 
-    elif "loco" in agent_type:
+    elif agent_type == "locobotagent":
         loco_handle_query_dict = {
             "update_other_players": swarm_master_agent.memory.update_other_players,
             "get_detected_objects_tagged": swarm_master_agent.memory.get_detected_objects_tagged,
