@@ -1,9 +1,9 @@
 heu=straightline #default straightline
 scene=apartment_0 # apartment_0 room_0 office_2
-x=noise # no_noise noise
-datetime=mul_traj_200 #$(date +%s)
-export SAVE_VIS=false #true false (when debugging)
-export SLAM_SAVE_FOLDER="/checkpoint/apratik/data/${scene}/${heu}/${x}_${datetime}"
+x=no_noise # no_noise noise
+datetime=mul_traj_activeandrandom_test1 #$(date +%s)
+export SAVE_VIS=true #true false (when debugging)
+export SLAM_SAVE_FOLDER="./data/${scene}/${heu}/${x}/${datetime}"
 echo $SLAM_SAVE_FOLDER
 export SCENE=$scene # changed remote locobot to use this
 export HEURISTIC=$heu # changed default_behavior to use this 

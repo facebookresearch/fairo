@@ -24,7 +24,6 @@ from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils.fmm_planner import FMMPlanner
 from slam_pkg.utils import depth_util as du
 
-
 class Slam(object):
     def __init__(
         self,
@@ -117,6 +116,9 @@ class Slam(object):
             self.bumper_num2ang = {0: np.deg2rad(30), 1: 0, 2: np.deg2rad(-30)}
 
         self.whole_area_explored = True
+        self.last_stg = None
+        self.explore_goal = None
+        self.debug_state = {}
 
 
     def init_save(self, save_folder, save_vis=True):
@@ -156,7 +158,7 @@ class Slam(object):
         print(f'exec_wait {self.exec_wait}')
 
 
-    def explore_goal(self, goal):
+    def set_explore_goal(self, goal):
         self.explore_goal = goal
 
     def set_goal(self, goal):
@@ -258,7 +260,7 @@ class Slam(object):
             self.get_rel_state(self.get_robot_global_state(), self.init_state)
         )
         self.stg = self.planner.get_short_term_goal((robot_map_loc[1], robot_map_loc[0]))
-
+        
         # if self.last_goal:
         #     if stg_x == self.last_goal[0] and stg_y == self.last_goal[1]:
         #         print('last goal was same')
@@ -299,6 +301,12 @@ class Slam(object):
             print(f'finished rotation')
         else:
             print(f'rotation failed')
+
+        if self.stg == self.last_stg:
+            self.save_end_state(f'Same short term goal, aborting', traversable)
+            self.whole_area_explored = True
+        
+        self.last_stg = self.stg
     
         # add robot collision map to traversable area
         # commented it as on real robot this gives issue sometime
@@ -314,9 +322,6 @@ class Slam(object):
             ],
             axis=(0, 1),
         ):
-            np.save(self.trav_folder + "/{:05d}.npy".format(self.trav_count), traversable)
-            print(f'trav_count {self.trav_count}')
-            self.trav_count += 1
             print("Obstacle in path")
 
         else:
@@ -395,21 +400,32 @@ class Slam(object):
             >= self.planner.fmm_dist.max()
         ):
             print("whole area is explored")
-            np.save(self.trav_folder + "/{:05d}.npy".format(self.trav_count), traversable)
-            print(f'trav_count {self.trav_count}')
-            self.trav_count += 1
-            print(f'robot_state_map {int(robot_state_map[1]), int(robot_state_map[0])}') 
-            print(f'planner.fmm_dist {self.planner.fmm_dist[int(robot_state_map[1]), int(robot_state_map[0])]}, planner.fmm_dist.max {self.planner.fmm_dist.max()}')
             self.whole_area_explored = True
+            self.save_end_state("fmmdist >= max", traversable)
             return False
         return None
+    
+    def save_end_state(self, msg, traversable):
+        np.save(self.trav_folder + "/traversable.npy", traversable)
+        robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
+        robot_state_map = self.real2map(robot_state[:2])
+        self.debug_state = {
+                "msg": msg,
+                "stg": self.stg,
+                "planner.fmm_dist": self.planner.fmm_dist[int(robot_state_map[1]), int(robot_state_map[0])],
+                "planner.fmm_dist.max": self.planner.fmm_dist.max()
+            }
+
+    def get_area_explored(self):
+        return abs(self.maxx - self.minx) * abs(self.maxy - self.miny)
 
     def save_rgb_depth_seg(self):
         rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
         pos = self.robot.base.get_state()
         self.skp += 1
         is_active = 0 if self.goal_loc == self.explore_goal else 1
-        if pos != self.last_pos and self.skp % 10 == 0 and is_active:
+        # print(f'goal_loc {self.goal_loc} explore_goal {self.explore_goal}')
+        if pos != self.last_pos and self.skp % 10 == 0:
             self.last_pos = pos
             # store the images and depth
             cv2.imwrite(

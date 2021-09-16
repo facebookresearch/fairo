@@ -19,7 +19,7 @@ from copy import deepcopy as copy
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
-# random.seed(30)
+random.seed(30)
 
 @Pyro4.expose
 class RemoteLocobot(object):
@@ -72,6 +72,7 @@ class RemoteLocobot(object):
         self._done = True
         self._slam_traj_ctr = 0
         self.backend = backend
+        self.init_explore_logger()
     
     def restart_slam(self): # sim only
         self.restart_habitat()
@@ -676,7 +677,7 @@ class RemoteLocobot(object):
             self._done = Trues
             return True
 
-    def get_distant_goal(self, x, y, t, l1_thresh=25):
+    def get_distant_goal(self, x, y, t, l1_thresh=35):
         # Get a distant goal for the slam exploration
         # Pick a random quadrant, get 
         while True:
@@ -686,25 +687,41 @@ class RemoteLocobot(object):
             if d > l1_thresh:
                 return (xt, yt, 0)
 
+    def init_explore_logger(self):
+        self.logger = logging.getLogger('explore')
+        self.logger.setLevel(logging.INFO)
+        fh = logging.FileHandler('explore.log', mode='w')
+        fh.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
+
     # slam wrapper
     def explore(self):
         if self._done:
             self._done = False
             if not self._slam.whole_area_explored:
+                #  set why the whole area was explored here
                 self._slam.take_step(self._slam_step_size)
-            elif self._slam_traj_ctr < 200:
+            elif self._slam_traj_ctr < 5:
                 self._slam_traj_ctr += 1
+                self.logger.info(f'Area explored in trajectory {self._slam_traj_ctr} {self._slam.get_area_explored()}')
+                self.logger.info(json.dumps(self._slam.debug_state))
                 save_folder = os.path.join(self._slam.root_folder, str(self._slam_traj_ctr))
                 self._slam.init_save(save_folder)
                 x,y,t = self._slam.get_rel_state(self._slam.get_robot_global_state(), self._slam.init_state)
-                print(f'x {x}, y {y}, t {t}')
+                self.logger.info(f'cur_state xyt  {(x, y, t)}')
                 goal = self.get_distant_goal(x,y,t)
-                print(f'setting slam goal {goal}')
-                self._slam.explore_goal(goal)
+                self.logger.info(f'setting slam goal {goal}')
+                self._slam.set_explore_goal(goal)
                 self._slam.set_goal(goal)  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.whole_area_explored = False
                 # Reset map
                 self._slam.map_builder.reset_map(map_size=4000)
+                print(f'done resetting')
             self._done = True
             return True
 
