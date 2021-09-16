@@ -34,6 +34,7 @@ class MapBuilder(object):
             ),
             dtype=np.float32,
         )
+        print(f'map shape {self.map.shape}')
 
     def update_map(self, pcd, pose):
         """

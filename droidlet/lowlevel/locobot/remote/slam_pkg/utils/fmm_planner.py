@@ -24,12 +24,16 @@ class FMMPlanner(object):
         :type goal: list
         """
         traversable_ma = ma.masked_values(self.traversable * 1, 0)
-        goal_x, goal_y = int(goal[0]), int(goal[1])
+        # print(f'traversable_ma zeros {np.count_nonzero(traversable_ma == 0)}')
+        goal_x, goal_y = round(goal[0]), round(goal[1])
         traversable_ma[goal_y, goal_x] = 0
         dd = skfmm.distance(traversable_ma, dx=1)
         dd_mask = np.invert(np.isnan(ma.filled(dd, np.nan)))
-        dd = ma.filled(dd, np.max(dd) + 1)
+        # dd = ma.filled(dd, np.max(dd) + 1)
+        dd = ma.filled(dd, 10000)
         self.fmm_dist = dd
+
+        # print(f'fmm_dist.shape {self.fmm_dist.shape}')
 
     def get_short_term_goal(self, state):
         """
@@ -39,7 +43,8 @@ class FMMPlanner(object):
         :return: short term goal in map space where robot should move [x_map_co-ordinate, y_map_co-ordinate]
         :rtype: list
         """
-        state = [int(x) for x in state]
+        state = [round(x) for x in state]
+        # print(f'get stg for state {state[1], state[0]}')
         # pad the map with
         # to handle corners pad the dist with step size and values equal to max
         dist = np.pad(
@@ -47,18 +52,19 @@ class FMMPlanner(object):
         )
         # take subset of distance around the start, as its padded start should be corner instead of center
         subset = dist[
-            state[0] : state[0] + 2 * self.step_size + 1,
-            state[1] : state[1] + 2 * self.step_size + 1,
+            state[1] : state[1] + 2*self.step_size + 1,
+            state[0] : state[0] + 2*self.step_size + 1,
         ]
 
+        # print(f'subset.shape {subset.shape}')
+
         # find the index which has minimum distance
-        (stg_x, stg_y) = np.unravel_index(np.argmin(subset), subset.shape)
-        # print(f'self.last_goal {self.last_goal}')
-        if self.last_goal:
-            if stg_x == self.last_goal[0] and stg_y == self.last_goal[1]:
-                print('last goal was same')
-                (stg_x, stg_y) = np.unravel_index(np.argpartition(subset, 2), subset.shape)
-                self.last_goal = (stg_x, stg_y)
-        self.last_goal = (stg_x, stg_y)
-        # convert index from subset frame
-        return (stg_x + state[0] - self.step_size) + 0.5, (stg_y + state[1] - self.step_size) + 0.5
+        np.set_printoptions(precision=3)
+        (stg_y, stg_x) = np.unravel_index(np.argmin(subset), subset.shape)
+        # print(stg_y, stg_x, subset[stg_y][stg_x], self.step_size)
+        
+        # convert index from subset frame (return x,y)
+        sx = stg_x - self.step_size + state[0]
+        sy = stg_y - self.step_size + state[1]
+        # print(f'self.fmm_dist {self.fmm_dist[sy][sx], self.fmm_dist[state[1]][state[0]]}')
+        return sx, sy  

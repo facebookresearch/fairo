@@ -369,7 +369,7 @@ class CuriousExplore(Task):
     def init_curious_logger(self):
         self.logger = logging.getLogger('curious')
         self.logger.setLevel(logging.INFO)
-        fh = logging.FileHandler('curious_explore.log')
+        fh = logging.FileHandler('curious_explore.log', mode='w')
         fh.setLevel(logging.INFO)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
