@@ -18,6 +18,7 @@ import MobileMainPane from "./MobileMainPane";
 import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
+import MainPane from "./MainPane";
 
 /**
  * The main state manager for the dashboard.
@@ -67,6 +68,7 @@ class StateManager {
     timelineDetails: [],
     timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
     timelineSearchPattern: "",
+    agentType: "locobot",
   };
   session_id = null;
 
@@ -74,6 +76,7 @@ class StateManager {
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
     this.setConnected = this.setConnected.bind(this);
+    this.updateAgentState = this.updateAgentState.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
@@ -220,12 +223,14 @@ class StateManager {
       console.log("connect event");
       this.setConnected(true);
       this.socket.emit("get_memory_objects");
+      this.socket.emit("get_agent_type");
     });
 
     socket.on("reconnect", (msg) => {
       console.log("reconnect event");
       this.setConnected(true);
       this.socket.emit("get_memory_objects");
+      this.socket.emit("get_agent_type");
     });
 
     socket.on("disconnect", (msg) => {
@@ -245,6 +250,7 @@ class StateManager {
     socket.on("setChatResponse", this.setChatResponse);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
+    socket.on("updateAgentType", this.updateAgentState);
 
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
@@ -271,6 +277,16 @@ class StateManager {
     this.memory = data.memory;
     this.refs.forEach((ref) => {
       ref.forceUpdate();
+    });
+  }
+
+  updateAgentState(data) {
+    // Sets stateManager agentType to match backend and passes to MainPane
+    this.memory.agentType = data.agent_type;
+    this.refs.forEach((ref) => {
+      if (ref instanceof MainPane) {
+        ref.setState({ agentType: this.memory.agentType });
+      }
     });
   }
 

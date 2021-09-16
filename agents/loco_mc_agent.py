@@ -40,6 +40,7 @@ class LocoMCAgent(BaseAgent):
         self.dashboard_chat = None
         self.areas_to_perceive = []
         self.perceive_on_chat = False
+        self.agent_type = None
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},

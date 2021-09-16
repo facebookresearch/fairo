@@ -79,6 +79,7 @@ class CraftAssistAgent(LocoMCAgent):
                                }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
+        self.agent_type = 'craftassist'
         self.point_targets = []
         self.last_chat_time = 0
         # areas must be perceived at each step
@@ -161,6 +162,10 @@ class CraftAssistAgent(LocoMCAgent):
                 },
             }
             sio.emit("setVoxelWorldInitialState", payload)
+
+        @sio.on("get_agent_type")
+        def report_agent_type(sid):
+            sio.emit("updateAgentType", {"agent_type": self.agent_type})
 
     def init_inventory(self):
         """Initialize the agent's inventory"""
