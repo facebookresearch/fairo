@@ -46,7 +46,9 @@ class SwarmMasterWrapper():
         task_map = self.base_agent.dialogue_manager.dialogue_object_mapper.dialogue_objects["interpreter"].task_objects
         disable_perception_modules = self.swarm_config["disable_perception_modules"]
         self.swarm_workers = [SwarmWorkerWrapper(opts, task_map=task_map, disable_perception_modules=disable_perception_modules, idx=i+1) for i in range(self.num_workers)]
- 
+        self.base_agent.swarm_workers_memid = [None for i in range(self.num_workers)]
+        self.swarm_workers_memid = self.base_agent.swarm_workers_memid
+
     def init_master_controller(self):
         dialogue_object_classes = self.base_agent.dialogue_manager.dialogue_object_mapper.dialogue_objects
         dialogue_object_classes["interpreter"] = get_swarm_interpreter(self.base_agent)
@@ -131,6 +133,8 @@ class SwarmMasterWrapper():
                                 mem.task.finished = True
                     elif name == "initialization":
                         self.init_status[i] = True
+                    elif name == "memid":
+                        self.swarm_workers_memid[i] = obj
 
     def handle_worker_memory_queries(self):
         for i in range(self.num_workers):
@@ -357,6 +361,7 @@ class SwarmWorkerWrapper(Process):
         agent = CraftAssistAgent(self.opts)
         self.init_worker(agent)
         self.query_from_worker.put(("initialization", True))
+        self.query_from_worker.put(("memid", agent.memory.self_memid))
         while True:
             self.perceive(agent)
             self.send_perception_updates(agent)

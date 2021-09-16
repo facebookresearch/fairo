@@ -23,6 +23,12 @@ TASK_MAP = {
             # "control": ControlBlock,
         }
 
+def get_worker_idx_from_memid(swarm_workers_memid, memid):
+    if memid not in swarm_workers_memid:
+        return 0
+    else:
+        return (swarm_workers_memid.index(memid) + 1)
+
 class BaseSwarmTask(Task):
     """
     Base Task Class for the swarm
@@ -31,21 +37,27 @@ class BaseSwarmTask(Task):
     def __init__(self, agent, task_data={}, subcontrol='equal'):
         super().__init__(agent, task_data)
         # movement should be a Movement object from dance.py
-        # assert hasattr(self.agent, 'swarm_workers')
-        self.num_agents = self.agent.num_agents
+        self.all_swarm_workers_memid = agent.swarm_workers_memid
         self.last_stepped_time = agent.memory.get_time()
         
         # self.swarm_worker_tasks = []
+        self.get_task_agents(agent, task_data)
         self.distribute(task_data)
         TaskNode(agent.memory, self.memid).update_task(task=self)
     
+    def get_task_agents(self, agent, task_data):
+        self.task_agents_memid = task_data.get("task_agents_memid")
+        if self.task_agents_memid is None:
+            self.task_agents_memid = [agent.memory.self_memid] + agent.swarm_workers_memid
+        self.num_agents = len(self.task_agents_memid)
 
     def distribute(self, task_data):
         """divide task to swarm workers
         """
         raise NotImplementedError
     
-    def assign_to_worker(self, worker_idx, task_name, task_data):
+    def assign_to_worker(self, worker_memid, task_name, task_data):
+        worker_idx = get_worker_idx_from_memid(self.all_swarm_workers_memid, worker_memid)
         if worker_idx == 0:
             TASK_MAP[task_name](self.agent, task_data)
         else:
@@ -58,7 +70,7 @@ class SwarmMove(BaseSwarmTask):
     
     def distribute(self, task_data):
         for i in range(self.num_agents):
-            self.assign_to_worker(i, "move", task_data)
+            self.assign_to_worker(self.task_agents_memid[i], "move", task_data)
 
 class SwarmBuild(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -80,7 +92,7 @@ class SwarmBuild(BaseSwarmTask):
             # get offset to modify the origin
             tmp_task_data["origin"] += np.array(offset)
             tmp_ind += self.num_blocks_per_agent[i]
-            self.assign_to_worker(i, "build", tmp_task_data)
+            self.assign_to_worker(self.task_agents_memid[i], "build", tmp_task_data)
 
 class SwarmDestroy(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -97,7 +109,7 @@ class SwarmDestroy(BaseSwarmTask):
             tmp_task_data = deepcopy(task_data)
             tmp_task_data["schematic"] = self.schematic[tmp_ind: tmp_ind + self.num_blocks_per_agent[i]]
             tmp_ind += self.num_blocks_per_agent[i]
-            self.assign_to_worker(i, "destroy", tmp_task_data)
+            self.assign_to_worker(self.task_agents_memid[i], "destroy", tmp_task_data)
 
 class SwarmDig(BaseSwarmTask):
     def __init__(self, agent, task_data):
@@ -133,4 +145,4 @@ class SwarmDig(BaseSwarmTask):
             tmp_m[0] = tmp_m[0] + offset[i]
             if np.min(scheme[i]) <= 0:
                 continue
-            self.assign_to_worker(i, "dig", tmp_task_data)
+            self.assign_to_worker(self.task_agents_memid[i], "dig", tmp_task_data)
