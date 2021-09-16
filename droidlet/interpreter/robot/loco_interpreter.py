@@ -79,6 +79,7 @@ class LocoInterpreter(Interpreter):
         self.action_handlers["DANCE"] = self.handle_dance
         self.action_handlers["GET"] = self.handle_get
         self.action_handlers["DROP"] = self.handle_drop
+        self.task_objects = LocoInterpreter.task_objects
 
     def handle_get(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         default_ref_d = {"filters": {"location": AGENTPOS}}

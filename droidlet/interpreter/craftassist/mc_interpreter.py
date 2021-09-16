@@ -100,6 +100,8 @@ class MCInterpreter(Interpreter):
         self.action_handlers["GET"] = self.handle_get
         self.action_handlers["DROP"] = self.handle_drop
 
+        self.task_objects = MCInterpreter.task_objects
+
 
     def handle_modify(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -254,7 +256,6 @@ class MCInterpreter(Interpreter):
             }
 
             tasks_data.append(task_data)
-
         tasks = []
         for td in tasks_data:
             t = self.task_objects["build"](agent, td)
