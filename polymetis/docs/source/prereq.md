@@ -18,8 +18,9 @@ Your client code should then connect to the server over network and execute any 
 
 1. Networking
     1. Connect NUC to Control using Ethernet
-    1. Put GPU-enabled workstation on the same network (could be wireless, since no real-time guarantees for user code).
-    1. Optional: You can use [FoxyProxy](https://addons.mozilla.org/en-US/firefox/addon/foxyproxy-standard/) to access Franka Desk from your user machine.
+    2. Set the "Wired" network settings on the NUC for control: Manual IPv4 with Address `172.16.0.1`, Netmask `255.255.255.0`
+    3. Put GPU-enabled workstation on the same network (could be wireless, since no real-time guarantees for user code).
+    4. Optional: You can use [FoxyProxy](https://addons.mozilla.org/en-US/firefox/addon/foxyproxy-standard/) to access Franka Desk from your user machine.
         1. In your `~/.ssh/config`, find the entry you use to `ssh` into your NUC. Add `DynamicForward 1337` to that entry and use that port
         1. Add this to your FoxyProxy settings: ![FoxyProxy](img/foxyproxy.png)
 
