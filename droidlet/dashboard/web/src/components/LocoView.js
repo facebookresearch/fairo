@@ -30,7 +30,6 @@ class LocoView extends React.Component {
 
     return (
     <div>
-        <InteractApp stateManager={stateManager} />
         <LiveImage
         type={"rgb"}
         height={320}
