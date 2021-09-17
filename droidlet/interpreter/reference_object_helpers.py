@@ -211,12 +211,6 @@ def filter_by_sublocation(
     filters_d = d.get("filters")
     assert filters_d is not None, "no filters: {}".format(d)
     default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
-
-    # FIXME! remove this when DSL gets rid of location as selector:
-    get_nearest = False
-    if filters_d.get("location") and not filters_d["location"].get("relative_direction"):
-        get_nearest = True
-
     location = filters_d.get("location", default_loc)
     reldir = location.get("relative_direction")
     distance_sorted = False
@@ -278,7 +272,7 @@ def filter_by_sublocation(
             location_filtered_candidates.sort(key=lambda p: p.get_pos())
             distance_sorted = True
     else:
-        # no reference direction: choose the closest
+        # no reference direction: sort by closest
         mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location)
         steps, reldir = interpret_relative_direction(interpreter, d)
         ref_loc, _ = interpreter.subinterpret["specify_locations"](
@@ -289,52 +283,23 @@ def filter_by_sublocation(
         ]
         location_filtered_candidates.sort(key=lambda c: euclid_dist(c.get_pos(), ref_loc))
         distance_sorted = True
-        # FIXME! remove this when DSL gets rid of location as selector:
-        if get_nearest:  # this happens if a location was given in input, but no reldir
-            location_filtered_candidates = location_filtered_candidates[:1]
 
-    # FIXME lots of copied code between here and interpret_selector
     mems = location_filtered_candidates
     if location_filtered_candidates:  # could be [], if so will return []
-        selector_d = filters_d.get("selector", {})
-        return_d = selector_d.get("return_quantity", "ALL")
-        if type(return_d) is dict and return_d.get("random") and distance_sorted:
-            # FIXME? not going to follow spec here, grabbing by the sort...
-            try:
-                return_num = int(number_from_span(return_d["random"]))
-            except:
-                raise Exception(
-                    "malformed selector dict {}, tried to get number from return dict".format(
-                        return_d
-                    )
-                )
-            same = selector_d.get("same", "ALLOWED")
-            if same == "REQUIRED":
-                mems = [location_filtered_candidates[0]] * return_num
-            elif same == "DISALLOWED":
-                if return_num > len(location_filtered_candidates):
-                    raise ErrorWithResponse(
-                        "tried to get {} objects when I only can think of {}".format(
-                            return_num, len(location_filtered_candidates)
-                        )
-                    )
-                else:
-                    mems = location_filtered_candidates[:return_num]
-            else:
-                repeat_num = max(return_num - len(location_filtered_candidates), 0)
-                return_num = min(return_num, len(location_filtered_candidates))
-                mems = (
-                    location_filtered_candidates[:return_num]
-                    + location_filtered_candidates[0] * repeat_num
-                )
+        default_selector_d = {"return_quantity": "ALL"}
+        # default_selector_d = {"location": {"location_type": "SPEAKER_LOOK"}}
+        selector_d = filters_d.get("selector", default_selector_d)
+        S = interpret_selector(interpreter, speaker, selector_d)
+        if S:
+            memids, _ = S(
+                [c.memid for c in location_filtered_candidates],
+                [None] * len(location_filtered_candidates),
+            )
+            mems = [interpreter.memory.get_mem_by_id(m) for m in memids]
         else:
-            S = interpret_selector(interpreter, speaker, selector_d)
-            if S:
-                memids, _ = S(
-                    [c.memid for c in location_filtered_candidates],
-                    [None] * len(location_filtered_candidates),
-                )
-                mems = [interpreter.memory.get_mem_by_id(m) for m in memids]
+            pass
+            # FIXME, warn/error here; mems is still the candidates
+
     return mems
 
 
