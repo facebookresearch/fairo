@@ -175,7 +175,7 @@ def interpret_argval_selector(interpreter, speaker, selector_d):
     return selector
 
 
-def build_linear_extent_selector(interpreter, speaker, location_d):
+def build_linear_extent_selector(interpreter, speaker, location_d, n=1):
     """
     builds a MemoryFilter that selects by a linear_extent dict
     chooses memory location nearest to
@@ -198,7 +198,7 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
     )
     polarity = "argmin"
     sa = ApplyAttribute(interpreter.memory, selector_attribute)
-    selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=1)
+    selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=n)
     selector.append(sa)
     mems_filter = MemidList(interpreter.memory, [mems[0].memid])
     not_mems_filter = NotFilter(interpreter.memory, [mems_filter])
@@ -211,7 +211,8 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
 def interpret_selector(interpreter, speaker, selector_d):
     selector = None
     if selector_d.get("location"):
-        return build_linear_extent_selector(interpreter, speaker, selector_d["location"])
+        n = int(number_from_span(selector_d.get("ordinal", 1)))
+        return build_linear_extent_selector(interpreter, speaker, selector_d["location"], n=n)
     return_d = selector_d.get("return_quantity", "ALL")
     if type(return_d) is str:
         if return_d == "ALL":
