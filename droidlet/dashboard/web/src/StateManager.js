@@ -76,7 +76,7 @@ class StateManager {
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
     this.setConnected = this.setConnected.bind(this);
-    this.updateAgentState = this.updateAgentState.bind(this);
+    this.updateAgentType = this.updateAgentType.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
@@ -250,7 +250,7 @@ class StateManager {
     socket.on("setChatResponse", this.setChatResponse);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
-    socket.on("updateAgentType", this.updateAgentState);
+    socket.on("updateAgentType", this.updateAgentType);
 
     socket.on("rgb", this.processRGB);
     socket.on("depth", this.processDepth);
@@ -280,7 +280,7 @@ class StateManager {
     });
   }
 
-  updateAgentState(data) {
+  updateAgentType(data) {
     // Sets stateManager agentType to match backend and passes to MainPane
     this.memory.agentType = data.agent_type;
     this.refs.forEach((ref) => {

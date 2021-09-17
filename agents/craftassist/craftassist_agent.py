@@ -163,10 +163,6 @@ class CraftAssistAgent(LocoMCAgent):
             }
             sio.emit("setVoxelWorldInitialState", payload)
 
-        @sio.on("get_agent_type")
-        def report_agent_type(sid):
-            sio.emit("updateAgentType", {"agent_type": self.agent_type})
-
     def init_inventory(self):
         """Initialize the agent's inventory"""
         self.inventory = inventory.Inventory()

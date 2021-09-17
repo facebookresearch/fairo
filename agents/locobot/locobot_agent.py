@@ -133,10 +133,6 @@ class LocobotAgent(LocoMCAgent):
                 del o["feature_repr"] # pickling optimization
             self.dashboard_memory["objects"] = objects
             sio.emit("updateState", {"memory": self.dashboard_memory})
-
-        @sio.on("get_agent_type")
-        def report_agent_type(sid):
-            sio.emit("updateAgentType", {"agent_type": self.agent_type})
         
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):

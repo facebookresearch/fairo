@@ -94,6 +94,10 @@ class LocoMCAgent(BaseAgent):
             payload = {"commandList": out}
             sio.emit("updateSearchList", payload)
 
+        @sio.on("get_agent_type")
+        def report_agent_type(sid):
+            sio.emit("updateAgentType", {"agent_type": self.agent_type})
+
         @sio.on("saveErrorDetailsToDb")
         def save_error_details_to_db(sid, postData):
             logging.debug("in save_error_details_to_db, got PostData: %r" % (postData))
