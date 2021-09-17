@@ -3,8 +3,8 @@ import os
 import logging
 from typing import Dict
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from agents.craftassist.swarm_utils import get_safe_single_object_attr_dict, safe_object
-from agents.craftassist.swarm_configs import get_default_task_info, get_swarm_interpreter, get_memory_handlers_dict
+from agents.swarm_utils import get_safe_single_object_attr_dict, safe_object
+from agents.swarm_configs import get_default_task_info, get_swarm_interpreter, get_memory_handlers_dict
 from droidlet.dialog.swarm_dialogue_manager import SwarmDialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from multiprocessing import Process, Queue

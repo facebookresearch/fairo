@@ -4,14 +4,14 @@ from agents.argument_parser import ArgumentParser
 import subprocess
 from multiprocessing import set_start_method
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from agents.craftassist.make_swarm import SwarmMasterWrapper
+from agents.make_swarm import SwarmMasterWrapper
+from agents.swarm_configs import get_default_config
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
 )
 
 def test_mc_swarm():
-    from swarm_configs import get_default_config
     num_workers = 1
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Minecraft", base_path)
