@@ -68,7 +68,7 @@ source_suffix = {
 master_doc = "index"
 
 # General information about the project.
-project = "droidlet"
+project = "fairo"
 copyright = "2020, Facebook AI"
 author = "Facebook AI"
 
@@ -132,7 +132,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "droidletdoc"
+htmlhelp_basename = "fairodoc"
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
