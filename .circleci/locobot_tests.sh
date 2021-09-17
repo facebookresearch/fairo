@@ -38,7 +38,6 @@ popd
 kill -9 $BGPID
 sleep 5
 
-COV_RELATIVE=fairo
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
@@ -47,7 +46,7 @@ source activate /root/miniconda3/envs/droidlet_env
 pip install -r agents/locobot/requirements.txt
 python setup.py develop
 
-pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=$COV_RELATIVE/droidlet droidlet/lowlevel/locobot/tests/test_mover.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=droidlet droidlet/lowlevel/locobot/tests/test_mover.py --disable-pytest-warnings
 kill -9 $BGPID
 sleep 5
 
@@ -62,15 +61,15 @@ deactivate
 
 # run test
 source activate /root/miniconda3/envs/droidlet_env
-pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml/droidlet --cov=$COV_RELATIVE droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml/droidlet --cov=droidlet droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
 
 kill -9 $BGPID # kill habitat
 
 
-pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=$COV_RELATIVE/agents agents/locobot/tests/test_memory.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=$COV_RELATIVE/agents agents/locobot/tests/test_interpreter_mock.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_memory_low_level.xml --cov=$COV_RELATIVE/droidlet droidlet/memory/robot/tests/test_low_level_memory.py --disable-pytest-warnings
-pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=$COV_RELATIVE/droidlet droidlet/lowlevel/locobot/tests/test_utils.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=agents agents/locobot/tests/test_memory.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_interpreter_mock.xml --cov=agents agents/locobot/tests/test_interpreter_mock.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_memory_low_level.xml --cov=droidlet droidlet/memory/robot/tests/test_low_level_memory.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=droidlet droidlet/lowlevel/locobot/tests/test_utils.py --disable-pytest-warnings
 
 
 # start habitat
