@@ -8,7 +8,6 @@ from .tokenization_utils import fixed_span_values_voc
 
 def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
     """Beam search decoding.
-
     Note: Only uses node prediction scores, not the span scores.
 
     Args:
