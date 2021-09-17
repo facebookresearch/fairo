@@ -1,5 +1,11 @@
 source activate /private/home/apratik/.conda/envs/denv3
 
+'''
+./launch.sh <root folder with all trajectory data> <setting specific path> <num of trajectories> <num of training runs> <slurm or local>
+Example commands to run this file
+./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/mul_traj_201_activeandrandom apartment_0/straightline/no_noise 100 5
+'''
+
 data_path=$1
 # Base dir for all jobs
 base_dir=/checkpoint/${USER}/jobs/active_vision/pipeline/$2
@@ -7,8 +13,10 @@ mkdir -p $base_dir
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 
 jobdir=$base_dir/$dt
-echo $jobdir
+echo """"""""""""""""""""""""""""""
+echo Job Directory $jobdir
 mkdir -p $jobdir
+echo """"""""""""""""""""""""""""""
 
 codedir=$jobdir/code
 mkdir -p $codedir

@@ -188,7 +188,7 @@ def run_training(out_dir, img_dir_train, n=10):
         for yix in range(len(test_jsons)):
             r = c.run_eval(dataset_name + str(yix), test_jsons[yix], img_dir_test)
             with open(os.path.join(out_dir, "all_results.txt"), "a") as f:
-                f.write(json.dumps(r))
+                f.write(json.dumps(r) + '\n')
         print(f'all results {c.results}')
         results['bbox']['AP50'].append(c.results['bbox']['AP50'])
         results['segm']['AP50'].append(c.results['segm']['AP50'])
