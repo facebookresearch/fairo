@@ -1,5 +1,7 @@
 <img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br>
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![codecov](https://codecov.io/gh/facebookresearch/fairo/branch/main/graph/badge.svg?token=8ERT95OC8G)](https://codecov.io/gh/facebookresearch/fairo)
+
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
 `droidlet` helps you rapidly build agents (real or virtual) that perform a wide variety of tasks specified by humans. The agents can use natural language, memory and humans in the loop.
