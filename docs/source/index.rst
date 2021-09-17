@@ -30,7 +30,7 @@ The abstract droidlet agent consists of four major components: a :ref:`memory_la
 * and the low-level tasks effect changes in the outside world.
 
 The components in this library can be used separately from the "complete" agent; or can be replaced or combined as a user sees fit.
-The high level control loop of the agent is cartooned in `here <https://github.com/fairinternal/minecraft/blob/master/base_agent/core.py>`__ and shown below:
+The high level control loop of the agent is cartooned in `here <https://github.com/facebookresearch/fairo/blob/main/agents/core.py>`__ and shown below:
 
 .. code-block::
 
@@ -42,11 +42,11 @@ The high level control loop of the agent is cartooned in `here <https://github.c
 Controller
 ----------
 
-Instead of directly affecting the agent's environment, the controller places `Task <https://github.com/fairinternal/minecraft/blob/master/base_agent/task.py>`__ objects on a `Task Stack <https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py#L555>`__.   In order to choose which to place (if any), it needs to read information about the state of the world from memory.
+Instead of directly affecting the agent's environment, the controller places `Task <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/task.py>`__ objects on a `Task Container <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/task.py#L219>`__.   In order to choose which to place (if any), it needs to read information about the state of the world from memory.
 
-In addition to the "abstract" droidlet agent, this repo has two "batteries included" droidlet agent instantiations, located `here <https://github.com/fairinternal/minecraft/blob/master/locobot/agent>`__ and `here <https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/>`__.  In these, the controller is mediated in part by a Dialogue Manager with an associated Dialogue Stack, which attempt to convert human interactions (dialogue) into specifications of Tasks.  The Dialogue Stack is populated with Dialogue Objects, which carry out chunks of human interaction, for example asking for a clarification about a command.
+In addition to the "abstract" droidlet agent, this repo has two "batteries included" droidlet agent instantiations, located `here <https://github.com/facebookresearch/fairo/tree/main/agents/locobot>`__ and `here <https://github.com/facebookresearch/fairo/tree/main/agents/craftassist>`__.  In these, the controller is mediated in part by a Dialogue Manager with an associated Dialogue Stack, which attempt to convert human interactions (dialogue) into specifications of Tasks.  The Dialogue Stack is populated with Dialogue Objects, which carry out chunks of human interaction, for example asking for a clarification about a command.
 
-The Dialogue Manager is in turn powered by a neural semantic parser, which translates natural language into partially specified programs in a DSL decribed `here </../../blob/master/base_agent/documents/Action_Dictionary_Spec.md>`__.  The partially specified programs are then made "executable" (i.e. interpreted into Task Stack manipulations, including adding Tasks) by the Intepreter Dialogue Object.  This object is further broken down into subinterpreters that correspond to subtrees of the logical forms in the DSL, and is described in more detail `here </../../blob/master/docs/source/interpreter.md>`__
+The Dialogue Manager is in turn powered by a neural semantic parser, which translates natural language into partially specified programs in a DSL decribed `here <https://github.com/facebookresearch/fairo/tree/main/droidlet/documents/logical_form_specification>`__.  The partially specified programs are then made "executable" (i.e. interpreted into Task Stack manipulations, including adding Tasks) by the Intepreter Dialogue Object.  This object is further broken down into subinterpreters that correspond to subtrees of the logical forms in the DSL.
 
 The Controller operation in the droidlet agents can be sketched as:
 
@@ -65,7 +65,7 @@ Memory
 
 The `memory system </../../blob/master/docs/source/memory.md>`__ serves as the interface for passing information between the various components of the agent.  It consists of
 
-**A database**\ , currently implemented in SQL, with an overlayed triplestore.  The entry point to the underlying SQL database is an `AgentMemory <https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py>`__ object.  The database can be directly queried through SQL; some common queries using triples or that otherwise are messy in raw SQL have been simplified and packaged.
+**A database**\ , currently implemented in SQL, with an overlayed triplestore.  The entry point to the underlying SQL database is an `AgentMemory <https://github.com/facebookresearch/fairo/blob/main/droidlet/memory/sql_memory.py>`__ object.  The database can be directly queried through SQL; some common queries using triples or that otherwise are messy in raw SQL have been simplified and packaged.
 
 **MemoryNodes**\ , which are Python wrappers for coherent data.  MemoryNodes collate data about a particular entity or event.  There are MemoryNodes for ReferenceObjects (things that have a location in space), for Tasks, for chats and commands, etc.
 
@@ -74,18 +74,18 @@ The `memory system </../../blob/master/docs/source/memory.md>`__ serves as the i
 Tasks
 -----
 
-The `Task <https://github.com/fairinternal/minecraft/blob/master/base_agent/task.py>`__ objects abstract away the difficulties of actually carrying out the tasks, and allow a uniform interface to the controller and memory across different platforms.
+The `Task <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/task.py>`__ objects abstract away the difficulties of actually carrying out the tasks, and allow a uniform interface to the controller and memory across different platforms.
 
 Task objects define a .step() method; on each iteration through the main agent loop, the Task is stepped, and the Task Stack steps its highest priority Task.
-The Task objects themselves are *not* generic across agents; and can be heuristic or learned.  In the current droidlet agent controller, they are registered `here <https://github.com/fairinternal/minecraft/blob/master/base_agent/dialogue_objects/interpreter.py#L76>`__\ , for example `here <https://github.com/fairinternal/minecraft/blob/master/craftassist/agent/dialogue_objects/mc_interpreter.py#L78>`__ and `here <https://github.com/fairinternal/minecraft/blob/master/locobot/agent/dialogue_objects/loco_interpreter.py#L64>`__
+The Task objects themselves are *not* generic across agents; and can be heuristic or learned.  In the current droidlet agent controller, they are registered `here <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/interpreter.py#L83>`__\ , for example `here <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/craftassist/mc_interpreter.py#L88>`__ and `here <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/robot/loco_interpreter.py#L71>`__
 
-The `Task Stack <https://github.com/fairinternal/minecraft/blob/master/base_agent/sql_memory.py#L555>`__ is maintained by the Memory system, and provides methods for examining and manipulating Task Objects
+The `Task Container <https://github.com/facebookresearch/fairo/blob/main/droidlet/interpreter/task.py#L219>`__ is maintained by the Memory system, and provides methods for examining and manipulating Task Objects
 
 Perception
 ----------
 
 Perceptual modules process information about the agent's environment and write to memory.  Each perceptual module should have a .perceive() method, which is called
-`here <https://github.com/fairinternal/minecraft/blob/master/base_agent/loco_mc_agent.py#L180>`__\ , during the main agent loop.
+`here <https://github.com/facebookresearch/fairo/blob/main/agents/loco_mc_agent.py#L281>`__\ , during the main agent loop.
 
 
 

@@ -2,7 +2,7 @@
 .. _droidlet_agents:
 ```
 # Agents
-We instantiate a droidlet [agent](https://github.com/facebookresearch/fairo/tree/agent_docs/locobot/agent) on a [Locobot](http://www.locobot.org/) and an [agent](https://github.com/facebookresearch/fairo/tree/agent_docs/craftassist/agent) in Minecraft using the [Craftassist](https://arxiv.org/abs/1907.08584) framework (the droidlet project evolved from Craftassist).  
+We instantiate a droidlet [agent](https://github.com/facebookresearch/fairo/tree/main/agents/locobot) on a [Locobot](http://www.locobot.org/) and an [agent](https://github.com/facebookresearch/fairo/tree/main/agents/craftassist) in Minecraft using the [Craftassist](https://arxiv.org/abs/1907.08584) framework (the droidlet project evolved from Craftassist).  
 
 ## Locobot ##
 
@@ -17,10 +17,9 @@ This pipeline is split into `Perception` and `SlowPerception`.
 `SlowPerception` consists of heavier modules such as Face Recognition, Object Detection and can be run at a much lower frequency in a background thread.
 
 ```eval_rst
- .. autoclass:: locobot.agent.perception.Perception
+ .. autoclass:: droidlet.perception.robot.perception.Perception
     :members: perceive, setup_vision_handlers, log
- .. autoclass:: locobot.agent.perception.SlowPerception
-    :members: perceive, setup_vision_handlers
+ 
 ```
 
 #### Components
@@ -28,20 +27,19 @@ This pipeline is split into `Perception` and `SlowPerception`.
 These pipelines are powered by components that can be stringed together in arbitrary ways, to create your own custom pipeline:
 
 ```eval_rst
- .. autoclass:: locobot.agent.perception.handlers.InputHandler
+ .. autoclass:: droidlet.perception.robot.handlers.detector.ObjectDetection
     :members:
- .. autoclass:: locobot.agent.perception.handlers.DetectionHandler
+ .. autoclass:: droidlet.perception.robot.handlers.human_pose.HumanPose
     :members:
- .. autoclass:: locobot.agent.perception.handlers.HumanPoseHandler
+ .. autoclass:: droidlet.perception.robot.handlers.face_recognition.FaceRecognition
     :members:
- .. autoclass:: locobot.agent.perception.handlers.FaceRecognitionHandler
+ .. autoclass:: droidlet.perception.robot.handlers.laser_pointer.DetectLaserPointer
     :members:
- .. autoclass:: locobot.agent.perception.handlers.LaserPointerHandler
+ .. autoclass:: droidlet.perception.robot.handlers.tracker.ObjectTracking
     :members:
- .. autoclass:: locobot.agent.perception.handlers.TrackingHandler
+ .. autoclass:: droidlet.perception.robot.handlers.error_sampling.ErrorSampler
     :members:
- .. autoclass:: locobot.agent.perception.handlers.MemoryHandler
-    :members:
+ .. autoclass:: droidlet.perception.robot.handlers.label_propagate.LabelPropagate
 ```
 
 #### Data Structures
@@ -49,15 +47,15 @@ These pipelines are powered by components that can be stringed together in arbit
 The components use some data structure classes to create metadata such as object information and have convenient functions registered on these classes
 
 ```eval_rst
- .. autoclass:: locobot.agent.perception.RGBDepth
+ .. autoclass:: droidlet.shared_data_structs.RGBDepth
     :members:
- .. autoclass:: locobot.agent.perception.WorldObject
+ .. autoclass:: droidlet.perception.robot.handlers.core.WorldObject
     :members:
- .. autoclass:: locobot.agent.perception.Human
+ .. autoclass:: droidlet.perception.robot.handlers.human_pose.Human
     :members:
- .. autoclass:: locobot.agent.perception.HumanKeypoints
+ .. autoclass:: droidlet.perception.robot.handlers.human_pose.HumanKeypoints
     :members:
- .. autoclass:: locobot.agent.perception.Detection
+ .. autoclass:: droidlet.perception.robot.handlers.detector.Detection
     :members:
 ```
 
@@ -68,28 +66,28 @@ We have a `RemoteLocobot` object that runs on the robot, and marshals data back 
 Additionally, on the server-side, we have a `LoCoBotMover` class that communicates with `RemoteLocobot` and provides a low-level API to the robot.
 
 ```eval_rst
- .. autoclass:: locobot.robot.RemoteLocobot
+ .. autoclass:: droidlet.lowlevel.locobot.remote.remote_locobot.RemoteLocobot
     :members:
- .. autoclass:: locobot.agent.locobot_mover.LoCoBotMover
+ .. autoclass:: droidlet.lowlevel.locobot.locobot_mover.LoCoBotMover
     :members:
 ```
 
 ## Craftassist ##
-Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/facebookresearch/fairo/tree/agent_docs/craftassist/)
+Details for setting up and running the Cuberite server and Craftassist agent are [here](https://github.com/facebookresearch/fairo/tree/main/agents/craftassist)
 
 ### Craftassist Perception ###
 
 The craftassist perception modules are mostly heuristic.  
 
 ```eval_rst
- .. autoclass:: craftassist.agent.low_level_perception.LowLevelMCPerception
+ .. autoclass:: droidlet.perception.craftassist.low_level_perception.LowLevelMCPerception
    :members: perceive
- .. autoclass:: craftassist.agent.heuristic_perception.PerceptionWrapper
+ .. autoclass:: droidlet.perception.craftassist.heuristic_perception.PerceptionWrapper
    :members: perceive
 ```
 
-However, there are voxel models for semantic segmentation, one is [here](https://github.com/facebookresearch/fairo/tree/agent_docs/craftassist/agent/voxel_models/detection-transformer).  Its interface is:
+However, there are voxel models for semantic segmentation, one is [here](https://github.com/facebookresearch/fairo/tree/main/droidlet/perception/craftassist/voxel_models/detection-transformer).  Its interface is:
 ```eval_rst
-  .. autoclass:: craftassist.agent.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper
+  .. autoclass:: droidlet.perception.craftassist.voxel_models.subcomponent_classifier.SubcomponentClassifierWrapper
     :members: perceive
 ```
