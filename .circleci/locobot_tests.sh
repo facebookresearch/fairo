@@ -38,7 +38,7 @@ popd
 kill -9 $BGPID
 sleep 5
 
-COV_RELATIVE=droidlet
+COV_RELATIVE=fairo
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
 sleep 30
@@ -87,8 +87,3 @@ source activate /root/miniconda3/envs/droidlet_env
 
 # kill habitat
 kill -9 $BGPID
-
-if [ ! -f coverage.xml ]; then
-   pip install coverage
-   coverage xml -i
-fi
