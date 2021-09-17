@@ -969,6 +969,22 @@ PUT_MEMORY_COMMANDS = {
             }
         },
     },
+    "you two are team alpha": {
+        "dialogue_type": "PUT_MEMORY",
+        "filters": {
+            "selector": {
+                "location": {"location_type": "SPEAKER_LOOK"},
+                "ordinal": "2",
+                "same": "DISALLOWED",
+            }
+        },
+        "upsert": {
+            "memory_data": {
+                "memory_type": "SET",
+                "triples": [{"pred_text": "has_name", "obj_text": "team alpha"}],
+            }
+        },
+    },
 }
 
 
