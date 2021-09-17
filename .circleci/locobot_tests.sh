@@ -92,5 +92,3 @@ if [ ! -f coverage.xml ]; then
    pip install coverage
    coverage xml -i
 fi
-
-cp coverage.xml /shared
