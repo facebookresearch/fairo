@@ -38,7 +38,6 @@ All documentation on the [website](https://polymetis-docs.github.io/). Includes:
 If you use Polymetis in your research, please use the following BibTeX entry.
 ```
 @misc{Polymetis2021,
-  author =       {Yixin Lin and Austin S. Wang},
   author =       {Lin, Yixin and Wang, Austin S. and Sutanto, Giovanni and Rai, Akshara and Meier, Franziska},
   title =        {Polymetis},
   howpublished = {\url{https://polymetis-docs.github.io/}},
