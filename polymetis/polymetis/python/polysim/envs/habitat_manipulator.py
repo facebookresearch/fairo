@@ -18,11 +18,19 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 
 import torchcontrol as toco
 
+from habitat_sim.utils import viz_utils as vut
+
 
 """
 Habitat simulation setup helper functions. Based on the URDF prototype branch:
 https://github.com/facebookresearch/habitat-sim/blob/f6267cbfe0ad6c8f86d79edc917a49fb26ddbb73/examples/tutorials/URDF_robotics_tutorial.py
 """
+
+
+def make_quaternion(float_array):
+    return mn.Quaternion(
+        mn.Vector3(float_array[1], float_array[2], float_array[3]), float_array[0]
+    )
 
 
 def make_configuration(
@@ -60,38 +68,41 @@ def make_configuration(
         habitat_dir, backend_cfg.physics_config_file
     )
 
-    # sensor configurations
-    # Note: all sensors must have the same resolution
-    # setup 2 rgb sensors for 1st and 3rd person views
-    camera_resolution = [540, 720]
-    sensors = {
-        "rgba_camera_1stperson": {
-            "sensor_type": habitat_sim.SensorType.COLOR,
-            "resolution": camera_resolution,
-            "position": [0.0, 0.0, 0.0],
-            "orientation": [0.0, 0.0, 0.0],
-        },
-        "depth_camera_1stperson": {
-            "sensor_type": habitat_sim.SensorType.DEPTH,
-            "resolution": camera_resolution,
-            "position": [0.0, 0.0, 0.0],
-            "orientation": [0.0, 0.0, 0.0],
-        },
-    }
+    # # sensor configurations
+    # # Note: all sensors must have the same resolution
+    # # setup 2 rgb sensors for 1st and 3rd person views
+    # camera_resolution = [544, 720]
+    # sensors = {
+    #     "rgba_camera_1stperson": {
+    #         "sensor_type": habitat_sim.SensorType.COLOR,
+    #         "resolution": camera_resolution,
+    #         "position": [0.0, 0.0, 0.0],
+    #         "orientation": [0.0, 0.0, 0.0],
+    #     },
+    #     "depth_camera_1stperson": {
+    #         "sensor_type": habitat_sim.SensorType.DEPTH,
+    #         "resolution": camera_resolution,
+    #         "position": [0.0, 0.0, 0.0],
+    #         "orientation": [0.0, 0.0, 0.0],
+    #     },
+    # }
 
-    sensor_specs = []
-    for sensor_uuid, sensor_params in sensors.items():
-        sensor_spec = habitat_sim.CameraSensorSpec()
-        sensor_spec.uuid = sensor_uuid
-        sensor_spec.sensor_type = sensor_params["sensor_type"]
-        sensor_spec.resolution = sensor_params["resolution"]
-        sensor_spec.position = sensor_params["position"]
-        sensor_spec.orientation = sensor_params["orientation"]
-        sensor_specs.append(sensor_spec)
+    # sensor_specs = []
+    # for sensor_uuid, sensor_params in sensors.items():
+    #     sensor_spec = habitat_sim.CameraSensorSpec()
+    #     sensor_spec.uuid = sensor_uuid
+    #     sensor_spec.sensor_type = sensor_params["sensor_type"]
+    #     sensor_spec.resolution = sensor_params["resolution"]
+    #     sensor_spec.position = sensor_params["position"]
+    #     sensor_spec.orientation = sensor_params["orientation"]
+    #     sensor_specs.append(sensor_spec)
 
     # agent configuration
     agent_cfg = habitat_sim.agent.AgentConfiguration()
-    agent_cfg.sensor_specifications = sensor_specs
+    # agent_cfg.sensor_specifications = sensor_specs
+    sensor_cfg = habitat_sim.CameraSensorSpec()
+    sensor_cfg.resolution = [544, 720]
+    agent_cfg.sensor_specifications = [sensor_cfg]
 
     return habitat_sim.Configuration(backend_cfg, [agent_cfg])
 
@@ -107,8 +118,22 @@ def place_agent(
     agent_state.position = agent_pos
     # agent_state.position = [-0.15, -1.6, 1.0]
     agent_state.rotation = np.quaternion(*agent_orient)
-    agent = sim.initialize_agent(0, agent_state)
-    return agent.scene_node.transformation_matrix()
+    # agent = sim.initialize_agent(0, agent_state)
+
+    agent_node = sim.get_agent(0).body.object
+    sensor_node = sim._sensors["rgba_camera"]._sensor_object.object
+
+    # place agent at origin (we will never move the agent; we will only move the sensor)
+    agent_node.translation = [0.0, 0.0, 0.0]
+    agent_node.rotation = mn.Quaternion()
+
+    sensor_node.translation = mn.Vector3([0.3, 1.2, -1.6])
+    # sensor_node.rotation = make_quaternion([0.87,-0.184,0.0,0.0])
+    # sensor_node.rotation = make_quaternion([.066, 0, .947, -0.316])
+    # sensor_node.rotation = make_quaternion([-0.37, 0.553, 0.4, -0.644])
+    sensor_node.rotation = make_quaternion([0.178, 0, 0.984, 0])
+
+    # return agent.scene_node.transformation_matrix()
 
 
 def place_robot_from_agent(
@@ -140,9 +165,9 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
         gui: bool = False,
         save_vid: bool = False,
         habitat_scene_path: str = "data/scene_datasets/habitat-test-scenes/apartment_1.glb",
-        agent_pos: list = [-0.15, 1.5, 1.0],
-        agent_orient: list = [-0.83147, 0, 0.55557, 0],
-        local_base_pos: list = [-0.25, -0.8, -1.0],
+        agent_pos: list = [0.0, 0.0, 0.0],
+        agent_orient: list = [1.0, 0.0, 0.0, 0.0],
+        local_base_pos: list = [0.2, 0.3, 0.2],  # [-0.4, -2.3, 0],
         orientation_vector: list = [1.0, 0, 0],
         angle_correction: float = -1.56,
     ):
@@ -201,7 +226,6 @@ class HabitatManipulatorEnv(AbstractControlledEnv):
             self.robot_description_path,
             fixed_base=True,
             light_setup_key=habitat_sim.gfx.DEFAULT_LIGHTING_KEY,
-            )
         )
         assert self.robot is not None
 

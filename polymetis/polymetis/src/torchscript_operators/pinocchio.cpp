@@ -193,8 +193,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
       // Check termination
       if (err.norm() < eps) {
-        std::cout << "Ending IK at " << i + 1 << "/" << max_iters
-                  << " iteration." << std::endl;
+        // std::cout << "Ending IK at " << i + 1 << "/" << max_iters
+        //           << " iteration." << std::endl;
         break;
       }
 
