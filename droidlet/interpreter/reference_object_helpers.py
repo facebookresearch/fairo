@@ -272,7 +272,7 @@ def filter_by_sublocation(
             location_filtered_candidates.sort(key=lambda p: p.get_pos())
             distance_sorted = True
     else:
-        # no reference direction: choose the closest
+        # no reference direction: sort by closest
         mems = interpreter.subinterpret["reference_locations"](interpreter, speaker, location)
         steps, reldir = interpret_relative_direction(interpreter, d)
         ref_loc, _ = interpreter.subinterpret["specify_locations"](
@@ -286,7 +286,8 @@ def filter_by_sublocation(
 
     mems = location_filtered_candidates
     if location_filtered_candidates:  # could be [], if so will return []
-        default_selector_d = {"location": {"location_type": "SPEAKER_LOOK"}}
+        default_selector_d = {"return_quantity": "ALL"}
+        # default_selector_d = {"location": {"location_type": "SPEAKER_LOOK"}}
         selector_d = filters_d.get("selector", default_selector_d)
         S = interpret_selector(interpreter, speaker, selector_d)
         if S:
