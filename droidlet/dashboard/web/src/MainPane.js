@@ -2,20 +2,14 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 */
 import React from "react";
-import LiveImage from "./components/LiveImage";
-import LiveObjects from "./components/LiveObjects";
-import LiveHumans from "./components/LiveHumans";
 import InteractApp from "./components/Interact/InteractApp";
+import LocoView from "./components/LocoView";
 import VoxelWorld from "./components/VoxelWorld/VoxelWorld";
 
 class MainPane extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      rgb: null,
-      depth: null,
-      objects: null,
-      humans: null,
       agentType: 'locobot',
     };
   }
@@ -32,36 +26,7 @@ class MainPane extends React.Component {
       return (
         <div>
           <InteractApp stateManager={stateManager} />
-          <LiveImage
-            type={"rgb"}
-            height={320}
-            width={320}
-            offsetH={320 + 80}
-            offsetW={10}
-            stateManager={stateManager}
-          />
-          <LiveImage
-            type={"depth"}
-            height={320}
-            width={320}
-            offsetH={320 + 80}
-            offsetW={10 + 320 + 10}
-            stateManager={stateManager}
-          />
-          <LiveObjects
-            height={320}
-            width={320}
-            offsetH={320 + 60 + 320 + 30}
-            offsetW={10}
-            stateManager={stateManager}
-          />
-          <LiveHumans
-            height={320}
-            width={320}
-            offsetH={320 + 60 + 320 + 30}
-            offsetW={10 + 320 + 10}
-            stateManager={stateManager}
-          />
+          <LocoView stateManager={stateManager} />
         </div>
       );
     }
@@ -69,9 +34,7 @@ class MainPane extends React.Component {
       return (
         <div>
           <InteractApp stateManager={stateManager} />
-          <VoxelWorld
-            stateManager={stateManager}
-          />
+          <VoxelWorld stateManager={stateManager} />
         </div>
       );
     }
