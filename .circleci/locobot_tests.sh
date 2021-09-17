@@ -61,7 +61,7 @@ deactivate
 
 # run test
 source activate /root/miniconda3/envs/droidlet_env
-pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml/droidlet --cov=droidlet droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
+pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=droidlet droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
 
 kill -9 $BGPID # kill habitat
 
