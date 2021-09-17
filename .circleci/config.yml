@@ -238,7 +238,8 @@ jobs:
           docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
           pip3 install codecov
           export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-          codecov -n "locobot tests"|| echo "Codecov did not collect coverage reports"
+          codecov -n "locobot tests" -f test*.xml || echo "Codecov did not collect coverage reports"
+  
   polymetis-local-ubuntu-18:
     docker:
       - image: fairrobotics/kuka-workspace:ubuntu-18
