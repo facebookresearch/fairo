@@ -54,7 +54,22 @@ class MCInterpreter(Interpreter):
 
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
-
+    task_objects = {
+        "move": tasks.Move,
+        "undo": tasks.Undo,
+        "build": tasks.Build,
+        "destroy": tasks.Destroy,
+        "spawn": tasks.Spawn,
+        "fill": tasks.Fill,
+        "dig": tasks.Dig,
+        "dance": tasks.Dance,
+        "point": tasks.Point,
+        "dancemove": tasks.DanceMove,
+        "get": tasks.Get,
+        "drop": tasks.Drop,
+        "control": ControlBlock,
+        }
+        
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.default_frame = "SPEAKER"
@@ -85,21 +100,8 @@ class MCInterpreter(Interpreter):
         self.action_handlers["GET"] = self.handle_get
         self.action_handlers["DROP"] = self.handle_drop
 
-        self.task_objects = {
-            "move": tasks.Move,
-            "undo": tasks.Undo,
-            "build": tasks.Build,
-            "destroy": tasks.Destroy,
-            "spawn": tasks.Spawn,
-            "fill": tasks.Fill,
-            "dig": tasks.Dig,
-            "dance": tasks.Dance,
-            "point": tasks.Point,
-            "dancemove": tasks.DanceMove,
-            "get": tasks.Get,
-            "drop": tasks.Drop,
-            "control": ControlBlock,
-        }
+        self.task_objects = MCInterpreter.task_objects
+
 
     def handle_modify(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
@@ -254,7 +256,6 @@ class MCInterpreter(Interpreter):
             }
 
             tasks_data.append(task_data)
-
         tasks = []
         for td in tasks_data:
             t = self.task_objects["build"](agent, td)

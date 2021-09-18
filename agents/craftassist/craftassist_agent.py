@@ -100,10 +100,13 @@ class CraftAssistAgent(LocoMCAgent):
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
+        self.disable_chat = False
 
     def get_chats(self):
         """This function is a wrapper around self.cagent.get_incoming_chats and adds a new
         chat self.dashboard_chat which is set by the dashboard."""
+        if self.disable_chat:
+            return
         all_chats = self.cagent.get_incoming_chats()
         updated_chats = []
         if self.dashboard_chat:
@@ -302,6 +305,8 @@ class CraftAssistAgent(LocoMCAgent):
 
     def send_chat(self, chat):
         """Send chat from agent to player"""
+        if self.disable_chat:
+            return
         logging.info("Sending chat: {}".format(chat))
         sio.emit("showAssistantReply", {'agent_reply' : "Agent: {}".format(chat)})
         self.memory.add_chat(self.memory.self_memid, chat)

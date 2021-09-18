@@ -42,6 +42,18 @@ class LocoInterpreter(Interpreter):
     execute them.
     """
 
+    task_objects = {
+        "move": tasks.Move,
+        "look": tasks.Look,
+        "dance": tasks.Dance,
+        "point": tasks.Point,
+        "turn": tasks.Turn,
+        "autograsp": tasks.AutoGrasp,
+        "control": ControlBlock,
+        "get": tasks.Get,
+        "drop": tasks.Drop,
+        }
+
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(speaker, action_dict, **kwargs)
         self.speaker = speaker
@@ -67,18 +79,7 @@ class LocoInterpreter(Interpreter):
         self.action_handlers["DANCE"] = self.handle_dance
         self.action_handlers["GET"] = self.handle_get
         self.action_handlers["DROP"] = self.handle_drop
-
-        self.task_objects = {
-            "move": tasks.Move,
-            "look": tasks.Look,
-            "dance": tasks.Dance,
-            "point": tasks.Point,
-            "turn": tasks.Turn,
-            "autograsp": tasks.AutoGrasp,
-            "control": ControlBlock,
-            "get": tasks.Get,
-            "drop": tasks.Drop,
-        }
+        self.task_objects = LocoInterpreter.task_objects
 
     def handle_get(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         default_ref_d = {"filters": {"location": AGENTPOS}}

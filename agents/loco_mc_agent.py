@@ -40,6 +40,7 @@ class LocoMCAgent(BaseAgent):
         self.dashboard_chat = None
         self.areas_to_perceive = []
         self.perceive_on_chat = False
+        self.task_step_filters = None
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -246,22 +247,35 @@ class LocoMCAgent(BaseAgent):
         super().step()
         self.maybe_dump_memory_to_dashboard()
 
+    def mem_filter(self, mem, filters=None):
+        if filters is None:
+            filters = self.task_step_filters
+        if filters is None:
+            return False
+
+        for filter in filters:
+            if filter in mem.get_tags():
+                return True
+        return False
+
     def task_step(self, sleep_time=0.25):
         query = "SELECT MEMORY FROM Task WHERE prio=-1"
         _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
-            if mem.task.init_condition.check():
-                mem.get_update_status({"prio": 0})
+            if not self.mem_filter(mem):
+                if mem.task.init_condition.check():
+                    mem.get_update_status({"prio": 0})
 
         # this is "select TaskNodes whose priority is >= 0 and are not paused"
         query = "SELECT MEMORY FROM Task WHERE ((prio>=0) AND (paused <= 0))"
         _, task_mems = self.memory.basic_search(query)
         for mem in task_mems:
-            if mem.task.run_condition.check():
-                # eventually we need to use the multiplex filter to decide what runs
-                mem.get_update_status({"prio": 1, "running": 1})
-            if mem.task.stop_condition.check():
-                mem.get_update_status({"prio": 0, "running": 0})
+            if not self.mem_filter(mem):
+                if mem.task.run_condition.check():
+                    # eventually we need to use the multiplex filter to decide what runs
+                    mem.get_update_status({"prio": 1, "running": 1})
+                if mem.task.stop_condition.check():
+                    mem.get_update_status({"prio": 0, "running": 0})
         # this is "select TaskNodes that are runnning (running >= 1) and are not paused"
         query = "SELECT MEMORY FROM Task WHERE ((running>=1) AND (paused <= 0))"
         _, task_mems = self.memory.basic_search(query)
@@ -269,9 +283,10 @@ class LocoMCAgent(BaseAgent):
             time.sleep(sleep_time)
             return
         for mem in task_mems:
-            mem.task.step()
-            if mem.task.finished:
-                mem.update_task()
+            if not self.mem_filter(mem):
+                mem.task.step()
+                if mem.task.finished:
+                    mem.update_task()
 
     def get_time(self):
         # round to 100th of second, return as
