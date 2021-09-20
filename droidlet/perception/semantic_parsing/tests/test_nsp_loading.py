@@ -19,8 +19,13 @@ class TestNSPModel(unittest.TestCase):
     def test_model_parse(self):
         chat = 'come here'
         logical_form = self.model.parse(chat=chat)
-        import ipdb; ipdb.set_trace()
-        return logical_form
+        self.assertEqual(type(logical_form), dict)
+        chat = 'hello'
+        logical_form = self.model.parse(chat=chat)
+        self.assertEqual(type(logical_form), dict)
+        chat = 'dance'
+        logical_form = self.model.parse(chat=chat)
+        self.assertEqual(type(logical_form), dict)
 
 if __name__ == '__main__':
     unittest.main()
