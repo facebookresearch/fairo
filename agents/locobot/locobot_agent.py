@@ -69,6 +69,7 @@ class LocobotAgent(LocoMCAgent):
     def __init__(self, opts, name="Locobot"):
         super(LocobotAgent, self).__init__(opts)
         logging.info("LocobotAgent.__init__ started")
+        self.agent_type = 'locobot'
         self.opts = opts
         self.entityId = 0
         self.no_default_behavior = opts.no_default_behavior
