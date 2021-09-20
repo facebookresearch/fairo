@@ -13,23 +13,6 @@ from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_n
 ####################################################################################
 
 
-SELFID = "0" * 32
-
-
-def maybe_and(sql, a):
-    if a:
-        return sql + " AND "
-    else:
-        return sql
-
-
-def maybe_or(sql, a):
-    if a:
-        return sql + " OR "
-    else:
-        return sql
-
-
 def check_well_formed_triple(clause):
     # TODO search by pred?
     assert any(
