@@ -7,7 +7,7 @@ import threading
 
 from typing import List
 
-from .data_generator import DataGenerator
+from utils.data_generator import DataGenerator
 
 
 class JobListener:
