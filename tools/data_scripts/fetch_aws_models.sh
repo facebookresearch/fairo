@@ -35,17 +35,17 @@ cd $ROOTDIR
 
 if [ "$3" == "nsp" ]; then
 	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz ======"
-	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz 
+	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz || echo "Failed to download. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3."
 
-# if [ -d "agents/${AGENT}/models" ]
-# then
-# 	echo "Overwriting models directory"
-# 	rm -rf agents/${AGENT}/models
-# fi
+#   if [ -d "agents/${AGENT}/models" ]
+#   then
+#    echo "Overwriting models directory"
+#    rm -rf agents/${AGENT}/models
+#   fi
+#
+#   mkdir -p agents/${AGENT}/models
 
-# mkdir -p agents/${AGENT}/models
-
-	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
+	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to unarchive. PLease make sure agents/${AGENT}/models exists."
 fi
 
 if [ "$3" == "locobot" ]; then
