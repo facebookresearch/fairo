@@ -164,7 +164,7 @@ jobs:
               docker run --name mc-tests -v $(pwd):/shared -w /fairo --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /fairo/.circleci/craftassist_tests.sh"
               pip3 install codecov
               export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              codecov -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
+              codecov -n "craftassist tests" -f *.xml || echo "Codecov did not collect coverage reports"
           no_output_timeout: 50m
 
       - run:
