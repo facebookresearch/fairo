@@ -46,7 +46,7 @@ The Dialogue Manager operates the Stack, and chooses whether to place Dialogue o
 The training of the semantic parsing model is described in detail [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/train_model.py) and the model architecture has been described [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/encoder_decoder.py) and [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/perception/semantic_parsing/nsp_transformer_model/decoder_with_loss.py).
 ; the interface is
 ```eval_rst
- .. autoclass:: droidlet.perception.semantic_parsing.nsp_transformer_model.query_model.TTADBertModel
+ .. autoclass:: droidlet.dialog.ttad.ttad_transformer_model.query_model.NSPBertModel
   :members: parse
 ```
 ## Dialogue Objects ##
