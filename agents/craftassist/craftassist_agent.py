@@ -43,7 +43,7 @@ from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import
     SubcomponentClassifierWrapper,
 )
 from droidlet.lowlevel.minecraft import craftassist_specs
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP, BORING_BLOCKS
 from droidlet.lowlevel.minecraft import shape_helpers
 from droidlet.perception.craftassist import heuristic_perception
 
@@ -75,6 +75,7 @@ class CraftAssistAgent(LocoMCAgent):
                                "block_data": craftassist_specs.get_block_data(),
                                "block_property_data": craftassist_specs.get_block_property_data(),
                                "color_data": craftassist_specs.get_colour_data(),
+                               "boring_blocks": BORING_BLOCKS
                                }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior

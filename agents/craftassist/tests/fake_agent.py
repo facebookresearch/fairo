@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from .utils import Look, Pos, Item, Player
@@ -17,6 +17,7 @@ from droidlet.shared_data_structs import Time, MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
@@ -257,6 +258,7 @@ class FakeAgent(LocoMCAgent):
             "block_data": craftassist_specs.get_block_data(),
             "block_property_data": craftassist_specs.get_block_property_data(),
             "color_data": craftassist_specs.get_colour_data(),
+            "boring_blocks": BORING_BLOCKS
         }
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
@@ -478,14 +480,14 @@ class FakeAgent(LocoMCAgent):
     ## World setup
     ######################################
 
-    def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
+    def set_blocks(self, xyzbms: List[Block], boring_blocks: Tuple[int], origin: XYZ = (0, 0, 0)):
         """Change the state of the world, block by block,
         store in memory"""
         for xyz, idm in xyzbms:
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
             # TODO add force option so we don't need to make it as if agent placed
-            self.perception_modules["low_level"].on_block_changed(abs_xyz, idm)
+            self.perception_modules["low_level"].on_block_changed(abs_xyz, idm, boring_blocks)
             self.world.place_block((abs_xyz, idm))
 
     def add_object(
@@ -499,7 +501,8 @@ class FakeAgent(LocoMCAgent):
 
         Returns an VoxelObjectNode
         """
-        self.set_blocks(xyzbms, origin)
+        boring_blocks = self.low_level_data["boring_blocks"]
+        self.set_blocks(xyzbms, boring_blocks, origin)
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
         memid = self.memory.get_block_object_ids_by_xyz(abs_xyz)[0]
         for pred, obj in relations.items():

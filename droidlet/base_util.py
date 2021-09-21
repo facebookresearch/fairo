@@ -364,3 +364,13 @@ def depth_first_search(blocks_shape, pos, fn, adj_fn=adjacent):
 #     start = (3, 4, 0)
 #     goal = (3, 1, 0)
 #     print(astar(X, start, goal))
+
+def diag_adjacent(p):
+    """Return the adjacent positions to p including diagonal adjaceny"""
+    return [
+        (x, y, z)
+        for x in range(p[0] - 1, p[0] + 2)
+        for y in range(p[1] - 1, p[1] + 2)
+        for z in range(p[2] - 1, p[2] + 2)
+        if (x, y, z) != p
+    ]
