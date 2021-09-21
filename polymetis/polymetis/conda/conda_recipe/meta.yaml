@@ -48,7 +48,7 @@ requirements:
     - plotly
     - poco ==1.9.0 # needed by libfranka
     - protobuf
-    - pybullet ==3.16
+    - pybullet
     - pytest
     - pytest-benchmark
     - python
