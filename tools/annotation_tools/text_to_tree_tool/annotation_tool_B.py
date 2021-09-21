@@ -260,10 +260,10 @@ if __name__ == "__main__":
         }
         document.getElementById("command").innerHTML=commandHTML;
         const intent = urlParams.get('intent');
-        console.log(intent)
+        console.log(intent);
         document.getElementById("intent_div").innerHTML=intent;
         const child = urlParams.get('child');
-        console.log(child)
+        console.log(child);
         document.getElementById("child_name_div").innerHTML=child;
         var styleNode = document.createElement('style');
 

@@ -1,10 +1,8 @@
 import boto3
-import json
 import pandas as pd
 import os
 import csv
 import argparse
-import ast
 from urllib.parse import quote
 from datetime import datetime
 
@@ -68,24 +66,31 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
         turk_inputs = csv.reader(csvfile, delimiter=",")
         headers = next(turk_inputs, None)
         # Construct the URL query params
+        count = 0
         for row in turk_inputs:
+            count += 1
             query_params = ""
             job_spec = {}
             for i in range(len(headers)):
                 if not row[i]:
-                    continue
-                if headers[i] == "highlight_words":
-                    format_row = row[i].replace("-", ",")
-                    json_str = json.dumps(format_row)
-                    value = quote(format_row)
-                else:
-                    value = row[i].replace(" ", "%20")
-                query_params += "{}={}&amp;".format(headers[i], value)
+                    row[i] = "NONE"
+                if row[i] != "NONE":
+                    if headers[i] == "highlight_words":
+                        format_row = row[i].replace("-", ",")
+                        # json_str = json.dumps(format_row)
+                        value = quote(format_row)
+                    else:
+
+                            value = row[i].replace(" ", "%20")
+
+                    query_params += "{}={}&amp;".format(headers[i], value)
                 # Save param info to job specs
                 job_spec["Input.{}".format(headers[i])] = row[i]
             curr_question = question.format(query_params)
-
+            print("*"*50)
+            print("External question:")
             print(curr_question)
+            print("*"*50)
             if use_sandbox:
                 new_hit = mturk.create_hit(
                     Title="CraftAssist Instruction Annotations",
@@ -121,7 +126,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                         },
                     ]
                 )
-            print("A new HIT has been created. You can preview it here:")
+            print("Created a HIT:")
             if use_sandbox:
                 print(
                     "https://workersandbox.mturk.com/mturk/preview?groupId="
@@ -132,10 +137,16 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     "https://worker.mturk.com/mturk/preview?groupId="
                     + new_hit["HIT"]["HITGroupId"]
                 )
+            print("*"*50)
             print("HITID = " + new_hit["HIT"]["HITId"] + " (Use to Get Results)")
+            print("*"*50)
             job_spec["HITId"] = new_hit["HIT"]["HITId"]
-
+            all_columns = list(job_spec.keys())
+            if count == 1:
+                # to avoid sorting all column names by default
+                turk_jobs_df = pd.DataFrame(columns=all_columns)
             turk_jobs_df = turk_jobs_df.append(job_spec, ignore_index=True)
+            # print(turk_jobs_df)
 
     turk_jobs_df.to_csv(job_spec_csv, index=False)
 
@@ -147,7 +158,8 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--xml_file", type=str, required=True)
-    parser.add_argument("--tool_num", type=int, required=True)
+    parser.add_argument("--tool_num", type=int, default=1)
+    # TODO: remove tool_num above. Not being used
     parser.add_argument("--input_csv", type=str, required=True)
     parser.add_argument("--job_spec_csv", type=str, required=True)
     parser.add_argument("--dev", action="store_true")

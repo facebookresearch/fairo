@@ -72,7 +72,7 @@ def get_rand_pixel(rgb_d):
     h = rgb_d.rgb.shape[0]
     w = rgb_d.rgb.shape[1]
     # return in (w,h) format, since that is the currently followed convention for points
-    # See https://github.com/facebookresearch/droidlet/issues/358
+    # See https://github.com/facebookresearch/fairo/issues/358
     return [np.random.randint(0, w), np.random.randint(0, h)]
 
 

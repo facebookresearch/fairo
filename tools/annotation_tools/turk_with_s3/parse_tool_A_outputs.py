@@ -59,10 +59,6 @@ def insert_spaces(chat):
 
 
 def preprocess_chat(chat: str) -> List[str]:
-    # For debug mode, return as is.
-    if chat == "_debug_" or chat.startswith("_ttad_"):
-        return [chat]
-
     # Tokenize
     tokenized_line = word_tokenize(chat)
     tokenized_sentences = [sen for sen in sentence_split(tokenized_line)]
@@ -242,6 +238,8 @@ def process_dict(d):
             "FREEBUILD.FREEBUILD.",
             "coref_resolve_check.yes.",
             "coref_resolve_check.no.",
+            "dialogue_target.f1.",
+            "dialogue_target.f2.",
         ],
     )
     if "location" in d:
@@ -341,7 +339,7 @@ def handle_commands(d):
             child_d.pop("source")
 
     for k, v in child_d.items():
-        if k in ["target_action_type", "has_block_type", "dance_type_name"]:
+        if k in ["target_action_type", "has_block_type", "dance_type_name", "tag_val", "dance_type_span"]:
             output[k] = ["yes", v]
 
         elif type(v) == list or (k == "receiver"):
@@ -352,7 +350,6 @@ def handle_commands(d):
 
 
 def process_result(full_d):
-
     worker_id = full_d["WorkerId"]
     d = with_prefix(full_d, "Answer.root.")
     if not d:
@@ -361,7 +358,6 @@ def process_result(full_d):
         action = d["action_type"]
     except KeyError:
         return worker_id, {}, full_d["Input.command"].split()
-
     action_dict = handle_commands(d)
 
     ##############
@@ -392,7 +388,7 @@ def process_result(full_d):
     # Fix empty words messing up spans
     words = []
     for key in full_d:
-        if "Input.word" in key:
+        if "Input.word" in key and full_d[key] != "NONE":
             words.append(full_d[key])
 
     return worker_id, action_dict, words
@@ -437,8 +433,8 @@ def remove_definite_articles(cmd, d):
             if type(v[1]) == list:
                 new_v = []
                 for span in v[1]:
-                    if words[span[0]] in ["the", "a", "an"]:
-                        continue
+                    # if words[span[0]] in ["the", "a", "an"]:
+                    #     continue
                     new_v.append(span)
                 new_d[k] = [v[0], new_v]
             elif type(v[1]) == dict:
@@ -452,8 +448,8 @@ def remove_definite_articles(cmd, d):
             if type(v) == list:
                 new_v = []
                 for span in v:
-                    if words[span[0]] in ["the", "a", "an"]:
-                        continue
+                    # if words[span[0]] in ["the", "a", "an"]:
+                    #     continue
                     new_v.append(span)
                 new_d[k] = new_v
             elif type(v) == dict:
@@ -518,7 +514,6 @@ if __name__ == "__main__":
         default="{}/A/".format(default_write_dir),
     )
     opts = parser.parse_args()
-    print(opts)
     tokenizer = English().Defaults.create_tokenizer()
 
     # convert csv to txt first
@@ -531,10 +526,10 @@ if __name__ == "__main__":
         r = csv.DictReader(f)
         for i, d in enumerate(r):
             worker_id = d["WorkerId"]
-            sentence = preprocess_chat(d["Input.command"])[0]
+            sentence = d["Input.command"]
             _, action_dict, words = process_result(d)
             a_dict = fix_cnt_in_schematic(words, action_dict)
-            print(sentence)
+            print(" ".join(words))
             pprint(a_dict)
             print("*" * 20)
             if a_dict is None:
@@ -623,7 +618,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd = k
-            outfile.write(cmd + "\t" + v + "\n")
+            outfile.write(cmd.strip() + "\t" + v + "\n")
 
     # write disagreements to a file
     disag = str(no_agreement)
@@ -631,7 +626,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in disagreements_dict.items():
             cmd = k
-            outfile.write(cmd + "\n")
+            outfile.write(cmd.strip() + "\n")
             for item in v:
                 outfile.write(item + "\n")
             outfile.write("\n")
@@ -650,7 +645,7 @@ if __name__ == "__main__":
         for line in f1.readlines():
             cmd, out = line.strip().split("\t")
             cmd = preprocess_chat(cmd)[0]
-            f_out.write(cmd + "\t" + out + "\n")
+            f_out.write(cmd.strip() + "\t" + out + "\n")
         for line in f_in.readlines():
             cmd, out = line.strip().split("\t")
-            f_out.write(cmd + "\t" + out + "\n")
+            f_out.write(cmd.strip() + "\t" + out + "\n")

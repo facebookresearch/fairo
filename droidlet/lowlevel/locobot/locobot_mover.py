@@ -45,13 +45,13 @@ def safe_call(f, *args):
 
 
 class LoCoBotMover:
-    """Implements methods that call the physical interfaces of the Locobot.
+    """
+    Implements methods that call the physical interfaces of the Locobot.
 
     Arguments:
         ip (string): IP of the Locobot.
         backend (string): backend where the Locobot lives, either "habitat" or "locobot"
     """
-
     def __init__(self, ip=None, backend="locobot"):
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
         self.close_loop = False if backend == "habitat" else True
@@ -70,10 +70,9 @@ class LoCoBotMover:
     def check(self):
         """
         Sanity checks all the mover interfaces.
-
         Checks move by moving the locobot around in a square and reporting L1 drift and total time taken
-            for the three movement modes available to the locobot - using PyRobot slam (vslam),
-            using Droidlet slam (dslam) and without using any slam (default)
+        for the three movement modes available to the locobot - using PyRobot slam (vslam),
+        using Droidlet slam (dslam) and without using any slam (default)
         Checks look and point by poiting and looking at the same target.
         """
         self.reset_camera()
@@ -102,7 +101,6 @@ class LoCoBotMover:
             Args:
                 magic_text (str): unique text to differentiate each scenario
                 side (float): side of the square
-
             Returns:
                 total L1 drift, total time taken to move around the square.
             """
@@ -187,7 +185,8 @@ class LoCoBotMover:
         return self.bot.reset()
 
     def move_relative(self, xyt_positions, use_dslam=True):
-        """Command to execute a relative move.
+        """
+        Command to execute a relative move.
 
         Args:
             xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
@@ -202,8 +201,8 @@ class LoCoBotMover:
                 print(self.bot.get_base_state("odom"))
 
     def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
-        """Command to execute a move to an absolute position.
-
+        """
+        Command to execute a move to an absolute position.
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
         before calling the bot APIs.
 
@@ -237,8 +236,8 @@ class LoCoBotMover:
         return "finished"
 
     def look_at(self, obj_pos, yaw_deg, pitch_deg):
-        """Executes "look at" by setting the pan, tilt of the camera or turning the base if required.
-
+        """
+        Executes "look at" by setting the pan, tilt of the camera or turning the base if required.
         Uses both the base state and object coordinates in canonical world coordinates to calculate
         expected yaw and pitch.
 
@@ -279,7 +278,8 @@ class LoCoBotMover:
         return "finished"
 
     def point_at(self, target_pos):
-        """Executes pointing the arm at the specified target pos.
+        """
+        Executes pointing the arm at the specified target pos.
 
         Args:
             target_pos ([x,y,z]): canonical coordinates to point to.
@@ -301,14 +301,14 @@ class LoCoBotMover:
         return "finished"
 
     def get_base_pos_in_canonical_coords(self):
-        """get the current Locobot position in the canonical coordinate system
+        """
+        get the current Locobot position in the canonical coordinate system
         instead of the Locobot's global coordinates as stated in the Locobot
         documentation: https://www.pyrobot.org/docs/navigation.
-
-        the standard coordinate systems:
-          Camera looks at (0, 0, 1),
-          its right direction is (1, 0, 0) and
-          its up-direction is (0, 1, 0)
+        The standard coordinate systems:
+        Camera looks at (0, 0, 1),
+        its right direction is (1, 0, 0) and
+        its up-direction is (0, 1, 0)
 
          return:
          (x, z, yaw) of the Locobot base in standard coordinates
@@ -320,15 +320,16 @@ class LoCoBotMover:
         return np.array([x_standard, z_standard, yaw])
 
     def get_base_pos(self):
-        """Return Locobot (x, y, yaw) in the robot base coordinates as
+        """
+        Return Locobot (x, y, yaw) in the robot base coordinates as
         illustrated in the docs:
-
         https://www.pyrobot.org/docs/navigation
         """
         return self.bot.get_base_state("odom")
 
     def get_rgb_depth(self):
-        """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
+        """
+        Fetches rgb, depth and pointcloud in pyrobot world coordinates.
 
         Returns:
             an RGBDepth object
@@ -355,7 +356,8 @@ class LoCoBotMover:
         self.bot.dance()
 
     def turn(self, yaw):
-        """turns the bot by the yaw specified.
+        """
+        turns the bot by the yaw specified.
 
         Args:
             yaw: the yaw to execute in degree.
@@ -365,6 +367,7 @@ class LoCoBotMover:
 
     def grab_nearby_object(self, bounding_box=[(240, 480), (100, 540)]):
         """
+
         :param bounding_box: region in image to search for grasp
         """
         return self.bot.grasp(bounding_box)
@@ -379,17 +382,17 @@ class LoCoBotMover:
         return self.bot.open_gripper()
 
     def get_obstacles_in_canonical_coords(self):
-        """get the positions of obtacles position in the canonical coordinate system
+        """
+        get the positions of obtacles position in the canonical coordinate system
         instead of the Locobot's global coordinates as stated in the Locobot
         documentation: https://www.pyrobot.org/docs/navigation or
         https://github.com/facebookresearch/pyrobot/blob/master/docs/website/docs/ex_navigation.md
-
         the standard coordinate systems:
-          Camera looks at (0, 0, 1),
-         its right direction is (1, 0, 0) and
-         its up-direction is (0, 1, 0)
+        Camera looks at (0, 0, 1),
+        its right direction is (1, 0, 0) and
+        its up-direction is (0, 1, 0)
 
-         return:
+        return:
          list[(x, z)] of the obstacle location in standard coordinates
         """
         cordinates_in_robot_frame = self.bot.get_map()

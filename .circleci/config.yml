@@ -1,137 +1,11 @@
 version: 2.1
-jobs:
-  minecraft:
-    machine:
-      image: ubuntu-2004:202104-01
-    resource_class: gpu.small
+commands:
+  polymetis_local_build:
     steps:
-      - run:
-          name: Install dependencies
-          command: |
-            sudo apt update
-            sudo apt install -y git python3 python3-pip apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-      - checkout
-
-      - run:
-          name: Get branch env variable
-          command: |
-            echo 'export DOCKER_BUILD_ARGS="--build-arg current_branch=${CIRCLE_BRANCH} --build-arg AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}"' >> $BASH_ENV
-
-      - run:
-          name: Build docker containers
-          command: make -C tools/docker build
-
-      - run:
-          name: Python style checks (black and awscli)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
-
-      - run:
-          name: CraftAssist Python unit tests
-          command: |
-              docker run --name mc-tests -v $(pwd):/shared -w /droidlet --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /droidlet/.circleci/craftassist_tests.sh"
-              pip3 install codecov
-              export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-              codecov -n "craftassist tests"|| echo "Codecov did not collect coverage reports"
-          no_output_timeout: 50m
-
-      - run:
-          name: Push versioned docker containers
-          command: |
-            tools/docker/login.sh
-            make -C tools/docker push-versioned
-
-  locobot:
-    machine:
-      image: ubuntu-2004:202104-01
-    resource_class: gpu.small
-    steps:
-    - checkout
-    - run:
-        name: Setup environment
-        command: |
-          set -ex
-
-          curl -L https://packagecloud.io/circleci/trusty/gpgkey | sudo apt-key add -
-          curl -L https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-
-          sudo apt update
-
-          sudo apt install \
-              python3 python3-pip \
-              apt-transport-https \
-              ca-certificates \
-              curl \
-              gnupg-agent \
-              software-properties-common
-
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-          echo \
-            "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-          sudo apt-get update
-          sudo apt-get install docker-ce docker-ce-cli containerd.io
-
-          # Add the package repositories
-          distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
-             && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
-                && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
-
-          sudo apt-get update
-          sudo apt-get install -y nvidia-docker2
-          sudo systemctl restart docker
-
-          DRIVER_FN="NVIDIA-Linux-x86_64-460.39.run"
-          wget "https://s3.amazonaws.com/ossci-linux/nvidia_driver/$DRIVER_FN"
-          sudo /bin/bash "$DRIVER_FN" -s --no-drm || (sudo cat /var/log/nvidia-installer.log && false)
-          nvidia-smi
-
-    - run:
-        name: Pull docker image
-        command: |
-          set -ex
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
-          echo Pulling docker image $DOCKER_IMAGE
-          docker pull $DOCKER_IMAGE >/dev/null
-
-    - run:
-        name: Build and run tests
-        command: |
-          set -ex
-
-          cd ${HOME}/project/
-          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
-          mkdir shared
-          docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
-          pip3 install codecov
-          export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
-          codecov -n "locobot tests"|| echo "Codecov did not collect coverage reports"
-
-  polymetis-build-local:
-    docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-18
-        auth:
-          username: yixinlin
-          password: $DOCKERHUB_PASSWORD
-    steps:
-      - checkout
       - run:
           name: Initialize Git submodules
           command: |
             git submodule update --init --recursive
-      - restore_cache:
-          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
-      - run:
-          name: Create Conda environment
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
-      - save_cache:
-          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
-          paths:
-            - "/opt/conda/envs/polymetis-local"
       - run:
           name: Install
           command: |
@@ -171,16 +45,8 @@ jobs:
       - store_artifacts:
           path: ./polymetis/docs/html.tar
           destination: autogen_docs
-
-  polymetis-build-conda-pkg:
-    docker:
-      - image: fairrobotics/kuka-workspace:ubuntu-18
-        auth:
-          username: yixinlin
-          password: $DOCKERHUB_PASSWORD
-    resource_class: medium+
+  polymetis_build_conda_pkg:
     steps:
-      - checkout
       - run:
           name: Update submodules
           command: git submodule update --init --recursive
@@ -260,9 +126,180 @@ jobs:
                 conda activate polymetis-env
                 conda install anaconda-client
                 anaconda login --username $ANACONDA_USER --password $ANACONDA_PASSWORD
-                anaconda upload --user fair-robotics /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
+                anaconda upload --user fair-robotics --skip /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
             fi
 
+
+jobs:
+  minecraft:
+    machine:
+      image: ubuntu-2004:202104-01
+    resource_class: gpu.small
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt update
+            sudo apt install -y git python3 python3-pip apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+      - checkout
+
+      - run:
+          name: Get branch env variable
+          command: |
+            echo 'export DOCKER_BUILD_ARGS="--build-arg current_branch=${CIRCLE_BRANCH} --build-arg AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}"' >> $BASH_ENV
+
+      - run:
+          name: Build docker containers
+          command: make -C tools/docker build
+
+      - run:
+          name: Python style checks (black and awscli)
+          command: |
+            pip3 install $(cat requirements.txt | grep -e black -e awscli)
+            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
+
+      - run:
+          name: CraftAssist Python unit tests
+          command: |
+              docker run --name mc-tests -v $(pwd):/shared -w /fairo --entrypoint="/bin/bash" craftassist -c "python3 setup.py develop && /fairo/.circleci/craftassist_tests.sh"
+              pip3 install codecov
+              export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
+              codecov -n "craftassist tests" -f *.xml || echo "Codecov did not collect coverage reports"
+          no_output_timeout: 50m
+
+      - run:
+          name: Push versioned docker containers
+          command: |
+            tools/docker/login.sh
+            make -C tools/docker push-versioned
+
+  locobot:
+    machine:
+      image: ubuntu-2004:202104-01
+    resource_class: gpu.small
+    steps:
+    - checkout
+    - run:
+        name: Setup environment
+        command: |
+          set -ex
+
+          curl -L https://packagecloud.io/circleci/trusty/gpgkey | sudo apt-key add -
+          curl -L https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+
+          sudo apt update
+
+          sudo apt install \
+              python3 python3-pip \
+              apt-transport-https \
+              ca-certificates \
+              curl \
+              gnupg-agent \
+              software-properties-common
+
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo \
+            "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+          sudo apt-get update
+          sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+          # Add the package repositories
+          distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+             && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+                && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+          sudo apt-get update
+          sudo apt-get install -y nvidia-docker2
+          sudo systemctl restart docker
+
+          DRIVER_FN="NVIDIA-Linux-x86_64-460.39.run"
+          wget "https://s3.amazonaws.com/ossci-linux/nvidia_driver/$DRIVER_FN"
+          sudo /bin/bash "$DRIVER_FN" -s --no-drm || (sudo cat /var/log/nvidia-installer.log && false)
+          nvidia-smi
+
+    - run:
+        name: Pull docker image
+        command: |
+          set -ex
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
+          echo Pulling docker image $DOCKER_IMAGE
+          docker pull $DOCKER_IMAGE >/dev/null
+
+    - run:
+        name: Build and run tests
+        command: |
+          set -ex
+
+          cd ${HOME}/project/
+          export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:8.0
+          mkdir shared
+          docker run --gpus all --name loco-img --ipc=host -v $(pwd):/shared -w /shared ${DOCKER_IMAGE} .circleci/locobot_tests.sh
+          pip3 install codecov
+          export CODECOV_TOKEN='6cff57e1-08ce-4d98-8f28-63797d90107f'
+          codecov -n "locobot tests" -f test*.xml || echo "Codecov did not collect coverage reports"
+  
+  polymetis-local-ubuntu-18:
+    docker:
+      - image: fairrobotics/kuka-workspace:ubuntu-18
+        auth:
+          username: yixinlin
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - run:
+          name: Create Conda environment
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+      - save_cache:
+          key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+          paths:
+            - "/opt/conda/envs/polymetis-local"
+      - polymetis_local_build
+  polymetis-local-ubuntu-20:
+    docker:
+      - image: fairrobotics/kuka-workspace:ubuntu-20
+        auth:
+          username: yixinlin
+          password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - run:
+          name: Create Conda environment
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+      - save_cache:
+          key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
+          paths:
+            - "/opt/conda/envs/polymetis-local"
+      - polymetis_local_build
+  polymetis-conda-ubuntu-18:
+    docker:
+      - image: fairrobotics/kuka-workspace:ubuntu-18
+        auth:
+          username: yixinlin
+          password: $DOCKERHUB_PASSWORD
+    resource_class: medium+
+    steps:
+      - checkout
+      - polymetis_build_conda_pkg
+  polymetis-conda-ubuntu-20:
+    docker:
+      - image: fairrobotics/kuka-workspace:ubuntu-20
+        auth:
+          username: yixinlin
+          password: $DOCKERHUB_PASSWORD
+    resource_class: medium+
+    steps:
+      - checkout
+      - polymetis_build_conda_pkg
   polymetis-formatting:
     docker:
       - image: circleci/python:3.7
@@ -287,6 +324,8 @@ workflows:
     jobs:
       - minecraft
       - locobot
-      - polymetis-build-local
-      - polymetis-build-conda-pkg
+      - polymetis-local-ubuntu-18
+      - polymetis-local-ubuntu-20
+      - polymetis-conda-ubuntu-18
+      - polymetis-conda-ubuntu-20
       - polymetis-formatting

@@ -1,333 +1,411 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Storyshots LiveHumans Default 1`] = `
-<div
-  className="react-draggable"
-  onMouseDown={[Function]}
-  onMouseUp={[Function]}
-  onTouchEnd={[Function]}
-  onTouchStart={[Function]}
-  style={
-    Object {
-      "boxSizing": "border-box",
-      "cursor": "move",
-      "display": "inline-block",
-      "flexShrink": 0,
-      "height": "320px",
-      "left": 0,
-      "maxHeight": 9007199254740991,
-      "maxWidth": 9007199254740991,
-      "minHeight": undefined,
-      "minWidth": undefined,
-      "position": "absolute",
-      "top": 0,
-      "touchAction": "none",
-      "transform": "translate(10px,10px)",
-      "userSelect": "auto",
-      "width": "320px",
-    }
-  }
-  transform={null}
+exports[`Storyshots Example/Button Large 1`] = `
+<button
+  className="storybook-button storybook-button--large storybook-button--secondary"
+  style={null}
+  type="button"
 >
-  <p>
-    Loading...
-  </p>
-  <span>
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "row-resize",
-          "height": "10px",
-          "left": "0px",
-          "position": "absolute",
-          "top": "-5px",
-          "userSelect": "none",
-          "width": "100%",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "col-resize",
-          "height": "100%",
-          "position": "absolute",
-          "right": "-5px",
-          "top": "0px",
-          "userSelect": "none",
-          "width": "10px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "bottom": "-5px",
-          "cursor": "row-resize",
-          "height": "10px",
-          "left": "0px",
-          "position": "absolute",
-          "userSelect": "none",
-          "width": "100%",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "col-resize",
-          "height": "100%",
-          "left": "-5px",
-          "position": "absolute",
-          "top": "0px",
-          "userSelect": "none",
-          "width": "10px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "ne-resize",
-          "height": "20px",
-          "position": "absolute",
-          "right": "-10px",
-          "top": "-10px",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "bottom": "-10px",
-          "cursor": "se-resize",
-          "height": "20px",
-          "position": "absolute",
-          "right": "-10px",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "bottom": "-10px",
-          "cursor": "sw-resize",
-          "height": "20px",
-          "left": "-10px",
-          "position": "absolute",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "nw-resize",
-          "height": "20px",
-          "left": "-10px",
-          "position": "absolute",
-          "top": "-10px",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-  </span>
-</div>
+  Button
+</button>
 `;
 
-exports[`Storyshots LiveHumans Loading 1`] = `
-<div
-  className="react-draggable"
-  onMouseDown={[Function]}
-  onMouseUp={[Function]}
-  onTouchEnd={[Function]}
-  onTouchStart={[Function]}
-  style={
-    Object {
-      "boxSizing": "border-box",
-      "cursor": "move",
-      "display": "inline-block",
-      "flexShrink": 0,
-      "height": "320px",
-      "left": 0,
-      "maxHeight": 9007199254740991,
-      "maxWidth": 9007199254740991,
-      "minHeight": undefined,
-      "minWidth": undefined,
-      "position": "absolute",
-      "top": 0,
-      "touchAction": "none",
-      "transform": "translate(10px,10px)",
-      "userSelect": "auto",
-      "width": "320px",
-    }
-  }
-  transform={null}
+exports[`Storyshots Example/Button Primary 1`] = `
+<button
+  className="storybook-button storybook-button--medium storybook-button--primary"
+  style={null}
+  type="button"
 >
-  <p>
-    Loading...
-  </p>
-  <span>
+  Button
+</button>
+`;
+
+exports[`Storyshots Example/Button Secondary 1`] = `
+<button
+  className="storybook-button storybook-button--medium storybook-button--secondary"
+  style={null}
+  type="button"
+>
+  Button
+</button>
+`;
+
+exports[`Storyshots Example/Button Small 1`] = `
+<button
+  className="storybook-button storybook-button--small storybook-button--secondary"
+  style={null}
+  type="button"
+>
+  Button
+</button>
+`;
+
+exports[`Storyshots Example/Header Logged In 1`] = `
+<header>
+  <div
+    className="wrapper"
+  >
+    <div>
+      <svg
+        height="32"
+        viewBox="0 0 32 32"
+        width="32"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g
+          fill="none"
+          fillRule="evenodd"
+        >
+          <path
+            d="M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z"
+            fill="#FFF"
+          />
+          <path
+            d="M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z"
+            fill="#555AB9"
+          />
+          <path
+            d="M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z"
+            fill="#91BAF8"
+          />
+        </g>
+      </svg>
+      <h1>
+        Acme
+      </h1>
+    </div>
+    <div>
+      <button
+        className="storybook-button storybook-button--small storybook-button--secondary"
+        style={null}
+        type="button"
+      >
+        Log out
+      </button>
+    </div>
+  </div>
+</header>
+`;
+
+exports[`Storyshots Example/Header Logged Out 1`] = `
+<header>
+  <div
+    className="wrapper"
+  >
+    <div>
+      <svg
+        height="32"
+        viewBox="0 0 32 32"
+        width="32"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g
+          fill="none"
+          fillRule="evenodd"
+        >
+          <path
+            d="M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z"
+            fill="#FFF"
+          />
+          <path
+            d="M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z"
+            fill="#555AB9"
+          />
+          <path
+            d="M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z"
+            fill="#91BAF8"
+          />
+        </g>
+      </svg>
+      <h1>
+        Acme
+      </h1>
+    </div>
+    <div>
+      <button
+        className="storybook-button storybook-button--small storybook-button--secondary"
+        style={null}
+        type="button"
+      >
+        Log in
+      </button>
+      <button
+        className="storybook-button storybook-button--small storybook-button--primary"
+        style={null}
+        type="button"
+      >
+        Sign up
+      </button>
+    </div>
+  </div>
+</header>
+`;
+
+exports[`Storyshots Example/Page Logged In 1`] = `
+<article>
+  <header>
     <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "row-resize",
-          "height": "10px",
-          "left": "0px",
-          "position": "absolute",
-          "top": "-5px",
-          "userSelect": "none",
-          "width": "100%",
-        }
-      }
-    />
+      className="wrapper"
+    >
+      <div>
+        <svg
+          height="32"
+          viewBox="0 0 32 32"
+          width="32"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g
+            fill="none"
+            fillRule="evenodd"
+          >
+            <path
+              d="M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z"
+              fill="#FFF"
+            />
+            <path
+              d="M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z"
+              fill="#555AB9"
+            />
+            <path
+              d="M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z"
+              fill="#91BAF8"
+            />
+          </g>
+        </svg>
+        <h1>
+          Acme
+        </h1>
+      </div>
+      <div>
+        <button
+          className="storybook-button storybook-button--small storybook-button--secondary"
+          style={null}
+          type="button"
+        >
+          Log out
+        </button>
+      </div>
+    </div>
+  </header>
+  <section>
+    <h2>
+      Pages in Storybook
+    </h2>
+    <p>
+      We recommend building UIs with a
+       
+      <a
+        href="https://componentdriven.org"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <strong>
+          component-driven
+        </strong>
+      </a>
+       
+      process starting with atomic components and ending with pages.
+    </p>
+    <p>
+      Render pages with mock data. This makes it easy to build and review page states without needing to navigate to them in your app. Here are some handy patterns for managing page data in Storybook:
+    </p>
+    <ul>
+      <li>
+        Use a higher-level connected component. Storybook helps you compose such data from the "args" of child component stories
+      </li>
+      <li>
+        Assemble data in the page component from your services. You can mock these services out using Storybook.
+      </li>
+    </ul>
+    <p>
+      Get a guided tutorial on component-driven development at
+       
+      <a
+        href="https://storybook.js.org/tutorials/"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Storybook tutorials
+      </a>
+      . Read more in the
+       
+      <a
+        href="https://storybook.js.org/docs"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        docs
+      </a>
+      .
+    </p>
     <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "col-resize",
-          "height": "100%",
-          "position": "absolute",
-          "right": "-5px",
-          "top": "0px",
-          "userSelect": "none",
-          "width": "10px",
-        }
-      }
-    />
+      className="tip-wrapper"
+    >
+      <span
+        className="tip"
+      >
+        Tip
+      </span>
+       Adjust the width of the canvas with the
+       
+      <svg
+        height="10"
+        viewBox="0 0 12 12"
+        width="10"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g
+          fill="none"
+          fillRule="evenodd"
+        >
+          <path
+            d="M1.5 5.2h4.8c.3 0 .5.2.5.4v5.1c-.1.2-.3.3-.4.3H1.4a.5.5 0 01-.5-.4V5.7c0-.3.2-.5.5-.5zm0-2.1h6.9c.3 0 .5.2.5.4v7a.5.5 0 01-1 0V4H1.5a.5.5 0 010-1zm0-2.1h9c.3 0 .5.2.5.4v9.1a.5.5 0 01-1 0V2H1.5a.5.5 0 010-1zm4.3 5.2H2V10h3.8V6.2z"
+            fill="#999"
+            id="a"
+          />
+        </g>
+      </svg>
+      Viewports addon in the toolbar
+    </div>
+  </section>
+</article>
+`;
+
+exports[`Storyshots Example/Page Logged Out 1`] = `
+<article>
+  <header>
     <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "bottom": "-5px",
-          "cursor": "row-resize",
-          "height": "10px",
-          "left": "0px",
-          "position": "absolute",
-          "userSelect": "none",
-          "width": "100%",
-        }
-      }
-    />
+      className="wrapper"
+    >
+      <div>
+        <svg
+          height="32"
+          viewBox="0 0 32 32"
+          width="32"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g
+            fill="none"
+            fillRule="evenodd"
+          >
+            <path
+              d="M10 0h12a10 10 0 0110 10v12a10 10 0 01-10 10H10A10 10 0 010 22V10A10 10 0 0110 0z"
+              fill="#FFF"
+            />
+            <path
+              d="M5.3 10.6l10.4 6v11.1l-10.4-6v-11zm11.4-6.2l9.7 5.5-9.7 5.6V4.4z"
+              fill="#555AB9"
+            />
+            <path
+              d="M27.2 10.6v11.2l-10.5 6V16.5l10.5-6zM15.7 4.4v11L6 10l9.7-5.5z"
+              fill="#91BAF8"
+            />
+          </g>
+        </svg>
+        <h1>
+          Acme
+        </h1>
+      </div>
+      <div>
+        <button
+          className="storybook-button storybook-button--small storybook-button--secondary"
+          style={null}
+          type="button"
+        >
+          Log in
+        </button>
+        <button
+          className="storybook-button storybook-button--small storybook-button--primary"
+          style={null}
+          type="button"
+        >
+          Sign up
+        </button>
+      </div>
+    </div>
+  </header>
+  <section>
+    <h2>
+      Pages in Storybook
+    </h2>
+    <p>
+      We recommend building UIs with a
+       
+      <a
+        href="https://componentdriven.org"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        <strong>
+          component-driven
+        </strong>
+      </a>
+       
+      process starting with atomic components and ending with pages.
+    </p>
+    <p>
+      Render pages with mock data. This makes it easy to build and review page states without needing to navigate to them in your app. Here are some handy patterns for managing page data in Storybook:
+    </p>
+    <ul>
+      <li>
+        Use a higher-level connected component. Storybook helps you compose such data from the "args" of child component stories
+      </li>
+      <li>
+        Assemble data in the page component from your services. You can mock these services out using Storybook.
+      </li>
+    </ul>
+    <p>
+      Get a guided tutorial on component-driven development at
+       
+      <a
+        href="https://storybook.js.org/tutorials/"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        Storybook tutorials
+      </a>
+      . Read more in the
+       
+      <a
+        href="https://storybook.js.org/docs"
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        docs
+      </a>
+      .
+    </p>
     <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "col-resize",
-          "height": "100%",
-          "left": "-5px",
-          "position": "absolute",
-          "top": "0px",
-          "userSelect": "none",
-          "width": "10px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "ne-resize",
-          "height": "20px",
-          "position": "absolute",
-          "right": "-10px",
-          "top": "-10px",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "bottom": "-10px",
-          "cursor": "se-resize",
-          "height": "20px",
-          "position": "absolute",
-          "right": "-10px",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "bottom": "-10px",
-          "cursor": "sw-resize",
-          "height": "20px",
-          "left": "-10px",
-          "position": "absolute",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-    <div
-      className=""
-      onMouseDown={[Function]}
-      onTouchStart={[Function]}
-      style={
-        Object {
-          "cursor": "nw-resize",
-          "height": "20px",
-          "left": "-10px",
-          "position": "absolute",
-          "top": "-10px",
-          "userSelect": "none",
-          "width": "20px",
-        }
-      }
-    />
-  </span>
-</div>
+      className="tip-wrapper"
+    >
+      <span
+        className="tip"
+      >
+        Tip
+      </span>
+       Adjust the width of the canvas with the
+       
+      <svg
+        height="10"
+        viewBox="0 0 12 12"
+        width="10"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g
+          fill="none"
+          fillRule="evenodd"
+        >
+          <path
+            d="M1.5 5.2h4.8c.3 0 .5.2.5.4v5.1c-.1.2-.3.3-.4.3H1.4a.5.5 0 01-.5-.4V5.7c0-.3.2-.5.5-.5zm0-2.1h6.9c.3 0 .5.2.5.4v7a.5.5 0 01-1 0V4H1.5a.5.5 0 010-1zm0-2.1h9c.3 0 .5.2.5.4v9.1a.5.5 0 01-1 0V2H1.5a.5.5 0 010-1zm4.3 5.2H2V10h3.8V6.2z"
+            fill="#999"
+            id="a"
+          />
+        </g>
+      </svg>
+      Viewports addon in the toolbar
+    </div>
+  </section>
+</article>
 `;
 
 exports[`Storyshots LiveImage Default 1`] = `
@@ -336,7 +414,6 @@ exports[`Storyshots LiveImage Default 1`] = `
   onMouseDown={[Function]}
   onMouseUp={[Function]}
   onTouchEnd={[Function]}
-  onTouchStart={[Function]}
   style={
     Object {
       "boxSizing": "border-box",
@@ -351,7 +428,6 @@ exports[`Storyshots LiveImage Default 1`] = `
       "minWidth": undefined,
       "position": "absolute",
       "top": 0,
-      "touchAction": "none",
       "transform": "translate(10px,10px)",
       "userSelect": "auto",
       "width": "320px",
@@ -362,7 +438,7 @@ exports[`Storyshots LiveImage Default 1`] = `
   <p>
     Loading...
   </p>
-  <span>
+  <div>
     <div
       className=""
       onMouseDown={[Function]}
@@ -491,7 +567,7 @@ exports[`Storyshots LiveImage Default 1`] = `
         }
       }
     />
-  </span>
+  </div>
 </div>
 `;
 
@@ -501,7 +577,6 @@ exports[`Storyshots LiveImage Depth 1`] = `
   onMouseDown={[Function]}
   onMouseUp={[Function]}
   onTouchEnd={[Function]}
-  onTouchStart={[Function]}
   style={
     Object {
       "boxSizing": "border-box",
@@ -516,7 +591,6 @@ exports[`Storyshots LiveImage Depth 1`] = `
       "minWidth": undefined,
       "position": "absolute",
       "top": 0,
-      "touchAction": "none",
       "transform": "translate(10px,10px)",
       "userSelect": "auto",
       "width": "320px",
@@ -527,7 +601,7 @@ exports[`Storyshots LiveImage Depth 1`] = `
   <p>
     Loading...
   </p>
-  <span>
+  <div>
     <div
       className=""
       onMouseDown={[Function]}
@@ -656,7 +730,7 @@ exports[`Storyshots LiveImage Depth 1`] = `
         }
       }
     />
-  </span>
+  </div>
 </div>
 `;
 
@@ -666,7 +740,6 @@ exports[`Storyshots LiveImage Loading 1`] = `
   onMouseDown={[Function]}
   onMouseUp={[Function]}
   onTouchEnd={[Function]}
-  onTouchStart={[Function]}
   style={
     Object {
       "boxSizing": "border-box",
@@ -681,7 +754,6 @@ exports[`Storyshots LiveImage Loading 1`] = `
       "minWidth": undefined,
       "position": "absolute",
       "top": 0,
-      "touchAction": "none",
       "transform": "translate(10px,10px)",
       "userSelect": "auto",
       "width": "320px",
@@ -692,7 +764,7 @@ exports[`Storyshots LiveImage Loading 1`] = `
   <p>
     Loading...
   </p>
-  <span>
+  <div>
     <div
       className=""
       onMouseDown={[Function]}
@@ -821,7 +893,7 @@ exports[`Storyshots LiveImage Loading 1`] = `
         }
       }
     />
-  </span>
+  </div>
 </div>
 `;
 
@@ -831,7 +903,6 @@ exports[`Storyshots LiveObjects Default 1`] = `
   onMouseDown={[Function]}
   onMouseUp={[Function]}
   onTouchEnd={[Function]}
-  onTouchStart={[Function]}
   style={
     Object {
       "boxSizing": "border-box",
@@ -846,7 +917,6 @@ exports[`Storyshots LiveObjects Default 1`] = `
       "minWidth": undefined,
       "position": "absolute",
       "top": 0,
-      "touchAction": "none",
       "transform": "translate(10px,10px)",
       "userSelect": "auto",
       "width": "320px",
@@ -857,7 +927,7 @@ exports[`Storyshots LiveObjects Default 1`] = `
   <p>
     Loading...
   </p>
-  <span>
+  <div>
     <div
       className=""
       onMouseDown={[Function]}
@@ -986,7 +1056,7 @@ exports[`Storyshots LiveObjects Default 1`] = `
         }
       }
     />
-  </span>
+  </div>
 </div>
 `;
 
@@ -996,7 +1066,6 @@ exports[`Storyshots LiveObjects Loading 1`] = `
   onMouseDown={[Function]}
   onMouseUp={[Function]}
   onTouchEnd={[Function]}
-  onTouchStart={[Function]}
   style={
     Object {
       "boxSizing": "border-box",
@@ -1011,7 +1080,6 @@ exports[`Storyshots LiveObjects Loading 1`] = `
       "minWidth": undefined,
       "position": "absolute",
       "top": 0,
-      "touchAction": "none",
       "transform": "translate(10px,10px)",
       "userSelect": "auto",
       "width": "320px",
@@ -1022,7 +1090,7 @@ exports[`Storyshots LiveObjects Loading 1`] = `
   <p>
     Loading...
   </p>
-  <span>
+  <div>
     <div
       className=""
       onMouseDown={[Function]}
@@ -1151,7 +1219,652 @@ exports[`Storyshots LiveObjects Loading 1`] = `
         }
       }
     />
-  </span>
+  </div>
+</div>
+`;
+
+exports[`Storyshots LocoView Default 1`] = `
+<div>
+  <div
+    className="react-draggable"
+    onMouseDown={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    style={
+      Object {
+        "boxSizing": "border-box",
+        "cursor": "move",
+        "display": "inline-block",
+        "flexShrink": 0,
+        "height": "320px",
+        "left": 0,
+        "maxHeight": 9007199254740991,
+        "maxWidth": 9007199254740991,
+        "minHeight": undefined,
+        "minWidth": undefined,
+        "position": "absolute",
+        "top": 0,
+        "transform": "translate(10px,400px)",
+        "userSelect": "auto",
+        "width": "320px",
+      }
+    }
+    transform={null}
+  >
+    <p>
+      Loading...
+    </p>
+    <div>
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "top": "-5px",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "position": "absolute",
+            "right": "-5px",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-5px",
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "left": "-5px",
+            "position": "absolute",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "ne-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "se-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "sw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "nw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+    </div>
+  </div>
+  <div
+    className="react-draggable"
+    onMouseDown={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    style={
+      Object {
+        "boxSizing": "border-box",
+        "cursor": "move",
+        "display": "inline-block",
+        "flexShrink": 0,
+        "height": "320px",
+        "left": 0,
+        "maxHeight": 9007199254740991,
+        "maxWidth": 9007199254740991,
+        "minHeight": undefined,
+        "minWidth": undefined,
+        "position": "absolute",
+        "top": 0,
+        "transform": "translate(340px,400px)",
+        "userSelect": "auto",
+        "width": "320px",
+      }
+    }
+    transform={null}
+  >
+    <p>
+      Loading...
+    </p>
+    <div>
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "top": "-5px",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "position": "absolute",
+            "right": "-5px",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-5px",
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "left": "-5px",
+            "position": "absolute",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "ne-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "se-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "sw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "nw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+    </div>
+  </div>
+  <div
+    className="react-draggable"
+    onMouseDown={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    style={
+      Object {
+        "boxSizing": "border-box",
+        "cursor": "move",
+        "display": "inline-block",
+        "flexShrink": 0,
+        "height": "320px",
+        "left": 0,
+        "maxHeight": 9007199254740991,
+        "maxWidth": 9007199254740991,
+        "minHeight": undefined,
+        "minWidth": undefined,
+        "position": "absolute",
+        "top": 0,
+        "transform": "translate(10px,730px)",
+        "userSelect": "auto",
+        "width": "320px",
+      }
+    }
+    transform={null}
+  >
+    <p>
+      Loading...
+    </p>
+    <div>
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "top": "-5px",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "position": "absolute",
+            "right": "-5px",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-5px",
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "left": "-5px",
+            "position": "absolute",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "ne-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "se-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "sw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "nw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+    </div>
+  </div>
+  <div
+    className="react-draggable"
+    onMouseDown={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    style={
+      Object {
+        "boxSizing": "border-box",
+        "cursor": "move",
+        "display": "inline-block",
+        "flexShrink": 0,
+        "height": "320px",
+        "left": 0,
+        "maxHeight": 9007199254740991,
+        "maxWidth": 9007199254740991,
+        "minHeight": undefined,
+        "minWidth": undefined,
+        "position": "absolute",
+        "top": 0,
+        "transform": "translate(340px,730px)",
+        "userSelect": "auto",
+        "width": "320px",
+      }
+    }
+    transform={null}
+  >
+    <p>
+      Loading...
+    </p>
+    <div>
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "top": "-5px",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "position": "absolute",
+            "right": "-5px",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-5px",
+            "cursor": "row-resize",
+            "height": "10px",
+            "left": "0px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "100%",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "col-resize",
+            "height": "100%",
+            "left": "-5px",
+            "position": "absolute",
+            "top": "0px",
+            "userSelect": "none",
+            "width": "10px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "ne-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "se-resize",
+            "height": "20px",
+            "position": "absolute",
+            "right": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "bottom": "-10px",
+            "cursor": "sw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+      <div
+        className=""
+        onMouseDown={[Function]}
+        onTouchStart={[Function]}
+        style={
+          Object {
+            "cursor": "nw-resize",
+            "height": "20px",
+            "left": "-10px",
+            "position": "absolute",
+            "top": "-10px",
+            "userSelect": "none",
+            "width": "20px",
+          }
+        }
+      />
+    </div>
+  </div>
 </div>
 `;
 

@@ -882,53 +882,53 @@ def get_questions(child, action, optional_words=None):
                 "tooltip": "e.g. in 'make a square 5 steps behind that' select '5'",
             },
         ]
-    elif child == "tag_val":
-        QUESTION = {
-            "text": "Click on options below to determine the intent of the text.",
-            "key": "memory_data",
-            "tooltip": "e.g. in 'good job' click on 'Feedback to the assistant'",
-            "add_radio_other": False,
-            "radio": [
-                {
-                    "text": "Feedback to the assistant",
-                    "key": "memory_type.reward",
-                    "tooltip": "e.g. select for 'that was nice' or 'no that's wrong' ",
-                    "next": [
-                        {
-                            "text": "Select the kind of feedback",
-                            "key": "reward_value",
-                            "add_radio_other": False,
-                            "tooltip": "e.g. 'Positive feedback' for good things like 'you did a good job', 'that was a nice",
-                            "radio": [
-                                {
-                                    "text": "Positive feedback",
-                                    "key": "POSITIVE",
-                                    "tooltip": "e.g. for good things like 'you did a good job', 'that was a nice'",
-                                },
-                                {
-                                    "text": "Negative feedback",
-                                    "key": "NEGATIVE",
-                                    "tooltip": "e.g. for corrections like 'that was wrong', 'you failed'",
-                                },
-                            ],
-                        }
-                    ],
-                },
-                {
-                    "text": "To assign tag, name or description",
-                    "key": "memory_type.triple",
-                    "tooltip": "e.g. 'that looks nice', 'tag the house as bright' etc",
-                    "radio": [
-                        {
-                            "text": "The highlighted word(s) is a kind of colour",
-                            "key": "has_colour",
-                        },
-                        {"text": "The highlighted word(s) represents size", "key": "has_size"},
-                        {"text": "The highlighted word(s) is something else", "key": "has_tag"},
-                    ],
-                },
-            ],
-        }
+    # elif child == "tag_val":
+    #     QUESTION = {
+    #         "text": "Click on options below to determine the intent of the text.",
+    #         "key": "memory_data",
+    #         "tooltip": "e.g. in 'good job' click on 'Feedback to the assistant'",
+    #         "add_radio_other": False,
+    #         "radio": [
+    #             {
+    #                 "text": "Feedback to the assistant",
+    #                 "key": "memory_type.reward",
+    #                 "tooltip": "e.g. select for 'that was nice' or 'no that's wrong' ",
+    #                 "next": [
+    #                     {
+    #                         "text": "Select the kind of feedback",
+    #                         "key": "reward_value",
+    #                         "add_radio_other": False,
+    #                         "tooltip": "e.g. 'Positive feedback' for good things like 'you did a good job', 'that was a nice",
+    #                         "radio": [
+    #                             {
+    #                                 "text": "Positive feedback",
+    #                                 "key": "POSITIVE",
+    #                                 "tooltip": "e.g. for good things like 'you did a good job', 'that was a nice'",
+    #                             },
+    #                             {
+    #                                 "text": "Negative feedback",
+    #                                 "key": "NEGATIVE",
+    #                                 "tooltip": "e.g. for corrections like 'that was wrong', 'you failed'",
+    #                             },
+    #                         ],
+    #                     }
+    #                 ],
+    #             },
+    #             {
+    #                 "text": "To assign tag, name or description",
+    #                 "key": "memory_type.triple",
+    #                 "tooltip": "e.g. 'that looks nice', 'tag the house as bright' etc",
+    #                 "radio": [
+    #                     {
+    #                         "text": "The highlighted word(s) is a kind of colour",
+    #                         "key": "has_colour",
+    #                     },
+    #                     {"text": "The highlighted word(s) represents size", "key": "has_size"},
+    #                     {"text": "The highlighted word(s) is something else", "key": "has_tag"},
+    #                 ],
+    #             },
+    #         ],
+    #     }
     elif child == "reference_object" or (child == "filters" and action == "tag"):
         # location_rel_obj = construct_location_rel(location_in_rel=False)
         word = ""

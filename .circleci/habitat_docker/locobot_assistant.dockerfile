@@ -40,8 +40,8 @@ RUN conda create -n droidlet_env python=3.7 \
     conda init bash && \
     source ~/.bashrc && \
     source activate /root/miniconda3/envs/droidlet_env && \
-    curl https://raw.githubusercontent.com/facebookresearch/droidlet/main/requirements.txt -o requirements_1.txt && \
-    curl https://raw.githubusercontent.com/facebookresearch/droidlet/main/locobot/requirements.txt -o requirements_2.txt && \
+    curl https://raw.githubusercontent.com/facebookresearch/fairo/main/requirements.txt -o requirements_1.txt && \
+    curl https://raw.githubusercontent.com/facebookresearch/fairo/main/locobot/requirements.txt -o requirements_2.txt && \
     echo -en '\n' >> requirements_1.txt && \
     tail --lines=+2  requirements_2.txt >> requirements_1.txt && \
     pip install -r requirements_1.txt

@@ -1,7 +1,7 @@
 """
 This file updates the data format to add 'return_quantity' to 'selector'
-proposed in : https://github.com/facebookresearch/droidlet/pull/253
-issue: https://github.com/facebookresearch/droidlet/issues/219
+proposed in : https://github.com/facebookresearch/fairo/pull/253
+issue: https://github.com/facebookresearch/fairo/issues/219
 Paste here: https://www.internalfb.com/phabricator/paste/view/P343552247
 """
 import json

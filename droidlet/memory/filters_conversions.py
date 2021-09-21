@@ -70,24 +70,6 @@ def convert_triple_to_comparator(triple):
     return c
 
 
-def old_filters_to_new_filters(d):
-    new_filters = deepcopy(d)
-    # FIXME: moving ordinal in to root of selector dict
-    # NOTE: This changes hasn't been made yet
-    if d.get("selector"):
-        s = d["selector"]
-        if s.get("return_quantity", {}).get("argval", {}).get("ordinal"):
-            o = deepcopy(s["return_quantity"]["argval"]["ordinal"])
-            # ordinal at root of selector:
-            new_filters["selector"]["ordinal"] = o
-            del new_filters["selector"]["return_quantity"]["argval"]["ordinal"]
-        elif s.get("return_quantity", {}).get("random"):
-            new_filters["selector"]["ordinal"] = deepcopy(s["return_quantity"]["random"])
-            new_filters["selector"]["return_quantity"] = "random"
-
-    return new_filters
-
-
 def sqlyify_where_clause(c):
     """
     c should be a dict of of the (recursive) form {"AND"/"OR"/"NOT": [clause_0, ... , clause_m]}, 
@@ -613,7 +595,7 @@ if __name__ == "__main__":
     z = sqlyify_where_clause(d)
     print(z)
 
-    f = old_filters_to_new_filters(all_test_commands.FILTERS["that cow"])
+    f = all_test_commands.FILTERS["that cow"]
     s = new_filters_to_sqly(f)
 
     S = {}
@@ -621,6 +603,6 @@ if __name__ == "__main__":
     FF = {}
 
     for k, f in all_test_commands.FILTERS.items():
-        S[k] = old_filters_to_new_filters(f)
+        S[k] = f
         F[k] = new_filters_to_sqly(S[k])
         FF[k] = sqly_to_new_filters(F[k])

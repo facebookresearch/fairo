@@ -82,7 +82,7 @@ class empty_object():
         pass
 
 class CraftAssistSwarmMaster(CraftAssistAgent):
-    default_num_agents = 3
+    default_num_agents = 2
 
     def __init__(self, opts):
         try:
@@ -126,6 +126,7 @@ class CraftAssistSwarmMaster(CraftAssistAgent):
             "untag": self.memory.untag,
             "forget": self.memory.forget,
             "add_triple": self.memory.add_triple,
+            "get_triples": self.memory.get_triples,
             "check_memid_exists": self.memory.check_memid_exists,
             "get_mem_by_id": self.memory.get_mem_by_id,
             "basic_search": self.memory.basic_search,

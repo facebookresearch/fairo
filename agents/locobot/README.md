@@ -33,7 +33,7 @@ docker pull theh1ghwayman/locobot-assistant:8.0
         </pre></sub></td>
     </tr>
     <tr valign="top">        
-      <td> 2. Launch Pyro4 <p> Copy the <a href="https://github.com/facebookresearch/droidlet/tree/main/droidlet/lowlevel/locobot/remote"> remote<a/> folder onto the Locobot and then do the following: </p>
+      <td> 2. Launch Pyro4 <p> Copy the <a href="https://github.com/facebookresearch/fairo/tree/main/droidlet/lowlevel/locobot/remote"> remote<a/> folder onto the Locobot and then do the following: </p>
         <sub><pre lang="bash">
 cd remote
 chmod +x launch_pyro.sh

@@ -13,23 +13,6 @@ from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_n
 ####################################################################################
 
 
-SELFID = "0" * 32
-
-
-def maybe_and(sql, a):
-    if a:
-        return sql + " AND "
-    else:
-        return sql
-
-
-def maybe_or(sql, a):
-    if a:
-        return sql + " OR "
-    else:
-        return sql
-
-
 def check_well_formed_triple(clause):
     # TODO search by pred?
     assert any(
@@ -149,6 +132,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
 
     # FIXME! it is assumed for now that the value is the obj_text, not the obj; need to
     # to introduce special comparison_symbol for the obj memid case
+
     if comparison_symbol != "=" and comparison_symbol != "=#=":
         raise Exception("Triple values need to have '=' or '=#=' as comparison symbol for now")
     if comparison_symbol == "=":
@@ -596,32 +580,32 @@ class ExtremeValueMemorySelector(MemoryFilter):
         super().__init__(agent_memory)
         # polarity is "argmax" or "argmin"
         self.polarity = polarity
+        self.ordinal = ordinal
 
     # should this give an error? probably it should
     def search(self):
         all_memids = self.all_table_memids()
-        i = torch.randint(len(all_memids), (1,)).item()
-        return [all_memids[i]], [None]
+        idxs = torch.randint(len(all_memids), (self.ordinal,)).tolist()
+        return [all_memids[i] for i in idxs], [None] * self.ordinal
 
-    # FIXME!!!! do ordinals not 1
+    # TODO? error if ordinal is larger than len(memids)?
     def filter(self, memids, vals):
         if not memids:
             return [], []
-        if self.polarity == "argmax":
-            try:
-                i = torch.argmax(torch.Tensor(vals)).item()
-            except:
-                raise Exception("are these values numbers?  trying to argmax them")
-        else:
-            try:
-                i = torch.argmin(torch.Tensor(vals)).item()
-            except:
-                raise Exception("are these values numbers?  trying to argmin them")
+        if self.ordinal > len(memids):
+            return memids, vals
+        try:
+            _, idxs = torch.topk(
+                torch.Tensor(vals), self.ordinal, largest=(self.polarity == "argmax")
+            )
+            idxs = idxs.tolist()
+        except:
+            raise Exception("are these values numbers?  trying to topk/mink them")
 
-        return [memids[i]], [vals[i]]
+        return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
     def _selfstr(self):
-        return self.polarity
+        return self.polarity + " {}".format(self.ordinal)
 
 
 class LogicalOperationFilter(MemoryFilter):

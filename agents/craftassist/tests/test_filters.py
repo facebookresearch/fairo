@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
 from droidlet.lowlevel.minecraft.shapes import cube
-from .base_craftassist_test_case import BaseCraftassistTestCase
+from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.interpreter.craftassist import DummyInterpreter
 import droidlet.interpreter.tests.all_test_commands
@@ -55,6 +55,22 @@ class FiltersTest(BaseCraftassistTestCase):
         mems, vals = b()
         self.assertEqual(len(vals), 1)
         self.assertEqual(vals[0], 64)
+
+    def test_farthest(self):
+        two_f = droidlet.interpreter.tests.all_test_commands.FILTERS["two farthest cubes"]
+        one_f = droidlet.interpreter.tests.all_test_commands.FILTERS["the farthest cube"]
+        DI = self.dummy_interpreter
+
+        memids = []
+        b = DI.subinterpret["filters"](DI, "SPEAKER", one_f)
+        mems, vals = b()
+        self.assertEqual(len(mems), 1)
+        assert vals[0] > 9.3
+        b = DI.subinterpret["filters"](DI, "SPEAKER", two_f)
+        mems, vals = b()
+        assert vals[0] > 9.0
+        assert vals[1] > 9.0
+        self.assertEqual(len(mems), 2)
 
     def test_random(self):
         o = droidlet.interpreter.tests.all_test_commands.FILTERS["a random cube"]

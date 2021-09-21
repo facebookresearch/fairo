@@ -52,7 +52,7 @@ def save_model(model, model_identifier, dataset, args, full_tree_voc, epoch):
         "args": args,
     }
     path = pjoin(args.output_dir, "{}_ep{}.pth".format(model_identifier, epoch))
-    print("saving model to " + path)
+    print("saving model to PATH::{} at epoch {}".format(path, epoch))
     torch.save(M, path)
 
 
@@ -290,9 +290,18 @@ class ModelTrainer:
             # Evaluating model
             model.eval()
             logging.info("evaluating model")
-            for dtype_spec in json.loads(self.args.dtype_samples):
-                dtype, ratio = dtype_spec
+            for dtype, ratio in self.args.dtype_samples.items():
                 l, a = self.eval_model_on_dataset(e, model, dtype, full_tree_voc, tokenizer)
+                logging.info(
+                    "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f} at epoch {}".format(
+                        dtype, l, a, e
+                    )
+                )
+                print(
+                    "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f} at epoch {}".format(
+                        dtype, l, a, e
+                    )
+                )
                 if tb:
                     tb.add_scalar("val_accuracy_" + str(dtype), a, global_step=e)
                     tb.add_scalar("val_loss_" + str(dtype), l, global_step=e)
@@ -377,10 +386,9 @@ class ModelTrainer:
         l, _, _, a, text_span_acc, text_span_loss = self.validate(
             encoder_decoder, valid_dataset, tokenizer, self.args
         )
-        print("evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f}".format(dtype, l, a))
-        logging.info(
-            "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f}".format(dtype, l, a)
-        )
+        # logging.info(
+        #    "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f}".format(dtype, l, a)
+        # )
         logging.info(
             "text span Loss: {:.4f} \t Accuracy: {:.4f}".format(text_span_loss, text_span_acc)
         )
@@ -425,7 +433,7 @@ def generate_model_name(args, optional_identifier=""):
     for k, v in vars(args).items():
         if k in args_keys:
             if k == "dtype_samples":
-                v = "_".join([dsets[d[0]] + str(d[1]) for d in json.loads(args.dtype_samples)])
+                v = "_".join([dsets[k] + str(v) for k, v in args.dtype_samples.items()])
             name += "{param}{value}-".format(param=args_keys[k], value=v)
     # In case we want additional identification for the model, eg. test run
     name += "{time}|".format(time=time_now)
@@ -435,8 +443,7 @@ def generate_model_name(args, optional_identifier=""):
 
 def build_grammar(args):
     data = {"train": {}, "valid": {}, "test": {}}
-    dtype_samples_unpacked = json.loads(args.dtype_samples)
-    dtypes = [t for t, p in dtype_samples_unpacked]
+    dtypes = list(args.dtype_samples.keys())
     for spl in data:
         for dt in dtypes:
             fname = pjoin(args.data_dir, "{}/{}.txt".format(spl, dt))
@@ -546,7 +553,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--dtype_samples",
-        default='[["templated", 0.55], ["templated_filters", 0.05], ["annotated", 0.4]]',
+        default="templated:.55;templated_filters:.05;annotated:.4",
         type=str,
         help="Sampling probabilities for handling different data types",
     )
@@ -585,7 +592,11 @@ if __name__ == "__main__":
         help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
     args = parser.parse_args()
-    args.dtype_samples = args.dtype_samples.replace("'", '"')
+    dtype_samples = {}
+    for x in args.dtype_samples.split(";"):
+        y = x.split(":")
+        dtype_samples[y[0]] = float(y[1])
+    args.dtype_samples = dtype_samples
 
     os.makedirs(args.output_dir, exist_ok=True)
     # HACK: allows us to give rephrase proba only instead of full dictionary

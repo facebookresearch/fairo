@@ -17,8 +17,9 @@ BEFORE = """
         <h1><strong>Split a composite command into individuals.</strong></h1>
         <p>Please help us split a command into individual single commands.
         The command shown to you here is given to an AI assistant to help out a player in the game of Minecraft.
-        You will be show a command that possibly implies a sequence or list of single commands and your task is to give us
-        single complete actions that are intended by the command shown to you.</p>
+        You will be shown a command that possibly has a sequence or list of single commands and your task is to give us
+        single complete actions that are intended by the command shown to you.
+        Please do not rephrase the single commands and copy over the words over from original.</p>
         </br>
         </br>
         <p>Few valid examples below: </p>
