@@ -118,16 +118,51 @@ class Message extends Component {
   handleSubmit() {
     //get the message
     var chatmsg = document.getElementById("msg").innerHTML;
-    if (chatmsg.replace(/\s/g, "") !== "") {
+    // if frontend validation is enabled and message doesn't pass validation
+    // alert user and don't send it to the agent.
+    if (
+      this.props.stateManager.isFrontendValidationEnabled() &&
+      !this.isMsgValidated(chatmsg)
+    ) {
+      console.log("Command: " + chatmsg + "didn't pass frontend validation");
+    } else if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.props.setInteractState({ msg: chatmsg, failed: false });
       //log message to flask
       this.props.stateManager.logInteractiondata("text command", chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
-      //clear the textbox
-      document.getElementById("msg").innerHTML = "";
     }
+    //clear the textbox
+    document.getElementById("msg").innerHTML = "";
+  }
+
+  isMsgValidated(msg) {
+    var alert_msg = "";
+    // #1: check empty commands
+    if (msg.replace(/\s/g, "") == "") {
+      alert_msg = "Please don't send empty command!";
+      // #2: check single character input that doesn't makes sense (e.g. 'a', ',', '1')
+    } else if (msg.length < 2) {
+      alert_msg = "Please try to give some reasonable commands!";
+      // #3: check commands consisting of non-letters mostly (e.g. '32134', ',.4af.[;')
+    } else {
+      var letter_cnt = 0;
+      for (const c of msg) {
+        if (c.match(/[a-z]/i)) {
+          letter_cnt += 1;
+        }
+      }
+      if (letter_cnt / msg.length < 0.5) {
+        alert_msg = "Please give some commands bot can understand!";
+      }
+    }
+    // TODO #4: detect gibberish commands like 'Bazinga'
+    if (alert_msg.length > 0) {
+      alert(alert_msg);
+      return false;
+    }
+    return true;
   }
 
   render() {
