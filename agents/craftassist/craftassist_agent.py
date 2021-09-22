@@ -235,6 +235,38 @@ class CraftAssistAgent(LocoMCAgent):
         then run through all perception modules to perceive
         and finally clear the buffer when perception is done.
         """
+        # super().perceive(force=force, parser_only=True)
+        # self.perception_modules["self"].perceive(force=force)
+        # rgb_depth = self.mover.get_rgb_depth()
+        # xyz = self.mover.get_base_pos_in_canonical_coords()
+        # x, y, yaw = xyz
+        # sio.emit("map", {
+        #     "x": x,
+        #     "y": y,
+        #     "yaw": yaw,
+        #     "map": self.mover.get_obstacles_in_canonical_coords()
+        # })
+        #
+        # previous_objects = DetectedObjectNode.get_all(self.memory)
+        # new_state = self.perception_modules["vision"].perceive(rgb_depth,
+        #                                                        xyz,
+        #                                                        previous_objects,
+        #                                                        force=force)
+        # if new_state is not None:
+        #     new_objects, updated_objects = new_state
+        #     for obj in new_objects:
+        #         obj.save_to_memory(self.memory)
+        #     for obj in updated_objects:
+        #         obj.save_to_memory(self.memory, update=True)
+        # self.perception_modules = {}
+        # self.perception_modules["low_level"] = LowLevelMCPerception(self)
+        # self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
+        #             self, low_level_data=self.low_level_data
+        #         )
+        #  if os.path.isfile(self.opts.semseg_model_path):
+        #     self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
+        #         self, self.opts.semseg_model_path, low_level_data=self.low_level_data
+        #  )
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         super().perceive()
         self.areas_to_perceive = []

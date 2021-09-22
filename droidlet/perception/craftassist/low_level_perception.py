@@ -53,41 +53,46 @@ class LowLevelMCPerception:
 
         if self.agent.count % self.perceive_freq == 0 or force:
             for mob in self.agent.get_mobs():
-                if euclid_dist(self.agent.pos, pos_to_np(mob.pos)) < self.memory.perception_range:
-                    self.memory.set_mob_position(mob)
+                if euclid_dist(self.agent.pos, pos_to_np(mob.pos)) < self.agent.memory.perception_range:
+                    #NIT1: return all mobs
+                    self.agent.memory.set_mob_position(mob)
             item_stack_set = set()
             for item_stack in self.agent.get_item_stacks():
                 item_stack_set.add(item_stack.entityId)
                 if (
                     euclid_dist(self.agent.pos, pos_to_np(item_stack.pos))
-                    < self.memory.perception_range
+                    < self.agent.memory.perception_range
                 ):
-                    self.memory.set_item_stack_position(item_stack)
-            old_item_stacks = self.memory.get_all_item_stacks()
+                    #NIT2: return item stack
+                    self.agent.memory.set_item_stack_position(item_stack)
+            old_item_stacks = self.agent.memory.get_all_item_stacks()
             if old_item_stacks:
                 for old_item_stack in old_item_stacks:
                     memid = old_item_stack[0]
                     eid = old_item_stack[1]
+                    # NIT3: return untag set and tag set
                     if eid not in item_stack_set:
-                        self.memory.untag(memid, "_on_ground")
+                        self.agent.memory.untag(memid, "_on_ground")
                     else:
-                        self.memory.tag(memid, "_on_ground")
+                        self.agent.memory.tag(memid, "_on_ground")
 
         # note: no "force"; these run on every perceive call.  assumed to be fast
-        self.update_self_memory()
-        self.update_other_players(self.agent.get_other_players())
+        self.update_self_memory() # NIT4: return memid and p
+        self.update_other_players(self.agent.get_other_players()) # can be moved entirely to agent process
 
         # use safe_get_changed_blocks to deal with pointing
         for (xyz, idm) in self.agent.safe_get_changed_blocks():
+            # NIT return xyz, idm, boring_blocks back for agent to process
             self.on_block_changed(xyz, idm, boring_blocks)
 
     def update_self_memory(self):
         """Update agent's current position and attributes in memory"""
         p = self.agent.get_player()
-        memid = self.memory.get_player_by_eid(p.entityId).memid
+        memid = self.agent.memory.get_player_by_eid(p.entityId).memid
+        # NIT4: return memid and p
         cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
         cmd = cmd + "uuid=?"
-        self.memory.db_write(
+        self.agent.memory.db_write(
             cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
         )
 
@@ -97,26 +102,26 @@ class LowLevelMCPerception:
             a list of player_structs from agent
         """
         for p in player_list:
-            mem = self.memory.get_player_by_eid(p.entityId)
+            mem = self.agent.memory.get_player_by_eid(p.entityId)
             if mem is None:
-                memid = PlayerNode.create(self.memory, p)
+                memid = PlayerNode.create(self.agent.memory, p)
             else:
                 memid = mem.memid
             cmd = (
                 "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
             )
             cmd = cmd + "uuid=?"
-            self.memory.db_write(
+            self.agent.memory.db_write(
                 cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
             )
             loc = capped_line_of_sight(self.agent, p)
             loc[1] += 1
-            memids = self.memory._db_read_one(
+            memids = self.agent.memory._db_read_one(
                 'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
                 p.entityId,
             )
             if memids:
-                self.memory.db_write(
+                self.agent.memory.db_write(
                     "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
                     loc[0],
                     loc[1],
@@ -124,7 +129,7 @@ class LowLevelMCPerception:
                     memids[0],
                 )
             else:
-                AttentionNode.create(self.memory, loc, attender=p.entityId)
+                AttentionNode.create(self.agent.memory, loc, attender=p.entityId)
 
     # TODO replace name by eid everywhere
     def get_player_struct_by_name(self, name):
@@ -140,9 +145,9 @@ class LowLevelMCPerception:
     def on_block_changed(self, xyz: XYZ, idm: IDM, boring_blocks: Tuple[int]):
         """Update the state of the world when a block is changed."""
         # TODO don't need to do this for far away blocks if this is slowing down bot
-        self.maybe_remove_inst_seg(xyz)
-        self.maybe_remove_block_from_memory(xyz, idm)
-        self.maybe_add_block_to_memory(xyz, idm, boring_blocks)
+        self.maybe_remove_inst_seg(xyz) # NIT: move entirely to agent
+        self.maybe_remove_block_from_memory(xyz, idm) # NIT: move entirely to agent
+        self.maybe_add_block_to_memory(xyz, idm, boring_blocks) # NIT: move entirely to agent
 
     def clear_air_surrounded_negatives(self):
         pass
@@ -151,13 +156,13 @@ class LowLevelMCPerception:
         """if the block is changed, the old instance segmentation is considered no longer valid"""
         # get all associated instseg nodes
         # FIXME make this into a basic search
-        inst_seg_memids = self.memory.get_instseg_object_ids_by_xyz(xyz)
+        inst_seg_memids = self.agent.memory.get_instseg_object_ids_by_xyz(xyz)
         if inst_seg_memids:
             # delete the InstSeg, they are ephemeral and should be recomputed
             # TODO/FIXME  more refined approach: if a block changes
             # ask the models to recompute.  if the tags are the same, keep it
             for i in inst_seg_memids:
-                self.memory.forget(i[0])
+                self.agent.memory.forget(i[0])
 
     # clean all this up...
     # eventually some conditions for not committing air/negative blocks
@@ -165,6 +170,7 @@ class LowLevelMCPerception:
         """Update blocks to memory when any change in the environment
         is caused either by agent or player"""
         if not agent_placed:
+            # NIT: 
             interesting, player_placed, agent_placed = self.is_placed_block_interesting(
                 xyz, idm[0], boring_blocks
             )
@@ -182,7 +188,7 @@ class LowLevelMCPerception:
                 pass
 
         adjacent = [
-            self.memory.get_object_info_by_xyz(a, "BlockObjects", just_memid=False)
+            self.agent.memory.get_object_info_by_xyz(a, "BlockObjects", just_memid=False)
             for a in diag_adjacent(xyz)
         ]
 
@@ -199,29 +205,29 @@ class LowLevelMCPerception:
         elif len(adjacent_memids) == 1:
             # update block object
             memid = adjacent_memids[0]
-            self.memory.upsert_block(
+            self.agent.memory.upsert_block(
                 (xyz, idm), memid, "BlockObjects", player_placed, agent_placed
             )
-            self.memory.set_memory_updated_time(memid)
-            self.memory.set_memory_attended_time(memid)
+            self.agent.memory.set_memory_updated_time(memid)
+            self.agent.memory.set_memory_attended_time(memid)
         else:
             chosen_memid = adjacent_memids[0]
-            self.memory.set_memory_updated_time(chosen_memid)
-            self.memory.set_memory_attended_time(chosen_memid)
+            self.agent.memory.set_memory_updated_time(chosen_memid)
+            self.agent.memory.set_memory_attended_time(chosen_memid)
 
             # merge tags
             where = " OR ".join(["subj=?"] * len(adjacent_memids))
-            self.memory.db_write(
+            self.agent.memory.db_write(
                 "UPDATE Triples SET subj=? WHERE " + where, chosen_memid, *adjacent_memids
             )
 
             # merge multiple block objects (will delete old ones)
             where = " OR ".join(["uuid=?"] * len(adjacent_memids))
             cmd = "UPDATE VoxelObjects SET uuid=? WHERE "
-            self.memory.db_write(cmd + where, chosen_memid, *adjacent_memids)
+            self.agent.memory.db_write(cmd + where, chosen_memid, *adjacent_memids)
 
             # insert new block
-            self.memory.upsert_block(
+            self.agent.memory.upsert_block(
                 (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
             )
 
@@ -229,14 +235,14 @@ class LowLevelMCPerception:
         """Update agent's memory with blocks that have been destroyed."""
         tables = ["BlockObjects"]
         for table in tables:
-            info = self.memory.get_object_info_by_xyz(xyz, table, just_memid=False)
+            info = self.agent.memory.get_object_info_by_xyz(xyz, table, just_memid=False)
             if not info or len(info) == 0:
                 continue
             assert len(info) == 1
             memid, b, m = info[0]
             delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
             if delete:
-                self.memory.remove_voxel(*xyz, table)
+                self.agent.memory.remove_voxel(*xyz, table)
                 self.agent.areas_to_perceive.append((xyz, 3))
 
     # FIXME move removal of block to parent

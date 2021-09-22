@@ -6,9 +6,9 @@ import logging
 from multiprocessing import Queue, Process
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
-from droidlet.lowlevel.minecraft.shapes import get_bounds
 from .semantic_segmentation.semseg_models import SemSegWrapper
-from droidlet.base_util import blocks_list_to_npy
+from droidlet.base_util import blocks_list_to_npy, get_bounds
+
 
 # TODO all "subcomponent" operations are replaced with InstSeg
 class SubcomponentClassifierWrapper:

@@ -11,7 +11,6 @@ from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
-from droidlet.lowlevel.minecraft.shapes import get_bounds
 from droidlet.shared_data_structs import PriorityQueue
 
 XYZ = Tuple[int, int, int]
@@ -380,3 +379,19 @@ def diag_adjacent(p):
         for z in range(p[2] - 1, p[2] + 2)
         if (x, y, z) != p
     ]
+
+
+def get_bounds(S):
+    """
+    S should be a list of tuples, where each tuple is a pair of
+    (x, y, z) and ids;
+    else a list of (x, y, z)
+    """
+    if len(S) == 0:
+        return 0, 0, 0, 0, 0, 0
+    if len(S[0]) == 3:
+        T = [(l, (0, 0)) for l in S]
+    else:
+        T = S
+    x, y, z = list(zip(*list(zip(*T))[0]))
+    return min(x), max(x), min(y), max(y), min(z), max(z)

@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
+
+import droidlet.base_util
 from .memory_filters import get_property_value
 
 
