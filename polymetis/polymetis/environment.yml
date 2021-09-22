@@ -37,7 +37,7 @@ dependencies:
     - pandas
     - plotly
     - protobuf
-    - pybullet
+    - pybullet ==3.17
     - pytest
     - pytest-benchmark
     - scipy
