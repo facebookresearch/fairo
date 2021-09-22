@@ -24,7 +24,7 @@ from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerce
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
-from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
+from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
@@ -258,7 +258,8 @@ class FakeAgent(LocoMCAgent):
             "block_data": craftassist_specs.get_block_data(),
             "block_property_data": craftassist_specs.get_block_property_data(),
             "color_data": craftassist_specs.get_colour_data(),
-            "boring_blocks": BORING_BLOCKS
+            "boring_blocks": BORING_BLOCKS,
+            "fill_idmeta": fill_idmeta
         }
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
@@ -290,8 +291,8 @@ class FakeAgent(LocoMCAgent):
         self.perception_modules["heuristic"] = PerceptionWrapper(
             self, low_level_data=self.low_level_data
         )
-        self.on_demand_perception = {}
-        self.on_demand_perception["check_inside"] = check_inside
+        # self.on_demand_perception = {}
+        # self.on_demand_perception["check_inside"] = check_inside
 
     def init_physical_interfaces(self):
         self.dig = Dig(self)
@@ -313,11 +314,14 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         T = FakeMCTime(self.world)
+        low_level_data = self.low_level_data.copy()
+        low_level_data.update({'check_inside': heuristic_perception.check_inside})
+
         self.memory = MCAgentMemory(
             load_minecraft_specs=False,
             coordinate_transforms=self.coordinate_transforms,
             agent_time=T,
-            agent_low_level_data=self.low_level_data,
+            agent_low_level_data=low_level_data,
         )
         # Add dances to memory
         dance.add_default_dances(self.memory)
@@ -332,7 +336,8 @@ class FakeAgent(LocoMCAgent):
             'block_data': craftassist_specs.get_block_data(),
             'special_shape_functions': SPECIAL_SHAPE_FNS,
             'color_bid_map': COLOR_BID_MAP,
-            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes,
+            'get_locs_from_entity': get_locs_from_entity
         }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,

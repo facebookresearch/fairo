@@ -28,7 +28,6 @@ from .mc_memory_nodes import (  # noqa
     SchematicNode,
     NODELIST,
 )
-from droidlet.perception.craftassist.heuristic_perception import check_inside
 
 PERCEPTION_RANGE = 64
 
@@ -74,6 +73,7 @@ class MCAgentMemory(AgentMemory):
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}
         self.schematics = {}
+        self.check_inside_perception = agent_low_level_data["check_inside"]
 
         self._load_schematics(
             schematics=agent_low_level_data.get("schematics", {}),
@@ -215,7 +215,7 @@ class MCAgentMemory(AgentMemory):
         """ mems is a sequence of two ReferenceObjectNodes.
         this just wraps the heuristic perception check_inside method
         """
-        return check_inside(mems)
+        return self.check_inside_perception(mems)
 
     ######################
     ###  BlockObjects  ###

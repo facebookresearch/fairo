@@ -38,7 +38,7 @@ from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
-from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS
+from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
     SubcomponentClassifierWrapper,
 )
@@ -75,7 +75,8 @@ class CraftAssistAgent(LocoMCAgent):
                                "block_data": craftassist_specs.get_block_data(),
                                "block_property_data": craftassist_specs.get_block_property_data(),
                                "color_data": craftassist_specs.get_colour_data(),
-                               "boring_blocks": BORING_BLOCKS
+                               "boring_blocks": BORING_BLOCKS,
+                               "fill_idmeta": fill_idmeta
                                }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
@@ -170,12 +171,15 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
+        low_level_data = self.low_level_data.copy()
+        low_level_data.update({'check_inside': heuristic_perception.check_inside})
+
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             coordinate_transforms=self.coordinate_transforms,
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
-            agent_low_level_data=self.low_level_data,
+            agent_low_level_data=low_level_data,
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
@@ -199,8 +203,8 @@ class CraftAssistAgent(LocoMCAgent):
                 self, self.opts.semseg_model_path
             )
 
-        self.on_demand_perception = {}
-        self.on_demand_perception["check_inside"] = heuristic_perception.check_inside
+        # self.on_demand_perception = {}
+        # self.on_demand_perception["check_inside"] = heuristic_perception.check_inside
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -213,7 +217,9 @@ class CraftAssistAgent(LocoMCAgent):
             'block_data': craftassist_specs.get_block_data(),
             'special_shape_functions': SPECIAL_SHAPE_FNS,
             'color_bid_map': COLOR_BID_MAP,
-            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes,
+            'get_locs_from_entity': get_locs_from_entity
+        }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
