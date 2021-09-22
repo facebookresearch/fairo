@@ -73,7 +73,7 @@ class MCAgentMemory(AgentMemory):
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}
         self.schematics = {}
-        self.check_inside_perception = agent_low_level_data["check_inside"]
+        self.check_inside_perception = agent_low_level_data.get("check_inside", None)
 
         self._load_schematics(
             schematics=agent_low_level_data.get("schematics", {}),

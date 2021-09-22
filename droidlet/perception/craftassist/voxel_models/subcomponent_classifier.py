@@ -24,10 +24,12 @@ class SubcomponentClassifierWrapper:
             If 0, does not run unless forced
     """
 
-    def __init__(self, agent, model_path, perceive_freq=0):
+    def __init__(self, agent, model_path, low_level_data, perceive_freq=0):
         self.agent = agent
         self.memory = self.agent.memory
         self.perceive_freq = perceive_freq
+        self.boring_blocks = low_level_data["boring_blocks"]
+        self.passable_blocks = low_level_data["passable_blocks"]
         if model_path is not None:
             self.subcomponent_classifier = SubComponentClassifier(voxel_model_path=model_path)
             self.subcomponent_classifier.start()
@@ -53,10 +55,10 @@ class SubcomponentClassifierWrapper:
         to_label = []
         # add all blocks in marked areas
         for pos, radius in self.agent.areas_to_perceive:
-            for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
+            for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
                 to_label.append(obj)
         # add all blocks near the agent
-        for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
+        for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
             to_label.append(obj)
 
         for obj in to_label:

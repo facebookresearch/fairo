@@ -9,17 +9,11 @@ from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
 from copy import deepcopy
 import logging
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
-    BORING_BLOCKS,
-    PASSABLE_BLOCKS,
-    COLOR_BID_MAP,
-)
 from droidlet.base_util import depth_first_search, to_block_pos, manhat_dist, euclid_dist
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
-COLOUR_LIST = list(COLOR_BID_MAP.keys())
 
 # Taken from : stackoverflow.com/questions/16750618/
 # whats-an-efficient-way-to-find-if-a-point-lies-in-the-convex-hull-of-a-point-cl
@@ -33,7 +27,7 @@ def in_hull(points, x):
     return lp.success
 
 
-def all_nearby_objects(get_blocks, pos, max_radius=MAX_RADIUS):
+def all_nearby_objects(get_blocks, pos, boring_blocks, passable_blocks, max_radius=MAX_RADIUS):
     """Return a list of connected components near pos.
 
     Each component is a list of ((x, y, z), (id, meta))
@@ -41,7 +35,7 @@ def all_nearby_objects(get_blocks, pos, max_radius=MAX_RADIUS):
     i.e. this function returns list[list[((x, y, z), (id, meta))]]
     """
     pos = np.round(pos).astype("int32")
-    mask, off, blocks = all_close_interesting_blocks(get_blocks, pos, max_radius)
+    mask, off, blocks = all_close_interesting_blocks(get_blocks, pos, boring_blocks, passable_blocks, max_radius)
     components = connected_components(mask)
     logging.debug("all_nearby_objects found {} objects near {}".format(len(components), pos))
     xyzbms = [
@@ -51,12 +45,12 @@ def all_nearby_objects(get_blocks, pos, max_radius=MAX_RADIUS):
     return xyzbms
 
 
-def closest_nearby_object(get_blocks, pos):
+def closest_nearby_object(get_blocks, pos, boring_blocks, passable_blocks):
     """Find the closest interesting object to pos
 
     Returns a list of ((x,y,z), (id, meta)), or None if no interesting objects are nearby
     """
-    objects = all_nearby_objects(get_blocks, pos)
+    objects = all_nearby_objects(get_blocks, pos, boring_blocks, passable_blocks)
     if len(objects) == 0:
         return None
     centroids = [np.mean([pos for (pos, idm) in obj], axis=0) for obj in objects]
@@ -64,26 +58,26 @@ def closest_nearby_object(get_blocks, pos):
     return objects[np.argmin(dists)]
 
 
-def all_close_interesting_blocks(get_blocks, pos, max_radius=MAX_RADIUS):
+def all_close_interesting_blocks(get_blocks, pos, boring_blocks, passable_blocks, max_radius=MAX_RADIUS):
     """Find all "interesting" blocks close to pos, within a max_radius"""
     mx, my, mz = pos[0] - max_radius, pos[1] - max_radius, pos[2] - max_radius
     Mx, My, Mz = pos[0] + max_radius, pos[1] + max_radius, pos[2] + max_radius
 
     yzxb = get_blocks(mx, Mx, my, My, mz, Mz)
     relpos = pos - [mx, my, mz]
-    mask = accessible_interesting_blocks(yzxb[:, :, :, 0], relpos)
+    mask = accessible_interesting_blocks(yzxb[:, :, :, 0], relpos, boring_blocks, passable_blocks)
     return mask, (my, mz, mx), yzxb
 
 
-def accessible_interesting_blocks(blocks, pos):
+def accessible_interesting_blocks(blocks, pos, boring_blocks, passable_blocks):
     """Return a boolean mask of blocks that are accessible-interesting from pos.
 
     A block b is accessible-interesting if it is
     1. interesting, AND
     2. there exists a path from pos to b through only passable or interesting blocks
     """
-    passable = np.isin(blocks, PASSABLE_BLOCKS)
-    interesting = np.isin(blocks, BORING_BLOCKS, invert=True)
+    passable = np.isin(blocks, passable_blocks)
+    interesting = np.isin(blocks, boring_blocks, invert=True)
     passable_or_interesting = passable | interesting
     X = np.zeros_like(passable)
 
@@ -331,7 +325,7 @@ def ground_height(agent, pos, radius, yfilt=5, xzfilt=5):
 
 
 def get_nearby_airtouching_blocks(
-    agent, location, block_data, color_data, block_property_data, radius=15
+    agent, location, block_data, color_data, block_property_data, color_list, radius=15
 ):
     """Get all blocks in 'radius' of 'location'
     that are touching air on either side.
@@ -361,7 +355,7 @@ def get_nearby_airtouching_blocks(
                                 type_name = block_data["bid_to_name"][idm]
                                 tags = [type_name]
                                 colours = deepcopy(color_data["name_to_colors"].get(type_name, []))
-                                colours.extend([c for c in COLOUR_LIST if c in type_name])
+                                colours.extend([c for c in color_list if c in type_name])
                                 if colours:
                                     tags.extend(colours)
                                     tags.extend([{"has_colour": c} for c in colours])
@@ -381,7 +375,7 @@ def get_nearby_airtouching_blocks(
     return blocktypes
 
 
-def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=True):
+def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, store_inst_seg=True):
     """Returns:
     a list of holes. Each hole is an InstSegNode"""
     sx, sy, sz = location
@@ -535,6 +529,8 @@ class PerceptionWrapper:
         self.color_data = low_level_data["color_data"]
         self.block_property_data = low_level_data["block_property_data"]
         self.boring_blocks = low_level_data["boring_blocks"]
+        self.passable_blocks = low_level_data["passable_blocks"]
+        self.color_bid_map = low_level_data["color_bid_map"]
 
     def perceive(self, force=False):
         """Called by the core event loop for the agent to run all perceptual
@@ -544,6 +540,7 @@ class PerceptionWrapper:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
+        color_list = list(self.color_bid_map.keys())
         if self.perceive_freq == 0 and not force:
             return
         if self.agent.count % self.perceive_freq != 0 and not force:
@@ -551,7 +548,7 @@ class PerceptionWrapper:
         if force or not self.agent.memory.task_stack_peek():
             # perceive blocks in marked areas
             for pos, radius in self.agent.areas_to_perceive:
-                for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
+                for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
                     memid = BlockObjectNode.create(self.agent.memory, obj)
                     color_tags = []
                     for idm in obj:
@@ -562,17 +559,18 @@ class PerceptionWrapper:
                             subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
 
-                get_all_nearby_holes(self.agent, pos, self.block_data, radius)
+                get_all_nearby_holes(self.agent, pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius)
                 get_nearby_airtouching_blocks(
                     self.agent,
                     pos,
                     self.block_data,
                     self.color_data,
                     self.block_property_data,
+                    color_list,
                     radius,
                 )
             # perceive blocks near the agent
-            for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
+            for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
                 memid = BlockObjectNode.create(self.agent.memory, objs)
                 color_tags = []
                 for obj in objs:
@@ -584,13 +582,14 @@ class PerceptionWrapper:
                         subj=memid, pred_text="has_colour", obj_text=color_tag
                     )
 
-            get_all_nearby_holes(self.agent, self.agent.pos, self.block_data, radius=self.radius)
+            get_all_nearby_holes(self.agent, self.agent.pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius=self.radius)
             get_nearby_airtouching_blocks(
                 self.agent,
                 self.agent.pos,
                 self.block_data,
                 self.color_data,
                 self.block_property_data,
+                color_list,
                 radius=self.radius,
             )
 

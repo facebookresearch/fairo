@@ -16,11 +16,11 @@ from droidlet.shared_data_structs import TICKS_PER_SEC, Time, MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS, PASSABLE_BLOCKS
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
+from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
@@ -258,7 +258,9 @@ class FakeAgent(LocoMCAgent):
             "block_property_data": craftassist_specs.get_block_property_data(),
             "color_data": craftassist_specs.get_colour_data(),
             "boring_blocks": BORING_BLOCKS,
-            "fill_idmeta": fill_idmeta
+            "passable_blocks": PASSABLE_BLOCKS,
+            "fill_idmeta": fill_idmeta,
+            "color_bid_map": COLOR_BID_MAP
         }
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
@@ -290,8 +292,6 @@ class FakeAgent(LocoMCAgent):
         self.perception_modules["heuristic"] = PerceptionWrapper(
             self, low_level_data=self.low_level_data
         )
-        # self.on_demand_perception = {}
-        # self.on_demand_perception["check_inside"] = check_inside
 
     def init_physical_interfaces(self):
         self.dig = Dig(self)
@@ -334,7 +334,7 @@ class FakeAgent(LocoMCAgent):
         low_level_interpreter_data = {
             'block_data': craftassist_specs.get_block_data(),
             'special_shape_functions': SPECIAL_SHAPE_FNS,
-            'color_bid_map': COLOR_BID_MAP,
+            'color_bid_map': self.low_level_data["color_bid_map"],
             'get_all_holes_fn': heuristic_perception.get_all_nearby_holes,
             'get_locs_from_entity': get_locs_from_entity
         }
