@@ -412,7 +412,7 @@ class Build(Task):
                         )
                     else:
                         agent.perception_modules["low_level"].maybe_add_block_to_memory(
-                            target, (0, 0), agent_placed=True
+                            target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True
                         )
                         self.add_tags(agent, (target, (0, 0)))
                     agent.get_changed_blocks()
@@ -456,7 +456,7 @@ class Build(Task):
                     B = agent.get_blocks(x, x, y, y, z, z)
                     if B[0, 0, 0, 0] == idm[0]:
                         agent.perception_modules["low_level"].maybe_add_block_to_memory(
-                            (x, y, z), tuple(idm), agent_placed=True
+                            (x, y, z), tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True
                         )
                         changed_blocks = agent.get_changed_blocks()
                         self.new_blocks.append(((x, y, z), tuple(idm)))
