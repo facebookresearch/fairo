@@ -203,9 +203,6 @@ class CraftAssistAgent(LocoMCAgent):
                 self, self.opts.semseg_model_path
             )
 
-        # self.on_demand_perception = {}
-        # self.on_demand_perception["check_inside"] = heuristic_perception.check_inside
-
     def init_controller(self):
         """Initialize all controllers"""
         dialogue_object_classes = {}
