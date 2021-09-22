@@ -224,7 +224,7 @@ def to_block_center(array):
     return to_block_pos(array).astype("float") + [0.5, 0.5, 0.5]
 
 
-def astar(agent, target, passable_blocks, approx=0, pos="agent"):
+def astar(agent, target, approx=0, pos="agent"):
     """Find a path from the agent's pos to the target.
 
     Args:
