@@ -60,6 +60,7 @@ class MCInterpreter(Interpreter):
         self.default_frame = "SPEAKER"
         # These are coming from agent's low level
         self.block_data = low_level_data["block_data"]
+        self.get_locs_from_entity = low_level_data["get_locs_from_entity"]
         self.special_shape_functions = low_level_data["special_shape_functions"]
         self.color_bid_map = low_level_data["color_bid_map"]
         # These come from agent's perception

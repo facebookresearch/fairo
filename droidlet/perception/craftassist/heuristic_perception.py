@@ -9,19 +9,12 @@ from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
 from copy import deepcopy
 import logging
-
-from droidlet.lowlevel.minecraft.mc_util import (
-    manhat_dist,
-    get_locs_from_entity,
-    euclid_dist,
-    fill_idmeta,
-)
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     BORING_BLOCKS,
     PASSABLE_BLOCKS,
     COLOR_BID_MAP,
 )
-from droidlet.base_util import depth_first_search, to_block_pos
+from droidlet.base_util import depth_first_search, to_block_pos, manhat_dist, euclid_dist
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
@@ -178,7 +171,7 @@ def connected_components(X, unique_idm=False):
     return components
 
 
-def check_between(entities, fat_scale=0.2):
+def check_between(entities, get_locs_from_entity, fat_scale=0.2):
     """Heuristic check if entities[0] is between entities[1] and entities[2]
     by checking if the locs of enitity[0] are in the convex hull of
     union of the max cardinal points of entity[1] and entity[2]"""
@@ -216,22 +209,7 @@ def check_between(entities, fat_scale=0.2):
     return in_hull(points, x)
 
 
-def find_between(entities):
-    """Heurisitc search for points between entities[0] and entities[1]
-    for now : just pick the point half way between their means
-    TODO: fuzz a bit if target is unreachable"""
-    for e in entities:
-        means = []
-        l = get_locs_from_entity(e)
-        if l is not None:
-            means.append(np.mean(l, axis=0))
-        else:
-            # this is not a thing we know how to assign 'between' to
-            return None
-        return (means[0] + means[1]) / 2
-
-
-def check_inside(entities):
+def check_inside(entities, get_locs_from_entity):
     """Heuristic check on whether an entity[0] is inside entity[1]
     if in some 2d slice, cardinal rays cast from some point in
     entity[0] all hit a block in entity[1], we say entity[0] is inside
@@ -264,7 +242,7 @@ def check_inside(entities):
     return False
 
 
-def find_inside(entity):
+def find_inside(entity, get_locs_from_entity):
     """Return a point inside the entity if it can find one.
     TODO: heuristic quick check to find that there aren't any,
     and maybe make this not d^3"""
@@ -284,7 +262,7 @@ def find_inside(entity):
     for x in range(mins[0], maxes[0] + 1):
         for y in range(mins[1], maxes[1] + 1):
             for z in range(mins[2], maxes[2] + 1):
-                if check_inside([(x, y, z), entity]):
+                if check_inside([(x, y, z), entity], get_locs_from_entity):
                     inside.append((x, y, z))
     return sorted(inside, key=lambda x: euclid_dist(x, m))
 
@@ -556,6 +534,7 @@ class PerceptionWrapper:
         self.block_data = low_level_data["block_data"]
         self.color_data = low_level_data["color_data"]
         self.block_property_data = low_level_data["block_property_data"]
+        self.boring_blocks = low_level_data["boring_blocks"]
 
     def perceive(self, force=False):
         """Called by the core event loop for the agent to run all perceptual

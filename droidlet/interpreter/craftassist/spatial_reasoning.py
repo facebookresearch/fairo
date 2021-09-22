@@ -29,7 +29,8 @@ class ComputeLocations:
     ):
         repeat_num = max(repeat_num, len(objects))
         player_mem = interpreter.memory.get_player_by_name(speaker)
-        origin = compute_location_heuristic(player_mem, mems, steps, reldir)
+        get_locs_from_entity = interpreter.get_locs_from_entity
+        origin = compute_location_heuristic(player_mem, mems, steps, reldir, get_locs_from_entity)
         if repeat_num > 1:
             schematic = None if len(objects) == 0 else objects[0][0]
             offsets = get_repeat_arrangement(
@@ -43,7 +44,7 @@ class ComputeLocations:
 
 
 # There will be at least one mem in mems
-def compute_location_heuristic(player_mem, mems, steps, reldir):
+def compute_location_heuristic(player_mem, mems, steps, reldir, get_locs_from_entity):
     loc = mems[0].get_pos()
     if reldir is not None:
         steps = steps or DEFAULT_NUM_STEPS
@@ -54,7 +55,7 @@ def compute_location_heuristic(player_mem, mems, steps, reldir):
             for i in range(len(mems)):
                 mem = mems[i]
                 # FIXME
-                locs = heuristic_perception.find_inside(mem)
+                locs = heuristic_perception.find_inside(mem, get_locs_from_entity)
                 if len(locs) > 0:
                     break
             if len(locs) == 0:
