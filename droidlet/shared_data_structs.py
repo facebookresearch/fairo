@@ -3,7 +3,6 @@ import heapq
 import numpy as np
 import time
 from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
-from droidlet.base_util import TICKS_PER_SEC
 
 
 class Time:
@@ -149,3 +148,9 @@ class PriorityQueue:
 
     def __len__(self):
         return len(self.q)
+
+
+TICKS_PER_SEC = 100
+TICKS_PER_MINUTE = 60 * TICKS_PER_SEC
+TICKS_PER_HOUR = 60 * TICKS_PER_MINUTE
+TICKS_PER_DAY = 24 * TICKS_PER_HOUR

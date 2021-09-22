@@ -11,7 +11,6 @@ from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
-from droidlet.lowlevel.minecraft.mc_util import adjacent
 from droidlet.lowlevel.minecraft.shapes import get_bounds
 from droidlet.shared_data_structs import PriorityQueue
 
@@ -27,11 +26,6 @@ T = TypeVar("T")  # generic type
 Pos = namedtuple("pos", ["x", "y", "z"])
 Look = namedtuple("look", "yaw, pitch")
 Player = namedtuple("Player", "entityId, name, pos, look")
-
-TICKS_PER_SEC = 100
-TICKS_PER_MINUTE = 60 * TICKS_PER_SEC
-TICKS_PER_HOUR = 60 * TICKS_PER_MINUTE
-TICKS_PER_DAY = 24 * TICKS_PER_HOUR
 
 
 def number_from_span(s):
@@ -319,6 +313,18 @@ def _astar(X, start, goal, approx=0):
                 q.push(a, f)
 
     return None
+
+
+def adjacent(p):
+    """Return the positions adjacent to position p"""
+    return (
+        (p[0] + 1, p[1], p[2]),
+        (p[0] - 1, p[1], p[2]),
+        (p[0], p[1] + 1, p[2]),
+        (p[0], p[1] - 1, p[2]),
+        (p[0], p[1], p[2] + 1),
+        (p[0], p[1], p[2] - 1),
+    )
 
 
 def depth_first_search(blocks_shape, pos, fn, adj_fn=adjacent):
