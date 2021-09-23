@@ -60,6 +60,7 @@ class NSPRetrainingJob(DataGenerator):
             os.path.join(opts.sweep_runner_dir, "sweep_runner.py ") + \
             "--sweep_config_folder " + opts.sweep_config_folder + \
             "--sweep_scripts_output_dir " + opts.sweep_scripts_output_dir + \
+            "--checkpoint_dir " + opts.checkpoint_dir + \
             "--sweep_name " + prefix_pathlist[0] + \
             "--output_dir " + opts.output_dir + \
             "--droidlet_dir " + opts.droidlet_dir + \
@@ -164,10 +165,11 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_name", default="auto")
     parser.add_argument("--output_dir", default="/checkpoint/aszlam/nsp/sweeps/job_output/")
     parser.add_argument("--append_date", action="store_false")
+    parser.add_argument("--checkpoint_dir", default="/checkpoint/aszlam/nsp/")
     opts = parser.parse_args()
 
     
-    ndl = NSPNewDataListener()
+    ndl = NSPNewDataListener(123)
     runner = TaskRunner()
     runner.register_job_listeners([ndl])
     runner.run()
