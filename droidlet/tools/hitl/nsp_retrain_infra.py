@@ -133,7 +133,7 @@ class NSPNewDataListener(JobListener):
         while not self.check_is_finished():
             time.sleep(LISTENER_SLEEP_TIME)
             try:
-                prefix = self.batch_id + '/'
+                prefix = os.path.join(self.batch_id, '/')
                 new_data_key = s3.list_objects_v2(Bucket='droidlet-hitl', Prefix=prefix, Delimiter='/')['Contents'][1]['Key']
                 self.new_data_found = True
             except KeyError:
