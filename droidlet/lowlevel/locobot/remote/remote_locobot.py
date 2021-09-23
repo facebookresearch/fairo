@@ -67,10 +67,11 @@ class RemoteLocobot(object):
 
         
         # check skfmm, skimage in installed, its necessary for slam
-        self._slam = Slam(self._robot, backend)
+        self._slam = Slam(self._robot, "locobot")
         self._slam_step_size = 25  # step size in cm
         self._done = True
         self._slam_traj_ctr = 0
+        self.goal = None
         self.backend = backend
         self.init_explore_logger()
     
@@ -705,8 +706,12 @@ class RemoteLocobot(object):
             self._done = False
             if not self._slam.whole_area_explored:
                 #  set why the whole area was explored here
+                print(f'here second')
+                self._slam.set_explore_goal(self.goal)
+                self._slam.set_goal(self.goal)  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.take_step(self._slam_step_size)
-            elif self._slam_traj_ctr < 5:
+            elif self._slam_traj_ctr < 3:
+                print(f'here first')
                 self._slam_traj_ctr += 1
                 self.logger.info(f'Area explored in trajectory {self._slam_traj_ctr} {self._slam.get_area_explored()}')
                 self.logger.info(json.dumps(self._slam.debug_state))
@@ -714,10 +719,8 @@ class RemoteLocobot(object):
                 self._slam.init_save(save_folder)
                 x,y,t = self._slam.get_rel_state(self._slam.get_robot_global_state(), self._slam.init_state)
                 self.logger.info(f'cur_state xyt  {(x, y, t)}')
-                goal = self.get_distant_goal(x,y,t)
-                self.logger.info(f'setting slam goal {goal}')
-                self._slam.set_explore_goal(goal)
-                self._slam.set_goal(goal)  # set  far away goal for exploration, default map size [-20,20]
+                self.goal = self.get_distant_goal(x,y,t)
+                self.logger.info(f'traj {self._slam_traj_ctr} setting slam goal {self.goal}')
                 self._slam.whole_area_explored = False
                 # Reset map
                 self._slam.map_builder.reset_map(map_size=4000)
@@ -758,6 +761,8 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=json.loads,
+        # default='{"scene_path": "/mp3d/1LXtFkjw3qL/1LXtFkjw3qL_semantic.ply", \
+        #      "physics_config": "DEFAULT"}'
         default='{"scene_path": "/Replica-Dataset/' + os.getenv("SCENE") + '/habitat/mesh_semantic.ply", \
             "physics_config": "DEFAULT"}',
     )
