@@ -97,7 +97,11 @@ def check_all_qual() -> None:
         print(qual.qualification_name)
 
 
-def check_account_balance(aws_access_key_id: str = None, aws_secret_access_key: str = None, aws_default_region: str = None) -> None:
+def check_account_balance(
+    aws_access_key_id: str = None,
+    aws_secret_access_key: str = None,
+    aws_default_region: str = None,
+) -> None:
     aws_access_key_id = aws_access_key_id or os.environ["AWS_ACCESS_KEY_ID"]
     aws_secret_access_key = aws_secret_access_key or os.environ["AWS_SECRET_ACCESS_KEY"]
     aws_default_region = aws_default_region or os.environ["AWS_DEFAULT_REGION"]
@@ -128,7 +132,13 @@ def validate_commands(commands: List[str]) -> bool:
         return False
 
     # 3: Keyword matching: Check that at least 2 keywords appear in the commands
-    occurrence = sum([True if keyword in command.lower() else False for command in filtered_commands for keyword in KEYWORD_LIST])
+    occurrence = sum(
+        [
+            True if keyword in command.lower() else False
+            for command in filtered_commands
+            for keyword in KEYWORD_LIST
+        ]
+    )
     if occurrence < len(filtered_commands) * KEY_WORD_RATIO:
         return False
 
@@ -137,6 +147,7 @@ def validate_commands(commands: List[str]) -> bool:
         return False
 
     return True
+
 
 def backend_validation(turk_dir_root: str, qual_name: str) -> None:
     """
@@ -155,13 +166,17 @@ def backend_validation(turk_dir_root: str, qual_name: str) -> None:
             turker_metadata = json.load(f)
 
         if validate_commands(commands) is not True:
-            workers= db.find_workers(worker_name=turker_metadata["turk_worker_id"])
+            workers = db.find_workers(worker_name=turker_metadata["turk_worker_id"])
             if len(workers) != 1:
-                logging.warning(f"{len(workers)} is found with name: {turker_metadata['turk_worker_id']}, it doesn't seem to be right...")
+                logging.warning(
+                    f"{len(workers)} is found with name: {turker_metadata['turk_worker_id']}, it doesn't seem to be right..."
+                )
             else:
                 worker = workers[0]
                 if worker.is_qualified(qual_name) and worker.revoke_qualification(qual_name):
-                    logging.info(f"Worker [{worker.worker_name}] failed backend validation, revoke qualification [{qual_name}] and soft-block on future HITs.")
+                    logging.info(
+                        f"Worker [{worker.worker_name}] failed backend validation, revoke qualification [{qual_name}] and soft-block on future HITs."
+                    )
 
 
 if __name__ == "__main__":
