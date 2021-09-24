@@ -405,15 +405,17 @@ class Build(Task):
             if manhat_dist(agent.pos, target) <= self.DIG_REACH:
                 success = agent.dig(*target)
                 if success:
-                    agent.perception_modules["low_level"].maybe_remove_inst_seg(target)
+                    agent.memory.maybe_remove_inst_seg(target)
                     if self.is_destroy_schm:
-                        agent.perception_modules["low_level"].maybe_remove_block_from_memory(
+                        agent.memory.maybe_remove_block_from_memory(
                             target, (0, 0)
                         )
                     else:
-                        agent.perception_modules["low_level"].maybe_add_block_to_memory(
-                            target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True
-                        )
+                        interesting, player_placed, agent_placed = agent.perception_modules[
+                            "low_level"].mark_blocks_with_env_change(
+                            target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True)
+                        agent.memory.maybe_add_block_to_memory(
+                            interesting, player_placed, agent_placed, target, (0, 0))
                         self.add_tags(agent, (target, (0, 0)))
                     agent.get_changed_blocks()
             else:
@@ -455,9 +457,11 @@ class Build(Task):
                 if agent.place_block(x, y, z):
                     B = agent.get_blocks(x, x, y, y, z, z)
                     if B[0, 0, 0, 0] == idm[0]:
-                        agent.perception_modules["low_level"].maybe_add_block_to_memory(
-                            (x, y, z), tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True
-                        )
+                        interesting, player_placed, agent_placed = agent.perception_modules[
+                            "low_level"].mark_blocks_with_env_change(
+                            (x, y, z), tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True)
+                        agent.memory.maybe_add_block_to_memory(
+                            interesting, player_placed, agent_placed, (x, y, z), tuple(idm))
                         changed_blocks = agent.get_changed_blocks()
                         self.new_blocks.append(((x, y, z), tuple(idm)))
                         self.add_tags(agent, ((x, y, z), tuple(idm)))

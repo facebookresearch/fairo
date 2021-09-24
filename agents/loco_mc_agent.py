@@ -285,6 +285,7 @@ class LocoMCAgent(BaseAgent):
 
     def perceive(self, force=False, parser_only=False):
         # NOTE: the processing chats block here
+        # remove parser_only flag here
         # will move to chat_parser.perceive() once Soumith's changes are in
         start_time = datetime.datetime.now()
         """Process incoming chats and run through parser"""
@@ -334,9 +335,9 @@ class LocoMCAgent(BaseAgent):
             }
             dispatch.send("perceive", data=hook_data)
 
-        if not parser_only:
-            for v in self.perception_modules.values():
-                v.perceive(force=force)
+        # if not parser_only:
+        #     for v in self.perception_modules.values():
+        #         v.perceive(force=force)
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""

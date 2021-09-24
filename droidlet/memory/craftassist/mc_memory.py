@@ -5,7 +5,7 @@ import os
 import random
 from typing import Optional, List
 from droidlet.memory.sql_memory import AgentMemory
-from droidlet.base_util import XYZ, Block, npy_to_blocks_list
+from droidlet.base_util import diag_adjacent, IDM, XYZ, Block, npy_to_blocks_list
 from droidlet.memory.memory_nodes import (  # noqa
     TaskNode,
     PlayerNode,
@@ -15,6 +15,7 @@ from droidlet.memory.memory_nodes import (  # noqa
     LocationNode,
     SetNode,
     ReferenceObjectNode,
+    AttentionNode
 )
 from .mc_memory_nodes import (  # noqa
     DanceNode,
@@ -92,6 +93,180 @@ class MCAgentMemory(AgentMemory):
         )
         self.dances = {}
         self.perception_range = preception_range
+
+    ##########################################
+    ### Update world from perception input ###
+    ##########################################
+    def update_world_with_perception_input(self, perception_output):
+        """
+        Updates the world with input from low_level perception module
+        :param perception_output: Dict with members:
+            mob: All mobs in perception range.
+            agent_pickable_items: Dict containing - items in agent's perception that can be picked up and all items
+                that can be picked up by the agent.
+            agent_attributes: Agent's player attributes including
+            other_player_list: List of other in-game players
+            changed_block_attributes: marked attributes (interesting, player_placed, agent_placed) of changed blocks
+
+        :return:
+        """
+        # 1. Handle all mobs in agent's perception range
+        if perception_output["mobs"]:
+            for mob in perception_output["mobs"]:
+                self.set_mob_position(mob)
+
+        # 2. Handle all items that the agent can pick up in-game
+        if perception_output["agent_pickable_items"]:
+            # 2.1 Items that are in perception range
+            if perception_output["agent_pickable_items"]["in_perception_items"]:
+                for pickable_items in ["agent_pickable_items"]["in_perception_items"]:
+                    self.set_item_stack_position(pickable_items)
+            # 2.2 Update previous pickable_item_stack based on perception
+            if perception_output["agent_pickable_items"]["all_items"]:
+                # Note: item stacks are not stored properly in memory right now @Yuxuan to fix this.
+                old_item_stacks = self.get_all_item_stacks()
+                if old_item_stacks:
+                    for old_item_stack in old_item_stacks:
+                        memid = old_item_stack[0]
+                        eid = old_item_stack[1]
+                        # NIT3: return untag set and tag set
+                        if eid not in perception_output["agent_pickable_items"]["all_items"]:
+                            self.untag(memid, "_on_ground")
+                        else:
+                            self.tag(memid, "_on_ground")
+
+        # 3. Update agent's current position and attributes in memory
+        if perception_output["agent_attributes"]:
+            agent_player = perception_output["agent_attributes"]
+            memid = self.get_player_by_eid(agent_player.entityId).memid
+            cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+            cmd = cmd + "uuid=?"
+            self.db_write(
+                cmd, agent_player.entityId, agent_player.name, agent_player.pos.x, agent_player.pos.y,
+                agent_player.pos.z, agent_player.look.pitch, agent_player.look.yaw, memid
+            )
+
+        # 4. Update other in-game players in agent's memory
+        if perception_output["other_player_list"]:
+            player_list = perception_output["other_player_list"]
+            for player, location in player_list:
+                mem = self.get_player_by_eid(player.entityId)
+                if mem is None:
+                    memid = PlayerNode.create(self, player)
+                else:
+                    memid = mem.memid
+                cmd = (
+                    "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+                )
+                cmd = cmd + "uuid=?"
+                self.db_write(
+                    cmd, player.entityId, player.name, player.pos.x, player.pos.y, player.pos.z,
+                    player.look.pitch, player.look.yaw, memid
+                )
+                memids = self._db_read_one(
+                    'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
+                    player.entityId,
+                )
+                if memids:
+                    self.db_write(
+                        "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
+                        location[0],
+                        location[1],
+                        location[2],
+                        memids[0],
+                    )
+                else:
+                    AttentionNode.create(self, location, attender=player.entityId)
+
+        # 5. Update the state of the world when a block is changed.
+        for (xyz, idm) in perception_output["changed_block_attributes"]:
+            # 5.1 Update old instance segmentation if needed
+            self.maybe_remove_inst_seg(xyz)
+
+            # 5.2 Update agent's memory with blocks that have been destroyed.
+            self.maybe_remove_block_from_memory(xyz, idm)
+
+            # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
+            interesting, player_placed, agent_placed = perception_output["changed_block_attributes"][(xyz, idm)]
+            self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
+
+
+    def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
+        if not interesting:
+            return
+
+        adjacent = [
+            self.get_object_info_by_xyz(a, "BlockObjects", just_memid=False)
+            for a in diag_adjacent(xyz)
+        ]
+        if idm[0] == 0:
+            # block removed / air block added
+            adjacent_memids = [a[0][0] for a in adjacent if len(a) > 0 and a[0][1] == 0]
+        else:
+            # normal block added
+            adjacent_memids = [a[0][0] for a in adjacent if len(a) > 0 and a[0][1] > 0]
+        adjacent_memids = list(set(adjacent_memids))
+        if len(adjacent_memids) == 0:
+            # new block object
+            BlockObjectNode.create(self, [(xyz, idm)])
+        elif len(adjacent_memids) == 1:
+            # update block object
+            memid = adjacent_memids[0]
+            self.upsert_block(
+                (xyz, idm), memid, "BlockObjects", player_placed, agent_placed
+            )
+            self.set_memory_updated_time(memid)
+            self.set_memory_attended_time(memid)
+        else:
+            chosen_memid = adjacent_memids[0]
+            self.set_memory_updated_time(chosen_memid)
+            self.set_memory_attended_time(chosen_memid)
+
+            # merge tags
+            where = " OR ".join(["subj=?"] * len(adjacent_memids))
+            self.db_write(
+                "UPDATE Triples SET subj=? WHERE " + where, chosen_memid, *adjacent_memids
+            )
+
+            # merge multiple block objects (will delete old ones)
+            where = " OR ".join(["uuid=?"] * len(adjacent_memids))
+            cmd = "UPDATE VoxelObjects SET uuid=? WHERE "
+            self.db_write(cmd + where, chosen_memid, *adjacent_memids)
+
+            # insert new block
+            self.upsert_block(
+                (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
+            )
+
+
+    def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM):
+        """Update agent's memory with blocks that have been destroyed."""
+        tables = ["BlockObjects"]
+        for table in tables:
+            info = self.get_object_info_by_xyz(xyz, table, just_memid=False)
+            if not info or len(info) == 0:
+                continue
+            assert len(info) == 1
+            memid, b, m = info[0]
+            delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
+            if delete:
+                self.remove_voxel(*xyz, table)
+                self.agent.areas_to_perceive.append((xyz, 3))
+
+
+    def maybe_remove_inst_seg(self, xyz: XYZ):
+        """if the block is changed, the old instance segmentation
+        is no longer considered valid"""
+        # get all associated instseg nodes
+        # FIXME make this into a basic search
+        inst_seg_memids = self.get_instseg_object_ids_by_xyz(xyz)
+        if inst_seg_memids:
+            # delete the InstSeg, they are ephemeral and should be recomputed
+            # TODO/FIXME  more refined approach: if a block changes
+            # ask the models to recompute.  if the tags are the same, keep it
+            for i in inst_seg_memids:
+                self.forget(i[0])
+
 
     ###########################
     ### For Animate objects ###

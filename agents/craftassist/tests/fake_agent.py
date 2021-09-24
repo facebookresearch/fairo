@@ -415,7 +415,9 @@ class FakeAgent(LocoMCAgent):
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
             force = True
-        self.perception_modules["low_level"].perceive(force=force)
+
+        perception_output = self.perception_modules["low_level"].perceive(force=force)
+        self.memory.update_world_with_perception_input(perception_output)
         if self.do_heuristic_perception:
             self.perception_modules["heuristic"].perceive()
 
@@ -491,7 +493,14 @@ class FakeAgent(LocoMCAgent):
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
             # TODO add force option so we don't need to make it as if agent placed
-            self.perception_modules["low_level"].on_block_changed(abs_xyz, idm, boring_blocks)
+            # 1. Update old instance segmentation
+            self.memory.maybe_remove_inst_seg(abs_xyz)
+            # 2.Update memory with destroyed blocks
+            self.memory.maybe_remove_block_from_memory(xyz, idm)
+            # 3. Update blocks in memory when any change in environment is cause
+            interesting, player_placed, agent_placed = self.perception_modules["low_level"].mark_blocks_with_env_change(xyz, idm, boring_blocks)
+            self.memory.maybe_add_block_to_memory(interesting, player_placed, agent_placed, abs_xyz, idm)
+
             self.world.place_block((abs_xyz, idm))
 
     def add_object(
