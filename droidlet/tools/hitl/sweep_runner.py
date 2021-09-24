@@ -203,9 +203,10 @@ if __name__ == "__main__":
     os.chmod(mastername, st.st_mode | stat.S_IEXEC)
     os.system(mastername)
 
+    # Moving sweep monitoring to be internal to nsp_retrain_infra.py
 
-    this_dir = os.path.dirname(os.path.abspath(__file__))
-    shutil.copyfile(os.path.join(this_dir, "sweep_monitor.py"), os.path.join(model_out, "sweep_monitor.py"))
-    for i in range(300):
-        cmd = 'echo -e "cd {}\n python sweep_monitor.py" | at now +{} minutes'.format(model_out, (i+1)*10)
-        os.system(cmd)
+    #this_dir = os.path.dirname(os.path.abspath(__file__))
+    #shutil.copyfile(os.path.join(this_dir, "sweep_monitor.py"), os.path.join(model_out, "sweep_monitor.py"))
+    #for i in range(300):
+    #    cmd = 'echo -e "cd {}\n python sweep_monitor.py" | at now +{} minutes'.format(model_out, (i+1)*10)
+    #    os.system(cmd)

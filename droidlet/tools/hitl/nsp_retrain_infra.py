@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import argparse
 import logging
 import os
+import shutil
 import time
 from subprocess import Popen, PIPE, TimeoutExpired
 import boto3
@@ -28,49 +29,101 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
-NSP_RETRAIN_TIMEOUT = 36000  # Wait a max of 10h for the NSP retraining script to finish
+NSP_RETRAIN_TIMEOUT = 7200  # Wait a max of 2h for the NSP retraining script to finish
+MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
 
 s3 = boto3.client('s3')
+
+MODEL_NAME = "best_model.pth"
+MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
     def __init__(self):
         super(NSPRetrainingJob, self).__init__()
-        self.data_prefix = ""
+        self.batch_id = ""
 
-    def run(self):
-        logging.info(f"NSP Retraining Job initialized, downloading new data")
+    # Functions originally from sweep_monitor.py:
+    def max_and_argmax(self,l):
+        i = max(range(len(l)), key=lambda i: l[i])
+        return l[i], i
 
-        # Download the new data to local dir
+    def get_accs(self):
+        accs = {}
+        now = datetime.now()
+        while not accs:
+            if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
+                logging.info(f"NSP Retraining has timed out")
+                raise TimeoutError
+            logging.info(f"Waiting for training logs to appear...")
+            time.sleep(MODEL_OUTPUT_POLL_TIME)
+            logs = [l for l in os.listdir() if l[-4:] == ".log"]
+            for log in logs:
+                accs[log] = []
+                f = open(log)
+                l = f.readlines()
+                for line in l:
+                    if "evaluating on" in line:
+                        s = line.split("\t")
+                        a = s[2][11:17]
+                        accs[log].append(float(a))
+        return accs
+
+    def copy_best_model(self,accs):
+        macc = 0.0
+        mname = ""
+        midx = 0
+        for name, acc in accs.items():
+            m, mi = self.max_and_argmax(acc)
+            if m > macc:
+                macc = m
+                mname = name
+                midx = mi
+        source_model = mname[:-4] + "_ep" + str(midx) + ".pth"
+        # TODO some sort of lock/semaphore?
+        shutil.copyfile(source_model, MODEL_NAME)
+        f = open(MODEL_INFO_NAME, "w")
+        f.write(source_model + "\n")
+        f.write("valid acc " + str(macc)  + "\n")
+        f.close()
+
+    def downloadData(self):
         base_data_dir = os.path.join(opts.droidlet_dir, opts.full_data_dir)
-        prefix_pathlist = self.data_prefix.split('/')
-        download_dir = os.path.join(base_data_dir, prefix_pathlist[0])
-        os.mkdir(download_dir)
-        data_filepath = os.path.join(base_data_dir, self.data_prefix)
+        batch_id = str(self.batch_id)
+        download_dir = os.path.join(base_data_dir, batch_id) # Currently downloads data to a new dir each time
         try:
-            s3.download_file('droidlet-hitl', self.data_prefix, data_filepath)
+            os.mkdir(download_dir)
+        except FileExistsError:
+            pass
+        data_filepath = download_dir + '/annotated.txt'  # Change name on download to match sweep_runner expectations
+        try:
+            s3.download_file('droidlet-hitl', 'nsp_data.txt', data_filepath)  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 file download")
             raise
         logging.info(f"New data download completed successfully")
+        return batch_id, download_dir
 
-        full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
-        # Recommended to pass args to Popen as a single string if shell=True
+
+    def run(self):
+        logging.info(f"NSP Retraining Job initialized, downloading new data")
+        batch_id, download_dir = self.downloadData()
+    
+        # Setup sweep_runner args
+        full_data_dir = download_dir[len(opts.droidlet_dir):] + "/"  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
         sweep_args = "python3 " + \
-            os.path.join(opts.sweep_runner_dir, "sweep_runner.py ") + \
-            "--sweep_config_folder " + opts.sweep_config_folder + \
-            "--sweep_scripts_output_dir " + opts.sweep_scripts_output_dir + \
-            "--checkpoint_dir " + opts.checkpoint_dir + \
-            "--sweep_name " + prefix_pathlist[0] + \
-            "--output_dir " + opts.output_dir + \
-            "--droidlet_dir " + opts.droidlet_dir + \
-            "--full_data_dir " + full_data_dir
-            # TODO Make sure using the prefix (batch_id) as the sweep name is an OK identifier
+            os.path.join(opts.sweep_runner_dir, "sweep_runner.py") + \
+            " --sweep_config_folder " + opts.sweep_config_folder + \
+            " --sweep_scripts_output_dir " + opts.sweep_scripts_output_dir + \
+            " --checkpoint_dir " + opts.checkpoint_dir + \
+            " --sweep_name " + batch_id + \
+            " --output_dir " + opts.output_dir + \
+            " --droidlet_dir " + opts.droidlet_dir + \
+            " --full_data_dir " + full_data_dir
 
         # Initialize the training run
         try:
             sweep = Popen(sweep_args, shell=True, stdout=PIPE, stderr=PIPE, text=True)
-                # Use env to set any environment vars
         except OSError:
             logging.info(f"Likely error: sweep_runner.py not found where expected")
             raise
@@ -89,24 +142,22 @@ class NSPRetrainingJob(DataGenerator):
         logging.info(f"Sweep script outputs: {outs}")
         logging.info(f"Sweep script errors: {errs}")
 
-        if (opts.append_date):
-            # TODO replace this with simpler code if we can assume sweep_name == batch_id
+        # Find the model output directory -- ASSUMES UNIQUE BATCH_ID
+        for dir in os.listdir(opts.output_dir):
+            if dir.startswith(batch_id):
+                output_models_dir = os.path.join(opts.output_dir, (dir + "/"))
+        try:
+            model_out = os.path.join(output_models_dir, "model_out/")
+        except:
+            logging.info(f"model output directory not found, check batch ID")
+            raise
 
-            # If we assume that sweep_name isn't unique, instead we should look for the most recent run agnostic to the time it is now
-            runs = [d for d in os.listdir(opts.output_dir) if os.path.isdir(os.path.join(opts.output_dir, d))]
-            run_times = [run[-12:] for run in runs if len(run) >= 12]  # Filter for just the run time suffixes
-                # TODO makes a waak assumption about what types of directory names will be present
-            run_times.sort()
-
-            for dir in os.listdir(opts.ouput_dir):
-                if dir.endswith(run_times[-1]):
-                    output_models_dir = os.path.join(opts.output_dir, (dir + "/"))
-                    # Slightly vulnerable to a bug where this doesn't trigger
-        else:
-            output_models_dir = os.path.join(opts.output_dir, (opts.sweep_name + "/"))
+        # Determine the best model
+        os.chdir(model_out)
+        accs = self.get_accs()  # Has a built in listener and timeout
+        self.copy_best_model(accs)
 
         # Retrieve the best model
-        model_out = os.path.join(output_models_dir, "model_out/")
         best_model_info = os.path.join(model_out, "best_model_info.txt")
         with open(best_model_info, "r") as f:
             best_model_name = f.readline()
@@ -114,8 +165,8 @@ class NSPRetrainingJob(DataGenerator):
         
         # Save the best model in S3 bucket
         best_model_path = os.path.join(model_out, best_model_name)
-        s3.upload_file(best_model_path, 'craftassist', UPLOAD_KEY)
-            # TODO replace with actual upload key -- upload to batch_id bucket/best_model
+        upload_key = batch_id + "/best_model/" + best_model_name 
+        s3.upload_file(best_model_path, 'droidlet-hitl', upload_key)
 
         self.set_finished()
         logging.info(f"NSP Retraining Job finished")
@@ -146,7 +197,7 @@ class NSPNewDataListener(JobListener):
 
                 # Initialize retraining job
                 nsp_rt = NSPRetrainingJob()
-                nsp_rt.data_prefix =  new_data_key # Pass the new data prefix to the data generator
+                nsp_rt.batch_id =  self.batch_id # Pass the batch_id to the data generator
                 # self.add_parent_jobs(nsp_rt)
                 runner.register_data_generators([nsp_rt])
 
@@ -164,7 +215,6 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/aszlam/nsp/sweeps/scripts/")
     parser.add_argument("--sweep_name", default="auto")
     parser.add_argument("--output_dir", default="/checkpoint/aszlam/nsp/sweeps/job_output/")
-    parser.add_argument("--append_date", action="store_false")
     parser.add_argument("--checkpoint_dir", default="/checkpoint/aszlam/nsp/")
     opts = parser.parse_args()
 
