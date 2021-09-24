@@ -682,8 +682,8 @@ class RemoteLocobot(object):
         # Get a distant goal for the slam exploration
         # Pick a random quadrant, get 
         while True:
-            xt = random.randint(-19, 19)
-            yt = random.randint(-19, 19)
+            xt = random.randint(-1, 19)
+            yt = random.randint(-1, 19)
             d = np.linalg.norm(np.asarray([x,y]) - np.asarray([xt,yt]), ord=1)
             if d > l1_thresh:
                 return (xt, yt, 0)

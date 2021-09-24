@@ -26,7 +26,7 @@ class FMMPlanner(object):
         traversable_ma = ma.masked_values(self.traversable * 1, 0)
         # print(f'traversable_ma zeros {np.count_nonzero(traversable_ma == 0)}')
         goal_x, goal_y = round(goal[0]), round(goal[1])
-        traversable_ma[goal_x, goal_y] = 0
+        traversable_ma[goal_y, goal_x] = 0
         dd = skfmm.distance(traversable_ma, dx=1)
         dd_mask = np.invert(np.isnan(ma.filled(dd, np.nan)))
         # dd = ma.filled(dd, np.max(dd) + 1)
@@ -44,7 +44,7 @@ class FMMPlanner(object):
         :rtype: list
         """
         state = [round(x) for x in state]
-        print(f'get stg for state {state}')
+        # print(f'get stg for state {state[1], state[0]}')
         # pad the map with
         # to handle corners pad the dist with step size and values equal to max
         dist = np.pad(
@@ -52,16 +52,22 @@ class FMMPlanner(object):
         )
         # take subset of distance around the start, as its padded start should be corner instead of center
         subset = dist[
-            state[0] : state[0] + 2*self.step_size + 1,
             state[1] : state[1] + 2*self.step_size + 1,
+            state[0] : state[0] + 2*self.step_size + 1,
         ]
 
         # print(f'subset.shape {subset.shape}')
 
         # find the index which has minimum distance
-        (stg_x, stg_y) = np.unravel_index(np.argmin(subset), subset.shape)
+        (stg_y, stg_x) = np.unravel_index(np.argmin(subset), subset.shape)
         print(subset, stg_x, stg_y, self.step_size)
+
+        if stg_y < 1:
+            stg_y *= -1
         
-        # # convert index from subset frame
+        if stg_x < 1:
+            stg_x *= -1
+        
+        # # convert index from subset frame (return r,c)
         return stg_x + state[0] - 1, stg_y + state[1] - 1
         # return (stg_x + state[0] - self.step_size) + 0.5, (stg_y + state[1] - self.step_size) + 0.5

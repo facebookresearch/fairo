@@ -402,8 +402,7 @@ class CuriousExplore(Task):
             target = pick_random_in_sight(objects, pos)
             if target is not None:
                 self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}")
-                ExaminedMap.update(target)
-                # self.add_child_task(Move(self.agent, {"target": target}))     
+                ExaminedMap.update(target)     
                 self.add_child_task(ExamineDetection(
                     self.agent, {"target": target, "start_pos": pos}))
                 self.last_step_explore = False
@@ -437,12 +436,8 @@ class ExamineDetection(Task):
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
         logger.info(f"Deciding examination, dist = {dist}")
-        # if not self.last_base_pos and base_pos[:2] == self.last_base_pos[:2]:
-        #     logger.info(f"Finished Examination")
-        #     self.finished = self.agent.mover.bot_step()
-        if (base_pos != self.last_base_pos).all() and dist > 1:
+        if (base_pos != self.last_base_pos).any() and dist > 1:
             target = get_step_target_for_move(base_pos, self.frontier_center)
-            logger.info(f"base_pose {base_pos} last_base_pos {self.last_base_pos}")
             logger.debug(f"get_step_target_for_straight_move \
                 \nxs, ys = {base_pos[0], base_pos[1]},\
                 \nxf, yf = {self.frontier_center[0], self.frontier_center[2]} \

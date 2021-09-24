@@ -276,7 +276,7 @@ class Slam(object):
         stg_real = self.map2real(self.stg)
 
         def pp(n, t):
-            print(f'{n} {round(t[0]), round(t[1])}')
+            print(f'{n}, {round(t[0]), round(t[1])} ')
 
         pp('goal_loc', self.goal_loc)
         pp('goal_loc_map', self.goal_loc_map)
@@ -290,11 +290,11 @@ class Slam(object):
         pp(f'robot_map_loc before translation', robot_map_loc)
 
         # check whether goal is on collision
-        if not traversable[self.stg[0], self.stg[1]]:
+        if not traversable[self.stg[1], self.stg[0]]:
             print("Obstacle in path")
-            print(f'traversable[stg] {traversable[self.stg[0], self.stg[1]]}')
+            print(f'traversable[stg] {traversable[self.stg[1], self.stg[0]]}')
             # print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
-            print(f'traversable[robot_loc] {traversable[round(robot_map_loc[0]), round(robot_map_loc[1])]}')
+            print(f'traversable[robot_loc] {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')
 
         else:
             # save track back loc, this is a loc robot is at and can come back to
@@ -335,12 +335,12 @@ class Slam(object):
             pp('robot_map_loc', robot_map_loc)
 
             # print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
-            print(f'is robot_loc traversable {traversable[round(robot_map_loc[0]), round(robot_map_loc[1])]}')
-            print(f'is stg traversable {traversable[self.stg[0], self.stg[1]]}')
+            print(f'is robot_loc traversable {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')
+            print(f'is stg traversable {traversable[self.stg[1], self.stg[0]]}')
 
             # set map builder as obstacle 
             # self.map_builder.map[round(robot_map_loc[1]), round(robot_map_loc[0]), 1] = 1
-            self.map_builder.map[self.stg[0], self.stg[1], 1] = 1
+            self.map_builder.map[self.stg[1], self.stg[0], 1] = 1
             ostg = self.stg
             # print(f'map_builder loc update {self.map_builder.map[round(robot_map_loc[1]), round(robot_map_loc[0]), 1]}')
             
@@ -350,14 +350,13 @@ class Slam(object):
             #check here that fmm_dist is updated 
 
             ob = [x for x in zip(*np.where(self.planner.fmm_dist == 10000))]
-            if (ostg[0], ostg[1]) in ob:
+            if (ostg[1], ostg[0]) in ob:
                 print(f'stg added to {len(ob)} obstaceles')
-                # self.fmm_planner.fmm_dist[]
             else:
                 print(f'stg not found in {len(ob)} obstacles')
 
-            print(f'is robot_loc traversable after update {traversable[round(robot_map_loc[0]), round(robot_map_loc[1])]}')
-            print(f'is stg traversable after update {traversable[ostg[0], ostg[1]]}')
+            print(f'is robot_loc traversable after update {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')
+            print(f'is stg traversable after update {traversable[ostg[1], ostg[0]]}')
 
             # track back 
             self.robot.base.go_to_absolute(self.track_back, wait=self.exec_wait)
@@ -862,7 +861,8 @@ class Slam(object):
             # goal
             plt.plot(self.goal_loc_map[0], self.goal_loc_map[1], "y*")
             # short term goal
-            plt.plot(self.stg[1], self.stg[0], "b*")
+            # plt.plot(self.stg[1], self.stg[0], "b*")
+            plt.plot(self.stg[0], self.stg[1], "b*")
             plt.plot(self.robot_loc_list_map[:, 0], self.robot_loc_list_map[:, 1], "r--")
 
             # draw heading of robot
