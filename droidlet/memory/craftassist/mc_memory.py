@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import copy
 import os
 import random
 from typing import Optional, List
@@ -97,7 +98,7 @@ class MCAgentMemory(AgentMemory):
     ##########################################
     ### Update world from perception input ###
     ##########################################
-    def update_world_with_perception_input(self, perception_output):
+    def update_world_with_perception_input(self, perception_output, areas_to_perceive):
         """
         Updates the world with input from low_level perception module
         :param perception_output: Dict with members:
@@ -110,6 +111,7 @@ class MCAgentMemory(AgentMemory):
 
         :return:
         """
+        updated_areas_to_perceive = areas_to_perceive
         # 1. Handle all mobs in agent's perception range
         if perception_output["mobs"]:
             for mob in perception_output["mobs"]:
@@ -184,11 +186,13 @@ class MCAgentMemory(AgentMemory):
             self.maybe_remove_inst_seg(xyz)
 
             # 5.2 Update agent's memory with blocks that have been destroyed.
-            self.maybe_remove_block_from_memory(xyz, idm)
+            updated_areas_to_perceive = self.maybe_remove_block_from_memory(xyz, idm, areas_to_perceive)
 
             # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
             interesting, player_placed, agent_placed = perception_output["changed_block_attributes"][(xyz, idm)]
             self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
+
+        return updated_areas_to_perceive
 
 
     def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
@@ -239,9 +243,10 @@ class MCAgentMemory(AgentMemory):
             )
 
 
-    def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM):
+    def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM, areas_to_perceive):
         """Update agent's memory with blocks that have been destroyed."""
         tables = ["BlockObjects"]
+        local_areas_to_perceive = copy.deepcopy(areas_to_perceive)
         for table in tables:
             info = self.get_object_info_by_xyz(xyz, table, just_memid=False)
             if not info or len(info) == 0:
@@ -251,7 +256,8 @@ class MCAgentMemory(AgentMemory):
             delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
             if delete:
                 self.remove_voxel(*xyz, table)
-                self.agent.areas_to_perceive.append((xyz, 3))
+                local_areas_to_perceive.append((xyz, 3))
+        return local_areas_to_perceive
 
 
     def maybe_remove_inst_seg(self, xyz: XYZ):

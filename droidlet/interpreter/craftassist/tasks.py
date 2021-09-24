@@ -408,7 +408,7 @@ class Build(Task):
                     agent.memory.maybe_remove_inst_seg(target)
                     if self.is_destroy_schm:
                         agent.memory.maybe_remove_block_from_memory(
-                            target, (0, 0)
+                            target, (0, 0), agent.areas_to_perceive
                         )
                     else:
                         interesting, player_placed, agent_placed = agent.perception_modules[

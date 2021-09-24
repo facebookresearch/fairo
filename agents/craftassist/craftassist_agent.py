@@ -240,7 +240,9 @@ class CraftAssistAgent(LocoMCAgent):
         super().perceive(parser_only=True)
         # perceive from low_level perception module
         perception_output = self.perception_modules["low_level"].perceive()
-        self.memory.update_world_with_perception_input(perception_output)
+        self.areas_to_perceive = self.memory.update_world_with_perception_input(
+            perception_output, self.areas_to_perceive)
+
         # perceive from heuristic perception module
         self.perception_modules["heuristic"].perceive()
         # if semantic segmentation model is perceiving, call perceive
