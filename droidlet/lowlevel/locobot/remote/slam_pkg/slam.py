@@ -26,6 +26,26 @@ from slam_pkg.utils.map_builder import MapBuilder as mb
 from slam_pkg.utils.fmm_planner import FMMPlanner
 from slam_pkg.utils import depth_util as du
 
+class TrackBack(object):
+    def __init__(self, locs):
+        self.locs = set(locs)
+
+    def update(self, loc):
+        self.locs.add(loc)
+
+    def dist(self, a, b):
+        return np.linalg.norm((np.array(a) - np.array(b)), ord=1)
+
+    def get_loc(self, cur_loc, traversable):
+        ans = None
+        d = 10000000
+        for x in self.locs:
+            if d > self.dist(cur_loc, x) and traversable[x[1], x[0]]:
+                ans = x
+                d = self.dist(cur_loc, x)
+        print(f'track back loc {ans}')
+        return ans
+
 class Slam(object):
     def __init__(
         self,
@@ -123,7 +143,7 @@ class Slam(object):
         self.last_stg = None
         self.explore_goal = None
         self.debug_state = {}
-        self.track_back = self.init_state
+        self.track_back = TrackBack([self.init_state])
 
 
     def init_save(self, save_folder, save_vis=True):
@@ -325,10 +345,10 @@ class Slam(object):
             print(f'finished translation')
             pp('robot_map_loc', robot_map_loc)
 
-            s = self.get_robot_global_state()
-            if self.track_back[:2] != s[:2]:
-                self.track_back = s
-                pp('cur track back', self.real2map(self.get_rel_state(self.track_back, self.init_state)))
+            self.track_back.update(robot_map_loc)
+            # if self.track_back[:2] != s[:2]:
+            #     self.track_back = s
+            #     pp('cur track back', self.real2map(self.get_rel_state(self.track_back, self.init_state)))
         else:
             # elif self.robot.base._as.get_state() == LocalActionStatus.PREEMPTED: # pre-empted when obstacle hits
             print(f'translation failed') 
@@ -359,7 +379,7 @@ class Slam(object):
             print(f'is stg traversable after update {traversable[ostg[1], ostg[0]]}')
 
             # track back 
-            self.robot.base.go_to_absolute(self.track_back, wait=self.exec_wait)
+            self.robot.base.go_to_absolute(self.track_back.get_loc(robot_map_loc, traversable), wait=self.exec_wait)
             while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
                 if self.save_vis:
                     self.save_rgb_depth_seg()
