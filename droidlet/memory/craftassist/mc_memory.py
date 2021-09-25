@@ -98,18 +98,87 @@ class MCAgentMemory(AgentMemory):
     ##########################################
     ### Update world from perception input ###
     ##########################################
-    def update_world_with_perception_input(self, perception_output, areas_to_perceive):
+    def update_world_with_heuristic_perception_input(self, perception_output):
+        """Updates the memory with input from heuristic perception module
+
+        Args:
+            perception_output: Dict with members-
+                in_perceive_area : blockobjects, in the area agent will be running perception in
+        """
+        # 1. Process everything in area to attend for perception
+        if perception_output["in_perceive_area"]:
+            # 1.1 Add colors of all block objects
+            if perception_output["in_perceive_area"]["block_object_attributes"]:
+                for block_object, color_tags in perception_output["in_perceive_area"]["block_object_attributes"].items():
+                    memid = BlockObjectNode.create(self.agent.memory, block_object)
+                    for color_tag in list(set(color_tags)):
+                        self.add_triple(
+                            subj=memid, pred_text="has_colour", obj_text=color_tag
+                        )
+            # 1.2 Update all holes with their block type in memory
+            if perception_output["in_perceive_area"]["holes"]:
+                self.update_mem_with_holes(perception_output["in_perceive_area"]["holes"])
+            # 1.3 Update tags of air-touching blocks
+            if "airtouching_blocks" in perception_output["in_perceive_area"]:
+                shifted_c, tags = perception_output["in_perceive_area"]["airtouching_blocks"]
+                InstSegNode.create(self, shifted_c, tags=tags)
+        # 2. Process everything near agent's current position
+        if perception_output["near_agent"]:
+            # 2.1 Add colors of all block objects
+            if perception_output["near_agent"]["block_object_attributes"]:
+                for block_object, color_tags in perception_output["near_agent"][
+                    "block_object_attributes"].items():
+                    memid = BlockObjectNode.create(self.agent.memory, block_object)
+                    for color_tag in list(set(color_tags)):
+                        self.add_triple(
+                            subj=memid, pred_text="has_colour", obj_text=color_tag
+                        )
+            # 2.2 Update all holes with their block type in memory
+            if perception_output["near_agent"]["holes"]:
+                self.update_mem_with_holes(perception_output["near_agent"]["holes"])
+            # 2.3 Update tags of air-touching blocks
+            if "airtouching_blocks" in perception_output["near_agent"]:
+                shifted_c, tags = perception_output["near_agent"]["airtouching_blocks"]
+                InstSegNode.create(self, shifted_c, tags=tags)
+
+
+    def update_mem_with_holes(self, holes):
+        """
+        Adds the list of holes to memory
+        """
+        hole_memories = []
+        for hole in holes:
+            memid = InstSegNode.create(self, hole[0], tags=["hole", "pit", "mine"])
+            try:
+                fill_block_name = self.low_level_block_data["bid_to_name"][hole[1]]
+            except:
+                idm = (hole[1][0], 0)
+                fill_block_name = self.low_level_block_data["bid_to_name"].get(idm)
+            if fill_block_name:
+                query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
+                _, fill_block_mems = self.basic_search(query)
+                fill_block_memid = fill_block_mems[0].memid
+                self.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
+            hole_memories.append(self.get_mem_by_id(memid))
+        return hole_memories
+
+
+    def update_world_with_lowlevel_perception_input(self, perception_output, areas_to_perceive):
         """
         Updates the world with input from low_level perception module
-        :param perception_output: Dict with members:
-            mob: All mobs in perception range.
-            agent_pickable_items: Dict containing - items in agent's perception that can be picked up and all items
-                that can be picked up by the agent.
-            agent_attributes: Agent's player attributes including
-            other_player_list: List of other in-game players
-            changed_block_attributes: marked attributes (interesting, player_placed, agent_placed) of changed blocks
+
+        Args:
+            perception_output: Dict with members-
+                mob: All mobs in perception range.
+                agent_pickable_items: Dict containing - items in agent's perception that can be picked up
+                    and all items that can be picked up by the agent.
+                agent_attributes: Agent's player attributes including
+                other_player_list: List of other in-game players
+                changed_block_attributes: marked attributes (interesting, player_placed, agent_placed)
+                    of changed blocks
 
         :return:
+        updated_areas_to_perceive: list of (xyz, idm) representing the area agent should perceive
         """
         updated_areas_to_perceive = areas_to_perceive
         # 1. Handle all mobs in agent's perception range

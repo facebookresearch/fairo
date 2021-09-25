@@ -15,6 +15,7 @@ from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObject
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
 
+
 # Taken from : stackoverflow.com/questions/16750618/
 # whats-an-efficient-way-to-find-if-a-point-lies-in-the-convex-hull-of-a-point-cl
 def in_hull(points, x):
@@ -339,6 +340,7 @@ def get_nearby_airtouching_blocks(
     xyzb = yzxb.transpose([2, 0, 1, 3]).copy()
     components = connected_components(xyzb, unique_idm=True)
     blocktypes = []
+    shifted_c = []
     for c in components:
         tags = None
         for loc in c:
@@ -368,11 +370,7 @@ def get_nearby_airtouching_blocks(
                                         idm[0], idm[1]
                                     )
                                 )
-        if tags:
-            shifted_c = [(l[0] + x - radius, l[1] + ymin, l[2] + z - radius) for l in c]
-            if len(shifted_c) > 0:
-                InstSegNode.create(agent.memory, shifted_c, tags=tags)
-    return blocktypes
+    return blocktypes, shifted_c, tags
 
 
 def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, store_inst_seg=True):
@@ -473,21 +471,7 @@ def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, st
 
     # remove 0-length holes
     holes = [h for h in holes if len(h[0]) > 0]
-    hole_mems = []
-    for hole in holes:
-        memid = InstSegNode.create(agent.memory, hole[0], tags=["hole", "pit", "mine"])
-        try:
-            fill_block_name = block_data["bid_to_name"][hole[1]]
-        except:
-            idm = (hole[1][0], 0)
-            fill_block_name = block_data["bid_to_name"].get(idm)
-        if fill_block_name:
-            query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
-            _, fill_block_mems = agent.memory.basic_search(query)
-            fill_block_memid = fill_block_mems[0].memid
-            agent.memory.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
-        hole_mems.append(agent.memory.get_mem_by_id(memid))
-    return hole_mems
+    return holes
 
 
 def maybe_get_type_name(idm, block_data):
@@ -534,64 +518,80 @@ class PerceptionWrapper:
 
     def perceive(self, force=False):
         """Called by the core event loop for the agent to run all perceptual
-        models and save their state to memory.
+        models and return their state to agent.
 
         Args:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
+        output = {}
         color_list = list(self.color_bid_map.keys())
         if self.perceive_freq == 0 and not force:
-            return
+            return output
         if self.agent.count % self.perceive_freq != 0 and not force:
-            return
-        if force or not self.agent.memory.task_stack_peek():
-            # perceive blocks in marked areas
-            for pos, radius in self.agent.areas_to_perceive:
-                for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
-                    memid = BlockObjectNode.create(self.agent.memory, obj)
-                    color_tags = []
-                    for idm in obj:
-                        type_name = maybe_get_type_name(idm, self.block_data)
-                        color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
-                    for color_tag in list(set(color_tags)):
-                        self.agent.memory.add_triple(
-                            subj=memid, pred_text="has_colour", obj_text=color_tag
-                        )
+            return output
 
-                get_all_nearby_holes(self.agent, pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius)
-                get_nearby_airtouching_blocks(
-                    self.agent,
-                    pos,
-                    self.block_data,
-                    self.color_data,
-                    self.block_property_data,
-                    color_list,
-                    radius,
-                )
-            # perceive blocks near the agent
-            for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
-                memid = BlockObjectNode.create(self.agent.memory, objs)
+        # 1. perceive blocks in marked areas to perceive
+        for pos, radius in self.agent.areas_to_perceive:
+            # 1.1 Get block objects and their colors
+            obj_tag_list = []
+            for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
                 color_tags = []
-                for obj in objs:
-                    idm = obj[1]
+                for idm in obj:
                     type_name = maybe_get_type_name(idm, self.block_data)
                     color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
-                for color_tag in list(set(color_tags)):
-                    self.agent.memory.add_triple(
-                        subj=memid, pred_text="has_colour", obj_text=color_tag
-                    )
-
-            get_all_nearby_holes(self.agent, self.agent.pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius=self.radius)
-            get_nearby_airtouching_blocks(
+                obj_tag_list.append([obj, color_tags])
+            output["in_perceive_area"] = output.get("in_perceive_area", {})
+            output["in_perceive_area"]["block_object_attributes"] = obj_tag_list if obj_tag_list else None
+            # 1.2 Get all holes in perception area
+            holes = get_all_nearby_holes(
+                self.agent, pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius)
+            output["in_perceive_area"]["holes"] = holes if holes else None
+            # 1.3 Get all air-touching blocks in perception area
+            blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
                 self.agent,
-                self.agent.pos,
+                pos,
                 self.block_data,
                 self.color_data,
                 self.block_property_data,
                 color_list,
-                radius=self.radius,
+                radius,
             )
+            if tags and len(shifted_c) > 0:
+                output["in_perceive_area"]["airtouching_blocks"] = [shifted_c, tags]
+
+        # 2. perceive blocks and their colors near the agent
+        near_obj_tag_list = []
+        for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
+            color_tags = []
+            for obj in objs:
+                idm = obj[1]
+                type_name = maybe_get_type_name(idm, self.block_data)
+                color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
+            near_obj_tag_list.append([objs, color_tags])
+        output["near_agent"] = output.get("near_agent", {})
+        output["near_agent"]["block_object_attributes"] = near_obj_tag_list if near_obj_tag_list else None
+        # 3. Get all holes near agent
+        holes = get_all_nearby_holes(
+            self.agent,
+            self.agent.pos,
+            self.block_data,
+            self.agent.low_level_data["fill_idmeta"],
+            radius=self.radius)
+        output["near_agent"]["holes"] = holes if holes else None
+        # 4. Get all air-touching blocks near agent
+        blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
+            self.agent,
+            self.agent.pos,
+            self.block_data,
+            self.color_data,
+            self.block_property_data,
+            color_list,
+            radius=self.radius,
+        )
+        if tags and len(shifted_c) > 0:
+            output["near_agent"]["airtouching_blocks"] = [shifted_c, tags]
+        return output
 
 
 def build_safe_diag_adjacent(bounds):

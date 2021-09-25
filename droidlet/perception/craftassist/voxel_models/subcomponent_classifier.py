@@ -94,6 +94,7 @@ class SubcomponentClassifierWrapper:
                 if not contaminated(blocks):
                     locs = [loc for loc, idm in blocks]
                     InstSegNode.create(self.memory, locs, [l])
+            # return l and locs
 
 
 class SubComponentClassifier(Process):
