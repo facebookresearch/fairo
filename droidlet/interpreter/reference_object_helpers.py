@@ -24,7 +24,8 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
         if not speaker:
             raise Exception("Asked for speakers memid but did not give speaker name")
         eid = agent_memory.get_player_by_name(speaker).eid
-    elif S == "AGENT":
+    # FIXME both of these seem to appear in lfs, probably just want one of them?
+    elif S == "AGENT" or S == "SELF":
         eid = agent_memory.get_mem_by_id(agent_memory.self_memid).eid
     return eid
 
@@ -43,7 +44,7 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         mem = agent_memory.get_location_by_id(memid)
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
-        if S == "AGENT" or S == "SPEAKER":
+        if S == "AGENT" or S == "SELF" or S == "SPEAKER":
             q = "SELECT MEMORY FROM Player WHERE eid={}".format(entity_id)
         elif S == "SPEAKER_LOOK":
             q = "SELECT MEMORY FROM Attention WHERE type_name={}".format(entity_id)
