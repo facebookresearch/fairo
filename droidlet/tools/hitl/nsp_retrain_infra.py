@@ -29,7 +29,7 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
-NSP_RETRAIN_TIMEOUT = 7200  # Wait a max of 2h for the NSP retraining script to finish
+NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
 
 s3 = boto3.client('s3')
@@ -156,16 +156,10 @@ class NSPRetrainingJob(DataGenerator):
         os.chdir(model_out)
         accs = self.get_accs()  # Has a built in listener and timeout
         self.copy_best_model(accs)
-
-        # Retrieve the best model
-        best_model_info = os.path.join(model_out, "best_model_info.txt")
-        with open(best_model_info, "r") as f:
-            best_model_name = f.readline()
-        best_model_name = best_model_name[:-2]  # Chop off newline chars
         
         # Save the best model in S3 bucket
-        best_model_path = os.path.join(model_out, best_model_name)
-        upload_key = batch_id + "/best_model/" + best_model_name 
+        best_model_path = os.path.join(model_out, "best_model.pth")
+        upload_key = batch_id + "/best_model/best_model.pth" 
         s3.upload_file(best_model_path, 'droidlet-hitl', upload_key)
 
         self.set_finished()
