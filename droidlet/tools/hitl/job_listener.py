@@ -11,9 +11,11 @@ from .data_generator import DataGenerator
 
 
 class JobListener:
-    def __init__(self):
+    def __init__(self, timeout=-1):
         self._finished = False
         self._started = False
+        self.start_time = time.time()
+        self.timeout = timeout  # in minutes, -1 if no timeout is set
         self._parent_jobs = []
 
     def run(self):
@@ -41,3 +43,11 @@ class JobListener:
 
     def add_parent_jobs(self, jobs: List[DataGenerator]):
         self._parent_jobs.extend(jobs)
+
+    def check_is_timeout(self) -> bool:
+        if self.timeout == -1:
+            return False
+
+        if time.time() - self.start_time < self.timeout * 60:
+            return False
+        return True
