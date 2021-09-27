@@ -79,6 +79,7 @@ class CraftAssistAgent(LocoMCAgent):
                                }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
+        self.agent_type = 'craftassist'
         self.point_targets = []
         self.last_chat_time = 0
         # areas must be perceived at each step

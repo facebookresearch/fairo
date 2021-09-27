@@ -1,6 +1,6 @@
 """
 This file updates the data format as of 05/06 to move repeat_key : "ALL"
-to "return_quantity" in selectors. Issue: https://github.com/facebookresearch/droidlet/issues/219
+to "return_quantity" in selectors. Issue: https://github.com/facebookresearch/fairo/issues/219
 changeset: https://www.internalfb.com/phabricator/paste/view/P413307559
 """
 import argparse

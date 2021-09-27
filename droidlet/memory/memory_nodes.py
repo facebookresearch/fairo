@@ -315,7 +315,7 @@ class TripleNode(MemoryNode):
 # actual set elements are handled as triples
 class SetNode(MemoryNode):
     """for representing sets of objects, so that it is easier to build complex relations
-    using RDF/triplestore format.  is currently fetal- not used in main codebase yet"""
+    using RDF/triplestore format."""
 
     TABLE_COLUMNS = ["uuid"]
     TABLE = "SetMems"
@@ -328,11 +328,11 @@ class SetNode(MemoryNode):
     @classmethod
     def create(cls, memory, snapshot=False) -> str:
         memid = cls.new(memory, snapshot=snapshot)
-        memory.db_write("INSERT INTO SetMems(uuid) VALUES (?)", memid, memory.get_time())
+        memory.db_write("INSERT INTO SetMems(uuid) VALUES (?)", memid)
         return memid
 
     def get_members(self):
-        return self.agent_memory.get_triples(pred_text="set_member_", obj=self.memid)
+        return self.agent_memory.get_triples(pred_text="member_of", obj=self.memid)
 
     def snapshot(self, agent_memory):
         return SetNode.create(agent_memory, snapshot=True)

@@ -154,6 +154,9 @@ def interpret_random_selector(interpreter, speaker, selector_d):
 
 def interpret_argval_selector(interpreter, speaker, selector_d):
     return_d = selector_d.get("return_quantity", {})
+    ordinal = {"first": 1, "second": 2, "third": 3}.get(selector_d.get("ordinal", "first").lower())
+    if not ordinal:
+        ordinal = int(number_from_span(selector_d.get("ordinal", 1)))
     argval_d = return_d.get("argval")
     if not argval_d:
         raise Exception(
@@ -165,17 +168,14 @@ def interpret_argval_selector(interpreter, speaker, selector_d):
     attribute_d = argval_d.get("quantity").get("attribute")
     get_attribute = interpreter.subinterpret.get("attribute", AttributeInterpreter())
     selector_attribute = get_attribute(interpreter, speaker, attribute_d)
-    # FIXME
-    ordinal = {"first": 1, "second": 2, "third": 3}.get(
-        argval_d.get("ordinal", "first").lower(), 1
-    )
+
     sa = ApplyAttribute(interpreter.memory, selector_attribute)
     selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=ordinal)
     selector.append(sa)
     return selector
 
 
-def build_linear_extent_selector(interpreter, speaker, location_d):
+def build_linear_extent_selector(interpreter, speaker, location_d, n=1):
     """
     builds a MemoryFilter that selects by a linear_extent dict
     chooses memory location nearest to
@@ -198,7 +198,7 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
     )
     polarity = "argmin"
     sa = ApplyAttribute(interpreter.memory, selector_attribute)
-    selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=1)
+    selector = ExtremeValueMemorySelector(interpreter.memory, polarity=polarity, ordinal=n)
     selector.append(sa)
     mems_filter = MemidList(interpreter.memory, [mems[0].memid])
     not_mems_filter = NotFilter(interpreter.memory, [mems_filter])
@@ -211,7 +211,8 @@ def build_linear_extent_selector(interpreter, speaker, location_d):
 def interpret_selector(interpreter, speaker, selector_d):
     selector = None
     if selector_d.get("location"):
-        return build_linear_extent_selector(interpreter, speaker, selector_d["location"])
+        n = int(number_from_span(selector_d.get("ordinal", 1)))
+        return build_linear_extent_selector(interpreter, speaker, selector_d["location"], n=n)
     return_d = selector_d.get("return_quantity", "ALL")
     if type(return_d) is str:
         if return_d == "ALL":

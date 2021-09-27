@@ -6,17 +6,16 @@ By following the build instructions inside the Dockerfiles, you can see the nece
 
 ## Building and uploading
 
-### Ubuntu 16
-
-```
-docker build ./ubuntu16 -t fairrobotics/kuka-workspace:ubuntu-16
-docker push fairrobotics/kuka-workspace:ubuntu-16
-
-```
-
 ### Ubuntu 18
 
 ```
 docker build ./ubuntu18 -t fairrobotics/kuka-workspace:ubuntu-18
 docker push fairrobotics/kuka-workspace:ubuntu-18
+```
+
+### Ubuntu 20
+
+```
+docker build ./ubuntu20 -t fairrobotics/kuka-workspace:ubuntu-20
+docker push fairrobotics/kuka-workspace:ubuntu-20
 ```

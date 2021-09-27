@@ -1,5 +1,5 @@
 rm -rf docpush
-git clone --depth=1 git@github.com:facebookresearch/droidlet.git -b gh-pages docpush
+git clone --depth=1 git@github.com:facebookresearch/fairo.git -b gh-pages docpush
 
 cp -r build/html/* docpush/
 

@@ -384,7 +384,7 @@ def process_result(full_d):
     #     action_dict, words = fix_spans_due_to_empty_words(action_dict, words)
     words = []
     for key in full_d:
-        if "Input.word" in key:
+        if "Input.word" in key and full_d[key] != "NONE":
             words.append(full_d[key])
     return worker_id, action_dict, words, original_child_name
 
@@ -579,7 +579,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\t" + v + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\t" + v + "\n")
 
     # write disagreements to a file
     disag = str(no_agreement)
@@ -587,7 +587,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in disagreement.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\n")
             for item in v:
                 outfile.write(item + "\n")
             outfile.write("\n")

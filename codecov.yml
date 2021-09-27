@@ -1,6 +1,8 @@
 fixes:
   - "/shared/droidlet::"
   - "/droidlet::"
+  - "/shared/fairo::"
+  - "/fairo::"
 
 coverage:
   status:
@@ -22,5 +24,9 @@ coverage:
     patch: off
     changes: off
 
-comment: false
-
+comment:
+    layout: "reach, diff, flags, files"
+    behavior: default
+    require_changes: false  # if true: only post the comment if coverage changes
+    require_base: no        # [yes :: must have a base report to post]
+    require_head: yes 

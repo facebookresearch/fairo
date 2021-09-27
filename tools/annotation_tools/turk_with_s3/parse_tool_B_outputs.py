@@ -1,3 +1,4 @@
+import copy
 import csv
 import argparse
 from collections import defaultdict, Counter
@@ -64,6 +65,7 @@ def process_get_memory_dict(d):
             if "tag_name" in ref_dict["reference_object"]:
                 out_dict["tag_name"] = ref_dict["reference_object"]["tag_name"]
                 ref_dict["reference_object"].pop("tag_name")
+            print(ref_dict)
             out_dict["filters"].update(ref_dict)
 
         out_dict["filters"]["type"] = type_val
@@ -359,15 +361,28 @@ def handle_components(d, child_name):
             r["memory_data"].update(filtered)
 
     elif child_name == "filters":
-        output["filters"] = {"reference_object": {}}
+        output["filters"] = {}
         if any(
             k.startswith("reference_object") and v == "contains_coreference.yes"
             for k, v in d.items()
         ):
-            output["filters"]["reference_object"]["contains_coreference"] = "yes"
+            output["filters"]["contains_coreference"] = "yes"
 
         child_d = process_dict(with_prefix(d, "{}.".format("reference_object")))
-        output["filters"]["reference_object"].update(child_d)
+        triples = []
+        new_child =  copy.deepcopy(child_d)
+        for k, v in new_child.items():
+            if k.startswith('has_'):
+                triples.append({
+                    "pred_text": k,
+                    "obj_text": v
+                })
+                child_d.pop(k)
+        # Add filters to schematics
+        if triples:
+            triples_dict = {"where_clause": {"AND": triples}}
+            output["filters"].update(triples_dict)
+        output["filters"].update(child_d)
 
     elif child_name == "schematic":
         child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
@@ -381,7 +396,7 @@ def handle_components(d, child_name):
         # Add filters to schematics
         filters_for_schematics = {
             "filters": {
-                "triples": triples
+                "where_clause": {"AND" : triples}
             }
         }
         output[child_name] = filters_for_schematics
@@ -408,16 +423,15 @@ def handle_components(d, child_name):
                 if updated_value == None:
                     del child_d["location"]
                 else:
-                    if "reference_object" in child_d["location"]:
+                    if "reference_object" not in child_d["location"]:
+                        child_d["location"]["reference_object"] = {}
+                    if type(updated_value) == dict:
+                        child_d["location"]["reference_object"]["special_reference"] = updated_value
+                    else:
                         child_d["location"]["reference_object"]["special_reference"] = {
                             "fixed_value": updated_value
                         }
-                    else:
-                        child_d["location"]["reference_object"] = {
-                            "special_reference": {
-                                "fixed_value": updated_value
-                            }
-                        }
+
 
                     if "coordinates" in child_d["location"]:
                         del child_d["location"]["coordinates"]
@@ -456,7 +470,7 @@ def process_result(full_d):
     # Grab words based on number of inputs
     words = []
     for key in full_d:
-        if "Input.word" in key:
+        if "Input.word" in key and full_d[key] != "NONE":
             words.append(full_d[key])
 
     return worker_id, action_dict, words, original_child_name
@@ -475,8 +489,8 @@ def remove_definite_articles(cmd, d):
                     new_v = []
                     for span in v1:
                         # span[0] and span[1] are the same
-                        if words[span[0]] in ["the", "a", "an"]:
-                            continue
+                        # if words[span[0]] in ["the", "a", "an"]:
+                        #     continue
                         new_v.append(span)
                     new_d[k][k1] = new_v
                 elif type(v1) == dict:
@@ -487,12 +501,12 @@ def remove_definite_articles(cmd, d):
                     new_d[k][k1] = v1
         # for internal nodes
         else:
-            if type(v) == list and k != "triples":
+            if type(v) == list and k not in ["AND", "OR", "NOT"]:
                 new_v = []
                 for span in v:
                     # span[0] and span[1] are the same
-                    if words[span[0]] in ["the", "a", "an"]:
-                        continue
+                    # if words[span[0]] in ["the", "a", "an"]:
+                    #     continue
                     new_v.append(span)
                 new_d[k] = new_v
             elif type(v) == dict:
@@ -566,7 +580,6 @@ if __name__ == "__main__":
     with open(f_name, "r") as f:
         r = csv.DictReader(f)
         for i, d in enumerate(r):
-            print(d)
             sentence = d["Input.command"]
             """ the sentence has a span in it"""
             worker_id, action_dict, words, child_name = process_result(d)
@@ -646,7 +659,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\t" + v + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\t" + v + "\n")
 
     # write disagreements to a file
     disag = str(no_agreement)
@@ -654,7 +667,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in disagreement.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\n")
             for item in v:
                 outfile.write(item + "\n")
             outfile.write("\n")
