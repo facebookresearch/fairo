@@ -23,7 +23,8 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
+        self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
 
     def init_controller(self):
         dialogue_object_classes = {}

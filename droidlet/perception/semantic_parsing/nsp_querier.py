@@ -15,12 +15,13 @@ from .utils.validate_json import JSONValidator
 
 
 class NSPQuerier(object):
-    def __init__(self, opts):
+    def __init__(self, opts, agent=None):
         """This class provides an API that takes in chat as plain text
          and converts it to logical form. It does so by first checking against
          ground truth text-logical form pairings and if not found, querying the
          neural semantic parsing model.
          """
+        self.agent = agent
         self.opts = opts
         # instantiate logger and parsing model
         self.NSPLogger = NSPLogger(

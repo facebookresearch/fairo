@@ -192,9 +192,8 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_perception(self):
         """Initialize perception modules"""
-        # NOTE: self.chat_parser will move to perception_modules once Soumith's changes are in
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
         self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
             self, low_level_data=self.low_level_data

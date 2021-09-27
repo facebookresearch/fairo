@@ -418,8 +418,8 @@ class FakeAgent(LocoMCAgent):
         self.inventory = []
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["self"] = SelfPerception(self, perceive_freq=1)
         self.perception_modules["vision"] = FakeDetectorPerception(self)
 

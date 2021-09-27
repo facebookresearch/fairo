@@ -287,8 +287,8 @@ class FakeAgent(LocoMCAgent):
         self.look = self.get_look()
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(
             self, low_level_data=self.low_level_data

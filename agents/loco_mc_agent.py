@@ -133,8 +133,8 @@ class LocoMCAgent(BaseAgent):
             logical_form = {}
             status = ""
             try:
-                chat_parse = self.chat_parser.get_logical_form(
-                    chat=command, parsing_model=self.chat_parser.parsing_model
+                chat_parse = self.perception_modules["language_understanding"].get_logical_form(
+                    chat=command, parsing_model=self.perception_modules["language_understanding"].parsing_model
                 )
                 logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=command, logical_form=chat_parse)
                 logging.debug("logical form is : %r" % (logical_form))
@@ -313,7 +313,7 @@ class LocoMCAgent(BaseAgent):
             self.last_chat_time = time.time()
             # For now just process the first incoming chat, where chat -> [speaker, chat]
             speaker, chat = incoming_chats[0]
-            preprocessed_chat, chat_parse = self.chat_parser.get_parse(chat)
+            preprocessed_chat, chat_parse = self.perception_modules["language_understanding"].get_parse(chat)
             # add postprocessed chat here
             chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
             logical_form_memid = self.memory.add_logical_form(chat_parse)
@@ -335,9 +335,6 @@ class LocoMCAgent(BaseAgent):
             }
             dispatch.send("perceive", data=hook_data)
 
-        # if not parser_only:
-        #     for v in self.perception_modules.values():
-        #         v.perceive(force=force)
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""
