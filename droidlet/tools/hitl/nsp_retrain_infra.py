@@ -95,13 +95,27 @@ class NSPRetrainingJob(DataGenerator):
             os.mkdir(download_dir)
         except FileExistsError:
             pass
-        data_filepath = download_dir + '/annotated.txt'  # Change name on download to match sweep_runner expectations
+        data_filepath = download_dir + '/nsp_data.txt'
         try:
             s3.download_file('droidlet-hitl', 'nsp_data.txt', data_filepath)  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 file download")
             raise
         logging.info(f"New data download completed successfully")
+
+        # Check the formatting of the file, strip off the index and resave
+        annotated_filepath = download_dir + '/annotated.txt'  # Change name to be what sweep_runner expects
+        with open(data_filepath, "r") as nspfile, open(annotated_filepath, "w") as afile:
+            for line in nspfile:
+                parsed = line.split('|')
+                if len(parsed) == 2:
+                    continue
+                elif len(parsed) == 3:  # Cut off the index if it exists
+                    afile.write(str(parsed[1]) + '|' + str(parsed[2]))
+                else:
+                    raise ValueError("Annotated NSP data & logical forms not formatted as expected")
+        logging.info(f"data successfully preprocessed into annotated.txt")
+
         return batch_id, download_dir
 
 
@@ -123,6 +137,7 @@ class NSPRetrainingJob(DataGenerator):
 
         # Initialize the training run
         try:
+            logging.info(f"Executing in new shell: \n{sweep_args}")
             sweep = Popen(sweep_args, shell=True, stdout=PIPE, stderr=PIPE, text=True)
         except OSError:
             logging.info(f"Likely error: sweep_runner.py not found where expected")
