@@ -343,12 +343,6 @@ class FakeMover:
     def is_object_in_gripper(self):
         return self.gripper_state == "occupied"
 
-    def get_rgb_depth(self, rgb=None, h=480, w=640):
-        rgb = np.float32(np.random.rand(h, w, 3) * 255) if rgb is None else rgb
-        depth = np.random.randint(0, 2, (h, w))
-        pts = np.random.randint(0, 5, (h * w, 3))
-        return RGBDepth(rgb, depth, pts)
-
     def set_gripper_state(self, state):
         assert state in ["occupied", "open", "closed"]
         self.gripper_state = state
@@ -452,14 +446,7 @@ class FakeAgent(LocoMCAgent):
     def perceive(self, force=False):
         super().perceive(force=force, parser_only=True)
         self.perception_modules["self"].perceive(force=force)
-        rgb_depth = self.mover.get_rgb_depth()
-        xyz = self.mover.get_base_pos_in_canonical_coords()
-
-        previous_objects = DetectedObjectNode.get_all(self.memory)
-        new_state = self.perception_modules["vision"].perceive(rgb_depth,
-                                                               xyz,
-                                                               previous_objects,
-                                                               force=force)
+        new_state = self.perception_modules["vision"].perceive(force=force)
         if new_state is not None:
             new_objects, updated_objects = new_state
             for obj in new_objects:
