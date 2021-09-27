@@ -98,11 +98,23 @@ class MCAgentMemory(AgentMemory):
     ##########################################
     ### Update world from perception input ###
     ##########################################
-    def update_world_with_heuristic_perception_input(self, perception_output):
+    def update_with_labeled_blocks(self, perception_output):
+        """Updated the memory with labeled blocks from SubComponent classifier
+
+        Args:
+            perception_output: Dict with members -
+                labeled_blocks: labels and resulting locations
+        """
+        if "labeled_blocks" in perception_output:
+            for label, locations in perception_output["labeled_blocks"].items():
+                InstSegNode.create(self, locations, [label])
+
+
+    def update_with_heuristic_perception_input(self, perception_output):
         """Updates the memory with input from heuristic perception module
 
         Args:
-            perception_output: Dict with members-
+            perception_output: Dict with members -
                 in_perceive_area : blockobjects, in the area agent will be running perception in
         """
         # 1. Process everything in area to attend for perception
@@ -163,7 +175,7 @@ class MCAgentMemory(AgentMemory):
         return hole_memories
 
 
-    def update_world_with_lowlevel_perception_input(self, perception_output, areas_to_perceive):
+    def update_with_lowlevel_perception_input(self, perception_output, areas_to_perceive):
         """
         Updates the world with input from low_level perception module
 

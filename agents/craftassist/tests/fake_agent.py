@@ -7,6 +7,7 @@ import numpy as np
 from typing import List, Tuple
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
+from droidlet.memory.memory_nodes import ChatNode
 from .utils import Look, Pos, Item, Player
 from agents.loco_mc_agent import LocoMCAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
@@ -417,13 +418,13 @@ class FakeAgent(LocoMCAgent):
             force = True
 
         perception_output = self.perception_modules["low_level"].perceive(force=force)
-        self.areas_to_perceive = self.memory.update_world_with_lowlevel_perception_input(
+        self.areas_to_perceive = self.memory.update_with_lowlevel_perception_input(
             perception_output, self.areas_to_perceive)
         if self.do_heuristic_perception:
             if force or not self.agent.memory.task_stack_peek():
                 # perceive from heuristic perception module
                 heuristic_perception_output = self.perception_modules["heuristic"].perceive()
-                self.memory.update_world_with_heuristic_perception_input(heuristic_perception_output)
+                self.memory.update_with_heuristic_perception_input(heuristic_perception_output)
 
     ###################################
     ##  FAKE C++ PERCEPTION METHODS  ##

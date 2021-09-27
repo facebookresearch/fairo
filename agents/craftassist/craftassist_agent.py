@@ -229,27 +229,34 @@ class CraftAssistAgent(LocoMCAgent):
 
     def perceive(self, force=False):
         """Whenever some blocks are changed, that area will be put into a 
-        buffer which will be force-perceived by the agent in the next step
+        buffer which will be force-perceived by the agent in the next step.
 
         Here the agent first clusters areas that are overlapping on the buffer,
-        then run through all perception modules to perceive
-        and finally clear the buffer when perception is done.
+        then run through all perception modules to perceive and finally clears the
+        buffer when perception is done.
+
+        The agent sends all perception updates to memory in order for them to
+        update the memory state.
         """
         # NOTE: remove parser_only = True
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
+        # 1. perceive from NLU parser
         super().perceive(parser_only=True)
-        # perceive from low_level perception module
+        # 2. perceive from low_level perception module
         perception_output = self.perception_modules["low_level"].perceive()
-        self.areas_to_perceive = self.memory.update_world_with_lowlevel_perception_input(
+        self.areas_to_perceive = self.memory.update_with_lowlevel_perception_input(
             perception_output, self.areas_to_perceive)
+        # 3. perceive from heuristic perception module
         heuristic_perception_output = {}
         if force or not self.agent.memory.task_stack_peek():
             # perceive from heuristic perception module
             heuristic_perception_output = self.perception_modules["heuristic"].perceive()
-            self.memory.update_world_with_heuristic_perception_input(heuristic_perception_output)
-        # if semantic segmentation model is perceiving, call perceive
+            self.memory.update_with_heuristic_perception_input(heuristic_perception_output)
+        # 4. if semantic segmentation model is initialized, call perceive
         if "semseg" in self.perception_modules:
-            self.perception_modules["semseg"].perceive()
+            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
+            self.memory.update_with_labeled_blocks(sem_seg_perception_output)
+
         self.areas_to_perceive = []
         self.update_dashboard_world()
 

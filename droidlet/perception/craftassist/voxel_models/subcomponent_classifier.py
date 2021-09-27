@@ -26,6 +26,7 @@ class SubcomponentClassifierWrapper:
 
     def __init__(self, agent, model_path, low_level_data, perceive_freq=0):
         self.agent = agent
+        # Note remove the following
         self.memory = self.agent.memory
         self.perceive_freq = perceive_freq
         self.boring_blocks = low_level_data["boring_blocks"]
@@ -38,19 +39,20 @@ class SubcomponentClassifierWrapper:
 
     def perceive(self, force=False):
         """
-        run the classifiers, put tags in memory
+        Run the classifiers in the world and get the resulting labels
 
         Args:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
 
         """
+        output = {}
         if self.perceive_freq == 0 and not force:
-            return
+            return output
         if self.perceive_freq > 0 and self.agent.count % self.perceive_freq != 0 and not force:
-            return
+            return output
         if self.subcomponent_classifier is None:
-            return
+            return output
         # TODO don't all_nearby_objects again, search in memory instead
         to_label = []
         # add all blocks in marked areas
@@ -89,12 +91,13 @@ class SubcomponentClassifierWrapper:
                         label2blocks[l].append(b)
                     else:
                         label2blocks[l] = [b]
+            output["labeled_blocks"] = {}
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore
                 if not contaminated(blocks):
                     locs = [loc for loc, idm in blocks]
-                    InstSegNode.create(self.memory, locs, [l])
-            # return l and locs
+                    output["labeled_blocks"][l] = locs
+        return output
 
 
 class SubComponentClassifier(Process):
