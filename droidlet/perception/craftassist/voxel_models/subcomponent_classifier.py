@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 from multiprocessing import Queue, Process
-from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
 from .semantic_segmentation.semseg_models import SemSegWrapper
 from droidlet.base_util import blocks_list_to_npy, get_bounds
