@@ -22,11 +22,9 @@ class GreetingType(Enum):
 
 
 class DialogueObjectMapper(object):
-    def __init__(self,
-                 dialogue_object_classes,
-                 opts,
-                 low_level_interpreter_data,
-                 dialogue_manager):
+    def __init__(
+        self, dialogue_object_classes, opts, low_level_interpreter_data, dialogue_manager
+    ):
         self.dialogue_objects = dialogue_object_classes
         self.opts = opts
         self.low_level_interpreter_data = low_level_interpreter_data
@@ -34,12 +32,14 @@ class DialogueObjectMapper(object):
         self.safety_words = get_safety_words()
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
 
-    def get_dialogue_object(self, speaker: str, chat: str, parse: Dict, chat_status: str, chat_memid: str):
+    def get_dialogue_object(
+        self, speaker: str, chat: str, parse: Dict, chat_status: str, chat_memid: str
+    ):
         """Returns DialogueObject for a given chat and logical form"""
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
         if (len(self.dialogue_manager.dialogue_stack) > 0) and (
-                self.dialogue_manager.dialogue_stack[-1].awaiting_response
+            self.dialogue_manager.dialogue_stack[-1].awaiting_response
         ):
             return None
 
@@ -101,8 +101,10 @@ class DialogueObjectMapper(object):
         # Resolve any co-references like "this", "that" "there" using heuristics
         # and make updates in the dictionary in place.
         coref_resolve(self.dialogue_manager.memory, logical_form, chat)
-        logging.debug(
-            'logical form post co-ref "{}" -> {}'.format(hash_user(speaker), logical_form)
+        logging.info(
+            'logical form post co-ref and process_spans "{}" -> {}'.format(
+                hash_user(speaker), logical_form
+            )
         )
         return logical_form
 
@@ -147,5 +149,3 @@ class DialogueObjectMapper(object):
                     response_options = ["hi there!", "hello", "hey", "hi"]
                 return random.choice(response_options)
         return None
-
-
