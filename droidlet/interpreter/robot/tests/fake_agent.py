@@ -33,7 +33,6 @@ from droidlet.shared_data_struct.robot_shared_utils import Pos
 
 # marker creation should be somewhwere else....
 from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
-from droidlet.shared_data_structs import RGBDepth
 
 MV_SPEED = 0.2
 ROT_SPEED = 1.0  # rad/tick
