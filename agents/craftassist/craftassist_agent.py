@@ -237,10 +237,9 @@ class CraftAssistAgent(LocoMCAgent):
         The agent sends all perception updates to memory in order for them to
         update the memory state.
         """
-        # NOTE: remove parser_only = True
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         # 1. perceive from NLU parser
-        super().perceive(parser_only=True)
+        super().perceive()
         # 2. perceive from low_level perception module
         perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = self.memory.update_with_lowlevel_perception_input(

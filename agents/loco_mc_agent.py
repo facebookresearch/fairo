@@ -11,7 +11,6 @@ import os
 from agents.core import BaseAgent
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio, dispatch
-from droidlet.base_util import hash_user
 from droidlet.memory.save_and_fetch_commands import *
 
 random.seed(0)
@@ -282,37 +281,8 @@ class LocoMCAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
-    def perceive(self, force=False, parser_only=False):
-        # NOTE: the processing chats block here
-        # remove parser_only flag here
-        # will move to chat_parser.perceive() once Soumith's changes are in
+    def perceive(self, force=False):
         start_time = datetime.datetime.now()
-        # """Process incoming chats and run through parser"""
-        # raw_incoming_chats = self.get_incoming_chats()
-        # if raw_incoming_chats:
-        #     logging.info("Incoming chats: {}".format(raw_incoming_chats))
-        # incoming_chats = []
-        # for raw_chat in raw_incoming_chats:
-        #     match = re.search("^<([^>]+)> (.*)", raw_chat)
-        #     if match is None:
-        #         logging.debug("Ignoring chat: {}".format(raw_chat))
-        #         continue
-        #
-        #     speaker, chat = match.group(1), match.group(2)
-        #     speaker_hash = hash_user(speaker)
-        #     logging.debug("Incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
-        #     if chat.startswith("/"):
-        #         continue
-        #     incoming_chats.append((speaker, chat))
-        #
-        # if len(incoming_chats) > 0:
-        #     # force to get objects, speaker info
-        #     if self.perceive_on_chat:
-        #         force = True
-        #     self.last_chat_time = time.time()
-        #     # For now just process the first incoming chat, where chat -> [speaker, chat]
-        #     speaker, chat = incoming_chats[0]
-        #     preprocessed_chat, chat_parse = self.perception_modules["language_understanding"].get_parse(chat)
         nlu_perceive_output = self.perception_modules["language_understanding"].perceive(force=force)
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = nlu_perceive_output
         if received_chats_flag:

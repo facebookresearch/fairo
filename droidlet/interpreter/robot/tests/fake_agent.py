@@ -443,7 +443,7 @@ class FakeAgent(LocoMCAgent):
         )
 
     def perceive(self, force=False):
-        super().perceive(force=force, parser_only=True)
+        super().perceive(force=force)
         self.perception_modules["self"].perceive(force=force)
         new_state = self.perception_modules["vision"].perceive(force=force)
         if new_state is not None:
