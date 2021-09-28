@@ -109,7 +109,7 @@ class NSPRetrainingJob(DataGenerator):
             for line in nspfile:
                 parsed = line.split('|')
                 if len(parsed) == 2:
-                    continue
+                    afile.write(line)
                 elif len(parsed) == 3:  # Cut off the index if it exists
                     afile.write(str(parsed[1]) + '|' + str(parsed[2]))
                 else:
