@@ -37,3 +37,6 @@ class DataGenerator:
         if time.time() - self.start_time < self.timeout * 60:
             return False
         return True
+
+    def get_remaining_time(self) -> int:
+        return self.timeout - ((time.time() - self.start_time) // 60)
