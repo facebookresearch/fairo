@@ -289,7 +289,9 @@ class MCInterpreter(Interpreter):
         """
         # Get nearby holes
         perception_holes = self.get_all_holes_fn(agent, location, self.block_data, agent.low_level_data["fill_idmeta"])
-        holes = self.memory.update({"holes": perception_holes})
+        perception_output  = {"holes": perception_holes}
+        output = self.memory.update(perception_output=perception_output)
+        holes = output.get("holes", [])
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
 

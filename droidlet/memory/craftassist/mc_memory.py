@@ -99,7 +99,7 @@ class MCAgentMemory(AgentMemory):
     ### Update world from perception updates ###
     ############################################
 
-    def update(self, perception_output, areas_to_perceive=[]):
+    def update(self, perception_output={}, areas_to_perceive=[]):
         """
         Updates the world with updates from agent's perception module.
 
@@ -119,6 +119,9 @@ class MCAgentMemory(AgentMemory):
         :return:
         updated_areas_to_perceive: list of (xyz, idm) representing the area agent should perceive
         """
+        if not perception_output:
+            return areas_to_perceive
+        output = {}
         updated_areas_to_perceive = areas_to_perceive
         """Perform update the memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
@@ -247,9 +250,11 @@ class MCAgentMemory(AgentMemory):
 
         """Update the memory with holes"""
         if perception_output.get("holes", None):
-            self.add_holes_to_mem(perception_output["holes"])
+            hole_memories = self.add_holes_to_mem(perception_output["holes"])
+            output["holes"] = hole_memories
 
-        return updated_areas_to_perceive
+        output["areas_to_perceive"] = updated_areas_to_perceive
+        return output
 
 
     def maybe_add_block_to_memory(self, interesting, player_placed, agent_placed, xyz, idm):
@@ -302,7 +307,7 @@ class MCAgentMemory(AgentMemory):
 
     def add_holes_to_mem(self, holes):
         """
-        Adds the list of holes to memory
+        Adds the list of holes to memory and return hole memories.
         """
         hole_memories = []
         for hole in holes:

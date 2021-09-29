@@ -419,7 +419,7 @@ class FakeAgent(LocoMCAgent):
 
         perception_output = self.perception_modules["low_level"].perceive(force=force)
         self.areas_to_perceive = self.memory.update(
-            perception_output, self.areas_to_perceive)
+            perception_output, self.areas_to_perceive)["areas_to_perceive"]
         if self.do_heuristic_perception:
             if force or not self.agent.memory.task_stack_peek():
                 # perceive from heuristic perception module

@@ -243,7 +243,7 @@ class CraftAssistAgent(LocoMCAgent):
         perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         self.areas_to_perceive = self.memory.update(
-            perception_output, self.areas_to_perceive)
+            perception_output, self.areas_to_perceive)["areas_to_perceive"]
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
         updated_perception_output = {}
         if force or not self.agent.memory.task_stack_peek():
