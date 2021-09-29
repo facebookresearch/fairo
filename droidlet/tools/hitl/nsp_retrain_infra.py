@@ -31,7 +31,7 @@ logger.addHandler(sh)
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
 NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
-NUM_MODEL_OUTPUT_POLLS = 90  # Number of times to poll model output files before assuming finished
+NUM_MODEL_OUTPUT_POLLS = 500  # Number of times to poll model output files before assuming finished
 
 s3 = boto3.client('s3')
 
@@ -116,10 +116,19 @@ class NSPRetrainingJob(DataGenerator):
         return batch_id, download_dir
 
 
-    #def slurm_jobs_finished(self, job_ids):
-    #    for job in job_ids:
-    #        cmd = 'sacct --jobs={}.batch --format=state'.format(job)
-    #        sweep = Popen(sweep_args, shell=True, stdout=PIPE, stderr=PIPE, text=True)
+    def slurm_jobs_finished(self, job_ids):
+        for job in job_ids:
+            cmd = 'sacct --jobs={}.batch --format=state'.format(job)
+            sacct = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, text=True)
+            outs, errs = sacct.communicate(timeout=10)
+            outs = outs.replace('\n','').strip()
+            logging.info(f"Slurm status on job {job}: {outs}")
+            if 'COMPLETED' in outs:
+                continue
+            else:
+                logging.info(f"Cluster still working, going back to sleep")
+                return False
+        return True
 
 
     def run(self):
@@ -149,14 +158,14 @@ class NSPRetrainingJob(DataGenerator):
             logging.info(f"Likely error: Popen called with invalid arguments")
             raise
 
-        # TODO replace with while loop and poll
-        try:
-            outs, errs = sweep.communicate(timeout=NSP_RETRAIN_TIMEOUT)
-            logging.info(f"Sweep successful!")
-        except TimeoutExpired:
-            sweep.kill()
-            outs, errs = sweep.communicate()
-            logging.info(f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds")
+        # Wait for child process to finish and log outputs/errors
+        now = datetime.now()
+        while (sweep.poll() != 0):
+            if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
+                sweep.kill()
+                raise TimeoutError(f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds")
+                break
+        outs, errs = sweep.stdout.read(), sweep.stderr.read()
         logging.info(f"Sweep script outputs: \n{outs}")
         logging.info(f"Sweep script errors: \n{errs}")
 
@@ -170,49 +179,23 @@ class NSPRetrainingJob(DataGenerator):
             logging.info(f"model output directory not found, check batch ID")
             raise
 
-        # Store sweep_runner outputs and retrieve cluster job IDs
-        script_outputs_dir = os.path.join(output_models_dir, "script_outputs")
-        os.mkdir(script_outputs_dir)
-        os.chdir(script_outputs_dir)
-        with open('sweep_runner_output.txt', "w") as outputfile:
-            outputfile.write(outs)
+        # Retrieve cluster job IDs
         job_ids = []
-        with open('sweep_runner_output.txt', "r") as outputfile:
-            for line in outputfile:
-                if line[:9] == 'Submitted':
-                    job_ids.append(line[-8:])
+        for line in outs.splitlines():
+            if 'Submitted' in line:
+                job_ids.append(line[-8:])
 
-        '''
         # Wait for slurm jobs to complete and determine the best model
         logging.info(f"Watching slurm for job numbers: {job_ids}")
         os.chdir(model_out)
-        now = datetime.now()
         for i in range(NUM_MODEL_OUTPUT_POLLS):
             if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
-                logging.info(f"NSP Retraining has timed out")
-                raise TimeoutError
-            logging.info(f"Waiting for slurm jobs to complete...")
-            time.sleep(MODEL_OUTPUT_POLL_TIME)
+                raise TimeoutError(f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds")
             if self.slurm_jobs_finished(job_ids):
                 accs = self.get_accs()
                 self.copy_best_model(accs)
                 break
-        '''
-        
-        os.chdir(model_out)
-        now = datetime.now()
-        for i in range(NUM_MODEL_OUTPUT_POLLS):
-            if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
-                logging.info(f"NSP Retraining has timed out")
-                raise TimeoutError
-            logging.info(f"Waiting for training logs to populate...")
             time.sleep(MODEL_OUTPUT_POLL_TIME)
-            accs = self.get_accs()
-            if accs:
-                try:
-                    self.copy_best_model(accs)
-                except:  # Files are created before they are fully populated, which causes errors
-                    continue
 
         # Save the best model in S3 bucket and close out
         upload_key = batch_id + "/best_model/best_model.pth" 
