@@ -30,7 +30,7 @@ if __name__ == "__main__":
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from agents.loco_mc_agent import LocoMCAgent
+from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
@@ -64,7 +64,7 @@ Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
 Item = namedtuple("Item", "id, meta")
 
 
-class CraftAssistAgent(LocoMCAgent):
+class CraftAssistAgent(DroidletAgent):
     default_frame = DEFAULT_FRAME
     coordinate_transforms = rotation
 

@@ -9,7 +9,7 @@ from typing import List, Tuple
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from droidlet.memory.memory_nodes import ChatNode
 from .utils import Look, Pos, Item, Player
-from agents.loco_mc_agent import LocoMCAgent
+from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
@@ -240,7 +240,7 @@ class Craft(FakeCPPAction):
         raise NotImplementedError()
 
 
-class FakeAgent(LocoMCAgent):
+class FakeAgent(DroidletAgent):
     CCW_LOOK_VECS = [(1, 0), (0, 1), (-1, 0), (0, -1)]
     default_frame = CraftAssistAgent.default_frame
     coordinate_transforms = CraftAssistAgent.coordinate_transforms
@@ -655,7 +655,7 @@ class FakePlayer(FakeAgent):
 
     def step(self):
         if self.active:
-            LocoMCAgent.step(self)
+            DroidletAgent.step(self)
 
     def controller_step(self):
         if self.logical_form is None:
