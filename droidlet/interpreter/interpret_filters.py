@@ -21,7 +21,7 @@ from droidlet.memory.memory_filters import (
 )
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
-from .location_helpers import interpret_relative_direction
+from .interpret_location import interpret_relative_direction
 from .interpret_comparators import interpret_comparator
 from .interpreter_utils import backoff_where
 

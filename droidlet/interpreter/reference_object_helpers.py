@@ -9,7 +9,7 @@ from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK
 from droidlet.dialog.dialogue_objects import ConfirmReferenceObject
-from .location_helpers import interpret_relative_direction
+from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
