@@ -6,7 +6,7 @@ from typing import List
 
 import droidlet.base_util
 import droidlet.perception.craftassist.heuristic_perception as heuristic_perception
-import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 import droidlet.lowlevel.minecraft.shapes as shapes
 from droidlet.shared_data_structs import NextDialogueStep

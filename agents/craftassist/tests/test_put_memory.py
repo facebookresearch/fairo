@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import unittest
 
 import droidlet.base_util
-import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 from droidlet.memory.memory_nodes import PlayerNode, SetNode
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase

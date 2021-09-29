@@ -44,7 +44,7 @@ from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import
 )
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP, BORING_BLOCKS, PASSABLE_BLOCKS
-from droidlet.lowlevel.minecraft import shape_helpers
+from droidlet.lowlevel.minecraft import shape_util
 from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.event import sio
@@ -92,15 +92,15 @@ class CraftAssistAgent(DroidletAgent):
         self.init_inventory()
         self.init_event_handlers()
 
-        shape_helper_dict = {
-            "shape_names": shape_helpers.SHAPE_NAMES,
-            "shape_helper": shape_helpers.SHAPE_HELPERS,
-            "bid": shape_helpers.bid(),
-            "shape_fns": shape_helpers.SHAPE_FNS
+        shape_util_dict = {
+            "shape_names": shape_util.SHAPE_NAMES,
+            "shape_option_fn_map": shape_util.SHAPE_OPTION_FUNCTION_MAP,
+            "bid": shape_util.bid(),
+            "shape_fns": shape_util.SHAPE_FNS
         }
         # list of (prob, default function) pairs
         self.visible_defaults = [
-            (0.001, (default_behaviors.build_random_shape, shape_helper_dict)),
+            (0.001, (default_behaviors.build_random_shape, shape_util_dict)),
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True

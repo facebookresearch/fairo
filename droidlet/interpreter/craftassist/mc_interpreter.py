@@ -390,7 +390,7 @@ class MCInterpreter(Interpreter):
             if not schematic_where.get("AND"):
                 raise ErrorWithResponse("I can't interpret complicated Dig commands like that yet")
             schematic_d = {}
-            # FIXME!  TORCH this whole thing, put in schematic_helper
+            # FIXME!  TORCH this whole thing, put in interpret_schematic
             for t in schematic_where["AND"]:
                 if t.get("pred_text"):
                     schematic_d[t["pred_text"]] = t["obj_text"]

@@ -85,7 +85,7 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
 #            ReferenceLocationInterpreter to use FILTERS cleanly
 #            current system is ungainly and wrong...
 #            interpretation of selector and filtering by location
-#            is spread over the above objects and functions in filter_helper
+#            is spread over the above objects and functions in interpret_filter
 ###########################################################################
 class ReferenceObjectInterpreter:
     def __init__(self, interpret_reference_object):
