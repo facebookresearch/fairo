@@ -19,7 +19,7 @@ from droidlet.perception.craftassist.shape_transforms import (
 )
 from droidlet.shared_data_structs import ErrorWithResponse
 from ..interpreter import interpret_relative_direction
-from .block_helpers import get_block_type
+from .block_handler import get_block_type
 
 
 # TODO lots of reuse with build here....

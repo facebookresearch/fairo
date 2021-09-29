@@ -20,7 +20,7 @@ from droidlet.interpreter import (
     interpret_dance_filter,
 )
 
-from .schematic_helper import (
+from .interpret_schematic import (
     get_repeat_dir,
     interpret_schematic,
     interpret_size,
@@ -28,9 +28,9 @@ from .schematic_helper import (
     interpret_mob_schematic,
 )
 
-from .facing_helper import FacingInterpreter
+from .interpret_facing import FacingInterpreter
 
-from .modify_helpers import (
+from .interpret_modify import (
     handle_fill,
     handle_rigidmotion,
     handle_scale,
@@ -39,7 +39,7 @@ from .modify_helpers import (
 )
 from .spatial_reasoning import ComputeLocations
 from ..interpret_conditions import ConditionInterpreter
-from .attribute_helper import MCAttributeInterpreter
+from .interpret_attributes import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
