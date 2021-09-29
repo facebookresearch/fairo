@@ -14,7 +14,7 @@ from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from .filter_helper import interpret_selector
+from .interpret_filters import interpret_selector
 
 
 def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
