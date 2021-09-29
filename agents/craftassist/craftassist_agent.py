@@ -242,22 +242,19 @@ class CraftAssistAgent(LocoMCAgent):
         # 2. perceive from low_level perception module
         perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
-
-        self.areas_to_perceive = self.memory.update_with_lowlevel_perception_input(
+        self.areas_to_perceive = self.memory.update_with_perception_input(
             perception_output, self.areas_to_perceive)
-        # 3. perceive from heuristic perception module
-        heuristic_perception_output = {}
+        # 3. with the updated areas_to_perceive, perceive from heuristic perception module
+        updated_perception_output = {}
         if force or not self.agent.memory.task_stack_peek():
             # perceive from heuristic perception module
-            heuristic_perception_output = self.perception_modules["heuristic"].perceive()
-            self.memory.update_with_heuristic_perception_input(heuristic_perception_output)
+            updated_perception_output.update(self.perception_modules["heuristic"].perceive())
         # 4. if semantic segmentation model is initialized, call perceive
         if "semseg" in self.perception_modules:
-            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
-            self.memory.update_with_labeled_blocks(sem_seg_perception_output)
+            updated_perception_output.update(self.perception_modules["semseg"].perceive())
+        self.memory.update_with_perception_input(updated_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
-
 
 
     def get_time(self):

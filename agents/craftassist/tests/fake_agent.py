@@ -418,13 +418,13 @@ class FakeAgent(LocoMCAgent):
             force = True
 
         perception_output = self.perception_modules["low_level"].perceive(force=force)
-        self.areas_to_perceive = self.memory.update_with_lowlevel_perception_input(
+        self.areas_to_perceive = self.memory.update_with_perception_input(
             perception_output, self.areas_to_perceive)
         if self.do_heuristic_perception:
             if force or not self.agent.memory.task_stack_peek():
                 # perceive from heuristic perception module
                 heuristic_perception_output = self.perception_modules["heuristic"].perceive()
-                self.memory.update_with_heuristic_perception_input(heuristic_perception_output)
+                self.memory.update_with_perception_input(heuristic_perception_output)
 
     ###################################
     ##  FAKE C++ PERCEPTION METHODS  ##
@@ -504,7 +504,7 @@ class FakeAgent(LocoMCAgent):
             changes_to_be_updated["changed_block_attributes"][(abs_xyz, idm)] = [interesting, player_placed, agent_placed]
             self.world.place_block((abs_xyz, idm))
         # TODO: to be named to normal update function
-        self.memory.update_with_lowlevel_perception_input(changes_to_be_updated, self.areas_to_perceive)
+        self.memory.update_with_perception_input(changes_to_be_updated, self.areas_to_perceive)
 
     def add_object(
         self, xyzbms: List[Block], origin: XYZ = (0, 0, 0), relations={}
