@@ -27,20 +27,27 @@ from slam_pkg.utils.fmm_planner import FMMPlanner
 from slam_pkg.utils import depth_util as du
 
 class TrackBack(object):
-    def __init__(self, locs):
-        self.locs = set(locs)
+    def __init__(self):
+        self.locs = set()
 
     def update(self, loc):
         self.locs.add(loc)
 
     def dist(self, a, b):
-        return np.linalg.norm((np.array(a) - np.array(b)), ord=1)
+        d = np.linalg.norm((np.array(a) - np.array(b)), ord=1)
+        # print(f'dist {a, b} = {d}')
+        return d
 
     def get_loc(self, cur_loc, traversable):
         ans = None
         d = 10000000
         for x in self.locs:
-            if d > self.dist(cur_loc, x) and traversable[x[1], x[0]]:
+            if not traversable[round(x[1]), round(x[0])]:
+                print(f'removing {x} not traversable')
+                self.locs.remove(x)
+                continue
+            # print(f'candidate loc {round(x[0]), round(x[1])}, cur_loc {cur_loc}')
+            if d > self.dist(cur_loc, x):
                 ans = x
                 d = self.dist(cur_loc, x)
         print(f'track back loc {ans}')
@@ -143,7 +150,7 @@ class Slam(object):
         self.last_stg = None
         self.explore_goal = None
         self.debug_state = {}
-        self.track_back = TrackBack([self.init_state])
+        self.track_back = TrackBack()
 
 
     def init_save(self, save_folder, save_vis=True):
@@ -259,15 +266,10 @@ class Slam(object):
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
-        # selem = disk(self.robot_rad / self.map_builder.resolution)
-        # traversable = binary_dilation(obstacle, selem) != True
-        traversable = obstacle != True
+        selem = disk(self.robot_rad / self.map_builder.resolution)
+        traversable = binary_dilation(obstacle, selem) != True
+        # traversable = obstacle != True
 
-        # add robot collision map to traversable area
-        # Visualize this 
-        # unknown_region = self.map_builder.map.sum(axis=-1) < 1
-        # col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
-        # traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
         return traversable
     
     def get_stg(self, step_size):
@@ -289,7 +291,7 @@ class Slam(object):
         :return:
         """
         print(f'\nstep begin ...')
-        traversable = self.get_stg(5)
+        traversable = self.get_stg(step_size)
 
         # print(f'self.goal_loc {self.goal_loc} self.explore_goal {self.explore_goal}')
         # convert goal from map space to robot space
@@ -308,8 +310,10 @@ class Slam(object):
         robot_map_loc = self.real2map(robot_state)
 
         pp(f'robot_map_loc before translation', robot_map_loc)
+        print(f'self.planner.fmm_dist[{self.stg[1]}][{self.stg[0]}] = {self.planner.fmm_dist[self.stg[1], self.stg[0]]}')
+        # print(f'self.planner.fmm_dist[{self.stg[0]}][{self.stg[1]}] = {self.planner.fmm_dist[self.stg[0], self.stg[1]]}')
 
-        # check whether goal is on collision
+        # check whether goal is on collision # should never happen? 
         if not traversable[self.stg[1], self.stg[0]]:
             print("Obstacle in path")
             print(f'traversable[stg] {traversable[self.stg[1], self.stg[0]]}')
@@ -346,11 +350,7 @@ class Slam(object):
             pp('robot_map_loc', robot_map_loc)
 
             self.track_back.update(robot_map_loc)
-            # if self.track_back[:2] != s[:2]:
-            #     self.track_back = s
-            #     pp('cur track back', self.real2map(self.get_rel_state(self.track_back, self.init_state)))
         else:
-            # elif self.robot.base._as.get_state() == LocalActionStatus.PREEMPTED: # pre-empted when obstacle hits
             print(f'translation failed') 
             pp('robot_map_loc', robot_map_loc)
 
@@ -365,8 +365,8 @@ class Slam(object):
             # print(f'map_builder loc update {self.map_builder.map[round(robot_map_loc[1]), round(robot_map_loc[0]), 1]}')
             
             # traversable = self.update_map()
-            traversable = self.get_stg(5)
-
+            traversable = self.get_stg(step_size)
+            print(f'ostg {ostg}, stg {self.stg}')
             #check here that fmm_dist is updated 
 
             ob = [x for x in zip(*np.where(self.planner.fmm_dist == 10000))]
@@ -377,9 +377,11 @@ class Slam(object):
 
             print(f'is robot_loc traversable after update {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')
             print(f'is stg traversable after update {traversable[ostg[1], ostg[0]]}')
-
+            print(f'self.planner.fmm_dist[{ostg[1]}][{ostg[0]}] = {self.planner.fmm_dist[ostg[1], ostg[0]]}')
             # track back 
-            self.robot.base.go_to_absolute(self.track_back.get_loc(robot_map_loc, traversable), wait=self.exec_wait)
+            track_back = self.map2real(self.track_back.get_loc(robot_map_loc, traversable))
+            track_back_g = self.get_absolute_goal((track_back[0], track_back[1], 0))
+            self.robot.base.go_to_absolute(track_back_g, wait=self.exec_wait)
             while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
                 if self.save_vis:
                     self.save_rgb_depth_seg()
@@ -394,7 +396,6 @@ class Slam(object):
                 # print(f'robot_map_loc {round(robot_map_loc[0]), round(robot_map_loc[1])}')
             else:
                 print('track back failed')
-
 
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         # print("bot_state after executing action = {}".format(robot_state))
@@ -439,235 +440,6 @@ class Slam(object):
             self.save_end_state("fmmdist >= max", traversable)
             return False
         return None
-
-    # def take_step(self, step_size):
-    #     """
-    #     step size in meter
-    #     :param step_size:
-    #     :return:
-    #     """
-    #     # print(f'maxx {self.maxx}, maxy {self.maxy}, minx {self.minx}, miny {self.miny}')
-    #     print(f'\nstep begin ...')
-    #     # for rotation
-    #     traversable = self.get_stg(5)
-
-    #     # print(f'self.goal_loc {self.goal_loc} self.explore_goal {self.explore_goal}')
-    #     # convert goal from map space to robot space
-    #     stg_real = self.map2real([self.stg[1], self.stg[0]])
-    #     print(f'goal_loc_map {int(self.goal_loc_map[0]), int(self.goal_loc_map[1])}')
-    #     print(f"stg = {int(self.stg[1]), int(self.stg[0])}")
-    #     # print("stg real = {}".format(stg_real))
-
-    #     # convert stg real from init frame to global frame of pyrobot
-    #     stg_real_g = self.get_absolute_goal((stg_real[0], stg_real[1], 0))
-    #     robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
-    #     # print("bot_state before executing action = {}".format(robot_state))
-
-    #     exec = True
-
-    #     # orient the robot
-    #     # exec = self.robot.base.go_to_relative(
-    #     #     (
-    #     #         0,
-    #     #         0,
-    #     #         np.arctan2(
-    #     #             stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0]
-    #     #         )
-    #     #         - robot_state[2],
-    #     #     ),
-    #     #     wait=self.exec_wait,
-    #     # )
-    #     # while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
-    #     #     if self.save_vis:
-    #     #         self.save_rgb_depth_seg()
-    #     #     else:
-    #     #         pass
-
-    #     # # update map
-    #     # # traversable = self.update_map()
-    #     # if exec:
-    #     #     print(f'finished rotation')
-    #     # else:
-    #     #     print(f'rotation failed')
-
-    #     # # redo for translation
-    #     # traversable = self.update_map()
-    #     # traversable = self.get_stg(5)
-
-    #     # if self.stg == self.last_stg:
-    #     #     self.save_end_state(f'Same short term goal for translation, aborting', traversable)
-    #     #     self.whole_area_explored = True
-    #     #     print(f'same stg!! {self.stg} {self.whole_area_explored}')
-    #     #     return False
-        
-    #     # self.last_stg = self.stg
-    
-    #     # add robot collision map to traversable area
-    #     # commented it as on real robot this gives issue sometime
-    #     # unknown_region = self.map_builder.map.sum(axis=-1) < 1
-    #     # col_map_unknown = np.logical_and(self.col_map > 0.1, unknown_region)
-    #     # traversable = np.logical_and(traversable, np.logical_not(col_map_unknown))
-        
-    #     robot_map_loc = self.real2map(
-    #         self.get_rel_state(self.get_robot_global_state(), self.init_state)
-    #     )
-    #     print(f'robot_map_loc before translation {int(robot_map_loc[0]), int(robot_map_loc[1])}')
-    #     is_traversable = np.logical_or.reduce(
-    #         traversable[
-    #             floor(self.stg[1]) : ceil(self.stg[1]), floor(self.stg[0]) : ceil(self.stg[0])
-    #         ],
-    #         axis=(0, 1),
-    #     )
-    #     # check whether goal is on collision
-    #     if not is_traversable:
-    #         print("Obstacle in path")
-    #         print(f'traversable[stg] \
-    #             {traversable[floor(self.stg[1]) : ceil(self.stg[1]), floor(self.stg[0]) : ceil(self.stg[0])]}')
-            
-    #         print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
-    #         print(f'traversable[robot_loc] {traversable[int(robot_map_loc[1]), int(robot_map_loc[0])]}')
-
-    #         # Update map has happened, so shouldn't return the same stg
-    #         exec = False
-            
-    #         # Track back
-    #         # exec = self.robot.base.go_to_absolute(self.track_back, wait=self.exec_wait)
-    #         # while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
-    #         #     if self.save_vis:
-    #         #         self.save_rgb_depth_seg()
-    #         #     else:
-    #         #         pass
-
-    #     else:
-    #         # save track back loc, this is a loc robot is at and can come back to
-            
-    #         # go to the location the robot
-    #         rs = self.get_rel_state(self.get_robot_global_state(), self.init_state)
-    #         exec = self.robot.base.go_to_absolute(
-    #             (
-    #                 stg_real_g[0],
-    #                 stg_real_g[1],
-    #                 np.arctan2(
-    #                     stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0] #stg_real[1] - rs[1], stg_real[0] - rs[0]
-    #                 ) + self.init_state[2],
-    #             ),
-    #             wait=self.exec_wait,
-    #         )
-    #         while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
-    #             if self.save_vis:
-    #                 self.save_rgb_depth_seg()
-    #             else:
-    #                 pass
-        
-    #     exec = self.robot.base._as.get_state() == LocalActionStatus.SUCCEEDED
-    #     robot_map_loc = self.real2map(
-    #         self.get_rel_state(self.get_robot_global_state(), self.init_state)
-    #     )
-    #     if exec:
-    #         # if self.robot.base._as.get_state() == LocalActionStatus.SUCCEEDED:
-    #         print(f'finished translation')
-    #         print(f'robot_map_loc {int(robot_map_loc[0]), int(robot_map_loc[1])}')
-
-    #         s = self.get_robot_global_state()
-    #         if self.track_back[:2] != s[:2]:
-    #             self.track_back = s
-    #             print(f'cur track back {self.real2map(self.get_rel_state(self.track_back, self.init_state))}')
-    #     else:
-    #         # elif self.robot.base._as.get_state() == LocalActionStatus.PREEMPTED: # pre-empted when obstacle hits
-    #         print(f'translation failed') 
-    #         print(f'robot_map_loc {int(robot_map_loc[0]), int(robot_map_loc[1])}')
-
-    #         # print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
-    #         print(f'is robot_loc traversable {traversable[int(robot_map_loc[1]), int(robot_map_loc[0])]}')
-    #         print(f'is stg traversable {traversable[int(self.stg[1]), int(self.stg[0])]}')
-
-    #         # set map builder as obstacle 
-    #         self.map_builder.map[int(robot_map_loc[1]), int(robot_map_loc[0]), 1] = 1
-    #         self.map_builder.map[int(self.stg[1]), int(self.stg[0]), 1] = 1
-
-    #         print(f'map_builder loc update {self.map_builder.map[int(robot_map_loc[1]), int(robot_map_loc[0]), 1]}')
-    #         traversable = self.update_map()
-    #         # traversable = self.get_stg(5)
-    #         print(f'is robot_loc traversable after update {traversable[int(robot_map_loc[1]), int(robot_map_loc[0])]}')
-    #         print(f'is stg traversable after update {traversable[int(self.stg[1]), int(self.stg[0])]}')
-
-    #         # track back 
-    #         self.robot.base.go_to_absolute(self.track_back, wait=self.exec_wait)
-    #         while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
-    #             if self.save_vis:
-    #                 self.save_rgb_depth_seg()
-    #             else:
-    #                 pass
-    #         if self.robot.base._as.get_state() == LocalActionStatus.SUCCEEDED:
-    #             print(f'track back succeeded to {self.track_back}')
-    #             robot_map_loc = self.real2map(
-    #                 self.get_rel_state(self.get_robot_global_state(), self.init_state)
-    #             )
-    #             print(f'robot_map_loc {int(robot_map_loc[0]), int(robot_map_loc[1])}')
-    #         else:
-    #             print('track back failed')
-
-
-    #     robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
-    #     # print("bot_state after executing action = {}".format(robot_state))
-
-    #     # update robot location list
-    #     robot_state_map = self.real2map(robot_state[:2])
-    #     self.robot_loc_list_map = np.concatenate(
-    #         (self.robot_loc_list_map, np.array([robot_state_map]))
-    #     )
-    #     self.prev_bot_state = robot_state
-
-    #     # # if robot collides
-    #     # if not exec:
-    #     #     # add obstacle in front of  cur location
-    #     #     # print(f'update obstacle map now ...')
-    #     #     self.col_map += self.get_collision_map(robot_state)
-    #     # # in case of locobot we need to check bumper state
-    #     # if self.robot_name == "locobot":
-    #     #     # print(f'len(self.bumper_state.bumper_state) {len(self.bumper_state.bumper_state)}')
-    #     #     if len(self.bumper_state.bumper_state) > 0:
-    #     #         for bumper_num in self.bumper_state.bumper_state:
-    #     #             print(f'self.bumper_num2ang[{bumper_num}] = {self.bumper_num2ang[bumper_num]}')
-    #     #             self.col_map += self.get_collision_map(
-    #     #                 (
-    #     #                     robot_state[0],
-    #     #                     robot_state[1],
-    #     #                     robot_state[2] + self.bumper_num2ang[bumper_num],
-    #     #                 )
-    #     #             )
-        
-    #     self.visualize()
-
-    #     # return True if robot reaches within threshold
-    #     if (
-    #         np.linalg.norm(np.array(robot_state[:2]) - np.array(self.goal_loc[:2])) * 100.0
-    #         < np.sqrt(2) * self.map_builder.resolution
-    #     ):
-    #         self.robot.base.go_to_absolute(
-    #             self.get_absolute_goal(self.goal_loc), wait=self.exec_wait
-    #         )
-    #         print("robot has reached goal")
-    #         while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
-    #             if self.save_vis:
-    #                 self.save_rgb_depth_seg()
-    #             else:
-    #                 pass
-    #         return True
-
-    #     # return False if goal is not reachable
-    #     if not traversable[int(self.goal_loc_map[1]), int(self.goal_loc_map[0])]:
-    #         print("Goal Not reachable")
-    #         return False
-    #     if (
-    #         self.planner.fmm_dist[int(robot_state_map[1]), int(robot_state_map[0])]
-    #         >= self.planner.fmm_dist.max()
-    #     ):
-    #         print("whole area is explored")
-    #         self.whole_area_explored = True
-    #         self.save_end_state("fmmdist >= max", traversable)
-    #         return False
-    #     return None
     
     def save_end_state(self, msg, traversable):
         np.save(self.trav_folder + "/traversable.npy", traversable)
@@ -881,8 +653,8 @@ class Slam(object):
             # goal
             plt.plot(self.goal_loc_map[0], self.goal_loc_map[1], "y*")
             # short term goal
-            # plt.plot(self.stg[1], self.stg[0], "b*")
-            plt.plot(self.stg[0], self.stg[1], "b*")
+            plt.plot(self.stg[1], self.stg[0], "b*")
+            # plt.plot(self.stg[0], self.stg[1], "b*")
             plt.plot(self.robot_loc_list_map[:, 0], self.robot_loc_list_map[:, 1], "r--")
 
             # draw heading of robot

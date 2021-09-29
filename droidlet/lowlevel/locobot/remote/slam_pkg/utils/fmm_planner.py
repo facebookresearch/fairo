@@ -2,6 +2,40 @@ import numpy as np
 import skfmm
 from numpy import ma
 
+"""
+Convention - All slam co-ordinates are represented as (x,y). But this means 
+
+
+Slam coordinates
+y
+^
+|
+|
+|
+|---------->x
+
+Numpy Array coordinate
+
+----------->col
+|
+|
+|
+|
+row
+
+So col = x, row = -y
+
+for any x,y, the 1-neighborhood is 
+
+(x-1,y+1) (x,y+1) (x+1,y+1)
+(x-1,y)   (x,y)   (x+1,y)
+(x-1,y-1) (x,y-1) (x+1,y-1)
+
+y-1,x-1  y-1,x
+y,x-1    y,x
+y+1,x-1  y+1,x
+
+"""
 
 class FMMPlanner(object):
     def __init__(self, traversable, step_size=5):
@@ -59,15 +93,19 @@ class FMMPlanner(object):
         # print(f'subset.shape {subset.shape}')
 
         # find the index which has minimum distance
+        np.set_printoptions(precision=3)
         (stg_y, stg_x) = np.unravel_index(np.argmin(subset), subset.shape)
-        print(subset, stg_x, stg_y, self.step_size)
+        print(subset, stg_y, stg_x, subset[stg_y][stg_x], self.step_size)
 
-        if stg_y < 1:
-            stg_y *= -1
+        # stg_y = self.step_size - stg_y # 10, -5
         
-        if stg_x < 1:
-            stg_x *= -1
         
-        # # convert index from subset frame (return r,c)
-        return stg_x + state[0] - 1, stg_y + state[1] - 1
+        # if stg_x < self.step_size:
+        #     stg_x *= -1
+        
+        # # convert index from subset frame (return x,y)
+        sx = stg_x - self.step_size + state[0]
+        sy = stg_y - self.step_size + state[1]
+        print(f'self.fmm_dist {self.fmm_dist[sy][sx], self.fmm_dist[sx][sy], self.fmm_dist[state[1]][state[0]]}')
+        return sx, sy  
         # return (stg_x + state[0] - self.step_size) + 0.5, (stg_y + state[1] - self.step_size) + 0.5
