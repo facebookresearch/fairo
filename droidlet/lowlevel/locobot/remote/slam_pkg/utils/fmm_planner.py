@@ -50,10 +50,10 @@ class FMMPlanner(object):
         dist = np.pad(
             self.fmm_dist, self.step_size, "constant", constant_values=self.fmm_dist.shape[0] ** 2
         )
-        # take subset of distance around the start, as its padded start should be corner instead of center
+        # take subset of distance around the start
         subset = dist[
-            state[1] : state[1] + 2*self.step_size + 1,
-            state[0] : state[0] + 2*self.step_size + 1,
+            state[1] + step_size - step_size : state[1] + 2*self.step_size + 1,
+            state[0] + step_size - step_size : state[0] + 2*self.step_size + 1,
         ]
 
         # print(f'subset.shape {subset.shape}')

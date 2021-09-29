@@ -291,7 +291,7 @@ class Slam(object):
         :return:
         """
         print(f'\nstep begin ...')
-        traversable = self.get_stg(step_size)
+        traversable = self.get_stg(step_size) # sets self.stg
 
         # print(f'self.goal_loc {self.goal_loc} self.explore_goal {self.explore_goal}')
         # convert goal from map space to robot space
@@ -320,9 +320,7 @@ class Slam(object):
             # print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
             print(f'traversable[robot_loc] {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')
 
-        else:
-            # save track back loc, this is a loc robot is at and can come back to
-            
+        else:            
             # go to the location the robot
             exec = self.robot.base.go_to_absolute(
                 (
@@ -348,7 +346,6 @@ class Slam(object):
             # if self.robot.base._as.get_state() == LocalActionStatus.SUCCEEDED:
             print(f'finished translation')
             pp('robot_map_loc', robot_map_loc)
-
             self.track_back.update(robot_map_loc)
         else:
             print(f'translation failed') 
@@ -359,6 +356,7 @@ class Slam(object):
             print(f'is stg traversable {traversable[self.stg[1], self.stg[0]]}')
 
             # set map builder as obstacle 
+            # TODO use robot_map_loc to update map builder instead of stg (which might be faraway and traversable)
             # self.map_builder.map[round(robot_map_loc[1]), round(robot_map_loc[0]), 1] = 1
             self.map_builder.map[self.stg[1], self.stg[0], 1] = 1
             ostg = self.stg
@@ -395,7 +393,7 @@ class Slam(object):
                 pp('robot_map_loc', robot_map_loc)
                 # print(f'robot_map_loc {round(robot_map_loc[0]), round(robot_map_loc[1])}')
             else:
-                print('track back failed')
+                print('track back failed') # possible mode of failure. shouldn't happen? check in noisy setting.
 
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         # print("bot_state after executing action = {}".format(robot_state))
@@ -416,15 +414,7 @@ class Slam(object):
             np.linalg.norm(np.array(robot_state_map) - np.array(self.goal_loc_map)) * 100.0
             < np.sqrt(2) * self.map_builder.resolution
         ):
-            # self.robot.base.go_to_absolute(
-            #     self.get_absolute_goal(self.goal_loc), wait=self.exec_wait
-            # )
             print("robot has reached goal")
-            # while self.robot.base._as.get_state() == LocalActionStatus.ACTIVE:
-            #     if self.save_vis:
-            #         self.save_rgb_depth_seg()
-            #     else:
-            #         pass
             return True
 
         # return False if goal is not reachable
@@ -554,57 +544,6 @@ class Slam(object):
         real_loc /= 100  # to convert from cm to meter
         real_loc = real_loc.reshape(3)
         return real_loc[:2]
-
-    def get_collision_map(self, state, obstacle_size=(10, 10)):
-        """
-        Helpful for creating collision map based on the bumper sensor reading.
-        Creates collision map based on robot current location (in real world frame) and obstacle size
-        :param state: robot state in metric unit
-        :param obstacle_size: size of obstacle in map space
-
-        :type state: tuple
-        :type obstacle_size: tuple
-
-        :return: collision map
-        :rtype: np.ndarray
-        """
-        # get the collision map for robot collision based on sensor reading
-        col_map = np.zeros((self.map_builder.map.shape[0], self.map_builder.map.shape[1]))
-        map_state = self.real2map((state[0], state[1]))
-        map_state = [int(x) for x in map_state]
-        center_map_state = self.real2map((0, 0))
-        center_map_state = [int(x) for x in center_map_state]
-        col_map[
-            center_map_state[1] + 2 : center_map_state[1] + 2 + obstacle_size[1],
-            center_map_state[0]
-            - int(obstacle_size[0] / 2) : center_map_state[0]
-            + int(obstacle_size[0] / 2),
-        ] = True
-
-        # rotate col_map based on the state
-        col_map = ndimage.rotate(col_map, -np.rad2deg(state[2]), reshape=False)
-
-        # take crop around the center
-        pad_len = 2 * max(obstacle_size)
-        cropped_map = copy(
-            col_map[
-                center_map_state[1] - pad_len : center_map_state[1] + pad_len,
-                center_map_state[0] - pad_len : center_map_state[0] + pad_len,
-            ]
-        )
-
-        # make the crop value zero
-        col_map = np.zeros((self.map_builder.map.shape[0], self.map_builder.map.shape[1]))
-
-        # pad the col_map
-        col_map = np.pad(col_map, pad_len)
-
-        # paste the crop robot location shifted by pad len
-        col_map[
-            map_state[1] - pad_len + pad_len : map_state[1] + pad_len + pad_len,
-            map_state[0] - pad_len + pad_len : map_state[0] + pad_len + pad_len,
-        ] = cropped_map
-        return col_map[pad_len:-pad_len, pad_len:-pad_len]
 
     def get_rel_state(self, cur_state, init_state):
         """
