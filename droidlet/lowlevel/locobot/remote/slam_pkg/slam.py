@@ -315,7 +315,7 @@ class Slam(object):
 
         # check whether goal is on collision # should never happen? 
         if not traversable[self.stg[1], self.stg[0]]:
-            print("Obstacle in path")
+            print("Obstacle in path! Should never happen, stg should never be an obstacle!!")
             print(f'traversable[stg] {traversable[self.stg[1], self.stg[0]]}')
             # print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
             print(f'traversable[robot_loc] {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')

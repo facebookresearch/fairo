@@ -52,8 +52,8 @@ class FMMPlanner(object):
         )
         # take subset of distance around the start
         subset = dist[
-            state[1] + step_size - step_size : state[1] + 2*self.step_size + 1,
-            state[0] + step_size - step_size : state[0] + 2*self.step_size + 1,
+            state[1] + self.step_size - self.step_size : state[1] + 2*self.step_size + 1,
+            state[0] + self.step_size - self.step_size : state[0] + 2*self.step_size + 1,
         ]
 
         # print(f'subset.shape {subset.shape}')
