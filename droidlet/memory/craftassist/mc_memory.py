@@ -175,7 +175,7 @@ class MCAgentMemory(AgentMemory):
         return hole_memories
 
 
-    def update_with_lowlevel_perception_input(self, perception_output, areas_to_perceive):
+    def update_with_lowlevel_perception_input(self, perception_output, areas_to_perceive=[]):
         """
         Updates the world with input from low_level perception module
 
@@ -194,12 +194,12 @@ class MCAgentMemory(AgentMemory):
         """
         updated_areas_to_perceive = areas_to_perceive
         # 1. Handle all mobs in agent's perception range
-        if perception_output["mobs"]:
+        if perception_output.get("mobs", []):
             for mob in perception_output["mobs"]:
                 self.set_mob_position(mob)
 
         # 2. Handle all items that the agent can pick up in-game
-        if perception_output["agent_pickable_items"]:
+        if perception_output.get("agent_pickable_items", {}):
             # 2.1 Items that are in perception range
             if perception_output["agent_pickable_items"]["in_perception_items"]:
                 for pickable_items in ["agent_pickable_items"]["in_perception_items"]:
@@ -219,7 +219,7 @@ class MCAgentMemory(AgentMemory):
                             self.tag(memid, "_on_ground")
 
         # 3. Update agent's current position and attributes in memory
-        if perception_output["agent_attributes"]:
+        if perception_output.get("agent_attributes", None):
             agent_player = perception_output["agent_attributes"]
             memid = self.get_player_by_eid(agent_player.entityId).memid
             cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
@@ -230,7 +230,7 @@ class MCAgentMemory(AgentMemory):
             )
 
         # 4. Update other in-game players in agent's memory
-        if perception_output["other_player_list"]:
+        if perception_output.get("other_player_list", []):
             player_list = perception_output["other_player_list"]
             for player, location in player_list:
                 mem = self.get_player_by_eid(player.entityId)
@@ -262,16 +262,17 @@ class MCAgentMemory(AgentMemory):
                     AttentionNode.create(self, location, attender=player.entityId)
 
         # 5. Update the state of the world when a block is changed.
-        for (xyz, idm) in perception_output["changed_block_attributes"]:
-            # 5.1 Update old instance segmentation if needed
-            self.maybe_remove_inst_seg(xyz)
+        if perception_output.get("changed_block_attributes", {}):
+            for (xyz, idm) in perception_output["changed_block_attributes"]:
+                # 5.1 Update old instance segmentation if needed
+                self.maybe_remove_inst_seg(xyz)
 
-            # 5.2 Update agent's memory with blocks that have been destroyed.
-            updated_areas_to_perceive = self.maybe_remove_block_from_memory(xyz, idm, areas_to_perceive)
+                # 5.2 Update agent's memory with blocks that have been destroyed.
+                updated_areas_to_perceive = self.maybe_remove_block_from_memory(xyz, idm, areas_to_perceive)
 
-            # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
-            interesting, player_placed, agent_placed = perception_output["changed_block_attributes"][(xyz, idm)]
-            self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
+                # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
+                interesting, player_placed, agent_placed = perception_output["changed_block_attributes"][(xyz, idm)]
+                self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
         return updated_areas_to_perceive
 

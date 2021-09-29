@@ -315,7 +315,7 @@ class FakeAgent(LocoMCAgent):
     def init_memory(self):
         T = FakeMCTime(self.world)
         low_level_data = self.low_level_data.copy()
-        low_level_data.update({'check_inside': heuristic_perception.check_inside})
+        low_level_data['check_inside'] = heuristic_perception.check_inside
 
         self.memory = MCAgentMemory(
             load_minecraft_specs=False,
@@ -494,19 +494,17 @@ class FakeAgent(LocoMCAgent):
     def set_blocks(self, xyzbms: List[Block], boring_blocks: Tuple[int], origin: XYZ = (0, 0, 0)):
         """Change the state of the world, block by block,
         store in memory"""
+
+        changes_to_be_updated = {"changed_block_attributes": {}}
         for xyz, idm in xyzbms:
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
             # TODO add force option so we don't need to make it as if agent placed
-            # 1. Update old instance segmentation
-            self.memory.maybe_remove_inst_seg(abs_xyz)
-            # 2.Update memory with destroyed blocks
-            self.areas_to_perceive = self.memory.maybe_remove_block_from_memory(xyz, idm, self.areas_to_perceive)
-            # 3. Update blocks in memory when any change in environment is cause
             interesting, player_placed, agent_placed = self.perception_modules["low_level"].mark_blocks_with_env_change(xyz, idm, boring_blocks)
-            self.memory.maybe_add_block_to_memory(interesting, player_placed, agent_placed, abs_xyz, idm)
-
+            changes_to_be_updated["changed_block_attributes"][(abs_xyz, idm)] = [interesting, player_placed, agent_placed]
             self.world.place_block((abs_xyz, idm))
+        # TODO: to be named to normal update function
+        self.memory.update_with_lowlevel_perception_input(changes_to_be_updated, self.areas_to_perceive)
 
     def add_object(
         self, xyzbms: List[Block], origin: XYZ = (0, 0, 0), relations={}

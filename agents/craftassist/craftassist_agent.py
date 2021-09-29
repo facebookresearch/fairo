@@ -174,7 +174,7 @@ class CraftAssistAgent(LocoMCAgent):
     def init_memory(self):
         """Intialize the agent memory and logging."""
         low_level_data = self.low_level_data.copy()
-        low_level_data.update({'check_inside': heuristic_perception.check_inside})
+        low_level_data['check_inside'] = heuristic_perception.check_inside
 
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
@@ -227,21 +227,22 @@ class CraftAssistAgent(LocoMCAgent):
         )
 
     def perceive(self, force=False):
-        """Whenever some blocks are changed, that area will be put into a 
+        """Whenever something is changed, that area is be put into a
         buffer which will be force-perceived by the agent in the next step.
 
         Here the agent first clusters areas that are overlapping on the buffer,
-        then run through all perception modules to perceive and finally clears the
+        then runs through all perception modules to perceive and finally clears the
         buffer when perception is done.
 
         The agent sends all perception updates to memory in order for them to
         update the memory state.
         """
-        self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         # 1. perceive from NLU parser
         super().perceive()
         # 2. perceive from low_level perception module
         perception_output = self.perception_modules["low_level"].perceive()
+        self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
+
         self.areas_to_perceive = self.memory.update_with_lowlevel_perception_input(
             perception_output, self.areas_to_perceive)
         # 3. perceive from heuristic perception module
@@ -254,7 +255,6 @@ class CraftAssistAgent(LocoMCAgent):
         if "semseg" in self.perception_modules:
             sem_seg_perception_output = self.perception_modules["semseg"].perceive()
             self.memory.update_with_labeled_blocks(sem_seg_perception_output)
-
         self.areas_to_perceive = []
         self.update_dashboard_world()
 
