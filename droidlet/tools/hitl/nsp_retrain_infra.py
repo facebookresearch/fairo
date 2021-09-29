@@ -41,9 +41,10 @@ MODEL_INFO_NAME = "best_model_info.txt"
 
 
 class NSPRetrainingJob(DataGenerator):
-    def __init__(self):
+    def __init__(self, batch_id, opts):
         super(NSPRetrainingJob, self).__init__()
-        self.batch_id = ""
+        self.batch_id = batch_id
+        self.opts = opts
 
     # Functions originally from sweep_monitor.py:
     def max_and_argmax(self,l):
@@ -84,7 +85,7 @@ class NSPRetrainingJob(DataGenerator):
         f.write("valid acc " + str(macc)  + "\n")
         f.close()
 
-    def downloadData(self):
+    def downloadData(self, opts):
         base_data_dir = os.path.join(opts.droidlet_dir, opts.full_data_dir)
         batch_id = str(self.batch_id)
         download_dir = os.path.join(base_data_dir, batch_id) # Currently downloads data to a new dir each time
@@ -115,7 +116,6 @@ class NSPRetrainingJob(DataGenerator):
 
         return batch_id, download_dir
 
-
     def slurm_jobs_finished(self, job_ids):
         for job in job_ids:
             cmd = 'sacct --jobs={}.batch --format=state'.format(job)
@@ -130,13 +130,13 @@ class NSPRetrainingJob(DataGenerator):
                 return False
         return True
 
-
     def run(self):
         logging.info(f"NSP Retraining Job initialized, downloading new data")
-        batch_id, download_dir = self.downloadData()
+        opts = self.opts
+        batch_id, download_dir = self.downloadData(opts)
     
         # Setup sweep_runner args
-        full_data_dir = download_dir[len(opts.droidlet_dir):] + "/"  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
+        full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
         sweep_args = "python3 " + \
             os.path.join(opts.sweep_runner_dir, "sweep_runner.py") + \
             " --sweep_config_folder " + opts.sweep_config_folder + \
@@ -207,10 +207,11 @@ class NSPRetrainingJob(DataGenerator):
 
 
 class NSPNewDataListener(JobListener):
-    def __init__(self, batch_id):
+    def __init__(self, batch_id, opts):
         super(NSPNewDataListener, self).__init__()
         self.batch_id = batch_id
         self.new_data_found = False
+        self.opts = opts
 
     def run(self, runner):
         logging.info(f"NSP New Data Listener running")
@@ -230,9 +231,7 @@ class NSPNewDataListener(JobListener):
                 logging.info(f"NSP Listener has found new data")
 
                 # Initialize retraining job
-                nsp_rt = NSPRetrainingJob()
-                nsp_rt.batch_id =  self.batch_id # Pass the batch_id to the data generator
-                # self.add_parent_jobs(nsp_rt)
+                nsp_rt = NSPRetrainingJob(batch_id=self.batch_id, opts=self.opts)
                 runner.register_data_generators([nsp_rt])
 
                 logging.info(f"NSP data gen job registered, listener return")
@@ -253,7 +252,7 @@ if __name__ == "__main__":
     opts = parser.parse_args()
 
     
-    ndl = NSPNewDataListener(456)
+    ndl = NSPNewDataListener(batch_id=456, opts=opts)
     runner = TaskRunner()
     runner.register_job_listeners([ndl])
     runner.run()
