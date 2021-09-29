@@ -64,6 +64,12 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
 
         return polymetis_pb2.Empty()
 
+    def Grasp(self, request, context):
+        self.gripper.goto(pos=request.pos, vel=request.vel, force=request.force)
+        self.gripper.sendCommand()
+
+        return polymetis_pb2.Empty()
+
 
 def run_server(ip, port, comport):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))

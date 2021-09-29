@@ -59,6 +59,7 @@ service PolymetisControllerServer {
 service GripperServer {
     rpc GetState(Empty) returns(GripperState) {}
     rpc Goto(GripperCommand) returns(Empty) {}
+    rpc Grasp(GripperCommand) returns(Empty) {}
 }
 
 message GripperCommand {
