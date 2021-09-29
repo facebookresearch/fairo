@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from copy import deepcopy
-from .attribute_helper import AttributeInterpreter, maybe_specific_mem
+from .interpret_attributes import AttributeInterpreter, maybe_specific_mem
 from droidlet.memory.memory_attributes import LinearExtentAttribute
 from droidlet.memory.memory_filters import (
     MemoryFilter,

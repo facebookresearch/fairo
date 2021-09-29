@@ -31,7 +31,7 @@ from .filter_helper import (
     interpret_where_backoff,
     maybe_apply_selector,
 )
-from .attribute_helper import AttributeInterpreter
+from .interpret_attributes import AttributeInterpreter
 
 __all__ = [
     SPEAKERLOOK,

@@ -5,14 +5,14 @@ import unittest
 from copy import deepcopy
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.interpreter.interpreter import Interpreter
-from droidlet.interpreter.attribute_helper import (
+from droidlet.interpreter.interpret_attributes import (
     interpret_span_value,
     maybe_specific_mem,
     interpret_linear_extent,
     interpret_task_info,
 )
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.interpreter.attribute_helper import AttributeInterpreter
+from droidlet.interpreter.interpret_attributes import AttributeInterpreter
 from droidlet.interpreter.tests import all_test_commands
 
 
