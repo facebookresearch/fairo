@@ -99,30 +99,9 @@ class MCAgentMemory(AgentMemory):
     ### Update world from perception updates ###
     ############################################
 
-    def update_mem_with_holes(self, holes):
+    def update(self, perception_output, areas_to_perceive=[]):
         """
-        Adds the list of holes to memory
-        """
-        hole_memories = []
-        for hole in holes:
-            memid = InstSegNode.create(self, hole[0], tags=["hole", "pit", "mine"])
-            try:
-                fill_block_name = self.low_level_block_data["bid_to_name"][hole[1]]
-            except:
-                idm = (hole[1][0], 0)
-                fill_block_name = self.low_level_block_data["bid_to_name"].get(idm)
-            if fill_block_name:
-                query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
-                _, fill_block_mems = self.basic_search(query)
-                fill_block_memid = fill_block_mems[0].memid
-                self.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
-            hole_memories.append(self.get_mem_by_id(memid))
-        return hole_memories
-
-
-    def update_with_perception_input(self, perception_output, areas_to_perceive=[]):
-        """
-        Updates the world with input from low_level perception module
+        Updates the world with updates from agent's perception module.
 
         Args:
             perception_output: Dict with members-
@@ -141,6 +120,7 @@ class MCAgentMemory(AgentMemory):
         updated_areas_to_perceive: list of (xyz, idm) representing the area agent should perceive
         """
         updated_areas_to_perceive = areas_to_perceive
+        """Perform update the memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
         if perception_output.get("mobs", []):
             for mob in perception_output["mobs"]:
@@ -236,7 +216,7 @@ class MCAgentMemory(AgentMemory):
                         )
             # 1.2 Update all holes with their block type in memory
             if perception_output["in_perceive_area"]["holes"]:
-                self.update_mem_with_holes(perception_output["in_perceive_area"]["holes"])
+                self.add_holes_to_mem(perception_output["in_perceive_area"]["holes"])
             # 1.3 Update tags of air-touching blocks
             if "airtouching_blocks" in perception_output["in_perceive_area"]:
                 shifted_c, tags = perception_output["in_perceive_area"]["airtouching_blocks"]
@@ -254,16 +234,20 @@ class MCAgentMemory(AgentMemory):
                         )
             # 2.2 Update all holes with their block type in memory
             if perception_output["near_agent"]["holes"]:
-                self.update_mem_with_holes(perception_output["near_agent"]["holes"])
+                self.add_holes_to_mem(perception_output["near_agent"]["holes"])
             # 2.3 Update tags of air-touching blocks
             if "airtouching_blocks" in perception_output["near_agent"]:
                 shifted_c, tags = perception_output["near_agent"]["airtouching_blocks"]
                 InstSegNode.create(self, shifted_c, tags=tags)
 
-        """Updated the memory with labeled blocks from SubComponent classifier"""
+        """Update the memory with labeled blocks from SubComponent classifier"""
         if perception_output.get("labeled_blocks", {}):
             for label, locations in perception_output["labeled_blocks"].items():
                 InstSegNode.create(self, locations, [label])
+
+        """Update the memory with holes"""
+        if perception_output.get("holes", None):
+            self.add_holes_to_mem(perception_output["holes"])
 
         return updated_areas_to_perceive
 
@@ -314,6 +298,27 @@ class MCAgentMemory(AgentMemory):
             self.upsert_block(
                 (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
             )
+
+
+    def add_holes_to_mem(self, holes):
+        """
+        Adds the list of holes to memory
+        """
+        hole_memories = []
+        for hole in holes:
+            memid = InstSegNode.create(self, hole[0], tags=["hole", "pit", "mine"])
+            try:
+                fill_block_name = self.low_level_block_data["bid_to_name"][hole[1]]
+            except:
+                idm = (hole[1][0], 0)
+                fill_block_name = self.low_level_block_data["bid_to_name"].get(idm)
+            if fill_block_name:
+                query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
+                _, fill_block_mems = self.basic_search(query)
+                fill_block_memid = fill_block_mems[0].memid
+                self.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
+            hole_memories.append(self.get_mem_by_id(memid))
+        return hole_memories
 
 
     def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM, areas_to_perceive):

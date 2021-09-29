@@ -242,7 +242,7 @@ class CraftAssistAgent(LocoMCAgent):
         # 2. perceive from low_level perception module
         perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
-        self.areas_to_perceive = self.memory.update_with_perception_input(
+        self.areas_to_perceive = self.memory.update(
             perception_output, self.areas_to_perceive)
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
         updated_perception_output = {}
@@ -252,7 +252,7 @@ class CraftAssistAgent(LocoMCAgent):
         # 4. if semantic segmentation model is initialized, call perceive
         if "semseg" in self.perception_modules:
             updated_perception_output.update(self.perception_modules["semseg"].perceive())
-        self.memory.update_with_perception_input(updated_perception_output)
+        self.memory.update(updated_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
 
