@@ -7,7 +7,8 @@ import numpy as np
 import logging
 from collections import Counter
 from typing import cast, List, Sequence, Dict
-from droidlet.base_util import XYZ, POINT_AT_TARGET, IDM, Block, MOBS_BY_ID, Look
+from droidlet.base_util import XYZ, POINT_AT_TARGET, IDM, Block, Look
+from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 from droidlet.memory.memory_nodes import link_archive_to_mem, ReferenceObjectNode, MemoryNode, NODELIST
 
 
@@ -332,8 +333,7 @@ class MobNode(ReferenceObjectNode):
             string: memid of the entry
 
         Examples::
-            >>> memory = AgentMemory()
-            >>> from droidlet.base_util import MOBS_BY_ID
+            >>> from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID            >>> memory = AgentMemory()
             >>> chicken = {v: k for k, v in MOBS_BY_ID.items()}["chicken"]
             >>> mob_id, mob_type, pos, look = 42, chicken, Pos(3, 4, 5), Look(0.0, 0.0)
             >>> mob = Mob(mob_id, mob_type, pos, look)) # get an instance of the Mob class

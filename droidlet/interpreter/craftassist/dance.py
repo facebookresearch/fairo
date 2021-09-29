@@ -1,6 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+import droidlet.shared_data_struct.craftassist_shared_utils
+
 """This file contain implementations of a collection of dances that the 
 agent can perform in game.
 """
@@ -8,8 +10,7 @@ import droidlet.base_util
 import numpy as np
 from droidlet.interpreter.craftassist import tasks
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.base_util import astar
-
+from droidlet.shared_data_struct.craftassist_shared_utils import astar
 
 # FIXME! actual jump on client
 jump = [{"translate": (0, 1, 0)}, {"translate": (0, -1, 0)}]
@@ -131,11 +132,11 @@ class RefObjMovement(Movement):
             center = ref_object.get_pos()
         d = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
         if relative_direction == "CLOCKWISE" or relative_direction == "AROUND":
-            offsets = droidlet.base_util.arrange(
+            offsets = droidlet.shared_data_struct.craftassist_shared_utils.arrange(
                 "circle", schematic=None, shapeparams={"encircled_object_radius": d}
             )
         elif relative_direction == "ANTICLOCKWISE":
-            offsets = droidlet.base_util.arrange(
+            offsets = droidlet.shared_data_struct.craftassist_shared_utils.arrange(
                 "circle", schematic=None, shapeparams={"encircled_object_radius": d}
             )
             offsets = offsets[::-1]
