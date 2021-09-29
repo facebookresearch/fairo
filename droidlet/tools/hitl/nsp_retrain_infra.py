@@ -34,6 +34,7 @@ MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output 
 
 s3 = boto3.client('s3')
 
+NUM_TRAINING_RUNS = 5
 MODEL_NAME = "best_model.pth"
 MODEL_INFO_NAME = "best_model_info.txt"
 
@@ -50,23 +51,18 @@ class NSPRetrainingJob(DataGenerator):
 
     def get_accs(self):
         accs = {}
-        now = datetime.now()
-        while not accs:
-            if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
-                logging.info(f"NSP Retraining has timed out")
-                raise TimeoutError
-            logging.info(f"Waiting for training logs to appear...")
-            time.sleep(MODEL_OUTPUT_POLL_TIME)
-            logs = [l for l in os.listdir() if l[-4:] == ".log"]
-            for log in logs:
-                accs[log] = []
-                f = open(log)
-                l = f.readlines()
-                for line in l:
-                    if "evaluating on" in line:
-                        s = line.split("\t")
-                        a = s[2][11:17]
-                        accs[log].append(float(a))
+        logs = [l for l in os.listdir() if l[-4:] == ".log"]
+        if len(logs) < NUM_TRAINING_RUNS:  # Wait until all logs have appeared, takes ~30 min from first to last
+            return False
+        for log in logs:
+            accs[log] = []
+            f = open(log)
+            l = f.readlines()
+            for line in l:
+                if "evaluating on" in line:
+                    s = line.split("\t")
+                    a = s[2][11:17]
+                    accs[log].append(float(a))
         return accs
 
     def copy_best_model(self,accs):
@@ -169,15 +165,23 @@ class NSPRetrainingJob(DataGenerator):
 
         # Determine the best model
         os.chdir(model_out)
-        accs = self.get_accs()  # Has a built in listener and timeout
-        self.copy_best_model(accs)
+        now = datetime.now()
+        for i in range(300):
+            if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
+                logging.info(f"NSP Retraining has timed out")
+                raise TimeoutError
+            logging.info(f"Waiting for training logs to appear...")
+            time.sleep(MODEL_OUTPUT_POLL_TIME)
+            accs = self.get_accs()
+            if accs:
+                self.copy_best_model(accs)
+                break
         
-        # Save the best model in S3 bucket
-        best_model_path = os.path.join(model_out, "best_model.pth")
+        # Save the best model in S3 bucket and close out
         upload_key = batch_id + "/best_model/best_model.pth" 
-        s3.upload_file(best_model_path, 'droidlet-hitl', upload_key)
+        s3.upload_file("best_model.pth", 'droidlet-hitl', upload_key)
 
-        self.set_finished()
+        self.set_finished(True)
         logging.info(f"NSP Retraining Job finished")
 
 
