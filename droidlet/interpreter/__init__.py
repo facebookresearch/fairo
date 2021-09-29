@@ -10,7 +10,7 @@ from .interpreter_utils import (
     ref_obj_lf_to_selector,
 )
 
-from .reference_object_helpers import (
+from .interpret_reference_objects import (
     ReferenceObjectInterpreter,
     interpret_reference_object,
     special_reference_search_data,
