@@ -37,7 +37,7 @@ class LocoAgentMemory(AgentMemory):
         self._safe_pickle_saved_attrs = {}
         self.dances = {}
 
-    def update(self, agent):
+    def update(self):
         pass
 
     #################
