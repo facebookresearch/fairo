@@ -31,10 +31,11 @@ logger.addHandler(sh)
 LISTENER_SLEEP_TIME = 10  # Seconds to wait before listener looks for new data
 NSP_RETRAIN_TIMEOUT = 18000  # Wait a max of 5h for the NSP retraining script to finish
 MODEL_OUTPUT_POLL_TIME = 60  # Seconds to wait between looking for model output logs
+NUM_MODEL_OUTPUT_POLLS = 500  # Number of times to poll model output files before assuming finished
 
 s3 = boto3.client('s3')
 
-NUM_TRAINING_RUNS = 5
+NUM_TRAINING_RUNS = 6
 MODEL_NAME = "best_model.pth"
 MODEL_INFO_NAME = "best_model_info.txt"
 
@@ -93,7 +94,7 @@ class NSPRetrainingJob(DataGenerator):
             pass
         data_filepath = download_dir + '/nsp_data.txt'
         try:
-            s3.download_file('droidlet-hitl', 'nsp_data.txt', data_filepath)  # Will overwrite file if exists
+            s3.download_file('droidlet-hitl', 'testing_data.txt', data_filepath)  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 file download")
             raise
@@ -150,8 +151,8 @@ class NSPRetrainingJob(DataGenerator):
             sweep.kill()
             outs, errs = sweep.communicate()
             logging.info(f"NSP Retrain child process timed out after {NSP_RETRAIN_TIMEOUT} seconds")
-        logging.info(f"Sweep script outputs: {outs}")
-        logging.info(f"Sweep script errors: {errs}")
+        logging.info(f"Sweep script outputs: \n{outs}")
+        logging.info(f"Sweep script errors: \n{errs}")
 
         # Find the model output directory -- ASSUMES UNIQUE BATCH_ID
         for dir in os.listdir(opts.output_dir):
@@ -164,9 +165,10 @@ class NSPRetrainingJob(DataGenerator):
             raise
 
         # Determine the best model
+        # TODO Change to monitor squeue for completion
         os.chdir(model_out)
         now = datetime.now()
-        for i in range(300):
+        for i in range(NUM_MODEL_OUTPUT_POLLS):
             if ((datetime.now() - now).seconds > NSP_RETRAIN_TIMEOUT):
                 logging.info(f"NSP Retraining has timed out")
                 raise TimeoutError
@@ -174,8 +176,10 @@ class NSPRetrainingJob(DataGenerator):
             time.sleep(MODEL_OUTPUT_POLL_TIME)
             accs = self.get_accs()
             if accs:
-                self.copy_best_model(accs)
-                break
+                try:
+                    self.copy_best_model(accs)
+                except ValueError:  # Raised b/c files are created before they are fully populated
+                    continue
         
         # Save the best model in S3 bucket and close out
         upload_key = batch_id + "/best_model/best_model.pth" 
@@ -232,7 +236,7 @@ if __name__ == "__main__":
     opts = parser.parse_args()
 
     
-    ndl = NSPNewDataListener(123)
+    ndl = NSPNewDataListener(456)
     runner = TaskRunner()
     runner.register_job_listeners([ndl])
     runner.run()
