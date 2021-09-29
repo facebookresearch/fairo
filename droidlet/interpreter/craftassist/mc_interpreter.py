@@ -38,7 +38,7 @@ from .modify_helpers import (
     handle_thicken,
 )
 from .spatial_reasoning import ComputeLocations
-from ..condition_helper import ConditionInterpreter
+from ..interpret_conditions import ConditionInterpreter
 from .attribute_helper import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import number_from_span
