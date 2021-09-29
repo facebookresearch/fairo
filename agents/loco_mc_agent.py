@@ -10,6 +10,7 @@ import datetime
 import os
 
 from agents.core import BaseAgent
+from agents.scheduler import EmptyScheduler
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.event import sio, dispatch
 from droidlet.base_util import hash_user
@@ -41,6 +42,7 @@ class LocoMCAgent(BaseAgent):
         self.areas_to_perceive = []
         self.perceive_on_chat = False
         self.agent_type = None
+        self.scheduler = EmptyScheduler()
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -58,7 +60,7 @@ class LocoMCAgent(BaseAgent):
         # Add optional logging for timeline
         if opts.log_timeline:
             self.timeline_log_file = open("timeline_log.{}.txt".format(self.name), "a+")
-        
+
         # Add optional hooks for timeline
         if opts.enable_timeline:
             dispatch.connect(self.log_to_dashboard, "perceive")
@@ -136,7 +138,9 @@ class LocoMCAgent(BaseAgent):
                 chat_parse = self.chat_parser.get_logical_form(
                     chat=command, parsing_model=self.chat_parser.parsing_model
                 )
-                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=command, logical_form=chat_parse)
+                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+                    speaker="dashboard", chat=command, logical_form=chat_parse
+                )
                 logging.debug("logical form is : %r" % (logical_form))
                 status = "Sent successfully"
             except Exception as e:
@@ -153,7 +157,7 @@ class LocoMCAgent(BaseAgent):
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
-        
+
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
             logging.info("Terminating agent")
@@ -167,10 +171,10 @@ class LocoMCAgent(BaseAgent):
                     f.write(turk_experiment_id)
                 # Write metadata associated with crowdsourced run such as the experiment ID
                 # and worker identification
-                job_metadata = { 
+                job_metadata = {
                     "turk_experiment_id": turk_experiment_id,
                     "mephisto_agent_id": mephisto_agent_id,
-                    "turk_worker_id": turk_worker_id
+                    "turk_worker_id": turk_worker_id,
                 }
                 with open("job_metadata.json", "w+") as f:
                     json.dump(job_metadata, f)
@@ -273,6 +277,7 @@ class LocoMCAgent(BaseAgent):
         if not task_mems:
             time.sleep(sleep_time)
             return
+        task_mems = self.scheduler.filter(task_mems)
         for mem in task_mems:
             mem.task.step()
             if mem.task.finished:
@@ -314,23 +319,27 @@ class LocoMCAgent(BaseAgent):
             speaker, chat = incoming_chats[0]
             preprocessed_chat, chat_parse = self.chat_parser.get_parse(chat)
             # add postprocessed chat here
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker).memid, preprocessed_chat)
+            chat_memid = self.memory.add_chat(
+                self.memory.get_player_by_name(speaker).memid, preprocessed_chat
+            )
             logical_form_memid = self.memory.add_logical_form(chat_parse)
-            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.add_triple(
+                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+            )
             # New chat, mark as unprocessed.
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
             hook_data = {
-                "name" : "perceive",
-                "start_time" : start_time,
-                "end_time" : end_time,
-                "elapsed_time" : (end_time - start_time).total_seconds(),
-                "agent_time" : self.get_time(),
-                "speaker" : speaker, 
-                "chat" : chat, 
-                "preprocessed_form" : preprocessed_chat, 
-                "logical_form" : chat_parse,
+                "name": "perceive",
+                "start_time": start_time,
+                "end_time": end_time,
+                "elapsed_time": (end_time - start_time).total_seconds(),
+                "agent_time": self.get_time(),
+                "speaker": speaker,
+                "chat": chat,
+                "preprocessed_form": preprocessed_chat,
+                "logical_form": chat_parse,
             }
             dispatch.send("perceive", data=hook_data)
 
@@ -369,6 +378,7 @@ class LocoMCAgent(BaseAgent):
 
         def noop(*args):
             pass
+
         defaults.append((1 - sum(p for p, _ in defaults), noop))  # noop with remaining prob
         # weighted random choice of functions
         p, fns = zip(*defaults)
@@ -402,9 +412,9 @@ class LocoMCAgent(BaseAgent):
     def log_to_dashboard(self, **kwargs):
         """Emits the event to the dashboard and/or logs it in a file"""
         if self.opts.enable_timeline:
-            result = kwargs['data']
+            result = kwargs["data"]
             # a sample filter for logging data from perceive and dialogue
-            allowed = ["perceive", "dialogue", "interpreter",]
+            allowed = ["perceive", "dialogue", "interpreter"]
             if result["name"] in allowed:
                 # JSONify the data, then send it to the dashboard and/or log it
                 result = json.dumps(result, default=str)
