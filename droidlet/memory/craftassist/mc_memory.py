@@ -210,8 +210,9 @@ class MCAgentMemory(AgentMemory):
         if perception_output.get("in_perceive_area", {}):
             # 1.1 Add colors of all block objects
             if perception_output["in_perceive_area"]["block_object_attributes"]:
-                for block_object, color_tags in perception_output["in_perceive_area"][
-                    "block_object_attributes"].items():
+                for block_object_attr in perception_output["in_perceive_area"][
+                    "block_object_attributes"]:
+                    block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self.agent.memory, block_object)
                     for color_tag in list(set(color_tags)):
                         self.add_triple(
@@ -228,8 +229,9 @@ class MCAgentMemory(AgentMemory):
         if perception_output.get("near_agent", {}):
             # 2.1 Add colors of all block objects
             if perception_output["near_agent"]["block_object_attributes"]:
-                for block_object, color_tags in perception_output["near_agent"][
-                    "block_object_attributes"].items():
+                for block_object_attr in perception_output["near_agent"][
+                    "block_object_attributes"]:
+                    block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self.agent.memory, block_object)
                     for color_tag in list(set(color_tags)):
                         self.add_triple(
