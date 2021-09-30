@@ -9,12 +9,12 @@ from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK
 from droidlet.dialog.dialogue_objects import ConfirmReferenceObject
-from .location_helpers import interpret_relative_direction
+from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from .filter_helper import interpret_selector
+from .interpret_filters import interpret_selector
 
 
 def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
@@ -85,7 +85,7 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
 #            ReferenceLocationInterpreter to use FILTERS cleanly
 #            current system is ungainly and wrong...
 #            interpretation of selector and filtering by location
-#            is spread over the above objects and functions in filter_helper
+#            is spread over the above objects and functions in interpret_filter
 ###########################################################################
 class ReferenceObjectInterpreter:
     def __init__(self, interpret_reference_object):

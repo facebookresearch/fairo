@@ -11,7 +11,7 @@ from typing import List, Tuple, Union, Optional
 # TODO with subinterpret
 from droidlet.memory.craftassist.mc_memory_nodes import SchematicNode
 from droidlet.interpreter.craftassist import size_words
-from .block_helpers import get_block_type
+from .block_handler import get_block_type
 from droidlet.base_util import number_from_span, Block
 from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num

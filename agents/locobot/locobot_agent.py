@@ -22,7 +22,7 @@ from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from agents.loco_mc_agent import LocoMCAgent
+from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
 import agents.locobot.label_prop as LP
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
@@ -51,7 +51,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().handlers.clear()
 
 
-class LocobotAgent(LocoMCAgent):
+class LocobotAgent(DroidletAgent):
     """Implements an instantiation of the LocoMCAgent on a Locobot. It starts
     off the agent processes including launching the dashboard.
 

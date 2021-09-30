@@ -20,7 +20,7 @@ from droidlet.interpreter import (
     interpret_dance_filter,
 )
 
-from .schematic_helper import (
+from .interpret_schematic import (
     get_repeat_dir,
     interpret_schematic,
     interpret_size,
@@ -28,9 +28,9 @@ from .schematic_helper import (
     interpret_mob_schematic,
 )
 
-from .facing_helper import FacingInterpreter
+from .interpret_facing import FacingInterpreter
 
-from .modify_helpers import (
+from .interpret_modify import (
     handle_fill,
     handle_rigidmotion,
     handle_scale,
@@ -38,8 +38,8 @@ from .modify_helpers import (
     handle_thicken,
 )
 from .spatial_reasoning import ComputeLocations
-from ..condition_helper import ConditionInterpreter
-from .attribute_helper import MCAttributeInterpreter
+from ..interpret_conditions import ConditionInterpreter
+from .interpret_attributes import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
@@ -390,7 +390,7 @@ class MCInterpreter(Interpreter):
             if not schematic_where.get("AND"):
                 raise ErrorWithResponse("I can't interpret complicated Dig commands like that yet")
             schematic_d = {}
-            # FIXME!  TORCH this whole thing, put in schematic_helper
+            # FIXME!  TORCH this whole thing, put in interpret_schematic
             for t in schematic_where["AND"]:
                 if t.get("pred_text"):
                     schematic_d[t["pred_text"]] = t["obj_text"]

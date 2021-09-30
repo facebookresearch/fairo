@@ -25,14 +25,13 @@ MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
 
-# this name is pathetic please help
-class LocoMCAgent(BaseAgent):
+class DroidletAgent(BaseAgent):
     def __init__(self, opts, name=None):
         logging.info("Agent.__init__ started")
         self.name = name or default_agent_name()
         self.opts = opts
         self.init_physical_interfaces()
-        super(LocoMCAgent, self).__init__(opts, name=self.name)
+        super(DroidletAgent, self).__init__(opts, name=self.name)
         self.uncaught_error_count = 0
         self.last_chat_time = 0
         self.last_task_memid = None

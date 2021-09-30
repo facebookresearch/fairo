@@ -11,7 +11,7 @@ from droidlet.interpreter import (
     ReferenceLocationInterpreter,
     GetMemoryHandler,
 )
-from .attribute_helper import MCAttributeInterpreter
+from .interpret_attributes import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse

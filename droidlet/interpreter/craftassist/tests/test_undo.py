@@ -6,7 +6,7 @@ import unittest
 import time
 
 import droidlet.base_util
-import droidlet.lowlevel.minecraft.shape_helpers
+import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 from droidlet.dialog.dialogue_objects import AwaitResponse
 from droidlet.interpreter.tests.all_test_commands import *

@@ -523,7 +523,7 @@ class Build(Task):
         if self.schematic_tags:
             for pred, obj in self.schematic_tags:
                 TripleNode.create(agent.memory, subj=blockobj_memid, pred_text=pred, obj_text=obj)
-                # sooooorrry  FIXME? when we handle triples better in interpreter_helper
+                # sooooorrry  FIXME? when we handle triples better
                 if "has_" in pred:
                     agent.memory.tag(self.blockobj_memid, obj)
 

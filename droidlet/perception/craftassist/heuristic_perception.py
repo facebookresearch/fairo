@@ -387,7 +387,7 @@ def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, st
     current_connected_comp = []
     current_idm = (2, 0)
 
-    # helper functions
+    # utility functions
     def get_block_info(x, z):  # fudge factor 5
         height = max_height
         while True:
