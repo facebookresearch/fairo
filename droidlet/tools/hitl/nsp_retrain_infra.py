@@ -77,7 +77,7 @@ class NSPRetrainingJob(DataGenerator):
         midx = 0
         for name, acc in accs.items():
             m, mi = self.max_and_argmax(acc)
-            if m > macc:
+            if m >= macc:
                 macc = m
                 mname = name
                 midx = mi
