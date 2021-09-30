@@ -31,7 +31,7 @@ class GripperInterface:
         """
         return self.grpc_connection.GetState(EMPTY)
 
-    def goto(self, pos, vel, force):
+    def goto(self, width, speed, force):
         """Commands the gripper to a certain width
         Args:
             pos: Target width
@@ -39,15 +39,15 @@ class GripperInterface:
             force: Maximum force the gripper will exert
         """
         self.grpc_connection.Goto(
-            polymetis_pb2.GripperCommand(pos=pos, vel=vel, force=force)
+            polymetis_pb2.GripperCommand(width=width, speed=speed, force=force)
         )
 
-    def grasp(self, vel, force):
+    def grasp(self, speed, force):
         """Commands the gripper to a certain width
         Args:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
-        self.grpc_connection.Goto(
-            polymetis_pb2.GripperCommand(pos=0.0, vel=vel, force=force)
+        self.grpc_connection.Grasp(
+            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force)
         )

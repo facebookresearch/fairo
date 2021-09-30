@@ -91,11 +91,11 @@ class ManipulatorSystem:
         time.sleep(0.2)
 
     def close_gripper(self):
-        self.gripper.goto(pos=0, vel=0.1, force=1.0)
+        self.gripper.grasp(speed=0.1, force=1.0)
         time.sleep(0.5)
 
     def open_gripper(self):
-        self.gripper.goto(pos=0.14, vel=0.1, force=1.0)
+        self.gripper.goto(width=0.02, speed=0.1, force=1.0)
         time.sleep(0.5)
 
     def grasp_pose_to_pos_quat(self, grasp_pose, z):
