@@ -46,6 +46,7 @@ class NSPRetrainingJob(DataGenerator):
         super(NSPRetrainingJob, self).__init__()
         self.batch_id = batch_id
         self.opts = opts
+        self.exec_training_run = True
 
 
     def max_and_argmax(self,l):
@@ -142,8 +143,6 @@ class NSPRetrainingJob(DataGenerator):
         # Copy in sweep config file so mask and config file are in one place
         og_sweep_config = os.path.join(opts.sweep_config_folder, 'sweep_config.txt')
         batch_sweep_config = os.path.join(batch_config_dir, 'sweep_config.txt')
-        logging.info(f"Orig sweep config filepath: {og_sweep_config}")
-        logging.info(f"New sweep config filepath: {batch_sweep_config}")
         shutil.copyfile(og_sweep_config, batch_sweep_config)
 
         # Pull indices from meta.txt to know which lines of data file should be used for train and valid
@@ -153,11 +152,28 @@ class NSPRetrainingJob(DataGenerator):
                 new_data_indices.append(int(line))
         new_data_rows = len(new_data_indices)
 
-        # Create a random mask that uses 70% of new data for training, 20% for validation, and 10% for testing
+        if (new_data_rows < int(opts.new_data_training_threshold)):
+            logging.warning(f"Not enough new data to trigger a training run, one will not be performed")
+            self.exec_training_run = False
+
+        # Import split ratios (default) 80% of new data for training, 10% for validation, and 10% for testing
+        # TODO handle formatting errors, negative numbers (here or in arg parser?)
+        data_split = opts.data_split_ratios.split('/')
+        data_split = [int(x)/100 for x in data_split]  # Convert from str % to fraction
+        logging.info(f"Data split ratios - train: {data_split[0]}, valid: {data_split[1]}, test: {data_split[2]}")
+        if (sum(data_split) != 1):
+            raise ValueError("Data splits do not sum to 100%")
+
+        # Randomize the submasks for train, valid, and test
         total_rows = sum(1 for line in open(data_filepath))
-        train_submask = torch.rand(new_data_rows) > 0.3  # Approx. 70% of new data used for training
-        valid_submask = torch.rand(new_data_rows) > 0.8  # Approx. 20% of new data used for validation
-        test_submask = torch.rand(total_rows) > (1 - (new_data_rows/total_rows))  # Approx. the same amount of test data from new and old
+        train_submask = torch.rand(new_data_rows) < data_split[0]  # Approx. % of new data used for training
+        valid_submask = torch.rand(new_data_rows) < data_split[1]  # Approx. % of new data used for validation
+        if (data_split[2] > 0):  # Use equal parts new and old data for testing
+            test_submask = torch.rand(total_rows) < ((new_data_rows/(total_rows - new_data_rows)) * data_split[2]) 
+        else:  # Use only old data, approx. the same number of samples as in valid
+            test_submask = torch.rand(total_rows) < ((new_data_rows/(total_rows - new_data_rows)) * data_split[1])
+
+        # Generate the full masks that are the same length as the input data
         train_mask, valid_mask, test_mask = [], [], []
         submask_pointer = 0
         for i in range(total_rows):
@@ -173,23 +189,23 @@ class NSPRetrainingJob(DataGenerator):
                 else:
                     train_mask.append(False)
                     valid_mask.append(False)
-                    test_mask.append(True)
+                    test_mask.append(True)  # All new data that's not in train or valid is used for test
                 submask_pointer += 1
             else:
-                train_mask.append(False)
+                train_mask.append(False)  # No old data used for train or valid
                 valid_mask.append(False)
                 if test_submask[i]:
                     test_mask.append(True)
                 else:
                     test_mask.append(False)
         perc_new = new_data_rows / total_rows
-        perc_train = (sum(1 for i in train_mask if i) / total_rows)
-        perc_valid = (sum(1 for i in valid_mask if i) / total_rows)
-        perc_test = (sum(1 for i in test_mask if i) / total_rows)
+        perc_train = sum(1 for i in train_mask if i) / total_rows
+        perc_valid = sum(1 for i in valid_mask if i) / total_rows
+        perc_test = sum(1 for i in test_mask if i) / total_rows
         logging.info(f"Fraction of data that is new: {perc_new}")
-        logging.info(f"Actual fraction of data used for training (~70% of new): {perc_train}")
-        logging.info(f"Actual fraction of data used for validation (~20% of new): {perc_valid}")
-        logging.info(f"Actual fraction of data used for testing (~10% of new + some old): {perc_test}")
+        logging.info(f"Actual fraction of data used for training (~{data_split[0]*100}% of new): {perc_train}")
+        logging.info(f"Actual fraction of data used for validation (~{data_split[1]*100}% of new): {perc_valid}")
+        logging.info(f"Actual fraction of data used for testing: {perc_test}")
 
         #reformat as dict with the appropriate keys and save
         train_mask = torch.Tensor(train_mask).bool()
@@ -223,7 +239,11 @@ class NSPRetrainingJob(DataGenerator):
         opts = self.opts
         batch_id = str(self.batch_id)
         download_dir, config_dir = self.download_data(opts, batch_id)
-        # TODO Figure out how to feed the mask into sweep runner
+
+        if not self.exec_training_run:
+            logging.info(f"NSP Retraining Job exiting without retraining model due to insufficient data")
+            self.set_finished(True)
+            return
     
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
@@ -291,8 +311,8 @@ class NSPRetrainingJob(DataGenerator):
         upload_key = batch_id + "/best_model/best_model.pth" 
         s3.upload_file("best_model.pth", 'droidlet-hitl', upload_key)
 
-        self.set_finished(True)
         logging.info(f"NSP Retraining Job finished")
+        self.set_finished(True)
         return
 
 
@@ -336,10 +356,12 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_runner_dir", default="/checkpoint/aszlam/nsp_cl_scripts/")
     parser.add_argument("--sweep_config_folder", default="/checkpoint/aszlam/nsp/sweeps/scripts/configs/auto_sweep_configs/")
     parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/aszlam/nsp/sweeps/scripts/")
-    parser.add_argument("--sweep_name", default="auto")
     parser.add_argument("--output_dir", default="/checkpoint/aszlam/nsp/sweeps/job_output/")
     parser.add_argument("--checkpoint_dir", default="/checkpoint/aszlam/nsp/")
+    parser.add_argument("--data_split_ratios", default="80/10/10", help="format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
+    parser.add_argument("--new_data_training_threshold", default="100", help="number of new data samples below which no training occurs")
     opts = parser.parse_args()
+    # TODO Implement error handing are argument inputs
 
     
     ndl = NSPNewDataListener(batch_id=456, opts=opts)
