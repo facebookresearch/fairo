@@ -10,6 +10,7 @@ import time
 from subprocess import Popen, PIPE, TimeoutExpired
 import boto3
 from datetime import datetime
+import torch
 
 from typing import List
 
@@ -46,10 +47,11 @@ class NSPRetrainingJob(DataGenerator):
         self.batch_id = batch_id
         self.opts = opts
 
-    # Functions originally from sweep_monitor.py:
+
     def max_and_argmax(self,l):
         i = max(range(len(l)), key=lambda i: l[i])
         return l[i], i
+
 
     def get_accs(self):
         accs = {}
@@ -66,6 +68,7 @@ class NSPRetrainingJob(DataGenerator):
                     a = s[2][11:17]
                     accs[log].append(float(a))
         return accs
+
 
     def copy_best_model(self,accs):
         macc = 0.0
@@ -85,9 +88,9 @@ class NSPRetrainingJob(DataGenerator):
         f.write("valid acc " + str(macc)  + "\n")
         f.close()
 
-    def downloadData(self, opts):
+
+    def download_data(self, opts, batch_id):
         base_data_dir = os.path.join(opts.droidlet_dir, opts.full_data_dir)
-        batch_id = str(self.batch_id)
         download_dir = os.path.join(base_data_dir, batch_id) # Currently downloads data to a new dir each time
         try:
             os.mkdir(download_dir)
@@ -95,9 +98,9 @@ class NSPRetrainingJob(DataGenerator):
             pass
         data_filepath = download_dir + '/nsp_data.txt'
         try:
-            s3.download_file('droidlet-hitl', 'testing_data.txt', data_filepath)  # Will overwrite file if exists
+            s3.download_file('droidlet-hitl', 'nsp_data.txt', data_filepath)  # Will overwrite file if exists
         except:
-            logging.info(f"Exception raised on S3 file download")
+            logging.info(f"Exception raised on S3 data file download")
             raise
         logging.info(f"New data download completed successfully")
 
@@ -114,7 +117,84 @@ class NSPRetrainingJob(DataGenerator):
                     raise ValueError("Annotated NSP data & logical forms not formatted as expected")
         logging.info(f"data successfully preprocessed into annotated.txt")
 
-        return batch_id, download_dir
+        mask_dir = self.create_mask(opts=opts, batch_id=batch_id, data_filepath=annotated_filepath)
+
+        return download_dir, mask_dir
+
+
+    def create_mask(self, opts, batch_id, data_filepath):
+        # Download meta.txt from appropriate S3 bucket
+        batch_config_dir = os.path.join(opts.sweep_config_folder, batch_id)
+        try:
+            os.mkdir(batch_config_dir)
+        except FileExistsError:
+            pass
+        meta_filepath = batch_config_dir + '/meta.txt'
+        download_key = batch_id + '/meta.txt'
+        logging.info(f"Download key: {download_key}")
+        try:
+            s3.download_file('droidlet-hitl', download_key, meta_filepath)  # Will overwrite file if exists
+        except:
+            logging.info(f"Exception raised on S3 meta.txt file download")
+            raise
+        logging.info(f"Meta.txt download completed successfully")
+
+        # Pull indices from meta.txt to know which lines of data file should be used for train and valid
+        new_data_indices = []
+        with open(meta_filepath, "r") as metafile:
+            for line in metafile:
+                new_data_indices.append(int(line))
+        new_data_rows = len(new_data_indices)
+
+        # Create a random mask that uses 70% of new data for training, 20% for validation, and 10% for testing
+        total_rows = sum(1 for line in open(data_filepath))
+        train_submask = torch.rand(new_data_rows) > 0.3  # Approx. 70% of new data used for training
+        valid_submask = torch.rand(new_data_rows) > 0.8  # Approx. 20% of new data used for validation
+        test_submask = torch.rand(total_rows) > (1 - (new_data_rows/total_rows))  # Approx. the same amount of test data from new and old
+        train_mask, valid_mask, test_mask = [], [], []
+        submask_pointer = 0
+        for i in range(total_rows):
+            if i in new_data_indices:
+                if train_submask[submask_pointer]:
+                    train_mask.append(True)
+                    valid_mask.append(False)
+                    test_mask.append(False)
+                elif valid_submask[submask_pointer]:
+                    train_mask.append(False)
+                    valid_mask.append(True)
+                    test_mask.append(False)
+                else:
+                    train_mask.append(False)
+                    valid_mask.append(False)
+                    test_mask.append(True)
+                submask_pointer += 1
+            else:
+                train_mask.append(False)
+                valid_mask.append(False)
+                if test_submask[i]:
+                    test_mask.append(True)
+                else:
+                    test_mask.append(False)
+        perc_new = new_data_rows / total_rows
+        perc_train = (sum(1 for i in train_mask if i) / total_rows)
+        perc_valid = (sum(1 for i in valid_mask if i) / total_rows)
+        perc_test = (sum(1 for i in test_mask if i) / total_rows)
+        logging.info(f"Percent of data that is new: {perc_new}")
+        logging.info(f"Actual percent of data used for training (~70% of new): {perc_train}")
+        logging.info(f"Actual percent of data used for validation (~20% of new): {perc_valid}")
+        logging.info(f"Actual percent of data used for testing (~10% of new + some old): {perc_test}")
+
+        #reformat as dict with the appropriate keys and save
+        train_mask = torch.Tensor(train_mask).bool()
+        valid_mask = torch.Tensor(valid_mask).bool()
+        test_mask = torch.Tensor(test_mask).bool()
+        mask_dict = {'annotated': {'train': train_mask, 'valid': valid_mask, 'test': test_mask}}
+        logging.info(f"Mask dictionary: {mask_dict}")
+        mask_filepath = batch_config_dir + '/split_masks.pth'
+        torch.save(mask_dict, mask_filepath)
+
+        return batch_config_dir
+
 
     def slurm_jobs_finished(self, job_ids):
         for job in job_ids:
@@ -130,10 +210,13 @@ class NSPRetrainingJob(DataGenerator):
                 return False
         return True
 
+
     def run(self):
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
-        batch_id, download_dir = self.downloadData(opts)
+        batch_id = str(self.batch_id)
+        download_dir, mask_dir = self.download_data(opts, batch_id)
+        # TODO Figure out how to feed the mask into sweep runner
     
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
