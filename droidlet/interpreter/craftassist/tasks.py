@@ -7,15 +7,14 @@ import numpy as np
 import time
 
 from random import randint
-
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     PASSABLE_BLOCKS,
     BUILD_BLOCK_REPLACE_MAP,
     BUILD_IGNORE_BLOCKS,
     BUILD_INTERCHANGEABLE_PAIRS,
 )
-from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, MOBS_BY_ID, to_block_pos
-from droidlet.perception.craftassist import search
+from droidlet.base_util import npy_to_blocks_list, blocks_list_to_npy, to_block_pos
+from droidlet.shared_data_struct.craftassist_shared_utils import astar, MOBS_BY_ID
 from droidlet.perception.craftassist.heuristic_perception import ground_height
 from droidlet.lowlevel.minecraft.mc_util import manhat_dist, strip_idmeta
 
@@ -232,7 +231,7 @@ class Move(BaseMovementTask):
 
         # get path
         if self.path is None or tuple(agent.pos) != self.path[-1]:
-            self.path = search.astar(agent, self.target, self.approx)
+            self.path = astar(agent, self.target, self.approx)
             if self.path is None:
                 self.handle_no_path(agent)
                 return
@@ -406,15 +405,17 @@ class Build(Task):
             if manhat_dist(agent.pos, target) <= self.DIG_REACH:
                 success = agent.dig(*target)
                 if success:
-                    agent.perception_modules["low_level"].maybe_remove_inst_seg(target)
+                    agent.memory.maybe_remove_inst_seg(target)
                     if self.is_destroy_schm:
-                        agent.perception_modules["low_level"].maybe_remove_block_from_memory(
-                            target, (0, 0)
+                        agent.memory.maybe_remove_block_from_memory(
+                            target, (0, 0), agent.areas_to_perceive
                         )
                     else:
-                        agent.perception_modules["low_level"].maybe_add_block_to_memory(
-                            target, (0, 0), agent_placed=True
-                        )
+                        interesting, player_placed, agent_placed = agent.perception_modules[
+                            "low_level"].mark_blocks_with_env_change(
+                            target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True)
+                        agent.memory.maybe_add_block_to_memory(
+                            interesting, player_placed, agent_placed, target, (0, 0))
                         self.add_tags(agent, (target, (0, 0)))
                     agent.get_changed_blocks()
             else:
@@ -456,9 +457,11 @@ class Build(Task):
                 if agent.place_block(x, y, z):
                     B = agent.get_blocks(x, x, y, y, z, z)
                     if B[0, 0, 0, 0] == idm[0]:
-                        agent.perception_modules["low_level"].maybe_add_block_to_memory(
-                            (x, y, z), tuple(idm), agent_placed=True
-                        )
+                        interesting, player_placed, agent_placed = agent.perception_modules[
+                            "low_level"].mark_blocks_with_env_change(
+                            (x, y, z), tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True)
+                        agent.memory.maybe_add_block_to_memory(
+                            interesting, player_placed, agent_placed, (x, y, z), tuple(idm))
                         changed_blocks = agent.get_changed_blocks()
                         self.new_blocks.append(((x, y, z), tuple(idm)))
                         self.add_tags(agent, ((x, y, z), tuple(idm)))
@@ -569,7 +572,7 @@ class Build(Task):
     def get_next_destroy_target(self, agent, xyzs):
         p = agent.pos
         for i, c in enumerate(sorted(xyzs, key=lambda c: manhat_dist(p, c))):
-            path = search.astar(agent, c, approx=2)
+            path = astar(agent, c, approx=2)
             if path is not None:
                 if i > 0:
                     logging.debug("Destroy get_next_destroy_target wasted {} astars".format(i))

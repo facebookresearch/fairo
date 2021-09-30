@@ -210,14 +210,14 @@ class LocobotAgent(LocoMCAgent):
         Each perceptual module should have a perceive method that is
         called by the base agent event loop.
         """
-        self.chat_parser = NSPQuerier(self.opts)
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["self"] = SelfPerception(self)
         self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
 
     def perceive(self, force=False):
-        super().perceive(force=force, parser_only=True)
+        super().perceive(force=force)
         self.perception_modules["self"].perceive(force=force)
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()

@@ -8,7 +8,7 @@ import droidlet.base_util
 import droidlet.lowlevel.minecraft.shape_helpers
 import droidlet.lowlevel.minecraft.shapes
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
-from droidlet.base_util import MOBS_BY_ID
+from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 from droidlet.interpreter.craftassist import dance
 from droidlet.interpreter.tests.all_test_commands import *
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase

@@ -39,7 +39,8 @@ class FakeAgent(LocoMCAgent):
         pass
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
+        self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         pass
 
     def init_controller(self):
@@ -74,7 +75,8 @@ class TestDialogueManager(unittest.TestCase):
 
     def test_validate_bad_json(self):
         # Don't print debug info on failure since it will be misleading
-        is_valid_json = self.agent.chat_parser.validate_parse_tree(parse_tree={}, debug=False)
+        is_valid_json = self.agent.perception_modules["language_understanding"].validate_parse_tree(
+            parse_tree={}, debug=False)
         self.assertFalse(is_valid_json)
 
     def test_validate_array_span_json(self):
@@ -94,7 +96,7 @@ class TestDialogueManager(unittest.TestCase):
                 }
             ],
         }
-        is_valid_json = self.agent.chat_parser.validate_parse_tree(action_dict)
+        is_valid_json = self.agent.perception_modules["language_understanding"].validate_parse_tree(action_dict)
         self.assertTrue(is_valid_json)
 
     def test_validate_string_span_json(self):
@@ -119,7 +121,7 @@ class TestDialogueManager(unittest.TestCase):
                 }
             ],
         }
-        is_valid_json = self.agent.chat_parser.validate_parse_tree(action_dict)
+        is_valid_json = self.agent.perception_modules["language_understanding"].validate_parse_tree(action_dict)
         self.assertTrue(is_valid_json)
 
 

@@ -4,29 +4,29 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 import numpy as np
-from typing import List
+from typing import List, Tuple
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
+from droidlet.memory.memory_nodes import ChatNode
 from .utils import Look, Pos, Item, Player
 from agents.loco_mc_agent import LocoMCAgent
-from droidlet.base_util import TICKS_PER_SEC
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from droidlet.shared_data_structs import Time, MockOpt
+from droidlet.shared_data_structs import TICKS_PER_SEC, Time, MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS, PASSABLE_BLOCKS
 from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
-from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper, check_inside
+from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
 from droidlet.interpreter.craftassist import dance
-from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS
+from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.perception.craftassist import heuristic_perception
 
@@ -258,6 +258,10 @@ class FakeAgent(LocoMCAgent):
             "block_data": craftassist_specs.get_block_data(),
             "block_property_data": craftassist_specs.get_block_property_data(),
             "color_data": craftassist_specs.get_colour_data(),
+            "boring_blocks": BORING_BLOCKS,
+            "passable_blocks": PASSABLE_BLOCKS,
+            "fill_idmeta": fill_idmeta,
+            "color_bid_map": COLOR_BID_MAP
         }
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
@@ -283,14 +287,12 @@ class FakeAgent(LocoMCAgent):
         self.look = self.get_look()
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self, perceive_freq=1)
         self.perception_modules["heuristic"] = PerceptionWrapper(
             self, low_level_data=self.low_level_data
         )
-        self.on_demand_perception = {}
-        self.on_demand_perception["check_inside"] = check_inside
 
     def init_physical_interfaces(self):
         self.dig = Dig(self)
@@ -312,11 +314,14 @@ class FakeAgent(LocoMCAgent):
 
     def init_memory(self):
         T = FakeMCTime(self.world)
+        low_level_data = self.low_level_data.copy()
+        low_level_data['check_inside'] = heuristic_perception.check_inside
+
         self.memory = MCAgentMemory(
             load_minecraft_specs=False,
             coordinate_transforms=self.coordinate_transforms,
             agent_time=T,
-            agent_low_level_data=self.low_level_data,
+            agent_low_level_data=low_level_data,
         )
         # Add dances to memory
         dance.add_default_dances(self.memory)
@@ -330,9 +335,10 @@ class FakeAgent(LocoMCAgent):
         low_level_interpreter_data = {
             'block_data': craftassist_specs.get_block_data(),
             'special_shape_functions': SPECIAL_SHAPE_FNS,
-            'color_bid_map': COLOR_BID_MAP,
-            'astar_search': astar,
-            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
+            'color_bid_map': self.low_level_data["color_bid_map"],
+            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes,
+            'get_locs_from_entity': get_locs_from_entity
+        }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
@@ -410,9 +416,15 @@ class FakeAgent(LocoMCAgent):
             self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
             force = True
-        self.perception_modules["low_level"].perceive(force=force)
+
+        perception_output = self.perception_modules["low_level"].perceive(force=force)
+        self.areas_to_perceive = self.memory.update(
+            perception_output, self.areas_to_perceive)["areas_to_perceive"]
         if self.do_heuristic_perception:
-            self.perception_modules["heuristic"].perceive()
+            if force or not self.agent.memory.task_stack_peek():
+                # perceive from heuristic perception module
+                heuristic_perception_output = self.perception_modules["heuristic"].perceive()
+                self.memory.update(heuristic_perception_output)
 
     ###################################
     ##  FAKE C++ PERCEPTION METHODS  ##
@@ -479,15 +491,20 @@ class FakeAgent(LocoMCAgent):
     ## World setup
     ######################################
 
-    def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
+    def set_blocks(self, xyzbms: List[Block], boring_blocks: Tuple[int], origin: XYZ = (0, 0, 0)):
         """Change the state of the world, block by block,
         store in memory"""
+
+        changes_to_be_updated = {"changed_block_attributes": {}}
         for xyz, idm in xyzbms:
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
             # TODO add force option so we don't need to make it as if agent placed
-            self.perception_modules["low_level"].on_block_changed(abs_xyz, idm)
+            interesting, player_placed, agent_placed = self.perception_modules["low_level"].mark_blocks_with_env_change(xyz, idm, boring_blocks)
+            changes_to_be_updated["changed_block_attributes"][(abs_xyz, idm)] = [interesting, player_placed, agent_placed]
             self.world.place_block((abs_xyz, idm))
+        # TODO: to be named to normal update function
+        self.memory.update(changes_to_be_updated, self.areas_to_perceive)
 
     def add_object(
         self, xyzbms: List[Block], origin: XYZ = (0, 0, 0), relations={}
@@ -500,7 +517,8 @@ class FakeAgent(LocoMCAgent):
 
         Returns an VoxelObjectNode
         """
-        self.set_blocks(xyzbms, origin)
+        boring_blocks = self.low_level_data["boring_blocks"]
+        self.set_blocks(xyzbms, boring_blocks, origin)
         abs_xyz = tuple(np.array(xyzbms[0][0]) + origin)
         memid = self.memory.get_block_object_ids_by_xyz(abs_xyz)[0]
         for pred, obj in relations.items():

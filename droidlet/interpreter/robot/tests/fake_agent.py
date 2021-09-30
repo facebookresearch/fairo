@@ -34,7 +34,6 @@ from droidlet.shared_data_struct.robot_shared_utils import Pos
 # marker creation should be somewhwere else....
 from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
 
-
 MV_SPEED = 0.2
 ROT_SPEED = 1.0  # rad/tick
 HEAD_SPEED = 1.0  # rad/tick
@@ -418,8 +417,8 @@ class FakeAgent(LocoMCAgent):
         self.inventory = []
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["self"] = SelfPerception(self, perceive_freq=1)
         self.perception_modules["vision"] = FakeDetectorPerception(self)
 
@@ -442,6 +441,18 @@ class FakeAgent(LocoMCAgent):
             dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
         )
+
+    def perceive(self, force=False):
+        super().perceive(force=force)
+        self.perception_modules["self"].perceive(force=force)
+        new_state = self.perception_modules["vision"].perceive(force=force)
+        if new_state is not None:
+            new_objects, updated_objects = new_state
+            for obj in new_objects:
+                obj.save_to_memory(self.memory)
+            for obj in updated_objects:
+                obj.save_to_memory(self.memory, update=True)
+
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}

@@ -31,7 +31,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         chat = "come here"
         self.add_incoming_chat(chat, self.speaker)
         # get logical form
-        preprocessed_chat, chat_parse = self.agent.chat_parser.get_parse(chat)
+        preprocessed_chat, chat_parse = self.agent.perception_modules["language_understanding"].get_parse(chat)
         chat_memid = self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid,
                                                 preprocessed_chat)
         logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
@@ -45,7 +45,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         chat = "stop"
         self.add_incoming_chat(chat, self.speaker)
         # get logical form
-        preprocessed_chat, chat_parse = self.agent.chat_parser.get_parse(chat)
+        preprocessed_chat, chat_parse = self.agent.perception_modules["language_understanding"].get_parse(chat)
         chat_memid = self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid,
                                                 preprocessed_chat)
         logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
