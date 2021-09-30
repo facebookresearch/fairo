@@ -117,9 +117,9 @@ class NSPRetrainingJob(DataGenerator):
                     raise ValueError("Annotated NSP data & logical forms not formatted as expected")
         logging.info(f"data successfully preprocessed into annotated.txt")
 
-        mask_dir = self.create_mask(opts=opts, batch_id=batch_id, data_filepath=annotated_filepath)
+        config_dir = self.create_mask(opts=opts, batch_id=batch_id, data_filepath=annotated_filepath)
 
-        return download_dir, mask_dir
+        return download_dir, config_dir
 
 
     def create_mask(self, opts, batch_id, data_filepath):
@@ -138,6 +138,13 @@ class NSPRetrainingJob(DataGenerator):
             logging.info(f"Exception raised on S3 meta.txt file download")
             raise
         logging.info(f"Meta.txt download completed successfully")
+
+        # Copy in sweep config file so mask and config file are in one place
+        og_sweep_config = os.path.join(opts.sweep_config_folder, 'sweep_config.txt')
+        batch_sweep_config = os.path.join(batch_config_dir, 'sweep_config.txt')
+        logging.info(f"Orig sweep config filepath: {og_sweep_config}")
+        logging.info(f"New sweep config filepath: {batch_sweep_config}")
+        shutil.copyfile(og_sweep_config, batch_sweep_config)
 
         # Pull indices from meta.txt to know which lines of data file should be used for train and valid
         new_data_indices = []
@@ -179,10 +186,10 @@ class NSPRetrainingJob(DataGenerator):
         perc_train = (sum(1 for i in train_mask if i) / total_rows)
         perc_valid = (sum(1 for i in valid_mask if i) / total_rows)
         perc_test = (sum(1 for i in test_mask if i) / total_rows)
-        logging.info(f"Percent of data that is new: {perc_new}")
-        logging.info(f"Actual percent of data used for training (~70% of new): {perc_train}")
-        logging.info(f"Actual percent of data used for validation (~20% of new): {perc_valid}")
-        logging.info(f"Actual percent of data used for testing (~10% of new + some old): {perc_test}")
+        logging.info(f"Fraction of data that is new: {perc_new}")
+        logging.info(f"Actual fraction of data used for training (~70% of new): {perc_train}")
+        logging.info(f"Actual fraction of data used for validation (~20% of new): {perc_valid}")
+        logging.info(f"Actual fraction of data used for testing (~10% of new + some old): {perc_test}")
 
         #reformat as dict with the appropriate keys and save
         train_mask = torch.Tensor(train_mask).bool()
@@ -215,14 +222,14 @@ class NSPRetrainingJob(DataGenerator):
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
         batch_id = str(self.batch_id)
-        download_dir, mask_dir = self.download_data(opts, batch_id)
+        download_dir, config_dir = self.download_data(opts, batch_id)
         # TODO Figure out how to feed the mask into sweep runner
     
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
         sweep_args = "python3 " + \
             os.path.join(opts.sweep_runner_dir, "sweep_runner.py") + \
-            " --sweep_config_folder " + opts.sweep_config_folder + \
+            " --sweep_config_folder " + config_dir + \
             " --sweep_scripts_output_dir " + opts.sweep_scripts_output_dir + \
             " --checkpoint_dir " + opts.checkpoint_dir + \
             " --sweep_name " + batch_id + \
