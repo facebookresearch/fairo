@@ -51,21 +51,21 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         state = polymetis_pb2.GripperState()
 
         state.timestamp.GetCurrentTime()
-        state.pos = self.gripper.get_pos()
-        state.is_ready = self.gripper.is_ready()
+        state.width = self.gripper.get_pos()
+        state.max_width = self.gripper.stroke
+        state.is_grasped = self.gripper.object_detected()
         state.is_moving = self.gripper.is_moving()
-        state.is_stopped = self.gripper.is_stopped()
 
         return state
 
     def Goto(self, request, context):
-        self.gripper.goto(pos=request.pos, vel=request.vel, force=request.force)
+        self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
         self.gripper.sendCommand()
 
         return polymetis_pb2.Empty()
 
     def Grasp(self, request, context):
-        self.gripper.goto(pos=request.pos, vel=request.vel, force=request.force)
+        self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
         self.gripper.sendCommand()
 
         return polymetis_pb2.Empty()
