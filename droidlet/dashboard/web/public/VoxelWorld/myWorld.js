@@ -43517,7 +43517,7 @@ function Game(opts) {
   // client side only after this point
   if (!process.browser) return
   
-  this.paused = true
+  this.paused = false
   this.initializeRendering(opts)
   
   for (var chunkIndex in this.voxels.chunks) this.showChunk(this.voxels.chunks[chunkIndex])
