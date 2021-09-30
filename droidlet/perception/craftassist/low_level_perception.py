@@ -125,7 +125,7 @@ class LowLevelMCPerception:
             player_placed = False
 
         if not interesting:
-            return None, None, None, None
+            return None, None, None
 
         if agent_placed:
             try:
