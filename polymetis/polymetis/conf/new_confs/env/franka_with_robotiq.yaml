@@ -1,0 +1,44 @@
+robot_model:
+  urdf_path:
+  controlled_joints: [0, 1, 2, 3, 4, 5, 6]
+  ee_link_idx: 7
+  ee_link_name: panda_link8
+  gripper_joint: 7
+  rest_pose: []
+  joint_limits_low: []
+  joint_limits_high: []
+
+
+configurations:
+
+  sim:
+    services:
+      -
+        name: pybullet_sim
+        ip: 0.0.0.0
+        port: 50051
+        script: TODO
+        conf:
+          hz: 240
+          default_Kq: []
+          default_Kqd: []
+          joint_damping: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
+  hw:
+    services:  # each device is a RAAS
+      - 
+        name: franka
+        ip: 0.0.0.0
+        port: 50051
+        script: TODO
+        conf:
+          hz: 1000
+          default_Kq: []
+          default_Kqd: []
+      - 
+        name: robotiq_2f85
+        ip: 0.0.0.0
+        port: 50052
+        script: TODO
+        conf:
+          comport: /dev/ttyUSB0

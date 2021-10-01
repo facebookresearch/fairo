@@ -1,0 +1,8 @@
+urdf:
+configurations:
+  sim:
+  hw:
+    - 
+      name: franka
+    - 
+      name: robotiq_2f85
