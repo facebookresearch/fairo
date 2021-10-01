@@ -677,13 +677,13 @@ class RemoteLocobot(object):
             # self._grasper.grasp(grasp_pose)
             self._done = Trues
             return True
-
+    
     def get_distant_goal(self, x, y, t, l1_thresh=35):
         # Get a distant goal for the slam exploration
         # Pick a random quadrant, get 
         while True:
-            xt = random.randint(-1, 19)
-            yt = random.randint(-1, 19)
+            xt = random.randint(-19, 19)
+            yt = random.randint(-19, 19)
             d = np.linalg.norm(np.asarray([x,y]) - np.asarray([xt,yt]), ord=1)
             if d > l1_thresh:
                 return (xt, yt, 0)
@@ -712,9 +712,9 @@ class RemoteLocobot(object):
                 self._slam.take_step(self._slam_step_size)
             elif self._slam_traj_ctr < 3:
                 print(f'here first')
-                self._slam_traj_ctr += 1
                 self.logger.info(f'Area explored in trajectory {self._slam_traj_ctr} {self._slam.get_area_explored()}')
                 self.logger.info(json.dumps(self._slam.debug_state))
+                self._slam_traj_ctr += 1
                 save_folder = os.path.join(self._slam.root_folder, str(self._slam_traj_ctr))
                 self._slam.init_save(save_folder)
                 x,y,t = self._slam.get_rel_state(self._slam.get_robot_global_state(), self._slam.init_state)

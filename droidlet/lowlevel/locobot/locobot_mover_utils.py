@@ -103,13 +103,13 @@ def get_step_target_for_move(base_pos, target, step_size=0.1):
     """
 
     dx = target[0] - base_pos[0]
-    signx = 1 if dx > 0 else -1 
-
     dz = target[2] - base_pos[1]
-    signz = 1 if dz > 0 else -1 
 
-    targetx = base_pos[0] + signx * (step_size)
-    targetz = base_pos[1] + signz * (step_size) 
+    m = dz/dx if dx != 0 else 1        
+    signx = 1 if dx >= 0 else -1
+    
+    targetx = min(base_pos[0] + signx * (step_size), target[0])
+    targetz = m * step_size + base_pos[1]
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
     

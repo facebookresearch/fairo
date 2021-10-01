@@ -382,9 +382,14 @@ class CuriousExplore(Task):
     def step(self):
         self.interrupted = False
         self.finished = False
-       
-        # execute a examine maneuver
+        
         if self.steps[0] == "not_started":
+            self.agent.mover.explore()
+            self.steps[0] = "finished"
+            return
+        
+        # execute a examine maneuver
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
             # Get a list of current detections
             objects = DetectedObjectNode.get_all(self.agent.memory)
             pos = self.agent.mover.get_base_pos_in_canonical_coords()
@@ -394,6 +399,7 @@ class CuriousExplore(Task):
                     if ExaminedMap.can_examine(x):
                         # check for line of sight and if within a certain distance
                         yaw_rad, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], x['xyz'])
+                        # self.logger.info(f"{x['label']}, yaw_rad {yaw_rad}, base_pos {base_pos}")
                         dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
                         if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 3:
                             logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
@@ -401,19 +407,17 @@ class CuriousExplore(Task):
                 return None
             target = pick_random_in_sight(objects, pos)
             if target is not None:
-                self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}")
-                ExaminedMap.update(target)     
+                self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
+                ExaminedMap.update(target)
+                print(f"target[xyz] {target['xyz']}")
+                # self.add_child_task(Move(self.agent, {"target": target['xyz']}))     
                 self.add_child_task(ExamineDetection(
                     self.agent, {"target": target, "start_pos": pos}))
-                self.last_step_explore = False
-            self.steps[0] = "finished"
-            return
-
-        if self.steps[0] == "finished" and self.steps[1] == "not_started":
-            # self.logger.info(f"CuriousExplore exploration step")
-            self.agent.mover.explore()
             self.steps[1] = "finished"
+            return
+        
         else:
+            print('hereeee..')
             self.finished = self.agent.mover.bot_step()
 
 
@@ -436,18 +440,56 @@ class ExamineDetection(Task):
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
         logger.info(f"Deciding examination, dist = {dist}")
-        if (base_pos != self.last_base_pos).any() and dist > 1:
-            target = get_step_target_for_move(base_pos, self.frontier_center)
-            logger.debug(f"get_step_target_for_straight_move \
-                \nxs, ys = {base_pos[0], base_pos[1]},\
-                \nxf, yf = {self.frontier_center[0], self.frontier_center[2]} \
-                \nx, y = {target[0], target[1]}")
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and dist > 1 and d != 0:
+            tloc = get_step_target_for_move(base_pos, self.frontier_center)
+            logger.info(f"get_step_target_for_straight_move \
+                \nx, z, yaw = {base_pos},\
+                \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
+                \nx_move, z_move, yaw_move = {tloc}")
             logging.info(f"Current Pos {base_pos}")
-            logging.info(f"Move Target for Examining {target}")
-            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-target[:2])}")
-            self.add_child_task(Move(self.agent, {"target": target}))
+            logging.info(f"Move Target for Examining {tloc}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
+            self.add_child_task(Move(self.agent, {"target": tloc}))
             self.last_base_pos = base_pos
             return
         else:
             logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
+
+
+class TurnThenMoveStraight(Task):
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        print(f'TurnThenMoveStraight....')
+        self.target = np.array(task_data["target"])
+        self.is_relative = task_data.get("is_relative", 0)
+        self.steps = ["not_started"] * 2
+        self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.interrupted = False
+        self.finished = False
+
+        if self.steps[0] == "not_started": # turn
+            self.add_child_task(Turn(self.agent, {"yaw": self.target[2]}))
+            self.steps[0] = "finished"
+            return
+        
+        if self.steps[0] == "finished" and self.steps[1] == "not_started": # move
+            pos = self.agent.mover.get_base_pos()
+            self.target[2] = pos[2]
+            self.add_child_task(Move(self.agent, {"target": self.target}))
+            self.steps[1] = "finished"
+            return
+
+        else:
+            self.finished = self.agent.mover.bot_step()
+
+    def __repr__(self):
+        return "<TurnThenMoveStraight {} degrees>".format(self.yaw)
