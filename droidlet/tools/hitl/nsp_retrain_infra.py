@@ -152,17 +152,14 @@ class NSPRetrainingJob(DataGenerator):
                 new_data_indices.append(int(line))
         new_data_rows = len(new_data_indices)
 
-        if (new_data_rows < int(opts.new_data_training_threshold)):
+        if (new_data_rows < opts.new_data_training_threshold):
             logging.warning(f"Not enough new data to trigger a training run, one will not be performed")
             self.exec_training_run = False
 
         # Import split ratios (default) 80% of new data for training, 10% for validation, and 10% for testing
-        # TODO handle formatting errors, negative numbers (here or in arg parser?)
         data_split = opts.data_split_ratios.split('/')
         data_split = [int(x)/100 for x in data_split]  # Convert from str % to fraction
         logging.info(f"Data split ratios - train: {data_split[0]}, valid: {data_split[1]}, test: {data_split[2]}")
-        if (sum(data_split) != 1):
-            raise ValueError("Data splits do not sum to 100%")
 
         # Randomize the submasks for train, valid, and test
         total_rows = sum(1 for line in open(data_filepath))
@@ -355,18 +352,42 @@ class NSPNewDataListener(JobListener):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--droidlet_dir", default="/private/home/aszlam/fairinternal/droidlet/")
-    parser.add_argument("--full_data_dir", default="agents/craftassist/datasets/full_data/")
-    parser.add_argument("--sweep_runner_dir", default="/checkpoint/aszlam/nsp_cl_scripts/")
-    parser.add_argument("--sweep_config_folder", default="/checkpoint/aszlam/nsp/sweeps/scripts/configs/auto_sweep_configs/")
-    parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/aszlam/nsp/sweeps/scripts/")
-    parser.add_argument("--output_dir", default="/checkpoint/aszlam/nsp/sweeps/job_output/")
-    parser.add_argument("--checkpoint_dir", default="/checkpoint/aszlam/nsp/")
-    parser.add_argument("--data_split_ratios", default="80/10/10", help="format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
-    parser.add_argument("--new_data_training_threshold", default="100", help="number of new data samples below which no training occurs")
+    parser.add_argument("--droidlet_dir", default="/private/home/aszlam/fairinternal/droidlet/", type=str, help="Absolute location of droidlet root")
+    parser.add_argument("--full_data_dir", default="agents/craftassist/datasets/full_data/", type=str, help="Relative location for data storage")
+    parser.add_argument("--sweep_runner_dir", default="/checkpoint/aszlam/nsp_cl_scripts/", type=str, help="Absolute location of sweep_runner script")
+    parser.add_argument("--sweep_config_folder", default="/checkpoint/aszlam/nsp/sweeps/scripts/configs/auto_sweep_configs/", type=str, help="Absolute location of sweep configs")
+    parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/aszlam/nsp/sweeps/scripts/", type=str, help="Absolute location for sweep shell scripts")
+    parser.add_argument("--output_dir", default="/checkpoint/aszlam/nsp/sweeps/job_output/", type=str, help="Absolute location for sweep job outputs")
+    parser.add_argument("--checkpoint_dir", default="/checkpoint/aszlam/nsp/", type=str, help="Absolute location of NSP checkpoint folder")
+    parser.add_argument("--data_split_ratios", default="80/10/10", type=str, help="Format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
+    parser.add_argument("--new_data_training_threshold", default=100, type=int, help="Number of new data samples below which no training occurs")
     opts = parser.parse_args()
-    # TODO Implement error handing on argument inputs
 
+    # Basic argument error handling
+    if not os.path.isdir(opts.droidlet_dir):
+        raise FileNotFoundError("droidlet_dir not found or arg not pathlike")
+    if not os.path.isdir(os.path.join(opts.droidlet_dir, opts.full_data_dir)):
+        raise FileNotFoundError("full_data_dir not found or arg not pathlike")
+    if not os.path.isdir(opts.sweep_runner_dir):
+        raise FileNotFoundError("sweep_runner_dir not found or arg not pathlike")
+    if not os.path.isdir(opts.sweep_config_folder):
+        raise FileNotFoundError("sweep_config_folder not found or arg not pathlike")
+    if not os.path.isdir(opts.sweep_scripts_output_dir):
+        raise FileNotFoundError("sweep_scripts_output_dir not found or arg not pathlike")
+    if not os.path.isdir(opts.output_dir):
+        raise FileNotFoundError("output_dir not found or arg not pathlike")
+    if not os.path.isdir(opts.checkpoint_dir):
+        raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
+    data_split = opts.data_split_ratios.split('/')
+    try:
+        data_split = [int(x)/100 for x in data_split]
+    except:
+        logging.warning("data_split_ratios must be formatted as [train%]/[valid%]/[test%], eg. '80/10/10'")
+        raise
+    if (sum(data_split) != 1) or any(x<0 for x in data_split):
+        raise ValueError("data_split_ratios must be positive and sum to 100")
+    if (opts.new_data_training_threshold < 0):
+        raise ValueError("new_data_training_threshold must be >= 0")
     
     ndl = NSPNewDataListener(batch_id=456, opts=opts)
     runner = TaskRunner()
