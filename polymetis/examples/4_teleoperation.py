@@ -5,6 +5,7 @@
 import time
 import sys
 import threading
+from enum import Enum
 
 import numpy as np
 import sophus as sp
@@ -18,11 +19,15 @@ from polymetis import RobotInterface, GripperInterface
 
 # from oculus_reader import OculusReader
 
+# teleop control frequency
+UPDATE_HZ = 30
+# ramp up teleop engagement in this number of steps to prevent initial jerk
+ENGAGE_STEPS = 10
 
-UPDATE_HZ = 30  # teleop control frequency
-ENGAGE_STEPS = (
-    10  # ramp up teleop engagement in this number of steps to prevent initial jerk
-)
+
+class TeleopMode(Enum):
+    KEYBOARD = 1
+    OCULUS = 2
 
 
 class TeleopDevice:
@@ -32,20 +37,20 @@ class TeleopDevice:
     Oculus: Fully press both the trigger and the grip button to engage teleoperation. Hold B to perform grasp.
     """
 
-    def __init__(self, ip_address=None, mode="oculus"):
+    def __init__(self, ip_address=None, mode: TeleopMode = TeleopMode.OCULUS):
         self.mode = mode
 
-        if self.mode == "oculus":
-            self.reader = OculusReader()
+        if self.mode == TeleopMode.OCULUS:
+            self.reader = OculusReader(ip_address=ip_address)
             self.reader.run()
 
-        elif self.mode == "keyboard":
+        elif self.mode == TeleopMode.KEYBOARD:
             self.steps = 0
             self.delta_pos = np.zeros(3)
             self.grasp_state = 0
 
     def get_state(self):
-        if self.mode == "oculus":
+        if self.mode == TeleopMode.OCULUS:
             # Get data from oculus reader
             transforms, buttons = self.reader.get_transformations_and_buttons()
 
@@ -54,7 +59,7 @@ class TeleopDevice:
             grasp_state = buttons["B"]
             pose_matrix = transforms["r"]
 
-        elif self.mode == "keyboard":
+        elif self.mode == TeleopMode.KEYBOARD:
             # Get data from keyboard
             if self.steps > ENGAGE_STEPS:
                 key = getch.getch()
@@ -167,7 +172,7 @@ def interpolate_pose(pose1, pose2, pct):
 if __name__ == "__main__":
     # Initialize interfaces
     robot = Robot()
-    teleop = TeleopDevice(mode="keyboard")
+    teleop = TeleopDevice(mode=TeleopMode.KEYBOARD)
 
     # Start teleop loop
     vr_pose_ref = sp.SE3()
