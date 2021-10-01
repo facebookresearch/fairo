@@ -329,9 +329,13 @@ class NSPNewDataListener(JobListener):
         while not self.check_is_finished():
             time.sleep(LISTENER_SLEEP_TIME)
             try:
-                prefix = str(self.batch_id) + '/'
-                new_data_key = s3.list_objects_v2(Bucket='droidlet-hitl', Prefix=prefix, Delimiter='/')['Contents'][1]['Key']
-                self.new_data_found = True
+                prefix = str(self.batch_id) + '/meta.txt'
+                new_data_key = s3.list_objects_v2(Bucket='droidlet-hitl', Prefix=prefix)['Contents'][0]['Key']
+                if new_data_key == prefix:
+                    self.new_data_found = True
+                else:
+                    logging.info(f"New data not yet detected...")
+                    continue
             except KeyError:
                 logging.info(f"New data not yet detected...")
                 continue
@@ -361,7 +365,7 @@ if __name__ == "__main__":
     parser.add_argument("--data_split_ratios", default="80/10/10", help="format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
     parser.add_argument("--new_data_training_threshold", default="100", help="number of new data samples below which no training occurs")
     opts = parser.parse_args()
-    # TODO Implement error handing are argument inputs
+    # TODO Implement error handing on argument inputs
 
     
     ndl = NSPNewDataListener(batch_id=456, opts=opts)
