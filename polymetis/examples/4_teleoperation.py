@@ -25,6 +25,67 @@ ENGAGE_STEPS = (
 )
 
 
+class TeleopDevice:
+    """Allows for teleoperation using either the keyboard or an Oculus controller
+
+    Keyboard: Control end-effector position with WASD and RF, toggle gripper state with space
+    Oculus: Fully press both the trigger and the grip button to engage teleoperation. Hold B to perform grasp.
+    """
+
+    def __init__(self, ip_address=None, mode="oculus"):
+        self.mode = mode
+
+        if self.mode == "oculus":
+            self.reader = OculusReader()
+            self.reader.run()
+
+        elif self.mode == "keyboard":
+            self.steps = 0
+            self.delta_pos = np.zeros(3)
+            self.grasp_state = 0
+
+    def get_state(self):
+        if self.mode == "oculus":
+            # Get data from oculus reader
+            transforms, buttons = self.reader.get_transformations_and_buttons()
+
+            # Generate output
+            is_active = buttons["rightGrip"] > 0.9 and buttons["rightTrig"] > 0.9
+            grasp_state = buttons["B"]
+            pose_matrix = transforms["r"]
+
+        elif self.mode == "keyboard":
+            # Get data from keyboard
+            if self.steps > ENGAGE_STEPS:
+                key = getch.getch()
+                if key == "w":
+                    self.delta_pos[0] += 0.01
+                elif key == "s":
+                    self.delta_pos[0] -= 0.01
+                elif key == "a":
+                    self.delta_pos[1] += 0.01
+                elif key == "d":
+                    self.delta_pos[1] -= 0.01
+                elif key == "r":
+                    self.delta_pos[2] += 0.01
+                elif key == "f":
+                    self.delta_pos[2] -= 0.01
+                elif key == " ":
+                    self.grasp_state = 1 - self.grasp_state
+
+            self.steps += 1
+
+            # Generate output
+            is_active = True
+
+            pose_matrix = np.eye(4)
+            pose_matrix[:3, -1] = self.delta_pos
+
+            grasp_state = self.grasp_state
+
+        return is_active, pose_matrix, grasp_state
+
+
 class Robot:
     def __init__(self, ip_address="localhost"):
         self.arm = RobotInterface(ip_address=ip_address)
@@ -97,67 +158,6 @@ class Robot:
     def _open_gripper(self):
         self.gripper.goto(pos=0.1, vel=0.1, force=1.0, blocking=False)
         self.grasp_state = 0
-
-
-class TeleopDevice:
-    """Allows for teleoperation using either the keyboard or an Oculus controller
-
-    Keyboard: Control end-effector position with WASD and RF, toggle gripper state with space
-    Oculus: Fully press both the trigger and the grip button to engage teleoperation. Hold B to perform grasp.
-    """
-
-    def __init__(self, ip_address=None, mode="oculus"):
-        self.mode = mode
-
-        if self.mode == "oculus":
-            self.reader = OculusReader()
-            self.reader.run()
-
-        elif self.mode == "keyboard":
-            self.steps = 0
-            self.delta_pos = np.zeros(3)
-            self.grasp_state = 0
-
-    def get_state(self):
-        if self.mode == "oculus":
-            # Get data from oculus reader
-            transforms, buttons = self.reader.get_transformations_and_buttons()
-
-            # Generate output
-            is_active = buttons["rightGrip"] > 0.9 and buttons["rightTrig"] > 0.9
-            grasp_state = buttons["B"]
-            pose_matrix = transforms["r"]
-
-        elif self.mode == "keyboard":
-            # Get data from keyboard
-            if self.steps > ENGAGE_STEPS:
-                key = getch.getch()
-                if key == "w":
-                    self.delta_pos[0] += 0.01
-                elif key == "s":
-                    self.delta_pos[0] -= 0.01
-                elif key == "a":
-                    self.delta_pos[1] += 0.01
-                elif key == "d":
-                    self.delta_pos[1] -= 0.01
-                elif key == "r":
-                    self.delta_pos[2] += 0.01
-                elif key == "f":
-                    self.delta_pos[2] -= 0.01
-                elif key == " ":
-                    self.grasp_state = 1 - self.grasp_state
-
-            self.steps += 1
-
-            # Generate output
-            is_active = True
-
-            pose_matrix = np.eye(4)
-            pose_matrix[:3, -1] = self.delta_pos
-
-            grasp_state = self.grasp_state
-
-        return is_active, pose_matrix, grasp_state
 
 
 def interpolate_pose(pose1, pose2, pct):
