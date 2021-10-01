@@ -1,0 +1,169 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+import time
+import sys
+import threading
+
+import numpy as np
+import sophus as sp
+import torch
+import getch
+
+import torchcontrol as toco
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
+from polymetis import RobotInterface, GripperInterface
+
+# from oculus_reader import OculusReader
+
+
+UPDATE_HZ = 30
+
+
+class Robot:
+    def __init__(self, ip_address="localhost"):
+        self.arm = RobotInterface(ip_address=ip_address)
+        self.gripper = GripperInterface(ip_address=ip_address)
+        time.sleep(0.5)
+
+        # Reset
+        self.reset()
+
+    def __del__(self):
+        self.arm.terminate_current_policy()
+
+    def reset(self):
+        # Go home
+        self.arm.go_home()
+
+        # Send PD controller
+        joint_pos_current = self.arm.get_joint_angles()
+        policy = toco.policies.JointImpedanceControl(
+            joint_pos_current=joint_pos_current,
+            Kp=self.arm.metadata.default_Kq,
+            Kd=self.arm.metadata.default_Kqd,
+            robot_model=self.arm.robot_model,
+        )
+        self.arm.send_torch_policy(policy, blocking=False)
+
+        # Reset gripper
+        self._open_gripper()
+
+    def get_ee_pose(self):
+        pos_curr, quat_curr = self.arm.pose_ee()
+        rotvec = R.from_quat(quat_curr).as_rotvec()
+        return sp.SE3(sp.SO3.exp(rotvec).matrix(), pos_curr)
+
+    def update_ee_pose(self, pose_des):
+        # Compute desired joint pose
+        q_curr = self.arm.get_joint_angles()
+        pose_curr = self.get_ee_pose()
+
+        J = self.arm.robot_model.compute_jacobian(q_curr)
+        J_pinv = torch.pinverse(J)
+
+        q_des = q_curr + J_pinv @ torch.Tensor((pose_des * pose_curr.inverse()).log())
+
+        # Update policy
+        self.arm.update_current_policy({"joint_pos_desired": q_des})
+
+        # Check if policy terminated due to issues and restart
+        if self.arm.get_previous_interval().end != -1:
+            print("Interrupt detected. Reinstantiating control policy...")
+            time.sleep(3)
+            self.reset()
+
+    def update_grasp_state(self, is_grasped):
+        self.desired_grasp_state = is_grasped
+
+        # Send command if gripper is idle and desired grasp state is different from current grasp state
+        gripper_state = self.gripper.get_state()
+        if not gripper_state.is_moving:
+            if self.grasp_state != self.desired_grasp_state:
+                if self.desired_grasp_state:
+                    self._close_gripper()
+                else:
+                    self._open_gripper()
+
+    def _close_gripper(self):
+        self.gripper.goto(pos=0.0, vel=0.1, force=1.0, blocking=False)
+        self.grasp_state = 1
+
+    def _open_gripper(self):
+        self.gripper.goto(pos=0.1, vel=0.1, force=1.0, blocking=False)
+        self.grasp_state = 0
+
+
+class TeleopDevice:
+    def __init__(self):
+        self.delta_pos = np.zeros(3)
+        self.grasp_state = 0
+
+    def get_state(self):
+        is_active = True
+
+        key = getch.getch()
+        if key == "w":
+            self.delta_pos[0] += 0.01
+        elif key == "s":
+            self.delta_pos[0] -= 0.01
+        elif key == "a":
+            self.delta_pos[1] += 0.01
+        elif key == "d":
+            self.delta_pos[1] -= 0.01
+        elif key == " ":
+            self.grasp_state = 1 - self.grasp_state
+
+        pose_matrix = np.eye(4)
+        pose_matrix[:3, -1] = self.delta_pos
+
+        return is_active, pose_matrix, self.grasp_state
+
+
+if __name__ == "__main__":
+    # Initialize interfaces
+    robot = Robot()
+    teleop = TeleopDevice()
+
+    # Start teleop loop
+    vr_pose_ref = None
+    arm_pose_ref = None
+
+    t0 = time.time()
+    t_target = t0
+    t_delta = 1.0 / UPDATE_HZ
+
+    try:
+        while True:
+            # Obtain info from teleop device
+            is_active, pose_matrix, grasp_state = teleop.get_state()
+
+            # Update arm
+            if is_active:
+                vr_pose_curr = sp.SE3(pose_matrix)
+
+                # Update reference pose
+                if vr_pose_ref is None:
+                    vr_pose_ref = vr_pose_curr
+                    arm_pose_ref = robot.get_ee_pose()
+
+                # Determine pose
+                pose_desired = (vr_pose_curr * vr_pose_ref.inverse()) * arm_pose_ref
+
+                # Update
+                robot.update_ee_pose(pose_desired)
+                robot.update_grasp_state(grasp_state)
+
+            else:
+                vr_pose_ref = None
+                arm_pose_ref = None
+
+            # Spin once
+            t_target += t_delta
+            t_remaining = t_target - time.time()
+            time.sleep(max(t_remaining, 0.0))
+
+    except KeyboardInterrupt:
+        print("Session ended by user.")
