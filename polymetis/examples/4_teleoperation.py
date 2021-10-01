@@ -20,6 +20,7 @@ from polymetis import RobotInterface, GripperInterface
 
 
 UPDATE_HZ = 30
+ENGAGE_STEPS = 5
 
 
 class Robot:
@@ -97,29 +98,64 @@ class Robot:
 
 
 class TeleopDevice:
-    def __init__(self):
-        self.delta_pos = np.zeros(3)
-        self.grasp_state = 0
+    """Allows for teleoperation using either the keyboard or an Oculus controller
+
+    Keyboard: Control end-effector position with WASD, toggle gripper state with space
+    Oculus: Fully press both the trigger and the grip button to engage teleoperation. Hold B to perform grasp.
+    """
+
+    def __init__(self, ip_address=None, mode="oculus"):
+        self.mode = mode
+
+        if mode == "oculus":
+            self.reader = OculusReader()
+            self.reader.run()
+
+        elif mode == "keyboard":
+            self.steps = 0
+            self.delta_pos = np.zeros(3)
+            self.grasp_state = 0
 
     def get_state(self):
-        is_active = True
+        if mode == "oculus":
+            # Get data from oculus reader
+            transforms, buttons = self.reader.get_transformations_and_buttons()
 
-        key = getch.getch()
-        if key == "w":
-            self.delta_pos[0] += 0.01
-        elif key == "s":
-            self.delta_pos[0] -= 0.01
-        elif key == "a":
-            self.delta_pos[1] += 0.01
-        elif key == "d":
-            self.delta_pos[1] -= 0.01
-        elif key == " ":
-            self.grasp_state = 1 - self.grasp_state
+            # Generate output
+            is_active = buttons["rightGrip"] > 0.9 and buttons["rightTrig"] > 0.9
+            grasp_state = buttons["B"]
+            pose_matrix = transforms["r"]
 
-        pose_matrix = np.eye(4)
-        pose_matrix[:3, -1] = self.delta_pos
+        elif mode == "keyboard":
+            # Get data from keyboard
+            if self.steps > ENGAGE_STEPS:
+                key = getch.getch()
+                if key == "w":
+                    self.delta_pos[0] += 0.01
+                elif key == "s":
+                    self.delta_pos[0] -= 0.01
+                elif key == "a":
+                    self.delta_pos[1] += 0.01
+                elif key == "d":
+                    self.delta_pos[1] -= 0.01
+                elif key == " ":
+                    self.grasp_state = 1 - self.grasp_state
 
-        return is_active, pose_matrix, self.grasp_state
+            self.steps += 1
+
+            # Generate output
+            is_active = True
+
+            pose_matrix = np.eye(4)
+            pose_matrix[:3, -1] = self.delta_pos
+
+            grasp_state = self.grasp_state
+
+        return is_active, pose_matrix, grasp_state
+
+
+def interpolate_pose(pose1, pose2, pct):
+    return sp.SE3((1.0 - pct) * pose1.log() + pct * pose2.log())
 
 
 if __name__ == "__main__":
@@ -128,8 +164,9 @@ if __name__ == "__main__":
     teleop = TeleopDevice()
 
     # Start teleop loop
-    vr_pose_ref = None
-    arm_pose_ref = None
+    vr_pose_ref = sp.SE3()
+    arm_pose_ref = sp.SE3()
+    engage_pct = 0
 
     t0 = time.time()
     t_target = t0
@@ -145,9 +182,16 @@ if __name__ == "__main__":
                 vr_pose_curr = sp.SE3(pose_matrix)
 
                 # Update reference pose
-                if vr_pose_ref is None:
-                    vr_pose_ref = vr_pose_curr
-                    arm_pose_ref = robot.get_ee_pose()
+                if engage_pct < 1.0:
+                    arm_pose_curr = robot.get_ee_pose()
+                    arm_pose_ref = interpolate_pose(
+                        arm_pose_ref, arm_pose_curr, engage_pct
+                    )
+                    vr_pose_ref = interpolate_pose(
+                        vr_pose_ref, vr_pose_curr, engage_pct
+                    )
+
+                    engage_pct += 1.0 / ENGAGE_STEPS
 
                 # Determine pose
                 pose_desired = (vr_pose_curr * vr_pose_ref.inverse()) * arm_pose_ref
@@ -157,8 +201,7 @@ if __name__ == "__main__":
                 robot.update_grasp_state(grasp_state)
 
             else:
-                vr_pose_ref = None
-                arm_pose_ref = None
+                engage_pct = 0
 
             # Spin once
             t_target += t_delta
