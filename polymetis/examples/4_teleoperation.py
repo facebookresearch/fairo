@@ -19,8 +19,10 @@ from polymetis import RobotInterface, GripperInterface
 # from oculus_reader import OculusReader
 
 
-UPDATE_HZ = 30
-ENGAGE_STEPS = 5
+UPDATE_HZ = 30  # teleop control frequency
+ENGAGE_STEPS = (
+    10  # ramp up teleop engagement in this number of steps to prevent initial jerk
+)
 
 
 class Robot:
@@ -100,7 +102,7 @@ class Robot:
 class TeleopDevice:
     """Allows for teleoperation using either the keyboard or an Oculus controller
 
-    Keyboard: Control end-effector position with WASD, toggle gripper state with space
+    Keyboard: Control end-effector position with WASD and RF, toggle gripper state with space
     Oculus: Fully press both the trigger and the grip button to engage teleoperation. Hold B to perform grasp.
     """
 
@@ -138,6 +140,10 @@ class TeleopDevice:
                     self.delta_pos[1] += 0.01
                 elif key == "d":
                     self.delta_pos[1] -= 0.01
+                elif key == "r":
+                    self.delta_pos[2] += 0.01
+                elif key == "f":
+                    self.delta_pos[2] -= 0.01
                 elif key == " ":
                     self.grasp_state = 1 - self.grasp_state
 
@@ -166,7 +172,7 @@ if __name__ == "__main__":
     # Start teleop loop
     vr_pose_ref = sp.SE3()
     arm_pose_ref = sp.SE3()
-    engage_pct = 0
+    engage_pct = 0.0
 
     t0 = time.time()
     t_target = t0
@@ -181,14 +187,14 @@ if __name__ == "__main__":
             if is_active:
                 vr_pose_curr = sp.SE3(pose_matrix)
 
-                # Update reference pose
+                # Update reference pose through a gradual engaging process
                 if engage_pct < 1.0:
                     arm_pose_curr = robot.get_ee_pose()
                     arm_pose_ref = interpolate_pose(
-                        arm_pose_ref, arm_pose_curr, engage_pct
+                        arm_pose_curr, arm_pose_ref, engage_pct
                     )
                     vr_pose_ref = interpolate_pose(
-                        vr_pose_ref, vr_pose_curr, engage_pct
+                        vr_pose_curr, vr_pose_ref, engage_pct
                     )
 
                     engage_pct += 1.0 / ENGAGE_STEPS
@@ -201,7 +207,7 @@ if __name__ == "__main__":
                 robot.update_grasp_state(grasp_state)
 
             else:
-                engage_pct = 0
+                engage_pct = 0.0
 
             # Spin once
             t_target += t_delta
