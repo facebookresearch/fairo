@@ -17,14 +17,14 @@ from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
 from polymetis import RobotInterface, GripperInterface
 
-# from oculus_reader import OculusReader
+from oculus_reader import OculusReader
 
 # teleop control frequency
 UPDATE_HZ = 30
 # ramp up teleop engagement in this number of steps to prevent initial jerk
 ENGAGE_STEPS = 10
 # low pass filter cutoff frequency
-LPF_CUTOFF_HZ = 5
+LPF_CUTOFF_HZ = 15
 
 
 class TeleopMode(Enum):
@@ -57,9 +57,16 @@ class TeleopDevice:
             transforms, buttons = self.reader.get_transformations_and_buttons()
 
             # Generate output
-            is_active = buttons["rightGrip"] > 0.9 and buttons["rightTrig"] > 0.9
-            grasp_state = buttons["B"]
-            pose_matrix = transforms["r"]
+            if transforms:
+                is_active = (
+                    buttons["rightGrip"][0] > 0.9 and buttons["rightTrig"][0] > 0.9
+                )
+                grasp_state = buttons["B"]
+                pose_matrix = transforms["r"]
+            else:
+                is_active = False
+                grasp_state = 0
+                pose_matrix = np.eye(4)
 
         elif self.mode == TeleopMode.KEYBOARD:
             # Get data from keyboard
@@ -175,12 +182,14 @@ def interpolate_pose(pose1, pose2, pct):
 
 
 if __name__ == "__main__":
-    mode = TeleopMode.KEYBOARD
-    # mode = TeleopMode.OCULUS
+    # mode = TeleopMode.KEYBOARD
+    mode = TeleopMode.OCULUS
 
     # Initialize interfaces
+    print("Connecting to devices...")
     robot = Robot()
     teleop = TeleopDevice(mode=mode)
+    print("Connected.")
 
     # Initialize variables
     vr_pose_ref = sp.SE3()
@@ -191,10 +200,12 @@ if __name__ == "__main__":
     t_target = t0
     t_delta = 1.0 / UPDATE_HZ
 
+    arm_pose_desired_filtered = None
     tmp = 2 * np.pi * LPF_CUTOFF_HZ / UPDATE_HZ
     lpf_alpha = tmp / (tmp + 1)
 
     # Start teleop loop
+    print("======================== TELEOP START =========================")
     try:
         while True:
             # Obtain info from teleop device
@@ -202,7 +213,11 @@ if __name__ == "__main__":
 
             # Update arm
             if is_active:
-                vr_pose_curr = sp.SE3(pose_matrix)
+                # Hack to prevent unorthodox matrices
+                r = R.from_matrix(torch.Tensor(pose_matrix[:3, :3]))
+                vr_pose_curr = sp.SE3(
+                    sp.SO3.exp(r.as_rotvec()).matrix(), pose_matrix[:3, -1]
+                )
 
                 # Update reference pose through a gradual engaging process
                 if engage_pct < 1.0:
@@ -219,7 +234,7 @@ if __name__ == "__main__":
 
                 # Determine pose
                 arm_pose_desired = (vr_pose_curr * vr_pose_ref.inverse()) * arm_pose_ref
-                if engage_pct == 0.0:
+                if arm_pose_desired_filtered is None:
                     arm_pose_desired_filtered = arm_pose_desired
                 else:
                     arm_pose_desired_filtered = interpolate_pose(
@@ -231,6 +246,7 @@ if __name__ == "__main__":
                 robot.update_grasp_state(grasp_state)
 
             else:
+                arm_pose_desired_filtered = None
                 engage_pct = 0.0
 
             # Spin once
