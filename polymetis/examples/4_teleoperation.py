@@ -109,17 +109,17 @@ class TeleopDevice:
     def __init__(self, ip_address=None, mode="oculus"):
         self.mode = mode
 
-        if mode == "oculus":
+        if self.mode == "oculus":
             self.reader = OculusReader()
             self.reader.run()
 
-        elif mode == "keyboard":
+        elif self.mode == "keyboard":
             self.steps = 0
             self.delta_pos = np.zeros(3)
             self.grasp_state = 0
 
     def get_state(self):
-        if mode == "oculus":
+        if self.mode == "oculus":
             # Get data from oculus reader
             transforms, buttons = self.reader.get_transformations_and_buttons()
 
@@ -128,7 +128,7 @@ class TeleopDevice:
             grasp_state = buttons["B"]
             pose_matrix = transforms["r"]
 
-        elif mode == "keyboard":
+        elif self.mode == "keyboard":
             # Get data from keyboard
             if self.steps > ENGAGE_STEPS:
                 key = getch.getch()
@@ -161,13 +161,13 @@ class TeleopDevice:
 
 
 def interpolate_pose(pose1, pose2, pct):
-    return sp.SE3((1.0 - pct) * pose1.log() + pct * pose2.log())
+    return sp.SE3.exp((1.0 - pct) * pose1.log() + pct * pose2.log())
 
 
 if __name__ == "__main__":
     # Initialize interfaces
     robot = Robot()
-    teleop = TeleopDevice()
+    teleop = TeleopDevice(mode="keyboard")
 
     # Start teleop loop
     vr_pose_ref = sp.SE3()
