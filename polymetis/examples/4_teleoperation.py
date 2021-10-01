@@ -23,6 +23,8 @@ from polymetis import RobotInterface, GripperInterface
 UPDATE_HZ = 30
 # ramp up teleop engagement in this number of steps to prevent initial jerk
 ENGAGE_STEPS = 10
+# low pass filter cutoff frequency
+LPF_CUTOFF_HZ = 5
 
 
 class TeleopMode(Enum):
@@ -92,6 +94,8 @@ class TeleopDevice:
 
 
 class Robot:
+    """ Wrapper around arm and gripper """
+
     def __init__(self, ip_address="localhost"):
         self.arm = RobotInterface(ip_address=ip_address)
         self.gripper = GripperInterface(ip_address=ip_address)
@@ -166,15 +170,19 @@ class Robot:
 
 
 def interpolate_pose(pose1, pose2, pct):
-    return sp.SE3.exp((1.0 - pct) * pose1.log() + pct * pose2.log())
+    pose_diff = pose2 * pose1.inverse()
+    return sp.SE3.exp(pct * pose_diff.log()) * pose1
 
 
 if __name__ == "__main__":
+    mode = TeleopMode.KEYBOARD
+    # mode = TeleopMode.OCULUS
+
     # Initialize interfaces
     robot = Robot()
-    teleop = TeleopDevice(mode=TeleopMode.KEYBOARD)
+    teleop = TeleopDevice(mode=mode)
 
-    # Start teleop loop
+    # Initialize variables
     vr_pose_ref = sp.SE3()
     arm_pose_ref = sp.SE3()
     engage_pct = 0.0
@@ -183,6 +191,10 @@ if __name__ == "__main__":
     t_target = t0
     t_delta = 1.0 / UPDATE_HZ
 
+    tmp = 2 * np.pi * LPF_CUTOFF_HZ / UPDATE_HZ
+    lpf_alpha = tmp / (tmp + 1)
+
+    # Start teleop loop
     try:
         while True:
             # Obtain info from teleop device
@@ -195,20 +207,27 @@ if __name__ == "__main__":
                 # Update reference pose through a gradual engaging process
                 if engage_pct < 1.0:
                     arm_pose_curr = robot.get_ee_pose()
-                    arm_pose_ref = interpolate_pose(
-                        arm_pose_curr, arm_pose_ref, engage_pct
-                    )
+
                     vr_pose_ref = interpolate_pose(
                         vr_pose_curr, vr_pose_ref, engage_pct
+                    )
+                    arm_pose_ref = interpolate_pose(
+                        arm_pose_curr, arm_pose_ref, engage_pct
                     )
 
                     engage_pct += 1.0 / ENGAGE_STEPS
 
                 # Determine pose
-                pose_desired = (vr_pose_curr * vr_pose_ref.inverse()) * arm_pose_ref
+                arm_pose_desired = (vr_pose_curr * vr_pose_ref.inverse()) * arm_pose_ref
+                if engage_pct == 0.0:
+                    arm_pose_desired_filtered = arm_pose_desired
+                else:
+                    arm_pose_desired_filtered = interpolate_pose(
+                        arm_pose_desired_filtered, arm_pose_desired, lpf_alpha
+                    )
 
                 # Update
-                robot.update_ee_pose(pose_desired)
+                robot.update_ee_pose(arm_pose_desired_filtered)
                 robot.update_grasp_state(grasp_state)
 
             else:
