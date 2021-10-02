@@ -58,6 +58,7 @@ var config = {
         },
         {
           type: "column",
+          width: 65,
           content: [
             {
               type: "stack",
