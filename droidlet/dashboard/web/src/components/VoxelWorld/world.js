@@ -99,7 +99,7 @@ function World() {
     // game to use it as the main player
     var avatar = createPlayer(opts.playerSkin || SPEAKER_SKIN_PATH);
     avatar.possess();
-    avatar.yaw.position.set(2, 14, 4);
+    avatar.yaw.rotation.set(0, 3.2, 0);
     avatar.position.set(0, 63, 0);
     avatar.toggle();
     setup(game, avatar);
