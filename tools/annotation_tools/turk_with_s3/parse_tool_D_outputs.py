@@ -376,23 +376,23 @@ def resolve_spans(words, dicts):
                     inner[k] = new_v
                 elif k == "repeat":
 
-                    if "stop_condition" in v:
+                    if "remove_condition" in v:
                         new_v = {}
-                        new_v["stop_condition"] = {}
+                        new_v["remove_condition"] = {}
                         x = {}
-                        x["condition_type"] = v["stop_condition"]["condition_type"]
+                        x["condition_type"] = v["remove_condition"]["condition_type"]
 
                         new_vals = []
                         if (
-                            v["stop_condition"]["block_type"][0]
-                            == v["stop_condition"]["block_type"][1]
+                            v["remove_condition"]["block_type"][0]
+                            == v["remove_condition"]["block_type"][1]
                         ):
-                            new_vals.append(words[v["stop_condition"]["block_type"][0]])
+                            new_vals.append(words[v["remove_condition"]["block_type"][0]])
                         else:
-                            for item in v["stop_condition"]["block_type"]:
+                            for item in v["remove_condition"]["block_type"]:
                                 new_vals.append(words[item])
                         x["block_type"] = new_vals
-                        new_v["stop_condition"] = x
+                        new_v["remove_condition"] = x
                         inner["repeat"] = new_v
                 else:
                     inner[k] = v
