@@ -21,14 +21,6 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-# Find Torch
-execute_process (
-    COMMAND bash -c "python -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())' | tr -d '\n'"
-    OUTPUT_VARIABLE site_packages_path
-)
-set(Torch_DIR ${site_packages_path}/torch/share/cmake/Torch/)
-find_package(Torch REQUIRED)
-
 # Find Protobuf
 set(_PROTOBUF_LIBPROTOBUF $ENV{CONDA_PREFIX}/lib/libprotobuf.so)
 set(Protobuf_FOUND ON)
