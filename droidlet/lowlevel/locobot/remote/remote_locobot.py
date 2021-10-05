@@ -29,23 +29,7 @@ class RemoteLocobot(object):
     """
 
     def __init__(self, backend="locobot", backend_config=None, noisy=False):
-        if backend == "locobot":
-            base_config_dict = {"base_controller": "proportional"}
-            arm_config_dict = dict(moveit_planner="ESTkConfigDefault")
-            self._robot = Robot(
-                backend,
-                use_base=True,
-                use_arm=True,
-                use_camera=True,
-                base_config=base_config_dict,
-                arm_config=arm_config_dict,
-            )
-
-            self._dip = DepthImgProcessor()
-
-            from grasp_samplers.grasp import Grasper
-
-        elif backend == "habitat":
+        if backend == "habitat":
             if backend_config["physics_config"] == "DEFAULT":
                 assets_path = os.path.abspath(
                     os.path.join(os.path.dirname(__file__), "../tests/test_assets")
@@ -62,7 +46,7 @@ class RemoteLocobot(object):
             raise RuntimeError("Unknown backend", backend)
 
         # check skfmm, skimage in installed, its necessary for slam
-        self._slam = Slam(self._robot, backend)
+        self._slam = Slam(self._robot)
         self._slam_step_size = 25  # step size in cm
         self._done = True
         self.backend = backend
@@ -72,11 +56,7 @@ class RemoteLocobot(object):
             del self._robot
         backend_config = self.backend_config
         self._robot = Robot("habitat", common_config=backend_config)
-        # todo: a bad package seems to override python logging after the line above is run.
-        # So, all `logging.warn` and `logging.info` calls are failing to route
-        # to STDOUT/STDERR after this.
         from habitat_utils import reconfigure_scene
-
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"])
         from pyrobot.locobot.camera import DepthImgProcessor
@@ -91,12 +71,7 @@ class RemoteLocobot(object):
 
     def get_img_resolution(self):
         """return height and width"""
-        if self.backend == "locobot":
-            return (
-                self._robot.camera.depth_cam.cfg_data["Camera.height"],
-                self._robot.camera.depth_cam.cfg_data["Camera.width"],
-            )
-        elif self.backend == "habitat":
+        if self.backend == "habitat":
             return (512, 512)
         else:
             return None
@@ -108,14 +83,7 @@ class RemoteLocobot(object):
         # cap anything more than np.power(2,16)~ 65 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
         depth = depth.astype(np.uint16)
-        if self.backend == "locobot":
-            trans, rot, T = self._robot.camera.get_link_transform(
-                self._robot.camera.cam_cf, self._robot.camera.base_f
-            )
-            base2cam_trans = np.array(trans).reshape(-1, 1)
-            base2cam_rot = np.array(rot)
-            return rgb, depth, base2cam_rot, base2cam_trans
-        elif self.backend == "habitat":
+        if self.backend == "habitat":
             cur_state = self._robot.camera.agent.get_state()
             cur_sensor_state = cur_state.sensor_states["rgb"]
             initial_rotation = cur_state.rotation
@@ -127,23 +95,11 @@ class RemoteLocobot(object):
             return rgb, depth, cur_rotation, -relative_position
         return None
 
-    # Navigation wrapper
-    @Pyro4.oneway
-    def go_home(self, use_dslam=False):
-        """Moves the robot base to origin point: x, y, yaw 0, 0, 0."""
-        if self._done:
-            self._done = False
-            if use_dslam:
-                self._slam.set_absolute_goal_in_robot_frame([0.0, 0.0, 0.0])
-            else:
-                self._robot.base.go_to_absolute([0, 0, 0])
-            self._done = True
-
     def go_to_absolute(
         self,
         xyt_position,
         use_map=False,
-        close_loop=True,
+        close_loop=False,
         smooth=False,
         use_dslam=False,
     ):
@@ -172,7 +128,7 @@ class RemoteLocobot(object):
                 self._slam.set_absolute_goal_in_robot_frame(xyt_position)
             else:
                 self._robot.base.go_to_absolute(
-                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
+                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=False
                 )
             self._done = True
 
@@ -180,7 +136,7 @@ class RemoteLocobot(object):
         self,
         xyt_position,
         use_map=False,
-        close_loop=True,
+        close_loop=False,
         smooth=False,
         use_dslam=False,
     ):
@@ -209,7 +165,7 @@ class RemoteLocobot(object):
                 self._slam.set_relative_goal_in_robot_frame(xyt_position)
             else:
                 self._robot.base.go_to_relative(
-                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth
+                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=False
                 )
             self._done = True
 
@@ -230,159 +186,6 @@ class RemoteLocobot(object):
         :rtype: list
         """
         return self._robot.base.get_state(state_type)
-
-    # Manipulation wrapper
-
-    @Pyro4.oneway
-    def set_joint_positions(self, target_joint, plan=False):
-        """Sets the desired joint angles for all arm joints.
-
-        :param target_joint: list of length #of joints(5 for locobot), angles in radians,
-                             order-> base_join index 0, wrist joint index -1
-        :param plan: whether to use moveit to plan a path. Without planning,
-                     there is no collision checking and each joint will
-                     move to its target joint position directly.
-
-        :type target_joint: list
-        :type plan: bool
-        """
-        if self._done:
-            self._done = False
-            target_joint = np.array(target_joint)
-            self._robot.arm.set_joint_positions(target_joint, plan=plan)
-            self._done = True
-
-    @Pyro4.oneway
-    def set_joint_velocities(self, target_vels):
-        """Sets the desired joint velocities for all arm joints.
-
-        :param target_vels: target joint velocities, list of length #of joints(5 for locobot)
-                            velocity in  radians/sec
-                            order-> base_join index 0, wrist joint index -1
-        :type target_vels: list
-        """
-        if self._done:
-            self._done = False
-            target_vels = np.array(target_vels)
-            self._robot.arm.set_joint_velocities(target_vels)
-            self._done = True
-
-    @Pyro4.oneway
-    def set_ee_pose(self, position, orientation, plan=False):
-        """Commands robot arm to desired end-effector pose (w.r.t.
-        'ARM_BASE_FRAME'). Computes IK solution in joint space and calls
-        set_joint_positions.
-
-        :param position: position of the end effector in metric (shape: :math:`[3,]`)
-        :param orientation: orientation of the end effector
-                            (can be rotation matrix, euler angles (yaw,
-                            pitch, roll), or quaternion)
-                            (shape: :math:`[3, 3]`, :math:`[3,]`
-                            or :math:`[4,]`)
-                            The convention of the Euler angles here
-                            is z-y'-x' (intrinsic rotations),
-                            which is one type of Tait-Bryan angles.
-        :param plan: use moveit the plan a path to move to the desired pose
-
-        :type position: list or np.ndarray
-        :type orientation: list or np.ndarray
-        :type plan: bool
-        """
-        if self._done:
-            self._done = False
-            position = np.array(position)
-            orientation = np.array(orientation)
-            self._robot.arm.set_ee_pose(position, orientation, plan=plan)
-            self._done = True
-
-    @Pyro4.oneway
-    def move_ee_xyz(self, displacement, eef_step=0.005, plan=False):
-        """Keep the current orientation of arm fixed, move the end effector of
-        in {xyz} directions.
-
-        :param displacement: (delta_x, delta_y, delta_z) in metric unit
-        :param eef_step: resolution (m) of the interpolation
-                         on the cartesian path
-        :param plan: use moveit the plan a path to move to the
-                     desired pose. If False,
-                     it will do linear interpolation along the path,
-                     and simply use IK solver to find the
-                     sequence of desired joint positions and
-                     then call `set_joint_positions`
-
-        :type displacement: list or np.ndarray
-        :type eef_step: float
-        :type plan: bool
-        """
-        if self._done:
-            self._done = False
-            displacement = np.array(displacement)
-            self._robot.arm.move_ee_xyz(displacement, eef_step, plan=plan)
-            self._done = True
-
-    # Gripper wrapper
-    @Pyro4.oneway
-    def open_gripper(self):
-        """Commands gripper to open fully."""
-        if self._done:
-            self._done = False
-            self._robot.gripper.open()
-            self._done = True
-
-    @Pyro4.oneway
-    def close_gripper(self):
-        """Commands gripper to close fully."""
-        if self._done:
-            self._done = False
-            self._robot.gripper.close()
-            self._done = True
-
-    def get_gripper_state(self):
-        """Return the gripper state.
-
-        :return: state
-                 state = -1: unknown gripper state
-                 state = 0: gripper is fully open
-                 state = 1: gripper is closing
-                 state = 2: there is an object in the gripper
-                 state = 3: gripper is fully closed
-        :rtype: int
-        """
-        return self._robot.gripper.get_gripper_state()
-
-    def get_end_eff_pose(self):
-        """
-        Return the end effector pose w.r.t 'ARM_BASE_FRAME'
-        :return:tuple (trans, rot_mat, quat)
-
-                trans: translational vector in metric unit (shape: :math:`[3, 1]`)
-
-                rot_mat: rotational matrix (shape: :math:`[3, 3]`)
-
-                quat: rotational matrix in the form of quaternion (shape: :math:`[4,]`)
-
-        :rtype: tuple (list, list, list)
-        """
-        pos, rotmat, quat = self._robot.arm.pose_ee
-        return pos.flatten().tolist(), rotmat.tolist(), quat.tolist()
-
-    def get_joint_positions(self):
-        """Return arm joint angles order-> base_join index 0, wrist joint index
-        -1.
-
-        :return: joint_angles in radians
-        :rtype: list
-        """
-        return self._robot.arm.get_joint_angles().tolist()
-
-    def get_joint_velocities(self):
-        """Return the joint velocity order-> base_join index 0, wrist joint
-        index -1.
-
-        :return: joint_angles in rad/sec
-        :rtype: list
-        """
-        return self._robot.arm.get_joint_velocities().tolist()
 
     # Common wrapper
     def command_finished(self):
@@ -436,24 +239,6 @@ class RemoteLocobot(object):
         rgb = self._robot.camera.get_rgb()
         if rgb is not None:
             return rgb
-        return None
-
-    def get_rgbd_segm(self):
-        """Returns the RGB image, depth, instance segmentation map."""
-        rgb, d, segm = self._robot.camera.get_rgb_depth_segm()
-        if rgb is not None:
-            return rgb, d, segm
-        return None
-
-    def get_rgb_bytes(self):
-        """Returns the RGB image perceived by the camera.
-
-        :return: image in the RGB, [h,w,c] format, dtype->bytes
-        :rtype: np.ndarray or None
-        """
-        rgb = self._robot.camera.get_rgb().astype(np.int64)
-        if rgb is not None:
-            return rgb.tobytes()
         return None
 
     def transform_pose(self, XYZ, current_pose):
