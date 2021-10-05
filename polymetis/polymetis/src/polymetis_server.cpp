@@ -115,6 +115,20 @@ Status PolymetisControllerServerImpl::InitRobotClient(
 
   resetControllerContext();
 
+  // AlephZero server
+  a0_server_ = std::unique_ptr<a0::RpcServer>(new a0::RpcServer(
+      a0::RpcTopic("control_update"),
+      [&](a0::RpcRequest req) {
+        RobotState robot_state;
+        TorqueCommand torque_command;
+        robot_state.ParseFromString(std::string(req.pkt().payload()));
+        ControlUpdate_(&robot_state, &torque_command);
+        std::string torque_command_str;
+        torque_command.SerializeToString(&torque_command_str);
+        req.reply(torque_command_str);
+      },
+      nullptr));
+
   std::cout << "Success.\n\n";
   return Status::OK;
 }
@@ -135,10 +149,8 @@ void PolymetisControllerServerImpl::resetControllerContext() {
   custom_controller_context_.status = UNINITIALIZED;
 }
 
-Status
-PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
-                                             const RobotState *robot_state,
-                                             TorqueCommand *torque_command) {
+void PolymetisControllerServerImpl::ControlUpdate_(
+    const RobotState *robot_state, TorqueCommand *torque_command) {
   // Check if last update is stale
   if (!validRobotContext()) {
     std::cout
@@ -222,7 +234,13 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   robot_client_context_.last_update_ns = getNanoseconds();
+}
 
+Status
+PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
+                                             const RobotState *robot_state,
+                                             TorqueCommand *torque_command) {
+  ControlUpdate_(robot_state, torque_command);
   return Status::OK;
 }
 

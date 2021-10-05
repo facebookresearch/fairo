@@ -103,6 +103,7 @@ include_directories(
     ${TORCH_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${pinocchio_INCLUDE_DIRS} 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../alephzero/build/usr/include/
 )
 
 add_library(torchrot SHARED
@@ -131,6 +132,7 @@ target_link_libraries(polymetis_server
     yaml-cpp
     torchscript_pinocchio
     torchrot
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../alephzero/build/usr/lib/libalephzero.a
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
@@ -167,6 +169,7 @@ if(BUILD_FRANKA)
       generated_grpc_protos
       Franka::Franka
       yaml-cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../alephzero/build/usr/lib/libalephzero.a
   )
 endif()
 

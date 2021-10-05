@@ -18,6 +18,8 @@
 #include <franka/model.h>
 #include <franka/robot.h>
 
+#include <a0.h>
+
 #define NUM_DOFS 7
 #define FRANKA_HZ 1000.0
 #define RECOVERY_WAIT_SECS 1
@@ -38,12 +40,16 @@ private:
                            std::array<double, N> &safety_torques, double h,
                            double k, const char *item_name);
 
+  // AlephZero
+  std::unique_ptr<a0::RpcClient> a0_client_;
+
   // gRPC
   std::unique_ptr<PolymetisControllerServer::Stub> stub_;
   grpc::Status status_;
 
   TorqueCommand torque_command_;
   RobotState robot_state_;
+  std::string robot_state_bytes_;
 
   // libfranka
   bool mock_franka_;

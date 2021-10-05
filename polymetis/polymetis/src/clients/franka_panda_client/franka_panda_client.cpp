@@ -37,6 +37,10 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   RobotClientMetadata metadata;
   assert(metadata.ParseFromString(buffer.str()));
 
+  // Initialize AlephZero shared memory client
+  a0_client_ = std::unique_ptr<a0::RpcClient>(
+      new a0::RpcClient(a0::RpcTopic("control_update")));
+
   // Initialize robot client with metadata
   ClientContext context;
   Empty empty;
@@ -217,13 +221,18 @@ void FrankaTorqueControlClient::updateServerCommand(
   }
   setTimestampToNow(robot_state_.mutable_timestamp());
 
-  // Retrieve torques
-  grpc::ClientContext context;
-  status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
-  if (!status_.ok()) {
-    std::cout << "ControlUpdate rpc failed." << std::endl;
-    return;
-  }
+  // // Retrieve torques
+  // grpc::ClientContext context;
+  // status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
+  // if (!status_.ok()) {
+  //   std::cout << "ControlUpdate rpc failed." << std::endl;
+  //   return;
+  // }
+
+  robot_state_.SerializeToString(&robot_state_bytes_);
+  a0_client_->send(robot_state_bytes_, [&](a0::Packet reply) {
+    torque_command_.ParseFromString(std::string(reply.payload()));
+  });
 
   assert(torque_command_.joint_torques_size() == NUM_DOFS);
   for (int i = 0; i < NUM_DOFS; i++) {

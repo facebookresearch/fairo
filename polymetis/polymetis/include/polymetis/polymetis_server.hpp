@@ -23,6 +23,7 @@
 #include "polymetis/utils.h"
 #include "yaml-cpp/yaml.h"
 
+#include <a0.h>
 #include <torch/script.h>
 
 #define MAX_CIRCULAR_BUFFER_SIZE 300000 // 5 minutes of data at 1kHz
@@ -106,6 +107,9 @@ public:
 
   // User client methods
 
+  void ControlUpdate_(const RobotState *robot_state,
+                      TorqueCommand *torque_command);
+
   /**
   TODO
   */
@@ -157,6 +161,7 @@ public:
                             LogInterval *interval) override;
 
 private:
+  std::unique_ptr<a0::RpcServer> a0_server_;
   std::vector<char> controller_model_buffer_; // buffer for loading controllers
   std::vector<char>
       updates_model_buffer_; // buffer for loading controller update params
