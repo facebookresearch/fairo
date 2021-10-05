@@ -81,3 +81,9 @@ if [ $AGENT == "locobot" ]; then
     calculate_sha1sum "${AGENT_PATH}models/perception" "${AGENT_PATH}models/locobot_checksum.txt"
     compare_checksum_try_download "${AGENT_PATH}models/locobot_checksum.txt" "locobot"
 fi
+
+# Craftassist specific perception models 
+if [ $AGENT == "craftassist" ]; then
+    calculate_sha1sum "${AGENT_PATH}models/perception" "${AGENT_PATH}models/craftassist_perception_checksum.txt"
+    compare_checksum_try_download "${AGENT_PATH}models/craftassist_perception_checksum.txt" "craftassist"
+fi

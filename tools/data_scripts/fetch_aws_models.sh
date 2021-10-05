@@ -48,6 +48,12 @@ if [ "$3" == "nsp" ]; then
 	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
 fi
 
+if [ "$3" == "craftassist" ]; then
+	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/craftassist_perception_${CHECKSUM}.tar.gz to $ROOTDIR/craftassist_perception_${CHECKSUM}.tar.gz ======"
+	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/craftassist_perception_${CHECKSUM}.tar.gz -o craftassist_perception.tar.gz 
+	tar -xzvf craftassist_perception.tar.gz -C agents/${AGENT}/models/perception --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: craftassist_perception_${CHECKSUM}.tar.gz exists on S3." 
+fi
+
 if [ "$3" == "locobot" ]; then
 	echo "Now downloading robot models"
 	LOCO_CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt"

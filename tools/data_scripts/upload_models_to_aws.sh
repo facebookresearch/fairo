@@ -34,11 +34,28 @@ calculate_sha1sum "${AGENT_PATH}${DIRNAME}/semantic_parser" "${AGENT_PATH}${CHEC
 CHKSUM=$(cat $CHECKSUM_PATH)
 echo "CHECKSUM" $CHKSUM
 
-tar -czvf ${DIRNAME}_folder_${CHKSUM}.tar.gz --exclude='*/\.*' --exclude='*checksum*' ${DIRNAME}/
+tar -czvf ${DIRNAME}_folder_${CHKSUM}.tar.gz --exclude='*/\.*' --exclude='*checksum*' ${DIRNAME}/semantic_parser
 
 read -p "Do you want to upload ${DIRNAME}_folder_${CHKSUM}.tar.gz to S3 ? " -n 1 -r
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     echo "Uploading ..."
     aws s3 cp ${DIRNAME}_folder_${CHKSUM}.tar.gz s3://craftassist/pubr/
+fi
+
+DIRNAME="models"
+cd $AGENT_PATH
+CHECKSUM_PATH="${DIRNAME}/perception_checksum.txt"
+calculate_sha1sum "${AGENT_PATH}${DIRNAME}/perception" "${AGENT_PATH}${CHECKSUM_PATH}"
+
+CHKSUM=$(cat $CHECKSUM_PATH)
+echo "CHECKSUM" $CHKSUM
+
+tar -czvf craftassist_perception_${CHKSUM}.tar.gz --exclude='*/\.*' --exclude='*checksum*' ${DIRNAME}/perception
+
+read -p "Do you want to upload craftassist_perception_${CHKSUM}.tar.gz to S3 ? " -n 1 -r
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    echo "Uploading ..."
+    aws s3 cp craftassist_perception_${CHKSUM}.tar.gz s3://craftassist/pubr/
 fi
