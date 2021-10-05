@@ -2,6 +2,7 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+import argparse
 import time
 import sys
 import threading
@@ -36,7 +37,7 @@ class TeleopDevice:
     """Allows for teleoperation using either the keyboard or an Oculus controller
 
     Keyboard: Control end-effector position with WASD and RF, toggle gripper state with space
-    Oculus: Fully press both the trigger and the grip button to engage teleoperation. Hold B to perform grasp.
+    Oculus: Using the right controller, fully press the grip button (middle finger) to engage teleoperation. Hold B to perform grasp.
     """
 
     def __init__(self, ip_address=None, mode: TeleopMode = TeleopMode.OCULUS):
@@ -179,9 +180,13 @@ def interpolate_pose(pose1, pose2, pct):
     return sp.SE3.exp(pct * pose_diff.log()) * pose1
 
 
-if __name__ == "__main__":
-    # mode = TeleopMode.KEYBOARD
-    mode = TeleopMode.OCULUS
+def main(args):
+    if args.keyboard:
+        print("Running in keyboard mode.")
+        mode = TeleopMode.KEYBOARD
+    else:
+        print("Running in Oculus mode.")
+        mode = TeleopMode.OCULUS
 
     # Initialize interfaces
     print("Connecting to devices...")
@@ -254,3 +259,13 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("Session ended by user.")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument(
+        "-k", "--keyboard", action="store_true", help="Teleop with keyboard mode."
+    )
+    args = parser.parse_args()
+
+    main(args)
