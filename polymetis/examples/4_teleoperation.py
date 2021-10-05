@@ -58,11 +58,9 @@ class TeleopDevice:
 
             # Generate output
             if transforms:
-                is_active = (
-                    buttons["rightGrip"][0] > 0.9 and buttons["rightTrig"][0] > 0.9
-                )
+                is_active = buttons["rightGrip"][0] > 0.9
                 grasp_state = buttons["B"]
-                pose_matrix = transforms["r"]
+                pose_matrix = np.linalg.pinv(transforms["l"]) @ transforms["r"]
             else:
                 is_active = False
                 grasp_state = 0
