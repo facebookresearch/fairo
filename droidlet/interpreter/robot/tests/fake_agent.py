@@ -47,7 +47,7 @@ class FakeDetectorPerception:
         self.agent = agent
 
     def perceive(self, force=False):
-        pass
+        return {}
 
     def add_detected_object(self, xyz, class_label=None, properties=[], colour=None):
         d = get_fake_detection(class_label, properties, xyz)
@@ -444,7 +444,7 @@ class FakeAgent(DroidletAgent):
         super().perceive(force=force)
         self.perception_modules["self"].perceive(force=force)
         perception_output = self.perception_modules["vision"].perceive(force=force)
-        return perception_output
+        self.memory.update(perception_output)
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
