@@ -1,10 +1,7 @@
 # ArUcoX
 
-[![CircleCI](https://circleci.com/gh/fair-robotics/fair-aruco/tree/master.svg?style=svg&circle-token=f1e087bc2f213a5f47dde7e0d67a91c1e5882294)](https://circleci.com/gh/fair-robotics/fair-aruco/tree/master)
-
-**Note: This documentation is out of date! Newer version coming soon.**
-
-A thin wrapper around [ArUco](https://www.uco.es/investiga/grupos/ava/node/26) that provides a cleaner API and default parameters that work with pre-generated calibration boards and markers.
+A wrapper around [ArUco](https://www.uco.es/investiga/grupos/ava/node/26) that provides a cleaner API and default parameters that work with pre-generated calibration boards and markers.
+Also provides a scene API that calibrates multiple cameras in a global frame.
 Performs detection and pose estimation of ARTag markers.
 
 The source code for the API can be found at [python/arucoX](https://github.com/fair-robotics/fair-aruco/blob/master/python/arucoX)
@@ -18,12 +15,12 @@ C++: To be supported
 
 ## Installation
 ```
-git clone git@github.com:fair-robotics/fair-aruco.git
-cd fair-aruco
+git clone git@github.com:facebookresearch/fairo.git
+cd fairo/arucox
 pip install .
 ```
 
-## Usage: Single camera
+## Camera-Centric Usage
 
 Example can be found in [examples/single_camera](https://github.com/fair-robotics/fair-aruco/blob/master/examples/single_camera)
 
@@ -58,7 +55,10 @@ c.calibrate_camera(calib_img_list)
 
 Camera calibration parameters can also be saved/loaded by:
 ```py
-# Saving/loading from dict
+# Loading from matrices
+c.set_intrinsics(matrix=matrix, dist_coeffs=dist_coeffs)  # matrix: 3x4, dist_coeffs: 5x1
+
+# Saving/loading from a CameraIntrinsics object
 params = c.get_intrinsics()
 c.set_intrinsics(params)
 
@@ -83,7 +83,7 @@ c.register_marker_size(3, MARKER_LENGTH)
 c.register_marker_size(4, MARKER_LENGTH)
 
 # Perform detection and pose estimation
-markers = c.detect_markers(img, marker_length=MARKER_LENGTH)
+markers = c.detect_markers(img)
 ```
 
 `MARKER_LENGTH`: Width of the printed markers.
@@ -120,11 +120,50 @@ Output image `img_rend`:
   <img src="examples/single_camera/figs/test_5x5_render.jpg" width="360" align="middle">
 </p>
 
-## Notes
+### Notes
 - More precise measurements of the marker length will result in better pose estimations.
 - Markers require white spaces around them to be detected.
 
+## Scene-Centric Usage (with multiple cameras)
+
+```py
+import arucoX as ax 
+
+# Initialize camera modules
+c1 = CameraModule()
+c2 = CameraModule()
+c3 = CameraModule()
+
+# Initialize scene module
+scene = ax.Scene(cameras=[c1, c2, c3])
+
+# Register markers
+TABLE_MARKER_ID = 0
+TABLE_MARKER_LENGTH = 0.1
+OBJECT_MARKER_ID = 1
+OBJECT_MARKER_LENGTH = 0.04
+
+scene.register_marker_size(TABLE_MARKER_ID, TABLE_MARKER_LENGTH)
+scene.register_marker_size(OBJECT_MARKER_ID, OBJECT_MARKER_LENGTH)
+scene.set_origin_marker(TABLE_MARKER_ID)
+
+# Calibrate extrinsics (move object around in different snapshots
+scene.add_snapshot(imgs0)  #imgs: list of imgs corresponding to captures from each camera
+scene.add_snapshot(imgs1)
+scene.add_snapshot(imgs2)
+
+scene.calibrate_extrinsics()
+
+# Visualize camera locations
+scene.visualize()
+
+# Detect markers in global frame
+scene.detect_markers()
+```
+
+
+
+
 ## Todos
-- Multi-camera support
 - Hand-eye coordination
 - API for C++??
