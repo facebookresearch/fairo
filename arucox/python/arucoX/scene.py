@@ -5,16 +5,18 @@ from collections import namedtuple
 import cv2
 import numpy as np
 import sophus as sp
+import gtsam
 
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 from .camera import MarkerInfo
-from .graph import FactorGraph
+from .utils import sophus2gtsam, gtsam2sophus
 
 
+DEFAULT_HUBER_C = 1.345
+DEFAULT_POSE_SIG = [0.02, 0.02, 0.06, 0.1, 0.1, 0.1]
 CAMERA_SIZE = 0.03
-MARKER_OBS_SIG = [0.02, 0.02, 0.06, 0.1, 0.1, 0.1]
-MARKER_TRANS_SIG = [0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
 
 
 CameraInfo = namedtuple("CameraInfo", "module pose")
@@ -29,14 +31,6 @@ class Scene:
         self.snapshot_counter = 0
 
         self.origin_id = None
-
-        # Set up factor graph
-        self.graph = FactorGraph()
-        self.c_map = {}
-        self.m_map = {}
-        for i, c in enumerate(cameras):
-            idx = self.graph.add_obj(is_static=True)
-            self.c_map[i] = idx
 
     # Scene construction
     def add_snapshot(self, imgs):
@@ -74,68 +68,73 @@ class Scene:
     def get_snapshot(self, id):
         return self.snapshots[id]
 
+    # Scene calibration
+    def calibrate_extrinsics(self, verbosity=0):
+        assert len(self.snapshots) > 0, "At least 1 snapshot is required to calibrate extrinsics."
+
+        graph = FactorGraph(len(self.cameras))
+
+        # Parse all snapshots
+        snapshot_markers = []
+        for s_id in self.snapshots:
+            markers = self._combine_marker_detections(self.snapshots[s_id].camera_outputs)
+            snapshot_markers.append(markers)
+
+        # Extract initial estimate of origin from snapshots
+        pose_c = [
+            sp.SE3() for _ in range(self.get_num_cameras())
+        ]  # camera pose relative to origin marker
+
+        if self.origin_id is None:  # Fixate first camera if no origin marker
+            graph.add_camera_prior(0, sp.SE3(), definite=True)
+
+        else:
+            for m in snapshot_markers[0]:  # check first image for origin marker
+                if m["id"] == self.origin_id:
+                    for i, pose in enumerate(m["poses"]):
+                        assert (
+                            pose is not None
+                        ), f"Failed to estimate pose of origin marker from camera {i} in snapshot."
+                        pose_c[i] = pose.inverse()
+
+        # Add all snapshots
+        origin_idx = None
+        for markers in snapshot_markers:
+            for m in markers:
+                if len([p for p in m["poses"] if p is not None]) == 0:
+                    continue
+
+                # Add marker to graph
+                if m["id"] == self.origin_id:  # origin marker
+                    if origin_idx is None:
+                        origin_idx = graph.add_marker(m["poses"], init_guess=sp.SE3())
+                        graph.add_marker_prior(origin_idx, sp.SE3(), definite=True)
+                    else:
+                        graph.add_marker(m["poses"], marker_idx=origin_idx)
+
+                else:  # non-origin marker
+                    init_guess = sp.SE3()
+                    for i, pose in enumerate(m["poses"]):
+                        if pose is not None:
+                            init_guess = pose_c[i] * pose
+                            break
+
+                    graph.add_marker(m["poses"], init_guess=init_guess)
+
+        # Optimize & record results
+        results = graph.optimize(verbosity)
+        for i, c in enumerate(self.cameras):
+            self.cameras[i] = c._replace(pose=results["cameras"][i])
+
     # Marker registration
-    def register_marker(self, marker_id, length, static=False, pose=None):
+    def register_marker_size(self, marker_id, length):
         for c in self.cameras:
             c.module.register_marker_size(marker_id, length)
 
-        # Add to factor graph
-        idx = self.graph.add_obj(is_static=static)
-        self.m_map[marker_id] = idx
-
-        # Fix pose
-        if pose is not None:
-            self.graph.fix_obj_pose(idx, pose)
+    def set_origin_marker(self, marker_id):
+        self.origin_id = marker_id
 
     # Marker detection & estimation within scene
-    def reset_tracking(self):
-        self.graph.reset()
-
-    def track_markers(self, imgs):
-        self._check_img_input(imgs)
-
-        camera_outputs = [c.module.detect_markers(img) for c, img in zip(self.cameras, imgs)]
-        markers = self._combine_marker_detections(camera_outputs)
-
-        noise = MARKER_OBS_SIG
-        trans_noise = MARKER_TRANS_SIG
-        for m in markers:
-            # Skip if not registered
-            if m["id"] not in self.m_map.keys():
-                continue
-
-            # Add observation to graph
-            pose_init = False
-            for i, pose in enumerate(m["poses"]):
-                if pose is not None:
-                    self.graph.add_observation(
-                        self.c_map[i], self.m_map[m["id"]], pose, noise, trans_noise
-                    )
-                    if not pose_init:
-                        camera_pose = self.get_camera_pose(0)
-                        self.graph.set_obj_pose(self.m_map[m["id"]], pose * camera_pose.inverse())
-                        pose_init = True
-
-        self.graph.increment()
-
-        results = []
-        for m in markers:
-            if m["length"] is not None:
-                marker_info = MarkerInfo(
-                    m["id"], m["corner"], m["length"], self.graph.get_obj_pose(self.m_map[m["id"]])
-                )
-                results.append(marker_info)
-
-        # Update camera extrinsics
-        for i, idx in enumerate(self.c_map):
-            pose = self.graph.get_obj_pose(idx)
-            self.cameras[i] = self.cameras[i]._replace(pose=pose)
-
-        return results
-
-    def get_marker_pose(self, marker_id):
-        return self.graph.get_obj_pose(self.m_map[marker_id])
-
     def detect_markers(self, imgs, fast=False):
         self._check_img_input(imgs)
 
@@ -157,21 +156,12 @@ class Scene:
 
     # Visualization
     def visualize(self):
-        viz = SceneViz()
+        self._visualize(cameras=self.cameras)
 
-        # Draw cameras
-        for id in range(len(self.cameras)):
-            viz.draw_camera(self.get_camera_pose(id))
-
-        # Draw markers
-        marker_dict = self.cameras[0].module.registered_markers
-        for m_id in marker_dict:
-            length = marker_dict[m_id]
-            if length is not None:
-                viz.draw_marker(self.get_marker_pose(m_id), m_id, length)
-
-        # Show
-        viz.show()
+    def visualize_snapshot(self, imgs):
+        self._check_img_input(imgs)
+        markers = self.detect_markers(imgs)
+        self._visualize(cameras=self.cameras, markers=markers)
 
     # Save/Load
     def save_scene(self, filename: str):
@@ -231,6 +221,122 @@ class Scene:
             result = graph.optimize()
 
             return result["markers"][0]
+
+    @staticmethod
+    def _visualize(cameras=[], markers=[]):
+        viz = SceneViz()
+
+        # Draw cameras
+        for c in cameras:
+            viz.draw_camera(c.pose)
+
+        # Draw markers
+        for m in markers:
+            if m.length:
+                viz.draw_marker(m.pose, m.id, m.length)
+
+        # Show
+        viz.show()
+
+
+class FactorGraph:
+    def __init__(self, n_cameras):
+        self.n_cameras = n_cameras
+
+        # Setup variables & graph
+        self.C = gtsam.symbol_shorthand.C  # camera
+        self.M = gtsam.symbol_shorthand.M  # marker
+
+        self.zero_pose_noise = gtsam.noiseModel.Constrained.All(6)
+        self.pose_noise = gtsam.noiseModel.Robust(
+            gtsam.noiseModel.mEstimator.Huber(DEFAULT_HUBER_C),
+            gtsam.noiseModel.Diagonal.Sigmas(np.array(DEFAULT_POSE_SIG)),
+        )
+
+        self.graph = gtsam.NonlinearFactorGraph()
+
+        # Initial estimate
+        self.init_values = gtsam.Values()
+        for i in range(self.n_cameras):
+            self.init_values.insert(self.C(i), gtsam.Pose3())
+
+        # Initialize
+        self.n_samples = 0
+
+    def add_camera_prior(self, camera_idx, pose, definite=True):
+        assert camera_idx in range(self.n_cameras)
+        gts_pose = sophus2gtsam(pose)
+
+        # Add prior factor
+        pose_noise = self.zero_pose_noise if definite else self.pose_noise
+        factor = gtsam.PriorFactorPose3(self.C(camera_idx), gts_pose, pose_noise)
+        self.graph.push_back(factor)
+
+        # Update initial guess
+        self.init_values.update(self.C(camera_idx), gts_pose)
+
+    def add_marker_prior(self, marker_idx, pose, definite=False):
+        assert marker_idx in range(self.n_samples)
+        gts_pose = sophus2gtsam(pose)
+
+        # Add prior factor
+        pose_noise = self.zero_pose_noise if definite else self.pose_noise
+        factor = gtsam.PriorFactorPose3(self.M(marker_idx), gts_pose, pose_noise)
+        self.graph.push_back(factor)
+
+        # Update initial guess
+        self.init_values.update(self.M(marker_idx), gts_pose)
+
+    def add_marker(self, pose_ls, init_guess=sp.SE3(), marker_idx=None):
+        assert len(pose_ls) == self.n_cameras
+
+        # Idx not specified => new data point
+        if marker_idx is None:
+            idx = self.n_samples
+            self.n_samples += 1
+        else:
+            assert marker_idx in range(self.n_samples)
+            idx = marker_idx
+
+        # Create between factor
+        for i in range(self.n_cameras):
+            if pose_ls[i] is None:
+                continue
+            factor = gtsam.BetweenFactorPose3(
+                self.C(i), self.M(idx), sophus2gtsam(pose_ls[i]), self.pose_noise
+            )
+            self.graph.push_back(factor)
+
+        # Initial estimate
+        if marker_idx is None:
+            self.init_values.insert(self.M(idx), sophus2gtsam(init_guess))
+        else:
+            self.init_values.update(self.M(idx), sophus2gtsam(init_guess))
+
+        return idx
+
+    def optimize(self, verbosity=0):
+        # Setup optimization
+        params = gtsam.LevenbergMarquardtParams()
+        params.setVerbosity(["SILENT", "TERMINATION"][verbosity])
+        optimizer = gtsam.LevenbergMarquardtOptimizer(self.graph, self.init_values, params)
+
+        # Optimize
+        if verbosity > 0:
+            print("Optimizing extrinsics...")
+        result = optimizer.optimize()
+        if verbosity > 0:
+            print(f"initial error = {self.graph.error(self.init_values)}")
+            print(f"final error = {self.graph.error(result)}")
+
+        # Format result
+        camera_poses = [gtsam2sophus(result.atPose3(self.C(i))) for i in range(self.n_cameras)]
+        marker_poses = [gtsam2sophus(result.atPose3(self.M(j))) for j in range(self.n_samples)]
+
+        return {
+            "cameras": camera_poses,
+            "markers": marker_poses,
+        }
 
 
 class SceneViz:

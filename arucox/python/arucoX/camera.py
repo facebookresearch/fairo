@@ -118,13 +118,13 @@ class CameraModule:
         # Draw marker edges & ids
         corners = [m.corner[None, ...] for m in markers]
         ids = np.array([m.id for m in markers])
-        img_rend = cv2.aruco.drawDetectedMarkers(img.copy(), corners, ids)
+        img_rend = cv2.aruco.drawDetectedMarkers(img, corners, ids)
 
         # Draw marker axes
         for m in markers:
             if m.length is not None:
-                tvec = m.pose.translation()[None, :]
-                rvec = m.pose.so3().log()[None, :]
+                tvec = m.pose.log()[None, :3]
+                rvec = m.pose.log()[None, 3:]
                 length = m.length / 2.0
                 img_rend = cv2.aruco.drawAxis(
                     img_rend,
