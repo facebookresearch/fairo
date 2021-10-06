@@ -27,8 +27,6 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
 from agents.locobot.self_perception import SelfPerception
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
-
-# these should go in utils
 from droidlet.shared_data_struct.robot_shared_utils import Pos
 
 # marker creation should be somewhwere else....

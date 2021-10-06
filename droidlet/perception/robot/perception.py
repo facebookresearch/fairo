@@ -1,15 +1,12 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import time
-
 from droidlet.parallel import BackgroundTask
 from droidlet.perception.robot.handlers import (
     ObjectDetection,
     FaceRecognition,
     HumanPose,
     ObjectTracking,
-    DetectLaserPointer,
     ObjectDeduplicator,
 )
 from droidlet.interpreter.robot.objects import AttributeDict

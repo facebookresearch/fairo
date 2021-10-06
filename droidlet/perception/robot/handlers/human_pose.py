@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import cv2
 import os
 import logging
-import droidlet.memory.robot.loco_memory as loco_memory
 import numpy as np
 from .core import AbstractHandler, WorldObject
 from droidlet.shared_data_structs import RGBDepth

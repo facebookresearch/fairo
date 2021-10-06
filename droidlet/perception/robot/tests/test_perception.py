@@ -12,7 +12,6 @@ from droidlet.perception.robot import (
     ObjectDeduplicator,
     Perception,
     Detection,
-    Human,
 )
 from droidlet.interpreter.robot import dance
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
