@@ -1,0 +1,38 @@
+version: 2.1
+
+jobs:
+  integration_test_py38:
+    working_directory: ~/fair-aruco
+    resource_class: large
+    docker:
+      - image: continuumio/miniconda3
+    steps:
+      - checkout
+      - restore_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "environment.yml" }}
+      - run:
+          name: Setup env
+          command: |
+            apt-get update
+            apt-get install -y cmake build-essential libgl1-mesa-dev
+            [ -d ~/testenv ] || conda env create -f environment.yml -p ~/testenv
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "environment.yml" }}
+          paths:
+            - "~/testenv"
+            - "/usr/lib"
+      - run:
+          name: Run tests
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate ~/testenv
+            cd ~/fair-aruco
+            pip install -e .
+            pytest
+
+workflows:
+  version: 1
+  all:
+    jobs:
+      - integration_test_py38
