@@ -443,7 +443,7 @@ class FakeAgent(DroidletAgent):
         super().perceive(force=force)
         self.perception_modules["self"].perceive(force=force)
         perception_output = self.perception_modules["vision"].perceive(force=force)
-        self.memory.update(perception_output)
+        return perception_output
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
