@@ -32,3 +32,16 @@ Once you start an instance of `launch_robot.py`, you can send commands by utiliz
 For real-time uses (e.g. on hardware), it is highly recommended that this is run on a different machine than the machine directly controlling the robot, to avoid interruptions of the real-time loop. To do this, simply edit the `ip` while constructing the `RobotInterface`, e.g. in the [scripts](https://github.com/facebookresearch/fairo/tree/main/polymetis/examples).
 
 To **debug custom TorchScript policies**, TorchScript can directly script `print` statements, which will output **on the server** (i.e. for hardware, it will print on the NUC machine, where the `launch_robot.py` script was launched).
+
+
+## Running the gripper
+
+We currently support two grippers: Franka Hand and Robotiq 2F Gripper.
+
+To run the gripper server:
+```bash
+launch_gripper.py gripper=<franka_hand|robotiq_2f>
+```
+
+`launch_gripper.py` launches a service that exposes gripper functionality to a connected `GripperInterface`. 
+See [docs](https://polymetis-docs.github.io/usage.html) for usage instructions.
