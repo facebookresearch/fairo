@@ -79,14 +79,20 @@ private:
 };
 
 int main(int argc, char *argv[]) {
+  // Parse config
   if (argc != 2) {
-    std::cout << "Usage: ./franka_gripper `robot_ip`" << std::endl;
+    std::cout << "Usage: ./franka_gripper_server /path/to/cfg.yaml"
+              << std::endl;
     return 1;
   }
+  YAML::Node config = YAML::LoadFile(argv[1]);
 
-  std::string server_address("0.0.0.0:50052");
-  std::string robot_ip(argv[1]);
-  GripperControllerImpl service(robot_ip);
+  // Create service
+  GripperControllerImpl service(config["robot_ip"].as<std::string>());
+
+  // Launch service
+  std::string server_address =
+      config["ip"].as<std::string>() + ":" + config["port"].as<std::string>();
 
   ServerBuilder builder;
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

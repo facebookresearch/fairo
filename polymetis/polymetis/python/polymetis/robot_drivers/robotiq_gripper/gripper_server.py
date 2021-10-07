@@ -71,12 +71,17 @@ class RobotiqGripperServer(polymetis_pb2_grpc.GripperServerServicer):
         return polymetis_pb2.Empty()
 
 
-def run_server(ip, port, comport):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
+class GripperServerLauncher:
+    def __init__(self, ip="localhost", port="50052", comport="/dev/ttyUSB0"):
+        self.address = f"{ip}:{port}"
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
 
-    polymetis_pb2_grpc.add_GripperServerServicer_to_server(
-        RobotiqGripperServer(comport), server
-    )
-    server.add_insecure_port(f"{ip}:{port}")
-    server.start()
-    server.wait_for_termination()
+        polymetis_pb2_grpc.add_GripperServerServicer_to_server(
+            RobotiqGripperServer(comport), self.server
+        )
+        self.server.add_insecure_port(self.address)
+
+    def run(self):
+        self.server.start()
+        print(f"Robotiq-2F gripper server running at {self.address}.")
+        self.server.wait_for_termination()
