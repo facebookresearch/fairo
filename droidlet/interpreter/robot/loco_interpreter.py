@@ -17,7 +17,7 @@ from droidlet.interpreter import (
 
 from droidlet.shared_data_structs import ErrorWithResponse
 from .spatial_reasoning import ComputeLocations
-from .facing_helper import FacingInterpreter
+from .interpret_facing import FacingInterpreter
 from .point_target import PointTargetInterpreter
 
 import droidlet.interpreter.robot.dance as dance

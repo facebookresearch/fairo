@@ -1,7 +1,8 @@
+import heapq
+
 import numpy as np
 import time
 from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
-from droidlet.base_util import TICKS_PER_SEC
 
 
 class Time:
@@ -117,3 +118,39 @@ class MockOpt:
         self.no_default_behavior = False
         self.log_timeline = False
         self.enable_timeline = False
+
+
+class PriorityQueue:
+    def __init__(self):
+        self.q = []
+        self.set = set()
+
+    def push(self, x, prio):
+        heapq.heappush(self.q, (prio, x))
+        self.set.add(x)
+
+    def pop(self):
+        prio, x = heapq.heappop(self.q)
+        self.set.remove(x)
+        return prio, x
+
+    def contains(self, x):
+        return x in self.set
+
+    def replace(self, x, newp):
+        for i in range(len(self.q)):
+            oldp, y = self.q[i]
+            if x == y:
+                self.q[i] = (newp, x)
+                heapq.heapify(self.q)  # TODO: probably slow
+                return
+        raise ValueError("Not found: {}".format(x))
+
+    def __len__(self):
+        return len(self.q)
+
+
+TICKS_PER_SEC = 100
+TICKS_PER_MINUTE = 60 * TICKS_PER_SEC
+TICKS_PER_HOUR = 60 * TICKS_PER_MINUTE
+TICKS_PER_DAY = 24 * TICKS_PER_HOUR

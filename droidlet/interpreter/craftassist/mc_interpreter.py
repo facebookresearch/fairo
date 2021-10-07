@@ -20,7 +20,7 @@ from droidlet.interpreter import (
     interpret_dance_filter,
 )
 
-from .schematic_helper import (
+from .interpret_schematic import (
     get_repeat_dir,
     interpret_schematic,
     interpret_size,
@@ -28,9 +28,9 @@ from .schematic_helper import (
     interpret_mob_schematic,
 )
 
-from .facing_helper import FacingInterpreter
+from .interpret_facing import FacingInterpreter
 
-from .modify_helpers import (
+from .interpret_modify import (
     handle_fill,
     handle_rigidmotion,
     handle_scale,
@@ -38,8 +38,8 @@ from .modify_helpers import (
     handle_thicken,
 )
 from .spatial_reasoning import ComputeLocations
-from ..condition_helper import ConditionInterpreter
-from .attribute_helper import MCAttributeInterpreter
+from ..interpret_conditions import ConditionInterpreter
+from .interpret_attributes import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
@@ -60,10 +60,10 @@ class MCInterpreter(Interpreter):
         self.default_frame = "SPEAKER"
         # These are coming from agent's low level
         self.block_data = low_level_data["block_data"]
+        self.get_locs_from_entity = low_level_data["get_locs_from_entity"]
         self.special_shape_functions = low_level_data["special_shape_functions"]
         self.color_bid_map = low_level_data["color_bid_map"]
         # These come from agent's perception
-        self.astar_search = low_level_data["astar_search"]
         self.get_all_holes_fn = low_level_data["get_all_holes_fn"]
         self.workspace_memory_prio = ["Mob", "BlockObject"]
         self.subinterpret["attribute"] = MCAttributeInterpreter()
@@ -288,7 +288,10 @@ class MCInterpreter(Interpreter):
         ask the agent to do it when needed.
         """
         # Get nearby holes
-        holes = self.get_all_holes_fn(agent, location, self.block_data)
+        perception_holes = self.get_all_holes_fn(agent, location, self.block_data, agent.low_level_data["fill_idmeta"])
+        perception_output  = {"holes": perception_holes}
+        output = self.memory.update(perception_output=perception_output)
+        holes = output.get("holes", [])
         # Choose the best ones to fill
         holes = filter_by_sublocation(self, speaker, holes, r, loose=True)
 
@@ -387,7 +390,7 @@ class MCInterpreter(Interpreter):
             if not schematic_where.get("AND"):
                 raise ErrorWithResponse("I can't interpret complicated Dig commands like that yet")
             schematic_d = {}
-            # FIXME!  TORCH this whole thing, put in schematic_helper
+            # FIXME!  TORCH this whole thing, put in interpret_schematic
             for t in schematic_where["AND"]:
                 if t.get("pred_text"):
                     schematic_d[t["pred_text"]] = t["obj_text"]
@@ -465,7 +468,7 @@ class MCInterpreter(Interpreter):
                         refmove = dance.RefObjMovement(
                             agent,
                             ref_object=ref_obj,
-                            relative_direction=location_d["relative_direction"],
+                            relative_direction=location_d["relative_direction"]
                         )
                         t = self.task_objects["dance"](agent, {"movement": refmove})
                         tasks_to_do.append(t)

@@ -82,7 +82,7 @@ def process_repeat_dict(d):
             repeat_dict["repeat_dir"] = processed_d["repeat_dir"]
         return repeat_dict
     if d["loop"] == "forever":
-        return {"stop_condition": {"condition_type": "NEVER"}}
+        return {"remove_condition": {"condition_type": "NEVER"}}
     if d["loop"] == "repeat_until":
         stripped_d = with_prefix(d, "loop.repeat_until.")
         if not stripped_d:
@@ -90,13 +90,13 @@ def process_repeat_dict(d):
         processed_d = process_dict(stripped_d)
         if "adjacent_to_block_type" in processed_d:
             return {
-                "stop_condition": {
+                "remove_condition": {
                     "condition_type": "ADJACENT_TO_BLOCK_TYPE",
                     "block_type": processed_d["adjacent_to_block_type"],
                 }
             }
         elif "condition_span" in processed_d:
-            return {"stop_condition": {"condition_span": processed_d["condition_span"]}}
+            return {"remove_condition": {"condition_span": processed_d["condition_span"]}}
 
     raise NotImplementedError("Bad repeat dict option: {}".format(d["loop"]))
 

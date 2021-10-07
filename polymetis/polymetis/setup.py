@@ -23,7 +23,7 @@ install_requires = [
     "sphinx-book-theme",
     "breathe >= 4.29.1",
     "myst-parser >= 0.13.7",
-    "pybullet==3.1.6",
+    "pybullet==3.1.7",
     "pyserial",
     "pymodbus",
 ]

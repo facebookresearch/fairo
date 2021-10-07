@@ -24,7 +24,7 @@ from .core import AbstractHandler, WorldObject
 from droidlet.shared_data_structs import RGBDepth
 from ..detectron.detector.utils import get_predictor
 from ..detectron.detector.visualizer import LocobotVisualizer
-from droidlet.perception.robot.perception_helpers import get_color_tag
+from droidlet.perception.robot.perception_util import get_color_tag
 
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
