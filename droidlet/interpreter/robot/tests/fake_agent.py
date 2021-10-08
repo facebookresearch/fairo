@@ -453,7 +453,6 @@ class FakeAgent(DroidletAgent):
             for obj in updated_objects:
                 obj.save_to_memory(self.memory, update=True)
 
-
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
 
@@ -475,9 +474,13 @@ class FakeAgent(DroidletAgent):
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
+            chat_memid = self.memory.add_chat(
+                self.memory.get_player_by_name(speaker_name).memid, chatstr
+            )
             logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.add_triple(
+                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+            )
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
             # controller
@@ -489,7 +492,10 @@ class FakeAgent(DroidletAgent):
             )
             self.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
             if obj is not None:
-                self.dialogue_manager.dialogue_stack.append(obj)
+                if type(obj) is dict:
+                    obj["task"](self, task_data=obj["data"])
+                else:
+                    self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
 
     def setup_test(self):

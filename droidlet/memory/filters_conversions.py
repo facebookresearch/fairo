@@ -91,6 +91,13 @@ def sqlyify_where_clause(c):
                 s = input_left + " " + inequality_symbol + " " + input_right
                 if clause.get("comparison_measure"):
                     s = s + " MEASURED_IN " + clause["comparison_measure"] + " "
+            elif clause.get("pred_text"):
+                if clause.get("obj_text"):
+                    s = clause["pred_text"] + "=" + clause["obj_text"]
+                if clause.get("obj"):
+                    s = clause["pred_text"] + "=#=" + clause["obj"]
+            elif clause.get("subj") or clause.get("subj_text"):
+                raise NotImplementedError("can't do {} triples yet".format(clause))
             else:
                 s = sqlyify_where_clause(clause)
             clause_texts.append(s)
@@ -391,7 +398,7 @@ def where_leaf_to_comparator(clause):
             right_text = clause[gte_idx + 2 :]
         else:
             ct = "GREATER_THAN"
-            right_text = clause[gte_idx + 1 :]
+            right_text = clause[gt_idx + 1 :]
     if eq_idx > -1:
         left_text = clause[:eq_idx]
         if clause[eq_idx + 1 : eq_idx + 3] == "(+-":

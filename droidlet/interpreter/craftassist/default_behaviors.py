@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import random
 from droidlet.interpreter.craftassist import tasks
-from droidlet.dialog.dialogue_objects import Say
+from droidlet.dialog.dialogue_task import Say
 from droidlet.base_util import prepend_a_an, pos_to_np
 from droidlet.memory.memory_nodes import TaskNode
 
@@ -21,7 +21,7 @@ def build_random_shape(agent, shape_util_dict, rand_range=(10, 0, 10), no_chat=F
         target_loc[i] += np.random.randint(-rand_range[i], rand_range[i] + 1)
     shape = random.choice(shape_util_dict["shape_names"])
     opts = shape_util_dict["shape_option_fn_map"][shape]()
-    opts["bid"]  = shape_util_dict["bid"]
+    opts["bid"] = shape_util_dict["bid"]
     schematic = shape_util_dict["shape_fns"][shape](**opts)
     relations = [
         {"pred": "has_name", "obj": shape.lower()},
@@ -40,8 +40,13 @@ def build_random_shape(agent, shape_util_dict, rand_range=(10, 0, 10), no_chat=F
     if not no_chat:
         shape_name = prepend_a_an(shape.lower())
         # FIXME agent , also don't push directly to stack, ask the manager?
-        agent.memory.dialogue_stack_append_new(
-            Say, "I am building {} while you decide what you want me to do!".format(shape_name)
+        Say(
+            agent,
+            task_data={
+                "response_options": "I am building {} while you decide what you want me to do!".format(
+                    shape_name
+                )
+            },
         )
     return schematic
 

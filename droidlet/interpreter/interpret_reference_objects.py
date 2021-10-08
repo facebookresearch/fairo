@@ -8,7 +8,7 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK
-from droidlet.dialog.dialogue_objects import ConfirmReferenceObject
+from droidlet.dialog.dialogue_task import ConfirmReferenceObject
 from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
@@ -135,7 +135,11 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    if len(interpreter.progeny_data) == 0:
+    clarification_query = "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
+        interpreter.memid
+    )
+    _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
+    if not clarification_task_mems:
         if any(extra_tags):
             extra_clauses = []
             for tag in extra_tags:
@@ -176,16 +180,22 @@ def interpret_reference_object(
             _, mem = objects[0]
             interpreter.provisional["object_mem"] = mem
             interpreter.provisional["filters_d"] = filters_d
-            # FIXME agent
-            interpreter.memory.dialogue_stack_append_new(ConfirmReferenceObject, mem)
+            task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
+            cmemid = TaskNode.create(interpreter.memory, task_egg)
+            interpreter.memory.add_triple(
+                subj=cmemid, pred_text="reference_object_confirmation", obj=self.memid
+            )
             raise NextDialogueStep()
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 
     else:
         # clarification answered
-        r = interpreter.progeny_data[-1].get("response")
-        if r == "yes":
+        # FIXME, error if there are many?
+        task_mem = clarification_task_mems[0]
+        query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
+        _, r = interpreter.memory.basic_search(query)
+        if r and r[0] == "yes":
             # TODO: learn from the tag!  put it in memory!
             return [interpreter.provisional.get("object_mem")]
         else:

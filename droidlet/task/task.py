@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.interpreter.condition_classes import (
+from droidlet.task.condition_classes import (
     AlwaysCondition,
     NeverCondition,
     NotCondition,
@@ -49,7 +49,7 @@ class Task(object):
         >>> Task()
     """
 
-    def __init__(self, agent, task_data={}):
+    def __init__(self, agent, task_data={}, memid=None):
         self.agent = agent
         self.run_count = 0
         self.interrupted = False
@@ -57,9 +57,21 @@ class Task(object):
         self.name = None
         self.undone = False
         self.last_stepped_time = None
-        self.prio = -1
-        self.running = 0
-        self.memid = TaskNode.create(self.agent.memory, self)
+
+        if memid:
+            self.memid = memid
+            N = TaskNode(agent.memory, self.memid).update_task(task=self)
+            # this is an egg, hatch it
+            if N.prio == -3:
+                N.get_update_status({"prio": -1})
+        else:
+            TaskNode.create(self.agent.memory, self)
+        # remember to get children of blocking tasks (and delete this comment)
+        if task_data.get("blocking"):
+            TripleNode.create(
+                self.agent.memory, subj=self.memid, pred_text="has_tag", obj_text="blocking_task"
+            )
+
         # TODO put these in memory in a new table?
         # TODO methods for safely changing these
         i, s, ru, re = self.get_default_conditions(task_data, agent)
