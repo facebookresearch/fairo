@@ -119,7 +119,8 @@ class BaseCraftassistTestCase(unittest.TestCase):
         player.look_at(*xyz)
 
     def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
-        self.agent.set_blocks(xyzbms, origin)
+        boring_blocks = self.agent.low_level_data["boring_blocks"]
+        self.agent.set_blocks(xyzbms, boring_blocks, origin)
 
     def add_object(
         self, xyzbms: List[Block], origin: XYZ = (0, 0, 0), relations={}

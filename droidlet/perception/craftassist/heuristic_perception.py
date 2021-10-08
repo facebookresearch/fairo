@@ -9,25 +9,12 @@ from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
 from copy import deepcopy
 import logging
-
-from droidlet.lowlevel.minecraft.mc_util import (
-    manhat_dist,
-    get_locs_from_entity,
-    euclid_dist,
-    fill_idmeta,
-)
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
-    BORING_BLOCKS,
-    PASSABLE_BLOCKS,
-    COLOR_BID_MAP,
-)
-from droidlet.base_util import to_block_pos
-from droidlet.perception.craftassist.search import depth_first_search
+from droidlet.base_util import depth_first_search, to_block_pos, manhat_dist, euclid_dist
 from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
-COLOUR_LIST = list(COLOR_BID_MAP.keys())
+
 
 # Taken from : stackoverflow.com/questions/16750618/
 # whats-an-efficient-way-to-find-if-a-point-lies-in-the-convex-hull-of-a-point-cl
@@ -41,7 +28,7 @@ def in_hull(points, x):
     return lp.success
 
 
-def all_nearby_objects(get_blocks, pos, max_radius=MAX_RADIUS):
+def all_nearby_objects(get_blocks, pos, boring_blocks, passable_blocks, max_radius=MAX_RADIUS):
     """Return a list of connected components near pos.
 
     Each component is a list of ((x, y, z), (id, meta))
@@ -49,7 +36,7 @@ def all_nearby_objects(get_blocks, pos, max_radius=MAX_RADIUS):
     i.e. this function returns list[list[((x, y, z), (id, meta))]]
     """
     pos = np.round(pos).astype("int32")
-    mask, off, blocks = all_close_interesting_blocks(get_blocks, pos, max_radius)
+    mask, off, blocks = all_close_interesting_blocks(get_blocks, pos, boring_blocks, passable_blocks, max_radius)
     components = connected_components(mask)
     logging.debug("all_nearby_objects found {} objects near {}".format(len(components), pos))
     xyzbms = [
@@ -59,12 +46,12 @@ def all_nearby_objects(get_blocks, pos, max_radius=MAX_RADIUS):
     return xyzbms
 
 
-def closest_nearby_object(get_blocks, pos):
+def closest_nearby_object(get_blocks, pos, boring_blocks, passable_blocks):
     """Find the closest interesting object to pos
 
     Returns a list of ((x,y,z), (id, meta)), or None if no interesting objects are nearby
     """
-    objects = all_nearby_objects(get_blocks, pos)
+    objects = all_nearby_objects(get_blocks, pos, boring_blocks, passable_blocks)
     if len(objects) == 0:
         return None
     centroids = [np.mean([pos for (pos, idm) in obj], axis=0) for obj in objects]
@@ -72,26 +59,26 @@ def closest_nearby_object(get_blocks, pos):
     return objects[np.argmin(dists)]
 
 
-def all_close_interesting_blocks(get_blocks, pos, max_radius=MAX_RADIUS):
+def all_close_interesting_blocks(get_blocks, pos, boring_blocks, passable_blocks, max_radius=MAX_RADIUS):
     """Find all "interesting" blocks close to pos, within a max_radius"""
     mx, my, mz = pos[0] - max_radius, pos[1] - max_radius, pos[2] - max_radius
     Mx, My, Mz = pos[0] + max_radius, pos[1] + max_radius, pos[2] + max_radius
 
     yzxb = get_blocks(mx, Mx, my, My, mz, Mz)
     relpos = pos - [mx, my, mz]
-    mask = accessible_interesting_blocks(yzxb[:, :, :, 0], relpos)
+    mask = accessible_interesting_blocks(yzxb[:, :, :, 0], relpos, boring_blocks, passable_blocks)
     return mask, (my, mz, mx), yzxb
 
 
-def accessible_interesting_blocks(blocks, pos):
+def accessible_interesting_blocks(blocks, pos, boring_blocks, passable_blocks):
     """Return a boolean mask of blocks that are accessible-interesting from pos.
 
     A block b is accessible-interesting if it is
     1. interesting, AND
     2. there exists a path from pos to b through only passable or interesting blocks
     """
-    passable = np.isin(blocks, PASSABLE_BLOCKS)
-    interesting = np.isin(blocks, BORING_BLOCKS, invert=True)
+    passable = np.isin(blocks, passable_blocks)
+    interesting = np.isin(blocks, boring_blocks, invert=True)
     passable_or_interesting = passable | interesting
     X = np.zeros_like(passable)
 
@@ -179,7 +166,7 @@ def connected_components(X, unique_idm=False):
     return components
 
 
-def check_between(entities, fat_scale=0.2):
+def check_between(entities, get_locs_from_entity, fat_scale=0.2):
     """Heuristic check if entities[0] is between entities[1] and entities[2]
     by checking if the locs of enitity[0] are in the convex hull of
     union of the max cardinal points of entity[1] and entity[2]"""
@@ -217,22 +204,7 @@ def check_between(entities, fat_scale=0.2):
     return in_hull(points, x)
 
 
-def find_between(entities):
-    """Heurisitc search for points between entities[0] and entities[1]
-    for now : just pick the point half way between their means
-    TODO: fuzz a bit if target is unreachable"""
-    for e in entities:
-        means = []
-        l = get_locs_from_entity(e)
-        if l is not None:
-            means.append(np.mean(l, axis=0))
-        else:
-            # this is not a thing we know how to assign 'between' to
-            return None
-        return (means[0] + means[1]) / 2
-
-
-def check_inside(entities):
+def check_inside(entities, get_locs_from_entity):
     """Heuristic check on whether an entity[0] is inside entity[1]
     if in some 2d slice, cardinal rays cast from some point in
     entity[0] all hit a block in entity[1], we say entity[0] is inside
@@ -265,7 +237,7 @@ def check_inside(entities):
     return False
 
 
-def find_inside(entity):
+def find_inside(entity, get_locs_from_entity):
     """Return a point inside the entity if it can find one.
     TODO: heuristic quick check to find that there aren't any,
     and maybe make this not d^3"""
@@ -285,7 +257,7 @@ def find_inside(entity):
     for x in range(mins[0], maxes[0] + 1):
         for y in range(mins[1], maxes[1] + 1):
             for z in range(mins[2], maxes[2] + 1):
-                if check_inside([(x, y, z), entity]):
+                if check_inside([(x, y, z), entity], get_locs_from_entity):
                     inside.append((x, y, z))
     return sorted(inside, key=lambda x: euclid_dist(x, m))
 
@@ -354,7 +326,7 @@ def ground_height(agent, pos, radius, yfilt=5, xzfilt=5):
 
 
 def get_nearby_airtouching_blocks(
-    agent, location, block_data, color_data, block_property_data, radius=15
+    agent, location, block_data, color_data, block_property_data, color_list, radius=15
 ):
     """Get all blocks in 'radius' of 'location'
     that are touching air on either side.
@@ -368,6 +340,7 @@ def get_nearby_airtouching_blocks(
     xyzb = yzxb.transpose([2, 0, 1, 3]).copy()
     components = connected_components(xyzb, unique_idm=True)
     blocktypes = []
+    shifted_c = []
     for c in components:
         tags = None
         for loc in c:
@@ -384,7 +357,7 @@ def get_nearby_airtouching_blocks(
                                 type_name = block_data["bid_to_name"][idm]
                                 tags = [type_name]
                                 colours = deepcopy(color_data["name_to_colors"].get(type_name, []))
-                                colours.extend([c for c in COLOUR_LIST if c in type_name])
+                                colours.extend([c for c in color_list if c in type_name])
                                 if colours:
                                     tags.extend(colours)
                                     tags.extend([{"has_colour": c} for c in colours])
@@ -397,14 +370,10 @@ def get_nearby_airtouching_blocks(
                                         idm[0], idm[1]
                                     )
                                 )
-        if tags:
-            shifted_c = [(l[0] + x - radius, l[1] + ymin, l[2] + z - radius) for l in c]
-            if len(shifted_c) > 0:
-                InstSegNode.create(agent.memory, shifted_c, tags=tags)
-    return blocktypes
+    return blocktypes, shifted_c, tags
 
 
-def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=True):
+def get_all_nearby_holes(agent, location, block_data, fill_idmeta, radius=15, store_inst_seg=True):
     """Returns:
     a list of holes. Each hole is an InstSegNode"""
     sx, sy, sz = location
@@ -418,7 +387,7 @@ def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=
     current_connected_comp = []
     current_idm = (2, 0)
 
-    # helper functions
+    # utility functions
     def get_block_info(x, z):  # fudge factor 5
         height = max_height
         while True:
@@ -502,21 +471,7 @@ def get_all_nearby_holes(agent, location, block_data, radius=15, store_inst_seg=
 
     # remove 0-length holes
     holes = [h for h in holes if len(h[0]) > 0]
-    hole_mems = []
-    for hole in holes:
-        memid = InstSegNode.create(agent.memory, hole[0], tags=["hole", "pit", "mine"])
-        try:
-            fill_block_name = block_data["bid_to_name"][hole[1]]
-        except:
-            idm = (hole[1][0], 0)
-            fill_block_name = block_data["bid_to_name"].get(idm)
-        if fill_block_name:
-            query = "SELECT MEMORY FROM BlockType WHERE has_name={}".format(fill_block_name)
-            _, fill_block_mems = agent.memory.basic_search(query)
-            fill_block_memid = fill_block_mems[0].memid
-            agent.memory.add_triple(subj=memid, pred_text="has_fill_type", obj=fill_block_memid)
-        hole_mems.append(agent.memory.get_mem_by_id(memid))
-    return hole_mems
+    return holes
 
 
 def maybe_get_type_name(idm, block_data):
@@ -557,64 +512,86 @@ class PerceptionWrapper:
         self.block_data = low_level_data["block_data"]
         self.color_data = low_level_data["color_data"]
         self.block_property_data = low_level_data["block_property_data"]
+        self.boring_blocks = low_level_data["boring_blocks"]
+        self.passable_blocks = low_level_data["passable_blocks"]
+        self.color_bid_map = low_level_data["color_bid_map"]
 
     def perceive(self, force=False):
         """Called by the core event loop for the agent to run all perceptual
-        models and save their state to memory.
+        models and return their state to agent.
 
         Args:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
+        output = {}
+        color_list = list(self.color_bid_map.keys())
         if self.perceive_freq == 0 and not force:
-            return
+            return output
         if self.agent.count % self.perceive_freq != 0 and not force:
-            return
-        if force or not self.agent.memory.task_stack_peek():
-            # perceive blocks in marked areas
-            for pos, radius in self.agent.areas_to_perceive:
-                for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
-                    memid = BlockObjectNode.create(self.agent.memory, obj)
-                    color_tags = []
-                    for idm in obj:
-                        type_name = maybe_get_type_name(idm, self.block_data)
-                        color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
-                    for color_tag in list(set(color_tags)):
-                        self.agent.memory.add_triple(
-                            subj=memid, pred_text="has_colour", obj_text=color_tag
-                        )
+            return output
 
-                get_all_nearby_holes(self.agent, pos, self.block_data, radius)
-                get_nearby_airtouching_blocks(
-                    self.agent,
-                    pos,
-                    self.block_data,
-                    self.color_data,
-                    self.block_property_data,
-                    radius,
-                )
-            # perceive blocks near the agent
-            for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
-                memid = BlockObjectNode.create(self.agent.memory, objs)
+        # 1. perceive blocks in marked areas to perceive
+        for pos, radius in self.agent.areas_to_perceive:
+            # 1.1 Get block objects and their colors
+            obj_tag_list = []
+            for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
                 color_tags = []
-                for obj in objs:
-                    idm = obj[1]
+                for idm in obj:
                     type_name = maybe_get_type_name(idm, self.block_data)
                     color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
-                for color_tag in list(set(color_tags)):
-                    self.agent.memory.add_triple(
-                        subj=memid, pred_text="has_colour", obj_text=color_tag
-                    )
-
-            get_all_nearby_holes(self.agent, self.agent.pos, self.block_data, radius=self.radius)
-            get_nearby_airtouching_blocks(
+                obj_tag_list.append([obj, color_tags])
+            output["in_perceive_area"] = output.get("in_perceive_area", {})
+            output["in_perceive_area"]["block_object_attributes"] = obj_tag_list if obj_tag_list else None
+            # 1.2 Get all holes in perception area
+            holes = get_all_nearby_holes(
+                self.agent, pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius)
+            output["in_perceive_area"]["holes"] = holes if holes else None
+            # 1.3 Get all air-touching blocks in perception area
+            blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
                 self.agent,
-                self.agent.pos,
+                pos,
                 self.block_data,
                 self.color_data,
                 self.block_property_data,
-                radius=self.radius,
+                color_list,
+                radius,
             )
+            if tags and len(shifted_c) > 0:
+                output["in_perceive_area"]["airtouching_blocks"] = [shifted_c, tags]
+
+        # 2. perceive blocks and their colors near the agent
+        near_obj_tag_list = []
+        for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
+            color_tags = []
+            for obj in objs:
+                idm = obj[1]
+                type_name = maybe_get_type_name(idm, self.block_data)
+                color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
+            near_obj_tag_list.append([objs, color_tags])
+        output["near_agent"] = output.get("near_agent", {})
+        output["near_agent"]["block_object_attributes"] = near_obj_tag_list if near_obj_tag_list else None
+        # 3. Get all holes near agent
+        holes = get_all_nearby_holes(
+            self.agent,
+            self.agent.pos,
+            self.block_data,
+            self.agent.low_level_data["fill_idmeta"],
+            radius=self.radius)
+        output["near_agent"]["holes"] = holes if holes else None
+        # 4. Get all air-touching blocks near agent
+        blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
+            self.agent,
+            self.agent.pos,
+            self.block_data,
+            self.color_data,
+            self.block_property_data,
+            color_list,
+            radius=self.radius,
+        )
+        if tags and len(shifted_c) > 0:
+            output["near_agent"]["airtouching_blocks"] = [shifted_c, tags]
+        return output
 
 
 def build_safe_diag_adjacent(bounds):

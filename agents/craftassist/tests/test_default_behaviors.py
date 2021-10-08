@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.craftassist.default_behaviors import build_random_shape, come_to_player
-from droidlet.lowlevel.minecraft import shape_helpers as sh
+from droidlet.lowlevel.minecraft import shape_util as sh
 
 class TestDefaultBehavior(BaseCraftassistTestCase):
     def setUp(self):

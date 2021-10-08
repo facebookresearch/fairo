@@ -24,8 +24,6 @@ def add_two_cubes(test):
 
 def add_a_toy(test):
     test.agent.add_object(TOY, tags=["toy", "_physical_object"])
-
-
 #    test.set_looking_at(test.cube_right[0][0])
 
 

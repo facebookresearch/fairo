@@ -82,7 +82,7 @@ def process_repeat_dict(d):
             repeat_dict["repeat_dir"] = processed_d["repeat_dir"]
         return repeat_dict
     if d["loop"] == "forever":
-        return {"stop_condition": {"condition_type": "NEVER"}}
+        return {"remove_condition": {"condition_type": "NEVER"}}
     if d["loop"] == "repeat_until":
         stripped_d = with_prefix(d, "loop.repeat_until.")
         if not stripped_d:
@@ -90,13 +90,13 @@ def process_repeat_dict(d):
         processed_d = process_dict(stripped_d)
         if "adjacent_to_block_type" in processed_d:
             return {
-                "stop_condition": {
+                "remove_condition": {
                     "condition_type": "ADJACENT_TO_BLOCK_TYPE",
                     "block_type": processed_d["adjacent_to_block_type"],
                 }
             }
         elif "condition_span" in processed_d:
-            return {"stop_condition": {"condition_span": processed_d["condition_span"]}}
+            return {"remove_condition": {"condition_span": processed_d["condition_span"]}}
 
     raise NotImplementedError("Bad repeat dict option: {}".format(d["loop"]))
 
@@ -477,23 +477,23 @@ def resolve_spans(words, dicts):
                 new_d[k] = [v[0], new_v]
             elif k == "repeat":
                 # v[1] = ast.literal_eval(v[1])
-                if "stop_condition" in v[1]:
+                if "remove_condition" in v[1]:
                     new_v = {}
-                    new_v["stop_condition"] = {}
+                    new_v["remove_condition"] = {}
                     x = {}
 
-                    if "condition_type" in v[1]["stop_condition"]:
-                        x["condition_type"] = v[1]["stop_condition"]["condition_type"]
+                    if "condition_type" in v[1]["remove_condition"]:
+                        x["condition_type"] = v[1]["remove_condition"]["condition_type"]
                     new_vals = []
-                    if "block_type" in v[1]["stop_condition"]:
-                        for item in v[1]["stop_condition"]["block_type"]:
+                    if "block_type" in v[1]["remove_condition"]:
+                        for item in v[1]["remove_condition"]["block_type"]:
                             new_vals.append(words[item[0]])
                         x["block_type"] = new_vals
-                    elif "condition_span" in v[1]["stop_condition"]:
-                        for item in v[1]["stop_condition"]["condition_span"]:
+                    elif "condition_span" in v[1]["remove_condition"]:
+                        for item in v[1]["remove_condition"]["condition_span"]:
                             new_vals.append(words[item[0]])
                         x["condition_span"] = new_vals
-                    new_v["stop_condition"] = x
+                    new_v["remove_condition"] = x
                     new_d["repeat"] = [v[0], new_v]
                 else:
                     new_d[k] = v

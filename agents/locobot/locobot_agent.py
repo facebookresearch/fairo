@@ -22,7 +22,7 @@ from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.base_util import to_player_struct, Pos, Look, Player
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from agents.loco_mc_agent import LocoMCAgent
+from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
 import agents.locobot.label_prop as LP
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
@@ -51,7 +51,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 logging.getLogger().handlers.clear()
 
 
-class LocobotAgent(LocoMCAgent):
+class LocobotAgent(DroidletAgent):
     """Implements an instantiation of the LocoMCAgent on a Locobot. It starts
     off the agent processes including launching the dashboard.
 
@@ -210,14 +210,14 @@ class LocobotAgent(LocoMCAgent):
         Each perceptual module should have a perceive method that is
         called by the base agent event loop.
         """
-        self.chat_parser = NSPQuerier(self.opts)
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["self"] = SelfPerception(self)
         self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
 
     def perceive(self, force=False):
-        super().perceive(force=force, parser_only=True)
+        super().perceive(force=force)
         self.perception_modules["self"].perceive(force=force)
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()

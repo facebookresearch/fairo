@@ -2,9 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import os
-import logging
 import faulthandler
-from pickle import NONE
 import signal
 import random
 import sentry_sdk
@@ -31,7 +29,7 @@ from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandle
 
 from droidlet.lowlevel.minecraft import craftassist_specs
 from agents.craftassist.craftassist_agent import CraftAssistAgent
-from agents.craftassist.craftassist_swarm_worker import CraftAssistSwarmWorker, CraftAssistSwarmWorker_Wrapper, ForkedPdb, TASK_MAP
+from agents.craftassist.craftassist_swarm_worker import CraftAssistSwarmWorker_Wrapper, TASK_MAP
 from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.memory.memory_nodes import (  # noqa
@@ -48,13 +46,10 @@ from droidlet.memory.memory_nodes import (  # noqa
     AttentionNode,
     NODELIST,
 )
-from droidlet.interpreter.task import *
 from droidlet.interpreter.craftassist.tasks import *
 
 import time
-import pdb
 import pickle
-from copy import deepcopy
 
 faulthandler.register(signal.SIGUSR1)
 

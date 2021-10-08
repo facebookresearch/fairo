@@ -201,7 +201,7 @@ def fill(schematic):
 
 def get_schematic():
     shape_name = random.choice(sh.SHAPE_NAMES)
-    opts = sh.SHAPE_HELPERS[shape_name]()
+    opts = sh.SHAPE_OPTION_FUNCTION_MAP[shape_name]()
     opts["bid"] = sh.bid()
     blocks = sh.SHAPE_FNS[shape_name](**opts)
     if len(blocks) == 0:

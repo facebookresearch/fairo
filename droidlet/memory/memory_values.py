@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 # FIXME!! torch this whole file, replace with filters
 from .memory_filters import MemorySearcher
-from droidlet.base_util import TICKS_PER_SEC, TICKS_PER_MINUTE, TICKS_PER_HOUR
+from ..shared_data_structs import TICKS_PER_HOUR, TICKS_PER_MINUTE, TICKS_PER_SEC
 
 
 # a value has a get_value() method; and get_value should not have

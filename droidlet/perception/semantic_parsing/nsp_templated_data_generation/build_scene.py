@@ -3,6 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import random
+
+import droidlet.base_util
 from generate_dialogue import generate_actions
 import sys
 import os
@@ -379,7 +381,7 @@ def build_ref_obj_scene(ad, ref_objs, sl=32, flat=False):
             scene["holes"].append({"loc": hole_loc})
         elif obj is not None and len(obj) > 0:
             scene["block_obj"].append({"blocks": obj, "loc": obj_loc, "dict_id": robj_id})
-            bounds = shapes.get_bounds(obj)
+            bounds = droidlet.base_util.get_bounds(obj)
             rad = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
             hole_loc = choose_loc(rad, reldir, view_pos, view_vector, obj_loc, sl=sl)
             scene["holes"].append({"loc": hole_loc})
@@ -412,7 +414,7 @@ def build_ref_obj_scene(ad, ref_objs, sl=32, flat=False):
                 scene["mobs"].append({"mobname": rel_obj, "loc": rel_obj_loc, "dict_id": r_id})
             else:
                 scene["block_obj"].append({"blocks": rel_obj, "loc": rel_obj_loc, "dict_id": r_id})
-                bounds = shapes.get_bounds(rel_obj)
+                bounds = droidlet.base_util.get_bounds(rel_obj)
                 rad = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
             to_destroy_loc = choose_loc(rad, reldir, view_pos, view_vector, rel_obj_loc, sl=sl)
             scene["block_obj"].append(

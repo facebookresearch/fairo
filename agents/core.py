@@ -24,7 +24,7 @@ class BaseAgent:
 
     def step(self):
         self.perceive()
-        self.memory.update(self)
+        self.memory.update()
         # maybe place tasks on the stack, based on memory/perception
         self.controller_step()
         # step topmost task on stack
