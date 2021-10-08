@@ -11,6 +11,7 @@ from subprocess import Popen, PIPE, TimeoutExpired
 import boto3
 from datetime import datetime
 import torch
+import random
 
 from typing import List
 
@@ -93,15 +94,13 @@ class NSPRetrainingJob(DataGenerator):
     def download_data(self, opts, batch_id):
         base_data_dir = os.path.join(opts.droidlet_dir, opts.full_data_dir)
         download_dir = os.path.join(base_data_dir, batch_id) # Currently downloads data to a new dir each time
-        try:
-            os.mkdir(download_dir)
-        except FileExistsError:
-            pass
+        os.makedirs(download_dir, exist_ok=True)
         data_filepath = download_dir + '/nsp_data.txt'
         try:
             s3.download_file('droidlet-hitl', 'nsp_data.txt', data_filepath)  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 data file download")
+            self.set_finished(True)
             raise
         logging.info(f"New data download completed successfully")
 
@@ -115,6 +114,7 @@ class NSPRetrainingJob(DataGenerator):
                 elif len(parsed) == 3:  # Cut off the index if it exists
                     afile.write(str(parsed[1]) + '|' + str(parsed[2]))
                 else:
+                    self.set_finished(True)
                     raise ValueError("Annotated NSP data & logical forms not formatted as expected")
         logging.info(f"data successfully preprocessed into annotated.txt")
 
@@ -137,6 +137,7 @@ class NSPRetrainingJob(DataGenerator):
             s3.download_file('droidlet-hitl', download_key, meta_filepath)  # Will overwrite file if exists
         except:
             logging.info(f"Exception raised on S3 meta.txt file download")
+            self.set_finished(True)
             raise
         logging.info(f"Meta.txt download completed successfully")
 
@@ -155,54 +156,42 @@ class NSPRetrainingJob(DataGenerator):
         if (new_data_rows < opts.new_data_training_threshold):
             logging.warning(f"Not enough new data to trigger a training run, one will not be performed")
             self.exec_training_run = False
+            return batch_config_dir
 
-        # Import split ratios (default) 80% of new data for training, 10% for validation, and 10% for testing
-        data_split = opts.data_split_ratios.split('/')
-        data_split = [int(x)/100 for x in data_split]  # Convert from str % to fraction
-        logging.info(f"Data split ratios - train: {data_split[0]}, valid: {data_split[1]}, test: {data_split[2]}")
-
-        # Randomize the submasks for train, valid, and test
+        # Create train, valid, and test masks based on user input
         total_rows = sum(1 for line in open(data_filepath))
-        train_submask = torch.rand(new_data_rows) < data_split[0]  # Approx. % of new data used for training
-        valid_submask = torch.rand(new_data_rows) < data_split[1]  # Approx. % of new data used for validation
-        if (data_split[2] > 0):  # Use equal parts new and old data for testing
-            test_submask = torch.rand(total_rows) < ((new_data_rows/(total_rows - new_data_rows)) * data_split[2]) 
-        else:  # Use only old data, approx. the same number of samples as in valid
-            test_submask = torch.rand(total_rows) < ((new_data_rows/(total_rows - new_data_rows)) * data_split[1])
+        logging.info(f"Model training data masks are being generated:")
+        if  not opts.resample:
+            logging.info(f"Model will be trained with old+new training data, valid/test are static old data (not resampled)")
 
-        # Generate the full masks that are the same length as the input data
-        train_mask, valid_mask, test_mask = [], [], []
-        submask_pointer = 0
-        for i in range(total_rows):
-            if i in new_data_indices:
-                if train_submask[submask_pointer]:
-                    train_mask.append(True)
-                    valid_mask.append(False)
-                    test_mask.append(False)
-                elif valid_submask[submask_pointer]:
-                    train_mask.append(False)
-                    valid_mask.append(True)
-                    test_mask.append(False)
-                else:
-                    train_mask.append(False)
-                    valid_mask.append(False)
-                    test_mask.append(True)  # All new data that's not in train or valid is used for test
-                submask_pointer += 1
-            else:
-                train_mask.append(False)  # No old data used for train or valid
-                valid_mask.append(False)
-                if test_submask[i]:
-                    test_mask.append(True)
-                else:
-                    test_mask.append(False)
-        perc_new = new_data_rows / total_rows
-        perc_train = sum(1 for i in train_mask if i) / total_rows
-        perc_valid = sum(1 for i in valid_mask if i) / total_rows
-        perc_test = sum(1 for i in test_mask if i) / total_rows
-        logging.info(f"Fraction of data that is new: {perc_new}")
-        logging.info(f"Actual fraction of data used for training (~{data_split[0]*100}% of new): {perc_train}")
-        logging.info(f"Actual fraction of data used for validation (~{data_split[1]*100}% of new): {perc_valid}")
-        logging.info(f"Actual fraction of data used for testing: {perc_test}")
+            # Lengthen valid and test masks to be the length of all data
+            old_mask_filepath = os.path.join(opts.sweep_config_folder, 'split_masks.pth')
+            old_masks = torch.load(old_mask_filepath)['annotated']
+            valid_mask = [x for x in old_masks['valid']]
+            valid_mask.extend([False] * (total_rows - len(valid_mask)))
+            test_mask = [x for x in old_masks['test']]
+            test_mask.extend([False] * (total_rows - len(test_mask)))
+            train_mask = [False if valid_mask[i] or test_mask[i] else True for i in range(total_rows)]  # Rest of the data are train
+        else:
+            logging.info(f"Model train/valid/test data will be resampled from combined old+new dataset in 80/10/10 split")
+
+            # Generate random splits and populate masks
+            mask_designation = ['test'] * int(total_rows * 0.1)
+            mask_designation.extend(['valid'] * int(total_rows * 0.1))
+            mask_designation.extend(['train'] * (total_rows - len(mask_designation)))
+            random.shuffle(mask_designation)
+            train_mask = [True if x == 'train' else False for x in mask_designation]
+            valid_mask = [True if x == 'valid' else False for x in mask_designation]
+            test_mask = [True if x == 'test' else False for x in mask_designation]
+
+        perc_new = (new_data_rows / total_rows)*100
+        perc_train = sum(1 for i in train_mask if i)*100 / total_rows
+        perc_valid = sum(1 for i in valid_mask if i)*100 / total_rows
+        perc_test = sum(1 for i in test_mask if i)*100 / total_rows
+        logging.info(f"Percent of data that is new: {perc_new:.2f}%")
+        logging.info(f"Percent of data used for training: {perc_train:.2f}%")
+        logging.info(f"Percent of data used for validation: {perc_valid:.2f}%")
+        logging.info(f"Percent of data used for testing: {perc_test:.2f}%")
 
         #reformat as dict with the appropriate keys and save
         train_mask = torch.Tensor(train_mask).bool()
@@ -225,6 +214,9 @@ class NSPRetrainingJob(DataGenerator):
             logging.info(f"Slurm status on job {job}: {outs}")
             if 'COMPLETED' in outs:
                 continue
+            elif 'FAILED' in outs:
+                self.set_finished(True)
+                raise RuntimeError("Model retraining failed on SLURM")
             else:
                 logging.info(f"Cluster still working, going back to sleep")
                 return False
@@ -244,12 +236,13 @@ class NSPRetrainingJob(DataGenerator):
     
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
+        sweep_name = batch_id + '_resampled' if opts.resample else batch_id + "_notresampled"
         sweep_args = "python3 " + \
             os.path.join(opts.sweep_runner_dir, "sweep_runner.py") + \
             " --sweep_config_folder " + config_dir + \
             " --sweep_scripts_output_dir " + opts.sweep_scripts_output_dir + \
             " --checkpoint_dir " + opts.checkpoint_dir + \
-            " --sweep_name " + batch_id + \
+            " --sweep_name " + sweep_name + \
             " --output_dir " + opts.output_dir + \
             " --droidlet_dir " + opts.droidlet_dir + \
             " --full_data_dir " + full_data_dir
@@ -260,9 +253,11 @@ class NSPRetrainingJob(DataGenerator):
             sweep = Popen(sweep_args, shell=True, stdout=PIPE, stderr=PIPE, text=True)
         except OSError:
             logging.info(f"Likely error: sweep_runner.py not found where expected")
+            self.set_finished(True)
             raise
         except ValueError:
             logging.info(f"Likely error: Popen called with invalid arguments")
+            self.set_finished(True)
             raise
 
         # Wait for child process to finish and log outputs/errors
@@ -284,6 +279,7 @@ class NSPRetrainingJob(DataGenerator):
             model_out = os.path.join(output_models_dir, "model_out/")
         except:
             logging.info(f"model output directory not found, check batch ID")
+            self.set_finished(True)
             raise
 
         # Retrieve cluster job IDs
@@ -359,7 +355,7 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/aszlam/nsp/sweeps/scripts/", type=str, help="Absolute location for sweep shell scripts")
     parser.add_argument("--output_dir", default="/checkpoint/aszlam/nsp/sweeps/job_output/", type=str, help="Absolute location for sweep job outputs")
     parser.add_argument("--checkpoint_dir", default="/checkpoint/aszlam/nsp/", type=str, help="Absolute location of NSP checkpoint folder")
-    parser.add_argument("--data_split_ratios", default="80/10/10", type=str, help="Format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
+    parser.add_argument("--resample", default=False, action="store_true", help="Include to resample entire dataset into new train/valid/test splits, abstain to retrain against old valid/test")
     parser.add_argument("--new_data_training_threshold", default=100, type=int, help="Number of new data samples below which no training occurs")
     opts = parser.parse_args()
 
@@ -378,14 +374,6 @@ if __name__ == "__main__":
         raise FileNotFoundError("output_dir not found or arg not pathlike")
     if not os.path.isdir(opts.checkpoint_dir):
         raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
-    data_split = opts.data_split_ratios.split('/')
-    try:
-        data_split = [int(x)/100 for x in data_split]
-    except:
-        logging.warning("data_split_ratios must be formatted as [train%]/[valid%]/[test%], eg. '80/10/10'")
-        raise
-    if (sum(data_split) != 1) or any(x<0 for x in data_split):
-        raise ValueError("data_split_ratios must be positive and sum to 100")
     if (opts.new_data_training_threshold < 0):
         raise ValueError("new_data_training_threshold must be >= 0")
     
