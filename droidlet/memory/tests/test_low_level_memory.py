@@ -187,6 +187,21 @@ class BasicTest(unittest.TestCase):
         assert sam_memid in memids
         assert rachel_memid not in memids
 
+        # test that text form and dict form return same records
+        query_dict = {
+            "output": "MEMORY",
+            "memory_type": "ReferenceObject",
+            "where_clause": {
+                "OR": [
+                    {"pred_text": "has_tag", "obj_text": "plays_volleyball"},
+                    {"NOT": [{"pred_text": "has_tag", "obj_text": "girl"}]},
+                ]
+            },
+        }
+
+        memids_d, _ = m.search(self.memory, query=query_dict)
+        assert set(memids_d) == set(memids)
+
         # test table property with tag
         m = MemorySearcher()
         query = "SELECT MEMORY FROM ReferenceObject WHERE ((has_tag=plays_volleyball) AND (x<0))"
