@@ -47,10 +47,10 @@ def match_symbol(text, pidx=0, s=("(", ")")):
 
 def remove_enclosing_symbol(text, s=("(", ")")):
     # remove all parens enclosing the whole clause:
-    if clause[0] == s[0]:
-        c = match_symbol(text)
-        if len(text) == c + 1:
-            text = text[1:-1]
+    if text[0 : len(s[0])] == s[0]:
+        c = match_symbol(text, s=s)
+        if len(text) == c + len(s[1]):
+            text = text[len(s[0]) : -len(s[1])]
     return text
 
 
@@ -329,8 +329,8 @@ def split_sqly(S, keywords=FILTERS_KW):
 
 def split_where(clause):
     clause = clause.strip()
-    while remove_enclosing_parens(clause) != clause:
-        clause = remove_enclosing_parens(clause)
+    while remove_enclosing_symbol(clause) != clause:
+        clause = remove_enclosing_symbol(clause)
         clause = clause.strip()
 
     return split_sqly(clause, keywords=["AND", "OR"])
