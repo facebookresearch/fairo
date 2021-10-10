@@ -46,11 +46,27 @@ def match_symbol(text, pidx=0, s=("(", ")")):
 
 
 def remove_enclosing_symbol(text, s=("(", ")")):
-    # remove all parens enclosing the whole clause:
+    """
+    remove a matched pair of symbols enclosing a string
+    i.e. "(some text)" --> "some text"
+    """
     if text[0 : len(s[0])] == s[0]:
         c = match_symbol(text, s=s)
         if len(text) == c + len(s[1]):
             text = text[len(s[0]) : -len(s[1])]
+    return text
+
+
+def remove_nested_enclosing_symbol(text, s=("(", ")")):
+    """
+    clean nested matched pairs of symbols and spaces
+    enclosing a string
+    i.e. "(( some text) )" --> "some text"
+    """
+    text = text.strip()
+    while remove_enclosing_symbol(text, s=s) != text:
+        text = remove_enclosing_symbol(text)
+        text = text.strip()
     return text
 
 
@@ -102,7 +118,7 @@ def new_filters_to_sqly(d):
     SAME ALLOWED/DISALLOWED/REQUIRED;
     CONTAINS_COREFERENCE;
 
-    FIXME!! TODO !! spec for obj searches in triples, etc; subqueries in comparators and attributes, ...
+    FIXME!! TODO !! spec for subqueries in comparators and attributes, ...
     """
     S = "SELECT "
     o = d.get("output", "MEMORY")
@@ -213,6 +229,13 @@ def sqlyify_where_clause(c):
                 s = input_left + " " + inequality_symbol + " " + input_right
                 if clause.get("comparison_measure"):
                     s = s + " MEASURED_IN " + clause["comparison_measure"] + " "
+            elif clause.get("pred_text"):
+                if clause.get("subj"):
+                    s = "<< #{}, {}, ? >>".format(clause["subj"], clause["pred_text"])
+                elif clause.get("obj"):
+                    s = "<< ?, {}, #{} >>".format(clause["pred_text"], clause["obj"])
+                else:
+                    s = "<< ?, {}, {} >>".format(clause["pred_text"], clause["obj_text"])
             else:
                 s = sqlyify_where_clause(clause)
             clause_texts.append(s)
@@ -327,15 +350,6 @@ def split_sqly(S, keywords=FILTERS_KW):
     return clauses
 
 
-def split_where(clause):
-    clause = clause.strip()
-    while remove_enclosing_symbol(clause) != clause:
-        clause = remove_enclosing_symbol(clause)
-        clause = clause.strip()
-
-    return split_sqly(clause, keywords=["AND", "OR"])
-
-
 def treeify_sqly_where(clause):
     """
     converts a where clause in sqly form to a nested dict:
@@ -344,7 +358,8 @@ def treeify_sqly_where(clause):
     -->
     {'AND': ['has_name = cow', {'OR': ['has_colour = green', 'has_colour = red']}]}
     """
-    t = split_where(clause)
+    clause = remove_nested_enclosing_symbol(clause)
+    t = split_sqly(clause, keywords=["AND", "OR"])
     if len(t) == 0:
         raise Exception("empty clause")
     if len(t) == 1:
@@ -379,7 +394,11 @@ def convert_where_tree(where_tree):
     clauses into comparators
     """
     if type(where_tree) is str:
-        return where_leaf_to_comparator(where_tree)
+        where_tree = remove_nested_enclosing_symbol(where_tree)
+        if where_tree[0] == "<":
+            return triple_str_to_dict(where_tree)
+        else:
+            return where_leaf_to_comparator(where_tree)
     output = {}
     if where_tree.get("NOT") and type(where_tree["NOT"]) is str:
         output["NOT"] = [where_leaf_to_comparator(where_tree["NOT"])]
@@ -390,6 +409,60 @@ def convert_where_tree(where_tree):
             assert type(v) is list
             output[k] = [convert_where_tree(t) for t in v]
     return output
+
+
+def triple_str_to_dict(clause):
+    """
+    converts a triple (for a where_clause) in the form
+    <<#subj, pred_text, #obj/obj_text>>
+    to dictionary form. it assumed that one of the three entries is
+    replaced by a "?"
+    if the obj memid is fixed (as opposed to the obj_text),
+    use a "#" in front of the memid.  subj_text is not a valid
+    possibility for the first entry of the triple; still, if a query uses
+    a fixed subj, it should be preceded with a "#".
+    the order is assumed to be subj, pred, obj.
+    examples:
+
+    "find me a record whose name is bob":
+    << ?, has_name, bob >> --> {"pred_text": "has_name", "obj_text": "bob"}
+
+    "find me a record who is a friend of the entity with memid
+    dd2ca5a4c5204fc09c71279f8956a2b1":
+    << ?, friend_of, #dd2ca5a4c5204fc09c71279f8956a2b1 >>  -->
+          {"pred_text": "friend_of", "obj": "dd2ca5a4c5204fc09c71279f8956a2b1"}
+
+    "find me a record x for which the entity with memid
+    dd2ca5a4c5204fc09c71279f8956a2b1" is a parent_of x:
+    << #dd2ca5a4c5204fc09c71279f8956a2b1, parent_of, ? >>  -->
+          {"pred_text": "parent_of", "subj": "dd2ca5a4c5204fc09c71279f8956a2b1"}
+
+    TODO:
+    This does not currently handle nested queries.
+    This does not currently handle multiple "?"
+    """
+    terms = remove_enclosing_symbol(clause, ("<<", ">>")).split(",")
+    terms = [t.strip() for t in terms]
+    assert terms[1] and terms[1] != "?"
+    out = {"pred_text": terms[1]}
+    if terms[0] == "?":
+        if terms[2] == "?":
+            raise Exception(
+                "queries with both subj and obj unfixed in a triple are not yet supported"
+            )
+        assert terms[2] != "?"
+        if terms[2][0] == "#":
+            out["obj"] = terms[2][1:]
+        else:
+            out["obj_text"] = terms[2]
+    else:
+        if terms[0][0] == "#":
+            out["subj"] = terms[0][1:]
+        else:
+            raise Exception(
+                'queries with a "subj_text" (as opposed to subj memid) in a triple are not supported'
+            )
+    return out
 
 
 def where_leaf_to_comparator(clause):
@@ -414,14 +487,8 @@ def where_leaf_to_comparator(clause):
     mod_idx = clause.find("%")
     # everything will break if clause is complicated enough that it has internal comparators FIXME?
     # not obvious we should be converting those back forth though
-    try:
-        assert not (gt_idx > -1 and lt_idx > -1)
-        assert not (eq_idx > -1 and mod_idx > -1)
-    except:
-        import ipdb
-
-        ipdb.set_trace()
-
+    assert not (gt_idx > -1 and lt_idx > -1)
+    assert not (eq_idx > -1 and mod_idx > -1)
     if lt_idx > -1:
         eq_idx = -1
         left_text = clause[:lt_idx]
@@ -439,7 +506,7 @@ def where_leaf_to_comparator(clause):
             right_text = clause[gte_idx + 2 :]
         else:
             ct = "GREATER_THAN"
-            right_text = clause[gte_idx + 1 :]
+            right_text = clause[gt_idx + 1 :]
     if eq_idx > -1:
         left_text = clause[:eq_idx]
         if clause[eq_idx + 1 : eq_idx + 3] == "(+-":
@@ -477,6 +544,13 @@ def where_leaf_to_comparator(clause):
     }
 
     return f
+
+
+def convert_where_from_sqly(clause, d):
+    tree = treeify_sqly_where(clause)
+    if type(tree) is str:
+        tree = {"AND": [tree]}
+    d["where_clause"] = convert_where_tree(tree)
 
 
 def convert_output_from_sqly(clause, d):
@@ -532,13 +606,6 @@ def convert_limit_from_sqly(clause, d):
         d["selector"]["return_quantity"]["argval"]["polarity"] = {"DESC": "MAX", "ASC": "MIN"}[
             c[1]
         ]
-
-
-def convert_where_from_sqly(clause, d):
-    tree = treeify_sqly_where(clause)
-    if type(tree) is str:
-        tree = {"AND": [tree]}
-    d["where_clause"] = convert_where_tree(tree)
 
 
 def convert_coref_from_sqly(clause, d):
