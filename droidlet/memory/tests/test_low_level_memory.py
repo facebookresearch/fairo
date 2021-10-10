@@ -8,6 +8,7 @@ from droidlet.memory.memory_nodes import (
     LocationNode,
     ChatNode,
     NamedAbstractionNode,
+    TripleNode,
 )
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.base_util import Pos, Look, Player
@@ -214,6 +215,12 @@ class BasicTest(unittest.TestCase):
         memids, vals = m.search(self.memory, query=query)
         assert abs(vals[0][0] + 2.0) < 0.01
         assert abs(vals[0][1]) < 0.01
+
+        TripleNode.create(self.memory, subj=sam_memid, pred_text="mother_of", obj=robert_memid)
+        query = "SELECT MEMORY FROM ReferenceObject WHERE <<#{}, mother_of, ?>>".format(sam_memid)
+        memids, _ = m.search(self.memory, query=query)
+        assert robert_memid in memids
+        assert len(memids) == 1
 
     def test_chat_apis_memory(self):
         self.memory = AgentMemory()
