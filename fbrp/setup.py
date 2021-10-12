@@ -13,10 +13,10 @@ setup(
     ),
     python_requires=">=3.7",
     install_requires=[
-        "aiodocker==0.21.0",
+        "aiodocker>=0.21.0",
         "alephzero>=v0.3",
-        "docker==5.0.0",
-        "psutil==5.8.0",
-        "six==1.16.0",
+        "docker>=5.0.0",
+        "psutil>=5.8.0",
+        "six>=1.16.0",
     ],
 )
