@@ -33,6 +33,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
+Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))
@@ -42,6 +43,10 @@ def safe_call(f, *args):
     except Pyro4.errors.ConnectionClosedError as e:
         msg = "{} - {}".format(f._RemoteMethod__name, e)
         raise ErrorWithResponse(msg)
+    except Exception as e:
+        print("Pyro traceback:")
+        print("".join(Pyro4.util.getPyroTraceback()))
+        raise e
 
 
 class LoCoBotMover:
@@ -52,8 +57,9 @@ class LoCoBotMover:
         backend (string): backend where the Locobot lives, either "habitat" or "locobot"
     """
 
-    def __init__(self, ip=None, backend="locobot"):
+    def __init__(self, ip=None, backend="habitat"):
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
+        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
         self.close_loop = False if backend == "habitat" else True
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
@@ -197,9 +203,10 @@ class LoCoBotMover:
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            self.bot.go_to_relative(xyt, close_loop=self.close_loop, use_dslam=use_dslam)
-            while not self.bot.command_finished():
-                print(self.bot.get_base_state("odom"))
+            # self.bot.go_to_relative(xyt)
+            safe_call(self.nav.go_to_relative, xyt)
+            # while not self.bot.command_finished():
+            #     print(self.bot.get_base_state("odom"))
 
     def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
         """Command to execute a move to an absolute position.
@@ -216,11 +223,8 @@ class LoCoBotMover:
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            self.bot.go_to_absolute(
+            self.nav.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt),
-                close_loop=self.close_loop,
-                use_map=use_map,
-                use_dslam=use_dslam,
             )
             start_base_state = self.get_base_pos_in_canonical_coords()
             while not self.bot.command_finished():
@@ -377,7 +381,8 @@ class LoCoBotMover:
         return self.bot.get_gripper_state() == 2
 
     def explore(self):
-        return self.bot.explore()
+        pass
+        # return self.bot.explore()
 
     def drop(self):
         return self.bot.open_gripper()
