@@ -80,7 +80,10 @@ class up_cmd(BaseCommand):
                     continue
 
                 os.chdir("/")
-                os.setsid()
+                try:
+                    os.setsid()
+                except Exception as _:
+                    pass
                 os.umask(0)
 
                 if os.fork() != 0:
