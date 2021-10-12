@@ -37,6 +37,12 @@ class LocoAgentMemory(AgentMemory):
         self._safe_pickle_saved_attrs = {}
         self.dances = {}
 
+    def clear(self, objects):
+        for o in objects:
+            if o['memid'] != self.self_memid:
+                self.forget(o['memid'])
+
+
     def update(self, agent):
         pass
 

@@ -19,7 +19,7 @@ from copy import deepcopy as copy
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
 
-random.seed(30)
+# random.seed(30)
 
 @Pyro4.expose
 class RemoteLocobot(object):
@@ -156,6 +156,7 @@ class RemoteLocobot(object):
     def go_to_absolute(
         self,
         xyt_position,
+        class_label,
         use_map=False,
         close_loop=True,
         smooth=False,
@@ -183,6 +184,7 @@ class RemoteLocobot(object):
         if self._done:
             self._done = False
             if use_dslam:
+                self._slam.set_dbg_str(f'Examine {class_label}')
                 self._slam.set_absolute_goal_in_robot_frame(xyt_position)
             else:
                 self._robot.base.go_to_absolute(
@@ -706,27 +708,30 @@ class RemoteLocobot(object):
             self._done = False
             if not self._slam.whole_area_explored:
                 #  set why the whole area was explored here
-                print(f'here second')
+                self._slam.set_dbg_str('Exploration')
                 self._slam.set_explore_goal(self.goal)
                 self._slam.set_goal(self.goal)  # set  far away goal for exploration, default map size [-20,20]
                 self._slam.take_step(self._slam_step_size)
-            elif self._slam_traj_ctr < 3:
-                print(f'here first')
+            else:
                 self.logger.info(f'Area explored in trajectory {self._slam_traj_ctr} {self._slam.get_area_explored()}')
                 self.logger.info(json.dumps(self._slam.debug_state))
-                self._slam_traj_ctr += 1
-                save_folder = os.path.join(self._slam.root_folder, str(self._slam_traj_ctr))
-                self._slam.init_save(save_folder)
-                x,y,t = self._slam.get_rel_state(self._slam.get_robot_global_state(), self._slam.init_state)
-                self.logger.info(f'cur_state xyt  {(x, y, t)}')
-                self.goal = self.get_distant_goal(x,y,t)
-                self.logger.info(f'traj {self._slam_traj_ctr} setting slam goal {self.goal}')
-                self._slam.whole_area_explored = False
-                # Reset map
-                self._slam.map_builder.reset_map(map_size=4000)
-                print(f'done resetting')
+                if self._slam_traj_ctr < int(os.getenv("NUMTRAJ", 1)):
+                    self._slam_traj_ctr += 1
+                    save_folder = os.path.join(self._slam.root_folder, str(self._slam_traj_ctr))
+                    self._slam.init_save(save_folder)
+                    x,y,t = self._slam.get_rel_state(self._slam.get_robot_global_state(), self._slam.init_state)
+                    self.logger.info(f'cur_state xyt  {(x, y, t)}')
+                    self.goal = self.get_distant_goal(x,y,t)
+                    self.logger.info(f'traj {self._slam_traj_ctr} setting slam goal {self.goal}')
+                    self._slam.whole_area_explored = False
+                    # Reset map
+                    self._slam.map_builder.reset_map(map_size=4000)
+                    print(f'done resetting')
             self._done = True
             return True
+    
+    def clear_memory(self):
+        return self._slam.whole_area_explored
 
     def get_map(self):
         """returns the location of obstacles created by slam only for the obstacles,"""
@@ -775,7 +780,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    np.random.seed(123)
+    # np.random.seed(123)
 
     if args.backend == "habitat":
         # GLContexts in general are thread local

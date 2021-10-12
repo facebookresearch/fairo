@@ -20,6 +20,7 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
     CAMERA_HEIGHT,
     get_camera_angles,
     ExaminedMap,
+    base_canonical_coords_to_pyrobot_coords,
 )
 
 # FIXME store dances, etc.
@@ -132,6 +133,7 @@ class Move(BaseMovementTask):
     def __init__(self, agent, task_data, featurizer=None):
         super().__init__(agent, task_data)
         self.target = np.array(task_data["target"])
+        self.label = task_data["label"]
         self.is_relative = task_data.get("is_relative", 0)
         self.path = None
         self.command_sent = False
@@ -150,7 +152,8 @@ class Move(BaseMovementTask):
             if self.is_relative:
                 self.agent.mover.move_relative([self.target.tolist()])
             else:
-                self.agent.mover.move_absolute([self.target.tolist()])
+                # dbg_str = self.label # + ' ' + str(np.round(base_canonical_coords_to_pyrobot_coords(self.target), 3))
+                self.agent.mover.move_absolute([self.target.tolist()], self.label)
 
         else:
             self.finished = self.agent.mover.bot_step()
@@ -369,7 +372,7 @@ class CuriousExplore(Task):
     def init_curious_logger(self):
         self.logger = logging.getLogger('curious')
         self.logger.setLevel(logging.INFO)
-        fh = logging.FileHandler('curious_explore.log', mode='w')
+        fh = logging.FileHandler('curious_explore.log', 'w')
         fh.setLevel(logging.INFO)
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
@@ -384,6 +387,16 @@ class CuriousExplore(Task):
         self.finished = False
         
         if self.steps[0] == "not_started":
+            if self.agent.mover.clear_memory():
+                # clear memory
+                objects = DetectedObjectNode.get_all(self.agent.memory)
+                self.logger.info(f'Beginning to clear {len(objects)} memids ...')
+                self.agent.memory.clear(objects)
+                ExaminedMap.clear()
+                # reset object id counter
+                # self.agent.perception_modules["vision"].vision.deduplicate.object_id_counter = 1
+                objects = DetectedObjectNode.get_all(self.agent.memory)
+                self.logger.info(f'{len(objects)} present now.')              
             self.agent.mover.explore()
             self.steps[0] = "finished"
             return
@@ -402,7 +415,7 @@ class CuriousExplore(Task):
                         # self.logger.info(f"{x['label']}, yaw_rad {yaw_rad}, base_pos {base_pos}")
                         dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
                         if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 3:
-                            logging.info("Exploring eid {}, {} next".format(x['eid'], x['label']))
+                            self.logger.info(f"Exploring eid {x['eid']}, {x['label']} next, dist {dist}")
                             return x
                 return None
             target = pick_random_in_sight(objects, pos)
@@ -411,14 +424,16 @@ class CuriousExplore(Task):
                 ExaminedMap.update(target)
                 print(f"target[xyz] {target['xyz']}")
                 # self.add_child_task(Move(self.agent, {"target": target['xyz']}))     
-                self.add_child_task(ExamineDetection(
-                    self.agent, {"target": target, "start_pos": pos}))
+                self.add_child_task(ExamineDetection(self.agent, {"target": target}))
             self.steps[1] = "finished"
             return
         
         else:
             print('hereeee..')
             self.finished = self.agent.mover.bot_step()
+    
+    def __repr__(self):
+        return "<CuriousExplore>"
 
 
 class ExamineDetection(Task):
@@ -427,7 +442,6 @@ class ExamineDetection(Task):
         super().__init__(agent)
         self.target = task_data['target']
         self.frontier_center = np.asarray(self.target['xyz'])
-        self.start_pos = np.asarray(task_data['start_pos'])
         self.agent = agent
         self.last_base_pos = None
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -443,22 +457,27 @@ class ExamineDetection(Task):
         d = 1
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
-            logger.info(f"Distance moved {d}")
-        if (base_pos != self.last_base_pos).any() and dist > 1 and d != 0:
+            # logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and dist > 1 and d > 0:
             tloc = get_step_target_for_move(base_pos, self.frontier_center)
-            logger.info(f"get_step_target_for_straight_move \
+            logger.debug(f"get_step_target_for_straight_move \
                 \nx, z, yaw = {base_pos},\
                 \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
                 \nx_move, z_move, yaw_move = {tloc}")
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {tloc}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
-            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.add_child_task(Move(self.agent, {
+                "target": tloc, 
+                "label":str(self.target['eid']) + ':' + self.target['label'] + ' ' + str(np.round(self.target['xyz'],3)) + 'dist ' + str(np.round(dist,3))}))
             self.last_base_pos = base_pos
             return
         else:
             logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetection {}>".format(self.target['label'])
 
 
 class TurnThenMoveStraight(Task):

@@ -201,7 +201,7 @@ class LoCoBotMover:
             while not self.bot.command_finished():
                 print(self.bot.get_base_state("odom"))
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
+    def move_absolute(self, xyt_positions, class_label, use_map=False, use_dslam=True):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -218,6 +218,7 @@ class LoCoBotMover:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
             self.bot.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt),
+                class_label,
                 close_loop=self.close_loop,
                 use_map=use_map,
                 use_dslam=use_dslam,
@@ -398,6 +399,9 @@ class LoCoBotMover:
         ]
         cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
         return cordinates_in_standard_frame
+
+    def clear_memory(self):
+        return self.bot.clear_memory()
 
 
 if __name__ == "__main__":

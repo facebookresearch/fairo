@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import logging
 from scipy.spatial.transform import Rotation
+import math
 
 from .rotation import yaw_pitch
 
@@ -105,11 +106,16 @@ def get_step_target_for_move(base_pos, target, step_size=0.1):
     dx = target[0] - base_pos[0]
     dz = target[2] - base_pos[1]
 
-    m = dz/dx if dx != 0 else 1        
-    signx = 1 if dx >= 0 else -1
+    if dx == 0: # vertical line 
+        theta = math.radians(90)
+    else:
+        theta = math.atan(abs(dz/dx))
     
-    targetx = min(base_pos[0] + signx * (step_size), target[0])
-    targetz = m * step_size + base_pos[1]
+    signx = 1 if dx >= 0 else -1
+    signz = 1 if dz >= 0 else -1
+    
+    targetx = base_pos[0] + signx * step_size * math.cos(theta)
+    targetz = base_pos[1] + signz * step_size * math.sin(theta)
 
     yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
     
@@ -179,6 +185,12 @@ class ExaminedMap:
         cls.last = cls.get_closest(target['xyz'])
         cls.examined_id.add(target['eid'])
         cls.examined[cls.last] += 1
+
+    @classmethod
+    def clear(cls):
+        cls.examined = {}
+        cls.examined_id = set()
+        cls.last = None
 
     @classmethod
     def can_examine(cls, x):

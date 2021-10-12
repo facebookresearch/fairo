@@ -41,17 +41,82 @@ class TrackBack(object):
     def get_loc(self, cur_loc, traversable):
         ans = None
         d = 10000000
-        for x in self.locs:
-            if not traversable[round(x[1]), round(x[0])]:
-                print(f'removing {x} not traversable')
-                self.locs.remove(x)
-                continue
+        cand = [x for x in self.locs if traversable[round(x[1]), round(x[0])]]
+        # for x in self.locs:
+        #     if not traversable[round(x[1]), round(x[0])]:
+        #         print(f'removing {x} not traversable')
+        #         self.locs.remove(x)
+        for x in cand:
             # print(f'candidate loc {round(x[0]), round(x[1])}, cur_loc {cur_loc}')
             if d > self.dist(cur_loc, x):
                 ans = x
                 d = self.dist(cur_loc, x)
         print(f'track back loc {ans}')
         return ans
+
+class LabelPropSaver:
+    def __init__(self, root):
+        self.save_folder = root
+        self.img_folder = os.path.join(self.save_folder, "rgb")
+        self.img_folder_dbg = os.path.join(self.save_folder, "rgb_dbg")
+        self.depth_folder = os.path.join(self.save_folder, "depth")
+        self.seg_folder = os.path.join(self.save_folder, "seg")
+        self.trav_folder = os.path.join(self.save_folder, "trav")
+
+        if os.path.exists(self.save_folder):
+            shutil.rmtree(self.save_folder)
+
+        for x in [self.save_folder, self.img_folder, self.img_folder_dbg, self.depth_folder, self.seg_folder, self.trav_folder]:
+            self.create(x)
+
+        self.pose_dict = {}
+        self.save_vis_skip_frames = 0
+        self.img_count = 0
+        self.dbg_str = "None"
+
+    def create(self, d):
+        if not os.path.isdir(d):
+            os.makedirs(d)
+    
+    def get_total_frames(self):
+        return self.img_count
+
+    def save(self, rgb, depth, seg, pos):
+        self.save_vis_skip_frames += 1
+        if self.save_vis_skip_frames % 10 == 0:
+            # store the images and depth
+            rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+            cv2.imwrite(
+                self.img_folder + "/{:05d}.jpg".format(self.img_count),
+                rgb,
+            )
+
+            cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+            # robot_dbg_str = 'robot_pose ' + str(np.round(self.get_robot_global_state(), 3))
+            # cv2.putText(rgb, robot_dbg_str, (40,60), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+            cv2.imwrite(
+                self.img_folder_dbg + "/{:05d}.jpg".format(self.img_count),
+                rgb,
+            )
+
+            # store depth in mm
+            depth *= 1e3
+            depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+            depth = depth.astype(np.uint16)
+            np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+            # store seg
+            np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+
+            # store pos
+            self.pose_dict[self.img_count] = copy(pos)
+            self.img_count += 1
+            
+            # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
+            with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
+                json.dump(self.pose_dict, fp)
 
 class Slam(object):
     def __init__(
@@ -100,12 +165,10 @@ class Slam(object):
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
         )
-
         self.maxx = 0
         self.maxy = 0
         self.minx = 0
         self.miny = 0
-
         # initialize variable
         robot.camera.reset()
         time.sleep(2)
@@ -152,45 +215,30 @@ class Slam(object):
         self.debug_state = {}
         self.track_back = TrackBack()
 
-
     def init_save(self, save_folder, save_vis=True):
         self.save_vis = save_vis
         self.start_vis = False
         self.save_folder = save_folder
         print(f"save_vis {save_vis}, save_folder {save_folder}")
-
-        self.img_folder = os.path.join(self.save_folder, "rgb")
-        self.depth_folder = os.path.join(self.save_folder, "depth")
-        self.seg_folder = os.path.join(self.save_folder, "seg")
-        self.trav_folder = os.path.join(self.save_folder, "trav")
-
-        if os.path.exists(self.save_folder):
-            shutil.rmtree(self.save_folder)
-
-        if not os.path.isdir(self.save_folder):
-            os.makedirs(self.save_folder)
-
-        if not os.path.isdir(self.img_folder):
-            os.makedirs(self.img_folder)
-
-        if not os.path.isdir(self.depth_folder):
-            os.makedirs(self.depth_folder)
-
-        if not os.path.isdir(self.seg_folder):
-            os.makedirs(self.seg_folder)
-        
-        if not os.path.isdir(self.trav_folder):
-            os.makedirs(self.trav_folder)
+        self.last_base_pos = None
+        self.default_saver = LabelPropSaver(os.path.join(save_folder, 'default'))
+        self.active_saver = LabelPropSaver(os.path.join(save_folder, 'activeonly'))
         
         self.vis_count = 0
-        self.active_count = 0
-        self.skp = 0
-        self.trav_count = 0
-        self.img_count = 0
-        self.pos_dic = {}
+        
         self.exec_wait = not (self.save_vis)
         print(f'exec_wait {self.exec_wait}')
 
+        self.maxx = 0
+        self.maxy = 0
+        self.minx = 0
+        self.miny = 0
+        self.objects_explored = 0
+
+    def set_dbg_str(self, x):
+        print(f'dbg str {x}')
+        self.active_saver.dbg_str = x
+        self.default_saver.dbg_str = x
 
     def set_explore_goal(self, goal):
         print(f'setting explore goal {goal}')
@@ -244,6 +292,10 @@ class Slam(object):
         :return:
         """
         # convert the relative goal to abs goal
+        if abs(goal[0]) >= 20 or abs(goal[1]) >= 20:
+            print(f'set_absolute_goal_in_robot_frame skipping out of bounds goal {goal}')
+            return
+        self.objects_explored += 1
         self.goal_loc = self.get_rel_state(goal, self.init_state)
         # convert the goal in inti frame
         self.goal_loc_map = self.real2map(self.goal_loc[:2])
@@ -268,7 +320,6 @@ class Slam(object):
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
         selem = disk(self.robot_rad / self.map_builder.resolution)
         traversable = binary_dilation(obstacle, selem) != True
-        # traversable = obstacle != True
 
         return traversable
     
@@ -319,16 +370,21 @@ class Slam(object):
             print(f'traversable[stg] {traversable[self.stg[1], self.stg[0]]}')
             # print(f'robot_map_loc {robot_map_loc} traversable.shape {traversable.shape}')
             print(f'traversable[robot_loc] {traversable[round(robot_map_loc[1]), round(robot_map_loc[0])]}')
-
+            print("Goal Not reachable")
+            if self.goal_loc == self.explore_goal: # stuck in explore
+                self.whole_area_explored = True
+                self.save_end_state("stg is not traversable", traversable)
+            return False
         else:            
             # go to the location the robot
+            y = np.arctan2(stg_real[1] - robot_state[1], stg_real[0] - robot_state[0])
+            # print(f'stg_real[1] - robot_state[1] {stg_real[1] - robot_state[1]}, stg_real[0] - robot_state[0] {stg_real[0] - robot_state[0]}')
+            print(f'yaw for move {y}, robot_state {robot_state}, stg_real {stg_real}')
             exec = self.robot.base.go_to_absolute(
                 (
                     stg_real_g[0],
                     stg_real_g[1],
-                    np.arctan2(
-                        stg_real[1] - self.prev_bot_state[1], stg_real[0] - self.prev_bot_state[0] #stg_real[1] - rs[1], stg_real[0] - rs[0]
-                    ) + self.init_state[2],
+                    y,
                 ),
                 wait=self.exec_wait,
             )
@@ -407,13 +463,15 @@ class Slam(object):
         
         self.visualize()
 
+        def get_rounded_map_dist(a, b):
+            a = np.array([round(x) for x in a])
+            b = np.array([round(x) for x in b])
+            return np.linalg.norm(a-b)
+
         # print(f'robot_state_map {robot_state_map, self.goal_loc_map, np.array(robot_state_map)}')
-        print(f'distance to goal {round(np.linalg.norm(np.array(robot_state_map) - np.array(self.goal_loc_map)))}')
+        print(f'distance to goal {get_rounded_map_dist(robot_state_map, self.goal_loc_map)}')
         # return True if robot reaches within threshold
-        if (
-            np.linalg.norm(np.array(robot_state_map) - np.array(self.goal_loc_map)) * 100.0
-            < np.sqrt(2) * self.map_builder.resolution
-        ):
+        if (get_rounded_map_dist(robot_state_map, self.goal_loc_map) == 0):
             print("robot has reached goal")
             return True
 
@@ -432,53 +490,79 @@ class Slam(object):
         return None
     
     def save_end_state(self, msg, traversable):
-        np.save(self.trav_folder + "/traversable.npy", traversable)
+        np.save(self.default_saver.trav_folder + "/traversable.npy", traversable)
         robot_state = self.get_rel_state(self.get_robot_global_state(), self.init_state)
         robot_state_map = self.real2map(robot_state[:2])
         self.debug_state = {
                 "msg": msg,
-                "stg": self.stg,
-                "robot_state_map": robot_state_map,
-                "planner.fmm_dist": self.planner.fmm_dist[int(robot_state_map[1]), int(robot_state_map[0])],
-                "planner.fmm_dist.max": self.planner.fmm_dist.max(),
+                "stg": [round(self.stg[0]), round(self.stg[1])],
+                "robot_state_map": [round(robot_state_map[0]), round(robot_state_map[1])],
+                "planner.fmm_dist": float(self.planner.fmm_dist[round(robot_state_map[1]), round(robot_state_map[0])]),
+                "planner.fmm_dist.max": float(self.planner.fmm_dist.max()),
                 "save_folder": self.save_folder,
+                "area_explored": float(self.get_area_explored()[0]),
+                "objects_explored": self.objects_explored,
+                "active_frames": self.active_saver.get_total_frames(),
+                "default_frames": self.default_saver.get_total_frames(),
+
             }
+        for k, v in self.debug_state.items():
+            print(f'{v, type(v)}')
         print(f'debug_state {self.debug_state}')
 
     def get_area_explored(self):
         return abs(self.maxx - self.minx) * abs(self.maxy - self.miny)
 
+    # def save_all(self):
+    #     self.skp += 1
+    #     # print(f'goal_loc {self.goal_loc} explore_goal {self.explore_goal}')
+    #     if pos != self.last_pos and self.skp % 10 == 0:
+    #         self.last_pos = pos
+    #         # store the images and depth
+    #         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+    #         cv2.imwrite(
+    #             self.img_folder + "/{:05d}.jpg".format(self.img_count),
+    #             rgb,
+    #         )
+
+    #         cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+    #         # robot_dbg_str = 'robot_pose ' + str(np.round(self.get_robot_global_state(), 3))
+    #         # cv2.putText(rgb, robot_dbg_str, (40,60), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+    #         cv2.imwrite(
+    #             self.img_folder_dbg + "/{:05d}.jpg".format(self.img_count),
+    #             rgb,
+    #         )
+
+    #         # store depth in mm
+    #         depth *= 1e3
+    #         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+    #         depth = depth.astype(np.uint16)
+    #         np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+    #         # store seg
+    #         np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+
+    #         # store pos
+    #         self.pos_dic[self.img_count] = copy(pos)
+    #         self.img_count += 1
+            
+    #         self.active_count += is_active
+    #         # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
+    #         with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
+    #             json.dump(self.pos_dic, fp)
+
+
     def save_rgb_depth_seg(self):
         rgb, depth, seg = self.robot.camera.get_rgb_depth_segm()
         pos = self.robot.base.get_state()
-        self.skp += 1
-        is_active = 0 if self.goal_loc == self.explore_goal else 1
-        # print(f'goal_loc {self.goal_loc} explore_goal {self.explore_goal}')
-        if pos != self.last_pos and self.skp % 10 == 0:
-            self.last_pos = pos
-            # store the images and depth
-            cv2.imwrite(
-                self.img_folder + "/{:05d}.jpg".format(self.img_count),
-                cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
-            )
-
-            # store depth in mm
-            depth *= 1e3
-            depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-            depth = depth.astype(np.uint16)
-            np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
-
-            # store seg
-            np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
-
-            # store pos
-            self.pos_dic[self.img_count] = copy(pos)
-            self.img_count += 1
-            
-            self.active_count += is_active
-            # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
-            with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
-                json.dump(self.pos_dic, fp)
+        if pos != self.last_base_pos:
+            self.last_base_pos = pos
+            is_active = 0 if self.goal_loc == self.explore_goal else 1
+            if is_active:
+                self.active_saver.save(rgb, depth, seg, pos)
+            self.default_saver.save(rgb, depth, seg, pos)
 
     def get_absolute_goal(self, loc):
         """
