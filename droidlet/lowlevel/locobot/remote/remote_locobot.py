@@ -12,7 +12,6 @@ import json
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
-from slam_pkg.slam import Slam
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -46,8 +45,6 @@ class RemoteLocobot(object):
             raise RuntimeError("Unknown backend", backend)
 
         # check skfmm, skimage in installed, its necessary for slam
-        self._slam = Slam(self._robot)
-        self._slam_step_size = 25  # step size in cm
         self._done = True
         self.backend = backend
 
@@ -101,7 +98,6 @@ class RemoteLocobot(object):
         use_map=False,
         close_loop=False,
         smooth=False,
-        use_dslam=False,
     ):
         """Moves the robot base to given goal state in the world frame.
 
@@ -114,8 +110,6 @@ class RemoteLocobot(object):
                            account of odometry.
         :param smooth: When set to "True", ensures that the motion
                        leading to the goal is a smooth one.
-        :param use_dslam: When set to "True", the robot uses slam for
-                          the navigation.
 
         :type xyt_position: list or np.ndarray
         :type use_map: bool
@@ -124,12 +118,8 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            if use_dslam:
-                self._slam.set_absolute_goal_in_robot_frame(xyt_position)
-            else:
-                self._robot.base.go_to_absolute(
-                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=False
-                )
+            self._robot.base.go_to_absolute(
+                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=True)
             self._done = True
 
     def go_to_relative(
@@ -138,7 +128,6 @@ class RemoteLocobot(object):
         use_map=False,
         close_loop=False,
         smooth=False,
-        use_dslam=False,
     ):
         """Moves the robot base to the given goal state relative to its current
         pose.
@@ -151,8 +140,6 @@ class RemoteLocobot(object):
                            account of odometry.
         :param smooth: When set to "True", ensures that the
                        motion leading to the goal is a smooth one.
-        :param use_dslam: When set to "True", the robot uses slam for
-                          the navigation.
 
         :type xyt_position: list or np.ndarray
         :type use_map: bool
@@ -161,11 +148,8 @@ class RemoteLocobot(object):
         """
         if self._done:
             self._done = False
-            if use_dslam:
-                self._slam.set_relative_goal_in_robot_frame(xyt_position)
-            else:
-                self._robot.base.go_to_relative(
-                    xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=False
+            self._robot.base.go_to_relative(
+                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=False
                 )
             self._done = True
 
@@ -174,7 +158,7 @@ class RemoteLocobot(object):
         """stops robot base movement."""
         self._robot.base.stop()
 
-    def get_base_state(self, state_type):
+    def get_base_state(self, state_type="odom"):
         """Returns the  base pose of the robot in the (x,y, yaw) format as
         computed either from Wheel encoder readings or Visual-SLAM.
 
@@ -449,36 +433,6 @@ class RemoteLocobot(object):
             self._done = True
             return True
 
-    # slam wrapper
-    def explore(self):
-        if self._done:
-            self._done = False
-            if not self._slam.whole_area_explored:
-                self._slam.set_goal(
-                    (19, 19, 0)
-                )  # set  far away goal for exploration, default map size [-20,20]
-                self._slam.take_step(self._slam_step_size)
-            self._done = True
-            return True
-
-    def get_map(self):
-        """returns the location of obstacles created by slam only for the obstacles,"""
-        # get the index correspnding to obstacles
-        indices = np.where(self._slam.map_builder.map[:, :, 1] >= 1.0)
-        # convert them into robot frame
-        real_world_locations = [
-            self._slam.map2real([indice[0], indice[1]]).tolist()
-            for indice in zip(indices[0], indices[1])
-        ]
-        return real_world_locations
-
-    def get_slam_goal(self):
-        goal_loc, goal_loc_map, stg_real, stg_real_g = None, None, None, None
-        if hasattr(self._slam, "goal_loc"):
-            goal_loc, goal_loc_map = self._slam.goal_loc, self._slam.goal_loc_map
-        if hasattr(self._slam, "stg_real"):
-            stg_real, stg_real_g = self._slam.stg_real, self._slam.stg_real_g
-        return goal_loc, goal_loc_map, stg_real, stg_real_g
 
 if __name__ == "__main__":
     import argparse
