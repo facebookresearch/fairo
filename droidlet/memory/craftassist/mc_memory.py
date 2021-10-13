@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import os
 import random
+from collections import namedtuple
 from typing import Optional, List
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.base_util import diag_adjacent, IDM, XYZ, Block, npy_to_blocks_list
@@ -99,12 +100,12 @@ class MCAgentMemory(AgentMemory):
     ### Update world with perception updates ###
     ############################################
 
-    def update(self, perception_output={}, areas_to_perceive=[]):
+    def update(self, perception_output: namedtuple=None, areas_to_perceive: List=[]):
         """
         Updates the world with updates from agent's perception module.
 
         Args:
-            perception_output: Dict with members-
+            perception_output: namedtuple with attributes-
                 mob: All mobs in perception range.
                 agent_pickable_items: Dict containing - items in agent's perception that can be picked up
                     and all items that can be picked up by the agent.
@@ -125,18 +126,18 @@ class MCAgentMemory(AgentMemory):
         updated_areas_to_perceive = areas_to_perceive
         """Perform update the memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
-        if perception_output.get("mobs", []):
-            for mob in perception_output["mobs"]:
+        if hasattr(perception_output, "mobs") and perception_output.mobs:
+            for mob in perception_output.mobs:
                 self.set_mob_position(mob)
 
         # 2. Handle all items that the agent can pick up in-game
-        if perception_output.get("agent_pickable_items", {}):
+        if hasattr(perception_output, "agent_pickable_items") and perception_output.agent_pickable_items:
             # 2.1 Items that are in perception range
-            if perception_output["agent_pickable_items"]["in_perception_items"]:
-                for pickable_items in ["agent_pickable_items"]["in_perception_items"]:
+            if perception_output.agent_pickable_items["in_perception_items"]:
+                for pickable_items in perception_output.agent_pickable_items["in_perception_items"]:
                     self.set_item_stack_position(pickable_items)
             # 2.2 Update previous pickable_item_stack based on perception
-            if perception_output["agent_pickable_items"]["all_items"]:
+            if perception_output.agent_pickable_items["all_items"]:
                 # Note: item stacks are not stored properly in memory right now @Yuxuan to fix this.
                 old_item_stacks = self.get_all_item_stacks()
                 if old_item_stacks:
@@ -144,14 +145,14 @@ class MCAgentMemory(AgentMemory):
                         memid = old_item_stack[0]
                         eid = old_item_stack[1]
                         # NIT3: return untag set and tag set
-                        if eid not in perception_output["agent_pickable_items"]["all_items"]:
+                        if eid not in perception_output.agent_pickable_items["all_items"]:
                             self.untag(memid, "_on_ground")
                         else:
                             self.tag(memid, "_on_ground")
 
         # 3. Update agent's current position and attributes in memory
-        if perception_output.get("agent_attributes", None):
-            agent_player = perception_output["agent_attributes"]
+        if hasattr(perception_output, "agent_attributes") and perception_output.agent_attributes:
+            agent_player = perception_output.agent_attributes
             memid = self.get_player_by_eid(agent_player.entityId).memid
             cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
             cmd = cmd + "uuid=?"
@@ -161,8 +162,8 @@ class MCAgentMemory(AgentMemory):
             )
 
         # 4. Update other in-game players in agent's memory
-        if perception_output.get("other_player_list", []):
-            player_list = perception_output["other_player_list"]
+        if hasattr(perception_output, "other_player_list") and perception_output.other_player_list:
+            player_list = perception_output.other_player_list
             for player, location in player_list:
                 mem = self.get_player_by_eid(player.entityId)
                 if mem is None:
@@ -193,8 +194,8 @@ class MCAgentMemory(AgentMemory):
                     AttentionNode.create(self, location, attender=player.entityId)
 
         # 5. Update the state of the world when a block is changed.
-        if perception_output.get("changed_block_attributes", {}):
-            for (xyz, idm) in perception_output["changed_block_attributes"]:
+        if hasattr(perception_output, "changed_block_attributes") and perception_output.changed_block_attributes:
+            for (xyz, idm) in perception_output.changed_block_attributes:
                 # 5.1 Update old instance segmentation if needed
                 self.maybe_remove_inst_seg(xyz)
 
@@ -202,16 +203,15 @@ class MCAgentMemory(AgentMemory):
                 updated_areas_to_perceive = self.maybe_remove_block_from_memory(xyz, idm, areas_to_perceive)
 
                 # 5.3 Update blocks in memory when any change in the environment is caused either by agent or player
-                interesting, player_placed, agent_placed = perception_output["changed_block_attributes"][(xyz, idm)]
+                interesting, player_placed, agent_placed = perception_output.changed_block_attributes[(xyz, idm)]
                 self.maybe_add_block_to_memory(interesting, player_placed, agent_placed, xyz, idm)
 
         """Now perform update the memory with input from heuristic perception module"""
         # 1. Process everything in area to attend for perception
-        if perception_output.get("in_perceive_area", {}):
+        if hasattr(perception_output, "in_perceive_area") and perception_output.in_perceive_area:
             # 1.1 Add colors of all block objects
-            if perception_output["in_perceive_area"]["block_object_attributes"]:
-                for block_object_attr in perception_output["in_perceive_area"][
-                    "block_object_attributes"]:
+            if perception_output.in_perceive_area["block_object_attributes"]:
+                for block_object_attr in perception_output.in_perceive_area["block_object_attributes"]:
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
@@ -219,18 +219,17 @@ class MCAgentMemory(AgentMemory):
                             subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
             # 1.2 Update all holes with their block type in memory
-            if perception_output["in_perceive_area"]["holes"]:
-                self.add_holes_to_mem(perception_output["in_perceive_area"]["holes"])
+            if perception_output.in_perceive_area["holes"]:
+                self.add_holes_to_mem(perception_output.in_perceive_area["holes"])
             # 1.3 Update tags of air-touching blocks
-            if "airtouching_blocks" in perception_output["in_perceive_area"]:
-                shifted_c, tags = perception_output["in_perceive_area"]["airtouching_blocks"]
+            if "airtouching_blocks" in perception_output.in_perceive_area:
+                shifted_c, tags = perception_output.in_perceive_area["airtouching_blocks"]
                 InstSegNode.create(self, shifted_c, tags=tags)
         # 2. Process everything near agent's current position
-        if perception_output.get("near_agent", {}):
+        if hasattr(perception_output, "near_agent") and perception_output.near_agent:
             # 2.1 Add colors of all block objects
-            if perception_output["near_agent"]["block_object_attributes"]:
-                for block_object_attr in perception_output["near_agent"][
-                    "block_object_attributes"]:
+            if perception_output.near_agent["block_object_attributes"]:
+                for block_object_attr in perception_output.near_agent["block_object_attributes"]:
                     block_object, color_tags = block_object_attr
                     memid = BlockObjectNode.create(self, block_object)
                     for color_tag in list(set(color_tags)):
@@ -238,21 +237,21 @@ class MCAgentMemory(AgentMemory):
                             subj=memid, pred_text="has_colour", obj_text=color_tag
                         )
             # 2.2 Update all holes with their block type in memory
-            if perception_output["near_agent"]["holes"]:
-                self.add_holes_to_mem(perception_output["near_agent"]["holes"])
+            if perception_output.near_agent["holes"]:
+                self.add_holes_to_mem(perception_output.near_agent["holes"])
             # 2.3 Update tags of air-touching blocks
-            if "airtouching_blocks" in perception_output["near_agent"]:
-                shifted_c, tags = perception_output["near_agent"]["airtouching_blocks"]
+            if "airtouching_blocks" in perception_output.near_agent:
+                shifted_c, tags = perception_output.near_agent["airtouching_blocks"]
                 InstSegNode.create(self, shifted_c, tags=tags)
 
         """Update the memory with labeled blocks from SubComponent classifier"""
-        if perception_output.get("labeled_blocks", {}):
-            for label, locations in perception_output["labeled_blocks"].items():
+        if hasattr(perception_output, "labeled_blocks") and perception_output.labeled_blocks:
+            for label, locations in perception_output.labeled_blocks.items():
                 InstSegNode.create(self, locations, [label])
 
         """Update the memory with holes"""
-        if perception_output.get("holes", None):
-            hole_memories = self.add_holes_to_mem(perception_output["holes"])
+        if hasattr(perception_output, "holes") and perception_output.holes:
+            hole_memories = self.add_holes_to_mem(perception_output.holes)
             output["holes"] = hole_memories
 
         output["areas_to_perceive"] = updated_areas_to_perceive

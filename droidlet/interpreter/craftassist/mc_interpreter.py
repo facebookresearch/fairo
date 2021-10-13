@@ -3,6 +3,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
+from collections import namedtuple
+
 import numpy as np
 import random
 from typing import Tuple, Dict, Any, Optional
@@ -288,10 +290,8 @@ class MCInterpreter(Interpreter):
         ask the agent to do it when needed.
         """
         # Get nearby holes
-        perception_holes = self.get_all_holes_fn(
-            agent, location, self.block_data, agent.low_level_data["fill_idmeta"]
-        )
-        perception_output = {"holes": perception_holes}
+        perception_holes = self.get_all_holes_fn(agent, location, self.block_data, agent.low_level_data["fill_idmeta"])
+        perception_output  = namedtuple("perceptionOutput", ["holes"])(perception_holes)
         output = self.memory.update(perception_output=perception_output)
         holes = output.get("holes", [])
         # Choose the best ones to fill
