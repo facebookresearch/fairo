@@ -4,15 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import heapq
 import math
-from collections import namedtuple
-
 import numpy as np
 from scipy.ndimage.filters import median_filter
 from scipy.optimize import linprog
 from copy import deepcopy
 import logging
 from droidlet.base_util import depth_first_search, to_block_pos, manhat_dist, euclid_dist
-from droidlet.memory.craftassist.mc_memory_nodes import InstSegNode, BlockObjectNode
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
 MAX_RADIUS = 20
@@ -526,12 +524,11 @@ class PerceptionWrapper:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
-        perception_output = namedtuple("perception", ["in_perceive_area", "near_agent"])
         color_list = list(self.color_bid_map.keys())
         if self.perceive_freq == 0 and not force:
-            return perception_output()
+            return CraftAssistPerceptionData()
         if self.agent.count % self.perceive_freq != 0 and not force:
-            return perception_output()
+            return CraftAssistPerceptionData()
 
         perceive_info = {}
         # 1. perceive blocks in marked areas to perceive
@@ -595,7 +592,8 @@ class PerceptionWrapper:
         if tags and len(shifted_c) > 0:
             perceive_info["near_agent"]["airtouching_blocks"] = [shifted_c, tags]
 
-        return perception_output(perceive_info["in_perceive_area"], perceive_info["near_agent"])
+        return CraftAssistPerceptionData(in_perceive_area=perceive_info["in_perceive_area"],
+                                         near_agent=perceive_info["near_agent"])
 
 
 def build_safe_diag_adjacent(bounds):

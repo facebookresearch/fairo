@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
-from collections import namedtuple
 
 import numpy as np
 import random
@@ -43,7 +42,7 @@ from .spatial_reasoning import ComputeLocations
 from ..interpret_conditions import ConditionInterpreter
 from .interpret_attributes import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from droidlet.base_util import number_from_span
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
@@ -291,7 +290,7 @@ class MCInterpreter(Interpreter):
         """
         # Get nearby holes
         perception_holes = self.get_all_holes_fn(agent, location, self.block_data, agent.low_level_data["fill_idmeta"])
-        perception_output  = namedtuple("perceptionOutput", ["holes"])(perception_holes)
+        perception_output  = CraftAssistPerceptionData(holes=perception_holes)
         output = self.memory.update(perception_output=perception_output)
         holes = output.get("holes", [])
         # Choose the best ones to fill

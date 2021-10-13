@@ -126,12 +126,12 @@ class MCAgentMemory(AgentMemory):
         updated_areas_to_perceive = areas_to_perceive
         """Perform update the memory with input from low_level perception module"""
         # 1. Handle all mobs in agent's perception range
-        if hasattr(perception_output, "mobs") and perception_output.mobs:
+        if perception_output.mobs:
             for mob in perception_output.mobs:
                 self.set_mob_position(mob)
 
         # 2. Handle all items that the agent can pick up in-game
-        if hasattr(perception_output, "agent_pickable_items") and perception_output.agent_pickable_items:
+        if perception_output.agent_pickable_items:
             # 2.1 Items that are in perception range
             if perception_output.agent_pickable_items["in_perception_items"]:
                 for pickable_items in perception_output.agent_pickable_items["in_perception_items"]:
@@ -151,7 +151,7 @@ class MCAgentMemory(AgentMemory):
                             self.tag(memid, "_on_ground")
 
         # 3. Update agent's current position and attributes in memory
-        if hasattr(perception_output, "agent_attributes") and perception_output.agent_attributes:
+        if perception_output.agent_attributes:
             agent_player = perception_output.agent_attributes
             memid = self.get_player_by_eid(agent_player.entityId).memid
             cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
@@ -162,7 +162,7 @@ class MCAgentMemory(AgentMemory):
             )
 
         # 4. Update other in-game players in agent's memory
-        if hasattr(perception_output, "other_player_list") and perception_output.other_player_list:
+        if perception_output.other_player_list:
             player_list = perception_output.other_player_list
             for player, location in player_list:
                 mem = self.get_player_by_eid(player.entityId)
@@ -194,7 +194,7 @@ class MCAgentMemory(AgentMemory):
                     AttentionNode.create(self, location, attender=player.entityId)
 
         # 5. Update the state of the world when a block is changed.
-        if hasattr(perception_output, "changed_block_attributes") and perception_output.changed_block_attributes:
+        if perception_output.changed_block_attributes:
             for (xyz, idm) in perception_output.changed_block_attributes:
                 # 5.1 Update old instance segmentation if needed
                 self.maybe_remove_inst_seg(xyz)
@@ -208,7 +208,7 @@ class MCAgentMemory(AgentMemory):
 
         """Now perform update the memory with input from heuristic perception module"""
         # 1. Process everything in area to attend for perception
-        if hasattr(perception_output, "in_perceive_area") and perception_output.in_perceive_area:
+        if perception_output.in_perceive_area:
             # 1.1 Add colors of all block objects
             if perception_output.in_perceive_area["block_object_attributes"]:
                 for block_object_attr in perception_output.in_perceive_area["block_object_attributes"]:
@@ -226,7 +226,7 @@ class MCAgentMemory(AgentMemory):
                 shifted_c, tags = perception_output.in_perceive_area["airtouching_blocks"]
                 InstSegNode.create(self, shifted_c, tags=tags)
         # 2. Process everything near agent's current position
-        if hasattr(perception_output, "near_agent") and perception_output.near_agent:
+        if perception_output.near_agent:
             # 2.1 Add colors of all block objects
             if perception_output.near_agent["block_object_attributes"]:
                 for block_object_attr in perception_output.near_agent["block_object_attributes"]:
@@ -245,12 +245,12 @@ class MCAgentMemory(AgentMemory):
                 InstSegNode.create(self, shifted_c, tags=tags)
 
         """Update the memory with labeled blocks from SubComponent classifier"""
-        if hasattr(perception_output, "labeled_blocks") and perception_output.labeled_blocks:
+        if perception_output.labeled_blocks:
             for label, locations in perception_output.labeled_blocks.items():
                 InstSegNode.create(self, locations, [label])
 
         """Update the memory with holes"""
-        if hasattr(perception_output, "holes") and perception_output.holes:
+        if perception_output.holes:
             hole_memories = self.add_holes_to_mem(perception_output.holes)
             output["holes"] = hole_memories
 

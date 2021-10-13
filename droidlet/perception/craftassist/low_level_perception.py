@@ -1,11 +1,11 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from collections import namedtuple
-
 import numpy as np
 from typing import Tuple, List
 from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
+
 
 def capped_line_of_sight(agent, player_struct, cap=20):
     """Return the block directly in the entity's line of sight, or a point in the distance"""
@@ -45,8 +45,6 @@ class LowLevelMCPerception:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
-        perceive_output = namedtuple("perception", ["mobs", "agent_pickable_items", "agent_attributes",
-                                                    "other_player_list", "changed_block_attributes"])
         perceive_info = {}
         # FIXME (low pri) remove these in code, get from sql
         self.agent.pos = to_block_pos(pos_to_np(self.agent.get_player().pos))
@@ -84,9 +82,11 @@ class LowLevelMCPerception:
             interesting, player_placed, agent_placed = self.on_block_changed(xyz, idm, boring_blocks)
             perceive_info["changed_block_attributes"][(xyz, idm)] = [interesting, player_placed, agent_placed]
 
-        return perceive_output(perceive_info["mobs"], perceive_info["agent_pickable_items"],
-                               perceive_info["agent_attributes"], perceive_info["other_player_list"],
-                               perceive_info["changed_block_attributes"])
+        return CraftAssistPerceptionData(mobs=perceive_info["mobs"],
+                                         agent_pickable_items=perceive_info["agent_pickable_items"],
+                                         agent_attributes=perceive_info["agent_attributes"],
+                                         other_player_list=perceive_info["other_player_list"],
+                                         changed_block_attributes=perceive_info["changed_block_attributes"])
 
 
     def get_agent_player(self):

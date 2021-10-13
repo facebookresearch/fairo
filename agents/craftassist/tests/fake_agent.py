@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
-from collections import namedtuple
 
 import numpy as np
 from typing import List, Tuple
@@ -34,6 +33,7 @@ from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.perception.craftassist import heuristic_perception
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
@@ -511,7 +511,7 @@ class FakeAgent(DroidletAgent):
         """Change the state of the world, block by block,
         store in memory"""
 
-        changes_to_be_updated = namedtuple("blockChanges", ["changed_block_attributes"])({})
+        changes_to_be_updated = CraftAssistPerceptionData()
         for xyz, idm in xyzbms:
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)

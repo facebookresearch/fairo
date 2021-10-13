@@ -3,9 +3,9 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
-from collections import namedtuple
 from multiprocessing import Queue, Process
 from droidlet.perception.craftassist.heuristic_perception import all_nearby_objects
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 from .semantic_segmentation.semseg_models import SemSegWrapper
 from droidlet.base_util import blocks_list_to_npy, get_bounds
 
@@ -46,14 +46,13 @@ class SubcomponentClassifierWrapper:
                 as opposed to waiting for perceive_freq steps (default: False)
 
         """
-        perceive_output = namedtuple("perception", ["labeled_blocks"])
         perceive_info = {}
         if self.perceive_freq == 0 and not force:
-            return perceive_output()
+            return CraftAssistPerceptionData()
         if self.perceive_freq > 0 and self.agent.count % self.perceive_freq != 0 and not force:
-            return perceive_output()
+            return CraftAssistPerceptionData()
         if self.subcomponent_classifier is None:
-            return perceive_output()
+            return CraftAssistPerceptionData()
         # TODO don't all_nearby_objects again, search in memory instead
         to_label = []
         # add all blocks in marked areas
@@ -99,7 +98,7 @@ class SubcomponentClassifierWrapper:
                     locs = [loc for loc, idm in blocks]
                     perceive_info["labeled_blocks"][l] = locs
 
-        return perceive_output(perceive_info["labeled_blocks"])
+        return CraftAssistPerceptionData(labeled_blocks=perceive_info["labeled_blocks"])
 
 
 class SubComponentClassifier(Process):
