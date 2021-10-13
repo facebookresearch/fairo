@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 import threading
+import time
 
 from typing import List
 
