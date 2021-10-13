@@ -383,6 +383,7 @@ class FakeAgent(DroidletAgent):
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
 
             if obj is not None:
+                # TODO (interpreter): rethink this when interpreter is its own object
                 if type(obj) is dict:
                     obj["task"](self, task_data=obj["data"])
                 else:
@@ -703,7 +704,7 @@ class FakePlayer(FakeAgent):
                 opts=self.opts,
             )
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-
+            # TODO (interpreter): rethink this when interpreter is its own object
             if obj is not None:
                 if type(obj) is dict:
                     obj["task"](self, task_data=obj["data"])
