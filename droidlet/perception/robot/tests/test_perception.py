@@ -140,6 +140,7 @@ class MemoryStoringTest(unittest.TestCase):
 
         # Insert with dedupe
         previous_objects = DetectedObjectNode.get_all(self.agent.memory)
+        detection_output = {}
         if previous_objects is not None:
             new_objects, updated_objects = self.deduplicator(detections, previous_objects)
             detection_output = RobotPerceptionData(new_objects=new_objects,
