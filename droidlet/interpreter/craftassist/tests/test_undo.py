@@ -46,7 +46,6 @@ class UndoTest(BaseCraftassistTestCase):
         # confirm undo
         # TODO change tests to record different speakers to avoid the sleep?
         # time.sleep(0.02)
-        print("here")
         self.add_incoming_chat("yes", self.speaker, add_to_memory=True)
         self.flush()
 

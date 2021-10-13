@@ -491,6 +491,7 @@ class FakeAgent(DroidletAgent):
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr
             )
             self.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
+            # TODO (interpreter): rethink this when interpreter is its own object
             if obj is not None:
                 if type(obj) is dict:
                     obj["task"](self, task_data=obj["data"])

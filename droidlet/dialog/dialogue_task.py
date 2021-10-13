@@ -45,7 +45,6 @@ class AwaitResponse(Task):
             return
         if self.agent.memory.get_time() - self.init_time > self.wait_time:
             self.finished = True
-            # FIXME this shouldn't return data
             self.agent.send_chat("Okay! I'll stop waiting for you to answer that.")
         return
 
@@ -131,10 +130,12 @@ class ConfirmTask(Task):
         # Step 2: check the response and add the task if necessary
         self.finished = True
         # FIXME: change this to sqly when syntax for obj searches is settled:
+        # search for a response to the confirmation question, which will be a triple
+        # (self.memid, "dialogue_task_reponse", chat_memid)
         t = self.agent.memory.get_triples(subj=self.memid, pred_text="dialogue_task_response")
-        chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
-        if not chat_mems:
+        if not t:
             return
+        chat_mems = [self.agent.memory.get_mem_by_id(triples[2]) for triples in t]
         if any([c.chat_text in MAP_YES for c in chat_mems]):
             for m in self.task_memids:
                 # activate

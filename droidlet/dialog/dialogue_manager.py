@@ -117,6 +117,7 @@ class DialogueManager(object):
             obj = self.dialogue_object_mapper.get_dialogue_object(
                 speaker, chatstr, logical_form, chat_status, chat_memid
             )
+            # TODO (interpreter): torch this when interpreter is its own object
             if obj is not None:
                 if type(obj) is not dict:
                     self.dialogue_stack.append(obj)
