@@ -37,8 +37,29 @@ class LocoAgentMemory(AgentMemory):
         self._safe_pickle_saved_attrs = {}
         self.dances = {}
 
-    def update(self):
-        pass
+    ############################################
+    ### Update world with perception updates ###
+    ############################################
+
+    def update(self, perception_output={}):
+        """
+        Updates the world with updates from agent's perception module.
+
+        Args:
+            perception_output: Dict with members-
+                new_detections: List of new detections
+                updated_detections: List of detections with updates
+                humans: List of humans detected
+        """
+        if perception_output.get("new_detections", []):
+            for detection in perception_output["new_detections"]:
+                DetectedObjectNode.create(self, detection)
+        if perception_output.get("updated_detections", []):
+            for detection in perception_output["updated_detections"]:
+                DetectedObjectNode.update(self, detection)
+        if perception_output.get("humans", []):
+            for human in perception_output["humans"]:
+                HumanPoseNode.create(self, human)
 
     #################
     ###  Players  ###

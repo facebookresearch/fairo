@@ -160,9 +160,6 @@ class Human(WorldObject):
         WorldObject.__init__(self, label="human_pose", center=keypoints.nose[:2], rgb_depth=rgb_depth)
         self.keypoints = keypoints
 
-    def save_to_memory(self, memory):
-        loco_memory.HumanPoseNode.create(memory, self)
-
     def to_struct(self):
         return {"xyz": list(self.xyz), "keypoints": self.keypoints._asdict()}
 

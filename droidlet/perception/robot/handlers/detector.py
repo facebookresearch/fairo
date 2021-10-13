@@ -184,12 +184,6 @@ class Detection(WorldObject):
         self.facial_rec_tag = face_tag
         self.feature_repr = None
 
-    def save_to_memory(self, memory, update=False):
-        if update:
-            loco_memory.DetectedObjectNode.update(memory, self)
-        else:
-            loco_memory.DetectedObjectNode.create(memory, self)
-
     def _maybe_bbox(self, bbox, mask):
         if hasattr(bbox, "tensor"):
             bbox = bbox.tensor.tolist()[0]

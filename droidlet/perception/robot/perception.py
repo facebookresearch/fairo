@@ -79,7 +79,7 @@ class Perception:
 
     def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
-        models and save their state to memory. It fetches the results of
+        models and get the state. It fetches the results of
         SlowPerception if they are ready.
 
         Args:
@@ -98,14 +98,16 @@ class Perception:
             old_image, detections, humans, old_xyz = None, None, None, None
 
         self.log(rgb_depth, detections, humans, old_image)
+        perception_output = {}
         if detections is not None:
-            current_objects = detections + humans
             if previous_objects is not None:
-                new_objects, updated_objects = self.vision.deduplicate(
-                    current_objects, previous_objects
+                new_detections, updated_detections = self.vision.deduplicate(
+                    detections, previous_objects
                 )
-            return (new_objects, updated_objects)
-        return None
+                perception_output["new_detections"] = new_detections
+                perception_output["updated_detections"] = updated_detections
+        perception_output["humans"] = humans
+        return perception_output
 
     def log(self, rgb_depth, detections, humans, old_rgb_depth):
         """Log all relevant data from the perceptual models for the dashboard.

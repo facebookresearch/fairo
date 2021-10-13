@@ -235,15 +235,12 @@ class LocobotAgent(DroidletAgent):
         )
 
         previous_objects = DetectedObjectNode.get_all(self.memory)
-        new_state = self.perception_modules["vision"].perceive(
-            rgb_depth, xyz, previous_objects, force=force
-        )
-        if new_state is not None:
-            new_objects, updated_objects = new_state
-            for obj in new_objects:
-                obj.save_to_memory(self.memory)
-            for obj in updated_objects:
-                obj.save_to_memory(self.memory, update=True)
+        perception_output = self.perception_modules["vision"].perceive(rgb_depth,
+                                                               xyz,
+                                                               previous_objects,
+                                                               force=force)
+        self.memory.update(perception_output)
+
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""

@@ -109,8 +109,8 @@ class MemoryStoringTest(unittest.TestCase):
         # get fake human pose
         h = get_fake_humanpose()
         # save to memory
-        for obj in [d, h]:
-            obj.save_to_memory(self.agent.memory)
+        perception_output = {"new_detections": [d], "humans": [h]}
+        self.agent.memory.update(perception_output)
 
         # retrieve detected objects
         o = DetectedObjectNode.get_all(self.agent.memory)
@@ -134,19 +134,18 @@ class MemoryStoringTest(unittest.TestCase):
         self.assertGreaterEqual(len(detections), 5)  # 9 exactly
         # insert once to setup dedupe tests
         self.deduplicator(detections, [])
-        for obj in detections:
-            obj.save_to_memory(self.agent.memory)
+        self.agent.memory.update({"new_detections": detections})
 
         objs_init = DetectedObjectNode.get_all(self.agent.memory)
 
         # Insert with dedupe
         previous_objects = DetectedObjectNode.get_all(self.agent.memory)
+        detection_output = {}
         if previous_objects is not None:
             new_objects, updated_objects = self.deduplicator(detections, previous_objects)
-            for obj in new_objects:
-                obj.save_to_memory(self.agent.memory)
-            for obj in updated_objects:
-                obj.save_to_memory(self.agent.memory, update=True)
+            detection_output["new_detections"] = new_objects
+            detection_output["updated_detections"] = updated_objects
+        self.agent.memory.update(detection_output)
 
         # Assert that some objects get deduped
         objs_t1 = DetectedObjectNode.get_all(self.agent.memory)
