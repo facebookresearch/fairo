@@ -139,6 +139,7 @@ def interpret_reference_object(
         interpreter.memid
     )
     _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
+    # does a clarification task referencing this interpreter exist?
     if not clarification_task_mems:
         if any(extra_tags):
             extra_clauses = []
@@ -190,9 +191,11 @@ def interpret_reference_object(
             raise ErrorWithResponse("I don't know what you're referring to")
 
     else:
-        # clarification answered
-        # FIXME, error if there are many?
-        task_mem = clarification_task_mems[0]
+        # there is a clarification task.  is it active?
+        task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
+        if task_mem.prio > -2:
+            raise NextDialogueStep()
+        # clarification task finished.
         query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
         _, r = interpreter.memory.basic_search(query)
         if r and r[0] == "yes":
