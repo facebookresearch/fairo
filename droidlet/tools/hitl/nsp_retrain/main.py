@@ -20,6 +20,7 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 # TODO: Parameterize those
+# This specifies how long jobs should be running before we manually kill them
 IJ_TIMEOUT = 30
 IL_TIMEOUT = IJ_TIMEOUT + 20
 NDL_TIMEOUT = IL_TIMEOUT + 20
@@ -35,11 +36,12 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint_dir", default="/checkpoint/yuxuans/nsp/")
     parser.add_argument("--data_split_ratios", default="80/10/10", help="format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
     parser.add_argument("--new_data_training_threshold", default="100", help="number of new data samples below which no training occurs")
+    parser.add_argument("--interaction_job_num", type=int, default=1, help="number of dashboard sessions to spin up")
     opts = parser.parse_args()
     # TODO Implement error handing are argument inputs
 
     # TODO: parameterize this
-    instance_num = 2
+    instance_num = opts.interaction_job_num
     
     ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
     batch_id = ij.get_batch_id()
