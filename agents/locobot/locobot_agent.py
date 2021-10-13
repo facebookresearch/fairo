@@ -235,6 +235,7 @@ class LocobotAgent(DroidletAgent):
         )
 
         previous_objects = DetectedObjectNode.get_all(self.memory)
+        # perception_output is a namedtuple of : new_detections, updated_detections, humans
         perception_output = self.perception_modules["vision"].perceive(rgb_depth,
                                                                xyz,
                                                                previous_objects,

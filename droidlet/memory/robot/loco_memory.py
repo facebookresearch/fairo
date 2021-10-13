@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import logging
 from typing import List
+from collections import namedtuple
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.memory.robot.loco_memory_nodes import *
@@ -41,24 +42,24 @@ class LocoAgentMemory(AgentMemory):
     ### Update world with perception updates ###
     ############################################
 
-    def update(self, perception_output={}):
+    def update(self, perception_output: namedtuple=None):
         """
         Updates the world with updates from agent's perception module.
 
         Args:
-            perception_output: Dict with members-
+            perception_output: namedtuple with members-
                 new_detections: List of new detections
                 updated_detections: List of detections with updates
                 humans: List of humans detected
         """
-        if perception_output.get("new_detections", []):
-            for detection in perception_output["new_detections"]:
+        if hasattr(perception_output, "new_detections") and perception_output.new_detections:
+            for detection in perception_output.new_detections:
                 DetectedObjectNode.create(self, detection)
-        if perception_output.get("updated_detections", []):
-            for detection in perception_output["updated_detections"]:
+        if hasattr(perception_output, "updated_detections") and perception_output.updated_detections:
+            for detection in perception_output.updated_detections:
                 DetectedObjectNode.update(self, detection)
-        if perception_output.get("humans", []):
-            for human in perception_output["humans"]:
+        if hasattr(perception_output, "humans") and perception_output.humans:
+            for human in perception_output.humans:
                 HumanPoseNode.create(self, human)
 
     #################

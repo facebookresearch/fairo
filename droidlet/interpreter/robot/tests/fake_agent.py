@@ -6,6 +6,7 @@ import numpy as np
 import re
 import logging
 import math
+from collections import namedtuple
 
 from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
@@ -47,7 +48,7 @@ class FakeDetectorPerception:
         self.agent = agent
 
     def perceive(self, force=False):
-        return {}
+        return namedtuple("perception", [])()
 
     def add_detected_object(self, xyz, class_label=None, properties=[], colour=None):
         d = get_fake_detection(class_label, properties, xyz)
