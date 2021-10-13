@@ -20,9 +20,9 @@ sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
 # TODO: Parameterize those
-IJ_TIMEOUT = 700
-IL_TIMEOUT = IJ_TIMEOUT + 200
-NDL_TIMEOUT = IL_TIMEOUT + 200
+IJ_TIMEOUT = 30
+IL_TIMEOUT = IJ_TIMEOUT + 20
+NDL_TIMEOUT = IL_TIMEOUT + 20
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     # TODO Implement error handing are argument inputs
 
     # TODO: parameterize this
-    instance_num = 950
+    instance_num = 2
     
     ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
     batch_id = ij.get_batch_id()

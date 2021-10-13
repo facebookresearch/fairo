@@ -81,7 +81,7 @@ class InteractionJob(DataGenerator):
             [
                 f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
             ],
-            # f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto/architect=local"
+            # f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../../../tools/crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto/architect=local"
             # ],
             shell=True,
             preexec_fn=os.setsid,
