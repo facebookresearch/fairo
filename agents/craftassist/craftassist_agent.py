@@ -268,7 +268,7 @@ class CraftAssistAgent(DroidletAgent):
         ]
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
         updated_perception_output = {}
-        if force or not self.agent.memory.task_stack_peek():
+        if force or not self.memory.task_stack_peek():
             # perceive from heuristic perception module
             updated_perception_output.update(self.perception_modules["heuristic"].perceive())
         # 4. if semantic segmentation model is initialized, call perceive
