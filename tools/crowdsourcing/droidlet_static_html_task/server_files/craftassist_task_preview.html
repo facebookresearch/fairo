@@ -1,3 +1,4 @@
+<!-- craftassist_task_preview.html -->
 <!-- Bootstrap v3.0.3 -->
 <link
   rel="stylesheet"
@@ -10,12 +11,12 @@
 <div
   aria-hidden="true"
   aria-labelledby="exampleModalLabel"
-  class="modal fade in"
+  class="modal fade bd-example-modal-lg"
   id="exampleModal"
   role="dialog"
   tabindex="-1"
 >
-  <div class="modal-dialog" role="document">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <button
@@ -28,7 +29,7 @@
         </button>
       </div>
 
-      <div class="modal-body" id="modal">&nbsp;</div>
+      <div class="modal-body" id="modal"></div>
 
       <div class="modal-footer">
         <button class="btn btn-secondary" data-dismiss="modal" type="button">
@@ -55,73 +56,139 @@
     <!-- Instructions -->
     <div class="panel panel-primary">
       <div class="panel-heading">
-        <strong> Instructions </strong>
+        <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#instructionsWrapper" aria-expanded="false" aria-controls="instructionsWrapper">
+          Click here to view/hide instructions
+        </button>
       </div>
-      <div class="panel-body" id="instructions">
-        <p>
-            <h1><strong>Interact with an assistant in a 3-D world creative game.</strong></h1>
-            
-            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_world_agent.png" width="320" height="240"></iframe>
-            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_2.png" width="320" height="240"></iframe>
-            <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_3.png" width="320" height="240"></iframe>
-            
-            <p><b>Imagine you are playing a creative game in a 3-D voxel world and you have access to an assistant (as shown in some screenshots above) that can help you get things done.</b><br />
-            <b>Use your imagination and creativity to interact with the assistant. In the setup here, you will be logged in to the voxel world along with the assistant.</b> You can control your position in the 3-D world by clicking on the bottom-left pane and then using the navigation buttons.<br />
-            </p>
-            <h3>How to enter voxel world and control</h3>
-            <p>Please click on the bottom-left pane to enter the 3-D voxel world.<br />
-            <b>Please use ‘w/a/s/d’ to move ‘forward/left/back/right’ , ‘space’ to jump and ‘esc’ to leave the world and back to the website.</b><br /></p>
-            
-            
-            <h3>Interacting with the assistant</h3>
-            <p>Please use the <b>chat box in the top left pane</b> to speak with and instruct the assistant. <br />
-            <b>Press “submit” when you are ready to send the command to the assistant</b>. Once you send the command, you should be able to see the assistant execute the command in the 3-D world on bottom-left. The <b>assistant might also send you replies once in a while and you can see that below the “Submit” button</b>. <br />
-            <b>Important: The bot might be slow to respond due to network lag. You may expect a few seconds between sending a command and getting responses from the agent (we are improving it!).Please be patient and do not send multiple commands at a time</b>
-            
-            <b>On the top right you will be able to see a history of the last 5 commands</b> you’ve sent to the assistant in the game.<b r/>
-            <b>Keep in mind that the bot is non-violent. </b></p>
-            <p>&nbsp;</p>
-            
-            <b>You can assume that the bot has the following capabilities:</b>
+      <div class="collapse" id=instructionsWrapper>
+        <div id="instructions">
+          <h1><strong>Interact with an assistant in a 3-D world</strong></h1>    
+          <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_world_agent_labeled.png" width="32%" height="180"></iframe>
+          <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_2_labeled.png" width="32%" height="180"></iframe>
+          <img src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/voxel_3_labeled.png" width="32%" height="180"></iframe>
+          <p>
+            <h3>You are playing a game in a 3-D world with an assistant who can help you.</h3>
+            <h4>Use your imagination and creativity to <i>interact with the assistant by asking it to do things.</i></h4>
+          </p>
+        
+          <p><b style="color: red;">IMPORTANT - Please note that you will only get paid if you:
+            <ol>
+              <li>Click "Start" in the bottom right to begin session.</li>
+              <li>Interact with the assistant for the <i>full 5 minutes.</i></li>
+              <li>Click on "End" in the bottom right.</li>
+              <li>Click on "Submit" button at the bottom.</li>
+            </ol>
+          </b></p>
+
+          <h3>Example Task Interface</h3>
+          <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mturk_dashboard.png" width="60%"></iframe>
+
+          <h3>How to move around the 3-D world</h3>
+          <p>
             <ul>
-                <li><b>Move</b> (the bot can be told to move around to places, objects, things etc)</li>
-                <li><b>Build</b> (the bot can be told to build things)</li>
-                <li><b>Destroy</b> (the bot can be told to destroy things)</li>
-                <li><b>Dance</b> (the bot can be told to do a movement of some kind)</li>
-                <li><b>Get</b> (the bot can be told to get things from one place to another)</li>
-                <li><b>Tag</b> (the bot can be told to tag things)</li>
-                <li><b>Dig</b> (the bot can be told to dig up things)</li>
-                <li><b>Copy</b> (the bot can be told to make a copy of things)</li>
-                <li><b>Undo</b> (the bot can be told to revert things)</li>
-                <li><b>Fill</b> (the bot can be told to fill up structures)</li>
-                <li><b>Spawn</b> (the bot can be told to spawn objects)</li>
-                <li><b>Answer</b> (the bot can be told to answer your questions)</li>
-                <li><b>Stop</b> (the bot can be told to stop)</li>
-                <li><b>Resume</b> (the bot can be told to resume an earlier action)</li>
+              <li>Click on the upper right pane to enter the game.</li>
+              <li>Press ‘w/a/s/d’ buttons to move forward/left/back/right and ‘space’ to jump.</li>
+              <li>Press ‘esc’ to leave the world.</li>
             </ul>
-            <br />
-            <p><b>You can talk to the bot as you would to another human player to instruct it to perform actions mentioned above, ask it questions, or to give it information.</b></p><br />
-            
-            
-            <b>Please use your imagination to come up with things you'd like to say to the bot to make the interaction rich, given the bot’s capabilities. Be as creative as you can.</b> </br>
-            <b>The instructions should be related to the bot's capabilities, please give us as much variety as you can.</b><br />
-            <b>Remember that the bot is non-violent. Please click on the start button when you are ready and once finished, click on the “end” button to proceed to next steps.</b>
-            <p><strong><span style="color:#FF0000;">Rejection policy: You HIT will be rejected if any of these are violated</span></strong></p>
-            
+          </p>            
+          
+          <h3>Interacting with the assistant</h3>
+          <p>
+            Please use the <b>chat box in the top left pane</b> to speak with and instruct the assistant. <br>
+            We ask that you interact with the assistant for <b>at least 5 minutes.</b>
+            <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/dashboard_text_entry_highlight.png" width="60%"></iframe>
+          </p>
+          <p>
             <ul>
-              <li>The submitted instructions should be valid English sentences.</li>
-              <li>The submitted instructions should only be about the bot's capabilities.</li>
-              <li>Please be as creative as you can.</li>
-              <li>Do not leave an instruction blank.</li>
-              <li>All three instructions should be unique.</li>
-              <li>Do not use the exact same strategies across HITs.</li>
-            </ul>            
-        </p>
+              <li><b>Press “submit” just below the chat box to send the command to the assistant.</b></li>
+              <li><b>The assistant might be slow to respond. Please be patient and do not send multiple commands at a time.</b></li>
+              <li>You should then see the assistant execute the command in the 3-D world.</li>
+              <li>The assistant might also send you replies below the chat box.</li>
+              <li>In the bottom left pane are the last 5 commands you’ve sent.</li>
+            </ul>
+          </p>
+
+          <p>
+            <h3>Assistant Capabilities</h3>
+            <h4 style="color: red;">Keep in mind that the assistant is non-violent!</h4>
+            <ul>
+              <li><b>Move</b> (to a place or structure)</li>
+              <li><b>Build</b> (a shape or structure)</li>
+              <li><b>Destroy</b></li>
+              <li><b>Dance</b></li>
+              <li><b>Get</b> (an object)</li>
+              <li><b>Tag</b> (rename something)</li>
+              <li><b>Dig</b></li>
+              <li><b>Copy</b> (make a copy of an object)</li>
+              <li><b>Undo</b></li>
+              <li><b>Fill</b> (up a hole or structure)</li>
+              <li><b>Spawn</b> (create an animal)</li>
+              <li><b>Answer</b> (a question)</li>
+              <li><b>Stop</b> </li>
+              <li><b>Resume</b> (an earlier action)</li>
+            </ul>
+          </p>
+
+          <p>
+            <b>Example Command 1: </b>"Build a red square there"<br>
+            <b>Example Command 2: </b>"Dig a hole next to this red square"
+          </p>
+          
+          <h3> Mark Errors <b style="color: red;">- Very Important!</b></h3>
+          <p>
+            If the assistant fails to do something you asked, you must click the <b style="color:red;">MARK ERROR</b> button.
+          </p>
+          <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mark_errors_big_button.png" width="80%"></iframe>
+          
+          <!--<p>If the assistant fails, you will be prompted for more information.</p> -->
+
+          <p>
+            <h3>Tips</h3>
+            <ul>
+              <li><b>Be creative! Make the interaction interesting, within the assistant's capabilities.</b></li>
+              <li><b>Please use as much variety as you can! Don't give the same commands over and over</b></li>
+            </ul>
+          </p>
+
+          <p>
+            <h3 style="color:red;">Rejection policy - You HIT will be rejected if any of these are violated:</h3>
+          </p>
+          
+          <ul>
+            <li>The commands must be valid English sentences.</li>
+            <li>The commands must use the above list of capabilities</li>
+            <li>All commands must be unique.</li>
+            <li>If you do multiple HITs, you must use new commands each time.</li>
+          </ul>
+        </div>
       </div>
     </div>
     <!-- End Instructions -->
-    <!-- Content Body -->
-    <!-- End Content Body -->
+    <!-- Commands Reminder -->
+    <div class="panel panel-primary">
+      <div class="panel-heading">
+        <strong>Assistant Capabilities</strong>
+      </div>
+      <p>
+        <ul>
+          <li><b>Move</b> (to a place or structure)</li>
+          <li><b>Build</b> (a shape or structure)</li>
+          <li><b>Destroy</b></li>
+          <li><b>Dance</b></li>
+          <li><b>Get</b> (an object)</li>
+          <li><b>Tag</b> (rename something)</li>
+          <li><b>Dig</b></li>
+          <li><b>Copy</b> (make a copy of an object)</li>
+          <li><b>Undo</b></li>
+          <li><b>Fill</b> (up a hole or structure)</li>
+          <li><b>Spawn</b> (create an animal)</li>
+          <li><b>Answer</b> (a question)</li>
+          <li><b>Stop</b> </li>
+          <li><b>Resume</b> (an earlier action)</li>
+        </ul>
+      </p>
+    </div>
+    <!-- End Commands Reminder -->
   </div>
 </section>
 
@@ -136,7 +203,7 @@
     height: 1000px;
   "
 >
-<iframe style="width:100%; height:100%;" src="https://${subdomain}.craftassist.io/"></iframe>
+  <iframe style="width:100%; height:100%;" src="https://${subdomain}.craftassist.io/"></iframe>
 </section>
 
 
@@ -149,12 +216,26 @@
 </script>
 
 <style type="text/css">
+  p, ul, ol {
+    font-size: 1.1em;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
   fieldset {
     padding: 10px;
     background: #fbfbfb;
     border-radius: 5px;
     margin-bottom: 5px;
   }
+
+  .center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
 
   .input_location {
     background-color: blanchedalmond;
