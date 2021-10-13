@@ -6,6 +6,7 @@ import argparse
 import logging
 
 from retrain_nsp_jobs import InteractionJob, InteractionLogListener
+from nsp_retrain_infra import NSPNewDataListener, NSPRetrainingJob
 from droidlet.tools.hitl.task_runner import TaskRunner
 
 log_formatter = logging.Formatter(
@@ -18,18 +19,35 @@ sh = logging.StreamHandler()
 sh.setFormatter(log_formatter)
 logger.addHandler(sh)
 
+# TODO: Parameterize those
+IJ_TIMEOUT = 700
+IL_TIMEOUT = IJ_TIMEOUT + 200
+NDL_TIMEOUT = IL_TIMEOUT + 200
+
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--instance_num", type=int, default=1, help="number of instances requested"
-    )
-    args = parser.parse_args()
+    parser.add_argument("--droidlet_dir", default="/private/home/yuxuans/Workspace/droidlet/")
+    parser.add_argument("--full_data_dir", default="agents/craftassist/datasets/full_data/")
+    parser.add_argument("--sweep_runner_dir", default="/checkpoint/yuxuans/nsp_cl_scripts/")
+    parser.add_argument("--sweep_config_folder", default="/checkpoint/yuxuans/nsp/sweeps/scripts/configs/auto_sweep_configs/")
+    parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/yuxuans/nsp/sweeps/scripts/")
+    parser.add_argument("--output_dir", default="/checkpoint/yuxuans/nsp/sweeps/job_output/")
+    parser.add_argument("--checkpoint_dir", default="/checkpoint/yuxuans/nsp/")
+    parser.add_argument("--data_split_ratios", default="80/10/10", help="format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
+    parser.add_argument("--new_data_training_threshold", default="100", help="number of new data samples below which no training occurs")
+    opts = parser.parse_args()
+    # TODO Implement error handing are argument inputs
 
-    interaction_job = InteractionJob(args.instance_num, 0.01)
-    batch_id = interaction_job.get_batch_id()
-    interaction_listener = InteractionLogListener(batch_id)
+    # TODO: parameterize this
+    instance_num = 950
+    
+    ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
+    batch_id = ij.get_batch_id()
+    listener = InteractionLogListener(batch_id, IL_TIMEOUT)
+    ndl = NSPNewDataListener(batch_id=batch_id, opts=opts, timeout=NDL_TIMEOUT)
+
     runner = TaskRunner()
-    runner.register_data_generators([interaction_job])
-    runner.register_job_listeners([interaction_listener])
+    runner.register_data_generators([ij])
+    runner.register_job_listeners([listener])
+    runner.register_job_listeners([ndl])
     runner.run()
