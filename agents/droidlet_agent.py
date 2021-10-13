@@ -25,6 +25,7 @@ MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
 
+
 class DroidletAgent(BaseAgent):
     def __init__(self, opts, name=None):
         logging.info("Agent.__init__ started")
@@ -133,7 +134,8 @@ class DroidletAgent(BaseAgent):
             status = ""
             try:
                 chat_parse = self.perception_modules["language_understanding"].get_logical_form(
-                    chat=command, parsing_model=self.perception_modules["language_understanding"].parsing_model
+                    chat=command,
+                    parsing_model=self.perception_modules["language_understanding"].parsing_model,
                 )
                 logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                     speaker="dashboard", chat=command, logical_form=chat_parse
@@ -287,8 +289,12 @@ class DroidletAgent(BaseAgent):
 
     def perceive(self, force=False):
         start_time = datetime.datetime.now()
-        nlu_perceive_output = self.perception_modules["language_understanding"].perceive(force=force)
-        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = nlu_perceive_output
+        nlu_perceive_output = self.perception_modules["language_understanding"].perceive(
+            force=force
+        )
+        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
+            nlu_perceive_output
+        )
         if received_chats_flag:
             # add postprocessed chat here
             chat_memid = self.memory.add_chat(
@@ -315,7 +321,6 @@ class DroidletAgent(BaseAgent):
             }
             dispatch.send("perceive", data=hook_data)
 
-
     def controller_step(self):
         """Process incoming chats and modify task stack"""
 
@@ -325,6 +330,18 @@ class DroidletAgent(BaseAgent):
             if not self.no_default_behavior:
                 self.maybe_run_slow_defaults()
             self.dialogue_manager.step()
+        elif type(obj) is dict:
+            # this is a dialogue Task, set it to run:
+            obj["task"](self, task_data=obj["data"])
+
+        # check to see if some Tasks were put in memory that need to be
+        # hatched using agent object (self):
+        query = "SELECT MEMORY FROM Task WHERE prio==-3"
+        _, task_mems = self.memory.basic_search(query)
+        for task_mem in task_mems:
+            task_mem.task["class"](
+                self, task_data=task_mem.task["task_data"], memid=task_mem.memid
+            )
 
         # Always call dialogue_stack.step(), even if chat is empty
         if len(self.memory.dialogue_stack) > 0:

@@ -18,7 +18,7 @@ from droidlet.shared_data_struct.craftassist_shared_utils import astar, MOBS_BY_
 from droidlet.perception.craftassist.heuristic_perception import ground_height
 from droidlet.lowlevel.minecraft.mc_util import manhat_dist, strip_idmeta
 
-from droidlet.interpreter.task import BaseMovementTask, Task
+from droidlet.task.task import BaseMovementTask, Task
 from droidlet.memory.memory_nodes import TaskNode, TripleNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode
 
@@ -412,10 +412,16 @@ class Build(Task):
                         )
                     else:
                         interesting, player_placed, agent_placed = agent.perception_modules[
-                            "low_level"].mark_blocks_with_env_change(
-                            target, (0, 0), agent.low_level_data["boring_blocks"], agent_placed=True)
+                            "low_level"
+                        ].mark_blocks_with_env_change(
+                            target,
+                            (0, 0),
+                            agent.low_level_data["boring_blocks"],
+                            agent_placed=True,
+                        )
                         agent.memory.maybe_add_block_to_memory(
-                            interesting, player_placed, agent_placed, target, (0, 0))
+                            interesting, player_placed, agent_placed, target, (0, 0)
+                        )
                         self.add_tags(agent, (target, (0, 0)))
                     agent.get_changed_blocks()
             else:
@@ -458,10 +464,16 @@ class Build(Task):
                     B = agent.get_blocks(x, x, y, y, z, z)
                     if B[0, 0, 0, 0] == idm[0]:
                         interesting, player_placed, agent_placed = agent.perception_modules[
-                            "low_level"].mark_blocks_with_env_change(
-                            (x, y, z), tuple(idm), agent.low_level_data["boring_blocks"], agent_placed=True)
+                            "low_level"
+                        ].mark_blocks_with_env_change(
+                            (x, y, z),
+                            tuple(idm),
+                            agent.low_level_data["boring_blocks"],
+                            agent_placed=True,
+                        )
                         agent.memory.maybe_add_block_to_memory(
-                            interesting, player_placed, agent_placed, (x, y, z), tuple(idm))
+                            interesting, player_placed, agent_placed, (x, y, z), tuple(idm)
+                        )
                         changed_blocks = agent.get_changed_blocks()
                         self.new_blocks.append(((x, y, z), tuple(idm)))
                         self.add_tags(agent, ((x, y, z), tuple(idm)))
