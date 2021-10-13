@@ -1,7 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from collections import namedtuple
 from droidlet.parallel import BackgroundTask
 from droidlet.perception.robot.handlers import (
     ObjectDetection,
@@ -11,6 +10,7 @@ from droidlet.perception.robot.handlers import (
     ObjectDeduplicator,
 )
 from droidlet.interpreter.robot.objects import AttributeDict
+from droidlet.shared_data_struct.robot_shared_utils import RobotPerceptionData
 from droidlet.event import sio
 import queue
 
@@ -96,15 +96,13 @@ class Perception:
             old_image, detections, humans, old_xyz = None, None, None, None
 
         self.log(rgb_depth, detections, humans, old_image)
-        perceive_output = namedtuple("perception", ["new_detections", "updated_detections", "humans"])
-        new_detections, updated_detections  = None, None
+        new_detections, updated_detections = None, None
         if detections is not None:
             if previous_objects is not None:
-                new_detections_dedup, updated_detections_dedup = self.vision.deduplicate(
+                new_detections, updated_detections = self.vision.deduplicate(
                     detections, previous_objects
                 )
-                new_detections, updated_detections = new_detections_dedup, updated_detections_dedup
-        perception_output = perceive_output(new_detections, updated_detections, humans)
+        perception_output = RobotPerceptionData(new_detections, updated_detections, humans)
         return perception_output
 
     def log(self, rgb_depth, detections, humans, old_rgb_depth):

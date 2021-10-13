@@ -6,8 +6,6 @@ import numpy as np
 import re
 import logging
 import math
-from collections import namedtuple
-
 from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
@@ -28,7 +26,7 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
 from agents.locobot.self_perception import SelfPerception
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
-from droidlet.shared_data_struct.robot_shared_utils import Pos
+from droidlet.shared_data_struct.robot_shared_utils import Pos, RobotPerceptionData
 
 # marker creation should be somewhwere else....
 from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
@@ -48,7 +46,7 @@ class FakeDetectorPerception:
         self.agent = agent
 
     def perceive(self, force=False):
-        return namedtuple("perception", [])()
+        return RobotPerceptionData()
 
     def add_detected_object(self, xyz, class_label=None, properties=[], colour=None):
         d = get_fake_detection(class_label, properties, xyz)

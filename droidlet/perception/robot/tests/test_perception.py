@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import logging
-from collections import namedtuple
 from timeit import Timer
 from unittest.mock import MagicMock
 from droidlet.perception.robot import (
@@ -18,6 +17,7 @@ from droidlet.interpreter.robot import dance
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
 from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode, HumanPoseNode
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+from droidlet.shared_data_struct.robot_shared_utils import RobotPerceptionData
 import cv2
 import torch
 from PIL import Image
@@ -109,7 +109,7 @@ class MemoryStoringTest(unittest.TestCase):
         # get fake human pose
         h = get_fake_humanpose()
         # save to memory
-        perception_output = namedtuple("perception", ["new_detections", "humans"])([d], [h])
+        perception_output = RobotPerceptionData(new_objects=[d], humans=[h])
         self.agent.memory.update(perception_output)
 
         # retrieve detected objects
@@ -134,16 +134,16 @@ class MemoryStoringTest(unittest.TestCase):
         self.assertGreaterEqual(len(detections), 5)  # 9 exactly
         # insert once to setup dedupe tests
         self.deduplicator(detections, [])
-        self.agent.memory.update(namedtuple("detections", ["new_detections"])(detections))
+        self.agent.memory.update(RobotPerceptionData(new_objects=detections))
 
         objs_init = DetectedObjectNode.get_all(self.agent.memory)
 
         # Insert with dedupe
         previous_objects = DetectedObjectNode.get_all(self.agent.memory)
-        detectionTuple = namedtuple("detections", ["new_detections", "updated_detections"])
         if previous_objects is not None:
             new_objects, updated_objects = self.deduplicator(detections, previous_objects)
-            detection_output = detectionTuple(new_objects, updated_objects)
+            detection_output = RobotPerceptionData(new_objects=new_objects,
+                                                   updated_objects=updated_objects)
             self.agent.memory.update(detection_output)
 
         # Assert that some objects get deduped

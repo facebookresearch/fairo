@@ -47,18 +47,20 @@ class LocoAgentMemory(AgentMemory):
         Updates the world with updates from agent's perception module.
 
         Args:
-            perception_output: namedtuple with members-
-                new_detections: List of new detections
-                updated_detections: List of detections with updates
+            perception_output: namedtuple with attributes -
+                new_objects: List of new detections
+                updated_objects: List of detections with updates
                 humans: List of humans detected
         """
-        if hasattr(perception_output, "new_detections") and perception_output.new_detections:
-            for detection in perception_output.new_detections:
+        if not perception_output:
+            return
+        if perception_output.new_objects:
+            for detection in perception_output.new_objects:
                 DetectedObjectNode.create(self, detection)
-        if hasattr(perception_output, "updated_detections") and perception_output.updated_detections:
-            for detection in perception_output.updated_detections:
+        if perception_output.updated_objects:
+            for detection in perception_output.updated_objects:
                 DetectedObjectNode.update(self, detection)
-        if hasattr(perception_output, "humans") and perception_output.humans:
+        if perception_output.humans:
             for human in perception_output.humans:
                 HumanPoseNode.create(self, human)
 
