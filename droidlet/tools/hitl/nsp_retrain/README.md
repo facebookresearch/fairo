@@ -15,11 +15,11 @@ Here's a list of environment variables you should set before you run the pipelin
 10. MTURK_AWS_ACCESS_KEY_ID
 11. MTURK_AWS_SECRET_ACCESS_KEY
 
-1-2 is the AWS credentials you provided to Mephisto to create HITs
-3 is the name of Mephisto requester you registered
-4-6 is the AWS info we use to spin up ECS instances for hosting dashboard, you should provide one with ECS,ECR access permission
-7-9 is the cloudflare info which we use to register domain names for dashboard urls
-10-11 is the AWS credentials we use to spin up annotation jobs
+1-2 is the AWS credentials you provided to Mephisto to create HITs  
+3 is the name of Mephisto requester you registered  
+4-6 is the AWS info we use to spin up ECS instances for hosting dashboard, you should provide one with ECS,ECR access permission  
+7-9 is the cloudflare info which we use to register domain names for dashboard urls  
+10-11 is the AWS credentials we use to spin up annotation jobs  
 
 ### Step 2: run the pipeline with one click
 first change your directory:
