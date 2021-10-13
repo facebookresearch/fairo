@@ -1,6 +1,8 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from collections import namedtuple
+
 import numpy as np
 from typing import Tuple, List
 from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
@@ -43,7 +45,9 @@ class LowLevelMCPerception:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
-        output = {}
+        perceive_output = namedtuple("perception", ["mobs", "agent_pickable_items", "agent_attributes",
+                                                    "other_player_list", "changed_block_attributes"])
+        perceive_info = {}
         # FIXME (low pri) remove these in code, get from sql
         self.agent.pos = to_block_pos(pos_to_np(self.agent.get_player().pos))
         boring_blocks = self.agent.low_level_data["boring_blocks"]
@@ -54,7 +58,7 @@ class LowLevelMCPerception:
             for mob in self.agent.get_mobs():
                 if euclid_dist(self.agent.pos, pos_to_np(mob.pos)) < self.agent.memory.perception_range:
                     mobs.append(mob)
-            output["mobs"] = mobs if mobs else None
+            perceive_info["mobs"] = mobs if mobs else None
 
             # Find items that can be picked by the agent, and in perception range
             all_items = set()
@@ -66,20 +70,23 @@ class LowLevelMCPerception:
                     < self.agent.memory.perception_range
                 ):
                     in_perception_items.append(item_stack)
-            output['agent_pickable_items'] = output.get('item_stack', {})
-            output['agent_pickable_items']['in_perception_items'] = in_perception_items if in_perception_items else None
-            output['agent_pickable_items']['all_items'] = all_items if all_items else None
+            perceive_info['agent_pickable_items'] = perceive_info.get('agent_pickable_items', {})
+            perceive_info['agent_pickable_items']['in_perception_items'] = in_perception_items if in_perception_items else None
+            perceive_info['agent_pickable_items']['all_items'] = all_items if all_items else None
 
         # note: no "force"; these run on every perceive call.  assumed to be fast
-        output["agent_attributes"] = self.get_agent_player() # Get Agent attributes
+        perceive_info["agent_attributes"] = self.get_agent_player() # Get Agent attributes
         # List of other players in-game
-        output["other_player_list"] = self.update_other_players(self.agent.get_other_players())
+        perceive_info["other_player_list"] = self.update_other_players(self.agent.get_other_players())
         # Changed blocks and their attributes
-        output["changed_block_attributes"] = {}
+        perceive_info["changed_block_attributes"] = {}
         for (xyz, idm) in self.agent.safe_get_changed_blocks():
             interesting, player_placed, agent_placed = self.on_block_changed(xyz, idm, boring_blocks)
-            output["changed_block_attributes"][(xyz, idm)] = [interesting, player_placed, agent_placed]
-        return output
+            perceive_info["changed_block_attributes"][(xyz, idm)] = [interesting, player_placed, agent_placed]
+
+        return perceive_output(perceive_info["mobs"], perceive_info["agent_pickable_items"],
+                               perceive_info["agent_attributes"], perceive_info["other_player_list"],
+                               perceive_info["changed_block_attributes"])
 
 
     def get_agent_player(self):
