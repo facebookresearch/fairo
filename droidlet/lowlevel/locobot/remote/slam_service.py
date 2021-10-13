@@ -35,8 +35,17 @@ class SLAM(object):
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
         )
-        self.init_state = self.robot.get_base_state()
-        self.prev_bot_state = (0, 0, 0)
+        # if the map is a previous map loaded from disk, and
+        # if the robot looks around and registers itself at a
+        # non-origin location in the map just as it is coming up,
+        # then the robot's reported origin (from get_base_state) is
+        # not the map's origin. In such cases, `self.init_state`
+        # is useful, as it is used to handle all co-ordinate transforms
+        # correctly.
+        # Currently, self.init_state is kinda useless and not utilized
+        # in any meaningful way
+        self.init_state = (0., 0., 0.)
+        self.prev_bot_state = (0., 0., 0.)
 
         self.update_map()
         assert self.traversable is not None
@@ -55,6 +64,18 @@ class SLAM(object):
             robot_loc,
             self.init_state)
         return self.real2map(robot_location)
+
+    def map2robot(self, map_loc):
+        return self.map2real(map_loc)
+        # TODO: re-enable and test this code when init_state is set back to non-zero
+        # real_loc = self.map2real(map_loc)
+        # loc = du.get_relative_state(real_loc, (0.0, 0.0, -self.init_state[2]))
+
+        # # 2) add the offset
+        # loc = list(loc)
+        # loc[0] += self.init_state[0]
+        # loc[1] += self.init_state[1]
+        # return tuple(loc)
 
     def update_map(self):
         robot_relative_pos = du.get_relative_state(

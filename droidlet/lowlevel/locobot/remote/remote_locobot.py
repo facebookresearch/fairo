@@ -13,6 +13,7 @@ import json
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
+from slam_pkg.utils import depth_util as du
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -228,24 +229,7 @@ class RemoteLocobot(object):
             return rgb
         return None
 
-    def transform_pose(self, XYZ, current_pose):
-        """
-        Transforms the point cloud into geocentric frame to account for
-        camera position
-
-        Args:
-            XYZ                     : ...x3
-            current_pose            : camera position (x, y, theta (radians))
-        Returns:
-            XYZ : ...x3
-        """
-        R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
-        XYZ = np.matmul(XYZ.reshape(-1, 3), R.T).reshape((-1, 3))
-        XYZ[:, 0] = XYZ[:, 0] + current_pose[0]
-        XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
-        return XYZ
-
-    def get_current_pcd(self, in_cam=False, in_global=False):
+   def get_current_pcd(self, in_cam=False, in_global=False):
         """Return the point cloud at current time step.
 
         :param in_cam: return points in camera frame,
@@ -263,7 +247,7 @@ class RemoteLocobot(object):
         pts, colors = self._robot.camera.get_current_pcd(in_cam=in_cam)
 
         if in_global:
-            pts = self.transform_pose(pts, self._robot.base.get_state("odom"))
+            pts = du.transform_pose(pts, self._robot.base.get_state("odom"))
         return pts, colors
 
     def pix_to_3dpt(self, rs, cs, in_cam=False):

@@ -43,9 +43,9 @@ class Planning(object):
         self.planner.set_goal(goal_map_location)
         stg = self.planner.get_short_term_goal(robot_map_location)
 
-        # convert short-term-goal to real co-ordinates
-        stg_real = self.slam.map2real(stg)
-        # stg_real_abs = self.slam.get_absolute_goal(stg_real)
+        # convert short-term-goal to real co-ordinates, and normalize
+        # against robot initial state (if it wasn't zeros)
+        stg_real = self.slam.map2robot(stg)
         return stg_real
 
     def goal_reached(self, robot_location, goal):
