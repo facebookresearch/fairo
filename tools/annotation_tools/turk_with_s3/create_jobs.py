@@ -7,9 +7,9 @@ from urllib.parse import quote
 from datetime import datetime
 
 def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_csv: str, use_sandbox: bool):
-    access_key = os.getenv("AWS_ACCESS_KEY_ID")
-    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("AWS_REGION", default="us-east-1")
+    access_key = os.getenv("MTURK_AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("MTURK_AWS_SECRET_ACCESS_KEY")
+    aws_region = os.getenv("MTURK_AWS_REGION", default="us-east-1")
 
     if use_sandbox:
         MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)
@@ -27,26 +27,27 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
 
     # Delete HITs - For use in dev only
     # NOTE: remove if not needed
-    if use_sandbox:
-        for item in mturk.list_hits()["HITs"]:
-            hit_id = item["HITId"]
-            print("HITId:", hit_id)
+    # NOTE(Yuxuan): I don't think we should delete all hits while creating new ones
+    # if use_sandbox:
+    #     for item in mturk.list_hits()["HITs"]:
+    #         hit_id = item["HITId"]
+    #         print("HITId:", hit_id)
 
-            # Get HIT status
-            status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
-            print("HITStatus:", status)
+    #         # Get HIT status
+    #         status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
+    #         print("HITStatus:", status)
 
-            # If HIT is active then set it to expire immediately
-            if status == "Assignable" or status == "Reviewable":
-                response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
+    #         # If HIT is active then set it to expire immediately
+    #         if status == "Assignable" or status == "Reviewable":
+    #             response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
 
-            # Delete the HIT
-            try:
-                mturk.delete_hit(HITId=hit_id)
-            except:
-                print("Not deleted")
-            else:
-                print("Deleted")
+    #         # Delete the HIT
+    #         try:
+    #             mturk.delete_hit(HITId=hit_id)
+    #         except:
+    #             print("Not deleted")
+    #         else:
+    #             print("Deleted")
 
     # XML file containing ExternalQuestion object.
     # See MTurk API docs for constraints.
@@ -61,7 +62,6 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
         turk_jobs_df = pd.read_csv(job_spec_csv)
     else:
         turk_jobs_df = pd.DataFrame()
-
     with open(input_csv, newline="") as csvfile:
         turk_inputs = csv.reader(csvfile, delimiter=",")
         headers = next(turk_inputs, None)
@@ -98,7 +98,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     Keywords="text, categorization, quick",
                     Reward="0.3",
                     MaxAssignments=1,
-                    LifetimeInSeconds=600,
+                    LifetimeInSeconds=13400,
                     AssignmentDurationInSeconds=600,
                     AutoApprovalDelayInSeconds=14400,
                     Question=curr_question
@@ -110,9 +110,9 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                     Keywords="text, categorization, quick",
                     Reward="0.3",
                     MaxAssignments=1,
-                    LifetimeInSeconds=600,
+                    LifetimeInSeconds=14400,
                     AssignmentDurationInSeconds=600,
-                    AutoApprovalDelayInSeconds=14400,
+                    AutoApprovalDelayInSeconds=13400,
                     Question=curr_question,
                     # TODO: consider making qualification configurable via JSON
                     QualificationRequirements=[{
@@ -146,10 +146,10 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                 # to avoid sorting all column names by default
                 turk_jobs_df = pd.DataFrame(columns=all_columns)
             turk_jobs_df = turk_jobs_df.append(job_spec, ignore_index=True)
-            # print(turk_jobs_df)
+            break
 
     turk_jobs_df.to_csv(job_spec_csv, index=False)
-
+    return new_hit["HIT"]["HITId"]
     # Remember to modify the URL above when publishing
     # HITs to the live marketplace.
     # Use: https://worker.mturk.com/mturk/preview?groupId=
