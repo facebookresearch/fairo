@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import unittest
 import logging
-from collections import namedtuple
 from timeit import Timer
 from unittest.mock import MagicMock
 from droidlet.perception.robot import (
@@ -141,7 +140,6 @@ class MemoryStoringTest(unittest.TestCase):
 
         # Insert with dedupe
         previous_objects = DetectedObjectNode.get_all(self.agent.memory)
-        detectionTuple = namedtuple("detections", ["new_detections", "updated_detections"])
         if previous_objects is not None:
             new_objects, updated_objects = self.deduplicator(detections, previous_objects)
             detection_output = RobotPerceptionData(new_objects=new_objects,

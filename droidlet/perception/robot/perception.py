@@ -1,7 +1,6 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from collections import namedtuple
 from droidlet.parallel import BackgroundTask
 from droidlet.perception.robot.handlers import (
     ObjectDetection,
@@ -100,7 +99,7 @@ class Perception:
         new_detections, updated_detections = None, None
         if detections is not None:
             if previous_objects is not None:
-                new_detections_dedup, updated_detections_dedup = self.vision.deduplicate(
+                new_detections, updated_detections = self.vision.deduplicate(
                     detections, previous_objects
                 )
 
