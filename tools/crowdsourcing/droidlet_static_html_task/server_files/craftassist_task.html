@@ -19,12 +19,6 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button
-          aria-label="Close"
-          class="close"
-          data-dismiss="modal"
-          type="button"
-        >
           <span aria-hidden="true"> &times; </span>
         </button>
         <nav aria-label="Instruction page navigation">
@@ -60,7 +54,7 @@
       <div class="modal-body" id="modal"></div>
 
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="close-instructions-btn" onclick="$('.collapse').hide()" data-dismiss="modal" type="button" style="display:none">Close</button>
+        <button class="btn btn-primary" id="close-instructions-btn" onclick="$('.collapse').hide()" data-dismiss="modal" type="button" style="display:none">Close</button>
       </div>
     </div>
   </div>
@@ -146,7 +140,7 @@
             <ul>
               <li><b>Move</b> (to a place or structure)</li>
               <li><b>Build</b> (a shape or structure)</li>
-              <li><b>Destroy</b></li>
+              <li><b>Destroy</b>< (a structure)/li>
               <li><b>Dance</b></li>
               <li><b>Get</b> (an object)</li>
               <li><b>Tag</b> (rename something)</li>
@@ -156,7 +150,7 @@
               <li><b>Fill</b> (up a hole or structure)</li>
               <li><b>Spawn</b> (create an animal)</li>
               <li><b>Answer</b> (a question)</li>
-              <li><b>Stop</b> </li>
+              <li><b>Stop</b></li>
               <li><b>Resume</b> (an earlier action)</li>
             </ul>
             <p>
@@ -170,7 +164,11 @@
             <p>
               If the assistant fails to do something you asked, you must click the <b style="color:red;">MARK ERROR</b> button.
             </p>
-            <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mark_errors_big_button.png" width="80%"></iframe>
+            <img class=center src="https://craftassist.s3-us-west-2.amazonaws.com/pubr/mark_errors_big_button.png" width="80%"></iframe><br>
+            <p>
+              <b>Example Error 1: </b>"Move..." --> Assistant doesn't move or moves to the wrong location.<br>
+              <b>Example Error 2: </b>"Get..." --> Assistant retrieves the wrong thing or nothing.
+            </p>
           </div>
           
 
