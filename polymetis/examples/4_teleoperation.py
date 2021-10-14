@@ -161,13 +161,13 @@ class Robot:
         # Update policy
         self.arm.update_current_policy({"joint_pos_desired": q_des})
         """
+        ee_pos_desired = torch.Tensor(pose_des.translation())
+        ee_quat_desired = R.from_matrix(
+            torch.Tensor(pose_des.rotationMatrix())
+        ).as_quat()
+
         self.arm.update_current_policy(
-            {
-                "ee_pos_desired": torch.Tensor(pose_des.translation()),
-                "ee_quat_desired": R.from_matrix(
-                    torch.Tensor(pose_des.rotationMatrix())
-                ).as_quat(),
-            }
+            {"ee_pos_desired": ee_pos_desired, "ee_quat_desired": ee_quat_desired}
         )
 
         # Check if policy terminated due to issues and restart
