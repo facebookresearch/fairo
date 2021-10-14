@@ -29,20 +29,6 @@ echo $ip
 python remote_locobot.py --ip $ip --backend habitat &
 BGPID2=$!
 
-sleep 10
+sleep 30
 
-python slam_service.py &
-BGPID3=$!
-
-sleep 1
-
-python planning_service.py &
-BGPID3=$!
-
-sleep 1
-
-python navigation_service.py
-BGPID3=$!
-
-
-
+./launch_navigation.sh &
