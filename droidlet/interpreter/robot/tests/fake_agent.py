@@ -6,11 +6,10 @@ import numpy as np
 import re
 import logging
 import math
-
 from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
-from agents.loco_mc_agent import LocoMCAgent
+from agents.droidlet_agent import DroidletAgent
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
@@ -27,13 +26,10 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
 from agents.locobot.self_perception import SelfPerception
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
-
-# these should go in utils
-from droidlet.shared_data_struct.robot_shared_utils import Pos
+from droidlet.shared_data_struct.robot_shared_utils import Pos, RobotPerceptionData
 
 # marker creation should be somewhwere else....
 from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
-
 
 MV_SPEED = 0.2
 ROT_SPEED = 1.0  # rad/tick
@@ -50,7 +46,7 @@ class FakeDetectorPerception:
         self.agent = agent
 
     def perceive(self, force=False):
-        pass
+        return RobotPerceptionData()
 
     def add_detected_object(self, xyz, class_label=None, properties=[], colour=None):
         d = get_fake_detection(class_label, properties, xyz)
@@ -381,7 +377,7 @@ class FakeMover:
         pass
 
 
-class FakeAgent(LocoMCAgent):
+class FakeAgent(DroidletAgent):
     coordinate_transforms = rotation
 
     def __init__(
@@ -418,8 +414,8 @@ class FakeAgent(LocoMCAgent):
         self.inventory = []
 
     def init_perception(self):
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["self"] = SelfPerception(self, perceive_freq=1)
         self.perception_modules["vision"] = FakeDetectorPerception(self)
 
@@ -443,6 +439,12 @@ class FakeAgent(LocoMCAgent):
             opts=self.opts,
         )
 
+    def perceive(self, force=False):
+        super().perceive(force=force)
+        self.perception_modules["self"].perceive(force=force)
+        perception_output = self.perception_modules["vision"].perceive(force=force)
+        self.memory.update(perception_output)
+
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}
 
@@ -464,9 +466,13 @@ class FakeAgent(LocoMCAgent):
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
+            chat_memid = self.memory.add_chat(
+                self.memory.get_player_by_name(speaker_name).memid, chatstr
+            )
             logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.add_triple(
+                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+            )
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
 
             # controller
@@ -477,8 +483,12 @@ class FakeAgent(LocoMCAgent):
                 speaker=speaker_name, logical_form=logical_form, chat=chatstr
             )
             self.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
+            # TODO (interpreter): rethink this when interpreter is its own object
             if obj is not None:
-                self.dialogue_manager.dialogue_stack.append(obj)
+                if type(obj) is dict:
+                    obj["task"](self, task_data=obj["data"])
+                else:
+                    self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
 
     def setup_test(self):

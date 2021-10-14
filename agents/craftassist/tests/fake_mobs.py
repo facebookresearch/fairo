@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 from .utils import Pos, Look
-from droidlet.base_util import MOBS_BY_ID
+from droidlet.shared_data_struct.craftassist_shared_utils import MOBS_BY_ID
 
 FLAT_GROUND_DEPTH = 8
 FALL_SPEED = 1

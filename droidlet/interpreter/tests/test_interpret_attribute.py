@@ -5,21 +5,20 @@ import unittest
 from copy import deepcopy
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.interpreter.interpreter import Interpreter
-from droidlet.interpreter.attribute_helper import (
+from droidlet.interpreter.interpret_attributes import (
     interpret_span_value,
     maybe_specific_mem,
     interpret_linear_extent,
     interpret_task_info,
 )
 from droidlet.shared_data_structs import ErrorWithResponse
-from droidlet.interpreter.attribute_helper import AttributeInterpreter
+from droidlet.interpreter.interpret_attributes import AttributeInterpreter
 from droidlet.interpreter.tests import all_test_commands
 
 
 class BasicTest(unittest.TestCase):
     def setUp(self):
-        self.interpreter = Interpreter(speaker="test_sp", action_dict={})
-        self.interpreter.memory = AgentMemory()
+        self.interpreter = Interpreter(memory=AgentMemory(), speaker="test_sp", action_dict={})
         self.interpreter.subinterpret["attribute"] = AttributeInterpreter()
 
     def test_interpret_span_value(self):

@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import cv2
 import os
 import logging
-import droidlet.memory.robot.loco_memory as loco_memory
 import numpy as np
 from .core import AbstractHandler, WorldObject
 from droidlet.shared_data_structs import RGBDepth
@@ -159,9 +158,6 @@ class Human(WorldObject):
     def __init__(self, rgb_depth: RGBDepth, keypoints: HumanKeypointsOrdering):
         WorldObject.__init__(self, label="human_pose", center=keypoints.nose[:2], rgb_depth=rgb_depth)
         self.keypoints = keypoints
-
-    def save_to_memory(self, memory):
-        loco_memory.HumanPoseNode.create(memory, self)
 
     def to_struct(self):
         return {"xyz": list(self.xyz), "keypoints": self.keypoints._asdict()}

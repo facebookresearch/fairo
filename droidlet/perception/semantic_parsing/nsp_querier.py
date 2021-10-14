@@ -4,7 +4,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import logging
 import pkg_resources
-from time import time
+import re
+import time
 from typing import Dict, Tuple
 from .utils import preprocess
 from .load_and_check_datasets import get_ground_truth
@@ -12,15 +13,17 @@ from .nsp_model_wrapper import DroidletSemanticParsingModel
 from droidlet.event import sio
 from .utils.nsp_logger import NSPLogger
 from .utils.validate_json import JSONValidator
+from droidlet.base_util import hash_user
 
 
 class NSPQuerier(object):
-    def __init__(self, opts):
+    def __init__(self, opts, agent=None):
         """This class provides an API that takes in chat as plain text
          and converts it to logical form. It does so by first checking against
          ground truth text-logical form pairings and if not found, querying the
          neural semantic parsing model.
          """
+        self.agent = agent
         self.opts = opts
         # instantiate logger and parsing model
         self.NSPLogger = NSPLogger(
@@ -67,6 +70,40 @@ class NSPQuerier(object):
             else:
                 self.ErrorLogger.log_dialogue_outputs([data["msg"], data["action_dict"], None, False, True, data["feedback"]])
 
+    def perceive(self, force=False):
+        """Get the incoming chats, preprocess the chat, run through the parser
+        and return
+        Process incoming chats and run through parser"""
+        received_chats_flag = False
+        speaker, chat, preprocessed_chat, chat_parse = "", "", "", {}
+        raw_incoming_chats = self.agent.get_incoming_chats()
+        if raw_incoming_chats:
+            logging.info("Incoming chats: {}".format(raw_incoming_chats))
+        incoming_chats = []
+        for raw_chat in raw_incoming_chats:
+            match = re.search("^<([^>]+)> (.*)", raw_chat)
+            if match is None:
+                logging.debug("Ignoring chat in NLU preceive: {}".format(raw_chat))
+                continue
+
+            speaker, chat = match.group(1), match.group(2)
+            speaker_hash = hash_user(speaker)
+            logging.debug("In NLU perceive, incoming chat: ['{}' -> {}]".format(speaker_hash, chat))
+            if chat.startswith("/"):
+                continue
+            incoming_chats.append((speaker, chat))
+
+        if len(incoming_chats) > 0:
+            # force to get objects, speaker info
+            if self.agent.perceive_on_chat:
+                force = True
+            self.agent.last_chat_time = time.time()
+            # For now just process the first incoming chat, where chat -> [speaker, chat]
+            speaker, chat = incoming_chats[0]
+            received_chats_flag = True
+            preprocessed_chat, chat_parse = self.get_parse(chat)
+
+        return force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse
 
     def preprocess_chat(self, chat):
         """Tokenize the chat and get list of sentences to parse.
@@ -122,7 +159,7 @@ class NSPQuerier(object):
 
         Args:
             chat (str): Input chat provided by the user.
-            parsing_model (TTADBertModel): Semantic parsing model, pre-trained and loaded
+            parsing_model (NSPBertModel): Semantic parsing model, pre-trained and loaded
                 by agent
 
         Return:
@@ -149,15 +186,15 @@ class NSPQuerier(object):
             logical_form = copy.deepcopy(self.ground_truth_actions[chat])
             logging.info('Found ground truth action for "{}"'.format(chat))
             # log the current UTC time
-            time_now = time()
+            time_now = time.time()
         elif self.parsing_model:
             logical_form = parsing_model.query_for_logical_form(chat)
-            time_now = time()
+            time_now = time.time()
             logical_form_source = "semantic_parser"
         else:
             logical_form = {"dialogue_type": "NOOP"}
             logging.info("Not found in ground truth, no parsing model initiated. Returning NOOP.")
-            time_now = time()
+            time_now = time.time()
             logical_form_source = "not_found_in_gt_no_model"
         # log the logical form and chat with source
         self.NSPLogger.log_dialogue_outputs(

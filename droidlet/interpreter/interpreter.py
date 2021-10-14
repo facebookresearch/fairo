@@ -8,15 +8,19 @@ from typing import Tuple, Dict, Any, Optional
 from droidlet.event import dispatch
 
 from .interpreter_utils import SPEAKERLOOK
+
 # point target should be subinterpret, dance should be in agents subclassed interpreters
-from .reference_object_helpers import ReferenceObjectInterpreter, interpret_reference_object
-from .location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
-from .filter_helper import FilterInterpreter
+from .interpret_reference_objects import ReferenceObjectInterpreter, interpret_reference_object
+from .interpret_location import ReferenceLocationInterpreter, interpret_relative_direction
+from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from .task import maybe_task_list_to_control_block
-from droidlet.memory.memory_nodes import TripleNode, TaskNode
+from droidlet.task.task import maybe_task_list_to_control_block
+from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
+
 # NOTE: this should be removed
-from droidlet.dialog.dialogue_objects import DialogueObject, ConfirmTask
+from droidlet.dialog.dialogue_objects import DialogueObject
+from droidlet.dialog.dialogue_task import ConfirmTask
+
 
 class Interpreter(DialogueObject):
     """
@@ -37,6 +41,7 @@ class Interpreter(DialogueObject):
 
     def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
         super().__init__(**kwargs)
+        self.memid = InterpreterNode.create(self.memory)
         self.speaker = speaker
         self.action_dict = action_dict
         self.provisional: Dict = {}
@@ -122,13 +127,13 @@ class Interpreter(DialogueObject):
             self.finished = True
             end_time = datetime.datetime.now()
             hook_data = {
-                "name" : "interpreter",
-                "start_time" : start_time,
-                "end_time" : end_time,
-                "elapsed_time" : (end_time - start_time).total_seconds(),
-                "agent_time" : self.memory.get_time(),
-                "tasks_to_push" : tasks_to_push,
-                "task_mem" : task_mem,
+                "name": "interpreter",
+                "start_time": start_time,
+                "end_time": end_time,
+                "elapsed_time": (end_time - start_time).total_seconds(),
+                "agent_time": self.memory.get_time(),
+                "tasks_to_push": tasks_to_push,
+                "task_mem": task_mem,
             }
             dispatch.send("interpreter", data=hook_data)
             return response, dialogue_data
@@ -147,15 +152,16 @@ class Interpreter(DialogueObject):
         if old_task is None:
             raise ErrorWithResponse("Nothing to be undone ...")
         undo_tasks = [Undo(agent, {"memid": old_task.memid})]
+        for u in undo_tasks:
+            agent.memory.get_mem_by_id(u.memid).get_update_status({"paused": 1})
         undo_command = old_task.get_chat().chat_text
 
         logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
-        # FIXME agent
-        self.memory.dialogue_stack_append_new(
-            ConfirmTask,
-            'Do you want me to undo the command: "{}" ?'.format(undo_command),
-            undo_tasks,
-        )
+        confirm_data = {
+            "task_memids": [u.memid for u in undo_tasks],
+            "question": 'Do you want me to undo the command: "{}" ?'.format(undo_command),
+        }
+        ConfirmTask(agent, confirm_data)
         self.finished = True
         return None, None
 

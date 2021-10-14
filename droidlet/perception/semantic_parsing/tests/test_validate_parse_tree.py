@@ -24,7 +24,7 @@ class TestValidateParseTree(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.chat_parser = NSPQuerier(opts)
+        self.chat_parser = NSPQuerier(opts=opts)
 
     def test_validate_bad_json(self):
         # Don't print debug info on failure

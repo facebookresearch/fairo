@@ -8,13 +8,13 @@ from copy import deepcopy
 from typing import cast, List, Tuple, Dict
 
 from .interpreter_utils import SPEAKERLOOK
-from droidlet.dialog.dialogue_objects import ConfirmReferenceObject
-from .location_helpers import interpret_relative_direction
+from droidlet.dialog.dialogue_task import ConfirmReferenceObject
+from .interpret_location import interpret_relative_direction
 from droidlet.base_util import euclid_dist, number_from_span, T, XYZ
 from droidlet.memory.memory_attributes import LookRayDistance, LinearExtentAttribute
 from droidlet.memory.memory_nodes import ReferenceObjectNode
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from .filter_helper import interpret_selector
+from .interpret_filters import interpret_selector
 
 
 def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
@@ -24,7 +24,8 @@ def get_eid_from_special(agent_memory, S="AGENT", speaker=None):
         if not speaker:
             raise Exception("Asked for speakers memid but did not give speaker name")
         eid = agent_memory.get_player_by_name(speaker).eid
-    elif S == "AGENT":
+    # FIXME both of these seem to appear in lfs, probably just want one of them?
+    elif S == "AGENT" or S == "SELF":
         eid = agent_memory.get_mem_by_id(agent_memory.self_memid).eid
     return eid
 
@@ -43,7 +44,7 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         mem = agent_memory.get_location_by_id(memid)
         q = "SELECT MEMORY FROM ReferenceObject WHERE uuid={}".format(memid)
     else:
-        if S == "AGENT" or S == "SPEAKER":
+        if S == "AGENT" or S == "SELF" or S == "SPEAKER":
             q = "SELECT MEMORY FROM Player WHERE eid={}".format(entity_id)
         elif S == "SPEAKER_LOOK":
             q = "SELECT MEMORY FROM Attention WHERE type_name={}".format(entity_id)
@@ -84,7 +85,7 @@ def get_special_reference_object(interpreter, speaker, S, agent_memory=None, eid
 #            ReferenceLocationInterpreter to use FILTERS cleanly
 #            current system is ungainly and wrong...
 #            interpretation of selector and filtering by location
-#            is spread over the above objects and functions in filter_helper
+#            is spread over the above objects and functions in interpret_filter
 ###########################################################################
 class ReferenceObjectInterpreter:
     def __init__(self, interpret_reference_object):
@@ -134,7 +135,12 @@ def interpret_reference_object(
         else:
             logging.error("bad coref_resolve -> {}".format(mem))
 
-    if len(interpreter.progeny_data) == 0:
+    clarification_query = "SELECT MEMORY FROM Task WHERE reference_object_confirmation=#={}".format(
+        interpreter.memid
+    )
+    _, clarification_task_mems = interpreter.memory.basic_search(clarification_query)
+    # does a clarification task referencing this interpreter exist?
+    if not clarification_task_mems:
         if any(extra_tags):
             extra_clauses = []
             for tag in extra_tags:
@@ -175,16 +181,24 @@ def interpret_reference_object(
             _, mem = objects[0]
             interpreter.provisional["object_mem"] = mem
             interpreter.provisional["filters_d"] = filters_d
-            # FIXME agent
-            interpreter.memory.dialogue_stack_append_new(ConfirmReferenceObject, mem)
+            task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
+            cmemid = TaskNode.create(interpreter.memory, task_egg)
+            interpreter.memory.add_triple(
+                subj=cmemid, pred_text="reference_object_confirmation", obj=self.memid
+            )
             raise NextDialogueStep()
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 
     else:
-        # clarification answered
-        r = interpreter.progeny_data[-1].get("response")
-        if r == "yes":
+        # there is a clarification task.  is it active?
+        task_mem = clarification_task_mems[0]  # FIXME, error if there are many?
+        if task_mem.prio > -2:
+            raise NextDialogueStep()
+        # clarification task finished.
+        query = "SELECT dialogue_task_output FROM Task WHERE uuid={}".format(task_mem.memid)
+        _, r = interpreter.memory.basic_search(query)
+        if r and r[0] == "yes":
             # TODO: learn from the tag!  put it in memory!
             return [interpreter.provisional.get("object_mem")]
         else:

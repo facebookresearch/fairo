@@ -1,47 +1,51 @@
-"""
-Copyright (c) Facebook, Inc. and its affiliates.
-"""
-
-import heapq
 import logging
-import numpy as np
 import time
+import numpy as np
+from collections import namedtuple
 
+from droidlet.base_util import adjacent, get_bounds, manhat_dist
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
-from droidlet.lowlevel.minecraft.mc_util import adjacent, manhat_dist
+from droidlet.shared_data_structs import PriorityQueue
 
+CraftAssistPerceptionData = namedtuple("perception_data",
+                                       ["holes", "mobs", "agent_pickable_items",
+                                        "agent_attributes", "other_player_list", "changed_block_attributes",
+                                        "in_perceive_area", "near_agent", "labeled_blocks"],
+                                       defaults=[None, [], {}, None, [], {}, {}, {}, {}])
 
-def depth_first_search(blocks_shape, pos, fn, adj_fn=adjacent):
-    """Do depth-first search on array with blocks_shape starting
-    from pos
-
-    Calls fn(p) on each index `p` in DFS-order. If fn returns True,
-    continue searching. If False, do not add adjacent blocks.
-
-    Args:
-    - blocks_shape: a tuple giving the shape of the blocks
-    - pos: a relative position in blocks
-    - fn: a function called on each position in DFS-order. Return
-      True to continue searching from that node
-    - adj_fn: a function (pos) -> list[pos], of adjacent positions
-
-    Returns: visited, a bool array with blocks.shape
-    """
-    visited = np.zeros(blocks_shape, dtype="bool")
-    q = [tuple(pos)]
-    visited[tuple(pos)] = True
-    i = 0
-    while i < len(q):
-        p = q.pop()
-        if fn(p):
-            for a in adj_fn(p):
-                try:
-                    if not visited[a]:
-                        visited[a] = True
-                        q.append(a)
-                except IndexError:
-                    pass
-    return visited
+MOBS_BY_ID = {
+    50: "creeper",
+    51: "skeleton",
+    52: "spider",
+    53: "giant",
+    54: "zombie",
+    55: "slime",
+    56: "ghast",
+    57: "pig zombie",
+    58: "enderman",
+    59: "cave spider",
+    60: "silverfish",
+    61: "blaze",
+    62: "lava slime",
+    63: "ender dragon",
+    64: "wither boss",
+    65: "bat",
+    66: "witch",
+    68: "guardian",
+    90: "pig",
+    91: "sheep",
+    92: "cow",
+    93: "chicken",
+    94: "squid",
+    95: "wolf",
+    96: "mushroom cow",
+    97: "snow man",
+    98: "ozelot",
+    99: "villager golem",
+    100: "entity horse",
+    101: "rabbit",
+    120: "villager",
+}
 
 
 def astar(agent, target, approx=0, pos="agent"):
@@ -135,45 +139,37 @@ def _astar(X, start, goal, approx=0):
     return None
 
 
-class PriorityQueue:
-    def __init__(self):
-        self.q = []
-        self.set = set()
+def arrange(arrangement, schematic=None, shapeparams={}):
+    """This function arranges an Optional schematic in a given arrangement
+    and returns the offsets"""
+    N = shapeparams.get("N", 7)
+    extra_space = shapeparams.get("extra_space", 1)
+    if schematic is None:
+        bounds = [0, 1, 0, 1, 0, 1]
+    else:
+        bounds = get_bounds(schematic)
 
-    def push(self, x, prio):
-        heapq.heappush(self.q, (prio, x))
-        self.set.add(x)
-
-    def pop(self):
-        prio, x = heapq.heappop(self.q)
-        self.set.remove(x)
-        return prio, x
-
-    def contains(self, x):
-        return x in self.set
-
-    def replace(self, x, newp):
-        for i in range(len(self.q)):
-            oldp, y = self.q[i]
-            if x == y:
-                self.q[i] = (newp, x)
-                heapq.heapify(self.q)  # TODO: probably slow
-                return
-        raise ValueError("Not found: {}".format(x))
-
-    def __len__(self):
-        return len(self.q)
-
-
-if __name__ == "__main__":
-    X = np.ones((5, 5, 5), dtype="bool")
-    X[3, :, :] = [
-        [0, 0, 0, 0, 0],
-        [0, 1, 0, 0, 0],
-        [1, 1, 1, 1, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-    ]
-    start = (3, 4, 0)
-    goal = (3, 1, 0)
-    print(astar(X, start, goal))
+    if N <= 0:
+        raise NotImplementedError(
+            "TODO arrangement just based on extra space, need to specify number for now"
+        )
+    offsets = []
+    if arrangement == "circle":
+        orient = shapeparams.get("orient", "xy")
+        encircled_object_radius = shapeparams.get("encircled_object_radius", 1)
+        b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        radius = max(((b + extra_space) * N) / (2 * np.pi), encircled_object_radius + b + 1)
+        offsets = [
+            (radius * np.cos(2 * s * np.pi / N), 0, radius * np.sin(2 * s * np.pi / N))
+            for s in range(N)
+        ]
+        if orient == "yz":
+            offsets = [np.round(np.asarray(0, offsets[i][0], offsets[i][2])) for i in range(N)]
+        if orient == "xz":
+            offsets = [np.round(np.asarray((offsets[i][0], offsets[i][2], 0))) for i in range(N)]
+    elif arrangement == "line":
+        orient = shapeparams.get("orient")  # this is a vector here
+        b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        b += extra_space + 1
+        offsets = [np.round(i * b * np.asarray(orient)) for i in range(N)]
+    return offsets
