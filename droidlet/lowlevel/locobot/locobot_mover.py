@@ -384,8 +384,7 @@ class LoCoBotMover:
         return self.bot.get_gripper_state() == 2
 
     def explore(self):
-        pass
-        # return self.bot.explore()
+        return safe_call(self.nav.explore)
 
     def drop(self):
         return self.bot.open_gripper()
