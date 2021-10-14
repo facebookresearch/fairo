@@ -27,9 +27,9 @@ ENGAGE_STEPS = 10
 # low pass filter cutoff frequency
 LPF_CUTOFF_HZ = 15
 
-# controller gains (taken from libfranka example)
-KP_DEFAULT = torch.Tensor([150.0, 150.0, 150.0, 10.0, 10.0, 10.0])
-KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
+# controller gains (modified from libfranka example)
+KP_DEFAULT = torch.Tensor([250.0, 250.0, 250.0, 50.0, 50.0, 50.0])
+KD_DEFAULT = torch.sqrt(KP_DEFAULT)
 
 
 class TeleopMode(Enum):
@@ -137,6 +137,7 @@ class Robot:
             Kd=KD_DEFAULT,
             robot_model=self.arm.robot_model,
         )
+
         self.arm.send_torch_policy(policy, blocking=False)
 
         # Reset gripper
@@ -161,11 +162,13 @@ class Robot:
         # Update policy
         self.arm.update_current_policy({"joint_pos_desired": q_des})
         """
+        # Compute desired pos & quat
         ee_pos_desired = torch.Tensor(pose_des.translation())
         ee_quat_desired = R.from_matrix(
             torch.Tensor(pose_des.rotationMatrix())
         ).as_quat()
 
+        # Update policy
         self.arm.update_current_policy(
             {"ee_pos_desired": ee_pos_desired, "ee_quat_desired": ee_quat_desired}
         )
