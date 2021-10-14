@@ -27,6 +27,10 @@ ENGAGE_STEPS = 10
 # low pass filter cutoff frequency
 LPF_CUTOFF_HZ = 15
 
+# controller gains (taken from libfranka example)
+KP_DEFAULT = torch.Tensor([150.0, 150.0, 150.0, 10.0, 10.0, 10.0])
+KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
+
 
 class TeleopMode(Enum):
     KEYBOARD = 1
@@ -119,10 +123,18 @@ class Robot:
 
         # Send PD controller
         joint_pos_current = self.arm.get_joint_angles()
+        """
         policy = toco.policies.JointImpedanceControl(
             joint_pos_current=joint_pos_current,
             Kp=self.arm.metadata.default_Kq,
             Kd=self.arm.metadata.default_Kqd,
+            robot_model=self.arm.robot_model,
+        )
+        """
+        policy = toco.policies.CartesianImpedanceControl(
+            joint_pos_current=joint_pos_current,
+            Kp=KP_DEFAULT,
+            Kd=KD_DEFAULT,
             robot_model=self.arm.robot_model,
         )
         self.arm.send_torch_policy(policy, blocking=False)
@@ -136,6 +148,7 @@ class Robot:
         return sp.SE3(sp.SO3.exp(rotvec).matrix(), pos_curr)
 
     def update_ee_pose(self, pose_des):
+        """
         # Compute desired joint pose
         q_curr = self.arm.get_joint_angles()
         pose_curr = self.get_ee_pose()
@@ -147,6 +160,15 @@ class Robot:
 
         # Update policy
         self.arm.update_current_policy({"joint_pos_desired": q_des})
+        """
+        self.arm.update_current_policy(
+            {
+                "ee_pos_desired": torch.Tensor(pose_des.translation()),
+                "ee_quat_desired": R.from_matrix(
+                    torch.Tensor(pose_des.rotationMatrix())
+                ).as_quat(),
+            }
+        )
 
         # Check if policy terminated due to issues and restart
         if self.arm.get_previous_interval().end != -1:
@@ -167,11 +189,11 @@ class Robot:
                     self._open_gripper()
 
     def _close_gripper(self):
-        self.gripper.goto(pos=0.0, vel=0.1, force=1.0, blocking=False)
+        self.gripper.grasp(speed=0.1, force=1.0, blocking=False)
         self.grasp_state = 1
 
     def _open_gripper(self):
-        self.gripper.goto(pos=0.1, vel=0.1, force=1.0, blocking=False)
+        self.gripper.goto(width=0.1, speed=0.1, force=1.0, blocking=False)
         self.grasp_state = 0
 
 
