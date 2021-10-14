@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
 
         # start the SLAM
-        # mover.explore()
+        mover.explore()
         
         # get the SLAM goals
         goal_loc, goal_loc_map, stg_real, stg_real_g = None, None, None, None # mover.bot.get_slam_goal()    
