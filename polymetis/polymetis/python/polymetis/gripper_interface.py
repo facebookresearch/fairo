@@ -51,7 +51,7 @@ class GripperInterface:
             **kwargs,
         )
 
-    def grasp(self, speed, force):
+    def grasp(self, speed, force, **kwargs):
         """Commands the gripper to a certain width
         Args:
             vel: Velocity of the movement
