@@ -1,11 +1,17 @@
 import logging
 import time
-
 import numpy as np
+from collections import namedtuple
 
 from droidlet.base_util import adjacent, get_bounds, manhat_dist
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import PASSABLE_BLOCKS
 from droidlet.shared_data_structs import PriorityQueue
+
+CraftAssistPerceptionData = namedtuple("perception_data",
+                                       ["holes", "mobs", "agent_pickable_items",
+                                        "agent_attributes", "other_player_list", "changed_block_attributes",
+                                        "in_perceive_area", "near_agent", "labeled_blocks"],
+                                       defaults=[None, [], {}, None, [], {}, {}, {}, {}])
 
 MOBS_BY_ID = {
     50: "creeper",

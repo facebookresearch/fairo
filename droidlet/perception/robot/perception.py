@@ -102,7 +102,9 @@ class Perception:
                 new_detections, updated_detections = self.vision.deduplicate(
                     detections, previous_objects
                 )
+
         perception_output = RobotPerceptionData(new_detections, updated_detections, humans)
+
         return perception_output
 
     def log(self, rgb_depth, detections, humans, old_rgb_depth):

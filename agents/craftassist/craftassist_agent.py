@@ -261,20 +261,19 @@ class CraftAssistAgent(DroidletAgent):
         # 1. perceive from NLU parser
         super().perceive()
         # 2. perceive from low_level perception module
-        perception_output = self.perception_modules["low_level"].perceive()
+        low_level_perception_output = self.perception_modules["low_level"].perceive()
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
-        self.areas_to_perceive = self.memory.update(perception_output, self.areas_to_perceive)[
-            "areas_to_perceive"
-        ]
+        self.areas_to_perceive = self.memory.update(
+            low_level_perception_output, self.areas_to_perceive)["areas_to_perceive"]
         # 3. with the updated areas_to_perceive, perceive from heuristic perception module
-        updated_perception_output = {}
         if force or not self.memory.task_stack_peek():
             # perceive from heuristic perception module
-            updated_perception_output.update(self.perception_modules["heuristic"].perceive())
+            heuristic_perception_output = self.perception_modules["heuristic"].perceive()
+            self.memory.update(heuristic_perception_output)
         # 4. if semantic segmentation model is initialized, call perceive
         if "semseg" in self.perception_modules:
-            updated_perception_output.update(self.perception_modules["semseg"].perceive())
-        self.memory.update(updated_perception_output)
+            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
+            self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
 

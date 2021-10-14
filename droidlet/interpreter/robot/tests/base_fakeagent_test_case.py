@@ -29,6 +29,7 @@ class BaseFakeAgentTestCase(unittest.TestCase):
         self.agent.perceive()
 
 
+
     def handle_logical_form(
         self, d, chatstr: str = "", answer: str = None, stop_on_chat=False, max_steps=10000
     ):
