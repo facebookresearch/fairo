@@ -511,7 +511,7 @@ class FakeAgent(DroidletAgent):
         """Change the state of the world, block by block,
         store in memory"""
 
-        changes_to_be_updated = CraftAssistPerceptionData()
+        changes_to_be_updated = CraftAssistPerceptionData(changed_block_attributes={})
         for xyz, idm in xyzbms:
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
