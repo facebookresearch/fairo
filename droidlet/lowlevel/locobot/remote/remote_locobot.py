@@ -13,6 +13,7 @@ import json
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
+from pyrobot.locobot.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
@@ -102,6 +103,7 @@ class RemoteLocobot(object):
         use_map=False,
         close_loop=False,
         smooth=False,
+        wait=True,
     ):
         """Moves the robot base to given goal state in the world frame.
 
@@ -123,7 +125,7 @@ class RemoteLocobot(object):
         if self._done:
             self._done = False
             self._robot.base.go_to_absolute(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=True)
+                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait)
             self._done = True
 
     def go_to_relative(
@@ -132,6 +134,7 @@ class RemoteLocobot(object):
         use_map=False,
         close_loop=False,
         smooth=False,
+        wait=True,
     ):
         """Moves the robot base to the given goal state relative to its current
         pose.
@@ -153,7 +156,7 @@ class RemoteLocobot(object):
         if self._done:
             self._done = False
             self._robot.base.go_to_relative(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=False
+                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait
                 )
             self._done = True
 
@@ -229,7 +232,7 @@ class RemoteLocobot(object):
             return rgb
         return None
 
-   def get_current_pcd(self, in_cam=False, in_global=False):
+    def get_current_pcd(self, in_cam=False, in_global=False):
         """Return the point cloud at current time step.
 
         :param in_cam: return points in camera frame,
@@ -401,6 +404,17 @@ class RemoteLocobot(object):
             self._done = False
             self._robot.camera.set_tilt(tilt, wait=wait)
             self._done = True
+
+    def get_base_status(self):
+        status = self._robot.base._as.get_state()
+        if status == LocalActionStatus.ACTIVE:
+            return "ACTIVE"
+        elif status == LocalActionStatus.SUCCEEDED:
+            return "SUCCEEDED"
+        elif status == LocalActionStatus.PREEMPTED:
+            return "PREEMPTED"
+        else:
+            return "UNKNOWN"
 
     # grasping wrapper
     def grasp(self, dims=[(240, 480), (100, 540)]):

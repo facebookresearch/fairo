@@ -11,10 +11,6 @@ from skimage.morphology import disk, binary_dilation
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
-# Pyro4.config.ITER_STREAMING = True
-
-
-# Pyro4.config.SERVERTYPE = "multiplex" # habitat
 
 
 @Pyro4.expose
@@ -60,14 +56,15 @@ class SLAM(object):
         return self.map_builder.map2real(map_loc)
 
     def robot2map(self, robot_loc):
-        robot_location = du.get_relative_state(
-            robot_loc,
-            self.init_state)
-        return self.real2map(robot_location)
+        # TODO: re-enable this code when init_state can be non-zero
+        # robot_location = du.get_relative_state(
+        #     robot_loc,
+        #     self.init_state)
+        return self.real2map(robot_loc)
 
     def map2robot(self, map_loc):
         return self.map2real(map_loc)
-        # TODO: re-enable and test this code when init_state is set back to non-zero
+        # TODO: re-enable and test this code when init_state can be non-zero
         # real_loc = self.map2real(map_loc)
         # loc = du.get_relative_state(real_loc, (0.0, 0.0, -self.init_state[2]))
 
@@ -76,6 +73,16 @@ class SLAM(object):
         # loc[0] += self.init_state[0]
         # loc[1] += self.init_state[1]
         # return tuple(loc)
+
+    def add_obstacle(self, location, in_map=False):
+        """
+        add an obstacle at the given location.
+        if in_map=False, then location is given in real co-ordinates
+        if in_map=True, then location is given in map co-ordinates
+        """
+        if not in_map:
+            location = self.real2map(location)
+        self.map_builder.add_obstacle(location)
 
     def update_map(self):
         robot_relative_pos = du.get_relative_state(
