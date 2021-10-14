@@ -69,6 +69,9 @@ class MapBuilder(object):
 
         return map_gt
 
+    def add_obstacle(self, location):
+        self.map[round(location[1]), round(location[0]), 1] = 1
+
     def reset_map(self, map_size):
         """
         resets the map to unknown
