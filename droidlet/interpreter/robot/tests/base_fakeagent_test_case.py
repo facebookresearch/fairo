@@ -28,6 +28,7 @@ class BaseFakeAgentTestCase(unittest.TestCase):
         self.speaker = self.agent.get_other_players()[0].name
         self.agent.perceive()
 
+
     def handle_logical_form(
         self, d, chatstr: str = "", answer: str = None, stop_on_chat=False, max_steps=10000
     ):

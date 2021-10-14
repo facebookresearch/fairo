@@ -1,18 +1,16 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import time
-
 from droidlet.parallel import BackgroundTask
 from droidlet.perception.robot.handlers import (
     ObjectDetection,
     FaceRecognition,
     HumanPose,
     ObjectTracking,
-    DetectLaserPointer,
     ObjectDeduplicator,
 )
 from droidlet.interpreter.robot.objects import AttributeDict
+from droidlet.shared_data_struct.robot_shared_utils import RobotPerceptionData
 from droidlet.event import sio
 import queue
 
@@ -79,7 +77,7 @@ class Perception:
 
     def perceive(self, rgb_depth, xyz, previous_objects, force=False):
         """Called by the core event loop for the agent to run all perceptual
-        models and save their state to memory. It fetches the results of
+        models and get the state. It fetches the results of
         SlowPerception if they are ready.
 
         Args:
@@ -98,14 +96,14 @@ class Perception:
             old_image, detections, humans, old_xyz = None, None, None, None
 
         self.log(rgb_depth, detections, humans, old_image)
+        new_detections, updated_detections = None, None
         if detections is not None:
-            current_objects = detections + humans
             if previous_objects is not None:
-                new_objects, updated_objects = self.vision.deduplicate(
-                    current_objects, previous_objects
+                new_detections, updated_detections = self.vision.deduplicate(
+                    detections, previous_objects
                 )
-            return (new_objects, updated_objects)
-        return None
+        perception_output = RobotPerceptionData(new_detections, updated_detections, humans)
+        return perception_output
 
     def log(self, rgb_depth, detections, humans, old_rgb_depth):
         """Log all relevant data from the perceptual models for the dashboard.

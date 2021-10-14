@@ -6,7 +6,6 @@ import numpy as np
 import re
 import logging
 import math
-
 from droidlet.base_util import Look, to_player_struct
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
@@ -27,9 +26,7 @@ from droidlet.lowlevel.locobot.locobot_mover_utils import (
 from agents.locobot.self_perception import SelfPerception
 import droidlet.lowlevel.locobot.rotation as rotation
 from droidlet.perception.robot.tests.utils import get_fake_detection
-
-# these should go in utils
-from droidlet.shared_data_struct.robot_shared_utils import Pos
+from droidlet.shared_data_struct.robot_shared_utils import Pos, RobotPerceptionData
 
 # marker creation should be somewhwere else....
 from droidlet.interpreter.robot import LocoGetMemoryHandler, PutMemoryHandler, LocoInterpreter
@@ -49,7 +46,7 @@ class FakeDetectorPerception:
         self.agent = agent
 
     def perceive(self, force=False):
-        pass
+        return RobotPerceptionData()
 
     def add_detected_object(self, xyz, class_label=None, properties=[], colour=None):
         d = get_fake_detection(class_label, properties, xyz)
@@ -445,13 +442,8 @@ class FakeAgent(DroidletAgent):
     def perceive(self, force=False):
         super().perceive(force=force)
         self.perception_modules["self"].perceive(force=force)
-        new_state = self.perception_modules["vision"].perceive(force=force)
-        if new_state is not None:
-            new_objects, updated_objects = new_state
-            for obj in new_objects:
-                obj.save_to_memory(self.memory)
-            for obj in updated_objects:
-                obj.save_to_memory(self.memory, update=True)
+        perception_output = self.perception_modules["vision"].perceive(force=force)
+        self.memory.update(perception_output)
 
     def set_logical_form(self, lf, chatstr, speaker):
         self.logical_form = {"logical_form": lf, "chatstr": chatstr, "speaker": speaker}

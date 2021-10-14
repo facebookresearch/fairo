@@ -96,7 +96,7 @@ class MCAgentMemory(AgentMemory):
         self.perception_range = preception_range
 
     ############################################
-    ### Update world from perception updates ###
+    ### Update world with perception updates ###
     ############################################
 
     def update(self, perception_output={}, areas_to_perceive=[]):
