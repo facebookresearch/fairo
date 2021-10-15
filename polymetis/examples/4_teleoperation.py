@@ -22,13 +22,11 @@ from oculus_reader import OculusReader
 
 # teleop control frequency
 UPDATE_HZ = 30
-# ramp up teleop engagement in this number of steps to prevent initial jerk
-ENGAGE_STEPS = 10
 # low pass filter cutoff frequency
 LPF_CUTOFF_HZ = 15
 
 # controller gains (modified from libfranka example)
-KP_DEFAULT = torch.Tensor([400.0, 400.0, 400.0, 40.0, 40.0, 40.0])
+KP_DEFAULT = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
 KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
 
 
@@ -95,37 +93,33 @@ class TeleopDevice:
 
         elif self.mode == TeleopMode.KEYBOARD:
             # Get data from keyboard
-            if self.steps > ENGAGE_STEPS:
-                key = getch.getch()
-                # Translation
-                if key == "w":
-                    self.delta_pos[0] += 0.01
-                elif key == "s":
-                    self.delta_pos[0] -= 0.01
-                elif key == "a":
-                    self.delta_pos[1] += 0.01
-                elif key == "d":
-                    self.delta_pos[1] -= 0.01
-                elif key == "r":
-                    self.delta_pos[2] += 0.01
-                elif key == "f":
-                    self.delta_pos[2] -= 0.01
-                # Rotation
-                elif key == "z":
-                    self.delta_rot[0] += 0.05
-                elif key == "Z":
-                    self.delta_rot[0] -= 0.05
-                elif key == "x":
-                    self.delta_rot[1] += 0.05
-                elif key == "X":
-                    self.delta_rot[1] -= 0.05
-                elif key == "c":
-                    self.delta_rot[2] += 0.05
-                elif key == "C":
-                    self.delta_rot[2] -= 0.05
-                # Gripper toggle
-                elif key == " ":
-                    self.grasp_state = 1 - self.grasp_state
+            key = getch.getch()
+            if key == "w":  # Translation
+                self.delta_pos[0] += 0.01
+            elif key == "s":
+                self.delta_pos[0] -= 0.01
+            elif key == "a":
+                self.delta_pos[1] += 0.01
+            elif key == "d":
+                self.delta_pos[1] -= 0.01
+            elif key == "r":
+                self.delta_pos[2] += 0.01
+            elif key == "f":
+                self.delta_pos[2] -= 0.01
+            elif key == "z":  # Rotation
+                self.delta_rot[0] += 0.05
+            elif key == "Z":
+                self.delta_rot[0] -= 0.05
+            elif key == "x":
+                self.delta_rot[1] += 0.05
+            elif key == "X":
+                self.delta_rot[1] -= 0.05
+            elif key == "c":
+                self.delta_rot[2] += 0.05
+            elif key == "C":
+                self.delta_rot[2] -= 0.05
+            elif key == " ":  # Gripper toggle
+                self.grasp_state = 1 - self.grasp_state
 
             self.steps += 1
 
@@ -277,7 +271,7 @@ def main(args):
     # Initialize variables
     vr_pose_ref = sp.SE3()
     arm_pose_ref = sp.SE3()
-    engage_pct = 0.0
+    init_ref = True
 
     t0 = time.time()
     t_target = t0
@@ -292,18 +286,11 @@ def main(args):
 
             # Update arm
             if is_active:
-                # Update reference pose through a gradual engaging process
-                if engage_pct < 1.0:
-                    arm_pose_curr = robot.get_ee_pose()
-
-                    vr_pose_ref = interpolate_pose(
-                        vr_pose_curr, vr_pose_ref, engage_pct
-                    )
-                    arm_pose_ref = interpolate_pose(
-                        arm_pose_curr, arm_pose_ref, engage_pct
-                    )
-
-                    engage_pct += 1.0 / ENGAGE_STEPS
+                # Update reference pose
+                if init_ref:
+                    vr_pose_ref = vr_pose_curr
+                    arm_pose_ref = robot.get_ee_pose()
+                    init_ref = False
 
                 # Determine pose
                 vr_pose_diff = pose_elementwise_diff(vr_pose_ref, vr_pose_curr)
@@ -315,7 +302,7 @@ def main(args):
 
             else:
                 arm_pose_desired_filtered = None
-                engage_pct = 0.0
+                init_ref = True
 
             # Spin once
             t_target += t_delta
