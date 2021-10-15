@@ -45,21 +45,30 @@ class LowLevelMCPerception:
             force (boolean): set to True to run all perceptual heuristics right now,
                 as opposed to waiting for perceive_freq steps (default: False)
         """
-        perceive_info = {}
-        perceive_info["mobs"] = None # list of mobs
-        # dictionary with children:
-        # in_perception_items  - list of items in perception
-        # all_items - set of all items
-        perceive_info["agent_pickable_items"] = {}
-        perceive_info["agent_attributes"] = None # agent.get_player()
-        perceive_info["other_player_list"] = [] # List of all other players
-        # Dictionary with children:
-        # (xyz, idm) - list of interesting, player_placed, agent_placed,
-        perceive_info["changed_block_attributes"] = {}
-
         # FIXME (low pri) remove these in code, get from sql
         self.agent.pos = to_block_pos(pos_to_np(self.agent.get_player().pos))
         boring_blocks = self.agent.low_level_data["boring_blocks"]
+        """
+        perceive_info is a dictionary with the following possible members :
+            - mobs(list) : List of mobs in perception range
+            - agent_pickable_items(dict) - member with the following possible children:
+                - in_perception_items(list) - List of item_stack
+                - all_items(set) - Set of item stack entityIds
+            - agent_attributes(NamedTuple) - returns the namedTuple Player for agent
+            - other_player_list(List) - List of [player, location] of all other players
+            - changed_block_attributes(dict) - Dictionary of mappings from (xyz, idm) to [
+                                                                                        interesting,
+                                                                                        player_placed,
+                                                                                        agent_placed,
+                                                                                    ]
+            
+        """
+        perceive_info = {}
+        perceive_info["mobs"] = None
+        perceive_info["agent_pickable_items"] = {}
+        perceive_info["agent_attributes"] = None
+        perceive_info["other_player_list"] = []
+        perceive_info["changed_block_attributes"] = {}
 
         if self.agent.count % self.perceive_freq == 0 or force:
             # Find mobs in perception range
