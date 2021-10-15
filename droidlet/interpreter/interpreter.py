@@ -16,18 +16,31 @@ from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from droidlet.task.task import maybe_task_list_to_control_block
 from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
-
-# NOTE: this should be removed
-from droidlet.dialog.dialogue_objects import DialogueObject
 from droidlet.dialog.dialogue_task import ConfirmTask
 
 
-class Interpreter(DialogueObject):
+
+
+class CommandInterpreter:
+    def __init__(self, speaker, logical_form, agent_memory, extra_data=None):
+        self.memory = agent_memory
+        self.finished = False
+        self.awaiting_response = False
+        self.max_steps = max_steps
+        self.current_step = 0
+        self.memid = InterpreterNode.create(self.memory)
+
+    def step(self, agent):
+        raise NotImplementedError()
+
+
+class ActionInterpreter(CommandInterpreter):
     """
-    | This class processes incoming chats and modifies the task stack.
-    | Handlers should add/remove/reorder tasks on the stack, but not execute them.
-    | Most of the logic of the interpreter is run in the subinterpreters or task handlers.
-    | The keyword args in __init__ match the base DialogueObject class
+    | This class takes a logical form from the semantic parser that specifies a
+    | (world affecting) action for the agent 
+    | and the world state (from the agent's memory),
+    | and uses these to intialize tasks to run
+    | Most of the logic of the interpreter is run in the subinterpreters and task handlers.
 
     Args:
         speaker: The name of the player/human/agent who uttered the chat resulting in this interpreter
@@ -39,8 +52,12 @@ class Interpreter(DialogueObject):
         dialogue_stack: a DialogueStack object where this Interpreter object will live
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, speaker: str, logical_form: Dict, low_level_data: Dict = None, agent_memory):
+        self.memory = agent_memory
+        self.finished = False
+        self.awaiting_response = False
+        self.max_steps = max_steps
+        self.current_step = 0
         self.memid = InterpreterNode.create(self.memory)
         self.speaker = speaker
         self.action_dict = action_dict
