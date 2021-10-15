@@ -31,7 +31,7 @@ class LowLevelMCPerception:
 
     def __init__(self, agent, perceive_freq=5):
         self.agent = agent
-        self.memory = agent.memory # NOTE: remove this once done
+        self.memory = agent.memory  # NOTE: remove this once done
         self.pending_agent_placed_blocks = set()
         self.perceive_freq = perceive_freq
 
@@ -46,6 +46,12 @@ class LowLevelMCPerception:
                 as opposed to waiting for perceive_freq steps (default: False)
         """
         perceive_info = {}
+        perceive_info["mobs"] = None
+        perceive_info["agent_pickable_items"] = {}
+        perceive_info["agent_attributes"] = None
+        perceive_info["other_player_list"] = []
+        perceive_info["changed_block_attributes"] = {}
+
         # FIXME (low pri) remove these in code, get from sql
         self.agent.pos = to_block_pos(pos_to_np(self.agent.get_player().pos))
         boring_blocks = self.agent.low_level_data["boring_blocks"]
@@ -54,7 +60,10 @@ class LowLevelMCPerception:
             # Find mobs in perception range
             mobs = []
             for mob in self.agent.get_mobs():
-                if euclid_dist(self.agent.pos, pos_to_np(mob.pos)) < self.agent.memory.perception_range:
+                if (
+                    euclid_dist(self.agent.pos, pos_to_np(mob.pos))
+                    < self.agent.memory.perception_range
+                ):
                     mobs.append(mob)
             perceive_info["mobs"] = mobs if mobs else None
 
@@ -68,31 +77,41 @@ class LowLevelMCPerception:
                     < self.agent.memory.perception_range
                 ):
                     in_perception_items.append(item_stack)
-            perceive_info['agent_pickable_items'] = perceive_info.get('agent_pickable_items', {})
-            perceive_info['agent_pickable_items']['in_perception_items'] = in_perception_items if in_perception_items else None
-            perceive_info['agent_pickable_items']['all_items'] = all_items if all_items else None
+            perceive_info["agent_pickable_items"] = perceive_info.get("agent_pickable_items", {})
+            perceive_info["agent_pickable_items"]["in_perception_items"] = (
+                in_perception_items if in_perception_items else None
+            )
+            perceive_info["agent_pickable_items"]["all_items"] = all_items if all_items else None
 
         # note: no "force"; these run on every perceive call.  assumed to be fast
-        perceive_info["agent_attributes"] = self.get_agent_player() # Get Agent attributes
+        perceive_info["agent_attributes"] = self.get_agent_player()  # Get Agent attributes
         # List of other players in-game
-        perceive_info["other_player_list"] = self.update_other_players(self.agent.get_other_players())
+        perceive_info["other_player_list"] = self.update_other_players(
+            self.agent.get_other_players()
+        )
         # Changed blocks and their attributes
         perceive_info["changed_block_attributes"] = {}
         for (xyz, idm) in self.agent.safe_get_changed_blocks():
-            interesting, player_placed, agent_placed = self.on_block_changed(xyz, idm, boring_blocks)
-            perceive_info["changed_block_attributes"][(xyz, idm)] = [interesting, player_placed, agent_placed]
+            interesting, player_placed, agent_placed = self.on_block_changed(
+                xyz, idm, boring_blocks
+            )
+            perceive_info["changed_block_attributes"][(xyz, idm)] = [
+                interesting,
+                player_placed,
+                agent_placed,
+            ]
 
-        return CraftAssistPerceptionData(mobs=perceive_info["mobs"],
-                                         agent_pickable_items=perceive_info["agent_pickable_items"],
-                                         agent_attributes=perceive_info["agent_attributes"],
-                                         other_player_list=perceive_info["other_player_list"],
-                                         changed_block_attributes=perceive_info["changed_block_attributes"])
-
+        return CraftAssistPerceptionData(
+            mobs=perceive_info["mobs"],
+            agent_pickable_items=perceive_info["agent_pickable_items"],
+            agent_attributes=perceive_info["agent_attributes"],
+            other_player_list=perceive_info["other_player_list"],
+            changed_block_attributes=perceive_info["changed_block_attributes"],
+        )
 
     def get_agent_player(self):
         """Return agent's current position and attributes"""
         return self.agent.get_player()
-
 
     def update_other_players(self, player_list: List, force=False):
         """Update the location of other in-game players wrt to agent's line of sight
@@ -106,20 +125,21 @@ class LowLevelMCPerception:
             updated_player_list.append([player, location])
         return updated_player_list
 
-
     def on_block_changed(self, xyz: XYZ, idm: IDM, boring_blocks: Tuple[int]):
         """Update the state of the world when a block is changed."""
         # TODO don't need to do this for far away blocks if this is slowing down bot
-        interesting, player_placed, agent_placed = self.mark_blocks_with_env_change(xyz, idm, boring_blocks)
+        interesting, player_placed, agent_placed = self.mark_blocks_with_env_change(
+            xyz, idm, boring_blocks
+        )
         return interesting, player_placed, agent_placed
-
 
     def clear_air_surrounded_negatives(self):
         pass
 
-
     # eventually some conditions for not committing air/negative blocks
-    def mark_blocks_with_env_change(self, xyz: XYZ, idm: IDM, boring_blocks: Tuple[int], agent_placed=False):
+    def mark_blocks_with_env_change(
+        self, xyz: XYZ, idm: IDM, boring_blocks: Tuple[int], agent_placed=False
+    ):
         """
         Mark the interesting blocks when any change happens in the environment
         """
@@ -141,9 +161,10 @@ class LowLevelMCPerception:
                 pass
         return interesting, player_placed, agent_placed
 
-
     # FIXME move removal of block to parent
-    def is_placed_block_interesting(self, xyz: XYZ, bid: int, boring_blocks: Tuple[int]) -> Tuple[bool, bool, bool]:
+    def is_placed_block_interesting(
+        self, xyz: XYZ, bid: int, boring_blocks: Tuple[int]
+    ) -> Tuple[bool, bool, bool]:
         """Return three values:
         - bool: is the placed block interesting?
         - bool: is it interesting because it was placed by a player?
