@@ -7,12 +7,12 @@ import os
 import glob
 from datetime import datetime
 
-def _runner(traj, gt, p, args):
+def _runner(traj, gt, p, args, active=False):
     start = datetime.now()
-    for x in ['default', 'activeonly']:
-        traj_path = os.path.join(args.data_path, str(traj), x)
+    if not active:
+        traj_path = os.path.join(args.data_path, str(traj))
         if os.path.isdir(traj_path):
-            outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
+            outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
             run_label_prop(outdir, gt, p, traj_path)
             if len(glob.glob1(outdir,"*.npy")) > 0:
                 run_coco(outdir, traj_path)
@@ -20,6 +20,18 @@ def _runner(traj, gt, p, args):
                 end = datetime.now()
                 with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                     f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
+    else:
+        for x in ['default', 'activeonly']:
+            traj_path = os.path.join(args.data_path, str(traj), x)
+            if os.path.isdir(traj_path):
+                outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
+                run_label_prop(outdir, gt, p, traj_path)
+                if len(glob.glob1(outdir,"*.npy")) > 0:
+                    run_coco(outdir, traj_path)
+                    run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
+                    end = datetime.now()
+                    with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
+                        f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
 
 if __name__ == "__main__":
     """
@@ -54,6 +66,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--job_folder", type=str, default="", help="")
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
+    parser.add_argument("--active", action="store_true", default=False, help="Active Setting")
     parser.add_argument("--num_traj", type=int, default=1, help="total number of trajectories to run pipeline for")
     parser.add_argument("--num_train_samples", type=int, default=1, help="total number of times we want to train the same model")
 
