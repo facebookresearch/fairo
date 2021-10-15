@@ -9,16 +9,17 @@ from datetime import datetime
 
 def _runner(traj, gt, p, args):
     start = datetime.now()
-    traj_path = os.path.join(args.data_path, str(traj))
-    if os.path.isdir(traj_path):
-        outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
-        run_label_prop(outdir, gt, p, traj_path)
-        if len(glob.glob1(outdir,"*.npy")) > 0:
-            run_coco(outdir, traj_path)
-            run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
-            end = datetime.now()
-            with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
-                f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
+    for x in ['default', 'activeonly']:
+        traj_path = os.path.join(args.data_path, str(traj), x)
+        if os.path.isdir(traj_path):
+            outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
+            run_label_prop(outdir, gt, p, traj_path)
+            if len(glob.glob1(outdir,"*.npy")) > 0:
+                run_coco(outdir, traj_path)
+                run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
+                end = datetime.now()
+                with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
+                    f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
 
 if __name__ == "__main__":
     """
@@ -72,7 +73,7 @@ if __name__ == "__main__":
             "mail-user": f"{os.environ['USER']}@fb.com",
             "mail-type": "all",
         },
-        slurm_comment="ICRA 2022 deadline, 9/14"
+        slurm_comment="CVPR deadline, 11/16"
     )
 
     jobs = []
@@ -88,6 +89,6 @@ if __name__ == "__main__":
     
     else:
         for traj in range(args.num_traj):
-                for gt in range(5, 30, 5):
-                    for p in range(2, 4, 2): # only run for fixed p 
+                for gt in range(5, 10, 5):
+                    for p in range(2, 6, 2): # only run for fixed p locally to test
                         _runner(traj, gt, p, args)

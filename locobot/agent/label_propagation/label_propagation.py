@@ -108,7 +108,7 @@ def propogate_label(
     unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
     unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
 
-    ### for each unique label, figure out points in wolrd frmae ###
+    ### for each unique label, figure out points in world frame ###
     # first figure out pixel index
     indx = [zip(*np.where(src_label == i)) for i in unique_pix_value]
     # convert pix index to index in point cloud
@@ -122,17 +122,19 @@ def propogate_label(
     # param usful to search nearest point cloud in a region
     kernal_size = 3
 
-    for img_indx in range(image_range[0], image_range[1]):
-        # print("img_index = {}".format(img_indx))
+    for img_indx in range(image_range[0], image_range[1] + 1):
+        print("img_index = {}".format(img_indx))
 
         ### create point cloud in wolrd frame for img_indx ###
-        # get the robot pose value
-        base_pose = base_pose_data[str(img_indx)]
-        # get the depth
+        
         try:
+            # get the robot pose value
+            base_pose = base_pose_data[str(img_indx)]
+            # get the depth
             cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
         except:
-            return
+            print(f'{img_indx} out of bounds! Total images {len(os.listdir(os.path.join(root_path, "rgb")))}')
+            continue
         # convert depth to point cloud in camera frmae
         cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
         cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)

@@ -3,7 +3,7 @@ source activate /private/home/apratik/.conda/envs/denv3
 '''
 ./launch.sh <root folder with all trajectory data> <setting specific path> <num of trajectories> <num of training runs> <slurm or local>
 Example commands to run this file
-./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/mul_traj_201_activeandrandom apartment_0/straightline/no_noise 100 5
+./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 10 5
 '''
 
 data_path=$1
