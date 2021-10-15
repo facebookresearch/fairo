@@ -242,14 +242,14 @@ def interpolate_pose(pose1, pose2, pct):
 
 def pose_elementwise_diff(pose1, pose2):
     return sp.SE3(
-        (pose2.so3() * pose1.so3().inverse()).matrix(),
+        (pose2.so3() * pose1.so3().inverse()).matrix().T,
         pose2.translation() - pose1.translation(),
     )
 
 
 def pose_elementwise_apply(delta_pose, pose):
     return sp.SE3(
-        (delta_pose.so3() * pose.so3()).matrix(),
+        (pose.so3() * delta_pose.so3()).matrix(),
         delta_pose.translation() + pose.translation(),
     )
 
