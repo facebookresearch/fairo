@@ -12,9 +12,9 @@ def basic_sanity(traj_path):
         return len(os.listdir(os.path.join(x, y)))
     return ll(traj_path, 'rgb') == ll(traj_path, 'seg') == ll(traj_path, 'depth')
 
-def _runner(traj, gt, p, args, active=False):
+def _runner(traj, gt, p, args):
     start = datetime.now()
-    if not active:
+    if not args.active:
         traj_path = os.path.join(args.data_path, str(traj))
         if os.path.isdir(traj_path):
             if not basic_sanity(traj_path):
