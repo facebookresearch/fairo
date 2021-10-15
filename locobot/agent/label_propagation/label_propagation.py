@@ -74,7 +74,7 @@ def propogate_label(
         # load robot pose for img index
         src_pose = base_pose_data["{}".format(src_img_indx)]
     except:
-        print(f"Couldn't load index {src_img_indx}")
+        print(f"Couldn't load index {src_img_indx} from {root_path}")
         return
 
     ### data needed to convert depth img to pointcloud ###

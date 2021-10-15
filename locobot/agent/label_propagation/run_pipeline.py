@@ -7,11 +7,19 @@ import os
 import glob
 from datetime import datetime
 
+def basic_sanity(traj_path):
+    def ll(x, y):
+        return len(os.listdir(os.path.join(x, y)))
+    return ll(traj_path, 'rgb') == ll(traj_path, 'seg') == ll(traj_path, 'depth')
+
 def _runner(traj, gt, p, args, active=False):
     start = datetime.now()
     if not active:
         traj_path = os.path.join(args.data_path, str(traj))
         if os.path.isdir(traj_path):
+            if not basic_sanity(traj_path):
+                print(f'skipping {traj_path}, didnt pass basic sanity')
+                return
             outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
             run_label_prop(outdir, gt, p, traj_path)
             if len(glob.glob1(outdir,"*.npy")) > 0:
@@ -24,6 +32,9 @@ def _runner(traj, gt, p, args, active=False):
         for x in ['default', 'activeonly']:
             traj_path = os.path.join(args.data_path, str(traj), x)
             if os.path.isdir(traj_path):
+                if not basic_sanity(traj_path):
+                    print(f'skipping {traj_path}, didnt pass basic sanity')
+                    return
                 outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
                 run_label_prop(outdir, gt, p, traj_path)
                 if len(glob.glob1(outdir,"*.npy")) > 0:
