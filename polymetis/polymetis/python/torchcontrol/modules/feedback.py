@@ -204,7 +204,8 @@ class OperationalSpacePD(toco.ControlModule):
         ee_quat_err = R.functional.quaternion_multiply(
             ee_quat_curr_inv, ee_quat_desired
         )
-        ee_ori_err = R.functional.quat2matrix(ee_quat_current) @ ee_quat_err[0:3]
+        ee_quat_err_n = R.functional.normalize_quaternion(ee_quat_err)
+        ee_ori_err = R.functional.quat2matrix(ee_quat_current) @ ee_quat_err_n[0:3]
 
         ee_pose_err = torch.cat([ee_pos_err, ee_ori_err])
         ee_twist_err = -jacobian @ joint_vel_current

@@ -28,8 +28,8 @@ ENGAGE_STEPS = 10
 LPF_CUTOFF_HZ = 15
 
 # controller gains (modified from libfranka example)
-KP_DEFAULT = torch.Tensor([250.0, 250.0, 250.0, 50.0, 50.0, 50.0])
-KD_DEFAULT = torch.sqrt(KP_DEFAULT)
+KP_DEFAULT = torch.Tensor([400.0, 400.0, 400.0, 40.0, 40.0, 40.0])
+KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
 
 
 class TeleopMode(Enum):
@@ -54,7 +54,13 @@ class TeleopDevice:
         elif self.mode == TeleopMode.KEYBOARD:
             self.steps = 0
             self.delta_pos = np.zeros(3)
+            self.delta_rot = np.zeros(3)
             self.grasp_state = 0
+
+        # LPF filter
+        self.vr_pose_filtered = None
+        tmp = 2 * np.pi * LPF_CUTOFF_HZ / UPDATE_HZ
+        self.lpf_alpha = tmp / (tmp + 1)
 
     def get_state(self):
         if self.mode == TeleopMode.OCULUS:
@@ -70,11 +76,28 @@ class TeleopDevice:
                 is_active = False
                 grasp_state = 0
                 pose_matrix = np.eye(4)
+                self.vr_pose_filtered = None
+
+            # Create transform (hack to prevent unorthodox matrices)
+            r = R.from_matrix(torch.Tensor(pose_matrix[:3, :3]))
+            vr_pose_curr = sp.SE3(
+                sp.SO3.exp(r.as_rotvec()).matrix(), pose_matrix[:3, -1]
+            )
+
+            # Filter transform
+            if self.vr_pose_filtered is None:
+                self.vr_pose_filtered = vr_pose_curr
+            else:
+                self.vr_pose_filtered = interpolate_pose(
+                    self.vr_pose_filtered, vr_pose_curr, self.lpf_alpha
+                )
+            pose = self.vr_pose_filtered
 
         elif self.mode == TeleopMode.KEYBOARD:
             # Get data from keyboard
             if self.steps > ENGAGE_STEPS:
                 key = getch.getch()
+                # Translation
                 if key == "w":
                     self.delta_pos[0] += 0.01
                 elif key == "s":
@@ -87,6 +110,20 @@ class TeleopDevice:
                     self.delta_pos[2] += 0.01
                 elif key == "f":
                     self.delta_pos[2] -= 0.01
+                # Rotation
+                elif key == "z":
+                    self.delta_rot[0] += 0.05
+                elif key == "Z":
+                    self.delta_rot[0] -= 0.05
+                elif key == "x":
+                    self.delta_rot[1] += 0.05
+                elif key == "X":
+                    self.delta_rot[1] -= 0.05
+                elif key == "c":
+                    self.delta_rot[2] += 0.05
+                elif key == "C":
+                    self.delta_rot[2] -= 0.05
+                # Gripper toggle
                 elif key == " ":
                     self.grasp_state = 1 - self.grasp_state
 
@@ -96,11 +133,15 @@ class TeleopDevice:
             is_active = True
 
             pose_matrix = np.eye(4)
+            pose_matrix[:3, :3] = (
+                sp.SO3.exp(self.delta_rot).matrix() @ pose_matrix[:3, :3]
+            )
             pose_matrix[:3, -1] = self.delta_pos
+            pose = sp.SE3(pose_matrix)
 
             grasp_state = self.grasp_state
 
-        return is_active, pose_matrix, grasp_state
+        return is_active, pose, grasp_state
 
 
 class Robot:
@@ -111,16 +152,16 @@ class Robot:
         self.gripper = GripperInterface(ip_address=ip_address)
         time.sleep(0.5)
 
-        # Reset
+        # Move arm to home
+        self.arm.go_home()
+
+        # Reset (initialize) continuous control
         self.reset()
 
     def __del__(self):
         self.arm.terminate_current_policy()
 
     def reset(self):
-        # Go home
-        self.arm.go_home()
-
         # Send PD controller
         joint_pos_current = self.arm.get_joint_angles()
         """
@@ -176,7 +217,7 @@ class Robot:
         # Check if policy terminated due to issues and restart
         if self.arm.get_previous_interval().end != -1:
             print("Interrupt detected. Reinstantiating control policy...")
-            time.sleep(3)
+            time.sleep(1)
             self.reset()
 
     def update_grasp_state(self, is_grasped):
@@ -201,8 +242,22 @@ class Robot:
 
 
 def interpolate_pose(pose1, pose2, pct):
-    pose_diff = pose2 * pose1.inverse()
-    return sp.SE3.exp(pct * pose_diff.log()) * pose1
+    pose_diff = pose1.inverse() * pose2
+    return pose1 * sp.SE3.exp(pct * pose_diff.log())
+
+
+def pose_elementwise_diff(pose1, pose2):
+    return sp.SE3(
+        (pose2.so3() * pose1.so3().inverse()).matrix(),
+        pose2.translation() - pose1.translation(),
+    )
+
+
+def pose_elementwise_apply(delta_pose, pose):
+    return sp.SE3(
+        (delta_pose.so3() * pose.so3()).matrix(),
+        delta_pose.translation() + pose.translation(),
+    )
 
 
 def main(args):
@@ -228,25 +283,15 @@ def main(args):
     t_target = t0
     t_delta = 1.0 / UPDATE_HZ
 
-    arm_pose_desired_filtered = None
-    tmp = 2 * np.pi * LPF_CUTOFF_HZ / UPDATE_HZ
-    lpf_alpha = tmp / (tmp + 1)
-
     # Start teleop loop
     print("======================== TELEOP START =========================")
     try:
         while True:
             # Obtain info from teleop device
-            is_active, pose_matrix, grasp_state = teleop.get_state()
+            is_active, vr_pose_curr, grasp_state = teleop.get_state()
 
             # Update arm
             if is_active:
-                # Hack to prevent unorthodox matrices
-                r = R.from_matrix(torch.Tensor(pose_matrix[:3, :3]))
-                vr_pose_curr = sp.SE3(
-                    sp.SO3.exp(r.as_rotvec()).matrix(), pose_matrix[:3, -1]
-                )
-
                 # Update reference pose through a gradual engaging process
                 if engage_pct < 1.0:
                     arm_pose_curr = robot.get_ee_pose()
@@ -261,16 +306,11 @@ def main(args):
                     engage_pct += 1.0 / ENGAGE_STEPS
 
                 # Determine pose
-                arm_pose_desired = (vr_pose_curr * vr_pose_ref.inverse()) * arm_pose_ref
-                if arm_pose_desired_filtered is None:
-                    arm_pose_desired_filtered = arm_pose_desired
-                else:
-                    arm_pose_desired_filtered = interpolate_pose(
-                        arm_pose_desired_filtered, arm_pose_desired, lpf_alpha
-                    )
+                vr_pose_diff = pose_elementwise_diff(vr_pose_ref, vr_pose_curr)
+                arm_pose_desired = pose_elementwise_apply(vr_pose_diff, arm_pose_ref)
 
                 # Update
-                robot.update_ee_pose(arm_pose_desired_filtered)
+                robot.update_ee_pose(arm_pose_desired)
                 robot.update_grasp_state(grasp_state)
 
             else:
