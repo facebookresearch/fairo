@@ -159,7 +159,7 @@ class NSPQuerier(object):
 
         Args:
             chat (str): Input chat provided by the user.
-            parsing_model (TTADBertModel): Semantic parsing model, pre-trained and loaded
+            parsing_model (NSPBertModel): Semantic parsing model, pre-trained and loaded
                 by agent
 
         Return:

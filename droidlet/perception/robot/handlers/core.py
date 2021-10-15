@@ -57,9 +57,6 @@ class WorldObject:
     def get_masked_img(self):
         raise NotImplementedError
 
-    def save_to_memory(self):
-        raise NotImplementedError
-
     def to_struct(self):
         raise NotImplementedError
 
