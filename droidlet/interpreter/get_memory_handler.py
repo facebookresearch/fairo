@@ -8,7 +8,7 @@ from typing import Dict, Tuple, Any, Optional, Sequence
 from droidlet.dialog.dialogue_objects import DialogueObject
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import MemoryNode, TaskNode
-from .filter_helper import get_val_map
+from .interpret_filters import get_val_map
 
 ALL_PROXIMITY = 1000
 

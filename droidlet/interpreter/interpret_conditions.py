@@ -11,7 +11,7 @@ from droidlet.interpreter.condition_classes import (
     OrCondition,
     TimeCondition,
 )
-from .comparator_helper import interpret_comparator
+from .interpret_comparators import interpret_comparator
 
 
 class ConditionInterpreter:

@@ -2,7 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 from copy import deepcopy
-from .attribute_helper import AttributeInterpreter, maybe_specific_mem
+from .interpret_attributes import AttributeInterpreter, maybe_specific_mem
 from droidlet.memory.memory_attributes import LinearExtentAttribute
 from droidlet.memory.memory_filters import (
     MemoryFilter,
@@ -21,8 +21,8 @@ from droidlet.memory.memory_filters import (
 )
 from droidlet.base_util import number_from_span
 from droidlet.shared_data_structs import ErrorWithResponse
-from .location_helpers import interpret_relative_direction
-from .comparator_helper import interpret_comparator
+from .interpret_location import interpret_relative_direction
+from .interpret_comparators import interpret_comparator
 from .interpreter_utils import backoff_where
 
 CARDINAL_RADIUS = 20

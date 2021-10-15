@@ -14,15 +14,15 @@ at random when not following player instructions or interacting with the
 player"""
 
 
-def build_random_shape(agent, shape_helper_dict, rand_range=(10, 0, 10),  no_chat=False):
+def build_random_shape(agent, shape_util_dict, rand_range=(10, 0, 10), no_chat=False):
     """Pick a random shape from shapes.py and build that"""
     target_loc = agent.pos
     for i in range(3):
         target_loc[i] += np.random.randint(-rand_range[i], rand_range[i] + 1)
-    shape = random.choice(shape_helper_dict["shape_names"])
-    opts = shape_helper_dict["shape_helper"][shape]()
-    opts["bid"]  = shape_helper_dict["bid"]
-    schematic = shape_helper_dict["shape_fns"][shape](**opts)
+    shape = random.choice(shape_util_dict["shape_names"])
+    opts = shape_util_dict["shape_option_fn_map"][shape]()
+    opts["bid"]  = shape_util_dict["bid"]
+    schematic = shape_util_dict["shape_fns"][shape](**opts)
     relations = [
         {"pred": "has_name", "obj": shape.lower()},
         {"pred": "has_tag", "obj": shape.lower()},

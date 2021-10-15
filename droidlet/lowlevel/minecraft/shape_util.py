@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-"""This file has helper functions for shapes.py"""
+"""This file has utility functions for shapes.py"""
 import random
 import numpy as np
 from droidlet.lowlevel.minecraft import shapes
@@ -208,7 +208,7 @@ def shape_to_dicts(S):
 
 
 # Map shape name to option function
-SHAPE_HELPERS = {
+SHAPE_OPTION_FUNCTION_MAP = {
     "CUBE": options_cube,
     "HOLLOW_CUBE": options_hollow_cube,
     "RECTANGULOID": options_rectanguloid,
@@ -241,7 +241,7 @@ def build_shape_scene():
         for i in range(3):
             offsets[i] += np.random.randint(-offset_range[i], offset_range[i] + 1)
         shape = random.choice(SHAPE_NAMES)
-        opts = SHAPE_HELPERS[shape]()
+        opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
         S = [

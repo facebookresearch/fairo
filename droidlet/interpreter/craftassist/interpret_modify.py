@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
+
+import droidlet.base_util
 from droidlet.perception.craftassist import rotation
 from droidlet.perception.craftassist.shape_transforms import (
     scale,
@@ -17,7 +19,7 @@ from droidlet.perception.craftassist.shape_transforms import (
 )
 from droidlet.shared_data_structs import ErrorWithResponse
 from ..interpreter import interpret_relative_direction
-from .block_helpers import get_block_type
+from .block_handler import get_block_type
 
 
 # TODO lots of reuse with build here....
@@ -137,7 +139,7 @@ def handle_scale(interpreter, speaker, modify_dict, obj):
 
 def handle_fill(interpreter, speaker, modify_dict, obj, block_data, color_bid_map):
     old_blocks = list(obj.blocks.items())
-    bounds = obj.get_bounds()
+    bounds = droidlet.base_util.get_bounds()
     mx, my, mz = (bounds[0], bounds[2], bounds[4])
     origin = [mx, my, mz]
     destroy_task_data = None
@@ -166,7 +168,7 @@ def handle_fill(interpreter, speaker, modify_dict, obj, block_data, color_bid_ma
 
 def handle_replace(interpreter, speaker, modify_dict, obj, block_data, color_bid_map):
     old_blocks = list(obj.blocks.items())
-    bounds = obj.get_bounds()
+    bounds = droidlet.base_util.get_bounds()
     mx, my, mz = (bounds[0], bounds[2], bounds[4])
     origin = (mx, my, mz)
     new_block_type = get_block_type(modify_dict["new_block"], block_data_info=block_data, color_bid_map=color_bid_map)
@@ -215,7 +217,7 @@ def handle_replace(interpreter, speaker, modify_dict, obj, block_data, color_bid
 # TODO don't destroy first
 def handle_thicken(interpreter, speaker, modify_dict, obj):
     old_blocks = list(obj.blocks.items())
-    bounds = obj.get_bounds()
+    bounds = droidlet.base_util.get_bounds()
     mx, my, mz = (bounds[0], bounds[2], bounds[4])
     origin = [mx, my, mz]
     if modify_dict.get("modify_type") == "THICKER":
