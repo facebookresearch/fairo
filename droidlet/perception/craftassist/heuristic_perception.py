@@ -535,7 +535,8 @@ class PerceptionWrapper:
             return CraftAssistPerceptionData()
 
         perceive_info = {}
-        perceive_info["in_perceive_area"] = {}
+        perceive_info["in_perceive_area"] = {} # dictionary with children: block objects and holes in perception area
+        perceive_info["near_agent"] = {} # dictionary with children: block objects and holes near the agent
         # 1. perceive blocks in marked areas to perceive
         for pos, radius in self.agent.areas_to_perceive:
             # 1.1 Get block objects and their colors

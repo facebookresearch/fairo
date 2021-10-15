@@ -46,10 +46,15 @@ class LowLevelMCPerception:
                 as opposed to waiting for perceive_freq steps (default: False)
         """
         perceive_info = {}
-        perceive_info["mobs"] = None
+        perceive_info["mobs"] = None # list of mobs
+        # dictionary with children:
+        # in_perception_items  - list of items in perception
+        # all_items - set of all items
         perceive_info["agent_pickable_items"] = {}
-        perceive_info["agent_attributes"] = None
-        perceive_info["other_player_list"] = []
+        perceive_info["agent_attributes"] = None # agent.get_player()
+        perceive_info["other_player_list"] = [] # List of all other players
+        # Dictionary with children:
+        # (xyz, idm) - list of interesting, player_placed, agent_placed,
         perceive_info["changed_block_attributes"] = {}
 
         # FIXME (low pri) remove these in code, get from sql
