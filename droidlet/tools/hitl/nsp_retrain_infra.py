@@ -226,6 +226,25 @@ class NSPRetrainingJob(DataGenerator):
     def run(self):
         logging.info(f"NSP Retraining Job initialized, downloading new data")
         opts = self.opts
+
+        # Exception handling on user arguments
+        if not os.path.isdir(opts.droidlet_dir):
+            raise FileNotFoundError("droidlet_dir not found or arg not pathlike")
+        if not os.path.isdir(os.path.join(opts.droidlet_dir, opts.full_data_dir)):
+            raise FileNotFoundError("full_data_dir not found or arg not pathlike")
+        if not os.path.isdir(opts.sweep_runner_dir):
+            raise FileNotFoundError("sweep_runner_dir not found or arg not pathlike")
+        if not os.path.isdir(opts.sweep_config_folder):
+            raise FileNotFoundError("sweep_config_folder not found or arg not pathlike")
+        if not os.path.isdir(opts.sweep_scripts_output_dir):
+            raise FileNotFoundError("sweep_scripts_output_dir not found or arg not pathlike")
+        if not os.path.isdir(opts.output_dir):
+            raise FileNotFoundError("output_dir not found or arg not pathlike")
+        if not os.path.isdir(opts.checkpoint_dir):
+            raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
+        if (opts.new_data_training_threshold < 0):
+            raise ValueError("new_data_training_threshold must be >= 0")
+
         batch_id = str(self.batch_id)
         download_dir, config_dir = self.download_data(opts, batch_id)
 
@@ -233,7 +252,7 @@ class NSPRetrainingJob(DataGenerator):
             logging.info(f"NSP Retraining Job exiting without retraining model due to insufficient data")
             self.set_finished(True)
             return
-    
+
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
         sweep_name = batch_id + '_resampled' if opts.resample else batch_id + "_notresampled"
@@ -358,24 +377,6 @@ if __name__ == "__main__":
     parser.add_argument("--resample", default=False, action="store_true", help="Include to resample entire dataset into new train/valid/test splits, abstain to retrain against old valid/test")
     parser.add_argument("--new_data_training_threshold", default=100, type=int, help="Number of new data samples below which no training occurs")
     opts = parser.parse_args()
-
-    # Basic argument error handling
-    if not os.path.isdir(opts.droidlet_dir):
-        raise FileNotFoundError("droidlet_dir not found or arg not pathlike")
-    if not os.path.isdir(os.path.join(opts.droidlet_dir, opts.full_data_dir)):
-        raise FileNotFoundError("full_data_dir not found or arg not pathlike")
-    if not os.path.isdir(opts.sweep_runner_dir):
-        raise FileNotFoundError("sweep_runner_dir not found or arg not pathlike")
-    if not os.path.isdir(opts.sweep_config_folder):
-        raise FileNotFoundError("sweep_config_folder not found or arg not pathlike")
-    if not os.path.isdir(opts.sweep_scripts_output_dir):
-        raise FileNotFoundError("sweep_scripts_output_dir not found or arg not pathlike")
-    if not os.path.isdir(opts.output_dir):
-        raise FileNotFoundError("output_dir not found or arg not pathlike")
-    if not os.path.isdir(opts.checkpoint_dir):
-        raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
-    if (opts.new_data_training_threshold < 0):
-        raise ValueError("new_data_training_threshold must be >= 0")
     
     ndl = NSPNewDataListener(batch_id=456, opts=opts)
     runner = TaskRunner()
