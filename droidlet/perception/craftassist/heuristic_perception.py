@@ -534,8 +534,20 @@ class PerceptionWrapper:
         if self.agent.count % self.perceive_freq != 0 and not force:
             return CraftAssistPerceptionData()
 
+        """
+        perceive_info is a dictionary with the following possible members :
+         - in_perceive_area(dict) : member that has following possible children in "areas_to_perceive" -
+            - block_object_attributes(list) - List of [obj, color_tags] of all nearby objects
+            - holes(list) - List of non-zero length holes where each item in list is (connected_component, idmeta)
+            - airtouching_blocks(list) - List of [shifted_coordinates, list of tags]
+         - near agent (dict) : member that has following possible children near the agent's location  -
+            - block_object_attributes(list) - List of [obj, color_tags] of all nearby objects
+            - holes(list) - List of non-zero length holes where each item in list is (connected_component, idmeta)
+            - airtouching_blocks(list) - List of [shifted_coordinates, list of tags]
+        """
         perceive_info = {}
-        perceive_info["in_perceive_area"] = {}
+        perceive_info["in_perceive_area"] = {} # dictionary with children: block objects and holes in perception area
+        perceive_info["near_agent"] = {} # dictionary with children: block objects and holes near the agent
         # 1. perceive blocks in marked areas to perceive
         for pos, radius in self.agent.areas_to_perceive:
             # 1.1 Get block objects and their colors
