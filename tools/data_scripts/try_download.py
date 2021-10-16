@@ -51,19 +51,19 @@ def try_download_artifacts(agent=None):
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "nsp")
 
-    # artifact_path = os.path.join(agent_path, 'models/perception')
-    # checksum_write_path = os.path.join(agent_path, 'models/perception_checksum.txt')
-    # result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
-    #                                  text=True)
-    # print(result)
-    # compare_checksum_try_download(agent, checksum_write_path, "perception")
-    #
-    # artifact_path = os.path.join(agent_path, 'datasets')
-    # checksum_write_path = os.path.join(agent_path, 'datasets/checksum.txt')
-    # result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
-    #                                  text=True)
-    # print(result)
-    # compare_checksum_try_download(agent, checksum_write_path, "datasets")
+    artifact_path = os.path.join(agent_path, 'models/perception')
+    checksum_write_path = os.path.join(agent_path, 'models/perception_checksum.txt')
+    result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
+                                     text=True)
+    print(result)
+    compare_checksum_try_download(agent, checksum_write_path, "perception")
+
+    artifact_path = os.path.join(agent_path, 'datasets')
+    checksum_write_path = os.path.join(agent_path, 'datasets/checksum.txt')
+    result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
+                                     text=True)
+    print(result)
+    compare_checksum_try_download(agent, checksum_write_path, "datasets")
 
 
 def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact_name=None):
@@ -99,6 +99,10 @@ def try_download(agent=None, artifact_name=None, latest_checksum=None):
         script_path = os.path.join(ROOTDIR, 'tools/data_scripts/fetch_aws_models.sh')
 
     print("Downloading using script %r" % script_path)
+    # TODO: pass down model_name here, also change in upload method
+    # nsp: models_folder
+    # ca_perceptio: craftassist_perception
+    # locobot : locobot_perception
     result = subprocess.check_output([script_path, agent, latest_checksum, artifact_name],
                                      text=True)
     print(result)
