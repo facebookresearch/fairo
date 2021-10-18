@@ -12,9 +12,9 @@ mephisto:
     task_reward: 2.0
     task_tags: "static,task,testing"
     task_name: "droidlet-dashboard"
-  architect:
-    heroku_config_args:
-      AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
-      AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: craftassist-ethan
+#  architect:
+#    heroku_config_args:
+#      AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
+#      AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
+#      AWS_DEFAULT_REGION: "us-west-1"
+#    heroku_app_name: craftassist-ethan
