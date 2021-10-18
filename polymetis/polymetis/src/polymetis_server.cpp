@@ -304,7 +304,7 @@ Status PolymetisControllerServerImpl::UpdateController(
   param_dict_input_.push_back(param_dict_container.forward(empty_input_));
 
   // Update controller & set intervals
-  if (custom_controller_context_.status != UNINITIALIZED) {
+  if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
     custom_controller_context_.custom_controller.get_method("update")(
         param_dict_input_);
@@ -323,7 +323,7 @@ Status PolymetisControllerServerImpl::TerminateController(
     ServerContext *context, const Empty *, LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  if (custom_controller_context_.status != UNINITIALIZED) {
+  if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
     custom_controller_context_.status = TERMINATING;
     custom_controller_context_.controller_mtx.unlock();
