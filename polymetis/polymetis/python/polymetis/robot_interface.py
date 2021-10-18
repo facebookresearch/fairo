@@ -178,6 +178,7 @@ class BaseRobotInterface:
             log_interval = self.grpc_connection.SetController(msg_generator())
         except grpc.RpcError as e:
             print(e)
+            return
 
         if blocking:
             # Check policy termination
@@ -213,6 +214,7 @@ class BaseRobotInterface:
             update_interval = self.grpc_connection.UpdateController(msg_generator())
         except grpc.RpcError as e:
             print(e)
+            return
 
         episode_interval = self.grpc_connection.GetEpisodeInterval(EMPTY)
 
