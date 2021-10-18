@@ -311,6 +311,8 @@ Status PolymetisControllerServerImpl::UpdateController(
     interval->set_start(robot_state_buffer_.size());
     custom_controller_context_.controller_mtx.unlock();
   } else {
+    std::cout << "Warning: Tried to perform a controller update with no "
+                 "controller running.\n";
     interval->set_start(-1);
   }
 
@@ -335,6 +337,8 @@ Status PolymetisControllerServerImpl::TerminateController(
     interval->set_start(custom_controller_context_.episode_begin);
     interval->set_end(custom_controller_context_.episode_end);
   } else {
+    std::cout << "Warning: Tried to terminate controller with no controller "
+                 "running.\n";
     interval->set_start(-1);
     interval->set_end(-1);
   }
