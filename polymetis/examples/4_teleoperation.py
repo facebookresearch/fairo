@@ -139,7 +139,7 @@ class TeleopDevice:
 
 
 class Robot:
-    """ Wrapper around arm and gripper """
+    """Wrapper around arm and gripper"""
 
     def __init__(self, ip_address="localhost"):
         self.arm = RobotInterface(ip_address=ip_address)
