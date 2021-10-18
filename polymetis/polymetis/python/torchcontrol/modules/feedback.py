@@ -251,22 +251,16 @@ class OperationalSpacePositionPD(toco.ControlModule):
         joint_pos_current: torch.Tensor,
         joint_vel_current: torch.Tensor,
         ee_pos_desired: torch.Tensor,
-        ee_vel_desired: torch.Tensor,
     ) -> torch.Tensor:
         """
         Args:
             joint_pos_current: Current joint position of shape (N,)
             joint_vel_current: Current joint velocity of shape (N,)
             ee_pos_desired: Desired ee position of shape (3,)
-            ee_vel_desired: Desired ee velocity of shape (3,)
 
         Returns:
             Output action of shape (nA,)
         """
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(self.ee_quat_desired), translation=ee_pos_desired
-        )
-        ee_twist_desired = torch.cat([ee_vel_desired, torch.zeros(3)])
         return self.op_space_pd(
-            joint_pos_current, joint_vel_current, ee_pose_desired, ee_twist_desired
+            joint_pos_current, joint_vel_current, ee_pos_desired, self.ee_quat_desired
         )

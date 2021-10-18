@@ -81,16 +81,13 @@ def test_op_pd():
     Kd = torch.rand(6, 6)
     joint_pos_current = torch.rand(N_DOFS)
     joint_vel_current = torch.rand(N_DOFS)
-    ee_pose_desired = T.from_rot_xyz(
-        translation=torch.rand(3),
-        rotation=R.from_rotvec(torch.rand(3)),
-    )
-    ee_twist_desired = torch.rand(6)
+    ee_pos_desired = torch.rand(3)
+    ee_quat_desired = R.from_rotvec(torch.rand(3)).as_quat()
     robot_model = FakeRobotModel(7)
 
     controller = OperationalSpacePD(Kp=Kp, Kd=Kd, robot_model=robot_model)
     output = controller(
-        joint_pos_current, joint_vel_current, ee_pose_desired, ee_twist_desired
+        joint_pos_current, joint_vel_current, ee_pos_desired, ee_quat_desired
     )
 
     record_or_compare("module_feedback_opd", {"output": output})
@@ -102,14 +99,11 @@ def test_op_pos_pd():
     joint_pos_current = torch.rand(N_DOFS)
     joint_vel_current = torch.rand(N_DOFS)
     ee_pos_desired = torch.rand(3)
-    ee_vel_desired = torch.rand(3)
     robot_model = FakeRobotModel(7)
 
     controller = OperationalSpacePositionPD(
         Kp=Kp, Kd=Kd, joint_pos_current=joint_pos_current, robot_model=robot_model
     )
-    output = controller(
-        joint_pos_current, joint_vel_current, ee_pos_desired, ee_vel_desired
-    )
+    output = controller(joint_pos_current, joint_vel_current, ee_pos_desired)
 
     record_or_compare("module_feedback_oppd", {"output": output})
