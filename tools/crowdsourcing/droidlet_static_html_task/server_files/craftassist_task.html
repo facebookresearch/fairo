@@ -66,7 +66,6 @@
   class="container"
   id="Other"
   style="
-    margin-bottom: 15px;
     padding: 10px;
     font-family: Verdana, Geneva, sans-serif;
     font-size: 0.9em;
@@ -97,6 +96,7 @@
                 <li>Click "Start" in the bottom right to begin session.</li>
                 <li>Interact with the assistant for the <i>full 5 minutes.</i></li>
                 <li>Click on "End" in the bottom right.</li>
+                <li>Rate the clarity and usability of the HIT.</li>
                 <li>Click on "Submit" button at the bottom.</li>
               </ol>
             </b></p>
@@ -140,7 +140,7 @@
             <ul>
               <li><b>Move</b> (to a place or structure)</li>
               <li><b>Build</b> (a shape or structure)</li>
-              <li><b>Destroy</b>< (a structure)/li>
+              <li><b>Destroy</b> (a structure)</li>
               <li><b>Dance</b></li>
               <li><b>Get</b> (an object)</li>
               <li><b>Tag</b> (rename something)</li>
@@ -195,46 +195,69 @@
       </div>
     </div>
     <!-- End Instructions -->
-    <!-- Commands Reminder -->
-    <div class="panel panel-primary">
-      <div class="panel-heading">
-        <strong>Assistant Capabilities</strong>
-      </div>
-      <p>
-        <ul>
-          <li><b>Move</b> (to a place or structure)</li>
-          <li><b>Build</b> (a shape or structure)</li>
-          <li><b>Destroy</b></li>
-          <li><b>Dance</b></li>
-          <li><b>Get</b> (an object)</li>
-          <li><b>Tag</b> (rename something)</li>
-          <li><b>Dig</b></li>
-          <li><b>Copy</b> (make a copy of an object)</li>
-          <li><b>Undo</b></li>
-          <li><b>Fill</b> (up a hole or structure)</li>
-          <li><b>Spawn</b> (create an animal)</li>
-          <li><b>Answer</b> (a question)</li>
-          <li><b>Stop</b> </li>
-          <li><b>Resume</b> (an earlier action)</li>
-        </ul>
-      </p>
-    </div>
-    <!-- End Commands Reminder -->
   </div>
 </section>
 
 <section
-  class="container"
+  class="container-fluid"
   id="Other"
   style="
     margin-bottom: 15px;
     padding: 10px;
     font-family: Verdana, Geneva, sans-serif;
     font-size: 0.9em;
-    height: 1000px;
   "
 >
-  <iframe style="width:100%; height:100%;" src="https://${subdomain}.craftassist.io/turk.html?turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+  <div class="row">
+    <!-- Commands Reminder -->
+    <div class="col-xs-2">
+      <div class="panel panel-primary" style="height:800px;">
+        <div class="panel-heading">
+          <strong>Assistant Capabilities</strong>
+        </div>
+        <p>
+          <ul>
+            <li><b>Move</b> (to a place or structure)</li>
+            <li><b>Build</b> (a shape or structure)</li>
+            <li><b>Destroy</b> (a structure)</li>
+            <li><b>Dance</b></li>
+            <li><b>Get</b> (an object)</li>
+            <li><b>Tag</b> (rename something)</li>
+            <li><b>Dig</b></li>
+            <li><b>Copy</b> (make a copy of an object)</li>
+            <li><b>Undo</b></li>
+            <li><b>Fill</b> (up a hole or structure)</li>
+            <li><b>Spawn</b> (create an animal)</li>
+            <li><b>Answer</b> (a question)</li>
+            <li><b>Stop</b> </li>
+            <li><b>Resume</b> (an earlier action)</li>
+          </ul>
+        </p>
+      </div>
+    </div>
+    <!-- End Commands Reminder -->
+    <div class="col-xs-10">
+      <iframe style="width:100%; height:800px;" src="https://${subdomain}.craftassist.io/turk.html?turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="container" style="margin-bottom: 20px">
+  <fieldset>
+    <div class="input-group center">
+      <label>Please rate the clarity and usability of this HIT</label>
+      <select class="form-control" name="usability-rating">
+        <option selected="selected" value="">(select one)</option>
+        <option value="7">7 - Perfect</option>
+        <option value="6">6 - Very good</option>
+        <option value="5">5 - Decent</option>
+        <option value="4">4 - OK</option>
+        <option value="3">3 - Poor</option>
+        <option value="2">2 - Very Poor</option>
+        <option value="1">1 - Unusable</option>
+      </select>
+    </div>
+  </fieldset>
 </section>
 
 
