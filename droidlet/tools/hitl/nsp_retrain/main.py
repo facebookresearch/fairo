@@ -21,19 +21,19 @@ logger.addHandler(sh)
 
 # TODO: Parameterize those
 # This specifies how long jobs should be running before we manually kill them
-IJ_TIMEOUT = 30
-IL_TIMEOUT = IJ_TIMEOUT + 20
-NDL_TIMEOUT = IL_TIMEOUT + 20
+IJ_TIMEOUT = 300
+IL_TIMEOUT = IJ_TIMEOUT + 30
+NDL_TIMEOUT = IL_TIMEOUT + 30
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--droidlet_dir", default="/private/home/yuxuans/Workspace/droidlet/")
+    parser.add_argument("--droidlet_dir", default="/scratch/ethancarlson/fairo/fairo/droidlet/")
     parser.add_argument("--full_data_dir", default="agents/craftassist/datasets/full_data/")
-    parser.add_argument("--sweep_runner_dir", default="/checkpoint/yuxuans/nsp_cl_scripts/")
-    parser.add_argument("--sweep_config_folder", default="/checkpoint/yuxuans/nsp/sweeps/scripts/configs/auto_sweep_configs/")
-    parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/yuxuans/nsp/sweeps/scripts/")
-    parser.add_argument("--output_dir", default="/checkpoint/yuxuans/nsp/sweeps/job_output/")
-    parser.add_argument("--checkpoint_dir", default="/checkpoint/yuxuans/nsp/")
+    parser.add_argument("--sweep_runner_dir", default="/checkpoint/ethancarlson/nsp_cl_scripts/")
+    parser.add_argument("--sweep_config_folder", default="/checkpoint/ethancarlson/nsp/sweeps/scripts/configs/auto_sweep_configs/")
+    parser.add_argument("--sweep_scripts_output_dir", default="/checkpoint/ethancarlson/nsp/sweeps/scripts/")
+    parser.add_argument("--output_dir", default="/checkpoint/ethancarlson/nsp/sweeps/job_output")
+    parser.add_argument("--checkpoint_dir", default="/checkpoint/ethancarlson/nsp/")
     parser.add_argument("--data_split_ratios", default="80/10/10", help="format - [train%]/[valid%]/[test%], set test to 0 to use only old data for testing")
     parser.add_argument("--new_data_training_threshold", default="100", help="number of new data samples below which no training occurs")
     parser.add_argument("--interaction_job_num", type=int, default=1, help="number of dashboard sessions to spin up")
