@@ -76,7 +76,7 @@ class up_cmd(BaseCommand):
             for name in names:
                 print(f"running {name}...")
 
-                if os.fork() == 0:
+                if os.fork() != 0:
                     continue
 
                 os.chdir("/")

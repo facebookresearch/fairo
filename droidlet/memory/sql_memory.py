@@ -176,7 +176,6 @@ class AgentMemory:
         """
         self.time.add_tick(ticks)
 
-    # TODO list of all "updatable" mems, do a mem.update() ?
     def update(self):
         pass
 

@@ -1,3 +1,3 @@
-from .dialogue_objects import LocoBotCapabilities
+from .dialogue_task import LocoBotCapabilities
 
 __all__ = [LocoBotCapabilities]

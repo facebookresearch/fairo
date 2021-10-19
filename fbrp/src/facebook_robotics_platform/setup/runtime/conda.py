@@ -90,9 +90,15 @@ class Launcher(BaseLauncher):
         await asyncio.gather(
             log_pipe(util.stdout_logger(), self.proc.stdout),
             log_pipe(util.stderr_logger(), self.proc.stderr),
+            self.log_psutil(),
             self.death_handler(),
             self.command_handler(),
         )
+
+    def get_pid(self):
+        shell_pid = self.proc.pid
+        proc_pid = list(util.pid_children(shell_pid))[0]
+        return proc_pid
 
     async def death_handler(self):
         await self.proc.wait()
@@ -102,8 +108,7 @@ class Launcher(BaseLauncher):
         try:
             if self.proc.returncode is not None:
                 return
-            shell_pid = self.proc.pid
-            proc_pid = list(util.pid_children(shell_pid))[0]
+            proc_pid = self.get_pid()
 
             os.kill(proc_pid, signal.SIGTERM)
 
