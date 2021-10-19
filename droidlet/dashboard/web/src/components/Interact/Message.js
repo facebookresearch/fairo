@@ -118,6 +118,7 @@ class Message extends Component {
   handleSubmit() {
     //get the message
     var chatmsg = document.getElementById("msg").innerHTML;
+    window.parent.postMessage(chatmsg, "*");
     if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
       this.props.setInteractState({ msg: chatmsg, failed: false });
