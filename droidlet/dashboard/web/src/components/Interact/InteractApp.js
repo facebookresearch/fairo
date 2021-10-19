@@ -77,7 +77,7 @@ class InteractApp extends Component {
       this.state.chats[idx]["msg"]
     );
 
-    // then wait 3 seconds for the logical form of last chat and show the Fail page
+    // then wait 3 seconds for the logical form of last chat and show the Fail page (by setting currentView)
     setTimeout(() => {
       this.setState({
         currentView: 2,
@@ -85,10 +85,6 @@ class InteractApp extends Component {
         failidx: idx,
       });
     }, 3000);
-  }
-
-  getLastChatActionDict() {
-    setTimeout();
   }
 
   render() {
