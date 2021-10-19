@@ -1,0 +1,16 @@
+opencv>=4.5
+pyro4
+scikit-build
+dlib>=19.19.0
+webcolors>=1.10
+face_recognition
+norfair
+detectron2
+scipy>=1.5.4
+scikit-fmm
+scikit-image
+scikit-learn
+tenacity
+wordcloud
+fuzzywuzzy
+open3d
