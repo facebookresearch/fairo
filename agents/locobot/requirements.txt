@@ -1,6 +1,24 @@
 -r ../../requirements.txt
 norfair
+opencv-python
+dlib>=19.19.0
 facenet-pytorch
 krovetz
+-f https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.9/index.html
+detectron2
+face_recognition
 git+git://github.com/waspinator/pycococreator.git@0.2.0
 pycocotools
+
+
+pyro4
+scikit-build
+webcolors>=1.10
+scipy>=1.5.4
+scikit-fmm
+scikit-image
+scikit-learn
+tenacity
+wordcloud
+fuzzywuzzy
+open3d
