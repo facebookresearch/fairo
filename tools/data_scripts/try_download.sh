@@ -35,32 +35,32 @@ mkdir -p $AGENT_PATH/models/perception
 
 compare_checksum_try_download() {
     LOCAL_CHKSM=$(cat $1)
-    FOLDER=$2
-    LATEST_CHKSM=$(cat ${ROOTDIR}/tools/data_scripts/default_checksums/${FOLDER}.txt)
-    echo "Comparing $FOLDER checksums" 
+    ASSET=$2
+    LATEST_CHKSM=$(cat ${ROOTDIR}/tools/data_scripts/default_checksums/${ASSET}.txt)
+    echo "Comparing $ASSET checksums" 
     echo "Local " $LOCAL_CHKSM
     echo "Latest " $LATEST_CHKSM
     if [[ "$LOCAL_CHKSM" == "$LATEST_CHKSM" ]]; then
-        echo "Local $FOLDER directory is up to date."
+        echo "Local $ASSET asset is up to date."
     else
-	    try_download $FOLDER $LATEST_CHKSM
+	    try_download $ASSET $LATEST_CHKSM
     fi
 }
 
 try_download() {
-    FOLDER=$1
+    ASSET=$1
     CHKSUM=$2
     echo "*********************************************************************************************"
-    echo "Local ${FOLDER} directory is out of sync. Downloading latest. Use --dev to disable downloads."
+    echo "Local ${ASSET} asset is out of sync. Downloading latest. Use --dev to disable downloads."
     echo "*********************************************************************************************"
-    echo "Downloading ${FOLDER} directory"
+    echo "Downloading ${ASSET} asset"
     SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_models.sh"
-    if cmp -s $FOLDER "datasets"
+    if cmp -s $ASSET "datasets"
     then
         SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
     fi
     echo "Downloading using script " $SCRIPT_PATH
-    "$SCRIPT_PATH" "$AGENT" "$CHKSUM" "$FOLDER"
+    "$SCRIPT_PATH" "$AGENT" "$CHKSUM" "$ASSET"
 }
 
 pushd $AGENT_PATH
@@ -78,6 +78,12 @@ compare_checksum_try_download "${AGENT_PATH}datasets/checksum.txt" "datasets"
 
 # Agent specific models 
 if [ $AGENT == "locobot" ]; then
-    calculate_sha1sum "${AGENT_PATH}models/perception" "${AGENT_PATH}models/locobot_checksum.txt"
-    compare_checksum_try_download "${AGENT_PATH}models/locobot_checksum.txt" "locobot"
+    calculate_sha1sum "${AGENT_PATH}models/perception" "${AGENT_PATH}models/locobot_perception_checksum_local.txt"
+    compare_checksum_try_download "${AGENT_PATH}models/locobot_perception_checksum_local.txt" "locobot_perception"
+fi
+
+# Craftassist specific perception models 
+if [ $AGENT == "craftassist" ]; then
+    calculate_sha1sum "${AGENT_PATH}models/perception" "${AGENT_PATH}models/craftassist_perception_checksum_local.txt"
+    compare_checksum_try_download "${AGENT_PATH}models/craftassist_perception_checksum_local.txt" "craftassist_perception"
 fi

@@ -5,26 +5,22 @@ from droidlet.perception.craftassist.swarm_worker_perception import SwarmLowLeve
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 from multiprocessing import Process, Queue
 from droidlet.interpreter.craftassist import tasks
-from droidlet.interpreter.task import ControlBlock
+from droidlet.task.task import ControlBlock
 import logging
 import pdb
 import sys
 from droidlet.lowlevel.minecraft.mc_util import MCTime
 from droidlet.memory.craftassist.swarm_worker_memory import SwarmWorkerMemory
 
-TASK_MAP =  {
-        "move": tasks.Move,
-        "build": tasks.Build,
-        "destroy": tasks.Destroy,
-        "dig": tasks.Dig,       
-    }
+TASK_MAP = {"move": tasks.Move, "build": tasks.Build, "destroy": tasks.Destroy, "dig": tasks.Dig}
 
 TASK_INFO = {
     "move": ["target"],
     "build": ["blocks_list"],
     "destroy": ["schematic"],
-    "dig": ["origin", "length", "width", "depth"]
+    "dig": ["origin", "length", "width", "depth"],
 }
+
 
 class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
@@ -38,6 +34,7 @@ class ForkedPdb(pdb.Pdb):
             pdb.Pdb.interaction(self, *args, **kwargs)
         finally:
             sys.stdin = _stdin
+
 
 class CraftAssistSwarmWorker(CraftAssistAgent):
     def __init__(self, opts, idx, memory_send_queue, memory_receive_queue, query_from_worker):
@@ -61,10 +58,12 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         self.perception_modules["low_level"] = SwarmLowLevelMCPerception(self)
 
     def init_memory(self):
-        self.memory = SwarmWorkerMemory(agent_time=MCTime(self.get_world_time),
-                                        memory_send_queue=self.memory_send_queue,
-                                        memory_receive_queue=self.memory_receive_queue,
-                                        memory_tag="swarm_worker_{}".format(self.agent_idx))
+        self.memory = SwarmWorkerMemory(
+            agent_time=MCTime(self.get_world_time),
+            memory_send_queue=self.memory_send_queue,
+            memory_receive_queue=self.memory_receive_queue,
+            memory_tag="swarm_worker_{}".format(self.agent_idx),
+        )
 
     def init_controller(self):
         """Initialize all controllers"""
@@ -73,7 +72,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
     def perceive(self, force=False):
         for v in self.perception_modules.values():
             v.perceive(force=force)
-    
+
     def preprocess_data(self, task_name, task_data):
         if "task_data" in task_data:
             return task_data["task_data"]
@@ -86,15 +85,15 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
             return True
         for key in TASK_INFO[task_name.lower()]:
             if key not in task_data:
-            #     if "task_data" in task_data and key in task_data["task_data"]:
-            #         continue
+                #     if "task_data" in task_data and key in task_data["task_data"]:
+                #         continue
                 return False
         return True
 
     def send_task_updates(self, task_updates):
         # TODO: send task updates to master by pushing to self.query_from_worker
-        if len(task_updates)>0:
-            name = 'task_updates'
+        if len(task_updates) > 0:
+            name = "task_updates"
             self.query_from_worker.put((name, task_updates))
 
     def task_step(self):
@@ -107,7 +106,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
                 if task.init_condition.check():
                     self.prio[memid] = 0
             cur_task_status = (self.prio[memid], self.running[memid], task.finished)
-            if cur_task_status!= pre_task_status:
+            if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
         self.send_task_updates(task_updates)
 
@@ -116,7 +115,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         finished_task_memids = []
         for memid, task in self.task_stacks.items():
             pre_task_status = (self.prio[memid], self.running[memid], task.finished)
-            if (not self.pause[memid]) and (self.prio[memid] >=0):
+            if (not self.pause[memid]) and (self.prio[memid] >= 0):
                 if task.run_condition.check():
                     self.prio[memid] = 1
                     self.running[memid] = 1
@@ -124,7 +123,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
                     self.prio[memid] = 0
                     self.running[memid] = 0
             cur_task_status = (self.prio[memid], self.running[memid], task.finished)
-            if cur_task_status!= pre_task_status:
+            if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
         self.send_task_updates(task_updates)
 
@@ -132,8 +131,8 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
         task_updates = []
         finished_task_memids = []
         for memid, task in self.task_stacks.items():
-            pre_task_status = (self.prio[memid], self.running[memid], task.finished)    
-            if (not self.pause[memid]) and (self.running[memid] >=1):
+            pre_task_status = (self.prio[memid], self.running[memid], task.finished)
+            if (not self.pause[memid]) and (self.running[memid] >= 1):
                 tmp_query = task.step()
                 # TODO: return queries if anything is missing
                 if task.finished:
@@ -141,7 +140,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
                     cur_task_status = (0, 0, task.finished)
                 if tmp_query is not None:
                     queries.append((memid, tmp_query))
-            if cur_task_status!= pre_task_status:
+            if cur_task_status != pre_task_status:
                 task_updates.append((memid, cur_task_status))
         self.send_task_updates(task_updates)
 
@@ -150,6 +149,7 @@ class CraftAssistSwarmWorker(CraftAssistAgent):
             del self.prio[memid]
             del self.running[memid]
         return queries, task_updates
+
 
 class CraftAssistSwarmWorker_Wrapper(Process):
     def __init__(self, opts, idx=0):
@@ -167,16 +167,16 @@ class CraftAssistSwarmWorker_Wrapper(Process):
     def send_queries(self, queries):
         # TODO: send queries to master by pushing to self.query_from_worker
         pass
-    
+
     def update_task(self, memid, info):
         # TODO: update task info based on information given by master agent
         pass
-    
+
     def send_task_updates(self, task_updates):
         """send task updates to master by pushing to self.query_from_worker
         """
-        if len(task_updates)>0:
-            name = 'task_updates'
+        if len(task_updates) > 0:
+            name = "task_updates"
             self.query_from_worker.put((name, task_updates))
 
     def handle_input_task(self, agent):
@@ -186,8 +186,11 @@ class CraftAssistSwarmWorker_Wrapper(Process):
                 flag = False
             else:
                 task_class_name, task_data, task_memid = self.input_tasks.get_nowait()
-                if task_memid is None or ((task_memid not in agent.task_stacks.keys()) and (task_memid not in agent.task_ghosts)):
-                # TODO: implement stop and resume
+                if task_memid is None or (
+                    (task_memid not in agent.task_stacks.keys())
+                    and (task_memid not in agent.task_ghosts)
+                ):
+                    # TODO: implement stop and resume
                     task_data = agent.preprocess_data(task_class_name, task_data)
                     if agent.check_task_info(task_class_name, task_data):
                         new_task = TASK_MAP[task_class_name](agent, task_data)
@@ -201,7 +204,18 @@ class CraftAssistSwarmWorker_Wrapper(Process):
                         agent.running[task_memid] = -1
                         agent.pause[task_memid] = False
                 elif task_memid in agent.task_stacks.keys():
-                    self.send_task_updates([(task_memid, (agent.prio[task_memid], agent.running[task_memid], agent.task_stacks[task_memid].finished))])
+                    self.send_task_updates(
+                        [
+                            (
+                                task_memid,
+                                (
+                                    agent.prio[task_memid],
+                                    agent.running[task_memid],
+                                    agent.task_stacks[task_memid].finished,
+                                ),
+                            )
+                        ]
+                    )
                 elif task_memid in agent.task_ghosts:
                     self.send_task_updates([(task_memid, (0, 0, True))])
 
@@ -222,15 +236,20 @@ class CraftAssistSwarmWorker_Wrapper(Process):
                 else:
                     logging.info("Query not handled: {}".format(query_name))
                     raise NotImplementedError
-    
 
     def run(self):
-        agent = CraftAssistSwarmWorker(self.opts, self.idx, memory_send_queue=self.memory_send_queue, memory_receive_queue=self.memory_receive_queue, query_from_worker=self.query_from_worker)
+        agent = CraftAssistSwarmWorker(
+            self.opts,
+            self.idx,
+            memory_send_queue=self.memory_send_queue,
+            memory_receive_queue=self.memory_receive_queue,
+            query_from_worker=self.query_from_worker,
+        )
         self.query_from_worker.put(("initialization", True))
         while True:
             worker_perception = agent.perceive()
             self.perceptions.put(worker_perception)
-            
+
             self.handle_input_task(agent)
             queries, _ = agent.task_step()
             self.handle_master_query(agent)

@@ -35,27 +35,33 @@ cd $ROOTDIR
 
 if [ "$3" == "nsp" ]; then
 	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz to $ROOTDIR/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz ======"
-	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz 
+	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/${MODELS_DIRNAME}_${CHECKSUM}.tar.gz -o $MODELS_DIRNAME.tar.gz || echo "Failed to download. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3."
 
-# if [ -d "agents/${AGENT}/models" ]
-# then
-# 	echo "Overwriting models directory"
-# 	rm -rf agents/${AGENT}/models
-# fi
+  if [ -d "agents/${AGENT}/models" ]
+    then
+    echo "Overwriting models directory"
+    rm -rf agents/${AGENT}/models
+  fi
 
-# mkdir -p agents/${AGENT}/models
+  mkdir -p agents/${AGENT}/models
 
-	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: ${MODELS_DIRNAME}_${CHECKSUM}.tar.gz exists on S3." 
+	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to unarchive. PLease make sure: agents/${AGENT}/models exists."
 fi
 
-if [ "$3" == "locobot" ]; then
-	echo "Now downloading robot models"
-	LOCO_CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt"
-	LOCO_CHECKSUM=`cat $LOCO_CHECKSUM_FILE` 
-	echo "==== Donwload https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${LOCO_CHECKSUM}.tar.gz ===="
-    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${LOCO_CHECKSUM}.tar.gz -o locobot_models.tar.gz
-    tar -xzvf locobot_models.tar.gz -C agents/${AGENT}/models/perception
+if [ "$3" == "craftassist_perception" ]; then
+	echo "Now downloading craftassist perception models"
+	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/craftassist_perception_${CHECKSUM}.tar.gz to $ROOTDIR/craftassist_perception_${CHECKSUM}.tar.gz ======"
+	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/craftassist_perception_${CHECKSUM}.tar.gz -o craftassist_perception.tar.gz  || echo "Failed to download. Please make sure the file: craftassist_perception_${CHECKSUM}.tar.gz exists on S3."
+	tar -xzvf craftassist_perception.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: craftassist_perception_${CHECKSUM}.tar.gz exists on S3." 
+fi
+
+if [ "$3" == "locobot_perception" ]; then
+	echo "Now downloading robot perception models"
+	echo "==== Donwload https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${CHECKSUM}.tar.gz ===="
+    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${CHECKSUM}.tar.gz -o locobot_models.tar.gz || echo "Failed to download. Please make sure the file: perception_models_${CHECKSUM}.tar.gz exists on S3."
+    tar -xzvf locobot_models.tar.gz -C agents/${AGENT}/models/perception || echo "Failed to unarchive. Please make sure: agents/${AGENT}/models/perception exists."
 
     mkdir -p droidlet/perception/robot/tests/test_assets/
-    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz | tar -xzv -C droidlet/perception/robot/tests/test_assets/
+    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz -o perception_test_assets.tar.gz || echo "Failed to download. Please make sure the file: perception_test_assets.tar.gz exists on S3."
+    tar -xzvf perception_test_assets.tar.gz -C droidlet/perception/robot/tests/test_assets/ || echo "Failed to unarchive perception_test_assets.tar.gz"
 fi

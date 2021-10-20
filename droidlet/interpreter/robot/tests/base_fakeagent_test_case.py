@@ -5,7 +5,6 @@ import unittest
 from unittest.mock import Mock
 import copy
 
-from droidlet.dialog.dialogue_objects import AwaitResponse
 from .fake_agent import FakeAgent
 from .world import World, Opt, SimpleHuman, make_human_opts
 
@@ -28,6 +27,8 @@ class BaseFakeAgentTestCase(unittest.TestCase):
 
         self.speaker = self.agent.get_other_players()[0].name
         self.agent.perceive()
+
+
 
     def handle_logical_form(
         self, d, chatstr: str = "", answer: str = None, stop_on_chat=False, max_steps=10000
@@ -79,10 +80,10 @@ class BaseFakeAgentTestCase(unittest.TestCase):
         ):
             stop = True
         # stuck waiting for answer?
-        if (
-            isinstance(self.agent.dialogue_manager.dialogue_stack.peek(), AwaitResponse)
-            and not self.agent.dialogue_manager.dialogue_stack.peek().finished
-        ):
+        _, task_mems = self.agent.memory.basic_search(
+            "SELECT MEMORY FROM Task WHERE (action_name=awaitresponse AND prio>-1)"
+        )
+        if task_mems and not any([m.finished for m in task_mems]):
             stop = True
         if stop_on_chat and self.agent.get_last_outgoing_chat():
             stop = True

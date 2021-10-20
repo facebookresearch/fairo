@@ -8,6 +8,7 @@ from droidlet.memory.memory_nodes import (
     LocationNode,
     ChatNode,
     NamedAbstractionNode,
+    TripleNode,
 )
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.base_util import Pos, Look, Player
@@ -187,6 +188,21 @@ class BasicTest(unittest.TestCase):
         assert sam_memid in memids
         assert rachel_memid not in memids
 
+        # test that text form and dict form return same records
+        query_dict = {
+            "output": "MEMORY",
+            "memory_type": "ReferenceObject",
+            "where_clause": {
+                "OR": [
+                    {"pred_text": "has_tag", "obj_text": "plays_volleyball"},
+                    {"NOT": [{"pred_text": "has_tag", "obj_text": "girl"}]},
+                ]
+            },
+        }
+
+        memids_d, _ = m.search(self.memory, query=query_dict)
+        assert set(memids_d) == set(memids)
+
         # test table property with tag
         m = MemorySearcher()
         query = "SELECT MEMORY FROM ReferenceObject WHERE ((has_tag=plays_volleyball) AND (x<0))"
@@ -199,6 +215,12 @@ class BasicTest(unittest.TestCase):
         memids, vals = m.search(self.memory, query=query)
         assert abs(vals[0][0] + 2.0) < 0.01
         assert abs(vals[0][1]) < 0.01
+
+        TripleNode.create(self.memory, subj=sam_memid, pred_text="mother_of", obj=robert_memid)
+        query = "SELECT MEMORY FROM ReferenceObject WHERE <<#{}, mother_of, ?>>".format(sam_memid)
+        memids, _ = m.search(self.memory, query=query)
+        assert robert_memid in memids
+        assert len(memids) == 1
 
     def test_chat_apis_memory(self):
         self.memory = AgentMemory()
