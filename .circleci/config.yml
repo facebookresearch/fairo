@@ -229,6 +229,7 @@ jobs:
 
     - run:
         name: Build and run tests
+        no_output_timeout: 50m
         command: |
           set -ex
 
