@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import logging
 import os
 from typing import Dict
-from .nsp_transformer_model.query_model import TTADBertModel as Model
+from .nsp_transformer_model.query_model import NSPBertModel as Model
 
 
 class DroidletSemanticParsingModel:
@@ -28,11 +28,11 @@ class DroidletSemanticParsingModel:
             data_dir (str): path to ground truth data directory
         """
         # Instantiate the main model
-        ttad_model_dir = os.path.join(models_dir, "ttad_bert_updated")
-        logging.info("using model_dir={}".format(ttad_model_dir))
+        nlu_model_dir = os.path.join(models_dir, "ttad_bert_updated")
+        logging.info("using model_dir={}".format(nlu_model_dir))
 
-        if os.path.isdir(data_dir) and os.path.isdir(ttad_model_dir):
-            self.model = Model(model_dir=ttad_model_dir, data_dir=data_dir)
+        if os.path.isdir(data_dir) and os.path.isdir(nlu_model_dir):
+            self.model = Model(model_dir=nlu_model_dir, data_dir=data_dir)
         else:
             raise NotADirectoryError
 

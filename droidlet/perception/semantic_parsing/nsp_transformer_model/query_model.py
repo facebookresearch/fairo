@@ -16,9 +16,8 @@ from .encoder_decoder import *
 from .caip_dataset import *
 
 
-class TTADBertModel(object):
-    """
-    TTAD model class that loads a pretrained model and runs inference in the agent.
+class NSPBertModel(object):
+    """NSPBertModel model class that loads a pretrained model and runs inference in the agent.
 
     Attributes:
         tokenizer (str): Pretrained tokenizer used to tokenize input. Runs end-to-end

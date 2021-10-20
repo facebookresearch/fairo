@@ -3,13 +3,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
+
 import numpy as np
 import random
 from typing import Tuple, Dict, Any, Optional
 from copy import deepcopy
 from word2number.w2n import word_to_num
 
-from droidlet.dialog.dialogue_objects import Say
+from droidlet.dialog.dialogue_task import Say
 
 from droidlet.interpreter import (
     Interpreter,
@@ -41,12 +42,12 @@ from .spatial_reasoning import ComputeLocations
 from ..interpret_conditions import ConditionInterpreter
 from .interpret_attributes import MCAttributeInterpreter
 from .point_target import PointTargetInterpreter
-from droidlet.base_util import number_from_span
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.craftassist.mc_memory_nodes import MobNode, ItemStackNode
 from droidlet.interpreter.craftassist import tasks, dance
-from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
+from droidlet.task.task import ControlBlock, maybe_task_list_to_control_block
 
 
 class MCInterpreter(Interpreter):
@@ -289,7 +290,7 @@ class MCInterpreter(Interpreter):
         """
         # Get nearby holes
         perception_holes = self.get_all_holes_fn(agent, location, self.block_data, agent.low_level_data["fill_idmeta"])
-        perception_output  = {"holes": perception_holes}
+        perception_output  = CraftAssistPerceptionData(holes=perception_holes)
         output = self.memory.update(perception_output=perception_output)
         holes = output.get("holes", [])
         # Choose the best ones to fill
@@ -333,9 +334,9 @@ class MCInterpreter(Interpreter):
             tasks.append(self.task_objects["build"](agent, task_data))
 
         if len(holes) > 1:
-            self.memory.dialogue_stack_append_new(Say, "Ok. I'll fill up the holes.")
+            Say(agent, task_data={"response_options": "Ok. I'll fill up the holes."})
         else:
-            self.memory.dialogue_stack_append_new(Say, "Ok. I'll fill that hole up.")
+            Say(agent, task_data={"response_options": "Ok. I'll fill that hole up."})
 
         return maybe_task_list_to_control_block(tasks, agent), None, None
 
@@ -468,7 +469,7 @@ class MCInterpreter(Interpreter):
                         refmove = dance.RefObjMovement(
                             agent,
                             ref_object=ref_obj,
-                            relative_direction=location_d["relative_direction"]
+                            relative_direction=location_d["relative_direction"],
                         )
                         t = self.task_objects["dance"](agent, {"movement": refmove})
                         tasks_to_do.append(t)
