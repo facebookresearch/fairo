@@ -13,10 +13,11 @@ mephisto:
     allowed_concurrent: 1
     maximum_units_per_worker: 5
     task_tags: "assistant, game, interact"
-    task_name: "uiux-exp1-10-19-21-1"
+    task_name: "uiux-exp1-10-20-21-1"
   architect:
     heroku_config_args:
       AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
       AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: uiux-exp1-10-19-21-1
+    heroku_app_name: uiux-exp1-10-20-21-1
+    use_hobby: True
