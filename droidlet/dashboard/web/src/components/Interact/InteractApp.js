@@ -98,7 +98,7 @@ class InteractApp extends Component {
               isMobile={this.props.isMobile}
               ref={this.MessageRef}
               chats={this.state.chats}
-              eanbleVoice={false}
+              enableVoice={false} // Right now this is hard coded for this branch, should move to stateManager
               agent_reply={this.state.agent_reply}
               goToQuestion={this.goToQuestion.bind(this)}
               setInteractState={this.setInteractState.bind(this)}
