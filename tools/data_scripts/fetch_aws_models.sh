@@ -48,12 +48,17 @@ if [ "$3" == "nsp" ]; then
 	tar -xzvf $MODELS_DIRNAME.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to unarchive. PLease make sure: agents/${AGENT}/models exists."
 fi
 
-if [ "$3" == "locobot" ]; then
-	echo "Now downloading robot models"
-	LOCO_CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt"
-	LOCO_CHECKSUM=`cat $LOCO_CHECKSUM_FILE` 
-	echo "==== Downloading https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${LOCO_CHECKSUM}.tar.gz ===="
-    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${LOCO_CHECKSUM}.tar.gz -o locobot_models.tar.gz || echo "Failed to download. Please make sure the file: perception_models_${LOCO_CHECKSUM}.tar.gz exists on S3."
+if [ "$3" == "craftassist_perception" ]; then
+	echo "Now downloading craftassist perception models"
+	echo "====== Downloading http://craftassist.s3-us-west-2.amazonaws.com/pubr/craftassist_perception_${CHECKSUM}.tar.gz to $ROOTDIR/craftassist_perception_${CHECKSUM}.tar.gz ======"
+	curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/craftassist_perception_${CHECKSUM}.tar.gz -o craftassist_perception.tar.gz  || echo "Failed to download. Please make sure the file: craftassist_perception_${CHECKSUM}.tar.gz exists on S3."
+	tar -xzvf craftassist_perception.tar.gz -C agents/${AGENT}/models --strip-components 1 || echo "Failed to download and unarchive. Please make sure the file: craftassist_perception_${CHECKSUM}.tar.gz exists on S3." 
+fi
+
+if [ "$3" == "locobot_perception" ]; then
+	echo "Now downloading robot perception models"
+	echo "==== Donwload https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${CHECKSUM}.tar.gz ===="
+    curl https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_models_${CHECKSUM}.tar.gz -o locobot_models.tar.gz || echo "Failed to download. Please make sure the file: perception_models_${CHECKSUM}.tar.gz exists on S3."
     tar -xzvf locobot_models.tar.gz -C agents/${AGENT}/models/perception || echo "Failed to unarchive. Please make sure: agents/${AGENT}/models/perception exists."
 
     mkdir -p droidlet/perception/robot/tests/test_assets/
