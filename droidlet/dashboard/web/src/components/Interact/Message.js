@@ -27,6 +27,7 @@ class Message extends Component {
       recognizing: false,
     };
 
+    this.enableVoice = false;
     this.toggleListen = this.toggleListen.bind(this);
     this.listen = this.listen.bind(this);
     this.elementRef = React.createRef();
@@ -145,22 +146,32 @@ class Message extends Component {
         >
           {" "}
         </div> */}
-        <p>
-          Enter the command to the bot in the input box below, or click the mic
-          button to start/stop voice input.
-        </p>
-        <p>
-          Click the x next to the message if the outcome wasn't as expected.
-        </p>
-        <KeyboardVoiceIcon
-          className="ASRButton"
-          variant="contained"
-          color={this.state.recognizing ? "default" : "secondary"}
-          fontSize="large"
-          onClick={this.toggleListen.bind(this)}
-        ></KeyboardVoiceIcon>
-
-        <p> {this.state.recognizing ? "Listening..." : ""} </p>
+        {this.props.enableVoice ? (
+          <div>
+            <p>
+              Enter the command to the assistant in the input box below, or click the mic
+              button to start/stop voice input.
+            </p>
+            <p>
+              Click "Mark Error" next to the message if the outcome wasn't as expected.
+            </p>
+            <KeyboardVoiceIcon
+              className="ASRButton"
+              variant="contained"
+              color={this.state.recognizing ? "default" : "secondary"}
+              fontSize="large"
+              onClick={this.toggleListen.bind(this)}
+            ></KeyboardVoiceIcon>
+            <p> {this.state.recognizing ? "Listening..." : ""} </p> 
+          </div>) : (
+          <div>
+            <p>
+              Enter the command to the assistant in the input box below.
+            </p>
+            <p>
+              Click "Mark Error" next to the message if the outcome wasn't as expected.
+            </p>
+          </div>)}
 
         <List>{this.renderChatHistory(this.props.status)}</List>
         {this.props.isMobile === true ? (
