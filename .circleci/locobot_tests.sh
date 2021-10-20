@@ -22,7 +22,7 @@ sleep 3
 conda activate habitat_env
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
-sleep 30
+sleep 45
 conda activate droidlet_env
 python droidlet/lowlevel/locobot/tests/smoke_test.py
 kill -9 $BGPID
@@ -31,7 +31,7 @@ sleep 5
 conda activate habitat_env
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
-sleep 30
+sleep 45
 conda activate droidlet_env
 pushd droidlet/lowlevel/locobot/tests/
 pytest --cov-report=xml:$SHARED_PATH/test_habitat.xml --cov=../ test_habitat.py --disable-pytest-warnings
@@ -42,7 +42,7 @@ sleep 5
 conda activate habitat_env
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
-sleep 30
+sleep 45
 conda activate droidlet_env
 pip install -r agents/locobot/requirements.txt
 python setup.py develop
@@ -56,7 +56,7 @@ sleep 5
 conda activate habitat_env
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
-sleep 30
+sleep 45
 
 # run test
 conda activate droidlet_env
@@ -75,7 +75,7 @@ pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=droidlet droidlet/lowl
 conda activate habitat_env
 python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
 BGPID=$!
-sleep 30
+sleep 45
 
 # run test
 conda activate droidlet_env
