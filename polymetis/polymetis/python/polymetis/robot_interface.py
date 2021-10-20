@@ -67,6 +67,8 @@ class BaseRobotInterface:
         # Get metadata
         self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
 
+        # Check version
+
     def __del__(self):
         # Close connection in destructor
         self.channel.close()

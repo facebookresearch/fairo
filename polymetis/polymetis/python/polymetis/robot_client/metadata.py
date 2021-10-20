@@ -86,6 +86,8 @@ class RobotClientMetadata:
         robot_client_metadata.default_Kqd[:] = default_Kqd
         robot_client_metadata.rest_pose[:] = robot_model_cfg.rest_pose
 
+        # Set version
+
         # Set default controller for controller manager server
         robot_client_metadata.default_controller = default_controller_jitted
 

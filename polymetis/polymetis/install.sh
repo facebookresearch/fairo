@@ -51,3 +51,6 @@ if [ "$CFG" == "Release" ]; then
 else
     $PYTHON -m pip install -vvv -e .
 fi
+
+# Record version
+git describe --tags > BUILD_PATH/version.txt #TODO
