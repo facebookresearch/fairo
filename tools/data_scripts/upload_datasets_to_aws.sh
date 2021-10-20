@@ -25,20 +25,18 @@ fi
 AGENT_PATH="${ROOTDIR}/agents/${AGENT}/"
 echo "$AGENT_PATH"
 
-DIRNAME="datasets"
-
 cd $AGENT_PATH
-CHECKSUM_PATH="${DIRNAME}/checksum.txt"
-calculate_sha1sum "${AGENT_PATH}${DIRNAME}" "${AGENT_PATH}${CHECKSUM_PATH}"
+CHECKSUM_PATH="datasets/checksum.txt"
+calculate_sha1sum "${AGENT_PATH}datasets" "${AGENT_PATH}${CHECKSUM_PATH}"
 
 CHKSUM=$(cat $CHECKSUM_PATH)
 echo "CHECKSUM" $CHKSUM
 
-tar -czvf ${DIRNAME}_folder_${CHKSUM}.tar.gz --exclude='*/\.*' --exclude='*checksum*' ${DIRNAME}/
+tar -czvf datasets_folder_${CHKSUM}.tar.gz --exclude='*/\.*' --exclude='*checksum*' datasets/
 
-read -p "Do you want to upload ${DIRNAME}_folder_${CHKSUM}.tar.gz to S3 ? " -n 1 -r
+read -p "Do you want to upload datasets_folder_${CHKSUM}.tar.gz to S3 ? " -n 1 -r
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     echo "Uploading ..."
-    aws s3 cp ${DIRNAME}_folder_${CHKSUM}.tar.gz s3://craftassist/pubr/
+    aws s3 cp datasets_folder_${CHKSUM}.tar.gz s3://craftassist/pubr/
 fi
