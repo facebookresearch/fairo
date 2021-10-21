@@ -470,33 +470,30 @@ class FakeAgent(DroidletAgent):
         else:  # logical form given directly:
             # clear the chat buffer
             self.get_incoming_chats()
-            # use the logical form as given...
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(
+            chat_memid = self.memory.get_chat_id(
                 self.memory.get_player_by_name(speaker_name).memid, chatstr
             )
             logical_form_memid = self.memory.add_logical_form(d)
             self.memory.add_triple(
                 subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
             )
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
-
-            # controller
-            logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker_name, chat=chatstr, logical_form=d
-            )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker=speaker_name, logical_form=logical_form, chat=chatstr
+                speaker_name, logical_form_memid
             )
-            self.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-            # TODO (interpreter): rethink this when interpreter is its own object
+            self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
             if obj is not None:
+                # TODO (interpreter): rethink this when interpreter is its own object
                 if type(obj) is dict:
                     obj["task"](self, task_data=obj["data"])
+                elif isinstance(obj, InterpreterBase):
+                    obj.step(self)
+                    if obj.finished:
+                        self.memory.get_mem_by_id(obj.memid).finish()
                 else:
-                    self.dialogue_manager.dialogue_stack.append(obj)
+                    raise Exception("strange obj returned from dialogue manager {}".format(obj))
             self.logical_form = None
 
     def setup_test(self):

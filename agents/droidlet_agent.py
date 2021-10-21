@@ -11,6 +11,7 @@ import os
 from agents.core import BaseAgent
 from agents.scheduler import EmptyScheduler
 from droidlet.shared_data_structs import ErrorWithResponse
+from droidlet.interpreter import InterpreterBase
 from droidlet.event import sio, dispatch
 from droidlet.memory.save_and_fetch_commands import *
 
@@ -20,8 +21,7 @@ DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # a BaseAgent with:
-# 1: a controller that is (mostly) a dialogue manager, and the dialogue manager
-#      is powered by a neural semantic parser.
+# 1: a controller that is (mostly) a scripted interpreter + neural semantic parser.
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
 
@@ -287,8 +287,7 @@ class DroidletAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
-    def perceive(self, force=False):
-        start_time = datetime.datetime.now()
+    def do_language_perception(self, force=False):
         nlu_perceive_output = self.perception_modules["language_understanding"].perceive(
             force=force
         )
@@ -300,12 +299,23 @@ class DroidletAgent(BaseAgent):
             chat_memid = self.memory.add_chat(
                 self.memory.get_player_by_name(speaker).memid, preprocessed_chat
             )
-            logical_form_memid = self.memory.add_logical_form(chat_parse)
+            post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+                speaker=speaker, chat=chat, logical_form=chat_parse
+            )
+            logical_form_memid = self.memory.add_logical_form(post_processed_parse)
             self.memory.add_triple(
                 subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
             )
             # New chat, mark as unprocessed.
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+        return nlu_perceive_output
+
+    def perceive(self, force=False):
+        start_time = datetime.datetime.now()
+        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = self.do_language_perception(
+            force=force
+        )
+        if received_chats_flag:
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
             hook_data = {
@@ -333,6 +343,10 @@ class DroidletAgent(BaseAgent):
         elif type(obj) is dict:
             # this is a dialogue Task, set it to run:
             obj["task"](self, task_data=obj["data"])
+        elif isinstance(obj, InterpreterBase):
+            obj.step(self)
+        else:
+            raise Exception("strange obj returned from dialogue manager {}".format(obj))
 
         # check to see if some Tasks were put in memory that need to be
         # hatched using agent object (self):
@@ -342,10 +356,6 @@ class DroidletAgent(BaseAgent):
             task_mem.task["class"](
                 self, task_data=task_mem.task["task_data"], memid=task_mem.memid
             )
-
-        # Always call dialogue_stack.step(), even if chat is empty
-        if len(self.memory.dialogue_stack) > 0:
-            self.memory.dialogue_stack.step(self)
 
     def maybe_run_slow_defaults(self):
         """Pick a default task task to run

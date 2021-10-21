@@ -55,8 +55,8 @@ class MCInterpreter(Interpreter):
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
-        super().__init__(speaker, action_dict, **kwargs)
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
         self.default_frame = "SPEAKER"
         # These are coming from agent's low level
         self.block_data = low_level_data["block_data"]

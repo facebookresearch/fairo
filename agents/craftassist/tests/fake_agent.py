@@ -22,11 +22,16 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
     PASSABLE_BLOCKS,
 )
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
-from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
+from droidlet.interpreter import InterpreterBase
+from droidlet.interpreter.craftassist import (
+    MCGetMemoryHandler,
+    PutMemoryHandler,
+    MCInterpreter,
+    dance,
+)
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper
 from droidlet.perception.craftassist.rotation import look_vec, yaw_pitch
-from droidlet.interpreter.craftassist import dance
 from droidlet.lowlevel.minecraft.mc_util import SPAWN_OBJECTS, get_locs_from_entity, fill_idmeta
 from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
@@ -372,22 +377,24 @@ class FakeAgent(DroidletAgent):
             chat_memid = self.memory.get_chat_id(
                 self.memory.get_player_by_name(speaker_name).memid, chatstr
             )
-
-            logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker_name, chat=chatstr, logical_form=d
+            logical_form_memid = self.memory.add_logical_form(d)
+            self.memory.add_triple(
+                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
             )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker=speaker_name, logical_form=logical_form, chat=chatstr, opts=self.opts
+                speaker_name, logical_form_memid
             )
-
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-
             if obj is not None:
                 # TODO (interpreter): rethink this when interpreter is its own object
                 if type(obj) is dict:
                     obj["task"](self, task_data=obj["data"])
+                elif isinstance(obj, InterpreterBase):
+                    obj.step(self)
+                    if obj.finished:
+                        self.memory.get_mem_by_id(obj.memid).finish()
                 else:
-                    self.dialogue_manager.dialogue_stack.append(obj)
+                    raise Exception("strange obj returned from dialogue manager {}".format(obj))
             self.logical_form = None
 
     def setup_test(self):
@@ -423,7 +430,10 @@ class FakeAgent(DroidletAgent):
             chat_memid = self.memory.add_chat(
                 self.memory.get_player_by_name(speaker_name).memid, chatstr
             )
-            logical_form_memid = self.memory.add_logical_form(d)
+            post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+                speaker=speaker_name, chat=chatstr, logical_form=d
+            )
+            logical_form_memid = self.memory.add_logical_form(post_processed_parse)
             self.memory.add_triple(
                 subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
             )
@@ -687,29 +697,30 @@ class FakePlayer(FakeAgent):
                     self.logical_form = self.lf_list[0]
                     del self.lf_list[0]
         else:  # logical form given directly:
-            logical_form = self.logical_form["logical_form"]
+            d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
             chat_memid = self.memory.get_chat_id(
                 self.memory.get_player_by_name(speaker_name).memid, chatstr
             )
-
-            updated_logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker_name, chat=chatstr, logical_form=logical_form
+            logical_form_memid = self.memory.add_logical_form(d)
+            self.memory.add_triple(
+                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
             )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker=speaker_name,
-                logical_form=updated_logical_form,
-                chat=chatstr,
-                opts=self.opts,
+                speaker_name, logical_form_memid
             )
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-            # TODO (interpreter): rethink this when interpreter is its own object
             if obj is not None:
+                # TODO (interpreter): rethink this when interpreter is its own object
                 if type(obj) is dict:
                     obj["task"](self, task_data=obj["data"])
+                elif isinstance(obj, InterpreterBase):
+                    obj.step(self)
+                    if obj.finished:
+                        self.memory.get_mem_by_id(obj.memid).finish()
                 else:
-                    self.dialogue_manager.dialogue_stack.append(obj)
+                    raise Exception("strange obj returned from dialogue manager {}".format(obj))
             self.logical_form = None
 
     def get_info(self):

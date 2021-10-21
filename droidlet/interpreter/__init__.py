@@ -20,7 +20,7 @@ from .interpret_reference_objects import (
 
 from .interpret_location import ReferenceLocationInterpreter, interpret_relative_direction
 
-from .interpreter import Interpreter
+from .interpreter import InterpreterBase, Interpreter
 
 from .get_memory_handler import GetMemoryHandler
 
@@ -58,5 +58,6 @@ __all__ = [
     FilterInterpreter,
     AttributeInterpreter,
     GetMemoryHandler,
+    InterpreterBase,
     Interpreter,
 ]

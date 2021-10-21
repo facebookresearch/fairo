@@ -113,7 +113,7 @@ def interpret_where_clause(
         query = {"memory_type": memory_type, "where_clause": {"AND": [{}]}}
         for k, v in where_d.items():
             if type(v) is dict:
-                query["where_clause"]["AND"][0][k] = interpreter.subinterpet["filters"](
+                query["where_clause"]["AND"][0][k] = interpreter.subinterpret["filters"](
                     interpreter, speaker, v
                 )
             else:

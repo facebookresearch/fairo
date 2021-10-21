@@ -5,7 +5,6 @@ import unittest
 
 from droidlet.lowlevel.minecraft.shapes import cube
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
-from droidlet.memory.dialogue_stack import DialogueStack
 from droidlet.interpreter.craftassist import DummyInterpreter
 import droidlet.interpreter.tests.all_test_commands
 
@@ -32,8 +31,7 @@ def add_many_objects(test):
 class FiltersTest(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-        dummy_dialogue_stack = DialogueStack()
-        self.dummy_interpreter = DummyInterpreter("SPEAKER", memory=self.agent.memory)
+        self.dummy_interpreter = DummyInterpreter("SPEAKER", "NULL_MEMID", self.agent.memory)
 
         add_many_objects(self)
 
