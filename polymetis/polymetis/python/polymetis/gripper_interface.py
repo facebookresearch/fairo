@@ -25,11 +25,11 @@ class GripperInterface:
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
-    def _send_gripper_command(self, command, msg, blocking=True) -> None:
+    def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
         if blocking:
             command(msg)
         else:
-            threading.Thread(target=command, args=(msg,)).start()
+            threading.Thread(target=command, args=(msg,), daemon=True).start()
 
     def get_state(self) -> polymetis_pb2.GripperState:
         """Returns the state of the gripper
@@ -38,7 +38,7 @@ class GripperInterface:
         """
         return self.grpc_connection.GetState(EMPTY)
 
-    def goto(self, width, speed, force, **kwargs):
+    def goto(self, width: float, speed: float, force: float, blocking=True):
         """Commands the gripper to a certain width
         Args:
             pos: Target width
@@ -48,10 +48,10 @@ class GripperInterface:
         self._send_gripper_command(
             self.grpc_connection.Goto,
             polymetis_pb2.GripperCommand(width=width, speed=speed, force=force),
-            **kwargs,
+            blocking=blocking,
         )
 
-    def grasp(self, speed, force, **kwargs):
+    def grasp(self, speed: float, force: float, blocking=True):
         """Commands the gripper to a certain width
         Args:
             vel: Velocity of the movement
@@ -60,5 +60,5 @@ class GripperInterface:
         self._send_gripper_command(
             self.grpc_connection.Grasp,
             polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force),
-            **kwargs,
+            blocking=blocking,
         )
