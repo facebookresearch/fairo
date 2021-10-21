@@ -2,6 +2,7 @@
 
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+import threading
 
 import grpc
 
@@ -24,6 +25,12 @@ class GripperInterface:
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
+    def _send_gripper_command(self, command, msg, blocking=True) -> None:
+        if blocking:
+            command(msg)
+        else:
+            threading.Thread(target=command, args=(msg,)).start()
+
     def get_state(self) -> polymetis_pb2.GripperState:
         """Returns the state of the gripper
         Returns:
@@ -31,23 +38,27 @@ class GripperInterface:
         """
         return self.grpc_connection.GetState(EMPTY)
 
-    def goto(self, width, speed, force):
+    def goto(self, width, speed, force, **kwargs):
         """Commands the gripper to a certain width
         Args:
             pos: Target width
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
-        self.grpc_connection.Goto(
-            polymetis_pb2.GripperCommand(width=width, speed=speed, force=force)
+        self._send_gripper_command(
+            self.grpc_connection.Goto,
+            polymetis_pb2.GripperCommand(width=width, speed=speed, force=force),
+            **kwargs,
         )
 
-    def grasp(self, speed, force):
+    def grasp(self, speed, force, **kwargs):
         """Commands the gripper to a certain width
         Args:
             vel: Velocity of the movement
             force: Maximum force the gripper will exert
         """
-        self.grpc_connection.Grasp(
-            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force)
+        self._send_gripper_command(
+            self.grpc_connection.Grasp,
+            polymetis_pb2.GripperCommand(width=0.0, speed=speed, force=force),
+            **kwargs,
         )
