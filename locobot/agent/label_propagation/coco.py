@@ -41,25 +41,29 @@ class CocoCreator:
         self.create_metadata(hsd)
         self.create_annos(hsd, scene, pct)
         self.save_json(coco_file_name)
-        # self.visualize_annos(coco_file_name, scene)
+        self.save_visual_dataset(coco_file_name, scene)
     
-    def visualize_annos(self, coco_file_name, scene):
+    def save_visual_dataset(self, coco_file_name, scene):
         DatasetCatalog.clear()
         MetadataCatalog.clear()
 
         register_coco_instances('foobar', {}, coco_file_name, os.path.join(self.rdd, 'rgb'))
         MetadataCatalog.get('foobar')
         dataset_dicts = DatasetCatalog.get('foobar')
-
-        for d in random.sample(dataset_dicts, 1):
+        
+        save_dir = os.path.join(self.segm_dir, 'coco_visuals')
+        print(f'save_dir {save_dir}')
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        
+        for d in dataset_dicts:
             img = cv2.imread(d["file_name"])
-            print(d['file_name'])
+            x = d['file_name'].split('/')[-1]
+            print(f"filename {d['file_name'], x}, visual_file {os.path.join(save_dir, x)}")
             visualizer = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get('foobar'), scale=0.5)
             vis = visualizer.draw_dataset_dict(d)
             img = vis.get_image()
-            plt.figure(figsize=(12 , 8))
-            plt.imshow(img)
-            plt.show()
+            cv2.imwrite(os.path.join(save_dir, x), img)
         
     def save_json(self, coco_file_name):
         coco_output = {

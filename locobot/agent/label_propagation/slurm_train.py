@@ -1,3 +1,5 @@
+# Below is a copy of slurm_train.py from anurag/slurm_onebutton
+
 import torchvision
 
 # import some common libraries
@@ -53,6 +55,9 @@ img_dir_test = '/checkpoint/apratik/ActiveVision/active_vision/replica_random_ex
 test_jsons = ['frlapt1_20n0.json', 'frlapt1_20n1.json', 'frlapt1_20n2.json']
 test_jsons = [os.path.join(jsons_root, x) for x in test_jsons]
 
+val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/seg/coco_train.json'
+img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/rgb'
+
 ## Detectron2 Setup
 
 # from copy_paste import CopyPaste
@@ -99,6 +104,14 @@ class COCOTrain:
                 "AP50": []
             }
         }
+        self.val_results = {
+            "bbox": {
+                "AP50": []
+            },
+            "segm": {
+                "AP50": []
+            }
+        }
     
     def vis(self):
         dataset_dicts = DatasetCatalog.get(self.train_data)
@@ -132,16 +145,30 @@ class COCOTrain:
         self.trainer = Trainer(cfg) #DefaultTrainer(cfg) 
         self.trainer.resume_or_load(resume=False)
         self.trainer.train()
-
-    def run_eval(self, dataset_name, test_json, img_dir_test):
+        
+    def run_val(self, dataset_name, val_json, img_dir_val):
         self.val_data = dataset_name + "_val" + str(self.seed)
-        self.test_json = test_json
+        self.val_json = val_json
         self.cfg.DATASETS.TEST = (self.val_data,)
-        register_coco_instances(self.val_data, {}, test_json, img_dir_test)
+        register_coco_instances(self.val_data, {}, val_json, img_dir_val)
         MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         print(f'classes {MetadataCatalog.get(self.val_data)}')
         self.evaluator = COCOEvaluator(self.val_data, ("bbox", "segm"), False, output_dir=self.cfg.OUTPUT_DIR)
         self.val_loader = build_detection_test_loader(self.cfg, self.val_data)
+        results = inference_on_dataset(self.trainer.model, self.val_loader, self.evaluator)
+        self.val_results['bbox']['AP50'].append(results['bbox']['AP50'])
+        self.val_results['segm']['AP50'].append(results['segm']['AP50'])
+        return results
+
+    def run_test(self, dataset_name, test_json, img_dir_test):
+        self.test_data = dataset_name + "_test" + str(self.seed)
+        self.test_json = test_json
+        self.cfg.DATASETS.TEST = (self.test_data,)
+        register_coco_instances(self.test_data, {}, test_json, img_dir_test)
+        MetadataCatalog.get(self.test_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
+        print(f'classes {MetadataCatalog.get(self.test_data)}')
+        self.evaluator = COCOEvaluator(self.test_data, ("bbox", "segm"), False, output_dir=self.cfg.OUTPUT_DIR)
+        self.val_loader = build_detection_test_loader(self.cfg, self.test_data)
         results = inference_on_dataset(self.trainer.model, self.val_loader, self.evaluator)
         self.results['bbox']['AP50'].append(results['bbox']['AP50'])
         self.results['segm']['AP50'].append(results['segm']['AP50'])
@@ -153,9 +180,9 @@ class COCOTrain:
         self.train()
 
 
-maxiters = 500
-lr = [0.001, 0.002, 0.005]
-warmup = [100, 200]
+maxiters = [500, 800]
+lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
+warmups = [100, 200]
 
 def write_summary_to_file(filename, results, header_str):
     if isinstance(results['bbox']['AP50'][0], list):
@@ -172,27 +199,35 @@ import string
 
 def run_training(out_dir, img_dir_train, n=10):
     train_json = os.path.join(out_dir, 'coco_train.json')
-    results = {
-        "bbox": {
-            "AP50": []
-        },
-        "segm": {
-            "AP50": []
-        }
-    }
-    for i in range(n):
-        c = COCOTrain(lr[0], warmup[0], maxiters, i)
-        dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
-        print(f'dataset_name {dataset_name}')
-        c.run_train(train_json, img_dir_train, dataset_name)
-        for yix in range(len(test_jsons)):
-            r = c.run_eval(dataset_name + str(yix), test_jsons[yix], img_dir_test)
-            with open(os.path.join(out_dir, "all_results.txt"), "a") as f:
-                f.write(json.dumps(r) + '\n')
-        print(f'all results {c.results}')
-        results['bbox']['AP50'].append(c.results['bbox']['AP50'])
-        results['segm']['AP50'].append(c.results['segm']['AP50'])
-        write_summary_to_file(os.path.join(out_dir, str(n) + '_granular.txt'), c.results, f'\ntrain_json {train_json}')
-
-    write_summary_to_file(os.path.join(out_dir, str(n) + '_results_averaged.txt'), results, f'\ntrain_json {train_json}, average over {n} runs')
+    for lr in lrs:
+        for warmup in warmups:
+            for maxiter in maxiters:
+                results = {
+                    "bbox": {
+                        "AP50": []
+                    },
+                    "segm": {
+                        "AP50": []
+                    }
+                }
+                for i in range(n):
+                    c = COCOTrain(lr, warmup, maxiter, i)
+                    dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
+                    print(f'dataset_name {dataset_name}')
+                    c.run_train(train_json, img_dir_train, dataset_name)
+                    res_eval = c.run_val(dataset_name, val_json, img_dir_val)
+                    with open(os.path.join(out_dir, "validation_results.txt"), "a") as f:
+                        f.write(f'lr {lr} warmup {warmup} maxiter {maxiter}\n')
+                        f.write(json.dumps(res_eval) + '\n')
+                    for yix in range(len(test_jsons)):
+                        r = c.run_test(dataset_name + str(yix), test_jsons[yix], img_dir_test)
+                        with open(os.path.join(out_dir, "all_results.txt"), "a") as f:
+                            f.write(json.dumps(r) + '\n')
+                    print(f'all results {c.results}')
+                    results['bbox']['AP50'].append(c.results['bbox']['AP50'])
+                    results['segm']['AP50'].append(c.results['segm']['AP50'])
+                    write_summary_to_file(os.path.join(out_dir, str(n) + '_granular.txt'), c.results, f'\ntrain_json {train_json}')
+                
+                itername = str(lr) + ' ' + str(warmup) + ' ' + str(maxiter) + ' ' + str(n)
+                write_summary_to_file(os.path.join(out_dir, itername + '_results_averaged.txt'), results, f'\ntrain_json {train_json}, average over {n} runs')
    
