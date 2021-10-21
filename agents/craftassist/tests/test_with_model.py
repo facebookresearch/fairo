@@ -35,7 +35,8 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         self.add_incoming_chat(chat, self.speaker)
         DroidletAgent.do_language_perception(self.agent)
         self.flush()
-        self.agent.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
+        for triple in self.agent.memory.get_triples(obj_text="unprocessed"):
+            self.agent.memory.untag(subj_memid=triple[0], tag_text="unprocessed")
         self.assertLessEqual(euclid_dist(self.agent.pos, self.get_speaker_pos()), 1)
 
     def test_stop(self):

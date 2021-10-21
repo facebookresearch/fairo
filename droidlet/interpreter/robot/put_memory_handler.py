@@ -3,26 +3,24 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 from typing import Dict, Tuple, Any, Optional
-from droidlet.dialog.dialogue_objects import DialogueObject
+from droidlet.interpreter import InterpreterBase
 
 
-class PutMemoryHandler(DialogueObject):
+class PutMemoryHandler(InterpreterBase):
     """This class handles logical forms that give input to the agent about the environment or
     about the agent itself. This requires writing to the assistant's memory.
 
     Args:
-        provisional: A dictionary used to store information to support clarifications
-        speaker_name: Name or id of the speaker
+        speaker: Name or id of the speaker
         action_dict: output of the semantic parser (also called the logical form).
         subinterpret: A dictionary that contains handlers to resolve the details of
                       salient components of a dictionary for this kind of dialogue.
     """
 
-    def __init__(self, speaker_name: str, action_dict: Dict, **kwargs):
-        super().__init__(**kwargs)
-        self.provisional: Dict = {}
-        self.speaker_name = speaker_name
-        self.action_dict = action_dict
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super().__init__(
+            speaker, logical_form_memid, agent_memory, memid=memid, interpreter_type="get_memory"
+        )
 
     def step(self) -> Tuple[Optional[str], Any]:
         """Take immediate actions based on action dictionary and
