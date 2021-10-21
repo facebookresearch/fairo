@@ -3,8 +3,8 @@ from setuptools import setup
 
 
 setup(
-    name="facebook_robotics_platform",
-    version="0.0.2",
+    name="fbrp",
+    version="0.0.3",
     author="Leonid Shamis",
     package_dir={"": "src"},
     packages=find_packages(

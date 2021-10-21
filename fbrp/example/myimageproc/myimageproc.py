@@ -1,12 +1,8 @@
 import a0
 
-# import facebook_robotics_platform.process as fbrp
-
 #########################################
 
 import time
-
-# fbrp.Init()
 
 prefix = a0.cfg(a0.env.topic(), "/foo/bar", str)
 
@@ -24,8 +20,6 @@ while True:
 
 # import signal
 # import sys
-
-# fbrp.Init()
 
 # p = a0.Publisher("proc/image.a0")
 
@@ -48,7 +42,6 @@ while True:
 
 
 # async def main():
-#     fbrp.Init()
 #     p = a0.Publisher("proc/image.a0")
 #     async for pkt in a0.aio_sub(
 #         "camera/image.a0", a0.INIT_AWAIT_NEW, a0.ITER_NEXT

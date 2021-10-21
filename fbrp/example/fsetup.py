@@ -1,6 +1,6 @@
-from facebook_robotics_platform import setup as fbrp
-from mycamera import fbrp_setup  # defines "mycamera"
-from myimu import fbrp_setup  # defines "myimu"
+import fbrp
+from mycamera import fsetup  # defines "mycamera"
+from myimu import fsetup  # defines "myimu"
 
 fbrp.process(
     name="myimageproc",

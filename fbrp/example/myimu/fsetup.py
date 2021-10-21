@@ -1,4 +1,4 @@
-from facebook_robotics_platform import setup as fbrp
+import fbrp
 
 fbrp.process(
     name="myimu",
