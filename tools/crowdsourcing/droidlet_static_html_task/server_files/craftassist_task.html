@@ -54,7 +54,7 @@
       <div class="modal-body" id="modal"></div>
 
       <div class="modal-footer">
-        <button class="btn btn-primary" id="close-instructions-btn" onclick="$('.collapse').hide()" data-dismiss="modal" type="button" style="display:none">Close</button>
+        <button class="btn btn-primary" id="close-instructions-btn" onclick="recordReadTime()" data-dismiss="modal" type="button" style="display:none">Close</button>
       </div>
     </div>
   </div>
@@ -258,6 +258,7 @@
         <option value="2">2 - Very Poor</option>
         <option value="1">1 - Unusable</option>
       </select>
+      <input type="hidden" id="instructionsReadTime" name="instructionsReadTime" value="0">
     </div>
   </fieldset>
 </section>
@@ -269,6 +270,8 @@
     $("#instructions").clone().appendTo(modal_body);
     $(".modal").modal("show");
   });
+
+  const start = Date.now();
 
   var page = 1;
   function incrementPage(val) {
@@ -301,6 +304,14 @@
       }
     }
   }
+
+  function recordReadTime() {
+    //document.getElementsByClassName("collapse").hide()
+    let now = Date.now();
+    readtime = Math.floor((now - start)/1000);
+    document.getElementById("instructionsReadTime").value = readtime;
+  }
+  //document.getElementById("close-instructions-btn").addEventListener("click", recordReadTime(), false)
 </script>
 
 <style type="text/css">
