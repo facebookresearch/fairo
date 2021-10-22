@@ -20,6 +20,7 @@ class TurkInfo extends Component {
 
   handleClick = () => {
     if (this.state.isTimerOn) {
+      window.top.postMessage("timerOFF", "*");
       this.setState({
         isTimerOn: false,
         isSessionEnd: true,
@@ -30,6 +31,7 @@ class TurkInfo extends Component {
         turk_worker_id: this.props.stateManager.getTurkWorkerId(),
       });
     } else {
+      window.top.postMessage("timerON", "*");
       this.setState({
         isTimerOn: true,
         startTime: Date.now(),
@@ -46,6 +48,7 @@ class TurkInfo extends Component {
     const { timeElapsed } = this.state;
     let seconds = ("0" + (Math.floor(timeElapsed / 1000) % 60)).slice(-2);
     let minutes = ("0" + (Math.floor(timeElapsed / 60000) % 60)).slice(-2);
+    const btnClass = (minutes >= 5) ? "MsgButton" : "MsgButton hidden";
     return (
       <ThemeProvider theme={muiTheme}>
         <div className="App">
@@ -71,8 +74,8 @@ class TurkInfo extends Component {
                 <br />
                 <p>Please click on the button to start the session. </p>
                 <p>
-                  When you finished, click on the button to end the session and
-                  proceed to next steps.
+                  When at least 5 minutes have passed and you are finished,
+                  click on the button to end the session and proceed to next steps.
                 </p>
               </div>
             )}
