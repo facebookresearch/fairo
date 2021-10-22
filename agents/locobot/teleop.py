@@ -81,8 +81,6 @@ if __name__ == "__main__":
 # from droidlet.base_util import to_player_struct, Pos, Look, Player
 # from droidlet.memory.memory_nodes import PlayerNode
 # from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from agents.loco_mc_agent import LocoMCAgent
-from agents.argument_parser import ArgumentParser
 # from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 # from droidlet.perception.robot import Perception
 # from self_perception import SelfPerception
