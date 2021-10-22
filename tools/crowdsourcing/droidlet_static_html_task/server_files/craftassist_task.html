@@ -259,18 +259,18 @@
         <option value="1">1 - Unusable</option>
       </select>
       <input type="hidden" id="instructionsReadTime" name="instructionsReadTime" value="0">
+      <input type="hidden" id="interactTime" name="interactTime" value="0">
     </div>
   </fieldset>
 </section>
 
 
 <script>
-  var timerStarted = false;
   var timerStopped = false;
   var ratingComplete = false;
 
   function checkSubmitDisplay() {
-    if (ratingComplete && timerStarted && timerStopped) {
+    if (ratingComplete && timerStopped) {  //Only display the submit button if the worker has interacted with the dashboard and rated usability
       document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
       window.scrollTo(0,document.body.scrollHeight);
     }
@@ -284,18 +284,36 @@
   window.onmessage = (event) => {
     // event.data will be the data sent from the iframe
     console.log(event.data);
-    if (event.data == "timerON") timerStarted = true;
-    if (event.data == "timerOFF") timerStopped = true;
+    if (event.data == "timerOFF") recordInteractTime();
+    // In the future can also use this to record interaction quality scores
     checkSubmitDisplay();
   };
+
+  const start = Date.now();
+  var readTimestamp = start;
+  var interactTimestamp = start;
+
+  function recordReadTime() {
+    readTimestamp = Date.now();
+    readTime = Math.floor((readTimestamp - start)/1000);
+    document.getElementById("instructionsReadTime").value = readTime;
+
+    //Also take this opportunity to hide the submit button since window onLoad doesn't work properly for some reason
+    document.getElementsByClassName("btn-default")[0].classList.add("hidden");
+  }
+
+  function recordInteractTime() {
+    timerStopped = true;
+    interactTimestamp = Date.now();
+    interactTime = Math.floor((interactTimestamp - readTimestamp)/1000);
+    document.getElementById("interactTime").value = interactTime;
+  }
   
   $(function () {
     modal_body = $("#modal");
     $("#instructions").clone().appendTo(modal_body);
     $(".modal").modal("show");
   });
-
-  const start = Date.now();
 
   var page = 1;
   function incrementPage(val) {
@@ -329,14 +347,6 @@
     }
   }
 
-  function recordReadTime() {
-    let now = Date.now();
-    readtime = Math.floor((now - start)/1000);
-    document.getElementById("instructionsReadTime").value = readtime;
-
-    //Also take this opportunity to hide the submit button since onLoad doesn't work properly for some reason
-    document.getElementsByClassName("btn-default")[0].classList.add("hidden");
-  }
 </script>
 
 <style type="text/css">
