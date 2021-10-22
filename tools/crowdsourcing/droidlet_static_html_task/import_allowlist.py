@@ -32,18 +32,12 @@ from typing import List, Any
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
 
-@dataclass
-class TestScriptConfig(RunScriptConfig):
-    defaults: List[Any] = field(default_factory=lambda: defaults)
-    task_dir: str = TASK_DIRECTORY
-
-
-register_script_config(name="scriptconfig", module=TestScriptConfig)
-
 
 def importAllowlist():
-    listfile = open("turker_list.txt", "r")
-    allowlist = listfile.readlines()
+    wd = os.path.dirname(os.path.abspath(__file__))
+    turkerListFilepath = os.path.join(wd, 'turker_list.txt')
+    listfile = open(turkerListFilepath, "r")
+    allowlist = [line.strip() for line in listfile.readlines()]
     listfile.close()
 
     return allowlist
@@ -89,8 +83,7 @@ def main():
         if not worker.is_qualified(PILOT_ALLOWLIST_QUAL_NAME):
             logging.info(f"!!!Worker not successfully qualified, debug")
         else:
-            print("it works!")
-        break
+            logging.info(f"Worker successfully qualified")
 
     return
 
