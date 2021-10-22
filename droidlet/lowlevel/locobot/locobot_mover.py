@@ -60,6 +60,8 @@ class LoCoBotMover:
     def __init__(self, ip=None, backend="habitat"):
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
         self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
+        self.nav._pyroAsync()
+        self.nav_result = self.nav.is_busy()
         self.close_loop = False if backend == "habitat" else True
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
@@ -202,10 +204,8 @@ class LoCoBotMover:
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            # self.bot.go_to_relative(xyt)
-            safe_call(self.nav.go_to_relative, xyt)
-            # while not self.bot.command_finished():
-            #     print(self.bot.get_base_state("odom"))
+            self.nav_result.wait() # wait for the previous navigation command to finish
+            self.nav_result = safe_call(self.nav.go_to_relative, xyt)
 
     def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
         """
@@ -222,7 +222,8 @@ class LoCoBotMover:
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            self.nav.go_to_absolute(
+            self.nav_result.wait() # wait for the previous navigation command to finish
+            self.nav_result = self.nav.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt),
             )
             start_base_state = self.get_base_pos_in_canonical_coords()
@@ -384,7 +385,11 @@ class LoCoBotMover:
         return self.bot.get_gripper_state() == 2
 
     def explore(self):
-        return safe_call(self.nav.explore)
+        if self.nav_result.ready:
+            self.nav_result = safe_call(self.nav.explore)
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def drop(self):
         return self.bot.open_gripper()
