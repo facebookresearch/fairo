@@ -81,8 +81,6 @@ if __name__ == "__main__":
 # from droidlet.base_util import to_player_struct, Pos, Look, Player
 # from droidlet.memory.memory_nodes import PlayerNode
 # from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-from agents.loco_mc_agent import LocoMCAgent
-from agents.argument_parser import ArgumentParser
 # from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
 # from droidlet.perception.robot import Perception
 # from self_perception import SelfPerception
@@ -165,12 +163,12 @@ if __name__ == "__main__":
     path_count = 0
 
     start_time = time.time()
-    x = 1 # displays the frame rate every 1 second
+    fps_freq = 1 # displays the frame rate every 1 second
     counter = 0
     
     while True:
         counter += 1
-        if (time.time() - start_time) > x :
+        if (time.time() - start_time) > fps_freq :
             print("FPS: ", counter / (time.time() - start_time))
             counter = 0
             start_time = time.time()
@@ -241,19 +239,19 @@ if __name__ == "__main__":
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        # robot_orientation = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.05,
-        #                                                cone_radius=.075,
-        #                                                cylinder_height = .50,
-        #                                                cone_height = .4,
-        #                                                resolution=20)
-        # robot_orientation.compute_vertex_normals()
-        # robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
+        robot_orientation = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.05,
+                                                       cone_radius=.075,
+                                                       cylinder_height = .50,
+                                                       cone_height = .4,
+                                                       resolution=20)
+        robot_orientation.compute_vertex_normals()
+        robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
         
-        # robot_orientation.translate([y, -x, 0.5], relative=False)
-        # robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
-        # robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
+        robot_orientation.translate([y, -x, 0.5], relative=False)
+        robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
+        robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
 
-        # o3dviz.put('bot_orientation', cmd, robot_orientation)
+        o3dviz.put('bot_orientation', cmd, robot_orientation)
 
         robot_base = o3d.geometry.TriangleMesh.create_cylinder(radius=.1,
                                                           height=1.,)
@@ -268,8 +266,7 @@ if __name__ == "__main__":
         mover.explore()
         
         # get the SLAM goals
-        goal_loc, goal_loc_map, stg_real, stg_real_g = None, None, None, None # mover.bot.get_slam_goal()    
-        # print('goals: ', goal_loc, goal_loc_map, stg_real, stg_real_g)
+        goal_loc, stg = None, None # mover.bot.get_slam_goal()    
 
         # plot the final goal
         if goal_loc is not None:
@@ -282,14 +279,14 @@ if __name__ == "__main__":
             o3dviz.put('goal_cone', cmd, cone)
 
         # plot the short term goal in yellow and the path in green
-        if stg_real is not None:
-            stg_x, stg_y = stg_real
+        if stg is not None:
+            stg_x, stg_y = stg
             cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
                                                              height=3.,)
             cone.translate([stg_x, stg_y, 1.4], relative=False)
             cone.compute_vertex_normals()
             cone.paint_uniform_color([1.0, 1.0, 0.0])
-            # o3dviz.put('stg_real', cmd, cone)
+            o3dviz.put('stg', cmd, cone)
 
             if prev_stg is None:
                 prev_stg = [y, -x]
