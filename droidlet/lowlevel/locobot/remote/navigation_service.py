@@ -53,6 +53,7 @@ class Navigation(object):
         self.slam = slam
         self.robot = robot
         self.trackback = Trackback(planner)
+        self._busy = False
 
     def go_to_relative(self, goal):
         robot_loc = self.robot.get_base_state()
@@ -62,17 +63,18 @@ class Navigation(object):
         abs_goal[1] += robot_loc[1]
         abs_goal[2] = goal[2] + robot_loc[2]
         return self.go_to_absolute(abs_goal)
-
     
     def go_to_absolute(self, goal, steps=100000000):
-        print('goal:', goal)
+        self._busy = True
         robot_loc = self.robot.get_base_state()
         goal_reached = False
+        return_code = True
         while (not goal_reached) and steps > 0:
             stg = self.planner.get_short_term_goal(robot_loc, goal)
             if stg == False:
                 # no path to end-goal
-                return False
+                return_code = False
+                break
             self.robot.go_to_absolute(stg, wait=False)
             while self.robot.get_base_status() == "ACTIVE":
                 pass
@@ -100,13 +102,14 @@ class Navigation(object):
             steps = steps - 1
 
             # TODO: make non-blocking and check the status
-        return True
+        self._busy = False
+        return return_code
 
-    # slam wrapper
     def explore(self):
         if not hasattr(self, '_done_exploring'):
             self._done_exploring = False
         if not self._done_exploring:
+            print("exploring 1 step")
             far_away_goal = (19, 19, 0)
             success = self.go_to_absolute(far_away_goal, steps=1)       
             if success == False:
@@ -117,7 +120,7 @@ class Navigation(object):
                 print("exploration done")
 
     def is_busy(self):
-        pass
+        return self._busy
 
 robot_ip = os.getenv('LOCOBOT_IP')
 ip = os.getenv('LOCAL_IP')
