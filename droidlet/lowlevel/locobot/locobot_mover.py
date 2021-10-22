@@ -59,8 +59,13 @@ class LoCoBotMover:
     """
     def __init__(self, ip=None, backend="habitat"):
         self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
-        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
         self.slam = Pyro4.Proxy("PYRONAME:slam@" + ip)
+        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
+        # spin once synchronously
+        self.nav.is_busy()
+        # put in async mode
+        self.nav._pyroAsync()
+        self.nav_result = self.nav.is_busy()
         self.close_loop = False if backend == "habitat" else True
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
@@ -191,24 +196,26 @@ class LoCoBotMover:
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(self, xyt_positions, use_dslam=True):
+
+    def move_relative(self, xyt_positions, use_dslam=True, blocking=True):
         """
         Command to execute a relative move.
 
         Args:
             xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
             x,y,yaw are in the pyrobot's coordinates.
+            blocking (boolean): If True, waits for navigation to complete.
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            # self.bot.go_to_relative(xyt)
-            safe_call(self.nav.go_to_relative, xyt)
-            # while not self.bot.command_finished():
-            #     print(self.bot.get_base_state("odom"))
+            self.nav_result.wait() # wait for the previous navigation command to finish
+            self.nav_result = safe_call(self.nav.go_to_relative, xyt)
+            if blocking:
+                self.nav_result.wait()
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True):
+    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True, blocking=True):
         """
         Command to execute a move to an absolute position.
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -217,15 +224,19 @@ class LoCoBotMover:
         Args:
             xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
             (x_c,y_c,yaw) are in the canonical world coordinates.
+            blocking (boolean): If True, waits for navigation to complete.
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            self.nav.go_to_absolute(
+            self.nav_result.wait() # wait for the previous navigation command to finish
+            self.nav_result = self.nav.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt),
             )
+            if blocking:
+                self.nav_result.wait()
             start_base_state = self.get_base_pos_in_canonical_coords()
             while not self.bot.command_finished():
                 print(self.get_base_pos_in_canonical_coords())
@@ -385,7 +396,11 @@ class LoCoBotMover:
         return self.bot.get_gripper_state() == 2
 
     def explore(self):
-        return safe_call(self.nav.explore)
+        if self.nav_result.ready:
+            self.nav_result = safe_call(self.nav.explore)
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
 
     def drop(self):
         return self.bot.open_gripper()
