@@ -178,8 +178,8 @@ class OperationalSpacePD(toco.ControlModule):
         self,
         joint_pos_current: torch.Tensor,
         joint_vel_current: torch.Tensor,
-        ee_pose_desired: T.TransformationObj,
-        ee_twist_desired: torch.Tensor,
+        ee_pos_desired: torch.Tensor,
+        ee_quat_desired: torch.Tensor,
     ) -> torch.Tensor:
         """
         Args:
@@ -197,14 +197,18 @@ class OperationalSpacePD(toco.ControlModule):
         )
         jacobian = self.robot_model.compute_jacobian(joint_pos_current)
 
-        ee_pose_current = T.TransformationObj(
-            rotation=T.RotationObj(ee_quat_current),
-            translation=ee_pos_current,
-        )
-        ee_twist_current = jacobian @ joint_vel_current
+        # Compute pos and orientation error
+        ee_pos_err = ee_pos_desired - ee_pos_current
 
-        ee_pose_err = (ee_pose_current.inv() * ee_pose_desired).as_twist()
-        ee_twist_err = ee_twist_desired - ee_twist_current
+        ee_quat_curr_inv = R.functional.invert_quaternion(ee_quat_current)
+        ee_quat_err = R.functional.quaternion_multiply(
+            ee_quat_curr_inv, ee_quat_desired
+        )
+        ee_quat_err_n = R.functional.normalize_quaternion(ee_quat_err)
+        ee_ori_err = R.functional.quat2matrix(ee_quat_current) @ ee_quat_err_n[0:3]
+
+        ee_pose_err = torch.cat([ee_pos_err, ee_ori_err])
+        ee_twist_err = -jacobian @ joint_vel_current
 
         output = jacobian.T @ (self.Kp @ ee_pose_err + self.Kd @ ee_twist_err)
 
@@ -247,22 +251,16 @@ class OperationalSpacePositionPD(toco.ControlModule):
         joint_pos_current: torch.Tensor,
         joint_vel_current: torch.Tensor,
         ee_pos_desired: torch.Tensor,
-        ee_vel_desired: torch.Tensor,
     ) -> torch.Tensor:
         """
         Args:
             joint_pos_current: Current joint position of shape (N,)
             joint_vel_current: Current joint velocity of shape (N,)
             ee_pos_desired: Desired ee position of shape (3,)
-            ee_vel_desired: Desired ee velocity of shape (3,)
 
         Returns:
             Output action of shape (nA,)
         """
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(self.ee_quat_desired), translation=ee_pos_desired
-        )
-        ee_twist_desired = torch.cat([ee_vel_desired, torch.zeros(3)])
         return self.op_space_pd(
-            joint_pos_current, joint_vel_current, ee_pose_desired, ee_twist_desired
+            joint_pos_current, joint_vel_current, ee_pos_desired, self.ee_quat_desired
         )

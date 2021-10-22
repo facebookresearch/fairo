@@ -66,16 +66,12 @@ class CartesianImpedanceControl(toco.PolicyModule):
         joint_pos_current = state_dict["joint_positions"]
         joint_vel_current = state_dict["joint_velocities"]
 
-        # Desired state
-        ee_pose_desired = T.from_rot_xyz(
-            rotation=R.from_quat(self.ee_quat_desired),
-            translation=self.ee_pos_desired,
-        )
-        ee_twist_desired = torch.zeros(6)
-
         # Control logic
         torque_feedback = self.impedance(
-            joint_pos_current, joint_vel_current, ee_pose_desired, ee_twist_desired
+            joint_pos_current,
+            joint_vel_current,
+            self.ee_pos_desired,
+            self.ee_quat_desired,
         )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
