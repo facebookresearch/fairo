@@ -48,7 +48,6 @@ class TurkInfo extends Component {
     const { timeElapsed } = this.state;
     let seconds = ("0" + (Math.floor(timeElapsed / 1000) % 60)).slice(-2);
     let minutes = ("0" + (Math.floor(timeElapsed / 60000) % 60)).slice(-2);
-    const btnClass = (minutes >= 5) ? "MsgButton" : "MsgButton hidden";
     return (
       <ThemeProvider theme={muiTheme}>
         <div className="App">
@@ -68,15 +67,35 @@ class TurkInfo extends Component {
                   variant="contained"
                   color={this.state.isTimerOn ? "secondary" : "primary"}
                   onClick={this.handleClick.bind(this)}
+                  disabled={this.state.isTimerOn ? (minutes < 5) : false}
                 >
                   {this.state.isTimerOn ? "End" : "Start"}
                 </Button>
                 <br />
-                <p>Please click on the button to start the session. </p>
-                <p>
-                  When at least 5 minutes have passed and you are finished,
-                  click on the button to end the session and proceed to next steps.
-                </p>
+                {this.state.isTimerOn ? (
+                  <div>
+                    {minutes < 5 ? (
+                      <div>
+                        <p>Please interact with the assistant.</p>
+                        <p>The 'End' button will appear when 5 minutes have passed.</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p>
+                          When you've finished interacting with the assistant,
+                          press the 'End' button to proceed to next steps.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                <div>
+                  <p>Please click on the button to start the session. </p>
+                  <p>
+                    When at least 5 minutes have passed and you are finished,
+                    click on the button to end the session and proceed to next steps.
+                  </p>
+                </div>)}
               </div>
             )}
           </div>
