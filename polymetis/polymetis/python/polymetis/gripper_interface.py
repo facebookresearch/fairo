@@ -38,7 +38,7 @@ class GripperInterface:
         """
         return self.grpc_connection.GetState(EMPTY)
 
-    def goto(self, width: float, speed: float, force: float, blocking=True):
+    def goto(self, width: float, speed: float, force: float, blocking: bool = True):
         """Commands the gripper to a certain width
         Args:
             pos: Target width
@@ -51,7 +51,7 @@ class GripperInterface:
             blocking=blocking,
         )
 
-    def grasp(self, speed: float, force: float, blocking=True):
+    def grasp(self, speed: float, force: float, blocking: bool = True):
         """Commands the gripper to a certain width
         Args:
             vel: Velocity of the movement
