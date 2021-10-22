@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name="facebook_robotics_platform",
-    version="0.0.1",
+    version="0.0.2",
     author="Leonid Shamis",
     package_dir={"": "src"},
     packages=find_packages(
@@ -13,9 +13,10 @@ setup(
     ),
     python_requires=">=3.7",
     install_requires=[
-        "aiodocker",
-        "docker",
-        "six",
-        "alephzero==v0.3",
+        "aiodocker>=0.21.0",
+        "alephzero>=v0.3",
+        "docker>=5.0.0",
+        "psutil>=5.8.0",
+        "six>=1.16.0",
     ],
 )

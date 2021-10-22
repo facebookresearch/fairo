@@ -1,10 +1,11 @@
 from facebook_robotics_platform.common import util
-from facebook_robotics_platform.setup.runtime.base import BaseRuntime
+from facebook_robotics_platform.setup.runtime.base import BaseLauncher, BaseRuntime
 from facebook_robotics_platform.setup.process import ProcDef
 import a0
 import aiodocker
 import argparse
 import asyncio
+import contextlib
 import docker
 import io
 import json
@@ -13,7 +14,7 @@ import pwd
 import typing
 
 
-class Launcher:
+class Launcher(BaseLauncher):
     def __init__(
         self,
         image,
@@ -84,6 +85,9 @@ class Launcher:
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()
 
+        proc_info = await self.proc.show()
+        self.proc_pid = proc_info["State"]["Pid"]
+
         async def log_pipe(logger, pipe):
             async for line in pipe:
                 logger(line)
@@ -91,9 +95,13 @@ class Launcher:
         await asyncio.gather(
             log_pipe(util.stdout_logger(), self.proc.log(stdout=True, follow=True)),
             log_pipe(util.stderr_logger(), self.proc.log(stderr=True, follow=True)),
+            self.log_psutil(),
             self.death_handler(),
             self.command_handler(),
         )
+
+    def get_pid(self):
+        return self.proc_pid
 
     async def death_handler(self):
         await self.proc.wait()
@@ -114,10 +122,8 @@ class Launcher:
 
     async def handle_down(self):
         await self.proc.stop()
-        try:
+        with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
-        except asyncio.TimeoutError:
-            pass
         await self.proc.delete(force=True)
 
 

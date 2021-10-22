@@ -36,7 +36,9 @@ def all_nearby_objects(get_blocks, pos, boring_blocks, passable_blocks, max_radi
     i.e. this function returns list[list[((x, y, z), (id, meta))]]
     """
     pos = np.round(pos).astype("int32")
-    mask, off, blocks = all_close_interesting_blocks(get_blocks, pos, boring_blocks, passable_blocks, max_radius)
+    mask, off, blocks = all_close_interesting_blocks(
+        get_blocks, pos, boring_blocks, passable_blocks, max_radius
+    )
     components = connected_components(mask)
     logging.debug("all_nearby_objects found {} objects near {}".format(len(components), pos))
     xyzbms = [
@@ -59,7 +61,9 @@ def closest_nearby_object(get_blocks, pos, boring_blocks, passable_blocks):
     return objects[np.argmin(dists)]
 
 
-def all_close_interesting_blocks(get_blocks, pos, boring_blocks, passable_blocks, max_radius=MAX_RADIUS):
+def all_close_interesting_blocks(
+    get_blocks, pos, boring_blocks, passable_blocks, max_radius=MAX_RADIUS
+):
     """Find all "interesting" blocks close to pos, within a max_radius"""
     mx, my, mz = pos[0] - max_radius, pos[1] - max_radius, pos[2] - max_radius
     Mx, My, Mz = pos[0] + max_radius, pos[1] + max_radius, pos[2] + max_radius
@@ -530,22 +534,39 @@ class PerceptionWrapper:
         if self.agent.count % self.perceive_freq != 0 and not force:
             return CraftAssistPerceptionData()
 
+        """
+        perceive_info is a dictionary with the following possible members :
+         - in_perceive_area(dict) : member that has following possible children in "areas_to_perceive" -
+            - block_object_attributes(list) - List of [obj, color_tags] of all nearby objects
+            - holes(list) - List of non-zero length holes where each item in list is (connected_component, idmeta)
+            - airtouching_blocks(list) - List of [shifted_coordinates, list of tags]
+         - near agent (dict) : member that has following possible children near the agent's location  -
+            - block_object_attributes(list) - List of [obj, color_tags] of all nearby objects
+            - holes(list) - List of non-zero length holes where each item in list is (connected_component, idmeta)
+            - airtouching_blocks(list) - List of [shifted_coordinates, list of tags]
+        """
         perceive_info = {}
+        perceive_info["in_perceive_area"] = {} # dictionary with children: block objects and holes in perception area
+        perceive_info["near_agent"] = {} # dictionary with children: block objects and holes near the agent
         # 1. perceive blocks in marked areas to perceive
         for pos, radius in self.agent.areas_to_perceive:
             # 1.1 Get block objects and their colors
             obj_tag_list = []
-            for obj in all_nearby_objects(self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius):
+            for obj in all_nearby_objects(
+                self.agent.get_blocks, pos, self.boring_blocks, self.passable_blocks, radius
+            ):
                 color_tags = []
                 for idm in obj:
                     type_name = maybe_get_type_name(idm, self.block_data)
                     color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
                 obj_tag_list.append([obj, color_tags])
-            perceive_info["in_perceive_area"] = perceive_info.get("in_perceive_area", {})
-            perceive_info["in_perceive_area"]["block_object_attributes"] = obj_tag_list if obj_tag_list else None
+            perceive_info["in_perceive_area"]["block_object_attributes"] = (
+                obj_tag_list if obj_tag_list else None
+            )
             # 1.2 Get all holes in perception area
             holes = get_all_nearby_holes(
-                self.agent, pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius)
+                self.agent, pos, self.block_data, self.agent.low_level_data["fill_idmeta"], radius
+            )
             perceive_info["in_perceive_area"]["holes"] = holes if holes else None
             # 1.3 Get all air-touching blocks in perception area
             blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
@@ -562,7 +583,9 @@ class PerceptionWrapper:
 
         # 2. perceive blocks and their colors near the agent
         near_obj_tag_list = []
-        for objs in all_nearby_objects(self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks):
+        for objs in all_nearby_objects(
+            self.agent.get_blocks, self.agent.pos, self.boring_blocks, self.passable_blocks
+        ):
             color_tags = []
             for obj in objs:
                 idm = obj[1]
@@ -570,14 +593,17 @@ class PerceptionWrapper:
                 color_tags.extend(self.color_data["name_to_colors"].get(type_name, []))
             near_obj_tag_list.append([objs, color_tags])
         perceive_info["near_agent"] = perceive_info.get("near_agent", {})
-        perceive_info["near_agent"]["block_object_attributes"] = near_obj_tag_list if near_obj_tag_list else None
+        perceive_info["near_agent"]["block_object_attributes"] = (
+            near_obj_tag_list if near_obj_tag_list else None
+        )
         # 3. Get all holes near agent
         holes = get_all_nearby_holes(
             self.agent,
             self.agent.pos,
             self.block_data,
             self.agent.low_level_data["fill_idmeta"],
-            radius=self.radius)
+            radius=self.radius,
+        )
         perceive_info["near_agent"]["holes"] = holes if holes else None
         # 4. Get all air-touching blocks near agent
         blocktypes, shifted_c, tags = get_nearby_airtouching_blocks(
@@ -592,8 +618,10 @@ class PerceptionWrapper:
         if tags and len(shifted_c) > 0:
             perceive_info["near_agent"]["airtouching_blocks"] = [shifted_c, tags]
 
-        return CraftAssistPerceptionData(in_perceive_area=perceive_info["in_perceive_area"],
-                                         near_agent=perceive_info["near_agent"])
+        return CraftAssistPerceptionData(
+            in_perceive_area=perceive_info["in_perceive_area"],
+            near_agent=perceive_info["near_agent"],
+        )
 
 
 def build_safe_diag_adjacent(bounds):

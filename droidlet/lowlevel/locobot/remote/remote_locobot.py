@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 # python -m Pyro4.naming -n <MYIP>
 import Pyro4
 from pyrobot import Robot
+from pyrobot.locobot.camera import DepthImgProcessor
 import numpy as np
 from scipy.spatial.transform import Rotation
 import logging
@@ -11,11 +12,11 @@ import os
 import json
 import skfmm
 import skimage
-from pyrobot.locobot.camera import DepthImgProcessor
 from slam_pkg.slam import Slam
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
+Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
 @Pyro4.expose
@@ -31,14 +32,12 @@ class RemoteLocobot(object):
     def __init__(self, backend="locobot", backend_config=None, noisy=False):
         if backend == "locobot":
             base_config_dict = {"base_controller": "proportional"}
-            arm_config_dict = dict(moveit_planner="ESTkConfigDefault")
             self._robot = Robot(
                 backend,
                 use_base=True,
-                use_arm=True,
+                use_arm=False,
                 use_camera=True,
                 base_config=base_config_dict,
-                arm_config=arm_config_dict,
             )
 
             self._dip = DepthImgProcessor()
@@ -71,6 +70,7 @@ class RemoteLocobot(object):
         if hasattr(self, "_robot"):
             del self._robot
         backend_config = self.backend_config
+
         self._robot = Robot("habitat", common_config=backend_config)
         # todo: a bad package seems to override python logging after the line above is run.
         # So, all `logging.warn` and `logging.info` calls are failing to route

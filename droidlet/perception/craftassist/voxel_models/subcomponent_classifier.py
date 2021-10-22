@@ -46,7 +46,9 @@ class SubcomponentClassifierWrapper:
                 as opposed to waiting for perceive_freq steps (default: False)
 
         """
+
         perceive_info = {}
+        perceive_info["labeled_blocks"] = {} # Dict with mapping: label -> [location of blocks with this label]
         if self.perceive_freq == 0 and not force:
             return CraftAssistPerceptionData()
         if self.perceive_freq > 0 and self.agent.count % self.perceive_freq != 0 and not force:
@@ -91,7 +93,6 @@ class SubcomponentClassifierWrapper:
                         label2blocks[l].append(b)
                     else:
                         label2blocks[l] = [b]
-            perceive_info["labeled_blocks"] = {}
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore
                 if not contaminated(blocks):
