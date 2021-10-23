@@ -282,9 +282,10 @@
   }
   
   window.onmessage = (event) => {
+    data = JSON.parse(event.data);
     // event.data will be the data sent from the iframe
-    console.log(event.data);
-    if (event.data == "timerOFF") recordInteractTime();
+    console.log(data);
+    if (data.msg == "timerOFF") recordInteractTime();
     // In the future can also use this to record interaction quality scores
     checkSubmitDisplay();
   };
