@@ -134,7 +134,7 @@ class CartesianSpacePD1(toco.ControlModule):
         Returns:
             Output wrench of shape (6,)
         """
-        # Compute pose error
+        # Compute pose error (from https://frankaemika.github.io/libfranka/cartesian_impedance_control_8cpp-example.html)
         pos_err = pos_desired - pos_current
 
         quat_curr_inv = R.functional.invert_quaternion(quat_current)
@@ -155,7 +155,8 @@ class CartesianSpacePD(CartesianSpacePD1):
     """
     PD feedback control in SE3 pose space
 
-    Same as PoseSpacePD1 but with torchcontrol.transform.TransformationObj inputs
+    Logically identical as PoseSpacePD1 but with torchcontrol.transform.TransformationObj inputs.
+    Slower implementation due to object creation and member access.
     """
 
     def forward(
