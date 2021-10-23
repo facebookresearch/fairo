@@ -38,7 +38,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-import droidlet.lowlevel.locobot.rotation as rotation
+import droidlet.lowlevel.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
 

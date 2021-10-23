@@ -27,7 +27,6 @@ class Perception:
 
     def __init__(self, model_data_dir, default_keypoints_path=False):
         self.model_data_dir = model_data_dir
-
         def slow_perceive_init(weights_dir):
             return AttributeDict(
                 {
@@ -79,7 +78,6 @@ class Perception:
         """Called by the core event loop for the agent to run all perceptual
         models and get the state. It fetches the results of
         SlowPerception if they are ready.
-
         Args:
             force (boolean): set to True to force waiting on the SlowPerception models to finish, and execute
                 all perceptual models to execute sequentially (doing that is a good debugging tool)
