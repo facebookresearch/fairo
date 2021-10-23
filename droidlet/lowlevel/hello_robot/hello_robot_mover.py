@@ -57,11 +57,12 @@ class HelloRobotMover(MoverInterface):
 
     def __init__(self, ip=None):
         self.bot = Pyro4.Proxy("PYRONAME:remotehellorobot@" + ip)
+        self.cam = Pyro4.Proxy("PYRONAME:remotehellorealsense@" + ip)
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
-        intrinsic_mat = np.asarray(safe_call(self.bot.get_intrinsics))
+        intrinsic_mat = np.asarray(safe_call(self.cam.get_intrinsics))
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-        img_resolution = safe_call(self.bot.get_img_resolution)
+        img_resolution = safe_call(self.cam.get_img_resolution)
         img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
@@ -101,7 +102,7 @@ class HelloRobotMover(MoverInterface):
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            self.bot.go_to_relative(xyt, close_loop=True, use_dslam=use_dslam)
+            safe_call(self.bot.go_to_relative, xyt, close_loop=True, use_dslam=use_dslam)
 
     def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
         """Command to execute a move to an absolute position.
@@ -189,7 +190,7 @@ class HelloRobotMover(MoverInterface):
         Returns:
             an RGBDepth object
         """
-        rgb, depth, rot, trans = self.bot.get_pcd_data()
+        rgb, depth, rot, trans = self.cam.get_pcd_data()
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         depth = np.asarray(depth)

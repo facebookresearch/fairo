@@ -39,7 +39,6 @@ from droidlet.interpreter.robot import (
 )
 from droidlet.dialog.robot import LocoBotCapabilities
 import droidlet.lowlevel.rotation as rotation
-from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -68,6 +67,7 @@ class LocobotAgent(DroidletAgent):
     coordinate_transforms = rotation
 
     def __init__(self, opts, name="Locobot"):
+        self.backend = opts.backend
         super(LocobotAgent, self).__init__(opts)
         logging.info("LocobotAgent.__init__ started")
         self.agent_type = "locobot"
@@ -83,7 +83,12 @@ class LocobotAgent(DroidletAgent):
         self.point_targets = []
         self.init_event_handlers()
         # list of (prob, default function) pairs
-        self.visible_defaults = [(1.0, default_behaviors.explore)]
+        if self.backend == 'habitat':
+            self.visible_defaults = [(1.0, default_behaviors.explore)]
+        elif self.backend == 'hellorobot':
+            self.visible_defaults = []
+        else:
+            raise RuntimeError("Unknown backend specified {}" % (self.backend, ))
         self.interaction_logger = InteractionLogger()
         if os.path.exists("annotation_data/rgb"):
             shutil.rmtree("annotation_data/rgb")
@@ -231,10 +236,11 @@ class LocobotAgent(DroidletAgent):
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()
         x, y, yaw = xyz
-        sio.emit(
-            "map",
-            {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
-        )
+        if self.backend == 'habitat':
+            sio.emit(
+                "map",
+                {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
+            )
 
         previous_objects = DetectedObjectNode.get_all(self.memory)
         # perception_output is a namedtuple of : new_detections, updated_detections, humans
@@ -261,7 +267,12 @@ class LocobotAgent(DroidletAgent):
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
-        self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
+        if self.backend == 'habitat':
+            from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+            self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
+        else:
+            from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
+            self.mover = HelloRobotMover(ip=self.opts.ip)
 
     def get_player_struct_by_name(self, speaker_name):
         p = self.memory.get_player_by_name(speaker_name)
