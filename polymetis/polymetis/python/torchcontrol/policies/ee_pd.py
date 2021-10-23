@@ -42,9 +42,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.impedance = toco.modules.feedback.OperationalSpacePD(
-            Kp, Kd, self.robot_model
-        )
+        self.pose_pd = toco.modules.feedback.PoseSpacePD1(Kp, Kd)
 
         # Reference pose
         joint_pos_current = to_tensor(joint_pos_current)
@@ -67,15 +65,26 @@ class CartesianImpedanceControl(toco.PolicyModule):
         joint_vel_current = state_dict["joint_velocities"]
 
         # Control logic
-        torque_feedback = self.impedance(
-            joint_pos_current,
-            joint_vel_current,
+        ee_pos_current, ee_quat_current = self.robot_model.forward_kinematics(
+            joint_pos_current
+        )
+        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+        ee_twist_current = jacobian @ joint_vel_current
+
+        force_feedback = self.pose_pd(
+            ee_pos_current,
+            ee_quat_current,
+            ee_twist_current,
             self.ee_pos_desired,
             self.ee_quat_desired,
+            torch.zeros(6),
         )
+        torque_feedback = jacobian.T @ force_feedback
+
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
         )  # coriolis
+
         torque_out = torque_feedback + torque_feedforward
 
         return {"joint_torques": torque_out}

@@ -54,7 +54,7 @@ def test_joint_pd():
     record_or_compare("module_feedback_jpd", {"output": output})
 
 
-def test_cartesian_pd():
+def test_pose_pd():
     Kp = torch.rand(6, 6)
     Kd = torch.rand(6, 6)
     ee_pose_current = T.from_rot_xyz(
@@ -68,42 +68,9 @@ def test_cartesian_pd():
     ee_twist_current = torch.rand(6)
     ee_twist_desired = torch.rand(6)
 
-    controller = CartesianSpacePD(Kp=Kp, Kd=Kd)
+    controller = PoseSpacePD(Kp=Kp, Kd=Kd)
     output = controller(
         ee_pose_current, ee_twist_current, ee_pose_desired, ee_twist_desired
     )
 
-    record_or_compare("module_feedback_cpd", {"output": output})
-
-
-def test_op_pd():
-    Kp = torch.rand(6, 6)
-    Kd = torch.rand(6, 6)
-    joint_pos_current = torch.rand(N_DOFS)
-    joint_vel_current = torch.rand(N_DOFS)
-    ee_pos_desired = torch.rand(3)
-    ee_quat_desired = R.from_rotvec(torch.rand(3)).as_quat()
-    robot_model = FakeRobotModel(7)
-
-    controller = OperationalSpacePD(Kp=Kp, Kd=Kd, robot_model=robot_model)
-    output = controller(
-        joint_pos_current, joint_vel_current, ee_pos_desired, ee_quat_desired
-    )
-
-    record_or_compare("module_feedback_opd", {"output": output})
-
-
-def test_op_pos_pd():
-    Kp = torch.rand(6, 6)
-    Kd = torch.rand(6, 6)
-    joint_pos_current = torch.rand(N_DOFS)
-    joint_vel_current = torch.rand(N_DOFS)
-    ee_pos_desired = torch.rand(3)
-    robot_model = FakeRobotModel(7)
-
-    controller = OperationalSpacePositionPD(
-        Kp=Kp, Kd=Kd, joint_pos_current=joint_pos_current, robot_model=robot_model
-    )
-    output = controller(joint_pos_current, joint_vel_current, ee_pos_desired)
-
-    record_or_compare("module_feedback_oppd", {"output": output})
+    record_or_compare("module_feedback_ppd", {"output": output})
