@@ -359,7 +359,7 @@ class DroidletAgent(BaseAgent):
     def maybe_run_slow_defaults(self):
         """Pick a default task task to run
         with a low probability"""
-        if self.memory.task_stack_peek() or len(self.dialogue_manager.dialogue_stack) > 0:
+        if self.memory.task_stack_peek():
             return
 
         # default behaviors of the agent not visible in the game
