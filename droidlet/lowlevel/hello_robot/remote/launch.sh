@@ -14,5 +14,8 @@ BGPID=$!
 sleep 4
 
 echo $ip
-python3 ./remote_hello_robot.py --ip $ip
+python3 ./remote_hello_robot.py --ip $ip &
 BGPID2=$!
+
+python3 ./remote_hello_realsense.py --ip $ip
+BGPID3=$!

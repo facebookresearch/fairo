@@ -25,34 +25,12 @@ def transform_global_to_base(XYT, current_pose):
 from math import *
 import time
 
-ctr = 1
-def save_rgbd(rgb, depth):
-    global ctr
-    if ctr < 10:
-        depth_dir = '~/data/depth'
-        np.save(depth_dir + "/{:05d}.npy".format(ctr), depth)
-
-        # pcd_dir = '~/data/pcd'
-        # np.save(pcd_dir + "/{:05d}.npy".format(ctr), pts)
-
-        img_dir = '~/data/rgb'
-        cv2.imwrite(
-            img_dir + "/{:05d}.jpg".format(ctr),
-            cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB),
-        )
-        ctr += 1
-    print(f'ctr {ctr}')
-
 def is_obstacle_ahead(dist, depth_fn): 
     rgb, depth_map = depth_fn()
     depth_thresh = 5 # Threshold for SAFE distance (in m)
 
     # Mask to segment regions with depth less than threshold
     mask = cv2.inRange(depth_map,0,depth_thresh)
-    # plt.figure(figsize=(12 ,8), constrained_layout=True)
-    # ax1 = plt.subplot(1, 5, 1)
-    # ax1.imshow(cv2.bitwise_and(rgb, rgb, mask=mask))
-    # ax1.set_title('masked RGB, depth < 5m')
     
     obstacle_dist, _ = cv2.meanStdDev(depth_map, mask=mask)
     obstacle_dist = np.squeeze(obstacle_dist)
@@ -65,10 +43,6 @@ def is_obstacle_ahead(dist, depth_fn):
         edges = cv2.Canny(image_gray, 100, 200)
         edges = cv2.dilate(edges, None)
         edges = cv2.erode(edges, None)
-        # ax2 = plt.subplot(1, 5, 2)
-        # ax2.imshow(edges)
-        # ax2.set_title('Edges detected')
-#         plt.show()
 
         # Contour detection 
         contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -85,8 +59,6 @@ def is_obstacle_ahead(dist, depth_fn):
                 # finding average depth of region represented by the largest contour 
                 cv2.drawContours(mask3, cnts, i, (255), -1)
                 cv2.drawContours(mask2, cnts, i, (255), -1)
-#                 plt.imshow(mask3)
-#                 plt.show()
                 depth_mean, _ = cv2.meanStdDev(depth_map, mask=mask3)
                 depth_mean = np.squeeze(depth_mean)
                 # pick the contour with the minimum depth average
@@ -97,19 +69,6 @@ def is_obstacle_ahead(dist, depth_fn):
         min_mask = np.zeros_like(mask)
         cv2.drawContours(min_mask, cnts, minix, (200), -1)
         
-        # ax3 = plt.subplot(1, 5, 3)
-        # ax3.imshow(mask2)
-        # ax3.set_title('Contours detected')
-        
-        # ax4 = plt.subplot(1, 5, 4)
-        # ax4.imshow(cv2.bitwise_and(rgb, rgb, mask=mask2))
-        # ax4.set_title('Contours + RGB')
-        
-        # ax5 = plt.subplot(1, 5, 5)
-        # ax5.imshow(cv2.bitwise_and(rgb, rgb, mask=min_mask))
-        # ax5.set_title('Contour detected as obstacle')
-        
-        # plt.show()
         depth_mean, _ = cv2.meanStdDev(depth_map, mask=mask2)
         depth_mean = np.squeeze(depth_mean)
         obstacle_dist = min(obstacle_dist, depth_mean) * cos(radians(45))
@@ -120,20 +79,6 @@ def is_obstacle_ahead(dist, depth_fn):
     
     return obstacle_dist < dist
 
-    # rgb, depth = depth_fn()
-    # # save depth frames
-    # # depth /= 1000 # convert to meters
-    # save_rgbd(rgb, depth)
-
-    # c = [int(depth.shape[0]/2), int(depth.shape[1]/2)]
-    # cropped_depth = depth[-200:, c[1]-100:c[1]+100]
-    # # cos(angle by which the camera is rotated downwards)
-    # obstacle_dist = np.min(cropped_depth[cropped_depth > 0]) * cos(radians(45))
-    # print(f'obstacle at {obstacle_dist}, moving {dist}')
-    # if obstacle_dist < dist:
-    #     print(f'OBSTACLE!!')
-    #     return True
-    # return False
 
 def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, depth_fn=None):
         """
@@ -185,18 +130,20 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         if not dryrun:
             print("not a dryrun")
 
-            # check here if obstacle is within dist, return false.
-            if is_obstacle_ahead(abs(dist), depth_fn):
-                return False
+            # # check here if obstacle is within dist, return false.
+            # if is_obstacle_ahead(abs(dist), depth_fn):
+            #     return False
 
             robot.base.translate_by(dist, v_m=0.1)
             robot.push_command()
             time.sleep(5)
+            # TODO: switch to checking robot's status, instead of the sleep
             # time.sleep(0.2)
             # while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
             #     print(robot.base.left_wheel.status['vel'], robot.base.right_wheel.status['vel'])
             #     time.sleep(0.05)
         # second rotate by theta2
+        
         theta_2 = np.sign(theta_2) * (abs(theta_2) % radians(360))
         print("rotate by theta_2", theta_2)
         if not dryrun:
