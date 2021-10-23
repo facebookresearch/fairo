@@ -88,7 +88,7 @@ class JointSpacePD(toco.ControlModule):
         )
 
 
-class PoseSpacePD1(toco.ControlModule):
+class CartesianSpacePD1(toco.ControlModule):
     """
     PD feedback control in SE3 pose space
 
@@ -151,7 +151,7 @@ class PoseSpacePD1(toco.ControlModule):
         return self.Kp @ pose_err + self.Kd @ twist_err
 
 
-class PoseSpacePD(PoseSpacePD1):
+class CartesianSpacePD(CartesianSpacePD1):
     """
     PD feedback control in SE3 pose space
 

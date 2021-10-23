@@ -54,7 +54,7 @@ def test_joint_pd():
     record_or_compare("module_feedback_jpd", {"output": output})
 
 
-def test_pose_pd():
+def test_cartesian_pd():
     Kp = torch.rand(6, 6)
     Kd = torch.rand(6, 6)
     ee_pose_current = T.from_rot_xyz(
@@ -68,9 +68,9 @@ def test_pose_pd():
     ee_twist_current = torch.rand(6)
     ee_twist_desired = torch.rand(6)
 
-    controller = PoseSpacePD(Kp=Kp, Kd=Kd)
+    controller = CartesianSpacePD(Kp=Kp, Kd=Kd)
     output = controller(
         ee_pose_current, ee_twist_current, ee_pose_desired, ee_twist_desired
     )
 
-    record_or_compare("module_feedback_ppd", {"output": output})
+    record_or_compare("module_feedback_cpd", {"output": output})
