@@ -42,14 +42,8 @@ class LocoInterpreter(Interpreter):
     execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
-        super().__init__(speaker, action_dict, **kwargs)
-        self.speaker = speaker
-        self.action_dict = action_dict
-        self.provisional: Dict = {}
-        self.action_dict_frozen = False
-        self.loop_data = None
-        self.archived_loop_data = None
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
         self.default_debug_path = "debug_interpreter.txt"
         self.post_process_loc = post_process_loc
         add_default_locs(self)

@@ -94,11 +94,12 @@ class BaseCraftassistTestCase(unittest.TestCase):
         )
         if len(interpreter_mems) == 0 and not self.agent.memory.task_stack_peek():
             stop = True
+
         # stuck waiting for answer?
-        _, task_mems = self.agent.memory.basic_search(
+        _, answer_task_mems = self.agent.memory.basic_search(
             "SELECT MEMORY FROM Task WHERE (action_name=awaitresponse AND prio>-1)"
         )
-        if task_mems and not any([m.finished for m in task_mems]):
+        if answer_task_mems and not any([m.finished for m in answer_task_mems]):
             stop = True
         if stop_on_chat and self.agent.get_last_outgoing_chat():
             stop = True

@@ -33,29 +33,30 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
     def test_come_here(self):
         chat = "come here"
         self.add_incoming_chat(chat, self.speaker)
-        DroidletAgent.do_language_perception(self.agent)
+        nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
+        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
+            nlu_perceive_output
+        )
+        if received_chats_flag:
+            DroidletAgent.process_language_perception(
+                self.agent, speaker, chat, preprocessed_chat, chat_parse
+            )
         self.flush()
-        for triple in self.agent.memory.get_triples(obj_text="unprocessed"):
-            self.agent.memory.untag(subj_memid=triple[0], tag_text="unprocessed")
         self.assertLessEqual(euclid_dist(self.agent.pos, self.get_speaker_pos()), 1)
 
     def test_stop(self):
+        # FIXME maybe agent should be moving first?
         chat = "stop"
         self.add_incoming_chat(chat, self.speaker)
-        # get logical form
-        preprocessed_chat, chat_parse = self.agent.perception_modules[
-            "language_understanding"
-        ].get_parse(chat)
-        chat_memid = self.agent.memory.add_chat(
-            self.agent.memory.get_player_by_name(self.speaker).memid, preprocessed_chat
+        nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
+        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
+            nlu_perceive_output
         )
-        logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
-        self.agent.memory.add_triple(
-            subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-        )
-        self.agent.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+        if received_chats_flag:
+            DroidletAgent.process_language_perception(
+                self.agent, speaker, chat, preprocessed_chat, chat_parse
+            )
         self.flush()
-        self.agent.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
 
 
 if __name__ == "__main__":

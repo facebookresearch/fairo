@@ -224,7 +224,9 @@ class LocobotAgent(DroidletAgent):
         self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
 
     def perceive(self, force=False):
+        # 1. perceive from NLU parser
         super().perceive(force=force)
+        # 2. perceive from robot perception modules
         self.perception_modules["self"].perceive(force=force)
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()

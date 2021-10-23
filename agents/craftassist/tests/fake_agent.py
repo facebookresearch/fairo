@@ -348,10 +348,10 @@ class FakeAgent(DroidletAgent):
             "get_locs_from_entity": get_locs_from_entity,
         }
         self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
-            opts=self.opts,
+            self.memory,
+            dialogue_object_classes,
+            DialogueObjectMapper,
+            self.opts,
             low_level_interpreter_data=low_level_interpreter_data,
         )
 
@@ -367,35 +367,33 @@ class FakeAgent(DroidletAgent):
             self.recorder.record_world()
         super().step()
 
+    def perceive(self, force=False):
+        # clear the chat buffer
+        self.get_incoming_chats()
+        if self.logical_form:  # use the logical form as given...
+            DroidletAgent.process_language_perception(
+                self,
+                self.logical_form["speaker"],
+                self.logical_form["chatstr"],
+                self.logical_form["chatstr"],
+                self.logical_form["logical_form"],
+            )
+            force = True
+        perception_output = self.perception_modules["low_level"].perceive(force=force)
+        self.areas_to_perceive = self.memory.update(perception_output, self.areas_to_perceive)[
+            "areas_to_perceive"
+        ]
+        if self.do_heuristic_perception:
+            if force or not self.agent.memory.task_stack_peek():
+                # perceive from heuristic perception module
+                heuristic_perception_output = self.perception_modules["heuristic"].perceive()
+                self.memory.update(heuristic_perception_output)
+
     def controller_step(self):
-        if self.logical_form is None:
-            CraftAssistAgent.controller_step(self)
-        else:  # logical form given directly:
-            d = self.logical_form["logical_form"]
-            chatstr = self.logical_form["chatstr"]
-            speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.get_chat_id(
-                self.memory.get_player_by_name(speaker_name).memid, chatstr
-            )
-            logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(
-                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-            )
-            obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker_name, logical_form_memid
-            )
-            self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-            if obj is not None:
-                # TODO (interpreter): rethink this when interpreter is its own object
-                if type(obj) is dict:
-                    obj["task"](self, task_data=obj["data"])
-                elif isinstance(obj, InterpreterBase):
-                    obj.step(self)
-                    if obj.finished:
-                        self.memory.get_mem_by_id(obj.memid).finish()
-                else:
-                    raise Exception("strange obj returned from dialogue manager {}".format(obj))
-            self.logical_form = None
+        CraftAssistAgent.controller_step(self)
+        # if the logical form was set explicitly, clear it, so that it won't keep
+        # being perceived and used to respawn new interpreters
+        self.logical_form = None
 
     def setup_test(self):
         self.task_steps_count = 0
@@ -409,50 +407,11 @@ class FakeAgent(DroidletAgent):
         except IndexError:
             return None
 
-    ########################
-    ##  FAKE .PY METHODS  ##
-    ########################
-
     def task_step(self):
         CraftAssistAgent.task_step(self, sleep_time=0)
 
     def point_at(*args):
         pass
-
-    def perceive(self, force=False):
-        # clear the chat buffer
-        self.get_incoming_chats()
-        # use the logical form as given...
-        if self.logical_form:
-            d = self.logical_form["logical_form"]
-            chatstr = self.logical_form["chatstr"]
-            speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(
-                self.memory.get_player_by_name(speaker_name).memid, chatstr
-            )
-            post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker_name, chat=chatstr, logical_form=d
-            )
-            logical_form_memid = self.memory.add_logical_form(post_processed_parse)
-            self.memory.add_triple(
-                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-            )
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
-            force = True
-
-        perception_output = self.perception_modules["low_level"].perceive(force=force)
-        self.areas_to_perceive = self.memory.update(perception_output, self.areas_to_perceive)[
-            "areas_to_perceive"
-        ]
-        if self.do_heuristic_perception:
-            if force or not self.agent.memory.task_stack_peek():
-                # perceive from heuristic perception module
-                heuristic_perception_output = self.perception_modules["heuristic"].perceive()
-                self.memory.update(heuristic_perception_output)
-
-    ###################################
-    ##  FAKE C++ PERCEPTION METHODS  ##
-    ###################################
 
     def get_blocks(self, xa, xb, ya, yb, za, zb):
         return self.world.get_blocks(xa, xb, ya, yb, za, zb)
@@ -697,18 +656,16 @@ class FakePlayer(FakeAgent):
                     self.logical_form = self.lf_list[0]
                     del self.lf_list[0]
         else:  # logical form given directly:
-            d = self.logical_form["logical_form"]
-            chatstr = self.logical_form["chatstr"]
-            speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.get_chat_id(
-                self.memory.get_player_by_name(speaker_name).memid, chatstr
+            logical_form_memid, chat_memid = DroidletAgent.process_language_perception(
+                self,
+                self.logical_form["speaker"],
+                self.logical_form["chatstr"],
+                self.logical_form["chatstr"],
+                self.logical_form["logical_form"],
             )
-            logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(
-                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-            )
+
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker_name, logical_form_memid
+                self.logical_form["speaker"], logical_form_memid
             )
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
             if obj is not None:

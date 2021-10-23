@@ -287,7 +287,23 @@ class DroidletAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
-    def do_language_perception(self, force=False):
+    def process_language_perception(self, speaker, chat, preprocessed_chat, chat_parse):
+        # add postprocessed chat here
+        chat_memid = self.memory.add_chat(
+            self.memory.get_player_by_name(speaker).memid, preprocessed_chat
+        )
+        post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+            speaker=speaker, chat=chat, logical_form=chat_parse
+        )
+        logical_form_memid = self.memory.add_logical_form(post_processed_parse)
+        self.memory.add_triple(
+            subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+        )
+        # New chat, mark as unprocessed.
+        self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+        return logical_form_memid, chat_memid
+
+    def perceive(self, force=False):
         nlu_perceive_output = self.perception_modules["language_understanding"].perceive(
             force=force
         )
@@ -295,26 +311,8 @@ class DroidletAgent(BaseAgent):
             nlu_perceive_output
         )
         if received_chats_flag:
-            # add postprocessed chat here
-            chat_memid = self.memory.add_chat(
-                self.memory.get_player_by_name(speaker).memid, preprocessed_chat
-            )
-            post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker, chat=chat, logical_form=chat_parse
-            )
-            logical_form_memid = self.memory.add_logical_form(post_processed_parse)
-            self.memory.add_triple(
-                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-            )
-            # New chat, mark as unprocessed.
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
-        return nlu_perceive_output
-
-    def perceive(self, force=False):
+            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
         start_time = datetime.datetime.now()
-        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = self.do_language_perception(
-            force=force
-        )
         if received_chats_flag:
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
@@ -333,7 +331,6 @@ class DroidletAgent(BaseAgent):
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""
-
         obj = self.dialogue_manager.step()
         if not obj:
             # Maybe add default task
@@ -345,6 +342,8 @@ class DroidletAgent(BaseAgent):
             obj["task"](self, task_data=obj["data"])
         elif isinstance(obj, InterpreterBase):
             obj.step(self)
+            if obj.finished:
+                self.memory.get_mem_by_id(obj.memid).finish()
         else:
             raise Exception("strange obj returned from dialogue manager {}".format(obj))
 
