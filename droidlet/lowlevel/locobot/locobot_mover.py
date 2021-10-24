@@ -12,9 +12,6 @@ from prettytable import PrettyTable
 import Pyro4
 import numpy as np
 
-if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
-    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
-
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
@@ -29,14 +26,12 @@ from .locobot_mover_utils import (
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
 )
-from tenacity import retry, stop_after_attempt, wait_fixed
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
-@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))
 def safe_call(f, *args):
     try:
         return f(*args)
@@ -392,18 +387,12 @@ class LoCoBotMover:
         """
         return self.bot.grasp(bounding_box)
 
-    def is_object_in_gripper(self):
-        return self.bot.get_gripper_state() == 2
-
     def explore(self):
         if self.nav_result.ready:
             self.nav_result = safe_call(self.nav.explore)
         else:
             print("navigator executing another call right now")
         return self.nav_result
-
-    def drop(self):
-        return self.bot.open_gripper()
 
     def get_obstacles_in_canonical_coords(self):
         """
