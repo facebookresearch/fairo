@@ -266,7 +266,7 @@
 
 
 <script>
-  var timerStopped = true;  //change this once the new dashboard is running
+  var timerStopped = true;  //change this once postMessage is working
   var ratingComplete = false;
 
   function checkSubmitDisplay() {
@@ -280,15 +280,6 @@
     ratingComplete = true;
     checkSubmitDisplay();
   }
-  
-  window.onmessage = (event) => {
-    data = JSON.parse(event.data);
-    // event.data will be the data sent from the iframe
-    console.log(data);
-    if (data.msg == "timerOFF") recordInteractTime();
-    // In the future can also use this to record interaction quality scores
-    checkSubmitDisplay();
-  };
 
   const start = Date.now();
   var readTimestamp = start;
@@ -299,8 +290,15 @@
     readTime = Math.floor((readTimestamp - start)/1000);
     document.getElementById("instructionsReadTime").value = readTime;
 
-    //Also take this opportunity to hide the submit button since window onLoad doesn't work properly for some reason
+    //Also take this opportunity to do some other housekeeping that doesn't work well with MTurk...
     document.getElementsByClassName("btn-default")[0].classList.add("hidden");
+    window.addEventListener("message", (event) => {
+      data = JSON.parse(event.data);
+      console.log(data);
+      if (data.msg == "timerOFF") recordInteractTime();
+      // In the future can also use this to record interaction quality scores
+      checkSubmitDisplay();
+    }, false);
   }
 
   function recordInteractTime() {
