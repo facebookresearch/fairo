@@ -88,7 +88,7 @@ class JointSpacePD(toco.ControlModule):
         )
 
 
-class CartesianSpacePD1(toco.ControlModule):
+class CartesianSpacePDFast(toco.ControlModule):
     """
     PD feedback control in SE3 pose space
 
@@ -151,11 +151,11 @@ class CartesianSpacePD1(toco.ControlModule):
         return self.Kp @ pose_err + self.Kd @ twist_err
 
 
-class CartesianSpacePD(CartesianSpacePD1):
+class CartesianSpacePD(CartesianSpacePDFast):
     """
     PD feedback control in SE3 pose space
 
-    Logically identical as PoseSpacePD1 but with torchcontrol.transform.TransformationObj inputs.
+    Logically identical as CartesianSpacePDFast but with torchcontrol.transform.TransformationObj inputs.
     Slower implementation due to object creation and member access.
     """
 

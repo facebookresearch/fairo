@@ -31,8 +31,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
             joint_pos_current: Current joint positions
             Kp: P gains in Cartesian space
             Kd: D gains in Cartesian space
-            urdf_path: Path to robot urdf
-            ee_link_name: Name of designated end-effector joint as specified in the urdf
+            robot_model: A robot model from torchcontrol.models
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
         """
         super().__init__()
@@ -42,7 +41,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
         self.invdyn = toco.modules.feedforward.InverseDynamics(
             self.robot_model, ignore_gravity=ignore_gravity
         )
-        self.pose_pd = toco.modules.feedback.PoseSpacePD1(Kp, Kd)
+        self.pose_pd = toco.modules.feedback.CartesianSpacePDFast(Kp, Kd)
 
         # Reference pose
         joint_pos_current = to_tensor(joint_pos_current)
@@ -51,6 +50,8 @@ class CartesianImpedanceControl(toco.PolicyModule):
         )
         self.ee_pos_desired = torch.nn.Parameter(ee_pos_current)
         self.ee_quat_desired = torch.nn.Parameter(ee_quat_current)
+        self.ee_vel_desired = torch.nn.Parameter(torch.zeros(3))
+        self.ee_rvel_desired = torch.nn.Parameter(torch.zeros(3))
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
@@ -77,7 +78,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
             ee_twist_current,
             self.ee_pos_desired,
             self.ee_quat_desired,
-            torch.zeros(6),
+            torch.cat([self.ee_vel_desired, self.ee_rvel_desired]),
         )
         torque_feedback = jacobian.T @ force_feedback
 

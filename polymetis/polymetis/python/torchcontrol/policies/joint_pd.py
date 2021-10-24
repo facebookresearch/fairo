@@ -30,8 +30,7 @@ class JointImpedanceControl(toco.PolicyModule):
             joint_pos_current: Current joint positions
             Kp: P gains in joint space
             Kd: D gains in joint space
-            urdf_path: Path to robot urdf
-            ee_link_name: Name of designated end-effector joint as specified in the urdf
+            robot_model: A robot model from torchcontrol.models
             ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
         """
         super().__init__()
@@ -45,6 +44,7 @@ class JointImpedanceControl(toco.PolicyModule):
 
         # Reference pose
         self.joint_pos_desired = torch.nn.Parameter(to_tensor(joint_pos_current))
+        self.joint_vel_desired = torch.zeros_like(self.joint_pos_desired)
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         """
@@ -63,7 +63,7 @@ class JointImpedanceControl(toco.PolicyModule):
             joint_pos_current,
             joint_vel_current,
             self.joint_pos_desired,
-            torch.zeros_like(self.joint_pos_desired),
+            self.joint_vel_desired,
         )
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)

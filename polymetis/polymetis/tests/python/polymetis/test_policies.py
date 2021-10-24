@@ -45,12 +45,12 @@ test_parametrized_data = [
         None,
     ),
     (
-        toco.policies.OperationalSpaceMoveTo,
+        toco.policies.CartesianSpaceMoveTo,
         dict(
             joint_pos_current=torch.rand(num_dofs),
             ee_pos_desired=torch.rand(3),
-            Kp=torch.rand(num_dofs, num_dofs),
-            Kd=torch.rand(num_dofs, num_dofs),
+            Kp=torch.rand(6, 6),
+            Kd=torch.rand(6, 6),
             robot_model=robot_model,
             time_to_go=time_to_go,
             hz=hz,
