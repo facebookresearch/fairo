@@ -9,6 +9,8 @@ ARG AWS_SECRET_ACCESS_KEY
 RUN time git clone --recursive --shallow-submodules --depth 1 --branch ${current_branch} --jobs 5 https://github.com/facebookresearch/fairo
 WORKDIR fairo
 
+RUN source activate /root/miniconda3/envs/droidlet
+RUN mamba install -r conda.txt -y
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
 
