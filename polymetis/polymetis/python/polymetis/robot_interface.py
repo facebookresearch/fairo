@@ -277,6 +277,13 @@ class RobotInterface(BaseRobotInterface):
 
         self.use_grav_comp = use_grav_comp
 
+        # Default Cartesian gains (equivalent to joint gains at home pose)
+        j_home = self.robot_model.compute_jacobian(self.home_pose)
+        j_home_pinv = torch.pinverse(j_home)
+        j_home_t_pinv = torch.pinverse(j_home.T)
+        self.Kx_default = j_home_t_pinv @ self.Kq_default @ j_home_pinv
+        self.Kxd_default = j_home_t_pinv @ self.Kqd_default @ j_home_pinv
+
     """
     Setter methods
     """
@@ -378,8 +385,8 @@ class RobotInterface(BaseRobotInterface):
         position: torch.Tensor,
         orientation: torch.Tensor = None,
         time_to_go: float = None,
-        Kq: torch.Tensor = None,
-        Kqd: torch.Tensor = None,
+        Kx: torch.Tensor = None,
+        Kxd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation)."""
@@ -389,10 +396,10 @@ class RobotInterface(BaseRobotInterface):
 
         if time_to_go is None:
             time_to_go = self.time_to_go_default
-        if Kq is None:
-            Kq = self.Kq_default
-        if Kqd is None:
-            Kqd = self.Kqd_default
+        if Kx is None:
+            Kx = self.Kx_default
+        if Kxd is None:
+            Kxd = self.Kxd_default
 
         joint_pos_current = self.get_joint_angles()
         torch_policy = toco.policies.CartesianSpaceMoveTo(
@@ -400,8 +407,8 @@ class RobotInterface(BaseRobotInterface):
             ee_pos_desired=position,
             ee_quat_desired=orientation,
             time_to_go=time_to_go,
-            Kp=Kq,
-            Kd=Kqd,
+            Kp=Kx,
+            Kd=Kxd,
             robot_model=self.robot_model,
             hz=self.hz,
             ignore_gravity=self.use_grav_comp,
