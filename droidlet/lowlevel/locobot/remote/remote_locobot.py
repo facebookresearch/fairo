@@ -9,7 +9,6 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import logging
 import os
-import json
 import skfmm
 import skimage
 from pyrobot.locobot.camera import DepthImgProcessor
@@ -26,31 +25,30 @@ class RemoteLocobot(object):
     """PyRobot interface for the Locobot.
 
     Args:
-        backend (string): the backend for the Locobot ("habitat" for the locobot in Habitat, and "locobot" for the physical LocoBot)
-        (default: locobot)
-        backend_config (dict): the backend config used for connecting to Habitat (default: None)
+        scene_path (str): the path to the scene file to load in habitat
     """
 
-    def __init__(self, backend="locobot", backend_config=None, noisy=False):
-        if backend == "habitat":
-            if backend_config["physics_config"] == "DEFAULT":
-                assets_path = os.path.abspath(
-                    os.path.join(os.path.dirname(__file__), "../tests/test_assets")
-                )
-                backend_config["physics_config"] = os.path.join(
-                    assets_path, "default.phys_scene_config.json"
-                )
-            backend_config["noisy"] = noisy
-            print("backend_config", backend_config)
-            self.backend_config = backend_config
-            # we do it this way to have the ability to restart from the client at arbitrary times
-            self.restart_habitat()
-        else:
-            raise RuntimeError("Unknown backend", backend)
+    def __init__(self, scene_path, noisy=False):
+        backend_config = {
+            "scene_path": scene_path,
+            "physics_config": "DEFAULT"
+        }
+        if backend_config["physics_config"] == "DEFAULT":
+            assets_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../tests/test_assets")
+            )
+
+            backend_config["physics_config"] = os.path.join(
+                assets_path, "default.phys_scene_config.json"
+            )
+        backend_config["noisy"] = noisy
+        print("backend_config", backend_config)
+        self.backend_config = backend_config
+        # we do it this way to have the ability to restart from the client at arbitrary times
+        self.restart_habitat()
 
         # check skfmm, skimage in installed, its necessary for slam
         self._done = True
-        self.backend = backend
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -73,10 +71,7 @@ class RemoteLocobot(object):
 
     def get_img_resolution(self):
         """return height and width"""
-        if self.backend == "habitat":
-            return (512, 512)
-        else:
-            return None
+        return (512, 512)
 
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
@@ -85,17 +80,16 @@ class RemoteLocobot(object):
         # cap anything more than np.power(2,16)~ 65 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
         depth = depth.astype(np.uint16)
-        if self.backend == "habitat":
-            cur_state = self._robot.camera.agent.get_state()
-            cur_sensor_state = cur_state.sensor_states["rgb"]
-            initial_rotation = cur_state.rotation
-            rot_init_rotation = self._robot.camera._rot_matrix(initial_rotation)
-            relative_position = cur_sensor_state.position - cur_state.position
-            relative_position = rot_init_rotation.T @ relative_position
-            cur_rotation = self._robot.camera._rot_matrix(cur_sensor_state.rotation)
-            cur_rotation = rot_init_rotation.T @ cur_rotation
-            return rgb, depth, cur_rotation, -relative_position
-        return None
+
+        cur_state = self._robot.camera.agent.get_state()
+        cur_sensor_state = cur_state.sensor_states["rgb"]
+        initial_rotation = cur_state.rotation
+        rot_init_rotation = self._robot.camera._rot_matrix(initial_rotation)
+        relative_position = cur_sensor_state.position - cur_state.position
+        relative_position = rot_init_rotation.T @ relative_position
+        cur_rotation = self._robot.camera._rot_matrix(cur_sensor_state.rotation)
+        cur_rotation = rot_init_rotation.T @ cur_rotation
+        return rgb, depth, cur_rotation, -relative_position
 
     def go_to_absolute(
         self,
@@ -428,18 +422,11 @@ if __name__ == "__main__":
         default="192.168.0.0",
     )
     parser.add_argument(
-        "--backend",
-        help="PyRobot backend to use (locobot | habitat). Default is locobot",
-        type=str,
-        default="locobot",
-    )
-    parser.add_argument(
-        "--backend_config",
+        "--scene_path",
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
-        type=json.loads,
-        default='{"scene_path": "/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply", \
-            "physics_config": "DEFAULT"}',
+        type=str,
+        default='/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply',
     )
     parser.add_argument(
          "--noisy",
@@ -452,17 +439,15 @@ if __name__ == "__main__":
 
     np.random.seed(123)
 
-    if args.backend == "habitat":
-        # GLContexts in general are thread local
-        # The PyRobot <-> Habitat integration is not thread-aware / thread-configurable,
-        # so our only option is to disable Pyro4's threading, and instead switch to
-        # multiplexing (which isn't too bad)
-        Pyro4.config.SERVERTYPE = "multiplex"
+    # GLContexts in general are thread local
+    # The PyRobot <-> Habitat integration is not thread-aware / thread-configurable,
+    # so our only option is to disable Pyro4's threading, and instead switch to
+    # multiplexing (which isn't too bad)
+    Pyro4.config.SERVERTYPE = "multiplex"
 
     with Pyro4.Daemon(args.ip) as daemon:
         robot = RemoteLocobot(
-            backend=args.backend, 
-            backend_config=args.backend_config,
+            scene_path=args.scene_path,
             noisy=args.noisy,
         )
         robot_uri = daemon.register(robot)

@@ -20,7 +20,7 @@ python -m Pyro4.naming -n $LOCOBOT_IP &
 sleep 3
 
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
+python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP  &
 BGPID=$!
 sleep 45
 conda activate droidlet_env
@@ -29,7 +29,7 @@ kill -9 $BGPID
 sleep 5
 
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
+python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP  &
 BGPID=$!
 sleep 45
 conda activate droidlet_env
@@ -40,7 +40,7 @@ kill -9 $BGPID
 sleep 5
 
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
+python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP  &
 BGPID=$!
 sleep 45
 conda activate droidlet_env
@@ -54,7 +54,7 @@ sleep 5
 
 # start habitat
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
+python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP  &
 BGPID=$!
 sleep 45
 
@@ -73,7 +73,7 @@ pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=droidlet droidlet/lowl
 
 # start habitat
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
+python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP  &
 BGPID=$!
 sleep 45
 
