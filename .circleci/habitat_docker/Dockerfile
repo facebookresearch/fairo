@@ -47,18 +47,9 @@ ADD ./requirements.txt /pip.txt
 RUN conda install mamba -y -c conda-forge
 
 RUN mamba create -n droidlet_env python=3.7 \
-    --file /conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge -y
+    --file /conda.txt -c pytorch -c aihabitat -c open3d-admin -c nvidia -c conda-forge -y
 
 RUN conda init bash && \
     source ~/.bashrc && \
-    source activate /root/miniconda3/envs/droidlet_env && \    
+    source activate /root/miniconda3/envs/droidlet_env && \
     pip install -r /pip.txt
-
-RUN conda create -n habitat_env python=3.7 \
-    habitat-sim headless -c aihabitat -c conda-forge -y
-
-RUN source ~/miniconda3/etc/profile.d/conda.sh && conda activate habitat_env && \
-    conda install Pyro4 opencv scikit-fmm scikit-image scipy numpy matplotlib pyyaml -c conda-forge
-
-RUN source ~/miniconda3/etc/profile.d/conda.sh && conda activate habitat_env && \
-    pip install yacs
