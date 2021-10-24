@@ -281,8 +281,12 @@ class RobotInterface(BaseRobotInterface):
         j_home = self.robot_model.compute_jacobian(self.home_pose)
         j_home_pinv = torch.pinverse(j_home)
         j_home_t_pinv = torch.pinverse(j_home.T)
-        self.Kx_default = j_home_t_pinv @ self.Kq_default @ j_home_pinv
-        self.Kxd_default = j_home_t_pinv @ self.Kqd_default @ j_home_pinv
+        self.Kx_default = torch.diag(
+            j_home_t_pinv @ torch.diag(self.Kq_default) @ j_home_pinv
+        )
+        self.Kxd_default = torch.diag(
+            j_home_t_pinv @ torch.diag(self.Kqd_default) @ j_home_pinv
+        )
 
     """
     Setter methods
