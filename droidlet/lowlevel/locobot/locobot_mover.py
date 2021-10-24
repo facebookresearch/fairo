@@ -78,8 +78,8 @@ class LoCoBotMover:
         """
         Sanity checks all the mover interfaces.
         Checks move by moving the locobot around in a square and reporting L1 drift and total time taken
-        for the three movement modes available to the locobot - using PyRobot slam (vslam),
-        using Droidlet slam (dslam) and without using any slam (default)
+        for the two movement modes available to the locobot - using PyRobot slam (vslam),
+        and without using any slam (default)
         Checks look and point by poiting and looking at the same target.
         """
         self.reset_camera()
@@ -89,10 +89,10 @@ class LoCoBotMover:
         def l1_drift(a, b):
             return round(abs(a[0] - b[0]) + abs(a[1] - b[1]), ndigits=3)
 
-        def execute_move(init_pos, dest_pos, cmd_text, use_map=False, use_dslam=False):
+        def execute_move(init_pos, dest_pos, cmd_text, use_map=False):
             logging.info("Executing {} ... ".format(cmd_text))
             start = time.time()
-            self.move_absolute([dest_pos], use_map=use_map, use_dslam=use_dslam)
+            self.move_absolute([dest_pos], use_map=use_map)
             end = time.time()
             tt = round((end - start), ndigits=3)
             pos_after = self.get_base_pos_in_canonical_coords()
@@ -101,7 +101,7 @@ class LoCoBotMover:
             table.add_row([cmd_text, drift, tt])
             return drift, tt
 
-        def move_in_a_square(magic_text, side=0.3, use_vslam=False, use_dslam=False):
+        def move_in_a_square(magic_text, side=0.3, use_vslam=False):
             """
             Moves the locobot in a square starting from the bottom right - goes left, forward, right, back.
 
@@ -118,40 +118,33 @@ class LoCoBotMover:
                 [pos[0] - side, pos[1], pos[2]],
                 "Move Left " + magic_text,
                 use_map=use_vslam,
-                use_dslam=use_dslam,
             )
             df, tf = execute_move(
                 pos,
                 [pos[0] - side, pos[1] + side, pos[2]],
                 "Move Forward " + magic_text,
                 use_map=use_vslam,
-                use_dslam=use_dslam,
             )
             dr, tr = execute_move(
                 pos,
                 [pos[0], pos[1] + side, pos[2]],
                 "Move Right " + magic_text,
                 use_map=use_vslam,
-                use_dslam=use_dslam,
             )
             db, tb = execute_move(
                 pos,
                 [pos[0], pos[1], pos[2]],
                 "Move Backward " + magic_text,
                 use_map=use_vslam,
-                use_dslam=use_dslam,
             )
             return dl + df + dr + db, tl + tf + tr + tb
 
         # move in a square of side 0.3 starting at current base pos
-        d, t = move_in_a_square("default", side=0.3, use_vslam=False, use_dslam=False)
+        d, t = move_in_a_square("default", side=0.3, use_vslam=False)
         sq_table.add_row(["default", d, t])
 
-        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True, use_dslam=False)
+        d, t = move_in_a_square("use_vslam", side=0.3, use_vslam=True)
         sq_table.add_row(["use_vslam", d, t])
-
-        d, t = move_in_a_square("use_dslam", side=0.3, use_vslam=False, use_dslam=True)
-        sq_table.add_row(["use_dslam", d, t])
 
         print(table)
         print(sq_table)
@@ -191,8 +184,7 @@ class LoCoBotMover:
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-
-    def move_relative(self, xyt_positions, use_dslam=True, blocking=True):
+    def move_relative(self, xyt_positions, blocking=True):
         """
         Command to execute a relative move.
 
@@ -210,7 +202,7 @@ class LoCoBotMover:
             if blocking:
                 self.nav_result.wait()
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=True, blocking=True):
+    def move_absolute(self, xyt_positions, use_map=False, blocking=True):
         """
         Command to execute a move to an absolute position.
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
