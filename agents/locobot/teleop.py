@@ -32,6 +32,7 @@ class O3dViz(threading.Thread):
         super().__init__(*args, **kwargs)
 
     def put(self, name, command, obj):
+        # pass
         self.q.put([name, command, obj])
 
     def run(self):        
@@ -75,16 +76,16 @@ if __name__ == "__main__":
     # or else, those @sio.on calls become no-ops
     dashboard.start()
 
-from droidlet.dialog.dialogue_manager import DialogueManager
-from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from droidlet.base_util import to_player_struct, Pos, Look, Player
-from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
+# from droidlet.dialog.dialogue_manager import DialogueManager
+# from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
+# from droidlet.base_util import to_player_struct, Pos, Look, Player
+# from droidlet.memory.memory_nodes import PlayerNode
+# from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.loco_mc_agent import LocoMCAgent
 from agents.argument_parser import ArgumentParser
-from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
-from droidlet.perception.robot import Perception
-from self_perception import SelfPerception
+# from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
+# from droidlet.perception.robot import Perception
+# from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance, 
     default_behaviors,
@@ -163,23 +164,36 @@ if __name__ == "__main__":
     prev_stg = None
     path_count = 0
 
+    start_time = time.time()
+    x = 1 # displays the frame rate every 1 second
+    counter = 0
+    
     while True:
+        counter += 1
+        if (time.time() - start_time) > x :
+            print("FPS: ", counter / (time.time() - start_time))
+            counter = 0
+            start_time = time.time()
+
+        movement = [0.0, 0.0, 0.3]
+        # mover.move_relative([movement], use_dslam=False)
+
         base_state = mover.get_base_pos_in_canonical_coords()
-        print("base_state: ", base_state)
+        # print("base_state: ", base_state)
         # print("rgb_depth: ", mover.get_rgb_depth())
-        sio.emit("image_settings", log_settings)
-        resolution = log_settings["image_resolution"]
-        quality = log_settings["image_quality"]
+        # sio.emit("image_settings", log_settings)
+        # resolution = log_settings["image_resolution"]
+        # quality = log_settings["image_quality"]
 
-        rgb_depth = mover.get_rgb_depth()
-        serialized_image = rgb_depth.to_struct(resolution, quality)
+        # rgb_depth = mover.get_rgb_depth()
+        # serialized_image = rgb_depth.to_struct(resolution, quality)
 
-        sio.emit("rgb", serialized_image["rgb"])
-        sio.emit("depth", {
-            "depthImg": serialized_image["depth_img"],
-            "depthMax": serialized_image["depth_max"],
-            "depthMin": serialized_image["depth_min"],
-        })
+        # sio.emit("rgb", serialized_image["rgb"])
+        # sio.emit("depth", {
+        #     "depthImg": serialized_image["depth_img"],
+        #     "depthMax": serialized_image["depth_max"],
+        #     "depthMin": serialized_image["depth_min"],
+        # })
 
         pcd = mover.get_current_pcd(in_global=True)
         points = pcd[0]
@@ -212,7 +226,7 @@ if __name__ == "__main__":
         all_points = np.asarray(opcd.points)
         all_colors = np.asarray(opcd.colors)
 
-        print(all_points.shape)
+        # print(all_points.shape)
 
 
         if first:
@@ -227,19 +241,19 @@ if __name__ == "__main__":
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        robot_orientation = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.05,
-                                                       cone_radius=.075,
-                                                       cylinder_height = .50,
-                                                       cone_height = .4,
-                                                       resolution=20)
-        robot_orientation.compute_vertex_normals()
-        robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
+        # robot_orientation = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.05,
+        #                                                cone_radius=.075,
+        #                                                cylinder_height = .50,
+        #                                                cone_height = .4,
+        #                                                resolution=20)
+        # robot_orientation.compute_vertex_normals()
+        # robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
         
-        robot_orientation.translate([y, -x, 0.5], relative=False)
-        robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
-        robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
+        # robot_orientation.translate([y, -x, 0.5], relative=False)
+        # robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
+        # robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
 
-        o3dviz.put('bot_orientation', cmd, robot_orientation)
+        # o3dviz.put('bot_orientation', cmd, robot_orientation)
 
         robot_base = o3d.geometry.TriangleMesh.create_cylinder(radius=.1,
                                                           height=1.,)
@@ -254,8 +268,8 @@ if __name__ == "__main__":
         mover.explore()
         
         # get the SLAM goals
-        goal_loc, goal_loc_map, stg_real, stg_real_g = mover.bot.get_slam_goal()    
-        print('goals: ', goal_loc, goal_loc_map, stg_real, stg_real_g)
+        goal_loc, goal_loc_map, stg_real, stg_real_g = None, None, None, None # mover.bot.get_slam_goal()    
+        # print('goals: ', goal_loc, goal_loc_map, stg_real, stg_real_g)
 
         # plot the final goal
         if goal_loc is not None:
@@ -297,15 +311,15 @@ if __name__ == "__main__":
                 path_count = path_count + 1
             prev_stg = cur_stg
 
-        # get the obstacle map and plot it
-        obstacles = mover.bot.get_map()
-        obstacles = np.asarray(obstacles)
-        obstacles = np.concatenate((-obstacles[:, [1]], -obstacles[:, [0]], np.zeros((obstacles.shape[0], 1))), axis=1)
-        obspcd = o3d.geometry.PointCloud()
-        obspcd.points = o3d.utility.Vector3dVector(obstacles)
-        obspcd.paint_uniform_color([1.0, 0., 0.])
-        obsvox = o3d.geometry.VoxelGrid.create_from_point_cloud(obspcd, 0.03)
-        o3dviz.put('obstacles', cmd, obsvox)                
+        # # get the obstacle map and plot it
+        # obstacles = mover.bot.get_map()
+        # obstacles = np.asarray(obstacles)
+        # obstacles = np.concatenate((-obstacles[:, [1]], -obstacles[:, [0]], np.zeros((obstacles.shape[0], 1))), axis=1)
+        # obspcd = o3d.geometry.PointCloud()
+        # obspcd.points = o3d.utility.Vector3dVector(obstacles)
+        # obspcd.paint_uniform_color([1.0, 0., 0.])
+        # obsvox = o3d.geometry.VoxelGrid.create_from_point_cloud(obspcd, 0.03)
+        # o3dviz.put('obstacles', cmd, obsvox)                
             
         
         time.sleep(0.001)
