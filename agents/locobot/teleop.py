@@ -76,14 +76,6 @@ if __name__ == "__main__":
     # or else, those @sio.on calls become no-ops
     dashboard.start()
 
-# from droidlet.dialog.dialogue_manager import DialogueManager
-# from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-# from droidlet.base_util import to_player_struct, Pos, Look, Player
-# from droidlet.memory.memory_nodes import PlayerNode
-# from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
-# from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
-# from droidlet.perception.robot import Perception
-# from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
     dance, 
     default_behaviors,
@@ -92,9 +84,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-# import droidlet.lowlevel.rotation as rotation
 from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
-# from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -144,7 +134,6 @@ def test_command(sid, commands, yaw_velocity):
 if __name__ == "__main__":
     ip = os.getenv("LOCOBOT_IP")
     print("Connecting to robot at ip: ", ip)
-    # mover = HelloRobotMover(ip=ip)
     mover = LoCoBotMover(ip=ip)
     print("Mover is ready to be operated")
 
@@ -174,24 +163,24 @@ if __name__ == "__main__":
             start_time = time.time()
 
         movement = [0.0, 0.0, 0.3]
-        # mover.move_relative([movement], use_dslam=False)
+        mover.move_relative([movement])
 
         base_state = mover.get_base_pos_in_canonical_coords()
-        # print("base_state: ", base_state)
-        # print("rgb_depth: ", mover.get_rgb_depth())
-        # sio.emit("image_settings", log_settings)
-        # resolution = log_settings["image_resolution"]
-        # quality = log_settings["image_quality"]
+        print("base_state: ", base_state)
+        print("rgb_depth: ", mover.get_rgb_depth())
+        sio.emit("image_settings", log_settings)
+        resolution = log_settings["image_resolution"]
+        quality = log_settings["image_quality"]
 
-        # rgb_depth = mover.get_rgb_depth()
-        # serialized_image = rgb_depth.to_struct(resolution, quality)
+        rgb_depth = mover.get_rgb_depth()
+        serialized_image = rgb_depth.to_struct(resolution, quality)
 
-        # sio.emit("rgb", serialized_image["rgb"])
-        # sio.emit("depth", {
-        #     "depthImg": serialized_image["depth_img"],
-        #     "depthMax": serialized_image["depth_max"],
-        #     "depthMin": serialized_image["depth_min"],
-        # })
+        sio.emit("rgb", serialized_image["rgb"])
+        sio.emit("depth", {
+            "depthImg": serialized_image["depth_img"],
+            "depthMax": serialized_image["depth_max"],
+            "depthMin": serialized_image["depth_min"],
+        })
 
         pcd = mover.get_current_pcd(in_global=True)
         points = pcd[0]
@@ -223,9 +212,6 @@ if __name__ == "__main__":
 
         all_points = np.asarray(opcd.points)
         all_colors = np.asarray(opcd.colors)
-
-        # print(all_points.shape)
-
 
         if first:
             cmd = 'add'
