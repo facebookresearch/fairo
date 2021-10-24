@@ -1,4 +1,5 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+#!/bin/env bash
+set -ex
 
 export PYRO_SERIALIZER='pickle'
 export PYRO_SERIALIZERS_ACCEPTED='pickle'
@@ -11,7 +12,7 @@ sleep 1
 
 echo "Launching environment ..."
 
-default_ip=$(hostname -I)
+default_ip=$(hostname -I | cut -f1 -d" ")
 ip=${LOCOBOT_IP:-$default_ip}
 export LOCAL_IP=$ip
 export LOCOBOT_IP=$ip
@@ -23,7 +24,7 @@ sleep 4
 
 pushd $(dirname ${BASH_SOURCE[0]})
 echo $ip
-python remote_locobot.py --ip $ip --backend habitat &
+python remote_locobot.py --ip $ip $@ &
 BGPID2=$!
 
 sleep 45
