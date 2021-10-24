@@ -382,7 +382,7 @@ class RobotInterface(BaseRobotInterface):
         Kqd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
-        """Uses OperationalSpaceController to move to a desired end-effector position (and, optionally orientation)."""
+        """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation)."""
         assert (
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
@@ -395,7 +395,7 @@ class RobotInterface(BaseRobotInterface):
             Kqd = self.Kqd_default
 
         joint_pos_current = self.get_joint_angles()
-        torch_policy = toco.policies.OperationalSpaceMoveTo(
+        torch_policy = toco.policies.CartesianSpaceMoveTo(
             joint_pos_current=joint_pos_current,
             ee_pos_desired=position,
             ee_quat_desired=orientation,
