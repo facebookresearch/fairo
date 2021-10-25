@@ -20,6 +20,7 @@ class TurkInfo extends Component {
 
   handleClick = () => {
     if (this.state.isTimerOn) {
+      window.parent.postMessage(JSON.stringify({ msg: "timerOFF" }), "*");
       this.setState({
         isTimerOn: false,
         isSessionEnd: true,
@@ -30,6 +31,7 @@ class TurkInfo extends Component {
         turk_worker_id: this.props.stateManager.getTurkWorkerId(),
       });
     } else {
+      window.parent.postMessage(JSON.stringify({ msg: "timerON" }), "*");
       this.setState({
         isTimerOn: true,
         startTime: Date.now(),
@@ -65,15 +67,40 @@ class TurkInfo extends Component {
                   variant="contained"
                   color={this.state.isTimerOn ? "secondary" : "primary"}
                   onClick={this.handleClick.bind(this)}
+                  disabled={this.state.isTimerOn ? minutes < 5 : false}
                 >
                   {this.state.isTimerOn ? "End" : "Start"}
                 </Button>
                 <br />
-                <p>Please click on the button to start the session. </p>
-                <p>
-                  When you finished, click on the button to end the session and
-                  proceed to next steps.
-                </p>
+                {this.state.isTimerOn ? (
+                  <div>
+                    {minutes < 5 ? (
+                      <div>
+                        <p>Please interact with the assistant.</p>
+                        <p>
+                          The 'End' button will appear when 5 minutes have
+                          passed.
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p>
+                          When you've finished interacting with the assistant,
+                          press the 'End' button to proceed to next steps.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <p>Please click on the button to start the session. </p>
+                    <p>
+                      When at least 5 minutes have passed and you are finished,
+                      click on the button to end the session and proceed to next
+                      steps.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

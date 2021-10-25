@@ -22,8 +22,8 @@ logger.addHandler(sh)
 # TODO: Parameterize those
 # This specifies how long jobs should be running before we manually kill them
 IJ_TIMEOUT = 300
-IL_TIMEOUT = IJ_TIMEOUT + 30
-NDL_TIMEOUT = IL_TIMEOUT + 30
+IL_TIMEOUT = IJ_TIMEOUT + 20
+NDL_TIMEOUT = IL_TIMEOUT + 20
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -44,12 +44,12 @@ if __name__ == "__main__":
     instance_num = opts.interaction_job_num
     
     ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
-    batch_id = ij.get_batch_id()
-    listener = InteractionLogListener(batch_id, IL_TIMEOUT)
-    ndl = NSPNewDataListener(batch_id=batch_id, opts=opts, timeout=NDL_TIMEOUT)
+    #batch_id = ij.get_batch_id()
+    #listener = InteractionLogListener(batch_id, IL_TIMEOUT)
+    #ndl = NSPNewDataListener(batch_id=batch_id, opts=opts, timeout=NDL_TIMEOUT)
 
     runner = TaskRunner()
     runner.register_data_generators([ij])
-    runner.register_job_listeners([listener])
-    runner.register_job_listeners([ndl])
+    #runner.register_job_listeners([listener])
+    #runner.register_job_listeners([ndl])
     runner.run()

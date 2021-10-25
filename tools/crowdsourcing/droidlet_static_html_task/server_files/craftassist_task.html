@@ -31,9 +31,7 @@
       <div class="modal-body" id="modal">&nbsp;</div>
 
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-dismiss="modal" type="button">
-          Close
-        </button>
+        <button class="btn btn-primary" id="close-instructions-btn" onclick="recordReadTime()" data-dismiss="modal" type="button" style="display:none">Close</button>
       </div>
     </div>
   </div>
@@ -67,6 +65,19 @@
             <p><b>Imagine you are playing a creative game in a 3-D voxel world and you have access to an assistant (as shown in some screenshots above) that can help you get things done.</b><br />
             <b>Use your imagination and creativity to interact with the assistant. In the setup here, you will be logged in to the voxel world along with the assistant.</b> You can control your position in the 3-D world by clicking on the bottom-left pane and then using the navigation buttons.<br />
             </p>
+          
+            <p><b style="color: red;">
+              IMPORTANT - Please note that you will only get paid if you:
+              <ol>
+                <li>Click "Start" in the bottom right to begin session.</li>
+                <li>Interact with the assistant for the <i>full 5 minutes.</i></li>
+                <li>Click on "End" in the bottom right.</li>
+                <li>Rate the clarity and usability of the HIT.</li>
+                <li>Click on "Submit" button at the bottom.</li>
+              </ol>
+              Please read these instructions carefully!  You should spend 3 minutes reading and understanding.
+            </b></p>
+          </div>
 
             <h5><b style="color:#FF0000;">IMPORTANT: You must click "start" and "end" session in the bottom right pane for your interactions to be recorded!
             
@@ -153,16 +164,151 @@
     height: 1000px;
   "
 >
-<iframe style="width:100%; height:100%;" src="https://${subdomain}.craftassist.io/turk.html?turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+  <div class="row">
+    <!-- Commands Reminder -->
+    <div class="col-xs-2">
+      <div class="panel panel-primary" style="height:1000px;">
+        <div class="panel-heading">
+          <strong>Assistant Capabilities</strong>
+        </div>
+        <p>
+          <ul>
+            <li><b>Move</b> (to a place or structure)</li>
+            <li><b>Build</b> (a shape or structure)</li>
+            <li><b>Destroy</b> (a structure)</li>
+            <li><b>Dance</b></li>
+            <li><b>Get</b> (an object)</li>
+            <li><b>Tag</b> (rename something)</li>
+            <li><b>Dig</b></li>
+            <li><b>Copy</b> (make a copy of an object)</li>
+            <li><b>Undo</b></li>
+            <li><b>Fill</b> (up a hole or structure)</li>
+            <li><b>Spawn</b> (create an animal)</li>
+            <li><b>Answer</b> (a question)</li>
+            <li><b>Stop</b> </li>
+            <li><b>Resume</b> (an earlier action)</li>
+          </ul>
+        </p>
+      </div>
+    </div>
+    <!-- End Commands Reminder -->
+    <div class="col-xs-10">
+      <iframe style="width:100%; height:1000px;" src="https://${subdomain}.craftassist.io/turk.html?turk_experiment_id=${batch}&mephisto_agent_id=${mephisto_agent_id}&turk_worker_id=${provider_worker_id}"></iframe>
+    </div>
+  </div>
+</section>
+
+<section class="container" style="margin-bottom: 20px">
+  <fieldset>
+    <div class="input-group center">
+      <label>Please rate the clarity and usability of this HIT</label>
+      <select class="form-control" name="usability-rating" onchange="usabilityRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="7">7 - Perfect</option>
+        <option value="6">6 - Very good</option>
+        <option value="5">5 - Decent</option>
+        <option value="4">4 - OK</option>
+        <option value="3">3 - Poor</option>
+        <option value="2">2 - Very Poor</option>
+        <option value="1">1 - Unusable</option>
+      </select>
+      <input type="hidden" id="instructionsReadTime" name="instructionsReadTime" value="0">
+      <input type="hidden" id="preInteractTime" name="preInteractTime" value="0">
+      <input type="hidden" id="interactTime" name="interactTime" value="0">
+    </div>
+  </fieldset>
 </section>
 
 
 <script>
+  var timerStopped = false;
+  var ratingComplete = false;
+
+  function checkSubmitDisplay() {
+    if (ratingComplete && timerStopped) {  //Only display the submit button if the worker has interacted with the dashboard and rated usability
+      document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
+      window.scrollTo(0,document.body.scrollHeight);
+    }
+  }
+
+  function usabilityRated() {
+    ratingComplete = true;
+    checkSubmitDisplay();
+  }
+
+  const start = Date.now();
+  var readTimestamp = start;
+  var startButtonTimestamp = start;
+  var stopButtonTimestamp = start;
+
+  function recordReadTime() {
+    readTimestamp = Date.now();
+    readTime = Math.floor((readTimestamp - start)/1000);
+    document.getElementById("instructionsReadTime").value = readTime;
+
+    //Also take this opportunity to do some other housekeeping that doesn't work well with MTurk...
+    document.getElementsByClassName("btn-default")[0].classList.add("hidden");
+    window.addEventListener("message", (event) => {
+      data = JSON.parse(event.data);
+      console.log(data);
+      if (data.msg === "timerON") recordStartButtonTime();
+      if (data.msg === "timerOFF") recordInteractTime();
+      // In the future can also use this to record interaction quality scores
+      checkSubmitDisplay();
+    }, false);
+  }
+
+  function recordStartButtonTime() {
+    startButtonTimestamp = Date.now();
+    preInteractTime = Math.floor((startButtonTimestamp - readTimestamp)/1000);
+    document.getElementById("preInteractTime").value = preInteractTime;
+  }
+
+  function recordInteractTime() {
+    timerStopped = true;
+    stopButtonTimestamp = Date.now();
+    interactTime = Math.floor((stopButtonTimestamp - startButtonTimestamp)/1000);
+    document.getElementById("interactTime").value = interactTime;
+  }
+  
   $(function () {
     modal_body = $("#modal");
     $("#instructions").clone().appendTo(modal_body);
     $(".modal").modal("show");
   });
+
+  var page = 1;
+  function incrementPage(val) {
+    page += val;
+    if (page < 1) page = 1;
+    if (page > 6) page = 6;
+    applyPagination(page);
+  }
+
+  function applyPagination(pg) {
+    page = pg;
+    if (pg === 1) document.getElementById("previous").classList.add("disabled");
+    else document.getElementById("previous").classList.remove("disabled");
+    if (pg === 6) {
+      document.getElementById("next").classList.add("disabled");
+      document.getElementById("close-instructions-btn").style.display = "block";
+    }
+    else document.getElementById("next").classList.remove("disabled");
+    let pgID, btnID;
+    for (let i=1; i<=6; i++) {
+      pgID = "instructions-page-" + i;
+      btnID = "pg" + i;
+      if (i === pg) {
+        document.getElementById(btnID).classList.add("active");
+        document.getElementById(pgID).classList.add("in");
+      }
+      else {
+        document.getElementById(btnID).classList.remove("active");
+        document.getElementById(pgID).classList.remove("in");
+      }
+    }
+  }
+
 </script>
 
 <style type="text/css">
@@ -172,6 +318,21 @@
     border-radius: 5px;
     margin-bottom: 5px;
   }
+
+  #instructions {
+    padding: 10px;
+  }
+
+  .previews {
+    width: 33%;
+    height: 180px;
+  }
+
+  .center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
 
   .input_location {
     background-color: blanchedalmond;

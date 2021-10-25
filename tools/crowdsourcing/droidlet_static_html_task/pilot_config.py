@@ -4,8 +4,8 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-PILOT_ALLOWLIST_QUAL_NAME = "PILOT_ALLOWLIST_QUAL"
-PILOT_BLOCK_QUAL_NAME = "PILOT_BLOCK_QUAL"
+PILOT_ALLOWLIST_QUAL_NAME = "PILOT_ALLOWLIST_QUAL_0920_0"
+PILOT_BLOCK_QUAL_NAME = "PILOT_BLOCK_QUAL_0920_0"
 
 PILOT_QUAL_ANSWERS = {
     "answer_0": "kill_everything",

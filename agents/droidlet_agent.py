@@ -130,32 +130,39 @@ class DroidletAgent(BaseAgent):
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
-            logical_form = {}
-            status = ""
-            try:
-                chat_parse = self.perception_modules["language_understanding"].get_logical_form(
-                    chat=command,
-                    parsing_model=self.perception_modules["language_understanding"].parsing_model,
-                )
-                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                    speaker="dashboard", chat=command, logical_form=chat_parse
-                )
-                logging.debug("logical form is : %r" % (logical_form))
-                status = "Sent successfully"
-            except Exception as e:
-                logging.error("error in sending chat", e)
-                status = "Error in sending chat"
+            status = "Sent successfully"
             # update server memory
-            self.dashboard_memory["chatResponse"][command] = logical_form
             self.dashboard_memory["chats"].pop(0)
             self.dashboard_memory["chats"].append({"msg": command, "failed": False})
             payload = {
                 "status": status,
                 "chat": command,
-                "chatResponse": self.dashboard_memory["chatResponse"][command],
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
+
+        @sio.on("getChatActionDict")
+        def get_chat_action_dict(sid, chat):
+            logging.debug(f"Looking for action dict for command [{chat}] in memory")
+            logical_form = None
+            try:
+                chat_memids, _ = self.memory.basic_search(f"SELECT MEMORY FROM Chat WHERE chat={chat}")
+                logical_form_triples = self.memory.get_triples(
+                    subj=chat_memids[0], pred_text="has_logical_form"
+                )
+                if logical_form_triples:
+                    logical_form = self.memory.get_logical_form_by_id(
+                        logical_form_triples[0][2]
+                    ).logical_form
+                if logical_form:
+                    logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=chat, logical_form=logical_form)
+            except Exception as e:
+                logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
+            
+            payload = {
+                "action_dict": logical_form
+            }
+            sio.emit("setLastChatActionDict", payload)
 
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
