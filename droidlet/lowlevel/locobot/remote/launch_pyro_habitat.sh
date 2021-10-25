@@ -1,14 +1,14 @@
 #!/bin/env bash
 set -ex
 
+pushd $(dirname ${BASH_SOURCE[0]})
+
 export PYRO_SERIALIZER='pickle'
 export PYRO_SERIALIZERS_ACCEPTED='pickle'
 export PYRO_SOCK_REUSE=True
 
-echo "Ensuring clean slate (kills roscore, rosmaster processes)..."
-ps -elf|grep remote_locobot.py | grep -v grep | tr -s " " | cut -f 4 -d" " | xargs kill -9 >/dev/null 2>&1
-ps -elf|grep Pyro4.naming | grep -v grep | tr -s " " | cut -f 4 -d" " | xargs kill -9 >/dev/null 2>&1
-sleep 1
+echo "Kill matching processes..."
+./kill_pyro_habitat.sh
 
 echo "Launching environment ..."
 
@@ -22,11 +22,11 @@ python -m Pyro4.naming -n $ip &
 BGPID=$!
 sleep 4
 
-pushd $(dirname ${BASH_SOURCE[0]})
 echo $ip
+
 python remote_locobot.py --ip $ip $@ &
-BGPID2=$!
-
-sleep 45
-
+# blocking wait for server to start
+timeout 1m bash -c "until python check_connected.py remotelocobot; do sleep 1; done;" || true
 ./launch_navigation.sh &
+
+popd
