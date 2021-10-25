@@ -20,7 +20,7 @@ class TurkInfo extends Component {
 
   handleClick = () => {
     if (this.state.isTimerOn) {
-      window.top.postMessage(JSON.stringify({ msg: "timerOFF" }), "*");
+      window.parent.postMessage(JSON.stringify({ msg: "timerOFF" }), "*");
       this.setState({
         isTimerOn: false,
         isSessionEnd: true,
@@ -31,7 +31,7 @@ class TurkInfo extends Component {
         turk_worker_id: this.props.stateManager.getTurkWorkerId(),
       });
     } else {
-      window.top.postMessage(JSON.stringify({ msg: "timerON" }), "*");
+      window.parent.postMessage(JSON.stringify({ msg: "timerON" }), "*");
       this.setState({
         isTimerOn: true,
         startTime: Date.now(),
