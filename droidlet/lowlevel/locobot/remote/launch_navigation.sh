@@ -1,14 +1,12 @@
-ps -elf|grep slam_service.py | grep -v grep | tr -s " " | cut -f 4 -d" " | xargs kill -9 >/dev/null 2>&1
-ps -elf|grep planning_service.py | grep -v grep | tr -s " " | cut -f 4 -d" " | xargs kill -9 >/dev/null 2>&1
-ps -elf|grep navigation_service.py | grep -v grep | tr -s " " | cut -f 4 -d" " | xargs kill -9 >/dev/null 2>&1
+#!/bin/env bash
+set -ex
 
-
-sleep 0.5
-
-echo "Killed all"
 
 python slam_service.py &
-sleep 3
+timeout 10s bash -c "until python check_connected.py slam; do sleep 0.5; done;" || true
+
 python planning_service.py &
-sleep 3
+timeout 10s bash -c "until python check_connected.py planner; do sleep 0.5; done;" || true
+
 python navigation_service.py
+timeout 10s bash -c "until python check_connected.py navigation; do sleep 0.5; done;" || true
