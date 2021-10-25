@@ -259,6 +259,7 @@
         <option value="1">1 - Unusable</option>
       </select>
       <input type="hidden" id="instructionsReadTime" name="instructionsReadTime" value="0">
+      <input type="hidden" id="preInteractTime" name="preInteractTime" value="0">
       <input type="hidden" id="interactTime" name="interactTime" value="0">
     </div>
   </fieldset>
@@ -266,7 +267,7 @@
 
 
 <script>
-  var timerStopped = true;  //change this once postMessage is working
+  var timerStopped = false;
   var ratingComplete = false;
 
   function checkSubmitDisplay() {
@@ -283,7 +284,8 @@
 
   const start = Date.now();
   var readTimestamp = start;
-  var interactTimestamp = start;
+  var startButtonTimestamp = start;
+  var stopButtonTimestamp = start;
 
   function recordReadTime() {
     readTimestamp = Date.now();
@@ -295,16 +297,23 @@
     window.addEventListener("message", (event) => {
       data = JSON.parse(event.data);
       console.log(data);
-      if (data.msg == "timerOFF") recordInteractTime();
+      if (data.msg === "timerON") recordStartButtonTime();
+      if (data.msg === "timerOFF") recordInteractTime();
       // In the future can also use this to record interaction quality scores
       checkSubmitDisplay();
     }, false);
   }
 
+  function recordStartButtonTime() {
+    startButtonTimestamp = Date.now();
+    preInteractTime = Math.floor((startButtonTimestamp - readTimestamp)/1000);
+    document.getElementById("preInteractTime").value = preInteractTime;
+  }
+
   function recordInteractTime() {
     timerStopped = true;
-    interactTimestamp = Date.now();
-    interactTime = Math.floor((interactTimestamp - readTimestamp)/1000);
+    stopButtonTimestamp = Date.now();
+    interactTime = Math.floor((stopButtonTimestamp - startButtonTimestamp)/1000);
     document.getElementById("interactTime").value = interactTime;
   }
   

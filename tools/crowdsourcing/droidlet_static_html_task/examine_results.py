@@ -57,7 +57,11 @@ def format_for_printing_data(data):
     except:
         pass
     try:
-        output_string += f"Interaction Time Length (sec): {outputs['interactTime']}\n"
+        output_string += f"Pre Interaction Time (sec): {outputs['preInteractTime']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Interaction Time (sec): {outputs['interactTime']}\n"
     except:
         pass
     #found_files = outputs.get("files")
