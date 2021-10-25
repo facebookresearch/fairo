@@ -47,9 +47,19 @@ def format_for_printing_data(data):
     inputs_string = f"Domain: {inputs['subdomain']}\n"
 
     outputs = contents["outputs"]
-    output_string = f"Usability Rating: {outputs['usability-rating']}\n"
-    output_string += f"Instructions Read Time (sec): {outputs['instructionsReadTime']}\n"
-    output_string += f"Interaction Time Length (sec): {outputs['interactTime']}\n"
+    output_string = ""
+    try:
+        output_string += f"Usability Rating: {outputs['usability-rating']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Instructions Read Time (sec): {outputs['instructionsReadTime']}\n"
+    except:
+        pass
+    try:
+        output_string += f"Interaction Time Length (sec): {outputs['interactTime']}\n"
+    except:
+        pass
     #found_files = outputs.get("files")
     #if found_files is not None:
     #    file_dir = Unit(db, data["unit_id"]).get_assigned_agent().get_data_dir()
