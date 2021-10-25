@@ -359,6 +359,7 @@ class StateManager {
       if (ref instanceof InteractApp) {
         ref.setState({
           agent_reply: res.agent_reply,
+          currentView: 1,
         });
       }
     });

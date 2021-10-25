@@ -70,6 +70,13 @@ class InteractApp extends Component {
     });
   }
 
+  goToAgentThinking() {
+    //change the state to switch the view to show AgentThinking window
+    this.setState({
+      currentView: 3,
+    });
+  }
+
   goToQuestion(idx) {
     // first send request to retrieve the logic form of last sent command before showing NSP Error annotation page to users
     this.props.stateManager.socket.emit(
@@ -101,6 +108,7 @@ class InteractApp extends Component {
               enableVoice={false} // Right now this is hard coded for this branch, should move to stateManager
               agent_reply={this.state.agent_reply}
               goToQuestion={this.goToQuestion.bind(this)}
+              goToAgentThinking={this.goToAgentThinking.bind(this)}
               setInteractState={this.setInteractState.bind(this)}
             />
           ) : null}
@@ -111,6 +119,11 @@ class InteractApp extends Component {
               failidx={this.state.failidx}
               goToMessage={this.goToMessage.bind(this)}
               failmsg={this.state.chats[this.state.failidx].msg}
+            />
+          ) : null}
+          {this.state.currentView === 3 ? (
+            <AgentThinking
+              stateManager={this.props.stateManager}
             />
           ) : null}
         </div>

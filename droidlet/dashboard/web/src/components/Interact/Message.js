@@ -129,6 +129,7 @@ class Message extends Component {
       //clear the textbox
       document.getElementById("msg").innerHTML = "";
     }
+    this.props.goToAgentThinking();
   }
 
   render() {
