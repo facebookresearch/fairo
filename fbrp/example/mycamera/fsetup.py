@@ -1,4 +1,4 @@
-from facebook_robotics_platform import setup as fbrp
+import fbrp
 
 fbrp.process(
     name="mycamera",
@@ -6,4 +6,9 @@ fbrp.process(
 )
 
 if __name__ == "__main__":
+    fbrp.process(
+        name="main",
+        deps=["mycamera"],
+    )
+
     fbrp.main()

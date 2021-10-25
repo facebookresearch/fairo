@@ -1,4 +1,4 @@
-from facebook_robotics_platform.setup import registrar
+from fbrp import registrar
 import argparse
 
 

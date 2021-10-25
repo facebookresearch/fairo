@@ -4,7 +4,7 @@ import os
 import pathlib
 import typing
 
-from facebook_robotics_platform.setup import registrar
+from fbrp import registrar
 
 
 @dataclasses.dataclass

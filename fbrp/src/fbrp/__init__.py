@@ -1,15 +1,15 @@
-from facebook_robotics_platform.setup import registrar
-from facebook_robotics_platform.setup.process import process
-from facebook_robotics_platform.setup.runtime.conda import Conda
-from facebook_robotics_platform.setup.runtime.docker import Docker
+from fbrp import registrar
+from fbrp.process import process
+from fbrp.runtime.conda import Conda
+from fbrp.runtime.docker import Docker
 import argparse
 
 
 def main():
-    import facebook_robotics_platform.setup.cmd.down
-    import facebook_robotics_platform.setup.cmd.list
-    import facebook_robotics_platform.setup.cmd.logs
-    import facebook_robotics_platform.setup.cmd.up
+    import fbrp.cmd.down
+    import fbrp.cmd.list
+    import fbrp.cmd.logs
+    import fbrp.cmd.up
 
     parser = argparse.ArgumentParser(prog="fbrp")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")

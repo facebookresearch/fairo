@@ -1,6 +1,6 @@
-from facebook_robotics_platform.common import util
-from facebook_robotics_platform.setup.runtime.base import BaseLauncher, BaseRuntime
-from facebook_robotics_platform.setup.process import ProcDef
+from fbrp import util
+from fbrp.runtime.base import BaseLauncher, BaseRuntime
+from fbrp.process import ProcDef
 import a0
 import aiodocker
 import argparse

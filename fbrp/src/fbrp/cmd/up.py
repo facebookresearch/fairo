@@ -1,6 +1,6 @@
-from facebook_robotics_platform.common import util
-from facebook_robotics_platform.setup import registrar
-from facebook_robotics_platform.setup.cmd.base import BaseCommand
+from fbrp import util
+from fbrp import registrar
+from fbrp.cmd.base import BaseCommand
 import a0
 import argparse
 import asyncio
