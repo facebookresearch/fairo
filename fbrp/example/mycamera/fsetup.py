@@ -6,15 +6,9 @@ fbrp.process(
 )
 
 if __name__ == "__main__":
+    fbrp.process(
+        name="main",
+        deps=["mycamera"],
+    )
+
     fbrp.main()
-
-
-fbrp.process(
-   name="cam1_downsampler",
-   runtime=fbrp.Conda(
-       yaml="/path/to/env.yml",
-       run_command=["python3", "myimu.py"],
-   ),
-   deps=["cam1"],
-)
-

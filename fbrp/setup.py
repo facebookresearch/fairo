@@ -17,6 +17,7 @@ setup(
         "alephzero>=v0.3",
         "docker>=5.0.0",
         "psutil>=5.8.0",
+        "pyyaml>=6.0",
         "six>=1.16.0",
     ],
 )

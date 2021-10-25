@@ -1,5 +1,5 @@
-from facebook_robotics_platform.common import util
-from facebook_robotics_platform.setup import registrar
+from fbrp import util
+from fbrp import registrar
 import a0
 import argparse
 import json

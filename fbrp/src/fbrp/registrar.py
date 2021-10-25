@@ -1,4 +1,4 @@
-from facebook_robotics_platform.setup.process import ProcDef
+from fbrp.process import ProcDef
 import typing
 
 defined_commands: typing.Dict[str, "BaseCommand"] = {}

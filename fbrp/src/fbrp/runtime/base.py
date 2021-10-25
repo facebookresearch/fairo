@@ -1,5 +1,5 @@
 import asyncio
-from facebook_robotics_platform.setup.process import ProcDef
+from fbrp.process import ProcDef
 import a0
 import argparse
 import asyncio

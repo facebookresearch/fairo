@@ -17,13 +17,7 @@ def fail(msg):
 def common_env(proc_def):
     return dict(
         FBRP_NAME=proc_def.name,
-        A0_ROOT="/dev/shm/fbrp/",
         A0_TOPIC=proc_def.name,
-        A0_TOPIC_TMPL_CFG="{topic}.cfg.a0",
-        A0_TOPIC_TMPL_LOG="{topic}.log.a0",
-        A0_TOPIC_TMPL_PRPC="{topic}.prpc.a0",
-        A0_TOPIC_TMPL_PUBSUB="{topic}.pubsub.a0",
-        A0_TOPIC_TMPL_RPC="{topic}.rpc.a0",
         PYTHONUNBUFFERED="1",
     )
 

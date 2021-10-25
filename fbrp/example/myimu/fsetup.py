@@ -26,4 +26,9 @@ fbrp.process(
 )
 
 if __name__ == "__main__":
+    fbrp.process(
+        name="main",
+        deps=["myimu"],
+    )
+
     fbrp.main()
