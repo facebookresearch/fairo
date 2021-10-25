@@ -139,25 +139,19 @@ class CartesianSpaceMinJerkPlanner(toco.ControlModule):
         self.ee_twist_traj = torch.cat([xd_traj, rd_traj], dim=-1)
         self.ee_accel_traj = torch.cat([xdd_traj, rdd_traj], dim=-1)
 
-    def forward(
-        self, step: int
-    ) -> Tuple[T.TransformationObj, torch.Tensor, torch.Tensor]:
+    def forward(self, step: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Queries the planned trajectory for the desired states at the input step
 
         Args:
             step: Step index
 
         Returns:
-            Desired pose
+            Desired pose (pos + quat) of shape (7,)
             Desired twist of shape (6,)
             Desired accel of shape (6,)
         """
-        ee_pose = T.from_rot_xyz(
-            rotation=R.from_quat(self.ee_pose_traj[step, 3:]),
-            translation=self.ee_pose_traj[step, :3],
-        )
         return (
-            ee_pose,
+            self.ee_pose_traj[step, :],
             self.ee_twist_traj[step, :],
             self.ee_accel_traj[step, :],
         )

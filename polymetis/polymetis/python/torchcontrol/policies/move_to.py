@@ -156,11 +156,11 @@ class CartesianSpaceMoveTo(toco.PolicyModule):
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
         # Query plan
-        ee_pose_desired, ee_twist_desired, _ = self.plan(self.i)
+        ee_posquat_desired, ee_twist_desired, _ = self.plan(self.i)
 
         # Compute control
-        self.control.ee_pos_desired = ee_pose_desired.translation()
-        self.control.ee_quat_desired = ee_pose_desired.rotation().as_quat()
+        self.control.ee_pos_desired = ee_posquat_desired[:3]
+        self.control.ee_quat_desired = ee_posquat_desired[3:]
         self.control.ee_vel_desired = ee_twist_desired[:3]
         self.control.ee_rvel_desired = ee_twist_desired[3:]
 

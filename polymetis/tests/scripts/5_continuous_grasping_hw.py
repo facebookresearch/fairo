@@ -82,15 +82,22 @@ class ManipulatorSystem:
         t_target = t0
         for i in range(N):
             # Update traj
-            ee_pose_desired, ee_twist_desired, _ = plan(i)
+            ee_posquat_desired, ee_twist_desired, _ = plan(i)
             self.arm.update_current_policy(
                 {
-                    "ee_pos_desired": ee_pose_desired.translation(),
-                    "ee_quat_desired": ee_pose_desired.rotation().as_quat(),
-                    "ee_vel_desired": ee_twist_desired[:3],
-                    "ee_rvel_desired": ee_twist_desired[3:],
+                    "ee_pos_desired": ee_posquat_desired[:3],
+                    "ee_quat_desired": ee_posquat_desired[3:],
+                    # "ee_vel_desired": ee_twist_desired[:3],
+                    # "ee_rvel_desired": ee_twist_desired[3:],
                 }
             )
+
+            # Check if policy terminated due to issues
+            if self.arm.get_previous_interval().end != -1:
+                print("Interrupt detected. Reinstantiating control policy...")
+                time.sleep(3)
+                self.reset_policy()
+                break
 
             # Spin once
             t_target += PLANNER_DT
@@ -140,12 +147,6 @@ class ManipulatorSystem:
 
         # Release
         self.open_gripper()
-
-        # Check if policy terminated due to issues
-        if self.arm.get_previous_interval().end != -1:
-            print("Interrupt detected. Reinstantiating control policy...")
-            time.sleep(3)
-            self.reset_policy()
 
         # Reset
         self.reset()
