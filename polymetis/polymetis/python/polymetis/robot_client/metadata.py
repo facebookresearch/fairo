@@ -95,10 +95,10 @@ class RobotClientMetadata:
         with open(full_urdf_path, "r") as file:
             robot_client_metadata.urdf_file = file.read()
 
-        self.metadata_proto = robot_client_metadata
-
         # Set version
         robot_client_metadata.polymetis_version = polymetis_version
+
+        self.metadata_proto = robot_client_metadata
 
     def __repr__(self):
         return f"Contains protobuf message {type(self.metadata_proto)}:\n{str(self.metadata_proto)}"
