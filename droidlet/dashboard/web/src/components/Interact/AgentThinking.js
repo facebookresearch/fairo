@@ -9,16 +9,17 @@ import React, { Component } from "react";
 
 import "./AgentThinking.css";
 
-const recognition = new window.webkitSpeechRecognition();
-recognition.lang = "en-US";
-
 class AgentThinking extends Component {
   constructor(props) {
     super(props);
-    this.state = {
+    this.initialState = {
+      ellipsis: "",
+      ellipsisInterval: null,
     };
+    this.state = this.initialState;
 
     this.elementRef = React.createRef();
+    this.incrementEllipsis = this.incrementEllipsis.bind(this);
   }
 
   isMounted() {
@@ -27,17 +28,43 @@ class AgentThinking extends Component {
   }
 
   componentDidMount() {
-    return;
+    const intervalId = setInterval(() => {
+      this.setState((prevState) => {
+        if (prevState.ellipsis.length > 6) {
+          return {
+            ellipsis: "",
+          };
+        } else {
+          return {
+            ellipsis: prevState.ellipsis + ".",
+          };
+        }
+      });
+    }, 500);
+
+    this.setState({
+      ellipsisInterval: intervalId,
+    });
   }
 
   componentWillUnmount() {
-    return;
+    clearInterval(this.state.ellipsisInterval);
   }
 
   render() {
     return (
       <div className="thinking">
-        <h3>Agent is thinking...</h3>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <h2>Agent is thinking{this.state.ellipsis}</h2>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
       </div>
     );
   }

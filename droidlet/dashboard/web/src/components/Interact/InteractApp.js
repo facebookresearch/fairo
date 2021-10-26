@@ -7,6 +7,7 @@ import React, { Component } from "react";
 import "./InteractApp.css";
 import Message from "./Message";
 import Question from "./Question";
+import AgentThinking from "./AgentThinking";
 
 class InteractApp extends Component {
   constructor(props) {
@@ -122,9 +123,7 @@ class InteractApp extends Component {
             />
           ) : null}
           {this.state.currentView === 3 ? (
-            <AgentThinking
-              stateManager={this.props.stateManager}
-            />
+            <AgentThinking stateManager={this.props.stateManager} />
           ) : null}
         </div>
       </div>
