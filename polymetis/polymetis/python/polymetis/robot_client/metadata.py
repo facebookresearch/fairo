@@ -9,6 +9,7 @@ import io
 import torch
 
 import polymetis_pb2
+from polymetis.utils import polymetis_version
 from polymetis.utils.data_dir import get_full_path_to_urdf
 from torchcontrol.policies.default_controller import DefaultController
 
@@ -86,8 +87,6 @@ class RobotClientMetadata:
         robot_client_metadata.default_Kqd[:] = default_Kqd
         robot_client_metadata.rest_pose[:] = robot_model_cfg.rest_pose
 
-        # Set version
-
         # Set default controller for controller manager server
         robot_client_metadata.default_controller = default_controller_jitted
 
@@ -97,6 +96,9 @@ class RobotClientMetadata:
             robot_client_metadata.urdf_file = file.read()
 
         self.metadata_proto = robot_client_metadata
+
+        # Set version
+        robot_client_metadata.polymetis_version = polymetis_version
 
     def __repr__(self):
         return f"Contains protobuf message {type(self.metadata_proto)}:\n{str(self.metadata_proto)}"
