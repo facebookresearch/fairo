@@ -10,6 +10,7 @@ Use it in 3 steps:
 """
 #%%
 import glob
+from numpy import Inf, Infinity
 import pandas as pd
 import re
 from datetime import datetime
@@ -18,6 +19,7 @@ import boto3
 import os
 import tarfile
 import json
+import math
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
@@ -25,7 +27,7 @@ from mephisto.tools.data_browser import DataBrowser
 pd.set_option("display.max_rows", 10)
 
 #%%
-def check_run_status(run_id: int, mturk_with_qual_list) -> None:
+def check_run_status(run_id: int) -> None:
     db = LocalMephistoDB()
     units = db.find_units(task_run_id=run_id)
     units_num = len(units)
@@ -67,15 +69,16 @@ def check_run_status(run_id: int, mturk_with_qual_list) -> None:
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         duration = (data["data"]["times"]["task_end"] - data["data"]["times"]["task_start"]) / 60 # in minutes
-        total_time_completed_in_min += duration
-        total_cnt += 1
+        if (duration > 0):
+            total_time_completed_in_min += duration
+            total_cnt += 1
         worker_name = db.get_worker(worker_id=unit.worker_id)["worker_name"]
-        if worker_name not in mturk_with_qual_list:
+        #if worker_name not in mturk_with_qual_list:
             # print(worker_name)
             # print(mturk_with_qual_list)
-            print("Okay there's a problem with mturk qual")
-        else:
-            turkers_with_mturk_qual_cnt += 1
+        #    print("Okay there's a problem with mturk qual")
+        #else:
+        turkers_with_mturk_qual_cnt += 1
         # print(f"Worker {worker_name} works on HIT {run_id}")
         worker = db.find_workers(worker_name=worker_name)[0]
         if worker.get_granted_qualification(qual_name):
@@ -86,6 +89,69 @@ def check_run_status(run_id: int, mturk_with_qual_list) -> None:
     print(f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins")
     print(f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins")
     print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
+
+#%%
+def timing_charts(run_id: int) -> None:
+    db = LocalMephistoDB()
+    units = db.find_units(task_run_id=run_id)
+    completed_num = 0
+    completed_units = []
+    for unit in units:
+        if unit.db_status == "completed":
+            completed_num += 1
+            completed_units .append(unit)
+
+    data_browser = DataBrowser(db=db)
+    usability = []
+    read_time = []
+    pre_interact = []
+    interact_time = []
+    starttime = math.inf
+    endtime = -math.inf
+    for unit in completed_units:
+        data = data_browser.get_data_from_unit(unit)
+        content = data["data"]
+        if (content["times"]["task_start"] < starttime):
+            starttime = content["times"]["task_start"]
+        if (content["times"]["task_start"] > endtime):
+            endtime = content["times"]["task_end"]
+        outputs = content["outputs"]
+        try:
+            usability.append(int(outputs["usability-rating"]))
+        except:
+            usability.append(0)
+        try:
+            read_time.append(int(outputs["instructionsReadTime"]))
+        except:
+            read_time.append(0)
+        try:
+            pre_interact.append(int(outputs["preInteractTime"]))
+        except:
+            pre_interact.append(0)
+        try:
+            interact_time.append(int(outputs["interactTime"]))
+        except:
+            interact_time.append(0)
+
+    print(f"Start time: {datetime.fromtimestamp(starttime)}")
+    print(f"End time: {datetime.fromtimestamp(endtime)}")
+
+    usability.sort()
+    keys = range(len(usability))
+    u_dict = dict(zip(keys, usability))
+    plot_hist(u_dict, xlabel="", ylabel="Usability Score", ymax=7)
+    read_time.sort()
+    keys = range(len(read_time))
+    r_dict = dict(zip(keys, read_time))
+    plot_hist(r_dict, xlabel="", ylabel="Instructions Read Time")
+    pre_interact.sort()
+    keys = range(len(pre_interact))
+    p_dict = dict(zip(keys, pre_interact))
+    plot_hist(p_dict, xlabel="", ylabel="Time between instructions and interaction start")
+    interact_time.sort()
+    keys = range(len(interact_time))
+    i_dict = dict(zip(keys, interact_time))
+    plot_hist(i_dict, xlabel="", ylabel="Interaction time")
 
 #%%
 def read_s3_bucket(s3_logs_dir, output_dir):
@@ -136,15 +202,17 @@ def get_stats(command_list):
 
 
 #%%
-def plot_hist(dictionary, xlabel="Turker Id", ylabel="# of HITs with 0 commands"):
+def plot_hist(dictionary, xlabel="Turker Id", ylabel="# of HITs with 0 commands", ymax=None):
     import matplotlib
     import matplotlib.pyplot as plt
     import numpy as np
-    matplotlib.use('TkAgg')
+    #matplotlib.use('TkAgg')
     plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
     plt.xticks(np.arange(len(list(dictionary.keys()))), list(dictionary.keys()), rotation='vertical')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    if ymax:
+        plt.ylim(0, ymax)
     plt.show()
 
 #%%
@@ -247,10 +315,10 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
                 )
 
     # Plot 0 execution time commands num & hits num for turkers
-    x = time_turker_map[0].keys()
-    y1 = [time_turker_map[0][k] for k in x]
-    y2 = [turker_hit_cnt[k] for k in x]
-    plot_dual_hist(x, y1, y2)
+    #x = time_turker_map[0].keys()
+    #y1 = [time_turker_map[0][k] for k in x]
+    #y2 = [turker_hit_cnt[k] for k in x]
+    #plot_dual_hist(x, y1, y2)
 
     # plot_hist(cmd_cnt_turker_map[0])
     # plot_hist(len_dist)
@@ -266,8 +334,8 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211024181825/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211024181825")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211024181825", "nsp_outputs")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211024122119/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211024122119")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211024122119", "nsp_outputs")
 
 #%%
 if __name__ == "__main__":
@@ -275,12 +343,12 @@ if __name__ == "__main__":
     # User needs to provide file I/O paths
     parser.add_argument(
         "--turk_logs_directory",
-        default="/private/home/ethancarlson/.hitl/20211024181825/turk_logs",
+        default="/private/home/ethancarlson/.hitl/20211025173851/turk_logs",
         help="where to read s3 logs from eg. ~/turk_interactions_with_agent",
     )
     parser.add_argument(
         "--parsed_output_directory",
-        default="/private/home/ethancarlson/.hitl/parsed/20211024181825",
+        default="/private/home/ethancarlson/.hitl/parsed/20211025173851",
         help="where to write the collated NSP outputs eg. ~/parsed_turk_logs",
     )
     parser.add_argument(
