@@ -26,6 +26,10 @@ PREGRASP_HEIGHT = 0.55
 GRASP_HEIGHT = 0.25
 PLANNER_DT = 0.02
 
+# controller gains (modified from libfranka example)
+KP_DEFAULT = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
+KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
+
 
 class ManipulatorSystem:
     def __init__(self):
@@ -54,24 +58,23 @@ class ManipulatorSystem:
 
         # Send PD controller
         joint_pos_current = self.arm.get_joint_angles()
-        policy = toco.policies.JointImpedanceControl(
+        policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=joint_pos_current,
-            Kp=self.arm.metadata.default_Kq,
-            Kd=self.arm.metadata.default_Kqd,
+            Kp=KP_DEFAULT,
+            Kd=KD_DEFAULT,
             robot_model=self.arm.robot_model,
         )
         self.arm.send_torch_policy(policy, blocking=False)
 
     def move_to(self, pos, quat, time_to_go=2.0):
         # Plan trajectory
-        joint_pos_current = self.arm.get_joint_angles()
+        pos_curr, quat_curr = self.arm.pose_ee()
         N = int(time_to_go / PLANNER_DT)
-        plan = toco.modules.CartesianSpaceMinJerkJointPlanner(
-            joint_pos_start=joint_pos_current,
-            ee_pose_goal=T.from_rot_xyz(R.from_quat(quat), pos),
+        plan = toco.modules.CartesianSpaceMinJerkPlanner(
+            start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
+            goal=T.from_rot_xyz(R.from_quat(quat), pos),
             steps=N,
             time_to_go=time_to_go,
-            robot_model=self.arm.robot_model,
         )
 
         # Execute trajectory
@@ -79,8 +82,22 @@ class ManipulatorSystem:
         t_target = t0
         for i in range(N):
             # Update traj
-            joint_pos_desired, _, _ = plan(i)
-            self.arm.update_current_policy({"joint_pos_desired": joint_pos_desired})
+            ee_posquat_desired, ee_twist_desired, _ = plan(i)
+            self.arm.update_current_policy(
+                {
+                    "ee_pos_desired": ee_posquat_desired[:3],
+                    "ee_quat_desired": ee_posquat_desired[3:],
+                    # "ee_vel_desired": ee_twist_desired[:3],
+                    # "ee_rvel_desired": ee_twist_desired[3:],
+                }
+            )
+
+            # Check if policy terminated due to issues
+            if self.arm.get_previous_interval().end != -1:
+                print("Interrupt detected. Reinstantiating control policy...")
+                time.sleep(3)
+                self.reset_policy()
+                break
 
             # Spin once
             t_target += PLANNER_DT
@@ -130,12 +147,6 @@ class ManipulatorSystem:
 
         # Release
         self.open_gripper()
-
-        # Check if policy terminated due to issues
-        if self.arm.get_previous_interval().end != -1:
-            print("Interrupt detected. Reinstantiating control policy...")
-            time.sleep(3)
-            self.reset_policy()
 
         # Reset
         self.reset()

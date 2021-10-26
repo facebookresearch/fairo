@@ -12,76 +12,6 @@ from torchcontrol.transform import Transformation as T
 from torchcontrol.utils import to_tensor
 
 
-class JointPlanExecutor(toco.PolicyModule):
-    """Executes a joint trajectory plan by stabilizing around it"""
-
-    N: int
-    i: int
-
-    def __init__(
-        self,
-        plan: torch.nn.Module,
-        robot_model: torch.nn.Module,
-        steps: int,
-        Kp,
-        Kd,
-        ignore_gravity: bool = True,
-    ):
-        """
-        Args:
-            plan: A valid plan from torchcontrol.modules.planning that outputs joint references
-            robot_model: A valid robot model module from torchcontrol.models
-            steps: Number of steps in plan
-            Kp: P gains in joint space
-            Kd: D gains in joint space
-            ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
-        """
-        super().__init__()
-
-        self.plan = plan
-        self.robot_model = robot_model
-        self.N = steps
-
-        self.invdyn = toco.modules.feedforward.InverseDynamics(
-            self.robot_model, ignore_gravity=ignore_gravity
-        )
-        self.impedance = toco.modules.feedback.JointSpacePD(Kp, Kd)
-
-        # Initialize step count
-        self.i = 0
-
-    def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        """Executes joint PD around the planned joint trajectory
-        Args:
-            state_dict: A dictionary containing robot states
-
-        Returns:
-            A dictionary containing the controller output
-        """
-        # State extraction
-        joint_pos_current = state_dict["joint_positions"]
-        joint_vel_current = state_dict["joint_velocities"]
-
-        # Select desired state
-        q_desired, qd_desired, _ = self.plan(self.i)
-
-        # Control logic
-        torque_feedback = self.impedance(
-            joint_pos_current, joint_vel_current, q_desired, qd_desired
-        )
-        torque_feedforward = self.invdyn(
-            joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
-        )
-        torque_out = torque_feedback + torque_feedforward
-
-        # Increment & termination
-        self.i += 1
-        if self.i == self.N:
-            self.set_terminated()
-
-        return {"joint_torques": torque_out}
-
-
 class JointSpaceMoveTo(toco.PolicyModule):
     """
     Plans and executes a trajectory to a desired joint position
@@ -91,16 +21,25 @@ class JointSpaceMoveTo(toco.PolicyModule):
         self,
         joint_pos_current,
         joint_pos_desired,
+        Kp,
+        Kd,
         time_to_go: float,
         hz: float,
-        **kwargs,
+        robot_model: torch.nn.Module,
+        ignore_gravity: bool = True,
     ):
         """
         Args:
             joint_pos_current: Current joint positions
             joint_pos_desired: Desired joint positions
+            Kp: P gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
+            Kd: D gain matrix of shape (nA, N) or shape (N,) representing a N-by-N diagonal matrix (if nA=N)
             time_to_go: Duration of trajectory in seconds
             hz: Frequency of controller
+            robot_model: A robot model from torchcontrol.models
+            ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
+
+        (Note: nA is the action dimension and N is the number of degrees of freedom)
         """
         super().__init__()
 
@@ -108,26 +47,45 @@ class JointSpaceMoveTo(toco.PolicyModule):
         joint_pos_desired = to_tensor(joint_pos_desired)
 
         # Planning
-        N = int(time_to_go * hz)
-        plan = toco.modules.planning.JointSpaceMinJerkPlanner(
+        self.N = int(time_to_go * hz)
+        self.plan = toco.modules.planning.JointSpaceMinJerkPlanner(
             start=joint_pos_current,
             goal=joint_pos_desired,
-            steps=N,
+            steps=self.N,
             time_to_go=time_to_go,
         )
 
-        # Instantiate plan executor
-        self.plan_executor = JointPlanExecutor(plan=plan, steps=N, **kwargs)
+        # Control
+        self.control = toco.policies.JointImpedanceControl(
+            joint_pos_current=joint_pos_current,
+            Kp=Kp,
+            Kd=Kd,
+            robot_model=robot_model,
+            ignore_gravity=ignore_gravity,
+        )
+
+        # Initialize step count
+        self.i = 0
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        output = self.plan_executor(state_dict)
-        if self.plan_executor.is_terminated():
+        # Query plan
+        q_desired, qd_desired, _ = self.plan(self.i)
+
+        # Compute control
+        self.control.joint_pos_desired = q_desired
+        self.control.joint_vel_desired = qd_desired
+
+        output = self.control(state_dict)
+
+        # Increment & termination
+        self.i += 1
+        if self.i == self.N:
             self.set_terminated()
 
         return output
 
 
-class OperationalSpaceMoveTo(toco.PolicyModule):
+class CartesianSpaceMoveTo(toco.PolicyModule):
     """
     Plans and executes a trajectory to a desired end-effector pose
     """
@@ -136,18 +94,24 @@ class OperationalSpaceMoveTo(toco.PolicyModule):
         self,
         joint_pos_current,
         ee_pos_desired,
-        robot_model: torch.nn.Module,
+        Kp,
+        Kd,
         time_to_go: float,
         hz: float,
+        robot_model: torch.nn.Module,
+        ignore_gravity: bool = True,
         ee_quat_desired=None,
-        **kwargs,
     ):
         """
         Args:
             joint_pos_current: Current joint positions
             ee_pos_desired: Desired end-effector position (3D)
+            Kp: P gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
+            Kd: D gain matrix of shape (6, 6) or shape (6,) representing a 6-by-6 diagonal matrix
             time_to_go: Duration of trajectory in seconds
             hz: Frequency of controller
+            robot_model: A robot model from torchcontrol.models
+            ignore_gravity: `True` if the robot is already gravity compensated, `False` otherwise
             ee_quat_desired: Desired end-effector orientation (None if current orientation is desired)
         """
         super().__init__()
@@ -156,7 +120,11 @@ class OperationalSpaceMoveTo(toco.PolicyModule):
         ee_pos_current, ee_quat_current = robot_model.forward_kinematics(
             joint_pos_current
         )
+        ee_pose_current = T.from_rot_xyz(
+            rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
+        )
 
+        # Plan
         ee_pos_desired = to_tensor(ee_pos_desired)
         if ee_quat_desired is None:
             ee_quat_desired = ee_quat_current
@@ -166,24 +134,41 @@ class OperationalSpaceMoveTo(toco.PolicyModule):
             rotation=R.from_quat(ee_quat_desired), translation=ee_pos_desired
         )
 
-        # Planning
-        N = int(time_to_go * hz)
-        plan = toco.modules.planning.CartesianSpaceMinJerkJointPlanner(
-            joint_pos_start=joint_pos_current,
-            ee_pose_goal=ee_pose_desired,
-            steps=N,
+        self.N = int(time_to_go * hz)
+        self.plan = toco.modules.planning.CartesianSpaceMinJerkPlanner(
+            start=ee_pose_current,
+            goal=ee_pose_desired,
+            steps=self.N,
             time_to_go=time_to_go,
-            robot_model=robot_model,
         )
 
-        # Instantiate plan executor
-        self.plan_executor = JointPlanExecutor(
-            plan=plan, steps=N, robot_model=robot_model, **kwargs
+        # Control
+        self.control = toco.policies.CartesianImpedanceControl(
+            joint_pos_current=joint_pos_current,
+            Kp=Kp,
+            Kd=Kd,
+            robot_model=robot_model,
+            ignore_gravity=ignore_gravity,
         )
+
+        # Initialize step count
+        self.i = 0
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        output = self.plan_executor(state_dict)
-        if self.plan_executor.is_terminated():
+        # Query plan
+        ee_posquat_desired, ee_twist_desired, _ = self.plan(self.i)
+
+        # Compute control
+        self.control.ee_pos_desired = ee_posquat_desired[:3]
+        self.control.ee_quat_desired = ee_posquat_desired[3:]
+        self.control.ee_vel_desired = ee_twist_desired[:3]
+        self.control.ee_rvel_desired = ee_twist_desired[3:]
+
+        output = self.control(state_dict)
+
+        # Increment & termination
+        self.i += 1
+        if self.i == self.N:
             self.set_terminated()
 
         return output
