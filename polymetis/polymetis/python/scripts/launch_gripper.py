@@ -4,12 +4,11 @@
 # LICENSE file in the root directory of this source tree.
 import hydra
 
-from polymetis.robot_drivers import robotiq_gripper
-
 
 @hydra.main(config_name="launch_gripper")
 def main(cfg):
-    robotiq_gripper.run_server(cfg.ip, cfg.port, cfg.comport)
+    gripper_server = hydra.utils.instantiate(cfg.gripper)
+    gripper_server.run()
 
 
 if __name__ == "__main__":

@@ -18,8 +18,7 @@ from droidlet.interpreter.tests import all_test_commands
 
 class BasicTest(unittest.TestCase):
     def setUp(self):
-        self.interpreter = Interpreter(speaker="test_sp", action_dict={})
-        self.interpreter.memory = AgentMemory()
+        self.interpreter = Interpreter(memory=AgentMemory(), speaker="test_sp", action_dict={})
         self.interpreter.subinterpret["attribute"] = AttributeInterpreter()
 
     def test_interpret_span_value(self):

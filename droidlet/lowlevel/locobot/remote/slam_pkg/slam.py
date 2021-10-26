@@ -1,11 +1,12 @@
 # need to convert it to api
 from pyrobot import Robot
+from pyrobot.utils.util import try_cv2_import
+from pyrobot.locobot.base_control_utils import LocalActionStatus
 
 import os
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
-from pyrobot.utils.util import try_cv2_import
 import argparse
 from scipy import ndimage
 from copy import deepcopy as copy
@@ -14,7 +15,6 @@ from math import ceil, floor
 import sys
 import json
 import logging
-from pyrobot.locobot.base_control_utils import LocalActionStatus
 
 cv2 = try_cv2_import()
 

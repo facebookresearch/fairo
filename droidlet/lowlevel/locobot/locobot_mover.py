@@ -33,6 +33,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
+Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(0.5))

@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
+
 import numpy as np
 from typing import List, Tuple
 
@@ -17,8 +18,11 @@ from droidlet.shared_data_structs import TICKS_PER_SEC, Time, MockOpt
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS, PASSABLE_BLOCKS
-from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
+    BORING_BLOCKS,
+    PASSABLE_BLOCKS,
+)
+from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.perception.craftassist.heuristic_perception import PerceptionWrapper
@@ -29,6 +33,7 @@ from droidlet.lowlevel.minecraft import craftassist_specs
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
 from droidlet.perception.craftassist import heuristic_perception
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
 # how many internal, non-world-interacting steps agent takes before world steps:
 WORLD_STEP = 10
@@ -261,7 +266,7 @@ class FakeAgent(DroidletAgent):
             "boring_blocks": BORING_BLOCKS,
             "passable_blocks": PASSABLE_BLOCKS,
             "fill_idmeta": fill_idmeta,
-            "color_bid_map": COLOR_BID_MAP
+            "color_bid_map": COLOR_BID_MAP,
         }
         super(FakeAgent, self).__init__(opts)
         self.do_heuristic_perception = do_heuristic_perception
@@ -315,7 +320,7 @@ class FakeAgent(DroidletAgent):
     def init_memory(self):
         T = FakeMCTime(self.world)
         low_level_data = self.low_level_data.copy()
-        low_level_data['check_inside'] = heuristic_perception.check_inside
+        low_level_data["check_inside"] = heuristic_perception.check_inside
 
         self.memory = MCAgentMemory(
             load_minecraft_specs=False,
@@ -328,23 +333,23 @@ class FakeAgent(DroidletAgent):
 
     def init_controller(self):
         dialogue_object_classes = {}
-        dialogue_object_classes["bot_capabilities"] = MCBotCapabilities
+        dialogue_object_classes["bot_capabilities"] = {"task": MCBotCapabilities, "data": {}}
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         low_level_interpreter_data = {
-            'block_data': craftassist_specs.get_block_data(),
-            'special_shape_functions': SPECIAL_SHAPE_FNS,
-            'color_bid_map': self.low_level_data["color_bid_map"],
-            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes,
-            'get_locs_from_entity': get_locs_from_entity
+            "block_data": craftassist_specs.get_block_data(),
+            "special_shape_functions": SPECIAL_SHAPE_FNS,
+            "color_bid_map": self.low_level_data["color_bid_map"],
+            "get_all_holes_fn": heuristic_perception.get_all_nearby_holes,
+            "get_locs_from_entity": get_locs_from_entity,
         }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
-            low_level_interpreter_data=low_level_interpreter_data
+            low_level_interpreter_data=low_level_interpreter_data,
         )
 
     def set_logical_form(self, lf, chatstr, speaker):
@@ -366,7 +371,9 @@ class FakeAgent(DroidletAgent):
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.get_chat_id(self.memory.get_player_by_name(speaker_name).memid, chatstr)
+            chat_memid = self.memory.get_chat_id(
+                self.memory.get_player_by_name(speaker_name).memid, chatstr
+            )
 
             logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker_name, chat=chatstr, logical_form=d
@@ -378,7 +385,11 @@ class FakeAgent(DroidletAgent):
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
 
             if obj is not None:
-                self.dialogue_manager.dialogue_stack.append(obj)
+                # TODO (interpreter): rethink this when interpreter is its own object
+                if type(obj) is dict:
+                    obj["task"](self, task_data=obj["data"])
+                else:
+                    self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
 
     def setup_test(self):
@@ -411,15 +422,20 @@ class FakeAgent(DroidletAgent):
             d = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(self.memory.get_player_by_name(speaker_name).memid, chatstr)
+            chat_memid = self.memory.add_chat(
+                self.memory.get_player_by_name(speaker_name).memid, chatstr
+            )
             logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
+            self.memory.add_triple(
+                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+            )
             self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
             force = True
 
         perception_output = self.perception_modules["low_level"].perceive(force=force)
-        self.areas_to_perceive = self.memory.update(
-            perception_output, self.areas_to_perceive)["areas_to_perceive"]
+        self.areas_to_perceive = self.memory.update(perception_output, self.areas_to_perceive)[
+            "areas_to_perceive"
+        ]
         if self.do_heuristic_perception:
             if force or not self.agent.memory.task_stack_peek():
                 # perceive from heuristic perception module
@@ -495,13 +511,13 @@ class FakeAgent(DroidletAgent):
         """Change the state of the world, block by block,
         store in memory"""
 
-        changes_to_be_updated = {"changed_block_attributes": {}}
+        changes_to_be_updated = CraftAssistPerceptionData(changed_block_attributes={})
         for xyz, idm in xyzbms:
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
             # TODO add force option so we don't need to make it as if agent placed
             interesting, player_placed, agent_placed = self.perception_modules["low_level"].mark_blocks_with_env_change(xyz, idm, boring_blocks)
-            changes_to_be_updated["changed_block_attributes"][(abs_xyz, idm)] = [interesting, player_placed, agent_placed]
+            changes_to_be_updated.changed_block_attributes[(abs_xyz, idm)] = [interesting, player_placed, agent_placed]
             self.world.place_block((abs_xyz, idm))
         # TODO: to be named to normal update function
         self.memory.update(changes_to_be_updated, self.areas_to_perceive)
@@ -670,20 +686,27 @@ class FakePlayer(FakeAgent):
             logical_form = self.logical_form["logical_form"]
             chatstr = self.logical_form["chatstr"]
             speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.get_chat_id(self.memory.get_player_by_name(speaker_name).memid, chatstr)
+            chat_memid = self.memory.get_chat_id(
+                self.memory.get_player_by_name(speaker_name).memid, chatstr
+            )
 
             updated_logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
                 speaker=speaker_name, chat=chatstr, logical_form=logical_form
             )
             obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker=speaker_name, logical_form=updated_logical_form, chat=chatstr, opts=self.opts
+                speaker=speaker_name,
+                logical_form=updated_logical_form,
+                chat=chatstr,
+                opts=self.opts,
             )
             self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-
+            # TODO (interpreter): rethink this when interpreter is its own object
             if obj is not None:
-                self.dialogue_manager.dialogue_stack.append(obj)
+                if type(obj) is dict:
+                    obj["task"](self, task_data=obj["data"])
+                else:
+                    self.dialogue_manager.dialogue_stack.append(obj)
             self.logical_form = None
-
 
     def get_info(self):
         return Player(

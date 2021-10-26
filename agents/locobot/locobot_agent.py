@@ -13,6 +13,7 @@ from multiprocessing import set_start_method
 import shutil
 
 from droidlet import dashboard
+
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
@@ -30,10 +31,10 @@ from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
-    dance, 
+    dance,
     default_behaviors,
-    LocoGetMemoryHandler, 
-    PutMemoryHandler, 
+    LocoGetMemoryHandler,
+    PutMemoryHandler,
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
@@ -69,7 +70,7 @@ class LocobotAgent(DroidletAgent):
     def __init__(self, opts, name="Locobot"):
         super(LocobotAgent, self).__init__(opts)
         logging.info("LocobotAgent.__init__ started")
-        self.agent_type = 'locobot'
+        self.agent_type = "locobot"
         self.opts = opts
         self.entityId = 0
         self.no_default_behavior = opts.no_default_behavior
@@ -84,17 +85,17 @@ class LocobotAgent(DroidletAgent):
         # list of (prob, default function) pairs
         self.visible_defaults = [(1.0, default_behaviors.explore)]
         self.interaction_logger = InteractionLogger()
-        if os.path.exists("annotation_data/rgb"): 
+        if os.path.exists("annotation_data/rgb"):
             shutil.rmtree("annotation_data/rgb")
-        if os.path.exists("annotation_data/seg"): 
+        if os.path.exists("annotation_data/seg"):
             shutil.rmtree("annotation_data/seg")
-        
+
     def init_event_handlers(self):
         super().init_event_handlers()
 
         @sio.on("movement command")
         def test_command(sid, commands, movement_values={}):
-            if len(movement_values) == 0: 
+            if len(movement_values) == 0:
                 movement_values["yaw"] = 0.01
                 movement_values["velocity"] = 0.1
 
@@ -130,65 +131,71 @@ class LocobotAgent(DroidletAgent):
         def objects_in_memory(sid):
             objects = DetectedObjectNode.get_all(self.memory)
             for o in objects:
-                del o["feature_repr"] # pickling optimization
+                del o["feature_repr"]  # pickling optimization
             self.dashboard_memory["objects"] = objects
             sio.emit("updateState", {"memory": self.dashboard_memory})
-        
+
         @sio.on("interaction data")
         def log_interaction_data(sid, interactionData):
             self.interaction_logger.logInteraction(interactionData)
 
         # Returns an array of objects with updated masks
         @sio.on("label_propagation")
-        def label_propagation(sid, postData):        
+        def label_propagation(sid, postData):
             objects = LP.label_propagation(postData)
             sio.emit("labelPropagationReturn", objects)
-        
+
         @sio.on("save_rgb_seg")
-        def save_rgb_seg(sid, postData): 
+        def save_rgb_seg(sid, postData):
             LP.save_rgb_seg(postData)
-            if "callback" in postData and postData["callback"]: 
+            if "callback" in postData and postData["callback"]:
                 sio.emit("saveRgbSegCallback")
 
         @sio.on("save_annotations")
-        def save_annotations(sid, categories): 
+        def save_annotations(sid, categories):
             LP.save_annotations(categories)
 
-
         @sio.on("save_categories_properties")
-        def save_categories_properties(sid, categories, properties): 
+        def save_categories_properties(sid, categories, properties):
             LP.save_categories_properties(categories, properties)
 
         @sio.on("retrain_detector")
-        def retrain_detector(sid, settings={}): 
+        def retrain_detector(sid, settings={}):
             inference_json = LP.retrain_detector(settings)
             sio.emit("annotationRetrain", inference_json)
 
         @sio.on("switch_detector")
-        def switch_detector(sid): 
+        def switch_detector(sid):
             model_dir = "annotation_data/model"
             model_names = os.listdir(model_dir)
             model_nums = list(map(lambda x: int(x.split("v")[1]), model_names))
-            last_model_num = max(model_nums) 
+            last_model_num = max(model_nums)
             model_path = os.path.join(model_dir, "v" + str(last_model_num))
             detector_weights = "model_999.pth"
             properties_file = "props.json"
             things_file = "things.json"
 
             files = os.listdir(model_path)
-            if detector_weights not in files: 
-                print("Error switching model:", os.path.join(model_path, detector_weights), "not found")
+            if detector_weights not in files:
+                print(
+                    "Error switching model:",
+                    os.path.join(model_path, detector_weights),
+                    "not found",
+                )
                 return
-            if properties_file not in files: 
-                print("Error switching model:", os.path.join(model_path, properties_file), "not found")
+            if properties_file not in files:
+                print(
+                    "Error switching model:",
+                    os.path.join(model_path, properties_file),
+                    "not found",
+                )
                 return
-            if things_file not in files: 
+            if things_file not in files:
                 print("Error switching model:", os.path.join(model_path, things_file), "not found")
                 return
 
             print("switching to", model_path)
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
-
 
     def init_memory(self):
         """Instantiates memory for the agent.
@@ -222,29 +229,24 @@ class LocobotAgent(DroidletAgent):
         rgb_depth = self.mover.get_rgb_depth()
         xyz = self.mover.get_base_pos_in_canonical_coords()
         x, y, yaw = xyz
-        sio.emit("map", {
-            "x": x,
-            "y": y,
-            "yaw": yaw,
-            "map": self.mover.get_obstacles_in_canonical_coords()
-        })
+        sio.emit(
+            "map",
+            {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
+        )
 
         previous_objects = DetectedObjectNode.get_all(self.memory)
-        new_state = self.perception_modules["vision"].perceive(rgb_depth,
+        # perception_output is a namedtuple of : new_detections, updated_detections, humans
+        perception_output = self.perception_modules["vision"].perceive(rgb_depth,
                                                                xyz,
                                                                previous_objects,
                                                                force=force)
-        if new_state is not None:
-            new_objects, updated_objects = new_state
-            for obj in new_objects:
-                obj.save_to_memory(self.memory)
-            for obj in updated_objects:
-                obj.save_to_memory(self.memory, update=True)
+        self.memory.update(perception_output)
+
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
         dialogue_object_classes = {}
-        dialogue_object_classes["bot_capabilities"] = LocoBotCapabilities
+        dialogue_object_classes["bot_capabilities"] = {"task": LocoBotCapabilities, "data": {}}
         dialogue_object_classes["interpreter"] = LocoInterpreter
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
@@ -310,8 +312,8 @@ class LocobotAgent(DroidletAgent):
             2. already crashed / shutdown due to other effects
             """
             pass
-        time.sleep(5) # let the other threads die
-        os._exit(0) # TODO: remove and figure out why multiprocess sometimes hangs on exit
+        time.sleep(5)  # let the other threads die
+        os._exit(0)  # TODO: remove and figure out why multiprocess sometimes hangs on exit
 
 
 if __name__ == "__main__":
