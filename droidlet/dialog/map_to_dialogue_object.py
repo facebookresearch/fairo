@@ -77,7 +77,7 @@ class DialogueObjectMapper(object):
         if not chat_status:
             return None
         # Mark chat as processed
-        self.dialogue_manager.memory.untag(chat_memid, "unprocessed")
+        self.dialogue_manager.memory.untag(chat_memid, "uninterpreted")
 
         # FIXME handle this in gt (all of this will be folded into manager
         # 1. Check against safety phrase list
@@ -89,11 +89,6 @@ class DialogueObjectMapper(object):
         reply = self.get_greeting_reply(chat)
         if reply:
             return {"task": Say, "data": {"response_options": reply}}
-
-        #        # 3. postprocess logical form: process spans + resolve coreference
-        #        updated_logical_form = self.postprocess_logical_form(
-        #            speaker=speaker, chat=chat, logical_form=parse
-        #        )
 
         # 3. handle the logical form by returning appropriate Interpreter or dialogue task.
         return self.handle_logical_form(speaker, logical_form_memid)

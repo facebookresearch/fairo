@@ -646,40 +646,6 @@ class FakePlayer(FakeAgent):
         if self.active:
             DroidletAgent.step(self)
 
-    def controller_step(self):
-        if self.logical_form is None:
-            CraftAssistAgent.controller_step(self)
-            query = "SELECT MEMORY FROM Task WHERE ((prio >= 0) AND (paused <= 0))"
-            _, task_mems = self.memory.basic_search(query)
-            if not task_mems:
-                if len(self.lf_list) > 0:
-                    self.logical_form = self.lf_list[0]
-                    del self.lf_list[0]
-        else:  # logical form given directly:
-            logical_form_memid, chat_memid = DroidletAgent.process_language_perception(
-                self,
-                self.logical_form["speaker"],
-                self.logical_form["chatstr"],
-                self.logical_form["chatstr"],
-                self.logical_form["logical_form"],
-            )
-
-            obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                self.logical_form["speaker"], logical_form_memid
-            )
-            self.dialogue_manager.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-            if obj is not None:
-                # TODO (interpreter): rethink this when interpreter is its own object
-                if type(obj) is dict:
-                    obj["task"](self, task_data=obj["data"])
-                elif isinstance(obj, InterpreterBase):
-                    obj.step(self)
-                    if obj.finished:
-                        self.memory.get_mem_by_id(obj.memid).finish()
-                else:
-                    raise Exception("strange obj returned from dialogue manager {}".format(obj))
-            self.logical_form = None
-
     def get_info(self):
         return Player(
             self.entityId,

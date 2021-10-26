@@ -98,7 +98,11 @@ def link_archive_to_mem(agent_memory, memid, archive_memid):
 
 
 def dehydrate(lf):
-    """ replace any MemoryNode m in a logical form with {"dehydrated_mem": m.memid}"""
+    """ 
+    replace any MemoryNode m in a logical form with {"dehydrated_mem": m.memid}
+    This is used to store a logical form in the db; as logical forms may contain
+    MemoryNodes as values, this makes it easier to serialize (text instead of python object).  
+    """
     for k, v in lf.items():
         if isinstance(v, MemoryNode):
             lf[k] = {"dehydrated_mem": v.memid}
@@ -174,7 +178,11 @@ class ProgramNode(MemoryNode):
         return memid
 
     def rehydrate(self, lf):
-        """ replace any {"dehydrated_mem": m.memid} with the associated MemoryNode"""
+        """ 
+        replace any {"dehydrated_mem": m.memid} with the associated MemoryNode
+        This is used when retrieving a logical form in the db; as logical forms may contain
+        MemoryNodes as values, this makes it easier to serialize (text instead of python object).
+        """
         for k, v in lf.items():
             if type(v) is dict:
                 memid = v.get("dehydrated_mem")

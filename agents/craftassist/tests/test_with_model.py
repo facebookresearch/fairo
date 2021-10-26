@@ -33,11 +33,13 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
     def test_come_here(self):
         chat = "come here"
         self.add_incoming_chat(chat, self.speaker)
+        # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )
         if received_chats_flag:
+            # put results from semantic parsing model into memory, if necessary
             DroidletAgent.process_language_perception(
                 self.agent, speaker, chat, preprocessed_chat, chat_parse
             )
@@ -48,11 +50,13 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         # FIXME maybe agent should be moving first?
         chat = "stop"
         self.add_incoming_chat(chat, self.speaker)
+        # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )
         if received_chats_flag:
+            # put results from semantic parsing model into memory, if necessary
             DroidletAgent.process_language_perception(
                 self.agent, speaker, chat, preprocessed_chat, chat_parse
             )

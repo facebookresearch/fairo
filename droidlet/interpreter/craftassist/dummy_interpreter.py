@@ -15,7 +15,6 @@ from .interpret_attributes import MCAttributeInterpreter
 
 class DummyInterpreter:
     def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
-        #        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
         self.memory = agent_memory
         self.subinterpret = {
             "attribute": MCAttributeInterpreter(),
@@ -25,5 +24,5 @@ class DummyInterpreter:
         }
         self.action_handlers = {}  # noqa
 
-    def step(self) -> Tuple[Optional[str], Any]:
-        return None, None
+    def step(self):
+        pass

@@ -288,6 +288,8 @@ class DroidletAgent(BaseAgent):
         return self.memory.get_time()
 
     def process_language_perception(self, speaker, chat, preprocessed_chat, chat_parse):
+        """this munges the results of the semantic parser and writes them to memory"""
+
         # add postprocessed chat here
         chat_memid = self.memory.add_chat(
             self.memory.get_player_by_name(speaker).memid, preprocessed_chat
@@ -299,21 +301,25 @@ class DroidletAgent(BaseAgent):
         self.memory.add_triple(
             subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
         )
-        # New chat, mark as unprocessed.
-        self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+        # New chat, mark as uninterpreted.
+        self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
         return logical_form_memid, chat_memid
 
     def perceive(self, force=False):
+        start_time = datetime.datetime.now()
+
+        # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.perception_modules["language_understanding"].perceive(
             force=force
         )
+        # unpack the results from the semantic parsing model
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )
         if received_chats_flag:
+            # put results from semantic parsing model into memory, if necessary
             self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
-        start_time = datetime.datetime.now()
-        if received_chats_flag:
+
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
             hook_data = {
@@ -341,11 +347,16 @@ class DroidletAgent(BaseAgent):
             # this is a dialogue Task, set it to run:
             obj["task"](self, task_data=obj["data"])
         elif isinstance(obj, InterpreterBase):
+            # this object is an Interpreter, step it and check if its finished
             obj.step(self)
             if obj.finished:
                 self.memory.get_mem_by_id(obj.memid).finish()
         else:
-            raise Exception("strange obj returned from dialogue manager {}".format(obj))
+            raise Exception(
+                "strange obj (not Interpreter or DialogueTask) returned from dialogue manager {}".format(
+                    obj
+                )
+            )
 
         # check to see if some Tasks were put in memory that need to be
         # hatched using agent object (self):

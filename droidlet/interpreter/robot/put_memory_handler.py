@@ -19,7 +19,7 @@ class PutMemoryHandler(InterpreterBase):
 
     def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
         super().__init__(
-            speaker, logical_form_memid, agent_memory, memid=memid, interpreter_type="get_memory"
+            speaker, logical_form_memid, agent_memory, memid=memid, interpreter_type="put_memory"
         )
 
     def step(self) -> Tuple[Optional[str], Any]:
