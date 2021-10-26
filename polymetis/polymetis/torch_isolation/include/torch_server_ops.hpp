@@ -2,10 +2,13 @@
 
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #ifndef TORCH_SERVER_OPS_H
 #define TORCH_SERVER_OPS_H
-
-#include <torch/script.h>
 
 class TorchRobotState {
 private:
@@ -52,3 +55,7 @@ public:
 };
 
 #endif
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */

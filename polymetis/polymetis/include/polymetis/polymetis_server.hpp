@@ -20,8 +20,8 @@
 
 #include "polymetis.grpc.pb.h"
 
-#include "polymetis/torchscript_operators/torch_server_ops.hpp"
 #include "polymetis/utils.h"
+#include "torch_server_ops.hpp"
 #include "yaml-cpp/yaml.h"
 
 #define MAX_CIRCULAR_BUFFER_SIZE 300000 // 5 minutes of data at 1kHz

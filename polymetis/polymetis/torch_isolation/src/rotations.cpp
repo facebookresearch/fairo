@@ -3,7 +3,9 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
-#include "polymetis/torchscript_operators/rotations.hpp"
+#include "rotations.hpp"
+
+extern "C" {
 
 #define EPSILON 1e-36
 
@@ -128,3 +130,5 @@ TORCH_LIBRARY(torchrot, m) {
       .def("rotvec2quat", rotvecToQuat)
       .def("quaternion_multiply", quaternionMultiply);
 }
+
+} /* extern "C" */

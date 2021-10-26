@@ -10,12 +10,16 @@
 #include <iostream>
 #include <string>
 
-#include "polymetis/torchscript_operators/dtt.h"
+#include "dtt.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
 #include <torch/script.h>
 #include <torch/torch.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 Eigen::Quaternionf tensor4ToQuat(torch::Tensor T);
 Eigen::Matrix3f tensor33ToMatrix(torch::Tensor T);
@@ -33,3 +37,7 @@ torch::Tensor rotvecToQuat(torch::Tensor r);
 torch::Tensor quaternionMultiply(torch::Tensor q1, torch::Tensor q2);
 
 #endif
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif /* __cplusplus */

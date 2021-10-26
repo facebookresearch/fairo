@@ -6,7 +6,6 @@
 #include <iostream>
 #include <string>
 
-#include "polymetis/torchscript_operators/dtt.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
@@ -20,7 +19,10 @@
 #include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 
-#include "polymetis/torchscript_operators/rotations.hpp"
+#include "dtt.h"
+#include "rotations.hpp"
+
+extern "C" {
 
 torch::Tensor validTensor(torch::Tensor x) {
   if (x.dim() < 2) {
@@ -243,3 +245,5 @@ TORCH_LIBRARY(torchscript_pinocchio, m) {
             return c10::make_intrusive<RobotModelPinocchio>(std::move(state));
           });
 }
+
+} /* extern "C" */

@@ -2,9 +2,11 @@
 
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
-#include "polymetis/torchscript_operators/torch_server_ops.hpp"
-
+#include "torch_server_ops.hpp"
+#include <torch/script.h>
 #include <vector>
+
+extern "C" {
 
 TorchRobotState::TorchRobotState(int num_dofs) {
   num_dofs_ = num_dofs;
@@ -86,3 +88,5 @@ bool TorchScriptedController::param_dict_load(std::istream &model_stream) {
 void TorchScriptedController::param_dict_update_module() {
   module_.get_method("update")(param_dict_input_);
 }
+
+} /* extern "C" */
