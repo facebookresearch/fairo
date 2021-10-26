@@ -1,7 +1,5 @@
 -r ../../requirements.txt
 norfair
-opencv-python
-dlib>=19.19.0
 facenet-pytorch
 krovetz
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.10/index.html
