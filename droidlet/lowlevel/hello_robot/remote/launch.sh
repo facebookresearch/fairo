@@ -5,7 +5,7 @@ export PYRO_SERIALIZERS_ACCEPTED='pickle'
 export PYRO_SOCK_REUSE=True
 export PYRO_PICKLE_PROTOCOL_VERSION=2
 
-default_ip=$(hostname -I)
+default_ip=$(hostname -I | cut -f1 -d" ")
 ip=${LOCOBOT_IP:-$default_ip}
 echo "Binding to Host IP" $ip
 
