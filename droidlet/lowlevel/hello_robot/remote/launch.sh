@@ -1,4 +1,7 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
+#!/bin/env bash
+set -ex
+
+./kill.sh
 
 export PYRO_SERIALIZER='pickle'
 export PYRO_SERIALIZERS_ACCEPTED='pickle'
