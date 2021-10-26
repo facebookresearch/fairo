@@ -8,8 +8,8 @@ import io
 
 import torch
 
+import polymetis
 import polymetis_pb2
-from polymetis.utils import polymetis_version
 from polymetis.utils.data_dir import get_full_path_to_urdf
 from torchcontrol.policies.default_controller import DefaultController
 
@@ -96,7 +96,7 @@ class RobotClientMetadata:
             robot_client_metadata.urdf_file = file.read()
 
         # Set version
-        robot_client_metadata.polymetis_version = polymetis_version
+        robot_client_metadata.polymetis_version = polymetis.__version__
 
         self.metadata_proto = robot_client_metadata
 

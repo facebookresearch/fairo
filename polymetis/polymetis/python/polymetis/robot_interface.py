@@ -71,7 +71,7 @@ class BaseRobotInterface:
 
         # Check version
         if enforce_version:
-            client_ver = polymetis.utils.polymetis_version
+            client_ver = polymetis.__version__
             server_ver = self.metadata.polymetis_version
             assert (
                 client_ver == server_ver
