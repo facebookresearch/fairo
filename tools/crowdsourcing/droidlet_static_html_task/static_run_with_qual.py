@@ -71,11 +71,14 @@ def main(cfg: DictConfig) -> None:
         return True
 
     shared_state = SharedStaticTaskState(
-        make_qualification_dict(
-            ALLOWLIST_QUALIFICATION,
-            QUAL_EXISTS,
-            None
-        ),
+        qualifications = [
+            make_qualification_dict(
+                ALLOWLIST_QUALIFICATION,
+                QUAL_EXISTS,
+                None
+            ),
+        ],
+        
     )
 
     db, cfg = load_db_and_process_config(cfg)
