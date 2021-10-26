@@ -7,7 +7,7 @@ conda activate base
 
 conda env remove -n droidlet -y
 
-# conda install mamba -c conda-forge -y
+conda install mamba -c conda-forge -y
 
 mamba create -n droidlet python=3.7 --file conda.txt --file agents/locobot/conda.txt \
       -c pytorch -c aihabitat -c open3d-admin -c conda-forge  -y
