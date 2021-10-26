@@ -72,8 +72,8 @@ def test_cartesian_planner(num_steps):
     qx_ls, qr_ls, qd_ls, qdd_ls = [], [], [], []
     for i in range(num_steps):
         q, qd, qdd = planner(i)
-        qx_ls.append(q.translation())
-        qr_ls.append(q.rotation().as_quat())
+        qx_ls.append(q[:3])
+        qr_ls.append(q[3:])
         qd_ls.append(qd)
         qdd_ls.append(qdd)
 
