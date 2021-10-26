@@ -4,6 +4,7 @@ wordcloud
 fuzzywuzzy
 open3d
 
+dlib>=19.19.0
 Pyro4
 opencv
 scikit-build
