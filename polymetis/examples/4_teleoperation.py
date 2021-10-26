@@ -21,7 +21,7 @@ from polymetis import RobotInterface, GripperInterface
 from oculus_reader import OculusReader
 
 # teleop control frequency
-UPDATE_HZ = 30
+UPDATE_HZ = 60
 # low pass filter cutoff frequency
 LPF_CUTOFF_HZ = 15
 
