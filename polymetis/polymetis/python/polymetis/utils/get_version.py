@@ -5,7 +5,7 @@ import polymetis
 
 polymetis_version = ""
 
-# Conda installed
+# Conda installed: Get version of conda pkg (assigned $GIT_DESCRIBE_NUMBER during build)
 if "CONDA_PREFIX" in os.environ and os.environ["CONDA_PREFIX"] in polymetis.__file__:
     # Search conda pkgs for polymetis & extract version number
     stream = os.popen("conda list | grep polymetis")
@@ -15,7 +15,7 @@ if "CONDA_PREFIX" in os.environ and os.environ["CONDA_PREFIX"] in polymetis.__fi
             polymetis_version = info_fields[1]
             break
 
-# Built locally
+# Built locally: Retrive git tag description of Polymetis source code
 else:
     # Navigate to polymetis pkg dir, which should be within the git repo
     original_cwd = os.getcwd()
