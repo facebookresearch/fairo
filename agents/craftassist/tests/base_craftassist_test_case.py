@@ -9,7 +9,6 @@ from typing import List, Sequence, Dict
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 from droidlet.lowlevel.minecraft.mc_util import XYZ, Block, IDM
 from droidlet.perception.craftassist.rotation import yaw_pitch
-from droidlet.dialog.dialogue_objects import AwaitResponse
 
 from .fake_agent import FakeAgent, FakePlayer
 from .utils import Player, Pos, Look, Item, Look, to_relative_pos
@@ -96,10 +95,10 @@ class BaseCraftassistTestCase(unittest.TestCase):
         ):
             stop = True
         # stuck waiting for answer?
-        if (
-            isinstance(self.agent.dialogue_manager.dialogue_stack.peek(), AwaitResponse)
-            and not self.agent.dialogue_manager.dialogue_stack.peek().finished
-        ):
+        _, task_mems = self.agent.memory.basic_search(
+            "SELECT MEMORY FROM Task WHERE (action_name=awaitresponse AND prio>-1)"
+        )
+        if task_mems and not any([m.finished for m in task_mems]):
             stop = True
         if stop_on_chat and self.agent.get_last_outgoing_chat():
             stop = True
@@ -119,18 +118,21 @@ class BaseCraftassistTestCase(unittest.TestCase):
         player.look_at(*xyz)
 
     def set_blocks(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)):
-        self.agent.set_blocks(xyzbms, origin)
+        boring_blocks = self.agent.low_level_data["boring_blocks"]
+        self.agent.set_blocks(xyzbms, boring_blocks, origin)
 
     def add_object(
         self, xyzbms: List[Block], origin: XYZ = (0, 0, 0), relations={}
     ) -> VoxelObjectNode:
         return self.agent.add_object(xyzbms=xyzbms, origin=origin, relations=relations)
 
-    def add_incoming_chat(self, chat: str, speaker_name: str):
+    def add_incoming_chat(self, chat: str, speaker_name: str, add_to_memory=False):
         """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
-
-    #        self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid, chat)
+        if add_to_memory:
+            self.agent.memory.add_chat(
+                self.agent.memory.get_player_by_name(self.speaker).memid, chat
+            )
 
     def assert_schematics_equal(self, a, b):
         """Check equality between two list[(xyz, idm)] schematics

@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from droidlet.base_util import get_bounds
 
 """This file has implementation for a variety of shapes and
 their arrangements"""
@@ -645,23 +646,6 @@ def labels_from_instance_seg(I, L=None):
                     if label not in L[p]:
                         L[p].append(label)
     return L
-
-
-# TODO: merge this with the one in build utils
-def get_bounds(S):
-    """
-    S should be a list of tuples, where each tuple is a pair of
-    (x, y, z) and ids; 
-    else a list of (x, y, z)
-    """
-    if len(S) == 0:
-        return 0, 0, 0, 0, 0, 0
-    if len(S[0]) == 3:
-        T = [(l, (0, 0)) for l in S]
-    else:
-        T = S
-    x, y, z = list(zip(*list(zip(*T))[0]))
-    return min(x), max(x), min(y), max(y), min(z), max(z)
 
 
 # TODO: vector direction?

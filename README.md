@@ -1,5 +1,7 @@
 <img style="float: right;" src="https://drive.google.com/uc?export=view&id=11tx9ZoQ9bP8SryqITN7wBP5cKOmMtS2I" width="300"/> </br>
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![codecov](https://codecov.io/gh/facebookresearch/fairo/branch/main/graph/badge.svg?token=8ERT95OC8G)](https://codecov.io/gh/facebookresearch/fairo)
+
 **This repository, corresponding tutorials and docs are still being refined (and not ready yet).**
 
 `droidlet` helps you rapidly build agents (real or virtual) that perform a wide variety of tasks specified by humans. The agents can use natural language, memory and humans in the loop.
@@ -64,21 +66,24 @@ cd droidlet
     <tr valign="top">        
         <td> 3. Install dependencies
         <sub><pre lang="bash">
-conda create -n droidlet_env python=3.7 \
-   pytorch==1.7.1 torchvision==0.8.2 \
-   cudatoolkit=11.0 -c pytorch
-conda activate droidlet_env
-pip install -r \
-    agents/locobot/requirements.txt
+conda create -n droidlet python=3.7 \
+   --file conda.txt --file agents/locobot/conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+conda activate droidlet
+pip install -r agents/locobot/requirements.txt
 python setup.py develop
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
-pip install -r \
-    agents/craftassist/requirements.txt
+conda create -n droidlet python=3.7 \
+   --file conda.txt --file agents/craftassist/conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+conda activate droidlet
+pip install -r agents/craftassist/requirements.txt
         </pre></sub></td>
         <td><sub><pre lang="bash">
         <br/>
+conda create -n droidlet python=3.7 \
+   --file conda.txt -c pytorch -c aihabitat -c open3d-admin -c conda-forge
+conda activate droidlet
 pip install -r requirements.txt
         </pre></sub></td>
     </tr>

@@ -160,11 +160,19 @@ if(BUILD_FRANKA)
     ${Franka_INCLUDE_DIRS}
   )
 
-  # Add Franka client
+  # Add Franka clients
   add_executable(franka_panda_client
       src/clients/franka_panda_client/franka_panda_client.cpp
   )
   target_link_libraries(franka_panda_client
+      generated_grpc_protos
+      Franka::Franka
+      yaml-cpp
+  )
+
+  # Add Franka gripper server
+  add_executable(franka_gripper_server src/franka_gripper_server.cpp)
+  target_link_libraries(franka_gripper_server
       generated_grpc_protos
       Franka::Franka
       yaml-cpp

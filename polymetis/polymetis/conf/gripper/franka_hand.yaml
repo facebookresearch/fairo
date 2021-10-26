@@ -1,0 +1,7 @@
+gripper:
+  _target_: polymetis.robot_drivers.executable_robot_server.ExecutableRobotServer
+  exec: franka_gripper_server
+  cfg:
+    ip: ${ip}
+    port: ${port}
+    robot_ip: "172.16.0.2"

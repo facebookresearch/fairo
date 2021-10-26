@@ -26,3 +26,19 @@ robot = RobotInterface(
 
 Definitions of available methods can be found [here](https://github.com/facebookresearch/fairo/tree/main/polymetis/polymetis/python/polymetis/robot_interface.py).
 Sample user scripts can be found in [examples](https://github.com/facebookresearch/fairo/tree/main/polymetis/examples).
+
+# Connect to a Gripper Server & control a gripper through it
+The user API is exposed through [`GripperInterface`](polymetis.gripper_interface), which is initialized as follows:
+```python
+from polymetis import GripperInterface
+
+gripper = GripperInterface(
+    ip_address="localhost",
+)
+
+# example usages
+gripper_state = gripper.get_state()
+gripper.goto(width=0.01, speed=0.05)
+gripper.grasp(speed=0.05, force=0.1)
+```
+`ip_address` is the IP of the Controller Manager Server. Since we're launching it locally in this example, the IP will be `localhost`.

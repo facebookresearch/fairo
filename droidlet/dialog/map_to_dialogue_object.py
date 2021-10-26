@@ -6,7 +6,8 @@ import re
 import sentry_sdk
 import spacy
 from typing import Dict, Optional
-from droidlet.dialog.dialogue_objects import DialogueObject, Say
+from droidlet.dialog.dialogue_objects import DialogueObject
+from droidlet.dialog.dialogue_task import Say
 from droidlet.interpreter import coref_resolve, process_spans_and_remove_fixed_value
 from droidlet.base_util import hash_user
 from .load_datasets import get_greetings, get_safety_words
@@ -22,11 +23,9 @@ class GreetingType(Enum):
 
 
 class DialogueObjectMapper(object):
-    def __init__(self,
-                 dialogue_object_classes,
-                 opts,
-                 low_level_interpreter_data,
-                 dialogue_manager):
+    def __init__(
+        self, dialogue_object_classes, opts, low_level_interpreter_data, dialogue_manager
+    ):
         self.dialogue_objects = dialogue_object_classes
         self.opts = opts
         self.low_level_interpreter_data = low_level_interpreter_data
@@ -34,13 +33,24 @@ class DialogueObjectMapper(object):
         self.safety_words = get_safety_words()
         self.greetings = get_greetings(self.opts.ground_truth_data_dir)
 
-    def get_dialogue_object(self, speaker: str, chat: str, parse: Dict, chat_status: str, chat_memid: str):
-        """Returns DialogueObject for a given chat and logical form"""
+    def get_dialogue_object(
+        self, speaker: str, chat: str, parse: Dict, chat_status: str, chat_memid: str
+    ):
+        """Returns DialogueObject (or ingredients for a DialogueTask) 
+        for a given chat and logical form"""
+
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.
-        if (len(self.dialogue_manager.dialogue_stack) > 0) and (
-                self.dialogue_manager.dialogue_stack[-1].awaiting_response
-        ):
+        dialogue_stack_busy = (len(self.dialogue_manager.dialogue_stack) > 0) and (
+            self.dialogue_manager.dialogue_stack[-1].awaiting_response
+        )
+        _, active_task_mems = self.dialogue_manager.memory.basic_search(
+            "SELECT MEMORY FROM Task WHERE prio > -1"
+        )
+        dialogue_task_busy = any(
+            [getattr(m, "awaiting_response", False) for m in active_task_mems]
+        )
+        if dialogue_stack_busy or dialogue_task_busy:
             return None
 
         # If chat has been processed already, return
@@ -51,12 +61,12 @@ class DialogueObjectMapper(object):
 
         # 1. Check against safety phrase list
         if not self.is_safe(chat):
-            return Say("Please don't be rude.", memory=self.dialogue_manager.memory)
+            return {"task": Say, "data": {"response_options": "Please don't be rude."}}
 
         # 2. Check if incoming chat is one of the scripted ones in greetings
         reply = self.get_greeting_reply(chat)
         if reply:
-            return Say(reply, memory=self.dialogue_manager.memory)
+            return {"task": Say, "data": {"response_options": reply}}
 
         # 3. postprocess logical form: process spans + resolve coreference
         updated_logical_form = self.postprocess_logical_form(
@@ -101,8 +111,10 @@ class DialogueObjectMapper(object):
         # Resolve any co-references like "this", "that" "there" using heuristics
         # and make updates in the dictionary in place.
         coref_resolve(self.dialogue_manager.memory, logical_form, chat)
-        logging.debug(
-            'logical form post co-ref "{}" -> {}'.format(hash_user(speaker), logical_form)
+        logging.info(
+            'logical form post co-ref and process_spans "{}" -> {}'.format(
+                hash_user(speaker), logical_form
+            )
         )
         return logical_form
 
@@ -114,18 +126,22 @@ class DialogueObjectMapper(object):
         """
         memory = self.dialogue_manager.memory
         if logical_form["dialogue_type"] == "NOOP":
-            return Say("I don't know how to answer that.", memory=memory)
+            return {"task": Say, "data": {"response_options": "I don't know how to answer that."}}
         elif logical_form["dialogue_type"] == "GET_CAPABILITIES":
-            return self.dialogue_objects["bot_capabilities"](memory=memory)
+            return self.dialogue_objects["bot_capabilities"]
         elif logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             # _BIG_ FIXME: self.low_level_interpreter_data should be removed
             return self.dialogue_objects["interpreter"](
                 speaker, logical_form, self.low_level_interpreter_data, memory=memory
             )
         elif logical_form["dialogue_type"] == "PUT_MEMORY":
-            return self.dialogue_objects["put_memory"](speaker, logical_form, memory=memory)
+            return self.dialogue_objects["put_memory"](
+                speaker, logical_form, self.low_level_interpreter_data, memory=memory
+            )
         elif logical_form["dialogue_type"] == "GET_MEMORY":
-            return self.dialogue_objects["get_memory"](speaker, logical_form, memory=memory)
+            return self.dialogue_objects["get_memory"](
+                speaker, logical_form, self.low_level_interpreter_data, memory=memory
+            )
         else:
             raise ValueError("Bad dialogue_type={}".format(logical_form["dialogue_type"]))
 
@@ -147,5 +163,3 @@ class DialogueObjectMapper(object):
                     response_options = ["hi there!", "hello", "hey", "hi"]
                 return random.choice(response_options)
         return None
-
-

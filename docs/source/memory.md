@@ -6,12 +6,12 @@ The memory system serves as the interface for passing information between the va
 
 ## Database #
 
-The entry point to the underlying SQL database is an [AgentMemory](https://github.com/fairinternal/minecraft/blob/master/droidlet/memory/sql_memory.py) object.
-The database can be directly accessed by [\_db\_read\(query, \*args\)](https://github.com/fairinternal/minecraft/blob/master/droidlet/memory/sql_memory.py#L719).  Some common queries using triples or that are otherwise unwieldy in raw SQL have been packaged in the [basic\_search\(search_data\)](https://github.com/fairinternal/minecraft/blob/master/droidlet/memory/sql_memory.py#L227) [interface](https://github.com/fairinternal/minecraft/blob/master/droidlet/memory/memory_filters.py#L214).
+The entry point to the underlying SQL database is an [AgentMemory](https://github.com/facebookresearch/fairo/blob/main/droidlet/memory/sql_memory.py) object.
+The database can be directly accessed by [\_db\_read\(query, \*args\)](https://github.com/facebookresearch/fairo/blob/main/droidlet/memory/sql_memory.py#L958).  Some common queries using triples or that are otherwise unwieldy in raw SQL have been packaged in the [basic\_search\(search_data\)](https://github.com/facebookresearch/fairo/blob/main/droidlet/memory/sql_memory.py#L354) [interface](https://github.com/facebookresearch/fairo/blob/main/droidlet/memory/memory_filters.py#L198).
 
 ```eval_rst
  .. autoclass:: droidlet.memory.sql_memory.AgentMemory
-  :members:     basic_search, get_mem_by_id, forget, _db_read, _db_write, get_time, get_world_time, get_recent_entities, add_triple, tag, untag, get_memids_by_tag, get_tags_by_memid, get_triples, remove_memid_triple, task_stack_push, task_stack_update_task, task_stack_peek, task_stack_pop, task_stack_pause, task_stack_clear, task_stack_resume, task_stack_find_lowest_instance, task_stack_get_all, get_last_finished_root_task, get_task_by_id
+  :members:     basic_search, get_mem_by_id, forget, _db_read, _db_write, get_time, get_world_time, get_recent_entities, add_triple, tag, untag, get_memids_by_tag, get_tags_by_memid, get_triples, task_stack_push, task_stack_update_task, task_stack_peek, task_stack_pop, task_stack_pause, task_stack_clear, task_stack_resume, task_stack_find_lowest_instance, get_last_finished_root_task
 ```
 
 ## MemoryNodes #

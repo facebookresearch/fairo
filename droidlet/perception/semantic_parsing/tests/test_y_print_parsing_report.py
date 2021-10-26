@@ -1244,7 +1244,7 @@ class TestDialogueManager(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.chat_parser = NSPQuerier(opts)
+        self.chat_parser = NSPQuerier(opts=opts)
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:

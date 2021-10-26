@@ -59,6 +59,34 @@ FILTERS = {
         "selector": {"return_quantity": "RANDOM", "ordinal": "2"},
         "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]},
     },
+    "the farthest cube": {
+        "selector": {
+            "return_quantity": {
+                "argval": {
+                    "polarity": "MAX",
+                    "quantity": {
+                        "attribute": {"linear_extent": LINEAR_EXTENTS["distance from me"]}
+                    },
+                }
+            },
+            "ordinal": "1",
+        },
+        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]},
+    },
+    "two farthest cubes": {
+        "selector": {
+            "return_quantity": {
+                "argval": {
+                    "polarity": "MAX",
+                    "quantity": {
+                        "attribute": {"linear_extent": LINEAR_EXTENTS["distance from me"]}
+                    },
+                }
+            },
+            "ordinal": "2",
+        },
+        "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]},
+    },
     "a cube": {"where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "cube"}]}},
     "where I am looking": {"selector": {"location": SPEAKERLOOK}},
     "my location": {"selector": {"location": AGENTPOS}},
@@ -966,6 +994,22 @@ PUT_MEMORY_COMMANDS = {
             "memory_data": {
                 "memory_type": "TRIPLE",
                 "triples": [{"pred_text": "has_tag", "obj_text": "fluffy"}],
+            }
+        },
+    },
+    "you two are team alpha": {
+        "dialogue_type": "PUT_MEMORY",
+        "filters": {
+            "selector": {
+                "location": {"location_type": "SPEAKER_LOOK"},
+                "ordinal": "2",
+                "same": "DISALLOWED",
+            }
+        },
+        "upsert": {
+            "memory_data": {
+                "memory_type": "SET",
+                "triples": [{"pred_text": "has_name", "obj_text": "team alpha"}],
             }
         },
     },

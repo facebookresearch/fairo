@@ -278,12 +278,14 @@ Status PolymetisControllerServerImpl::UpdateController(
   }
 
   // Update controller & set intervals
-  if (custom_controller_context_.status != UNINITIALIZED) {
+  if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
     interval->set_start(robot_state_buffer_.size());
     custom_controller_context_.custom_controller->param_dict_update_module();
     custom_controller_context_.controller_mtx.unlock();
   } else {
+    std::cout << "Warning: Tried to perform a controller update with no "
+                 "controller running.\n";
     interval->set_start(-1);
   }
 
@@ -296,7 +298,7 @@ Status PolymetisControllerServerImpl::TerminateController(
     ServerContext *context, const Empty *, LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  if (custom_controller_context_.status != UNINITIALIZED) {
+  if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
     custom_controller_context_.status = TERMINATING;
     custom_controller_context_.controller_mtx.unlock();
@@ -308,6 +310,8 @@ Status PolymetisControllerServerImpl::TerminateController(
     interval->set_start(custom_controller_context_.episode_begin);
     interval->set_end(custom_controller_context_.episode_end);
   } else {
+    std::cout << "Warning: Tried to terminate controller with no controller "
+                 "running.\n";
     interval->set_start(-1);
     interval->set_end(-1);
   }

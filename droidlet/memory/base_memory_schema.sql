@@ -165,6 +165,10 @@ CREATE TABLE NamedAbstractions(
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
+CREATE TABLE InterpreterMems(
+    uuid    NCHAR(36)       PRIMARY KEY,
+    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
+);
 
 CREATE TABLE SetMems(
     uuid    NCHAR(36)       PRIMARY KEY,

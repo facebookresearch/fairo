@@ -13,23 +13,6 @@ from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_n
 ####################################################################################
 
 
-SELFID = "0" * 32
-
-
-def maybe_and(sql, a):
-    if a:
-        return sql + " AND "
-    else:
-        return sql
-
-
-def maybe_or(sql, a):
-    if a:
-        return sql + " OR "
-    else:
-        return sql
-
-
 def check_well_formed_triple(clause):
     # TODO search by pred?
     assert any(
@@ -149,6 +132,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
 
     # FIXME! it is assumed for now that the value is the obj_text, not the obj; need to
     # to introduce special comparison_symbol for the obj memid case
+
     if comparison_symbol != "=" and comparison_symbol != "=#=":
         raise Exception("Triple values need to have '=' or '=#=' as comparison symbol for now")
     if comparison_symbol == "=":
@@ -170,7 +154,7 @@ def try_float(value, where_clause):
 
 
 def argval_subsample_idx(values, n, polarity="MAX"):
-    """ values is a list, n an int, polarity is MAX or MIN"""
+    """values is a list, n an int, polarity is MAX or MIN"""
     assert n > 0
     descending = {"MAX": True, "MIN": False}[polarity]
     _, idxs = torch.sort(torch.Tensor(values), descending=descending)
@@ -195,28 +179,28 @@ def random_subsample_idx(num_mems, n, same="DISALLOWED"):
 
 
 class MemorySearcher:
-    """ 
+    """
     Basic string form:
 
     SELECT <attribute>;
     FROM mem_type(s);
     WHERE <sentence of clauses>;
-    ORDER BY <attribute>; 
+    ORDER BY <attribute>;
     LIMIT <ordinal> DESC/ASC;
     SAME ALLOWED/DISALLOWED/REQUIRED;
     CONTAINS_COREFERENCE ;
 
-    for now it assumed that every <attribute> is an explicitly stored property of the memory. 
+    for now it assumed that every <attribute> is an explicitly stored property of the memory.
     the SELECT clause can have value "COUNT" or "MEMORY" or an attribute.
     the FROM clause is a MemoryNode NodeType (TODO sentence with OR's)
-    the WHERE clause is a sentence of the recursive form 
+    the WHERE clause is a sentence of the recursive form
         (clause, CONJUNCTION  ... CONJUCTION clause), where each CONJUCTION is either AND or OR
         or a sentence of the form (NOT clause).  at a given level of the sentence, all conjuctions
-        should be the same. 
+        should be the same.
     the ORDER BY clause can be RANDOM or an explicitly stored property
         while the language allows a LOCATION clause, this searcher cannot handle it
     the LIMIT is a positive integer
-    
+
     basic dict form has keys:
     "output": corresponding to the "SELECT" clause; with string values "COUNT" or "MEMORY"
         or attribute dict as possible values
@@ -226,12 +210,12 @@ class MemorySearcher:
     "selector": corresponding to "ORDER BY", "LIMIT", "SAME"
     "contains_coreference": corresponding to "CONTAINS_COREFERENCE"
 
-    the search method takes an agent_memory as input, and either a query 
+    the search method takes an agent_memory as input, and either a query
     (or this object was initialized with a query) as a kw arg
     and outputs a list of MemoryNodes and corresponding list of values.
     if the output type/SELECT is COUNT, the list of values will be the count repeated for each memory
     if the output type is MEMORY, the list of values will be a None for each memory
-    
+
     """
 
     # TODO eventually allow any attribute- if its not a "simple" attribute,
@@ -248,7 +232,7 @@ class MemorySearcher:
             return query
 
     def handle_where(self, agent_memory, where_clause, memtype):
-        """ 
+        """
         returns a list of memids whose memories satisfy the where clause
         """
         # do this brutally for now, if we need can make more efficient
@@ -326,13 +310,14 @@ class MemorySearcher:
                     raise Exception("error in subquery {}".format(where_clause))
 
         triples = agent_memory.get_triples(**where_clause)
-        node_children = agent_memory.node_children[memtype]
-        if len(triples) > 0:
-            return [
-                t[0] for t in triples if agent_memory.get_node_from_memid(t[0]) in node_children
-            ]
+        if where_clause.get("subj"):
+            memids = [t[2] for t in triples]
         else:
-            return []
+            memids = [t[0] for t in triples]
+
+        # TODO move checking if it is proper node type to main body or to a "handle_from"
+        node_children = agent_memory.node_children[memtype]
+        return [m for m in memids if agent_memory.get_node_from_memid(m) in node_children]
 
     def handle_selector(self, agent_memory, query, memids):
         if query.get("selector"):
@@ -596,32 +581,32 @@ class ExtremeValueMemorySelector(MemoryFilter):
         super().__init__(agent_memory)
         # polarity is "argmax" or "argmin"
         self.polarity = polarity
+        self.ordinal = ordinal
 
     # should this give an error? probably it should
     def search(self):
         all_memids = self.all_table_memids()
-        i = torch.randint(len(all_memids), (1,)).item()
-        return [all_memids[i]], [None]
+        idxs = torch.randint(len(all_memids), (self.ordinal,)).tolist()
+        return [all_memids[i] for i in idxs], [None] * self.ordinal
 
-    # FIXME!!!! do ordinals not 1
+    # TODO? error if ordinal is larger than len(memids)?
     def filter(self, memids, vals):
         if not memids:
             return [], []
-        if self.polarity == "argmax":
-            try:
-                i = torch.argmax(torch.Tensor(vals)).item()
-            except:
-                raise Exception("are these values numbers?  trying to argmax them")
-        else:
-            try:
-                i = torch.argmin(torch.Tensor(vals)).item()
-            except:
-                raise Exception("are these values numbers?  trying to argmin them")
+        if self.ordinal > len(memids):
+            return memids, vals
+        try:
+            _, idxs = torch.topk(
+                torch.Tensor(vals), self.ordinal, largest=(self.polarity == "argmax")
+            )
+            idxs = idxs.tolist()
+        except:
+            raise Exception("are these values numbers?  trying to topk/mink them")
 
-        return [memids[i]], [vals[i]]
+        return [memids[i] for i in idxs], [vals[i] for i in idxs]
 
     def _selfstr(self):
-        return self.polarity
+        return self.polarity + " {}".format(self.ordinal)
 
 
 class LogicalOperationFilter(MemoryFilter):
@@ -764,7 +749,7 @@ class BasicFilter(MemoryFilter):
 
 class BackoffFilter(MemoryFilter):
     """
-    runs a sequence of Filters, passed into the __init__.  if nothing is returned from the 
+    runs a sequence of Filters, passed into the __init__.  if nothing is returned from the
     first, returns the results of the second, and so on...
 
     if a Filter in the sequence is instead a None object, that None object is skipped

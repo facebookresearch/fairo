@@ -28,18 +28,6 @@ class MCTime(Time):
         return self.get_world_time() / TICKS_PER_MC_DAY
 
 
-def adjacent(p):
-    """Return the positions adjacent to position p"""
-    return (
-        (p[0] + 1, p[1], p[2]),
-        (p[0] - 1, p[1], p[2]),
-        (p[0], p[1] + 1, p[2]),
-        (p[0], p[1] - 1, p[2]),
-        (p[0], p[1], p[2] + 1),
-        (p[0], p[1], p[2] - 1),
-    )
-
-
 def cluster_areas(areas):
     """Cluster a list of areas so that intersected ones are unioned
 
@@ -96,17 +84,6 @@ def cluster_areas(areas):
         clustered_areas.append(area)
 
     return clustered_areas
-
-
-def diag_adjacent(p):
-    """Return the adjacent positions to p including diagonal adjaceny"""
-    return [
-        (x, y, z)
-        for x in range(p[0] - 1, p[0] + 2)
-        for y in range(p[1] - 1, p[1] + 2)
-        for z in range(p[2] - 1, p[2] + 2)
-        if (x, y, z) != p
-    ]
 
 
 def discrete_step_dir(agent):

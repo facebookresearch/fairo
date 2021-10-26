@@ -37,9 +37,7 @@ cd ${ROOTDIR}/agents/$AGENT
 echo "Computing hashes ..."
 if [ "$HASH_PATH" = "models" ]
 then
-    if [ $AGENT == "locobot" ]; then
-        calculate_sha1sum  "${ROOTDIR}/agents/$AGENT/models/perception" "${ROOTDIR}/tools/data_scripts/default_checksums/locobot.txt"
-    fi # craftassist
+    calculate_sha1sum  "${ROOTDIR}/agents/$AGENT/models/perception" "${ROOTDIR}/tools/data_scripts/default_checksums/${AGENT}_perception.txt"
     calculate_sha1sum "${ROOTDIR}/agents/$AGENT/models/semantic_parser" "${ROOTDIR}/tools/data_scripts/default_checksums/nsp.txt"
 else # datasets
     calculate_sha1sum "${ROOTDIR}/agents/$AGENT/datasets/" "${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"

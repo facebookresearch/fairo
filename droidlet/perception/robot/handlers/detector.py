@@ -17,14 +17,11 @@ from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode
 from detectron2.config import get_cfg
 from detectron2.engine.defaults import DefaultPredictor
-
-import droidlet.memory.robot.loco_memory as loco_memory
-
 from .core import AbstractHandler, WorldObject
 from droidlet.shared_data_structs import RGBDepth
 from ..detectron.detector.utils import get_predictor
 from ..detectron.detector.visualizer import LocobotVisualizer
-from droidlet.perception.robot.perception_helpers import get_color_tag
+from droidlet.perception.robot.perception_util import get_color_tag
 
 
 lvis_yaml = "configs/mask_rcnn_R_101_FPN_1x.yaml"
@@ -183,12 +180,6 @@ class Detection(WorldObject):
         self.color = get_color_tag(rgb_depth.get_pillow_image(), self.center)
         self.facial_rec_tag = face_tag
         self.feature_repr = None
-
-    def save_to_memory(self, memory, update=False):
-        if update:
-            loco_memory.DetectedObjectNode.update(memory, self)
-        else:
-            loco_memory.DetectedObjectNode.create(memory, self)
 
     def _maybe_bbox(self, bbox, mask):
         if hasattr(bbox, "tensor"):

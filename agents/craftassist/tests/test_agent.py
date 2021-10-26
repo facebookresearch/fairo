@@ -4,7 +4,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import unittest
 from droidlet.shared_data_structs import MockOpt
-
 from agents.craftassist.craftassist_agent import CraftAssistAgent
 
 

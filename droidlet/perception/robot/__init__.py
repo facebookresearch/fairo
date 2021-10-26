@@ -1,4 +1,4 @@
-from droidlet.perception.robot.perception_helpers import (
+from droidlet.perception.robot.perception_util import (
     random_colors,
     draw_xyz,
     get_random_color,

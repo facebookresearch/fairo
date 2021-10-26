@@ -30,22 +30,31 @@ if __name__ == "__main__":
 from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
-from agents.loco_mc_agent import LocoMCAgent
+from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
-from droidlet.dialog.craftassist.dialogue_objects import MCBotCapabilities
+from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
 from droidlet.interpreter.craftassist import MCGetMemoryHandler, PutMemoryHandler, MCInterpreter
 from droidlet.perception.craftassist.low_level_perception import LowLevelMCPerception
 from droidlet.lowlevel.minecraft.mc_agent import Agent as MCAgent
-from droidlet.lowlevel.minecraft.mc_util import cluster_areas, MCTime, SPAWN_OBJECTS
+from droidlet.lowlevel.minecraft.mc_util import (
+    cluster_areas,
+    MCTime,
+    SPAWN_OBJECTS,
+    get_locs_from_entity,
+    fill_idmeta,
+)
 from droidlet.perception.craftassist.voxel_models.subcomponent_classifier import (
     SubcomponentClassifierWrapper,
 )
-from droidlet.perception.craftassist.search import astar
 from droidlet.lowlevel.minecraft import craftassist_specs
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import COLOR_BID_MAP
-from droidlet.lowlevel.minecraft import shape_helpers
+from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
+    COLOR_BID_MAP,
+    BORING_BLOCKS,
+    PASSABLE_BLOCKS,
+)
+from droidlet.lowlevel.minecraft import shape_util
 from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.event import sio
@@ -65,20 +74,26 @@ Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
 Item = namedtuple("Item", "id, meta")
 
 
-class CraftAssistAgent(LocoMCAgent):
+class CraftAssistAgent(DroidletAgent):
     default_frame = DEFAULT_FRAME
     coordinate_transforms = rotation
 
     def __init__(self, opts):
-        self.low_level_data = {"mobs": SPAWN_OBJECTS,
-                               "mob_property_data": craftassist_specs.get_mob_property_data(),
-                               "schematics": craftassist_specs.get_schematics(),
-                               "block_data": craftassist_specs.get_block_data(),
-                               "block_property_data": craftassist_specs.get_block_property_data(),
-                               "color_data": craftassist_specs.get_colour_data(),
-                               }
+        self.low_level_data = {
+            "mobs": SPAWN_OBJECTS,
+            "mob_property_data": craftassist_specs.get_mob_property_data(),
+            "schematics": craftassist_specs.get_schematics(),
+            "block_data": craftassist_specs.get_block_data(),
+            "block_property_data": craftassist_specs.get_block_property_data(),
+            "color_data": craftassist_specs.get_colour_data(),
+            "boring_blocks": BORING_BLOCKS,
+            "passable_blocks": PASSABLE_BLOCKS,
+            "fill_idmeta": fill_idmeta,
+            "color_bid_map": COLOR_BID_MAP,
+        }
         super(CraftAssistAgent, self).__init__(opts)
         self.no_default_behavior = opts.no_default_behavior
+        self.agent_type = "craftassist"
         self.point_targets = []
         self.last_chat_time = 0
         # areas must be perceived at each step
@@ -88,15 +103,15 @@ class CraftAssistAgent(LocoMCAgent):
         self.init_inventory()
         self.init_event_handlers()
 
-        shape_helper_dict = {
-            "shape_names": shape_helpers.SHAPE_NAMES,
-            "shape_helper": shape_helpers.SHAPE_HELPERS,
-            "bid": shape_helpers.bid(),
-            "shape_fns": shape_helpers.SHAPE_FNS
+        shape_util_dict = {
+            "shape_names": shape_util.SHAPE_NAMES,
+            "shape_option_fn_map": shape_util.SHAPE_OPTION_FUNCTION_MAP,
+            "bid": shape_util.bid(),
+            "shape_fns": shape_util.SHAPE_FNS,
         }
         # list of (prob, default function) pairs
         self.visible_defaults = [
-            (0.001, (default_behaviors.build_random_shape, shape_helper_dict)),
+            (0.001, (default_behaviors.build_random_shape, shape_util_dict)),
             (0.005, default_behaviors.come_to_player),
         ]
         self.perceive_on_chat = True
@@ -137,17 +152,27 @@ class CraftAssistAgent(LocoMCAgent):
     def init_event_handlers(self):
         """Handle the socket events"""
         super().init_event_handlers()
-        
+
         @sio.on("getVoxelWorldInitialState")
         def setup_agent_initial_state(sid):
             MAX_RADIUS = 50
             logging.info("in setup_world_initial_state")
             agent_pos = self.get_player().pos
             x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
-            origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
-            yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
+            origin = (x - MAX_RADIUS, y - MAX_RADIUS, z - MAX_RADIUS)
+            yzxb = self.get_blocks(
+                x - MAX_RADIUS,
+                x + MAX_RADIUS,
+                y - MAX_RADIUS,
+                y + MAX_RADIUS,
+                z - MAX_RADIUS,
+                z + MAX_RADIUS,
+            )
             blocks = npy_to_blocks_list(yzxb, origin=origin)
-            blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
+            blocks = [
+                ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
+                for xyz, idm in blocks
+            ]
             payload = {
                 "status": "setupWorldInitialState",
                 "world_state": {
@@ -157,7 +182,7 @@ class CraftAssistAgent(LocoMCAgent):
                         "y": float(agent_pos.y),
                         "z": float(agent_pos.z),
                     },
-                    "block": blocks
+                    "block": blocks,
                 },
             }
             sio.emit("setVoxelWorldInitialState", payload)
@@ -169,12 +194,15 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_memory(self):
         """Intialize the agent memory and logging."""
+        low_level_data = self.low_level_data.copy()
+        low_level_data["check_inside"] = heuristic_perception.check_inside
+
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             coordinate_transforms=self.coordinate_transforms,
             db_log_path="agent_memory.{}.log".format(self.name),
             agent_time=MCTime(self.get_world_time),
-            agent_low_level_data=self.low_level_data,
+            agent_low_level_data=low_level_data,
         )
         # Add all dances to memory
         dance.add_default_dances(self.memory)
@@ -185,9 +213,8 @@ class CraftAssistAgent(LocoMCAgent):
 
     def init_perception(self):
         """Initialize perception modules"""
-        # NOTE: self.chat_parser will move to perception_modules once Soumith's changes are in
-        self.chat_parser = NSPQuerier(self.opts)
         self.perception_modules = {}
+        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
         self.perception_modules["low_level"] = LowLevelMCPerception(self)
         self.perception_modules["heuristic"] = heuristic_perception.PerceptionWrapper(
             self, low_level_data=self.low_level_data
@@ -195,43 +222,58 @@ class CraftAssistAgent(LocoMCAgent):
         # set up the SubComponentClassifier model
         if os.path.isfile(self.opts.semseg_model_path):
             self.perception_modules["semseg"] = SubcomponentClassifierWrapper(
-                self, self.opts.semseg_model_path
+                self, self.opts.semseg_model_path, low_level_data=self.low_level_data
             )
-
-        self.on_demand_perception = {}
-        self.on_demand_perception["check_inside"] = heuristic_perception.check_inside
 
     def init_controller(self):
         """Initialize all controllers"""
         dialogue_object_classes = {}
-        dialogue_object_classes["bot_capabilities"] = MCBotCapabilities
+        dialogue_object_classes["bot_capabilities"] = {"task": MCBotCapabilities, "data": {}}
         dialogue_object_classes["interpreter"] = MCInterpreter
         dialogue_object_classes["get_memory"] = MCGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         low_level_interpreter_data = {
-            'block_data': craftassist_specs.get_block_data(),
-            'special_shape_functions': SPECIAL_SHAPE_FNS,
-            'color_bid_map': COLOR_BID_MAP,
-            'astar_search': astar,
-            'get_all_holes_fn': heuristic_perception.get_all_nearby_holes}
+            "block_data": craftassist_specs.get_block_data(),
+            "special_shape_functions": SPECIAL_SHAPE_FNS,
+            "color_bid_map": self.low_level_data["color_bid_map"],
+            "get_all_holes_fn": heuristic_perception.get_all_nearby_holes,
+            "get_locs_from_entity": get_locs_from_entity,
+        }
         self.dialogue_manager = DialogueManager(
             memory=self.memory,
             dialogue_object_classes=dialogue_object_classes,
             dialogue_object_mapper=DialogueObjectMapper,
             opts=self.opts,
-            low_level_interpreter_data=low_level_interpreter_data
+            low_level_interpreter_data=low_level_interpreter_data,
         )
 
     def perceive(self, force=False):
-        """Whenever some blocks are changed, that area will be put into a 
-        buffer which will be force-perceived by the agent in the next step
+        """Whenever something is changed, that area is be put into a
+        buffer which will be force-perceived by the agent in the next step.
 
         Here the agent first clusters areas that are overlapping on the buffer,
-        then run through all perception modules to perceive
-        and finally clear the buffer when perception is done.
+        then runs through all perception modules to perceive and finally clears the
+        buffer when perception is done.
+
+        The agent sends all perception updates to memory in order for them to
+        update the memory state.
         """
-        self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
+        # 1. perceive from NLU parser
         super().perceive()
+        # 2. perceive from low_level perception module
+        low_level_perception_output = self.perception_modules["low_level"].perceive()
+        self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
+        self.areas_to_perceive = self.memory.update(
+            low_level_perception_output, self.areas_to_perceive)["areas_to_perceive"]
+        # 3. with the updated areas_to_perceive, perceive from heuristic perception module
+        if force or not self.memory.task_stack_peek():
+            # perceive from heuristic perception module
+            heuristic_perception_output = self.perception_modules["heuristic"].perceive()
+            self.memory.update(heuristic_perception_output)
+        # 4. if semantic segmentation model is initialized, call perceive
+        if "semseg" in self.perception_modules:
+            sem_seg_perception_output = self.perception_modules["semseg"].perceive()
+            self.memory.update(sem_seg_perception_output)
         self.areas_to_perceive = []
         self.update_dashboard_world()
 
@@ -303,7 +345,7 @@ class CraftAssistAgent(LocoMCAgent):
     def send_chat(self, chat):
         """Send chat from agent to player"""
         logging.info("Sending chat: {}".format(chat))
-        sio.emit("showAssistantReply", {'agent_reply' : "Agent: {}".format(chat)})
+        sio.emit("showAssistantReply", {"agent_reply": "Agent: {}".format(chat)})
         self.memory.add_chat(self.memory.self_memid, chat)
         return self.cagent.send_chat(chat)
 
@@ -312,26 +354,36 @@ class CraftAssistAgent(LocoMCAgent):
         payload = {
             "status": "updateVoxelWorldState",
             "world_state": {
-                "agent": [{
-                    "name": "agent",
-                    "x": float(agent_pos.x),
-                    "y": float(agent_pos.y),
-                    "z": float(agent_pos.z),
-                }]
+                "agent": [
+                    {
+                        "name": "agent",
+                        "x": float(agent_pos.x),
+                        "y": float(agent_pos.y),
+                        "z": float(agent_pos.z),
+                    }
+                ]
             },
         }
         sio.emit("updateVoxelWorldState", payload)
-    
+
     def update_dashboard_world(self):
         MAX_RADIUS = 2
         agent_pos = self.get_player().pos
         x, y, z = round(agent_pos.x), round(agent_pos.y), round(agent_pos.z)
-        origin = (x-MAX_RADIUS, y-MAX_RADIUS, z-MAX_RADIUS)
-        yzxb = self.get_blocks(x-MAX_RADIUS, x+MAX_RADIUS, y-MAX_RADIUS, y+MAX_RADIUS, z-MAX_RADIUS, z+MAX_RADIUS)
+        origin = (x - MAX_RADIUS, y - MAX_RADIUS, z - MAX_RADIUS)
+        yzxb = self.get_blocks(
+            x - MAX_RADIUS,
+            x + MAX_RADIUS,
+            y - MAX_RADIUS,
+            y + MAX_RADIUS,
+            z - MAX_RADIUS,
+            z + MAX_RADIUS,
+        )
 
         # modified from util but keep air blocks
         def npy_to_blocks_list(npy, origin):
             import numpy as np
+
             blocks = []
             sy, sz, sx, _ = npy.shape
             for ry in range(sy):
@@ -343,15 +395,12 @@ class CraftAssistAgent(LocoMCAgent):
             return blocks
 
         blocks = npy_to_blocks_list(yzxb, origin=origin)
-        blocks = [((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))for xyz, idm in blocks]
-        payload = {
-            "status": "updateVoxelWorldState",
-            "world_state": {
-                "block": blocks
-            },
-        }
+        blocks = [
+            ((int(xyz[0]), int(xyz[1]), int(xyz[2])), (int(idm[0]), int(idm[1])))
+            for xyz, idm in blocks
+        ]
+        payload = {"status": "updateVoxelWorldState", "world_state": {"block": blocks}}
         sio.emit("updateVoxelWorldState", payload)
-
 
     def step_pos_x(self):
         self.cagent.step_pos_x()
@@ -380,7 +429,6 @@ class CraftAssistAgent(LocoMCAgent):
     def step_forward(self):
         self.cagent.step_forward()
         self.update_agent_pos_dashboard()
-
 
     # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,

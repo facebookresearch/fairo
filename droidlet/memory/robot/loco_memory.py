@@ -5,6 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import os
 import logging
 from typing import List
+from collections import namedtuple
 from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.memory.sql_memory import AgentMemory
 from droidlet.memory.robot.loco_memory_nodes import *
@@ -37,8 +38,31 @@ class LocoAgentMemory(AgentMemory):
         self._safe_pickle_saved_attrs = {}
         self.dances = {}
 
-    def update(self, agent):
-        pass
+    ############################################
+    ### Update world with perception updates ###
+    ############################################
+
+    def update(self, perception_output: namedtuple=None):
+        """
+        Updates the world with updates from agent's perception module.
+
+        Args:
+            perception_output: namedtuple with attributes -
+                new_objects: List of new detections
+                updated_objects: List of detections with updates
+                humans: List of humans detected
+        """
+        if not perception_output:
+            return
+        if perception_output.new_objects:
+            for detection in perception_output.new_objects:
+                DetectedObjectNode.create(self, detection)
+        if perception_output.updated_objects:
+            for detection in perception_output.updated_objects:
+                DetectedObjectNode.update(self, detection)
+        if perception_output.humans:
+            for human in perception_output.humans:
+                HumanPoseNode.create(self, human)
 
     #################
     ###  Players  ###
