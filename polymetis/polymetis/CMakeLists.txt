@@ -21,9 +21,8 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-# Find Protobuf
-set(_PROTOBUF_LIBPROTOBUF $ENV{CONDA_PREFIX}/lib/libprotobuf.so)
-set(Protobuf_FOUND ON)
+find_package(Protobuf REQUIRED)
+message(STATUS "Using protobuf ${Protobuf_VERSION}")
 
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)
