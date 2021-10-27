@@ -2,24 +2,34 @@
 
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
+#include <iostream>
+#include <map>
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+#define C_TORCH_EXPORT __attribute__((visibility("default")))
+
 #ifndef TORCH_SERVER_OPS_H
 #define TORCH_SERVER_OPS_H
 
+struct TorchTensor;       // torch::Tensor
+struct TorchScriptModule; // torch::jit::script::Module
+struct TorchInput;        // std::vector<torch::jit::IValue>
+struct StateDict;         // c10::Dict<std::string, struct TorchTensor>
+
 class TorchRobotState {
 private:
-  c10::Dict<std::string, torch::Tensor> state_dict_;
+  struct StateDict *state_dict_;
 
   // Robot states
-  torch::Tensor rs_timestamp_;
-  torch::Tensor rs_joint_positions_;
-  torch::Tensor rs_joint_velocities_;
-  torch::Tensor rs_motor_torques_measured_;
-  torch::Tensor rs_motor_torques_external_;
+  struct TorchTensor *rs_timestamp_;
+  struct TorchTensor *rs_joint_positions_;
+  struct TorchTensor *rs_joint_velocities_;
+  struct TorchTensor *rs_motor_torques_measured_;
+  struct TorchTensor *rs_motor_torques_external_;
 
 public:
   TorchRobotState(int num_dofs);
@@ -28,19 +38,18 @@ public:
                     std::vector<float> joint_velocities,
                     std::vector<float> motor_torques_measured,
                     std::vector<float> motor_torques_external);
-
+  struct TorchInput *input_;
   int num_dofs_;
-  std::vector<torch::jit::IValue> input_;
 };
 
 class TorchScriptedController {
 private:
-  torch::jit::script::Module module_;
+  struct TorchScriptModule *module_;
   TorchRobotState robot_state_ = TorchRobotState(1);
 
   // Inputs
-  std::vector<torch::jit::IValue> param_dict_input_;
-  std::vector<torch::jit::IValue> empty_input_;
+  struct TorchInput *param_dict_input_;
+  struct TorchInput *empty_input_;
 
 public:
   TorchScriptedController(std::istream &stream);
