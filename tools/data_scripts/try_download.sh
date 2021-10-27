@@ -30,7 +30,7 @@ echo "agent path ${AGENT_PATH}"
 # in case directories don't even exist, create them
 mkdir -p $AGENT_PATH/datasets
 mkdir -p $AGENT_PATH/models
-mkdir -p $AGENT_PATH/models/semantic_parser
+mkdir -p $AGENT_PATH/models/nlu
 mkdir -p $AGENT_PATH/models/perception
 
 compare_checksum_try_download() {
@@ -70,7 +70,7 @@ pushd $AGENT_PATH
 # Remove existing checksum files so that they can be re-calculated
 rm ${AGENT_PATH}models/*checksum.txt
 
-calculate_sha1sum "${AGENT_PATH}models/semantic_parser" "${AGENT_PATH}models/nsp_checksum.txt"
+calculate_sha1sum "${AGENT_PATH}models/nlu" "${AGENT_PATH}models/nsp_checksum.txt"
 compare_checksum_try_download "models/nsp_checksum.txt" "nsp" 
 
 calculate_sha1sum "${AGENT_PATH}datasets" "${AGENT_PATH}datasets/checksum.txt"

@@ -28,7 +28,7 @@ def try_download_artifacts(agent=None):
     # in case directories don't even exist, create them
     os.makedirs(os.path.join(agent_path, 'datasets'), exist_ok=True)
     os.makedirs(os.path.join(agent_path, 'models'), exist_ok=True)
-    os.makedirs(os.path.join(agent_path, 'models/semantic_parser'), exist_ok=True)
+    os.makedirs(os.path.join(agent_path, 'models/nlu'), exist_ok=True)
     os.makedirs(os.path.join(agent_path, 'models/perception'), exist_ok=True)
 
     # Comparing hashes for local directories
@@ -44,7 +44,7 @@ def try_download_artifacts(agent=None):
 
     compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
 
-    artifact_path = os.path.join(agent_path, 'models/semantic_parser')
+    artifact_path = os.path.join(agent_path, 'models/nlu')
     checksum_write_path = os.path.join(agent_path, 'models/nlu_checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)

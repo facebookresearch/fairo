@@ -9,7 +9,7 @@ from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistT
 from droidlet.shared_data_structs import MockOpt
 
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/")
-TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/")
+TTAD_BERT_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/models/nlu/")
 
 """This class tests safety checks using a preset list of blacklisted words.
 """

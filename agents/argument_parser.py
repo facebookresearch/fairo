@@ -63,7 +63,7 @@ class ArgumentParser:
         )
         nsp_parser.add_argument(
             "--nsp_models_dir",
-            default="models/semantic_parser/",
+            default="models/nlu/",
             help="path to semantic parsing models",
         )
         nsp_parser.add_argument(
