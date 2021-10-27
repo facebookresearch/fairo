@@ -85,6 +85,7 @@ def main(cfg: DictConfig) -> None:
     operator = Operator(db)
 
     operator.validate_and_run_config(cfg.mephisto, shared_state)
+    #operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 
