@@ -120,6 +120,7 @@ class InteractApp extends Component {
               failidx={this.state.failidx}
               goToMessage={this.goToMessage.bind(this)}
               failmsg={this.state.chats[this.state.failidx].msg}
+              agent_reply={this.state.agent_reply}
             />
           ) : null}
           {this.state.currentView === 3 ? (

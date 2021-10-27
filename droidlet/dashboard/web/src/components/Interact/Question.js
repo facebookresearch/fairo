@@ -85,9 +85,6 @@ class Question extends Component {
           the way through. Tell me more about what I did wrong :{" "}
         </h3>
         <TextField
-          style={{
-            backgroundColor: "white",
-          }}
           id="outlined-uncontrolled"
           label=""
           margin="normal"
@@ -255,7 +252,7 @@ class Question extends Component {
           question_word = "to remember or learn something you taught it ?";
         } else if (dialogue_type === "NOOP") {
           // no operation was requested.
-          question_word = "to do nothing ?";
+          question_word = "to not perform an action ?";
         }
       } else {
         // NOTE: This should never happen ...
@@ -320,8 +317,12 @@ class Question extends Component {
     return (
       <div>
         <div className="msg-header">
-          Message you sent to the bot: <br></br>
-          {this.props.chats[this.props.failidx].msg}
+          Message you sent to the assistant: <br></br>
+          <strong>{this.props.chats[this.props.failidx].msg}</strong>
+        </div>
+        <div className="msg-header">
+          The assistant responded:<br></br>
+          <strong>{this.props.agent_reply}</strong>
         </div>
         {/* {this.state.view === 0 ?  this.renderASRQuestion() : null} */}
         {this.state.view === 0

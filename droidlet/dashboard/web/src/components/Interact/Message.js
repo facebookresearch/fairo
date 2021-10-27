@@ -169,10 +169,10 @@ class Message extends Component {
         ) : (
           <div>
             <p>Enter the command to the assistant in the input box below.</p>
-            <p>
+            {/*<p>
               Click "Mark Error" next to the message if the outcome wasn't as
               expected.
-            </p>
+            </p> */}
           </div>
         )}
 

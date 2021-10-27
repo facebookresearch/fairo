@@ -359,8 +359,10 @@ class StateManager {
       if (ref instanceof InteractApp) {
         ref.setState({
           agent_reply: res.agent_reply,
-          currentView: 1,
         });
+        if (!res.agent_reply.includes("while you decide")) {
+          ref.goToQuestion(0);
+        }
       }
     });
   }
