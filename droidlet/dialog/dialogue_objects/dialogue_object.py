@@ -78,6 +78,7 @@ class DialogueObject(object):
         if self.current_step == self.max_steps:
             logging.error("Stepped {} {} times, finishing".format(self, self.max_steps))
             self.finished = True
+            return "That didn't seem to work..."
         return self.finished
 
     def __repr__(self):

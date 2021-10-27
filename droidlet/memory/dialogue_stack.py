@@ -36,8 +36,13 @@ class DialogueStack(object):
         """Process and step through the top-of-stack dialogue object."""
         if len(self.stack) > 0:
             # WARNING: check_finished increments the DialogueObject's current_step counter
-            while len(self.stack) > 0 and self.stack[-1].check_finished():
-                del self.stack[-1]
+            finished = True
+            while len(self.stack) > 0 and finished:
+                finished = self.stack[-1].check_finished()
+                if finished:
+                    if isinstance(finished, str):
+                        agent.send_chat(finished)
+                    del self.stack[-1]
 
             if len(self.stack) == 0:
                 return
