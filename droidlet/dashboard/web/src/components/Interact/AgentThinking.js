@@ -19,7 +19,6 @@ class AgentThinking extends Component {
     this.state = this.initialState;
 
     this.elementRef = React.createRef();
-    this.incrementEllipsis = this.incrementEllipsis.bind(this);
   }
 
   isMounted() {
@@ -59,7 +58,7 @@ class AgentThinking extends Component {
         <br />
         <br />
         <br />
-        <h2>Agent is thinking{this.state.ellipsis}</h2>
+        <h2>Assistant is thinking{this.state.ellipsis}</h2>
         <br />
         <br />
         <br />
