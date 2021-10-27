@@ -4,6 +4,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../"))
 from slam_pkg.utils.depth_util import transform_pose, bin_points
+from slam_pkg.utils import depth_util as du
 
 
 class MapBuilder(object):
@@ -68,6 +69,9 @@ class MapBuilder(object):
 
         return map_gt
 
+    def add_obstacle(self, location):
+        self.map[round(location[1]), round(location[0]), 1] = 1
+
     def reset_map(self, map_size):
         """
         resets the map to unknown
@@ -93,3 +97,49 @@ class MapBuilder(object):
         :rtype: np.ndarray dim:[map_size, map_size, 3]
         """
         return self.map
+
+    def real2map(self, loc):
+        """
+        convert real world location to map location
+        :param loc: real world location in metric unit
+
+        :type loc: tuple
+
+        :return: location in map space
+        :rtype: tuple [x_map_pix, y_map_pix]
+        """
+        # converts real location to map location
+        loc = np.array([loc[0], loc[1], 0])
+        loc *= 100  # convert location to cm
+        map_loc = du.transform_pose(
+            loc,
+            (self.map_size_cm / 2.0, self.map_size_cm / 2.0, np.pi / 2.0),
+        )
+        map_loc /= self.resolution
+        map_loc = map_loc.reshape(3)
+        return tuple(map_loc[:2])
+
+    def map2real(self, loc):
+        """
+        convert map location to real world location
+        :param loc: map location [x_pixel_location, y_pixel_location]
+
+        :type loc: list
+
+        :return: corresponding map location in real world in metric unit
+        :rtype: list [x_real_world, y_real_world]
+        """
+        # converts map location to real location
+        loc = np.array([loc[0], loc[1], 0])
+        real_loc = du.transform_pose(
+            loc,
+            (
+                -self.map.shape[0] / 2.0,
+                self.map.shape[1] / 2.0,
+                -np.pi / 2.0,
+            ),
+        )
+        real_loc *= self.resolution  # to take into account map resolution
+        real_loc /= 100  # to convert from cm to meter
+        real_loc = real_loc.reshape(3)
+        return real_loc[:2]

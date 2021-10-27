@@ -1,3 +1,5 @@
+.#*
+#*
 craftassist/agent/*.so
 droidlet/lowlevel/minecraft/bin
 craftassist/dashboard_data.db
@@ -59,3 +61,8 @@ annotation_data/seg/*
 annotation_data/coco/*
 annotation_data/output/*
 annotation_data/model/model_999.pth
+
+
+.circleci/habitat_docker/conda.txt
+.circleci/habitat_docker/requirements.txt
+.circleci/habitat_docker/Replica-Dataset

@@ -172,15 +172,14 @@ def interpret_reference_object(
 
         elif allow_clarification:
             # no candidates found; ask Clarification
-            # TODO: move ttad call to dialogue manager and remove this logic
-            interpreter.action_dict_frozen = True
             confirm_candidates = apply_memory_filters(interpreter, speaker, filters_d)
             objects = object_looked_at(interpreter.memory, confirm_candidates, speaker=speaker)
             if len(objects) == 0:
                 raise ErrorWithResponse("I don't know what you're referring to")
             _, mem = objects[0]
-            interpreter.provisional["object_mem"] = mem
-            interpreter.provisional["filters_d"] = filters_d
+            interpreter.memory.add_triple(
+                subj=interpreter.memid, pred_text="provisional_refobj_memid", obj=mem.memid
+            )
             task_egg = {"class": ConfirmReferenceObject, "task_data": {"reference_object": mem}}
             cmemid = TaskNode.create(interpreter.memory, task_egg)
             interpreter.memory.add_triple(
@@ -200,7 +199,11 @@ def interpret_reference_object(
         _, r = interpreter.memory.basic_search(query)
         if r and r[0] == "yes":
             # TODO: learn from the tag!  put it in memory!
-            return [interpreter.provisional.get("object_mem")]
+            query = "SELECT MEMORY FROM ReferenceObject WHERE << {}, reference_object_confirmation, ?>>".format(
+                self.memid
+            )
+            _, ref_obj_mems = interpreter.memory.basic_search(query)
+            return ref_obj_mems
         else:
             raise ErrorWithResponse("I don't know what you're referring to")
 

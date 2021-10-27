@@ -88,7 +88,71 @@ def check_run_status(run_id: int) -> None:
     print(f"For mephisto/mturk debug: total num: {total_cnt}, # who pass mturk qual: {turkers_with_mturk_qual_cnt}")
     print(f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins")
     print(f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins")
-    print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
+    #print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
+
+#%%
+def timing_charts(run_id: int) -> None:
+    db = LocalMephistoDB()
+    units = db.find_units(task_run_id=run_id)
+    completed_num = 0
+    completed_units = []
+    for unit in units:
+        if unit.db_status == "completed":
+            completed_num += 1
+            completed_units .append(unit)
+
+    data_browser = DataBrowser(db=db)
+    usability = []
+    read_time = []
+    pre_interact = []
+    interact_time = []
+    starttime = math.inf
+    endtime = -math.inf
+    for unit in completed_units:
+        data = data_browser.get_data_from_unit(unit)
+        content = data["data"]
+        if (content["times"]["task_start"] < starttime):
+            starttime = content["times"]["task_start"]
+        if (content["times"]["task_start"] > endtime):
+            endtime = content["times"]["task_end"]
+        outputs = content["outputs"]
+        try:
+            usability.append(int(outputs["usability-rating"]))
+        except:
+            usability.append(0)
+        try:
+            read_time.append(int(outputs["instructionsReadTime"]))
+        except:
+            read_time.append(0)
+        try:
+            pre_interact.append(int(outputs["preInteractTime"]))
+        except:
+            pre_interact.append(0)
+        try:
+            interact_time.append(int(outputs["interactTime"]))
+        except:
+            interact_time.append(0)
+
+    print(f"Start time: {datetime.fromtimestamp(starttime)}")
+    print(f"End time: {datetime.fromtimestamp(endtime)}")
+    print(f"Average usability score: {(sum(usability)/len(usability)):.1f}")
+
+    usability.sort()
+    keys = range(len(usability))
+    u_dict = dict(zip(keys, usability))
+    plot_hist(u_dict, xlabel="", ylabel="Usability Score", ymax=7)
+    read_time.sort()
+    keys = range(len(read_time))
+    r_dict = dict(zip(keys, read_time))
+    plot_hist(r_dict, xlabel="", ylabel="Instructions Read Time")
+    pre_interact.sort()
+    keys = range(len(pre_interact))
+    p_dict = dict(zip(keys, pre_interact))
+    plot_hist(p_dict, xlabel="", ylabel="Time between instructions and interaction start")
+    interact_time.sort()
+    keys = range(len(interact_time))
+    i_dict = dict(zip(keys, interact_time))
+    plot_hist(i_dict, xlabel="", ylabel="Interaction time")
 
 #%%
 def timing_charts(run_id: int) -> None:
@@ -195,10 +259,10 @@ def get_stats(command_list):
 
     print(f'num_ori {len_ori}')
     print(f'num_dedup {len_dedup}')
-    print(f'dup_rate {(len_ori - len_dedup) / len_ori * 100}%')
+    print(f'dup_rate {((len_ori - len_dedup) / len_ori * 100):.1f}%')
     print(f'avg_len {avg_len}')
     print(f'valid {interested}')
-    print(f'valid rate {interested / len_dedup * 100}%')
+    print(f'valid rate {(interested / len_ori * 100):.1f}%')
 
 
 #%%
@@ -334,8 +398,8 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211024122119/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211024122119")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211024122119", "nsp_outputs")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211027100532/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211027100532")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211027100532", "nsp_outputs")
 
 #%%
 if __name__ == "__main__":

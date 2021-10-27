@@ -1,9 +1,6 @@
 import a0
 
-# import facebook_robotics_platform.process as fbrp
 import time
-
-# fbrp.Init()
 
 i = 0
 p = a0.Publisher("camera/image.a0")

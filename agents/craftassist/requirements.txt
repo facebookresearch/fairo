@@ -1,2 +1,1 @@
 -r ../../requirements.txt
-scipy==1.5.4
