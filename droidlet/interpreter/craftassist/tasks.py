@@ -226,7 +226,7 @@ class Move(BaseMovementTask):
         if manhat_dist(tuple(agent.pos), self.target) <= self.approx:
             if len(self.replace) > 0:
                 logging.error("Move finished with non-empty replace set: {}".format(self.replace))
-            self.finished = True
+            self.finish(agent)
             return
 
         # get path
@@ -259,6 +259,10 @@ class Move(BaseMovementTask):
                 step_fn = getattr(agent, step_fn_name)
                 step_fn()
                 break
+
+    def finish(self, agent):
+        agent.send_chat("I finished my movement.")
+        self.finished = True
 
     def __repr__(self):
         return "<Move {} ±{}>".format(self.target, self.approx)
