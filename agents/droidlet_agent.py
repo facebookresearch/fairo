@@ -41,6 +41,7 @@ class DroidletAgent(BaseAgent):
         self.perceive_on_chat = False
         self.agent_type = None
         self.scheduler = EmptyScheduler()
+        self.dialogue_manager = None
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
