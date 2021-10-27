@@ -7,6 +7,7 @@ import re
 import logging
 import math
 from droidlet.base_util import Look, to_player_struct
+from droidlet.interpreter import InterpreterBase
 from droidlet.interpreter.robot import dance
 from droidlet.memory.memory_nodes import PlayerNode
 from agents.droidlet_agent import DroidletAgent
@@ -433,14 +434,21 @@ class FakeAgent(DroidletAgent):
         dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
-            opts=self.opts,
+            self.memory, dialogue_object_classes, DialogueObjectMapper, self.opts
         )
 
     def perceive(self, force=False):
-        super().perceive(force=force)
+        # clear the chat buffer
+        self.get_incoming_chats()
+        if self.logical_form:  # use the logical form as given...
+            DroidletAgent.process_language_perception(
+                self,
+                self.logical_form["speaker"],
+                self.logical_form["chatstr"],
+                self.logical_form["chatstr"],
+                self.logical_form["logical_form"],
+            )
+            force = True
         self.perception_modules["self"].perceive(force=force)
         perception_output = self.perception_modules["vision"].perceive(force=force)
         self.memory.update(perception_output)
@@ -457,39 +465,10 @@ class FakeAgent(DroidletAgent):
 
     #### use the LocobotAgent.controller_step()
     def controller_step(self):
-        if self.logical_form is None:
-            super().controller_step()
-        else:  # logical form given directly:
-            # clear the chat buffer
-            self.get_incoming_chats()
-            # use the logical form as given...
-            d = self.logical_form["logical_form"]
-            chatstr = self.logical_form["chatstr"]
-            speaker_name = self.logical_form["speaker"]
-            chat_memid = self.memory.add_chat(
-                self.memory.get_player_by_name(speaker_name).memid, chatstr
-            )
-            logical_form_memid = self.memory.add_logical_form(d)
-            self.memory.add_triple(
-                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-            )
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
-
-            # controller
-            logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                speaker=speaker_name, chat=chatstr, logical_form=d
-            )
-            obj = self.dialogue_manager.dialogue_object_mapper.handle_logical_form(
-                speaker=speaker_name, logical_form=logical_form, chat=chatstr
-            )
-            self.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-            # TODO (interpreter): rethink this when interpreter is its own object
-            if obj is not None:
-                if type(obj) is dict:
-                    obj["task"](self, task_data=obj["data"])
-                else:
-                    self.dialogue_manager.dialogue_stack.append(obj)
-            self.logical_form = None
+        super().controller_step()
+        # if the logical form was set explicitly, clear it, so that it won't keep
+        # being perceived and used to respawn new interpreters
+        self.logical_form = None
 
     def setup_test(self):
         self.task_steps_count = 0

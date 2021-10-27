@@ -166,7 +166,11 @@ CREATE TABLE NamedAbstractions(
 );
 
 CREATE TABLE InterpreterMems(
-    uuid    NCHAR(36)       PRIMARY KEY,
+    uuid                   NCHAR(36)       PRIMARY KEY,
+    interpreter_type       TEXT,            
+    finished               BOOLEAN         NOT NULL DEFAULT 0,
+    awaiting_response      BOOLEAN         NOT NULL DEFAULT 0,
+    
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
