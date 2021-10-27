@@ -9,6 +9,7 @@ import droidlet.base_util
 import droidlet.lowlevel.minecraft.shape_util
 import droidlet.lowlevel.minecraft.shapes
 from droidlet.lowlevel.minecraft.mc_util import euclid_dist
+from agents.droidlet_agent import DroidletAgent
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.shared_data_structs import MockOpt
 
@@ -23,37 +24,43 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         opts.nsp_data_dir = TTAD_BERT_DATA_DIR
         super().setUp(agent_opts=opts)
 
-        self.cube_right = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4))
+        self.cube_right = self.add_object(
+            droidlet.lowlevel.minecraft.shapes.cube(bid=(42, 0)), (9, 63, 4)
+        )
         self.cube_left = self.add_object(droidlet.lowlevel.minecraft.shapes.cube(), (9, 63, 10))
         self.set_looking_at(list(self.cube_right.blocks.keys())[0])
 
     def test_come_here(self):
         chat = "come here"
         self.add_incoming_chat(chat, self.speaker)
-        # get logical form
-        preprocessed_chat, chat_parse = self.agent.perception_modules["language_understanding"].get_parse(chat)
-        chat_memid = self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid,
-                                                preprocessed_chat)
-        logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
-        self.agent.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-        self.agent.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+        # run the semantic parsing model (and other chat munging):
+        nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
+        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
+            nlu_perceive_output
+        )
+        if received_chats_flag:
+            # put results from semantic parsing model into memory, if necessary
+            DroidletAgent.process_language_perception(
+                self.agent, speaker, chat, preprocessed_chat, chat_parse
+            )
         self.flush()
-        self.agent.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
         self.assertLessEqual(euclid_dist(self.agent.pos, self.get_speaker_pos()), 1)
 
     def test_stop(self):
+        # FIXME maybe agent should be moving first?
         chat = "stop"
         self.add_incoming_chat(chat, self.speaker)
-        # get logical form
-        preprocessed_chat, chat_parse = self.agent.perception_modules["language_understanding"].get_parse(chat)
-        chat_memid = self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid,
-                                                preprocessed_chat)
-        logical_form_memid = self.agent.memory.add_logical_form(chat_parse)
-        self.agent.memory.add_triple(subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid)
-        self.agent.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+        # run the semantic parsing model (and other chat munging):
+        nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
+        force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
+            nlu_perceive_output
+        )
+        if received_chats_flag:
+            # put results from semantic parsing model into memory, if necessary
+            DroidletAgent.process_language_perception(
+                self.agent, speaker, chat, preprocessed_chat, chat_parse
+            )
         self.flush()
-        self.agent.memory.untag(subj_memid=chat_memid, tag_text="unprocessed")
-
 
 
 if __name__ == "__main__":

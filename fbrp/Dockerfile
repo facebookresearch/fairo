@@ -12,9 +12,7 @@ RUN wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -
     rm Miniconda.sh
 ENV PATH=/opt/conda/bin:$PATH
 
-# RUN python3 -m pip install alephzero
-RUN python3 -m pip install \
-    alephzero@git+https://git@github.com/alephzero/py.git@v0.3
+RUN python3 -m pip install alephzero
 
 COPY . /fbrp
 RUN cd /fbrp && \
