@@ -109,7 +109,7 @@ class Launcher(BaseLauncher):
 
     async def command_handler(self):
         async for pkt in a0.aio_sub(
-            f"_/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
+            f"fbrp/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
         ):
             try:
                 cmd = json.loads(pkt.payload)
