@@ -7,6 +7,7 @@
 
 import os
 import subprocess
+import time
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
 print("Rootdir : %r" % ROOTDIR)
@@ -20,26 +21,28 @@ def checksum_tar_and_upload(agent, artifact_name, model_name=None):
     print("Agent path: %r" % (agent_path))
 
     checksum_name = 'checksum.txt'
+    artifact_path = os.path.join(agent_path, artifact_name)
+    # TODO: Double check for locobot
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
+
     if artifact_name == "models":
         if not model_name:
             model_name = "nlu"
             print("Model type not specified, defaulting to NLU model.")
-        checksum_name = model_name + '_checksum.txt'
+        checksum_name = model_name + '_' + checksum_name
+        artifact_path = artifact_path + "/" + model_name
+        artifact_name = artifact_name + '_' + model_name
 
-    artifact_path = os.path.join(agent_path, artifact_name)
-    # TODO: Double check for locobot
     checksum_path = os.path.join(artifact_path, checksum_name)
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_path],
                                      text=True)
     print(result)
+
     with open(checksum_path) as f:
         checksum = f.read().strip()
-    print("CHECKSUM: %r" % (checksum))
+    print("CHECKSUM: %r" % checksum)
 
     # tar the folder
-    if model_name:
-        artifact_name = artifact_name + '_' + model_name
     print("Now making the tar file...")
     # TODO: check if we need the model name here
     process = subprocess.Popen(['tar', '-czvf',
@@ -52,13 +55,18 @@ def checksum_tar_and_upload(agent, artifact_name, model_name=None):
     print(stdout.decode("utf-8"))
     print(stderr.decode("utf-8"))
     print("Now uploading ...")
+    #TODO: check that the output printing here works
     process = subprocess.Popen(['aws', 's3', 'cp',
                                 agent + '_' + artifact_name + '_folder_' + checksum + '.tar.gz', 's3://craftassist/pubr/'],
-                               stdout=subprocess.PIPE,
-                               universal_newlines=True)
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
+                               stdout=subprocess.PIPE)
+    while True:
+        output = process.stdout.readline().decode("utf-8").split("\r")[-1]
+        if output == '' and process.poll() is not None:
+            break
+        if output:
+            print(output.strip())
+        time.sleep(5)
+    rc = process.poll()
 
 
 def upload_agent_datasets(agent=None):
