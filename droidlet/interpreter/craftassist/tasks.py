@@ -194,6 +194,7 @@ class Move(BaseMovementTask):
             return
         self.target = to_block_pos(np.array(task_data["target"]))
         self.approx = task_data.get("approx", 1)
+        self.verbose = task_data.get("verbose", True)
         self.path = None
         self.replace = set()
         self.last_stepped_time = agent.memory.get_time()
@@ -261,7 +262,8 @@ class Move(BaseMovementTask):
                 break
 
     def finish(self, agent):
-        agent.send_chat("I finished my movement.")
+        if self.verbose:
+            agent.send_chat("I finished my movement.")
         self.finished = True
 
     def __repr__(self):
@@ -429,7 +431,7 @@ class Build(Task):
                         self.add_tags(agent, (target, (0, 0)))
                     agent.get_changed_blocks()
             else:
-                mv = Move(agent, {"target": target, "approx": self.DIG_REACH})
+                mv = Move(agent, {"target": target, "verbose": False, "approx": self.DIG_REACH})
                 self.add_child_task(mv)
 
             return
@@ -511,7 +513,7 @@ class Build(Task):
                 self.giving_up_message_sent = True
         else:
             # too far to place; move first
-            task = Move(agent, {"target": target, "approx": self.PLACE_REACH})
+            task = Move(agent, {"target": target, "verbose": False, "approx": self.PLACE_REACH})
 
             self.add_child_task(task)
 
@@ -853,7 +855,7 @@ class Spawn(Task):
         super().step()
         agent = self.agent
         if manhat_dist(agent.pos, self.pos) > self.PLACE_REACH:
-            task = Move(agent, {"target": self.pos, "approx": self.PLACE_REACH})
+            task = Move(agent, {"target": self.pos, "verbose": False, "approx": self.PLACE_REACH})
             self.add_child_task(task)
         else:
             agent.set_held_item(self.object_idm)
@@ -993,7 +995,7 @@ class Get(Task):
 
         # walk through the area
         target = (self.pos[0] + randint(-1, 1), self.pos[1], self.pos[2] + randint(-1, 1))
-        move_task = Move(agent, {"target": target, "approx": self.approx})
+        move_task = Move(agent, {"target": target, "verbose": False, "approx": self.approx})
         self.add_child_task(move_task)
         return
 
@@ -1060,7 +1062,7 @@ class Drop(Task):
 
         x, y, z = agent.get_player().pos
         target = (x, y + 2, z)
-        move_task = Move(agent, {"target": target, "approx": 1})
+        move_task = Move(agent, {"target": target, "verbose": False, "approx": 1})
         self.add_child_task(move_task)
 
         self.finished = True
