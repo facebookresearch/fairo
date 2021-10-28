@@ -4,6 +4,7 @@ import a0
 import argparse
 import asyncio
 import contextlib
+import enum
 import psutil
 import json
 
@@ -14,6 +15,15 @@ class BaseLauncher:
 
     async def run(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         raise NotImplementedError("Launcher hasn't implemented run!")
+
+    class State(enum.Enum):
+        STARTING = "STARTING"
+        STARTED = "STARTED"
+        STOPPING = "STOPPING"
+        STOPPED = "STOPPED"
+
+    def set_state(self, state: State):
+        a0.Cfg("fbrp/state").mergepatch({self.name: state.value})
 
     def get_pid(self):
         raise NotImplementedError("Launcher hasn't implemented get_pid!")

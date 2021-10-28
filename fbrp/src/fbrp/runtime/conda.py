@@ -67,6 +67,7 @@ class Launcher(BaseLauncher):
         self.args = args
 
     async def run(self):
+        self.set_state(BaseLauncher.State.STARTING)
         self.proc = await asyncio.create_subprocess_shell(
             f"""
                 . $CONDA_PREFIX/etc/profile.d/conda.sh
@@ -78,6 +79,7 @@ class Launcher(BaseLauncher):
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
         )
+        self.set_state(BaseLauncher.State.STARTED)
 
         async def log_pipe(logger, pipe):
             while True:
@@ -102,6 +104,7 @@ class Launcher(BaseLauncher):
 
     async def death_handler(self):
         await self.proc.wait()
+        self.set_state(BaseLauncher.State.STOPPED)
         # TODO(lshamis): Restart policy goes here.
 
     async def handle_down(self):
@@ -110,6 +113,7 @@ class Launcher(BaseLauncher):
                 return
             proc_pid = self.get_pid()
 
+            self.set_state(BaseLauncher.State.STOPPING)
             os.kill(proc_pid, signal.SIGTERM)
 
             for _ in range(100):

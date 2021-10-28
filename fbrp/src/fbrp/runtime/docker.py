@@ -32,6 +32,7 @@ class Launcher(BaseLauncher):
         self.kwargs = kwargs
 
     async def run(self):
+        self.set_state(BaseLauncher.State.STARTING)
         docker = aiodocker.Docker()
 
         container = f"fbrp_{self.name}"
@@ -84,6 +85,7 @@ class Launcher(BaseLauncher):
 
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()
+        self.set_state(BaseLauncher.State.STARTED)
 
         proc_info = await self.proc.show()
         self.proc_pid = proc_info["State"]["Pid"]
@@ -105,6 +107,7 @@ class Launcher(BaseLauncher):
 
     async def death_handler(self):
         await self.proc.wait()
+        self.set_state(BaseLauncher.State.STOPPED)
         # TODO(lshamis): Restart policy goes here.
 
     async def command_handler(self):
@@ -121,6 +124,7 @@ class Launcher(BaseLauncher):
                 pass
 
     async def handle_down(self):
+        self.set_state(BaseLauncher.State.STOPPING)
         await self.proc.stop()
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
@@ -171,6 +175,11 @@ class Docker(BaseRuntime):
 
         nfs_mounts = []
         for host, container in mount_map.items():
+            try:
+                os.makedirs(host)
+            except FileExistsError:
+                pass
+
             nfs_root = util.nfs_root(host)
             if nfs_root and nfs_root != host:
                 nfs_mounts.append(
