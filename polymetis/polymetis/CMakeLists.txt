@@ -104,12 +104,11 @@ target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
 )
-# target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchscript_pinocchio.a)
-# target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchrot.a)
+# target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchscript_pinocchio.so)
+target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchrot.so)
 target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorch_server_ops.so)
 
 add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorch_server_ops.so)
 target_link_libraries(run_server polymetis_server)
 
 # # Add test client

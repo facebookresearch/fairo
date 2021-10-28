@@ -21,6 +21,7 @@
 #include "polymetis.grpc.pb.h"
 
 #include "polymetis/utils.h"
+#include "rotations.hpp"
 #include "torch_server_ops.hpp"
 #include "yaml-cpp/yaml.h"
 
