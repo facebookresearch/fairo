@@ -90,9 +90,9 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   try {
     robot_client_context_.default_controller =
         new TorchScriptedController(model_stream);
-  } catch (const c10::Error &e) {
+  } catch (const std::exception &e) {
     std::cerr << "error loading default controller:\n";
-    std::cerr << e.msg() << std::endl;
+    std::cerr << e.what() << std::endl;
     return Status::CANCELLED;
   }
 
@@ -234,9 +234,9 @@ Status PolymetisControllerServerImpl::SetController(
   try {
     custom_controller_context_.custom_controller =
         new TorchScriptedController(model_stream);
-  } catch (const c10::Error &e) {
+  } catch (const std::exception &e) {
     std::cerr << "error loading the model:\n";
-    std::cerr << e.msg() << std::endl;
+    std::cerr << e.what() << std::endl;
 
     return Status::CANCELLED;
   }

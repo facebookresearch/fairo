@@ -6,7 +6,12 @@ cmake_minimum_required(VERSION 3.14)
 project(torch_isolation)
 
 SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,--exclude-libs,ALL -fvisibility=hidden -fvisibility-inlines-hidden")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--exclude-libs,ALL -fvisibility=hidden -fvisibility-inlines-hidden")
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+
+# set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+# set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Find Torch
 set(Torch_DIR "/private/home/yixinlin/Downloads/libtorch-1.10-old-abi/share/cmake/Torch")
@@ -26,15 +31,22 @@ include_directories(
     ${pinocchio_INCLUDE_DIRS} 
 )
 
-add_library(torch_server_ops src/torch_server_ops.cpp)
-set_target_properties(torch_server_ops PROPERTIES CXX_VISIBILITY_PRESET default)
+add_library(torch_server_ops SHARED src/torch_server_ops.cpp)
+set_property(TARGET torch_server_ops PROPERTY C_VISIBILITY_PRESET hidden)
+set_property(TARGET torch_server_ops PROPERTY CXX_VISIBILITY_PRESET hidden)
+set_property(TARGET torch_server_ops PROPERTY VISIBILITY_INLINES_HIDDEN ON)
 
-add_library(torchrot src/rotations.cpp)
-set_target_properties(torchrot PROPERTIES CXX_VISIBILITY_PRESET default)
-
-add_library(torchscript_pinocchio src/pinocchio.cpp)
-target_link_libraries(torchscript_pinocchio
-    ${pinocchio_LIBRARIES}
-    torchrot
+target_link_libraries(torch_server_ops
+    # PUBLIC
+    # -Wl,--whole-archive
+    ${TORCH_LIBRARIES}
+    # -Wl,--no-whole-archive
 )
-# set_target_properties(torch_server_ops PROPERTIES CXX_VISIBILITY_PRESET default)
+
+# add_library(torchrot src/rotations.cpp)
+
+# add_library(torchscript_pinocchio src/pinocchio.cpp)
+# target_link_libraries(torchscript_pinocchio
+#     ${pinocchio_LIBRARIES}
+#     torchrot
+# )

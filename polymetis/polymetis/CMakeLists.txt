@@ -38,10 +38,6 @@ find_package(gRPC REQUIRED)
 set(_REFLECTION gRPC::grpc++_reflection)
 set(_GRPC_GRPCPP gRPC::grpc++)
 
-# Find Pinocchio
-set(pinocchio_DIR $ENV{CONDA_PREFIX}/lib/cmake/pinocchio)
-find_package(pinocchio REQUIRED)
-
 # Find gRPC plugins
 find_program(_GRPC_CPP_PLUGIN_EXECUTABLE $ENV{CONDA_PREFIX}/bin/grpc_cpp_plugin)
 find_program(_GRPC_PYTHON_PLUGIN_EXECUTABLE $ENV{CONDA_PREFIX}/bin/grpc_python_plugin)
@@ -108,21 +104,21 @@ target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
 )
-target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchscript_pinocchio.a)
-target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchrot.a)
-target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorch_server_ops.a)
+# target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchscript_pinocchio.a)
+# target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchrot.a)
+target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorch_server_ops.so)
 
 add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchscript_pinocchio.a)
-target_link_libraries(run_server polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchrot.a)
+target_link_libraries(run_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorch_server_ops.so)
+target_link_libraries(run_server polymetis_server)
 
-# Add test client
-add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
-)
-target_link_libraries(empty_statistics_client
-    generated_grpc_protos
-    yaml-cpp
-)
+# # Add test client
+# add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
+# )
+# target_link_libraries(empty_statistics_client
+#     generated_grpc_protos
+#     yaml-cpp
+# )
 
 # if(BUILD_FRANKA)
 #   if(NOT DEFINED Franka_DIR)

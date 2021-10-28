@@ -2,6 +2,9 @@
 
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
+#ifndef TORCH_SERVER_OPS_H
+#define TORCH_SERVER_OPS_H
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -12,15 +15,12 @@ extern "C" {
 
 #define C_TORCH_EXPORT __attribute__((visibility("default")))
 
-#ifndef TORCH_SERVER_OPS_H
-#define TORCH_SERVER_OPS_H
-
 struct TorchTensor;       // torch::Tensor
 struct TorchScriptModule; // torch::jit::script::Module
 struct TorchInput;        // std::vector<torch::jit::IValue>
 struct StateDict;         // c10::Dict<std::string, struct TorchTensor>
 
-class TorchRobotState {
+class C_TORCH_EXPORT TorchRobotState {
 private:
   struct StateDict *state_dict_;
 
@@ -42,7 +42,7 @@ public:
   int num_dofs_;
 };
 
-class TorchScriptedController {
+class C_TORCH_EXPORT TorchScriptedController {
 private:
   struct TorchScriptModule *module_;
   TorchRobotState robot_state_ = TorchRobotState(1);
@@ -63,8 +63,8 @@ public:
   void reset();
 };
 
-#endif
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
+
+#endif // TORCH_SERVER_OPS_H

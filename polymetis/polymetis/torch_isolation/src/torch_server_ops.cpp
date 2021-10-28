@@ -3,6 +3,7 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 #include "torch_server_ops.hpp"
+#include <torch/jit.h>
 #include <torch/script.h>
 #include <torch/torch.h>
 
@@ -73,8 +74,8 @@ void TorchRobotState::update_state(int timestamp_s, int timestamp_ns,
 }
 
 TorchScriptedController::TorchScriptedController(std::istream &stream) {
-  struct TorchScriptModule mod = {.data = torch::jit::load(stream)};
-  module_ = &mod;
+  // struct TorchScriptModule mod = {.data = torch::jit::load(stream)};
+  // module_ = &mod;
 
   struct TorchInput param_dict_input = {.data =
                                             std::vector<torch::jit::IValue>()};
