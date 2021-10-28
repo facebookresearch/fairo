@@ -30,7 +30,7 @@ class down_cmd:
 
         for name, def_ in procs.items():
             with util.common_env_context(def_):
-                a0.Publisher(f"_/control/{name}").pub(
+                a0.Publisher(f"fbrp/control/{name}").pub(
                     json.dumps(
                         dict(
                             action="down",

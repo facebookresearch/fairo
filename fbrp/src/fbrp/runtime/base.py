@@ -25,7 +25,7 @@ class BaseLauncher:
 
     async def command_handler(self):
         async for pkt in a0.aio_sub(
-            f"_/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
+            f"fbrp/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
         ):
             try:
                 cmd = json.loads(pkt.payload)
@@ -40,7 +40,7 @@ class BaseLauncher:
         raise NotImplementedError("Launcher hasn't implemented handle_down!")
 
     async def log_psutil(self):
-        out = a0.Publisher(f"_/psutil/{self.name}")
+        out = a0.Publisher(f"fbrp/psutil/{self.name}")
         while True:
             with contextlib.suppress(asyncio.TimeoutError):
                 # TODO(lshamis): Make polling interval configurable.

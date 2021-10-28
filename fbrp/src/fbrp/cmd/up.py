@@ -68,11 +68,6 @@ class up_cmd(BaseCommand):
                 print(f"built {name}\n")
 
         if args.run:
-            try:
-                os.mkdir("/dev/shm/fbrp")
-            except:
-                pass
-
             for name in names:
                 print(f"running {name}...")
 
