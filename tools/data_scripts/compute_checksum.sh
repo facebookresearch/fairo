@@ -42,4 +42,3 @@ then
 else # datasets
     calculate_sha1sum "${ROOTDIR}/agents/$AGENT/datasets/" "${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
 fi
-

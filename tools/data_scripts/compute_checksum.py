@@ -33,13 +33,14 @@ def compute_checksum_for_directory(agent=None, artifact_type=None, artifact_name
     compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
     if artifact_type == "models":
         # TODO: rename the following folder and checksum files
+        # TODO: rename and cleanup this file
         if artifact_name == "nlu":
             # compute for NLU model
-            artifact_path = os.path.join(agent_path, 'models/semantic_parser')
-            checksum_write_path = os.path.join(ROOTDIR, 'tools/data_scripts/default_checksums/nsp.txt')
+            artifact_path = os.path.join(agent_path, 'models/' + artifact_name)
+            checksum_write_path = os.path.join(ROOTDIR, 'tools/data_scripts/default_checksums/nlu.txt')
         elif artifact_name == "perception":
             # perception models
-            artifact_path = os.path.join(agent_path, 'models/perception')
+            artifact_path = os.path.join(agent_path, 'models/' + artifact_name)
             if agent == "locobot":
                 checksum_write_path = os.path.join(ROOTDIR, 'tools/data_scripts/default_checksums/locobot.txt')
             elif agent == "craftassist":

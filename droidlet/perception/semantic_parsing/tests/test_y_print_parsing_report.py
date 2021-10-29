@@ -1165,7 +1165,7 @@ GROUND_TRUTH_PARSES = {
 common_functional_commands.update(GROUND_TRUTH_PARSES)
 
 TTAD_MODEL_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/"
+    os.path.dirname(__file__), "../../../../agents/craftassist/models/nlu/"
 )
 TTAD_BERT_DATA_DIR = os.path.join(
     os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"

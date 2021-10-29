@@ -13,7 +13,7 @@ from agents.droidlet_agent import DroidletAgent
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.shared_data_structs import MockOpt
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models/semantic_parser/")
+TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models/nlu/")
 TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../datasets/annotated_data/")
 
 
