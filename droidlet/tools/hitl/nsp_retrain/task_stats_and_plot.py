@@ -73,13 +73,7 @@ def check_run_status(run_id: int) -> None:
             total_time_completed_in_min += duration
             total_cnt += 1
         worker_name = db.get_worker(worker_id=unit.worker_id)["worker_name"]
-        #if worker_name not in mturk_with_qual_list:
-            # print(worker_name)
-            # print(mturk_with_qual_list)
-        #    print("Okay there's a problem with mturk qual")
-        #else:
         turkers_with_mturk_qual_cnt += 1
-        # print(f"Worker {worker_name} works on HIT {run_id}")
         worker = db.find_workers(worker_name=worker_name)[0]
         if worker.get_granted_qualification(qual_name):
             passed_time += duration
@@ -88,7 +82,10 @@ def check_run_status(run_id: int) -> None:
     print(f"For mephisto/mturk debug: total num: {total_cnt}, # who pass mturk qual: {turkers_with_mturk_qual_cnt}")
     print(f"Total completed HITS\t\t{total_cnt}\tavg time spent\t{total_time_completed_in_min / total_cnt} mins")
     print(f"HITS passed qualification\t{passed_cnt}\tavg time spent\t{passed_time / passed_cnt} mins")
-    #print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
+    try:
+        print(f"HITS failed qualification\t{total_cnt - passed_cnt}\tavg time spent\t{(total_time_completed_in_min - passed_time) / (total_cnt - passed_cnt)} mins")
+    except:
+        pass
 
 #%%
 def timing_charts(run_id: int) -> None:
@@ -144,15 +141,15 @@ def timing_charts(run_id: int) -> None:
     read_time.sort()
     keys = range(len(read_time))
     r_dict = dict(zip(keys, read_time))
-    plot_hist(r_dict, xlabel="", ylabel="Instructions Read Time")
+    plot_hist(r_dict, target_val=180, xlabel="", ylabel="Instructions Read Time (sec)")
     pre_interact.sort()
     keys = range(len(pre_interact))
     p_dict = dict(zip(keys, pre_interact))
-    plot_hist(p_dict, xlabel="", ylabel="Time between instructions and interaction start")
+    plot_hist(p_dict, target_val=30, xlabel="", ylabel="Time between instructions and interaction start (sec)")
     interact_time.sort()
     keys = range(len(interact_time))
     i_dict = dict(zip(keys, interact_time))
-    plot_hist(i_dict, xlabel="", ylabel="Interaction time")
+    plot_hist(i_dict, target_val=300, xlabel="", ylabel="Interaction time (sec)")
 
 #%%
 def read_s3_bucket(s3_logs_dir, output_dir):
@@ -203,13 +200,16 @@ def get_stats(command_list):
 
 
 #%%
-def plot_hist(dictionary, xlabel="Turker Id", ylabel="# of HITs with 0 commands", ymax=None):
+def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None):
     import matplotlib
     import matplotlib.pyplot as plt
     import numpy as np
     #matplotlib.use('TkAgg')
     plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
-    plt.xticks(np.arange(len(list(dictionary.keys()))), list(dictionary.keys()), rotation='vertical')
+    if target_val:
+        line = [target_val] * len(dictionary)
+        plt.plot(dictionary.keys(), line, color='r')
+    #plt.xticks(np.arange(len(list(dictionary.keys()))), list(dictionary.keys()), rotation='vertical')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     if ymax:
@@ -264,14 +264,16 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
         with open(csv_path) as fd:
             # collect the NSP outputs CSV
             csv_file = pd.read_csv(csv_path, delimiter="|")
-
             csv_file = csv_file.drop_duplicates(subset=["command"])
 
             # get time distribution stats
             timelist = list(csv_file["time"])
             for i in range(len(timelist) - 1):
                 
-                time = int(timelist[i + 1] - timelist[i])
+                if math.isnan(timelist[i + 1] - timelist[i]):
+                    time = -1
+                else:
+                    time = int(timelist[i + 1] - timelist[i])
                 if time > 120:
                     time = 120
                 if time not in time_dist:
@@ -283,7 +285,10 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
             for index, row in csv_file.iterrows():
                 if index >= num_rows - 1:
                     break
-                time = int(timelist[index + 1] - timelist[index])
+                if math.isnan(timelist[index + 1] - timelist[index]):
+                    time = -1
+                else:
+                    time = int(timelist[index + 1] - timelist[index])
                 turker_map = time_turker_map.get(time, {})
                 cnt = turker_map.get(turk_id, 0)
                 turker_map[turk_id] = cnt + 1
@@ -294,7 +299,6 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
                 cnt = cmd_cnt_map.get(cmd, 0)
                 cmd_cnt_map[cmd] = cnt + 1
                 time_cmd_cnt_map[time] = cmd_cnt_map
-
             
             # get command count stats
             cmd_cnt = len(csv_file['command'])
@@ -315,14 +319,12 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
                     [all_turk_interactions, csv_file], ignore_index=True
                 )
 
-    # Plot 0 execution time commands num & hits num for turkers
-    #x = time_turker_map[0].keys()
-    #y1 = [time_turker_map[0][k] for k in x]
-    #y2 = [turker_hit_cnt[k] for k in x]
-    #plot_dual_hist(x, y1, y2)
-
-    # plot_hist(cmd_cnt_turker_map[0])
-    # plot_hist(len_dist)
+    if (filename == "nsp_outputs"):
+        plot_hist(time_dist, xlabel="", ylabel="Count of time between commands")
+        plot_hist(len_dist, xlabel="", ylabel="Command Length Count")
+        #plot_hist(time_cmd_cnt_map, ylabel="Command Count per Command Time Length")
+        #plot_hist(time_turker_map, ylabel="Command Time Length per Turker")
+        # #plot_hist(cmd_cnt_turker_map, ylabel="Command Count per Turker")
 
     if all_turk_interactions is None:
         return []
@@ -336,7 +338,10 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
 
 #%%
 read_s3_bucket("/private/home/ethancarlson/.hitl/20211027100532/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211027100532")
+print("\nNSP Outputs: ")
 read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211027100532", "nsp_outputs")
+print("\nError Details: ")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211027100532", "error_details")
 
 #%%
 if __name__ == "__main__":
@@ -360,6 +365,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     read_s3_bucket(args.turk_logs_directory, args.parsed_output_directory)
     read_turk_logs(args.parsed_output_directory, args.filename)
-
-    # read_s3_bucket("/private/home/yuxuans/.tmp/turk_logs", "/private/home/yuxuans/.tmp/parsed")
-    # read_turk_logs("/Users/yuxuans/.hitl/parsed", "nsp_outputs")
