@@ -30,19 +30,26 @@ Your client code should then connect to the server over network and execute any 
 
 _The following guide is written with specific, known-good version numbers to get you up and running as quickly as possible; other versions will also likely work._
 
-1. Install [Ubuntu 20.04](https://releases.ubuntu.com/20.04/)
+1. Install [Ubuntu 20.04](https://releases.ubuntu.com/20.04/) or [Ubuntu 18.04.5](https://releases.ubuntu.com/18.04/)
 
 1. The Franka documentation has a [comprehensive guide](https://frankaemika.github.io/docs/installation_linux.html#setting-up-the-real-time-kernel) on installing real-time kernel. Here is a condensed version[^2]:
     1. Install prereqs:
 
             sudo apt install build-essential bc curl ca-certificates gnupg2 libssl-dev lsb-release libelf-dev bison flex
 
-    1. Download known-good kernel and path:
-    
+    1. Download known-good kernel and patch (Ubuntu 20)
+
             curl -SLO https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.11.tar.xz
             curl -SLO https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/5.11/older/patch-5.11-rt7.patch.xz
             xz -d linux-5.11.tar.xz
             xz -d patch-5.11-rt7.patch.xz
+        
+        1. Ubuntu 18 links (update version numbers for future commands)
+
+                curl -SLO https://mirrors.edge.kernel.org/pub/linux/kernel/v5.x/linux-5.4.70.tar.xz
+                curl -SLO https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/5.4/older/patch-5.4.70-rt40.patch.xz
+                xz -d linux-5.4.70.tar.xz
+                xz -d patch-5.4.70-rt40.patch.xz
 
     1. Extract the kernel and apply the patch:
             
