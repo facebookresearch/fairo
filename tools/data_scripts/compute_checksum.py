@@ -12,10 +12,13 @@ def compute_checksum_for_directory(
         artifact_type=None,
         model_name=None):
     """
-    Computes checksum for a given artifact directory and tracks it.
-    :param agent: Name of agent.
-    :param artifact_type: datasets or models artifact
-    :param model_name: name of model (nlu or perception)
+    Computes checksum for a given local artifact directory and writes it to default_checksum directory
+    to help track the hash.
+
+    Args:
+        agent: Name of agent.
+        artifact_type: datasets or models artifact
+        model_name: name of model (nlu or perception)
     """
     ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
     print("Rootdir : %r" % ROOTDIR)
@@ -32,7 +35,7 @@ def compute_checksum_for_directory(
         print("Model name not given, defaulting to nlu model")
         model_name = "nlu"
 
-    agent_path = os.path.join(ROOTDIR, 'agents/'+agent)
+    agent_path = os.path.join(ROOTDIR, 'agents/' + agent)
 
     print("Now computing hashes ...")
     compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
