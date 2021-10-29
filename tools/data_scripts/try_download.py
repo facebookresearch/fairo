@@ -113,3 +113,17 @@ def try_download(agent=None, artifact_name=None, latest_checksum=None):
     else:
         # models
         fetch_models_from_aws(agent=agent, model_name=artifact_name, latest_checksum=latest_checksum)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Pass in agent name to download artifacts for.")
+    parser.add_argument(
+        "--agent_name",
+        help="Name of the agent",
+        type=str,
+        default="craftassist",
+    )
+    args = parser.parse_args()
+    try_download_artifacts(agent=args.agent_name)
