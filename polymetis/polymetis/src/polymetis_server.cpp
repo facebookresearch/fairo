@@ -185,7 +185,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   // Select controller
   torch::jit::script::Module *controller;
   if (custom_controller_context_.status == RUNNING) {
-    controller = &custom_controller_context_.custom_controller;
+    controller = custom_controller_context_.custom_controller_ptr.get();
   } else {
     controller = &robot_client_context_.default_controller;
   }
@@ -231,9 +231,6 @@ Status PolymetisControllerServerImpl::SetController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  resetControllerContext();
-  custom_controller_context_.server_context = context;
-
   // Read chunks of the binary serialized controller. The binary messages
   // would be written into the preallocated buffer used for the Torch
   // controllers.
@@ -248,24 +245,35 @@ Status PolymetisControllerServerImpl::SetController(
 
   memstream model_stream(controller_model_buffer_.data(),
                          controller_model_buffer_.size());
+
   try {
-    custom_controller_context_.custom_controller =
-        torch::jit::load(model_stream);
+    // Deserialize controller
+    auto new_controller = std::make_shared<torch::jit::script::Module>(
+        torch::jit::load(model_stream));
+
+    // Switch in new controller by updating controller context
+    custom_controller_context_.controller_mtx.lock();
+
+    resetControllerContext();
+    custom_controller_context_.custom_controller_ptr = new_controller;
+    custom_controller_context_.status = READY;
+
+    custom_controller_context_.controller_mtx.unlock();
+    std::cout << "Loaded new controller.\n";
+
+    // Respond with start index
+    while (custom_controller_context_.status == READY) {
+      usleep(SPIN_INTERVAL_USEC);
+    }
+    interval->set_start(custom_controller_context_.episode_begin);
+    interval->set_end(-1);
+
   } catch (const c10::Error &e) {
     std::cerr << "error loading the model:\n";
     std::cerr << e.msg() << std::endl;
 
     return Status::CANCELLED;
   }
-  custom_controller_context_.status = READY;
-  std::cout << "Loaded new controller.\n";
-
-  // Respond with start index
-  while (custom_controller_context_.status == READY) {
-    usleep(SPIN_INTERVAL_USEC);
-  }
-  interval->set_start(custom_controller_context_.episode_begin);
-  interval->set_end(-1);
 
   // Return success.
   return Status::OK;
@@ -306,7 +314,7 @@ Status PolymetisControllerServerImpl::UpdateController(
   // Update controller & set intervals
   if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
-    custom_controller_context_.custom_controller.get_method("update")(
+    custom_controller_context_.custom_controller_ptr->get_method("update")(
         param_dict_input_);
     interval->set_start(robot_state_buffer_.size());
     custom_controller_context_.controller_mtx.unlock();

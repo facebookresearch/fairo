@@ -53,13 +53,12 @@ enum ControllerStatus {
 TODO
 */
 struct CustomControllerContext {
-  ServerContext *server_context;
   uint episode_begin = -1;
   uint episode_end = -1;
   uint timestep = 0;
   ControllerStatus status = UNINITIALIZED;
   std::mutex controller_mtx;
-  torch::jit::script::Module custom_controller;
+  std::shared_ptr<torch::jit::script::Module> custom_controller_ptr;
 };
 
 /**
