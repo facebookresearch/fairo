@@ -8,10 +8,8 @@ import signal
 import random
 import sentry_sdk
 import time
-import json
 from multiprocessing import set_start_method
 from collections import namedtuple
-import subprocess
 
 # `from craftassist.agent` instead of `from .` because this file is
 # also used as a standalone script and invoked via `python craftassist_agent.py`
@@ -56,7 +54,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
 )
 from droidlet.lowlevel.minecraft import shape_util
 from droidlet.perception.craftassist import heuristic_perception
-
+from tools.data_scripts.try_download import try_download_artifacts
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
@@ -513,7 +511,7 @@ if __name__ == "__main__":
     # Check that models and datasets are up to date and download latest resources.
     # Also fetches additional resources for internal users.
     if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
+        try_download_artifacts(agent="craftassist")
 
     set_start_method("spawn", force=True)
 
