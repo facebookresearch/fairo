@@ -89,7 +89,7 @@ This defines either:
 
 
 ### COMPARATOR ###
-Comparator compares two values on the left and right based on the comparison type.
+Comparator compares two values.
 - `comparison_type` represents the kind of comparison (>, <, >=, != , =)
 - `input_left` can be either a \<FILTER\>, a span, or an \<ATTRIBUTE\>; `input_left` can be either a \<FILTER\> or a span (but not an \<ATTRIBUTE\>).   
 - `comparison_measure` is the unit (seconds, minutes, blocks etc).
