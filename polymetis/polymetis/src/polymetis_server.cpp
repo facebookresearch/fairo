@@ -261,19 +261,19 @@ Status PolymetisControllerServerImpl::SetController(
     custom_controller_context_.controller_mtx.unlock();
     std::cout << "Loaded new controller.\n";
 
-    // Respond with start index
-    while (custom_controller_context_.status == READY) {
-      usleep(SPIN_INTERVAL_USEC);
-    }
-    interval->set_start(custom_controller_context_.episode_begin);
-    interval->set_end(-1);
-
   } catch (const c10::Error &e) {
     std::cerr << "error loading the model:\n";
     std::cerr << e.msg() << std::endl;
 
     return Status::CANCELLED;
   }
+
+  // Respond with start index
+  while (custom_controller_context_.status == READY) {
+    usleep(SPIN_INTERVAL_USEC);
+  }
+  interval->set_start(custom_controller_context_.episode_begin);
+  interval->set_end(-1);
 
   // Return success.
   return Status::OK;
