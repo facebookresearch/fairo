@@ -30,11 +30,6 @@ class ArgumentParser:
             help="do not perform default behaviors when idle",
         )
         self.parser.add_argument(
-            "--verify_hash_script_path",
-            default="../../tools/data_scripts/try_download.sh",
-            help="path to script that checks hash against latest models and tries download",
-        )
-        self.parser.add_argument(
             "--agent_debug_mode",
             action="store_true",
             default=False,
