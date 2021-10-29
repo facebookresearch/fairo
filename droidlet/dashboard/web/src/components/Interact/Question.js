@@ -308,6 +308,7 @@ class Question extends Component {
   }
 
   componentDidMount() {
+    window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
     var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
     var chatMsg = this.props.chats[this.props.failidx].msg;
     this.setState({ action_dict: lastChatActionDict });

@@ -264,7 +264,8 @@
       data = JSON.parse(event.data);
       console.log(data);
       if (data.msg === "timerON") recordStartButtonTime();
-      if (data.msg === "timerOFF") recordInteractTime();
+      else if (data.msg === "timerOFF") recordInteractTime();
+      else recordClick(data.msg);
       // In the future can also use this to record interaction quality scores
       checkSubmitDisplay();
     }, false);

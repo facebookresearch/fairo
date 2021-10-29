@@ -27,6 +27,7 @@ class AgentThinking extends Component {
   }
 
   componentDidMount() {
+    window.parent.postMessage(JSON.stringify({ msg: "goToAgentThinking" }), "*");
     const intervalId = setInterval(() => {
       this.setState((prevState) => {
         if (prevState.ellipsis.length > 6) {
