@@ -2,7 +2,6 @@
 
 # saves sha1sum for CHECKSUM_FOLDER at SAVE_TO_PATH 
 
-# TODO: rename this to calculate_sha1sum
 CHECKSUM_FOLDER=$1
 SAVE_TO_PATH=$2
 echo $'\nCalculating checksum for' ${CHECKSUM_FOLDER}
