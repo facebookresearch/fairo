@@ -222,7 +222,7 @@ class Interpreter(InterpreterBase):
             if pos is None:
                 raise ErrorWithResponse("I don't understand where you want me to move.")
             pos = self.post_process_loc(pos, self)
-            task_data = {"target": pos, "action_dict": d}
+            task_data = {"target": pos, "action_dict": d, "verbose": True}
             task = Move(agent, task_data)
             return task
 
