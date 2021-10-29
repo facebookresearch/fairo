@@ -53,7 +53,9 @@
     <!-- Instructions -->
     <div class="panel panel-primary">
       <div class="panel-heading">
-        <strong> Instructions </strong>
+        <button class="btn btn-primary" type="button" onclick="showHideInstructions()" data-toggle="collapse" data-target="#instructionsWrapper" aria-expanded="false" aria-controls="instructionsWrapper">
+          Click here to view/hide instructions
+        </button>
       </div>
       <div class="panel-body" id="instructions">
         <p>
@@ -212,6 +214,7 @@
         <option value="2">2 - Very Poor</option>
         <option value="1">1 - Unusable</option>
       </select>
+      <input type="hidden" id="clickedElements" name="clickedElements" value="0">
       <input type="hidden" id="instructionsReadTime" name="instructionsReadTime" value="0">
       <input type="hidden" id="preInteractTime" name="preInteractTime" value="0">
       <input type="hidden" id="interactTime" name="interactTime" value="0">
@@ -224,6 +227,13 @@
   var timerStopped = false;
   var ratingComplete = false;
 
+  var clickedElements = new Array();
+  function recordClick(ele) {
+    clickedElements.push({id: ele, timestamp: Date.now()});
+    document.getElementById("clickedElements").value = clickedElements;
+    console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  }
+
   function checkSubmitDisplay() {
     if (ratingComplete && timerStopped) {  //Only display the submit button if the worker has interacted with the dashboard and rated usability
       document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
@@ -233,6 +243,7 @@
 
   function usabilityRated() {
     ratingComplete = true;
+    recordClick("usability-rated");
     checkSubmitDisplay();
   }
 
@@ -242,6 +253,7 @@
   var stopButtonTimestamp = start;
 
   function recordReadTime() {
+    recordClick("instructions-popup-close");
     readTimestamp = Date.now();
     readTime = Math.floor((readTimestamp - start)/1000);
     document.getElementById("instructionsReadTime").value = readTime;
@@ -258,17 +270,24 @@
     }, false);
   }
 
+  // Can probably deprecate these functions in favor of doing everything through recordClick
   function recordStartButtonTime() {
     startButtonTimestamp = Date.now();
     preInteractTime = Math.floor((startButtonTimestamp - readTimestamp)/1000);
     document.getElementById("preInteractTime").value = preInteractTime;
+    recordClick("start-btn");
   }
-
   function recordInteractTime() {
     timerStopped = true;
     stopButtonTimestamp = Date.now();
     interactTime = Math.floor((stopButtonTimestamp - startButtonTimestamp)/1000);
     document.getElementById("interactTime").value = interactTime;
+    recordClick("end-btn");
+  }
+
+  function showHideInstructions() {
+    document.getElementsByClassName("collapse")[0].toggle();
+    recordClick("toggle-instructions");
   }
   
   $(function () {
@@ -286,7 +305,10 @@
   }
 
   function applyPagination(pg) {
+    const pageID = "page-" + pg;
+    recordClick(pageID);
     page = pg;
+
     if (pg === 1) document.getElementById("previous").classList.add("disabled");
     else document.getElementById("previous").classList.remove("disabled");
     if (pg === 6) {
