@@ -15,15 +15,10 @@ find_package(Torch REQUIRED)
 # Find Eigen
 find_package(Eigen3 REQUIRED)
 
-# Find Pinocchio
-set(pinocchio_DIR $ENV{CONDA_PREFIX}/lib/cmake/pinocchio)
-find_package(pinocchio REQUIRED)
-
 include_directories(
     "include"
     ${TORCH_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
-    ${pinocchio_INCLUDE_DIRS} 
 )
 
 add_library(torch_server_ops SHARED src/torch_server_ops.cpp)
@@ -36,15 +31,9 @@ target_link_libraries(torchrot
     ${TORCH_LIBRARIES}
 )
 
-add_library(pinocchio_wrapper SHARED src/pinocchio_wrapper.cpp)
-target_link_libraries(pinocchio_wrapper
-    ${pinocchio_LIBRARIES}
-)
-
 add_library(torchscript_pinocchio SHARED src/pinocchio.cpp)
 target_link_libraries(torchscript_pinocchio
-    pinocchio_wrapper
-    ${pinocchio_LIBRARIES}
+    /private/home/yixinlin/dev/fairo/polymetis/polymetis/pinocchio_isolation/build/libpinocchio_wrapper.so
     ${TORCH_LIBRARIES}
     torchrot
 )

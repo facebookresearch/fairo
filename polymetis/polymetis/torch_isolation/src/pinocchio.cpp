@@ -12,13 +12,6 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
-#include "pinocchio/algorithm/frames.hpp"
-#include "pinocchio/algorithm/jacobian.hpp"
-#include "pinocchio/algorithm/joint-configuration.hpp"
-#include "pinocchio/algorithm/kinematics.hpp"
-#include "pinocchio/algorithm/rnea.hpp"
-#include "pinocchio/parsers/urdf.hpp"
-
 #include "dtt.h"
 #include "pinocchio_wrapper.hpp"
 #include "rotations.hpp"
