@@ -12,9 +12,6 @@ from prettytable import PrettyTable
 import Pyro4
 import numpy as np
 
-if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
-    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
-
 import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
@@ -69,16 +66,6 @@ class HelloRobotMover(MoverInterface):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
-    # TODO/FIXME!  instead of just True/False, return diagnostic messages
-    # so e.g. if a grip attempt fails, the task is finished, but the status is a failure
-    def bot_step(self):
-        try:
-            f = self.bot.command_finished()
-        except:
-            # do better here?
-            f = True
-        return f
-
     def get_pan(self):
         """get yaw in radians."""
         return self.bot.get_pan()
@@ -102,7 +89,7 @@ class HelloRobotMover(MoverInterface):
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            safe_call(self.bot.go_to_relative, xyt, close_loop=True, use_dslam=use_dslam)
+            safe_call(self.bot.go_to_relative, xyt)
 
     def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
         """Command to execute a move to an absolute position.
@@ -121,51 +108,7 @@ class HelloRobotMover(MoverInterface):
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
             self.bot.go_to_absolute(
                 base_canonical_coords_to_pyrobot_coords(xyt),
-                close_loop=True,
-                use_map=use_map,
-                use_dslam=use_dslam,
             )
-        return "finished"
-
-    def look_at(self, obj_pos, yaw_deg, pitch_deg):
-        """Executes "look at" by setting the pan, tilt of the camera or turning the base if required.
-
-        Uses both the base state and object coordinates in canonical world coordinates to calculate
-        expected yaw and pitch.
-
-        Args:
-            obj_pos (list): object coordinates as saved in memory.
-            yaw_deg (float): yaw in degrees
-            pitch_deg (float): pitch in degrees
-
-        Returns:
-            string "finished"
-        """
-        pan_rad, tilt_rad = 0.0, 0.0
-        old_pan = self.get_pan()
-        old_tilt = self.get_tilt()
-        pos = self.get_base_pos_in_canonical_coords()
-        logging.info(f"Current Locobot state (x, z, yaw): {pos}")
-        if yaw_deg:
-            pan_rad = old_pan - float(yaw_deg) * np.pi / 180
-        if pitch_deg:
-            tilt_rad = old_tilt - float(pitch_deg) * np.pi / 180
-        if obj_pos is not None:
-            logging.info(f"looking at x,y,z: {obj_pos}")
-            pan_rad, tilt_rad = get_camera_angles([pos[0], CAMERA_HEIGHT, pos[1]], obj_pos)
-            logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
-
-        # FIXME!!! more async; move head and body at the same time
-        head_res = angle_diff(pos[2], pan_rad)
-        if np.abs(head_res) > MAX_PAN_RAD:
-            dyaw = np.sign(head_res) * (np.abs(head_res) - MAX_PAN_RAD)
-            self.turn(dyaw)
-            pan_rad = np.sign(head_res) * MAX_PAN_RAD
-        else:
-            pan_rad = head_res
-        logging.info(f"Camera new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
-        self.bot.set_pan_tilt(pan_rad, np.clip(tilt_rad, tilt_rad, 0.9))
-
         return "finished"
 
     def get_base_pos_in_canonical_coords(self):
@@ -183,6 +126,10 @@ class HelloRobotMover(MoverInterface):
         x_standard = -y_global
         z_standard = x_global
         return np.array([x_standard, z_standard, yaw])
+
+    def get_current_pcd(self, in_cam=False, in_global=False):
+        """Gets the current point cloud"""
+        return self.cam.get_current_pcd()
         
     def get_rgb_depth(self):
         """Fetches rgb, depth and pointcloud in pyrobot world coordinates.
@@ -198,17 +145,14 @@ class HelloRobotMover(MoverInterface):
         trans = np.asarray(trans)
         depth = depth.astype(np.float32)
         d = copy.deepcopy(depth)
-        print(f'shapes depth {depth.shape}, rgb {rgb.shape}')
         depth /= 1000.0
         depth = depth.reshape(-1)
-        print(f'shapes depth {depth.shape}, rot {rot.shape}')
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
         pts = pts + trans.reshape(-1)
         pts = transform_pose(pts, self.bot.get_base_state())
-        logging.info("Fetched all camera sensor input.")
         return RGBDepth(rgb, d, pts)
 
     def turn(self, yaw):
