@@ -12,6 +12,14 @@ from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_n
 ### in various filter interpreters
 ####################################################################################
 
+# attribute has function signature list(mems) --> list(value)
+class Attribute:
+    def __init__(self, memory):
+        self.memory = memory
+
+    def __call__(self, mems):
+        raise NotImplementedError("Implemented by subclass")
+
 
 def check_well_formed_triple(clause):
     # TODO search by pred?
@@ -231,6 +239,71 @@ class MemorySearcher:
         else:
             return query
 
+    def handle_comparator_where_leaf(self, agent_memory, where_clause, memtype):
+        """ 
+        find all records matching a single comparator
+        """
+        # TODO: if input_left or input_right are subqueries...
+        v = where_clause["input_left"]["value_extractor"]
+        input_left = v.get("attribute")
+        input_right = where_clause["input_right"]["value_extractor"]
+        if type(input_right) is dict:
+            raise Exception(
+                "currently basic search assumes input_right is a fixed value (not FILTERS): {}".format(
+                    input_right
+                )
+            )
+        ctype = where_clause.get("comparison_type", "EQUAL")
+        comparison_symbol = get_inequality_symbol(ctype)
+        # FIXME do close tolerance for modulus
+        if type(ctype) is dict and ctype.get("close_tolerance"):
+            comparison_symbol = "<>"
+            v = try_float(input_right, where_clause)
+            value = (v - ctype["close_tolerance"], v + ctype["close_tolerance"])
+        elif comparison_symbol[0] == "<" or comparison_symbol[0] == ">":
+            # going to convert back to str later, doing this for data sanitation/debugging
+            value = (try_float(input_right, where_clause),)
+        elif type(ctype) is dict and ctype.get("modulus"):
+            comparison_symbol = "%"
+            value = (ctype["modulus"], input_right)
+        else:
+            value = (input_right,)
+        if type(input_left) is str:
+            return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
+        elif isinstance(input_left, Attribute):
+            return search_by_attribute(
+                agent_memory, input_right, value, comparison_symbol, memtype
+            )
+        else:
+            raise Exception("malformed input_left in comparator {}".format(where_clause))
+
+    def handle_triple_where_leaf(self, agent_memory, where_clause, memtype):
+        # run any subqueries:
+        for k, v in where_clause.items():
+            if callable(v):
+                # this should be a searcher, run it
+                try:
+                    mems, vals = v()
+                    # FIXME, throw an error? the subquery could not
+                    # get a value, so the whole query returns nothing:
+                    if len(vals) == 0:
+                        return []
+                    # FIXME?  handle this better (don't choose the first?)
+                    # should we force subqueries to have proper selectors?
+                    where_clause[k] = vals[0]
+                except:
+                    raise Exception("error in subquery {}".format(where_clause))
+
+        triples = agent_memory.get_triples(**where_clause)
+        if where_clause.get("subj"):
+            memids = [t[2] for t in triples]
+        else:
+            memids = [t[0] for t in triples]
+
+        # TODO move checking if it is proper node type to main body or to a "handle_from"
+        node_children = agent_memory.node_children[memtype]
+        return [m for m in memids if agent_memory.get_node_from_memid(m) in node_children]
+
     def handle_where(self, agent_memory, where_clause, memtype):
         """
         returns a list of memids whose memories satisfy the where clause
@@ -258,66 +331,18 @@ class MemorySearcher:
             memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
             return list(all_memids - set(memids))
 
-        # TODO: if input_left or input_right are subqueries...
         if where_clause.get("input_left"):
-            # this is a leaf, actually search:
-            input_left = where_clause["input_left"]["value_extractor"]
-            input_right = where_clause["input_right"]["value_extractor"]
-            if type(input_left) is dict or type(input_right) is dict:
-                raise Exception(
-                    "currently search assumes comparator attributes are explicitly stored property of the memory: {}".format(
-                        where_clause
-                    )
-                )
-            ctype = where_clause.get("comparison_type", "EQUAL")
-            comparison_symbol = get_inequality_symbol(ctype)
-            # FIXME do close tolerance for modulus
-            if type(ctype) is dict and ctype.get("close_tolerance"):
-                comparison_symbol = "<>"
-                v = try_float(input_right, where_clause)
-                value = (v - ctype["close_tolerance"], v + ctype["close_tolerance"])
-            elif comparison_symbol[0] == "<" or comparison_symbol[0] == ">":
-                # going to convert back to str later, doing this for data sanitation/debugging
-                value = (try_float(input_right, where_clause),)
-            elif type(ctype) is dict and ctype.get("modulus"):
-                comparison_symbol = "%"
-                value = (ctype["modulus"], input_right)
-            else:
-                value = (input_right,)
-            return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
+            # this is a cmparator leaf, actually search:
+            return self.handle_comparator_where_leaf(agent_memory, where_clause, memtype)
 
-        # if we made it here, this is a triple leaf, actually search...
-
-        # check if triples dict is well formed:
+        # if we made it here, this is a triple
         try:
+            # check if triples dict is well formed:
             check_well_formed_triple(where_clause)
+            # run the query
+            return self.handle_triple_where_leaf(agent_memory, where_clause, memtype)
         except:
             raise Exception("poorly formed triple dict{}".format(where_clause))
-        # run any subqueries:
-        for k, v in where_clause.items():
-            if callable(v):
-                # this should be a searcher, run it
-                try:
-                    mems, vals = v()
-                    # FIXME, throw an error? the subquery could not
-                    # get a value, so the whole query returns nothing:
-                    if len(vals) == 0:
-                        return []
-                    # FIXME?  handle this better (don't choose the first?)
-                    # should we force subqueries to have proper selectors?
-                    where_clause[k] = vals[0]
-                except:
-                    raise Exception("error in subquery {}".format(where_clause))
-
-        triples = agent_memory.get_triples(**where_clause)
-        if where_clause.get("subj"):
-            memids = [t[2] for t in triples]
-        else:
-            memids = [t[0] for t in triples]
-
-        # TODO move checking if it is proper node type to main body or to a "handle_from"
-        node_children = agent_memory.node_children[memtype]
-        return [m for m in memids if agent_memory.get_node_from_memid(m) in node_children]
 
     def handle_selector(self, agent_memory, query, memids):
         if query.get("selector"):

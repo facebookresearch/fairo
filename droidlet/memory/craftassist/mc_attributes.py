@@ -1,7 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-from droidlet.memory.memory_attributes import Attribute
+from droidlet.memory.memory_filters import Attribute
 
 # TODO sqlize these?
 # FIXME!!!!! rn this will not accurately count voxels in
