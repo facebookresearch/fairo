@@ -112,7 +112,7 @@ def try_download(agent=None, artifact_name=None, latest_checksum=None):
         fetch_datasets_from_aws(agent=agent, checksum_val=latest_checksum)
     else:
         # models
-        fetch_models_from_aws(agent=agent, model_name=artifact_name, latest_checksum=latest_checksum)
+        fetch_models_from_aws(agent=agent, model_name=artifact_name, checksum_val=latest_checksum)
 
 
 if __name__ == "__main__":
