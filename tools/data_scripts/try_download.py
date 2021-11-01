@@ -6,8 +6,8 @@ assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
 import os
 import glob
 import subprocess
-from .fetch_internal_resources import fetch_safety_words_file
-from .fetch_artifacts_from_aws import fetch_models_from_aws, fetch_datasets_from_aws
+from fetch_internal_resources import fetch_safety_words_file
+from fetch_artifacts_from_aws import fetch_models_from_aws, fetch_datasets_from_aws
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
 print("Rootdir : %r" % ROOTDIR)
