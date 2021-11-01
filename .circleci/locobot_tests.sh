@@ -5,7 +5,7 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate droidlet_env
 
 echo "Downloading datasets, models ..."
-yes | python tools/data_scripts/try_download.py --agent_name locobot &
+yes | python droidlet/tools/data_scripts/try_download.py --agent_name locobot &
 wait
 echo "Done!"
 

@@ -15,7 +15,7 @@ from collections import namedtuple
 # also used as a standalone script and invoked via `python craftassist_agent.py`
 from droidlet.interpreter.craftassist import default_behaviors, inventory, dance
 from droidlet.memory.craftassist import mc_memory
-from droidlet.perception.craftassist import rotation, heuristic_perception
+from droidlet.perception.craftassist import rotation
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
 
@@ -54,7 +54,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
 )
 from droidlet.lowlevel.minecraft import shape_util
 from droidlet.perception.craftassist import heuristic_perception
-from tools.data_scripts.try_download import try_download_artifacts
+from droidlet.tools.data_scripts.try_download import try_download_artifacts
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)

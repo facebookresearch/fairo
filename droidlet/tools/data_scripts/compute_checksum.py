@@ -20,7 +20,7 @@ def compute_checksum_for_directory(
         artifact_type: datasets or models artifact
         model_name: name of model (nlu or perception)
     """
-    ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
+    ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
     print("Rootdir : %r" % ROOTDIR)
 
     if not agent:
