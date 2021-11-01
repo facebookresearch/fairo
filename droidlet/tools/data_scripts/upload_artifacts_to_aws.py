@@ -10,7 +10,7 @@ import subprocess
 from subprocess import Popen, PIPE
 
 
-ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
+ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
 print("Rootdir : %r" % ROOTDIR)
 
 
