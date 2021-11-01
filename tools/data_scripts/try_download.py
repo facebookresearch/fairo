@@ -6,8 +6,8 @@ assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
 import os
 import glob
 import subprocess
-from .fetch_internal_resources import fetch_safety_words_file
-from .fetch_artifacts_from_aws import fetch_models_from_aws, fetch_datasets_from_aws
+from fetch_internal_resources import fetch_safety_words_file
+from fetch_artifacts_from_aws import fetch_models_from_aws, fetch_datasets_from_aws
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
 print("Rootdir : %r" % ROOTDIR)
@@ -112,7 +112,7 @@ def try_download(agent=None, artifact_name=None, latest_checksum=None):
         fetch_datasets_from_aws(agent=agent, checksum_val=latest_checksum)
     else:
         # models
-        fetch_models_from_aws(agent=agent, model_name=artifact_name, latest_checksum=latest_checksum)
+        fetch_models_from_aws(agent=agent, model_name=artifact_name, checksum_val=latest_checksum)
 
 
 if __name__ == "__main__":

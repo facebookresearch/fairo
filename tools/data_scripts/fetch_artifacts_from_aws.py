@@ -45,7 +45,6 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
         artifact_name = artifact_name + '_' + model_name
 
     file_name = agent + "_" + artifact_name + "_folder_" + checksum_val + ".tar.gz"
-
     """Get tar file from s3 using : agent name, artifact name and checksum combination as unique identifier"""
     os.chdir(ROOTDIR)
     print("====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/" + file_name + " to " \
