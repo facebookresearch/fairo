@@ -7,4 +7,5 @@ kill_pattern () {
 
 kill_pattern remote_hello_realsense.py
 kill_pattern remote_hello_robot.py
+kill_pattern remote_hello_saver.py
 kill_pattern Pyro4.naming
