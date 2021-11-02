@@ -5,7 +5,7 @@ script_dir=$(dirname $0)
 SHARED_PATH=/shared
 
 echo "Downloading datasets, models ..."
-yes | python droidlet/tools/data_scripts/try_download.py --agent_name craftassist &
+yes | python3 droidlet/tools/data_scripts/try_download.py --agent_name craftassist &
 wait
 echo "Done!"
 
