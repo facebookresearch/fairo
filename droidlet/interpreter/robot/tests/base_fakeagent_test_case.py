@@ -44,10 +44,9 @@ class BaseFakeAgentTestCase(unittest.TestCase):
         self.add_incoming_chat(chatstr, self.speaker)
         self.agent.set_logical_form(d, chatstr, self.speaker)
         changes = self.flush(max_steps, stop_on_chat=stop_on_chat)
-        if len(self.agent.dialogue_manager.dialogue_stack) != 0 and answer is not None:
+        if answer is not None:
             self.add_incoming_chat(answer, self.speaker)
-            new_changes = self.flush(max_steps, stop_on_chat=stop_on_chat)
-            changes[1] = new_changes[1]
+            changes.update(self.flush(max_steps, stop_on_chat=stop_on_chat))
         return changes
 
     def flush(self, max_steps=10000, stop_on_chat=False):
@@ -74,11 +73,12 @@ class BaseFakeAgentTestCase(unittest.TestCase):
 
     def agent_should_stop(self, stop_on_chat=False):
         stop = False
-        if (
-            len(self.agent.dialogue_manager.dialogue_stack) == 0
-            and not self.agent.memory.task_stack_peek()
-        ):
+        _, interpreter_mems = self.agent.memory.basic_search(
+            "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+        )
+        if len(interpreter_mems) == 0 and not self.agent.memory.task_stack_peek():
             stop = True
+
         # stuck waiting for answer?
         _, task_mems = self.agent.memory.basic_search(
             "SELECT MEMORY FROM Task WHERE (action_name=awaitresponse AND prio>-1)"
@@ -98,11 +98,13 @@ class BaseFakeAgentTestCase(unittest.TestCase):
     #    def add_object(self, xyzbms: List[Block], origin: XYZ = (0, 0, 0)) -> VoxelObjectNode:
     #        return self.agent.add_object(xyzbms, origin)
 
-    def add_incoming_chat(self, chat: str, speaker_name: str):
-        """Add a chat to memory as if it was just spoken by SPEAKER."""
+    def add_incoming_chat(self, chat: str, speaker_name: str, add_to_memory=False):
+        """Add a chat to memory as if it was just spoken by SPEAKER"""
         self.world.chat_log.append("<" + speaker_name + ">" + " " + chat)
-
-    #        self.agent.memory.add_chat(self.agent.memory.get_player_by_name(self.speaker).memid, chat)
+        if add_to_memory:
+            self.agent.memory.add_chat(
+                self.agent.memory.get_player_by_name(self.speaker).memid, chat
+            )
 
     def last_outgoing_chat(self) -> str:
         return self.agent.get_last_outgoing_chat()

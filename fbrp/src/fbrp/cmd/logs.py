@@ -11,6 +11,7 @@ import sys
 class logs_cmd:
     @classmethod
     def define_argparse(cls, parser: argparse.ArgumentParser):
+        parser.add_argument("--old", default=False, action="store_true")
         parser.add_argument("proc", action="append", nargs="*")
 
     @staticmethod
@@ -53,7 +54,15 @@ class logs_cmd:
                 print(msg_tmpl.format(msg=pkt.payload))
 
             with util.common_env_context(def_):
-                log_listeners.append(a0.LogListener(name, a0.LogLevel.DBG, callback))
+                log_listeners.append(
+                    a0.LogListener(
+                        name,
+                        a0.LogLevel.DBG,
+                        a0.INIT_OLDEST if args.old else a0.INIT_AWAIT_NEW,
+                        a0.ITER_NEXT,
+                        callback,
+                    )
+                )
 
         for i, (name, def_) in enumerate(procs.items()):
             make_listener(i, name, def_)

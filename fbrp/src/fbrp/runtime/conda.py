@@ -22,7 +22,7 @@ class CondaEnv:
     @staticmethod
     def load(flo):
         result = pyyaml.safe_load(flo)
-        return CondaEnv(result["channels"], result["dependencies"])
+        return CondaEnv(result.get("channels", []), result.get("dependencies", []))
 
     @staticmethod
     def from_env(name):
@@ -52,6 +52,14 @@ class CondaEnv:
 
         return CondaEnv(channels, deps)
 
+    def fix_pip(self):
+        if any(dep is str and dep.startswith("pip") for dep in self.dependencies):
+            return
+        for dep in self.dependencies:
+            if type(dep) == dict and dep.get("pip"):
+                self.dependencies.append("pip")
+                return
+
 
 class Launcher(BaseLauncher):
     def __init__(
@@ -67,6 +75,7 @@ class Launcher(BaseLauncher):
         self.args = args
 
     async def run(self):
+        self.set_state(BaseLauncher.State.STARTING)
         self.proc = await asyncio.create_subprocess_shell(
             f"""
                 . $CONDA_PREFIX/etc/profile.d/conda.sh
@@ -78,6 +87,7 @@ class Launcher(BaseLauncher):
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
         )
+        self.set_state(BaseLauncher.State.STARTED)
 
         async def log_pipe(logger, pipe):
             while True:
@@ -102,6 +112,7 @@ class Launcher(BaseLauncher):
 
     async def death_handler(self):
         await self.proc.wait()
+        self.set_state(BaseLauncher.State.STOPPED)
         # TODO(lshamis): Restart policy goes here.
 
     async def handle_down(self):
@@ -110,6 +121,7 @@ class Launcher(BaseLauncher):
                 return
             proc_pid = self.get_pid()
 
+            self.set_state(BaseLauncher.State.STOPPING)
             os.kill(proc_pid, signal.SIGTERM)
 
             for _ in range(100):
@@ -121,7 +133,7 @@ class Launcher(BaseLauncher):
                 os.kill(proc_pid, signal.SIGKILL)
         except:
             pass
-        return
+        sys.exit(0)
 
 
 class Conda(BaseRuntime):
@@ -149,6 +161,8 @@ class Conda(BaseRuntime):
 
         if self.env:
             self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.env))
+
+        self.conda_env.fix_pip()
 
         env_name = f"fbrp_{name}"
         env_path = f"/tmp/fbrp_conda_{name}.yml"

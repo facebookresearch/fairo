@@ -11,6 +11,7 @@ import io
 import json
 import os
 import pwd
+import sys
 import typing
 
 
@@ -32,6 +33,7 @@ class Launcher(BaseLauncher):
         self.kwargs = kwargs
 
     async def run(self):
+        self.set_state(BaseLauncher.State.STARTING)
         docker = aiodocker.Docker()
 
         container = f"fbrp_{self.name}"
@@ -84,6 +86,7 @@ class Launcher(BaseLauncher):
 
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()
+        self.set_state(BaseLauncher.State.STARTED)
 
         proc_info = await self.proc.show()
         self.proc_pid = proc_info["State"]["Pid"]
@@ -105,26 +108,17 @@ class Launcher(BaseLauncher):
 
     async def death_handler(self):
         await self.proc.wait()
+        self.set_state(BaseLauncher.State.STOPPED)
         # TODO(lshamis): Restart policy goes here.
 
-    async def command_handler(self):
-        async for pkt in a0.aio_sub(
-            f"_/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
-        ):
-            try:
-                cmd = json.loads(pkt.payload)
-                handle = {
-                    "down": self.handle_down,
-                }[cmd["action"]]
-                await handle(**cmd.get("kwargs", {}))
-            except:
-                pass
-
     async def handle_down(self):
+        self.set_state(BaseLauncher.State.STOPPING)
         await self.proc.stop()
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
         await self.proc.delete(force=True)
+        self.set_state(BaseLauncher.State.STOPPED)
+        sys.exit(0)
 
 
 class Docker(BaseRuntime):
@@ -171,6 +165,13 @@ class Docker(BaseRuntime):
 
         nfs_mounts = []
         for host, container in mount_map.items():
+            try:
+                os.makedirs(host)
+            except FileExistsError:
+                pass
+            except FileNotFoundError:
+                pass
+
             nfs_root = util.nfs_root(host)
             if nfs_root and nfs_root != host:
                 nfs_mounts.append(

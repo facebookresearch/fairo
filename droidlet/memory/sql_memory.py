@@ -16,7 +16,6 @@ from typing import cast, Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ
 from droidlet.shared_data_structs import Time
 from droidlet.memory.memory_filters import MemorySearcher
-from .dialogue_stack import DialogueStack
 from droidlet.event import dispatch
 from droidlet.memory.memory_util import parse_sql, format_query
 
@@ -94,7 +93,6 @@ class AgentMemory:
         if os.path.isfile(db_file):
             os.remove(db_file)
         self.db = sqlite3.connect(db_file, check_same_thread=False)
-        self.dialogue_stack = DialogueStack()
         self.task_db = {}
         self._safe_pickle_saved_attrs = {}
 
@@ -290,6 +288,7 @@ class AgentMemory:
             >>> node_type = 'Chat'
             >>> get_mem_by_id(memid, node_type)
         """
+        # FIXME what if memid doesn't exist?  what if mem was deleted?
         if node_type is None:
             node_type = self.get_node_from_memid(memid)
 
@@ -586,14 +585,14 @@ et        """
         """
         return ChatNode(self, memid)
 
-    def get_chat_id(self, speaker_id: str, chat: str) -> str:
+    def get_chat_id(self, speaker: str, chat: str) -> str:
         """Return memid of ChatNode, given speaker and chat
 
         Args:
             speaker_id: memid of speaker
             chat: chat string
         """
-        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker_id, chat)
+        r = self._db_read("SELECT uuid FROM Chats where speaker = ? and chat = ?", speaker, chat)
         return r[0][0]
 
     def get_recent_chats(self, n=1) -> List["ChatNode"]:
@@ -938,19 +937,6 @@ et        """
             return TaskNode(self, memid)
 
     #########################
-    ###  DialogueObjects  ###
-    #########################
-
-    # THIS SECTION IS TEMPORARY
-    # FIXME!! agent
-    # these are to be removed, and DialogueObjects merged with Tasks
-
-    # FIXME agent
-    def dialogue_stack_append_new(self, cls, *args, **kwargs):
-        """Construct a new DialogueObject and append to stack"""
-        self.dialogue_stack.stack.append(cls(*args, memory=self, **kwargs))
-
-    #########################
     ###  Database Access  ###
     #########################
 
@@ -1037,20 +1023,20 @@ et        """
             self.on_delete_callback(deleted)
         self._db_write("DELETE FROM Updates")
         # format the data to send to dashboard timeline
-        query_table, query_operation = parse_sql(query[:query.find("(") - 1])
+        query_table, query_operation = parse_sql(query[: query.find("(") - 1])
         query_dict = format_query(query, *args)
         # data is sent to the dashboard as JSON to be displayed in the timeline
         end_time = datetime.datetime.now()
         hook_data = {
-            "name" : "memory", 
-            "start_time" : start_time,
-            "end_time" : end_time,
-            "elapsed_time" : (end_time - start_time).total_seconds(),
-            "agent_time" : self.get_time(),
-            "table_name" : query_table, 
-            "operation" : query_operation, 
-            "arguments" : query_dict, 
-            "result" : r,
+            "name": "memory",
+            "start_time": start_time,
+            "end_time": end_time,
+            "elapsed_time": (end_time - start_time).total_seconds(),
+            "agent_time": self.get_time(),
+            "table_name": query_table,
+            "operation": query_operation,
+            "arguments": query_dict,
+            "result": r,
         }
         dispatch.send("memory", data=hook_data)
         return r
