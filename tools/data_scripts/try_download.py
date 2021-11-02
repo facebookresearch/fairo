@@ -9,7 +9,7 @@ import subprocess
 from tools.data_scripts.fetch_internal_resources import fetch_safety_words_file
 from tools.data_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, fetch_datasets_from_aws
 
-ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
+ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
 print("Rootdir : %r" % ROOTDIR)
 
 
