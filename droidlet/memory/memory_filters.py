@@ -48,6 +48,19 @@ def check_value_comparison_match(value, comparison_symbol):
         )
 
 
+def get_all_memids_of_node_type(agent_memory, memtype, allow_archives=False):
+    # FIXME memtype might be a union of node types
+    memtypes = agent_memory.node_children[memtype]
+    node_type_clause = "(" + (" OR node_type=? " * len(memtypes))[3:-1] + ")"
+    cmd = "SELECT uuid FROM Memories WHERE " + node_type_clause
+    # FIXME deal with this better with node types:
+    if not allow_archives:
+        cmd = cmd + " AND is_snapshot=?"
+        memtypes.append(0)
+    all_memids = agent_memory._db_read(cmd, *memtypes)
+    return [m[0] for m in all_memids]
+
+
 # FIXME! refactor get_property_value, search_by_property, search_by_attribute
 # lots of duplicated code
 
@@ -180,11 +193,7 @@ def search_by_attribute(agent_memory, attribute, value, comparison_symbol, memty
     returns a list of memids
     """
     check_value_comparison_match(value, comparison_symbol)
-    # FIXME if memtype is more complicated
-    if memtype:
-        memids = agent_memory._db_read("SELECT uuid FROM Memories WHERE node_type=?", memtype)
-    else:
-        memids = agent_memory._db_read("SELECT uuid FROM Memories")
+    memids = get_all_memids_of_node_type(agent_memory, memtype)
     values = attribute([agent_memory.get_mem_by_id(m) for m in memids])
     pairs = zip(memids, values)
 
@@ -370,14 +379,8 @@ class MemorySearcher:
                 memid_lists.append(self.handle_where(agent_memory, c, memtype))
             return list(set.union(*[set(m) for m in memid_lists]))
         if where_clause.get("NOT"):
-            # FIXME memtype might be a union of node types
             # maybe FIXME? don't retrieve everything until necessary
-            memtypes = agent_memory.node_children[memtype]
-            node_type_clause = ("OR node_type=? " * len(memtypes))[3:-1]
-            all_memids = agent_memory._db_read(
-                "SELECT uuid FROM Memories WHERE " + node_type_clause, *memtypes
-            )
-            all_memids = set([m[0] for m in all_memids])
+            all_memids = set(get_all_memids_of_node_type(agent_memory, memtype))
             memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
             return list(all_memids - set(memids))
 

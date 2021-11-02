@@ -68,6 +68,11 @@ def dummy_specify_locations(interpreter, speaker, mems, steps, reldir):
 class BasicSearchWithAttributesTest(unittest.TestCase):
     def test_linear_extent_search(self):
         self.memory = AgentMemory()
+        PlayerNode.create(
+            self.memory,
+            Player(0, "self", Pos(-1, 0, -1), Look(0, 0)),
+            memid=self.memory.self_memid,
+        )
         joe_eid = 10
         joe_memid = PlayerNode.create(
             self.memory, Player(joe_eid, "joe", Pos(1, 0, 1), Look(0, 0))
