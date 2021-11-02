@@ -28,33 +28,38 @@ class LabelPropSaver:
         self.cam = cam
         
         self.save_folder = root
-        self.img_folder = os.path.join(self.save_folder, "rgb")
-        self.img_folder_dbg = os.path.join(self.save_folder, "rgb_dbg")
-        self.depth_folder = os.path.join(self.save_folder, "depth")
-
-        if os.path.exists(self.save_folder):
-            shutil.rmtree(self.save_folder)
-
-        for x in [self.save_folder, self.img_folder, self.img_folder_dbg, self.depth_folder]:
-            os.makedirs(x, exist_ok=True)
-        
-        self.pose_dict = {}
         self.save_frequency = 1 # save every 10 frames
         self.skip_frame_count = 0 # internal counter
         self.dbg_str = "None"
         self.save_id = 0
 
+    def return_paths(self, id_):
+        id_ = str(id_)
+        img_folder = os.path.join(self.save_folder, id_, "rgb")
+        img_folder_dbg = os.path.join(self.save_folder, id_, "rgb_dbg")
+        depth_folder = os.path.join(self.save_folder, id_, "depth")
+        data_file = os.path.join(self.save_folder, id_, "data.json")
+        return img_folder, img_folder_dbg, depth_folder, data_file
+
+    def create_dirs(self, id_):
+
+        img_folder, img_folder_dbg, depth_folder, data_file = self.return_paths(id_)
+
+        for x in [img_folder, img_folder_dbg, depth_folder]:
+            os.makedirs(x, exist_ok=True)
+
     def save_batch(self, seconds):
-        self.save_id += 1
         print("Logging data for {} seconds".format(seconds), end='', flush=True)
+        pose_dict = {}
+        self.save_id += 1
+        self.create_dirs(self.save_id)
         start_time = time.time()
         frame_count = 0
-        self.pose_dict = {}
         while time.time() - start_time <= seconds :
             rgb, depth = safe_call(self.cam.get_rgb_depth)
             base_pos = safe_call(self.bot.get_base_state)
-            name = "{}_{}".format(self.save_id, frame_count)
-            self.save(self.save_id, name, rgb, depth, base_pos)
+            name = "{}".format(frame_count)
+            self.save(self.save_id, name, rgb, depth, base_pos, pose_dict)
             frame_count += 1
             print('.', end='', flush=True)
         print(' {} frames at {} fps'.format(frame_count, round(float(frame_count) / seconds, 1)))
@@ -63,20 +68,21 @@ class LabelPropSaver:
         return True
             
 
-    def save(self, id_, name, rgb, depth, pos):
+    def save(self, id_, name, rgb, depth, pos, pose_dict):
+        img_folder, img_folder_dbg, depth_folder, data_file = self.return_paths(id_)
 
         self.skip_frame_count += 1
         if self.skip_frame_count % self.save_frequency == 0:
             # store the images and depth
             cv2.imwrite(
-                self.img_folder + "/{}.jpg".format(name),
+                img_folder + "/{}.jpg".format(name),
                 rgb,
             )
 
             cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
 
             cv2.imwrite(
-                self.img_folder_dbg + "/{}.jpg".format(name),
+                img_folder_dbg + "/{}.jpg".format(name),
                 rgb,
             )
 
@@ -88,14 +94,14 @@ class LabelPropSaver:
             depth[depth > max_depth] = max_depth
             
             depth = depth.astype(np.uint16)
-            np.save(self.depth_folder + "/{}.npy".format(name), depth)
+            np.save(depth_folder + "/{}.npy".format(name), depth)
 
             # store pos
             if pos is not None:
-                self.pose_dict[name] = pos
+                pose_dict[name] = pos
             
-            with open(os.path.join(self.save_folder, "{}_data.json".format(id_)), "w") as fp:
-                json.dump(self.pose_dict, fp)
+            with open(data_file, "w") as fp:
+                json.dump(pose_dict, fp)
 
 
 if __name__ == "__main__":
