@@ -12,9 +12,9 @@ ROOTDIR=$(pyabspath $(dirname "$0")/../../)
 echo "Rootdir ${ROOTDIR}"
 
 # Optionally fetch secure resources for internal users and prod systems
-python3 ${ROOTDIR}/tools/data_scripts/fetch_internal_resources.py ${ROOTDIR}/droidlet/documents/internal/safety.txt
+python3 ${ROOTDIR}/droidlet/tools/data_scripts/fetch_internal_resources.py ${ROOTDIR}/droidlet/documents/internal/safety.txt
 
-. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
+. ${ROOTDIR}/droidlet/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
 if [ -z $1 ]
 then
@@ -36,7 +36,7 @@ mkdir -p $AGENT_PATH/models/perception
 compare_checksum_try_download() {
     LOCAL_CHKSM=$(cat $1)
     ASSET=$2
-    LATEST_CHKSM=$(cat ${ROOTDIR}/tools/data_scripts/default_checksums/${ASSET}.txt)
+    LATEST_CHKSM=$(cat ${ROOTDIR}/droidlet/tools/data_scripts/default_checksums/${ASSET}.txt)
     echo "Comparing $ASSET checksums" 
     echo "Local " $LOCAL_CHKSM
     echo "Latest " $LATEST_CHKSM
@@ -54,10 +54,10 @@ try_download() {
     echo "Local ${ASSET} asset is out of sync. Downloading latest. Use --dev to disable downloads."
     echo "*********************************************************************************************"
     echo "Downloading ${ASSET} asset"
-    SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_models.sh"
+    SCRIPT_PATH="$ROOTDIR/droidlet/tools/data_scripts/fetch_aws_models.sh"
     if cmp -s $ASSET "datasets"
     then
-        SCRIPT_PATH="$ROOTDIR/tools/data_scripts/fetch_aws_datasets.sh"
+        SCRIPT_PATH="$ROOTDIR/droidlet/tools/data_scripts/fetch_aws_datasets.sh"
     fi
     echo "Downloading using script " $SCRIPT_PATH
     "$SCRIPT_PATH" "$AGENT" "$CHKSUM" "$ASSET"
