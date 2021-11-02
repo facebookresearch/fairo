@@ -179,6 +179,8 @@ class Docker(BaseRuntime):
                 os.makedirs(host)
             except FileExistsError:
                 pass
+            except FileNotFoundError:
+                pass
 
             nfs_root = util.nfs_root(host)
             if nfs_root and nfs_root != host:

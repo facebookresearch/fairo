@@ -2,7 +2,7 @@ import a0
 import time
 
 i = 0
-p = a0.Publisher("imu/image")
+p = a0.Publisher("some/topic")
 while True:
     msg = f"data {i}"
     print(msg)

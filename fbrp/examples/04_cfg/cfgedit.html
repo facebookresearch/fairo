@@ -1,0 +1,145 @@
+<html>
+  <head>
+    <title>Dockyard Config Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script defer id="ace" src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.13/ace.js"></script>
+  </head>
+  <body>
+    <div id="app">
+      <section class="section" style="height: 100%">
+        <div class="container columns" style="height: 100%">
+          <nav class="panel column is-3">
+            <p class="panel-heading">Processes</p>
+            <a
+              class="panel-block"
+              v-for="proc in processes"
+              v-bind:class="{ 'is-active': proc == selected_process }"
+              v-on:click="selected_process = proc"
+            >
+              {{proc}}
+            </a>
+          </nav>
+
+          <div class="column" style="height: 100%">
+            <nav class="level">
+              <div class="level-left">
+                <div class="level-item">
+                  <p class="subtitle is-5">
+                    <strong>{{selected_process}}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div class="level-left">
+                <div class="level-item">
+                  <div class="field has-addons">
+                    <p class="control">
+                      <button class="button is-info" v-on:click="read_config">Reload</button>
+                    </p>
+                    <p class="control">
+                      <button class="button is-success" v-on:click="eval_config">Eval</button>
+                    </p>
+                    <p class="control">
+                      <button class="button is-warning" v-on:click="write_config">Commit</button>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </nav>
+
+            <pre id="code" style="height: 100%; font-size: 1.25em"></pre>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const vueobj = new Vue({
+        el: "#app",
+        data: {
+          processes: [],
+          selected_process: null,
+          new_process: "",
+          discovery_ws: null,
+          cfg_read_ws: null,
+        },
+        mounted() {
+          const vm = this;
+
+          vm.discovery_ws = new WebSocket(`ws://localhost:24880/wsapi/discover`)
+          vm.discovery_ws.onopen = () => {
+            vm.discovery_ws.send(JSON.stringify({
+              protocol: "cfg",
+              topic: "**/*",
+            }))
+          }
+          vm.discovery_ws.onmessage = (evt) => {
+            const topic = JSON.parse(evt.data).topic
+            vm.processes.push(topic)
+            vm.processes.sort()
+          }
+
+          const ace_script = document.querySelector("#ace");
+          ace_script.onload = vm.setup_code_panel;
+        },
+        watch: {
+          selected_process: function (process) {
+            const vm = this;
+            vm.read_config(process);
+          },
+        },
+        methods: {
+          setup_code_panel() {
+            const vm = this;
+            vm.editor = ace.edit("code");
+            vm.editor.setKeyboardHandler("ace/keyboard/sublime");
+            vm.editor.session.setMode("ace/mode/javascript");
+          },
+          read_config() {
+            const vm = this;
+
+            vm.cfg_read_ws = new WebSocket(`ws://localhost:24880/wsapi/read`)
+            vm.cfg_read_ws.onopen = () => {
+              vm.cfg_read_ws.send(JSON.stringify({
+                path: `${vm.selected_process}.cfg.a0`,
+                init: "MOST_RECENT",
+                iter: "NEXT",
+              }))
+            }
+            vm.cfg_read_ws.onmessage = (evt) => {
+              const cfg = JSON.parse(JSON.parse(evt.data).payload);
+              vm.editor.setValue(JSON.stringify(cfg, null, "  "), 1);
+              vm.cfg_read_ws.close()
+            }
+          },
+          write_config() {
+            const vm = this;
+            vm.eval_config();
+            fetch("http://localhost:24880/api/write", {
+              method: "POST",
+              body: JSON.stringify({
+                path: `${vm.selected_process}.cfg.a0`,
+                standard_headers: true,
+                packet: {
+                  payload: vm.editor.getValue(),
+                }
+              }),
+            });
+          },
+          eval_config() {
+            const vm = this;
+            const cfg = new Function("return " + vm.editor.getValue())();
+            vm.editor.setValue(JSON.stringify(cfg, null, "  "), 1);
+          },
+          new_config() {
+            const vm = this;
+            vm.processes.push(vm.new_process);
+            vm.processes.sort();
+            vm.selected_process = vm.new_process;
+          },
+        },
+      });
+    </script>
+  </body>
+</html>

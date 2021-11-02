@@ -23,7 +23,9 @@ class BaseLauncher:
         STOPPED = "STOPPED"
 
     def set_state(self, state: State):
-        a0.Cfg("fbrp/state").mergepatch({self.name: state.value})
+        a0.Cfg("fbrp/state").mergepatch(
+            {self.name: {"state": state.value, "timestamp": str(a0.TimeWall.now())}}
+        )
 
     def get_pid(self):
         raise NotImplementedError("Launcher hasn't implemented get_pid!")
