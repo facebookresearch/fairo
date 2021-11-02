@@ -9,6 +9,7 @@ def main():
     import fbrp.cmd.down
     import fbrp.cmd.list
     import fbrp.cmd.logs
+    import fbrp.cmd.ps
     import fbrp.cmd.up
 
     parser = argparse.ArgumentParser(prog="fbrp")

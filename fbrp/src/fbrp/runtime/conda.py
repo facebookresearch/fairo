@@ -22,7 +22,7 @@ class CondaEnv:
     @staticmethod
     def load(flo):
         result = pyyaml.safe_load(flo)
-        return CondaEnv(result["channels"], result["dependencies"])
+        return CondaEnv(result.get("channels", []), result.get("dependencies", []))
 
     @staticmethod
     def from_env(name):
@@ -51,6 +51,14 @@ class CondaEnv:
             deps.append({"pip": pip_deps})
 
         return CondaEnv(channels, deps)
+
+    def fix_pip(self):
+        if any(dep is str and dep.startswith("pip") for dep in self.dependencies):
+            return
+        for dep in self.dependencies:
+            if type(dep) == dict and dep.get("pip"):
+                self.dependencies.append("pip")
+                return
 
 
 class Launcher(BaseLauncher):
@@ -153,6 +161,8 @@ class Conda(BaseRuntime):
 
         if self.env:
             self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.env))
+
+        self.conda_env.fix_pip()
 
         env_name = f"fbrp_{name}"
         env_path = f"/tmp/fbrp_conda_{name}.yml"
