@@ -122,9 +122,17 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         if not dryrun:
             robot.base.rotate_by(theta_1)
             robot.push_command()
-            time.sleep(0.2)
-            while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
+            time.sleep(0.1)
+            is_moving = True
+            while is_moving:
+                print(is_moving)
                 time.sleep(0.05)
+                print(robot.base.left_wheel.status)
+                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered']
+                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered']
+                is_moving = left_wheel_moving or right_wheel_moving
+                print(is_moving)
+
         # move the distance
         print("translate by ", dist)
         if not dryrun:
@@ -133,15 +141,17 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
             # # check here if obstacle is within dist, return false.
             # if is_obstacle_ahead(abs(dist), depth_fn):
             #     return False
-
             robot.base.translate_by(dist, v_m=0.1)
             robot.push_command()
-            time.sleep(5)
-            # TODO: switch to checking robot's status, instead of the sleep
-            # time.sleep(0.2)
-            # while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
-            #     print(robot.base.left_wheel.status['vel'], robot.base.right_wheel.status['vel'])
-            #     time.sleep(0.05)
+            time.sleep(2)
+            is_moving = True
+            while is_moving:
+                print(is_moving)
+                time.sleep(0.05)
+                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered']
+                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered']
+                is_moving = left_wheel_moving or right_wheel_moving
+                print(is_moving)
         # second rotate by theta2
         
         theta_2 = np.sign(theta_2) * (abs(theta_2) % radians(360))
@@ -149,7 +159,13 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         if not dryrun:
             robot.base.rotate_by(theta_2)
             robot.push_command()
-            time.sleep(0.2)
-            while(abs(robot.base.left_wheel.status['vel']) >= 0.1 or abs(robot.base.right_wheel.status['vel']) >= 0.1):
+            time.sleep(0.1)
+            is_moving = True
+            while is_moving:
+                print(is_moving)
                 time.sleep(0.05)
+                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered']
+                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered']
+                is_moving = left_wheel_moving or right_wheel_moving
+                print(is_moving)
         return True
