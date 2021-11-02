@@ -34,6 +34,24 @@ def check_well_formed_triple(clause):
     assert not ("obj" in clause and "obj_text" in clause)
 
 
+def check_value_comparison_match(value, comparison_symbol):
+    try:
+        if comparison_symbol != "%" or comparison_symbol != "<>":
+            assert len(value) == 1
+        else:
+            assert len(value) == 2
+    except:
+        raise Exception(
+            "comparison symbol in basic search is {} but value is {}".format(
+                comparison_symbol, value
+            )
+        )
+
+
+# FIXME! refactor get_property_value, search_by_property, search_by_attribute
+# lots of duplicated code
+
+
 def get_property_value(agent_memory, mem, prop, get_all=False):
     """
     Tries to get property value from a memory.
@@ -98,17 +116,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     2: table corresponding to the nodes .TABLE
     3: triple with the nodes memid as subject and prop as predicate
     """
-    try:
-        if comparison_symbol != "%" or comparison_symbol != "<>":
-            assert len(value) == 1
-        else:
-            assert len(value) == 2
-    except:
-        raise Exception(
-            "comparison symbol in basic search is {} but value is {}".format(
-                comparison_symbol, value
-            )
-        )
+    check_value_comparison_match(value, comparison_symbol)
 
     if comparison_symbol == "%":
         where = "WHERE " + prop + " % " + str(value[0]) + " =?"
@@ -152,6 +160,50 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     if len(triples) > 0:
         return [t[0] for t in triples if agent_memory.get_node_from_memid(t[0]) in node_children]
     return []
+
+
+def search_by_attribute(agent_memory, attribute, value, comparison_symbol, memtype):
+    """
+    Tries to find memories with a specified attribute value
+
+    Args:
+        agent_memory: an AgentMemory object
+        attribute: a callable that inputs a list of MemoryNodes and 
+            outputs a list of values
+        value: the value to match.  if comparison_symbol is <>,
+            should be a tuple of (low, high); and if comparison symbol is
+            "%", should be a tuple of (modulus, remainder)
+            otherwise value should be a singleton tuple
+        comparison_symbol: one of "=", "<", "<=", ">", ">=", "%", "<>"
+        memtype: a memory type
+
+    returns a list of memids
+    """
+    check_value_comparison_match(value, comparison_symbol)
+    # FIXME if memtype is more complicated
+    if memtype:
+        memids = agent_memory._db_read("SELECT uuid FROM Memories WHERE node_type=?", memtype)
+    else:
+        memids = agent_memory._db_read("SELECT uuid FROM Memories")
+    values = attribute([agent_memory.get_mem_by_id(m) for m in memids])
+    pairs = zip(memids, values)
+
+    v = value
+    if comparison_symbol == "%":
+        filtered_memids = [p[0] for p in pairs if (p[1] and p[1] % value[0] == value[1])]
+    elif comparison_symbol == "<>":
+        filtered_memids = [p[0] for p in pairs if (p[1] and value[0] <= p[1] and p[1] <= value[1])]
+    else:
+        s = {
+            "=": lambda x, y: x == y,
+            "<": lambda x, y: x < y,
+            "<=": lambda x, y: x <= y,
+            ">": lambda x, y: x > y,
+            ">=": lambda x, y: x >= y,
+        }
+        filtered_memids = [p[0] for p in pairs if (p[1] and s[comparison_symbol](p[1], value[0]))]
+
+    return filtered_memids
 
 
 def try_float(value, where_clause):
@@ -271,9 +323,7 @@ class MemorySearcher:
         if type(input_left) is str:
             return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
         elif isinstance(input_left, Attribute):
-            return search_by_attribute(
-                agent_memory, input_right, value, comparison_symbol, memtype
-            )
+            return search_by_attribute(agent_memory, input_left, value, comparison_symbol, memtype)
         else:
             raise Exception("malformed input_left in comparator {}".format(where_clause))
 
