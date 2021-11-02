@@ -56,7 +56,11 @@ class logs_cmd:
             with util.common_env_context(def_):
                 log_listeners.append(
                     a0.LogListener(
-                        name, a0.LogLevel.DBG, a0.INIT_OLDEST if args.old else a0.INIT_AWAIT_NEW, a0.ITER_NEXT, callback
+                        name,
+                        a0.LogLevel.DBG,
+                        a0.INIT_OLDEST if args.old else a0.INIT_AWAIT_NEW,
+                        a0.ITER_NEXT,
+                        callback,
                     )
                 )
 
