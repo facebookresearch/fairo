@@ -33,8 +33,8 @@ Pyro4.config.ITER_STREAMING = True
 class RemoteHelloRobot(object):
     """Hello Robot interface"""
 
-    def __init__(self):
-        self.bot = Pyro4.Proxy("PYRONAME:remotehellorobot@" + "0.0.0.0")
+    def __init__(self, bot):
+        self.bot = bot
         self._done = True
         self._connect_to_realsense()
         # Slam stuff
@@ -50,64 +50,6 @@ class RemoteHelloRobot(object):
     
     def get_camera_transform(self):
         return self.bot.get_camera_transform()
-
-    def get_rgb_depth(self):
-        tm = time.time()
-        frames = None
-        while not frames:
-            frames = self.realsense.wait_for_frames()
-            aligned_frames = self.align.process(frames)
-
-            # Get aligned frames
-            aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
-            color_frame = aligned_frames.get_color_frame()
-
-            # Validate that both frames are valid
-            if not aligned_depth_frame or not color_frame:
-                continue
-
-            depth_image = np.asanyarray(aligned_depth_frame.get_data())/1000.0 # convert to meters
-            color_image = np.asanyarray(color_frame.get_data())
-
-            # rotate 
-            depth_image = np.rot90(depth_image, k=1, axes=(1,0))
-            color_image = np.rot90(color_image, k=1, axes=(1,0))
-
-        return color_image, depth_image
-
-
-    def get_pcd_data(self):
-        """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
-        rgb, depth = self.get_rgb_depth()
-        depth *= 1000  # convert to mm
-        # cap anything more than np.power(2,16)~ 65 meter
-        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-        depth = depth.astype(np.uint16)
-        T = self.get_camera_transform()
-        rot = T[:3, :3]
-        trans = T[:3, 3]
-        base2cam_trans = np.array(trans).reshape(-1, 1)
-        base2cam_rot = np.array(rot)
-        return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
-
-    def get_current_pcd(self):
-        rgb, depth, rot, trans = self.get_pcd_data()
-        rgb = np.asarray(rgb).astype(np.uint8)
-        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
-        depth = np.asarray(depth)
-        rot = np.asarray(rot)
-        trans = np.asarray(trans)
-        depth = depth.astype(np.float32)
-        d = copy.deepcopy(depth)
-        depth /= 1000.0
-        depth = depth.reshape(-1)
-        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
-        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
-        pts = pts_in_cam[:3, :].T
-        pts = np.dot(pts, rot.T)
-        pts = pts + trans.reshape(-1)
-        pts = du.transform_pose(pts, self.get_base_state())
-        return pts
 
     def _connect_to_realsense(self):
         cfg = rs.config()
@@ -128,19 +70,15 @@ class RemoteHelloRobot(object):
         self.align = rs.align(align_to)
         print("connected to realsense")
 
-
     def get_intrinsics(self):
         return self.intrinsic_mat.tolist()
 
     def get_img_resolution(self):
         return (CH, CW)
 
-
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
         return "Connected!"  # should print on client terminal
-
-
 
     def get_rgb_depth(self):
         tm = time.time()
@@ -157,7 +95,7 @@ class RemoteHelloRobot(object):
             if not aligned_depth_frame or not color_frame:
                 continue
 
-            depth_image = np.asanyarray(aligned_depth_frame.get_data())/1000 # convert to meters
+            depth_image = np.asanyarray(aligned_depth_frame.get_data()) / 1000 # convert to meters
             color_image = np.asanyarray(color_frame.get_data())
 
             # rotate 
@@ -166,7 +104,6 @@ class RemoteHelloRobot(object):
 
         return color_image, depth_image
 
-
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth()
@@ -174,15 +111,12 @@ class RemoteHelloRobot(object):
         # cap anything more than np.power(2,16)~ 65 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
         depth = depth.astype(np.uint16)
-        #FIXME THIS IS BROKEN!! (deal with pitch)
-        trans = [0, 0, CAMERA_HEIGHT]
-        rot = np.array([[0., 0., 1.], [-1., 0., 0.], [0., -1.,0.]])
-        T = np.eye(4)
-        T[:3,:3] = rot
-        T[:3,3] = trans
+        T = self.get_camera_transform()
+        rot = T[:3, :3]
+        trans = T[:3, 3]
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
-        return rgb.tolist(), depth.tolist(), base2cam_rot.tolist(), base2cam_trans.tolist()
+        return rgb, depth, base2cam_rot.tolist(), base2cam_trans.tolist()
 
     def get_current_pcd(self):
         rgb, depth, rot, trans = self.get_pcd_data()
@@ -200,7 +134,7 @@ class RemoteHelloRobot(object):
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
         pts = pts + trans.reshape(-1)
-        pts = du.transform_pose(pts, self.get_base_state())
+        pts = du.transform_pose(pts, self.bot.get_base_state())
         return pts
 
 
@@ -220,10 +154,11 @@ if __name__ == "__main__":
     np.random.seed(123)
 
     with Pyro4.Daemon(args.ip) as daemon:
-        robot = RemoteHelloRobot()
+        bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
+        robot = RemoteHelloRobot(bot)
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
-            ns.register("remotehellorealsense", robot_uri)
+            ns.register("hello_realsense", robot_uri)
 
         print("Server is started...")
         # try:
