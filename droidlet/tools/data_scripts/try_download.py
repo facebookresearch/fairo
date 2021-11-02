@@ -44,7 +44,7 @@ def try_download_artifacts(agent=None):
             print("deleting previous checksum file :%r" % file)
             os.remove(file)
 
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
 
     # Compute local checksum for nlu directory and try download if different from remote.
     artifact_path = os.path.join(agent_path, 'models/nlu')
@@ -90,7 +90,7 @@ def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact
         artifact_name = agent + "_" + artifact_name
 
     latest_checksum_file = os.path.join(ROOTDIR,
-                                        'tools/data_scripts/default_checksums/' + artifact_name + '.txt')
+                                        'droidlet/tools/data_scripts/default_checksums/' + artifact_name + '.txt')
     with open(latest_checksum_file) as f:
         latest_checksum = f.read().strip()
 
