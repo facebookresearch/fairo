@@ -44,7 +44,7 @@ def try_download_artifacts(agent=None):
             print("deleting previous checksum file :%r" % file)
             os.remove(file)
 
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
 
     # Compute local checksum for nlu directory and try download if different from remote.
     artifact_path = os.path.join(agent_path, 'models/nlu')
@@ -85,16 +85,17 @@ def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact
     with open(local_checksum_file) as f:
         local_checksum = f.read().strip()
 
+    artifact_name_file = artifact_name
     if artifact_name == "perception":
         # We are tracking locobot_perception and craftassist_perception on remote
-        artifact_name = agent + "_" + artifact_name
+        artifact_name_file = agent + "_" + artifact_name
 
     latest_checksum_file = os.path.join(ROOTDIR,
-                                        'tools/data_scripts/default_checksums/' + artifact_name + '.txt')
+                                        'droidlet/tools/data_scripts/default_checksums/' + artifact_name_file + '.txt')
     with open(latest_checksum_file) as f:
         latest_checksum = f.read().strip()
 
-    print("Comparing %r checksums" % artifact_name)
+    print("Comparing %r checksums for agent: %r" % (artifact_name, agent))
     print("Local checksum: %r" % local_checksum)
     print("Latest checksum on remote: %r" % latest_checksum)
     if local_checksum == latest_checksum:
