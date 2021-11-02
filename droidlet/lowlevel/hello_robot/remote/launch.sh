@@ -20,5 +20,8 @@ echo $ip
 python3 ./remote_hello_robot.py --ip $ip &
 BGPID2=$!
 
-python3 ./remote_hello_realsense.py --ip $ip
+python3 ./remote_hello_realsense.py --ip $ip &
+BGPID3=$!
+
+python3 ./remote_hello_saver.py --ip $ip
 BGPID3=$!
