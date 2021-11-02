@@ -32,9 +32,9 @@ Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
 
 
-def safe_call(f, *args):
+def safe_call(f, *args, **kwargs):
     try:
-        return f(*args)
+        return f(*args, **kwargs)
     except Pyro4.errors.ConnectionClosedError as e:
         msg = "{} - {}".format(f._RemoteMethod__name, e)
         raise ErrorWithResponse(msg)
