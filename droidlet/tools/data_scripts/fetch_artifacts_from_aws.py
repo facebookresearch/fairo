@@ -29,14 +29,13 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
 
     if not checksum_val:
         # if not from command line, read from given file.
-        checksum_file_path = os.path.join(ROOTDIR, 'tools/data_scripts/default_checksums/' + checksum_file_name)
+        checksum_file_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/default_checksums/' + checksum_file_name)
         print("Downloading datasets folder with default checksum from file: %r" % checksum_file_path)
         with open(checksum_file_path) as f:
             checksum_val = f.read().strip()
     print("CHECKSUM: %r" % checksum_val)
 
     artifact_path = os.path.join(agent_path, artifact_name)
-    original_artifact_name = artifact_name
     if artifact_name == "models":
         if not model_name:
             model_name = "nlu"
@@ -70,8 +69,8 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
         shutil.rmtree(artifact_path, ignore_errors=True) # force delete if directory has content in it
     mode = 0o777
     os.mkdir(artifact_path, mode)
-    write_path = os.path.join('agents/', agent, original_artifact_name)
-    print(write_path)
+    write_path = artifact_path
+    print("Writing to : %r" % write_path)
     process = Popen(
         [
             'tar',

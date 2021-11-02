@@ -35,6 +35,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         self.add_incoming_chat(chat, self.speaker)
         # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
+        print(nlu_perceive_output)
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )
