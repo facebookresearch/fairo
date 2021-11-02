@@ -131,19 +131,20 @@ class Navigator extends React.Component {
     }
   }
 
+  // <button
+  //   id="stop_robot"
+  //   style={{ fontSize: 48 + "px" }}
+  //   onClick={this.stopRobot}
+  // >
+  //   <strike>STOP ROBOT</strike>
+  // </button>
+  // <button id="unstop_robot" onClick={this.unstopRobot}>
+  //   Clear Runstop
+  // </button>
+
   render() {
     return (
       <div ref={this.navRef}>
-        <button
-          id="stop_robot"
-          style={{ fontSize: 48 + "px" }}
-          onClick={this.stopRobot}
-        >
-          <strike>STOP ROBOT</strike>
-        </button>
-        <button id="unstop_robot" onClick={this.unstopRobot}>
-          Clear Runstop
-        </button>
         <br />
         <br />
         <div>
@@ -165,8 +166,6 @@ class Navigator extends React.Component {
         </div>
         <br />
         <br />
-        <br />
-        <br />
         <div>
           <label> Camera </label>
           <button id="tilt_up" onClick={this.handleClick}>
@@ -185,7 +184,6 @@ class Navigator extends React.Component {
           </button>
         </div>
 
-        <br />
         <br />
         <input
           type="checkbox"
@@ -210,6 +208,7 @@ class Navigator extends React.Component {
             step={0.01}
             onChange={this.onYawChange}
           />
+          <br />
           <label style={labelStyle}>Move Distance (metres): &nbsp;</label>
           <span>{this.state.move}</span>
           <br />
