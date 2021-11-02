@@ -142,37 +142,12 @@ class RemoteHelloRobot(object):
         self._robot.base.rotate_by(x_r)
         self._robot.push_command()
 
-    def go_to_absolute(
-        self,
-        xyt_position,
-        use_map=False,
-        close_loop=True,
-        smooth=False,
-        use_dslam=False,
-    ):
+    def go_to_absolute(self, xyt_position):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
                              in the world (map) frame.
-        :param use_map: When set to "True", ensures that controller is
-                        using only free space on the map to move the robot.
-        :param close_loop: When set to "True", ensures that controller
-                           is operating in open loop by taking
-                           account of odometry.
-        :param smooth: When set to "True", ensures that the motion
-                       leading to the goal is a smooth one.
-        :param use_dslam: When set to "True", the robot uses slam for
-                          the navigation.
-
-        :type xyt_position: list or np.ndarray
-        :type use_map: bool
-        :type close_loop: bool
-        :type smooth: bool
         """
-        assert(use_map == False)
-        assert(close_loop == True)
-        assert(smooth == False)
-        assert(use_dslam == False)
         if self._done:
             self._done = False
             global_xyt = xyt_position
@@ -180,42 +155,30 @@ class RemoteHelloRobot(object):
             base_xyt = transform_global_to_base(global_xyt, base_state)
             goto(self._robot, list(base_xyt), dryrun=False)
             self._done = True
+        return self._done
 
-    def go_to_relative(
-        self,
-        xyt_position,
-        use_map=False,
-        close_loop=True,
-        smooth=False,
-        use_dslam=False,
-    ):
+    def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
         pose.
 
         :param xyt_position: The  relative goal state of the form (x,y,yaw)
-        :param use_map: When set to "True", ensures that controller is
-                        using only free space on the map to move the robot.
-        :param close_loop: When set to "True", ensures that controller is
-                           operating in open loop by taking
-                           account of odometry.
-        :param smooth: When set to "True", ensures that the
-                       motion leading to the goal is a smooth one.
-        :param use_dslam: When set to "True", the robot uses slam for
-                          the navigation.
-
-        :type xyt_position: list or np.ndarray
-        :type use_map: bool
-        :type close_loop: bool
-        :type smooth: bool
         """
-        assert(use_map == False)
-        assert(close_loop == True)
-        assert(smooth == False)
-        assert(use_dslam == False)
         if self._done:
             self._done = False
             goto(self._robot, list(xyt_position), dryrun=False)
             self._done = True
+
+    def is_moving(self):
+        return not self._done
+
+    def stop(self):
+        robot.stop()
+        robot.push_command()
+
+    def remove_runstop(self):
+        if robot.pimu.status['runstop_event']:
+            robot.pimu.runstop_event_reset()
+            robot.push_command()
 
 
 if __name__ == "__main__":
@@ -237,7 +200,7 @@ if __name__ == "__main__":
         robot = RemoteHelloRobot()
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
-            ns.register("remotehellorobot", robot_uri)
+            ns.register("hello_robot", robot_uri)
 
         print("Server is started...")
         daemon.requestLoop()
