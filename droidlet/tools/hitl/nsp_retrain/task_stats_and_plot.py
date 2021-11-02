@@ -383,8 +383,8 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
                 )
 
     if (filename == "nsp_outputs"):
-        plot_hist(time_dist, xlabel="", ylabel="Count of time between commands")
-        plot_hist(len_dist, xlabel="", ylabel="Command Length Count")
+        plot_hist(time_dist, xlabel="Time Between Comamnds (sec)", ylabel="Count of Time Between Commands")
+        plot_hist(len_dist, xlabel="Command Length (words)", ylabel="Command Length Count")
         #plot_hist(time_cmd_cnt_map, ylabel="Command Count per Command Time Length")
         #plot_hist(time_turker_map, ylabel="Command Time Length per Turker")
         # #plot_hist(cmd_cnt_turker_map, ylabel="Command Count per Turker")
