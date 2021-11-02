@@ -53,8 +53,14 @@ class HelloRobotMover(MoverInterface):
     """
 
     def __init__(self, ip=None):
-        self.bot = Pyro4.Proxy("PYRONAME:remotehellorobot@" + ip)
-        self.cam = Pyro4.Proxy("PYRONAME:remotehellorealsense@" + ip)
+        self.bot = Pyro4.Proxy("PYRONAME:hello_robot@" + ip)
+        self.bot._pyroAsync()
+        self.is_moving = self.bot.is_moving()
+        self.cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + ip)
+
+        self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
+        self.data_logger._pyroAsync()
+        _ = safe_call(self.data_logger.ready)
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
         intrinsic_mat = np.asarray(safe_call(self.cam.get_intrinsics))
@@ -66,19 +72,36 @@ class HelloRobotMover(MoverInterface):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
+    def log_data(self, seconds):
+        self.data_logger.save_batch(seconds)
+
+    def bot_step(self):
+        pass
+
+    def look_at(self):
+        pass
+
+    def stop(self):
+        """immediately stop the robot."""
+        return self.bot.stop()
+
+    def unstop(self):
+        """remove a runstop flag via software"""
+        return self.bot.remove_runstop()
+
     def get_pan(self):
         """get yaw in radians."""
-        return self.bot.get_pan()
+        return self.bot.get_pan().value
 
     def get_tilt(self):
         """get pitch in radians."""
-        return self.bot.get_tilt()
+        return self.bot.get_tilt().value
 
     def reset_camera(self):
         """reset the camera to 0 pan and tilt."""
         return self.bot.reset()
 
-    def move_relative(self, xyt_positions, use_dslam=False):
+    def move_relative(self, xyt_positions, blocking=True):
         """Command to execute a relative move.
 
         Args:
@@ -89,9 +112,12 @@ class HelloRobotMover(MoverInterface):
             # single xyt position given
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
-            safe_call(self.bot.go_to_relative, xyt)
+            self.is_moving.wait()
+            self.is_moving = safe_call(self.bot.go_to_relative, xyt)
+            if blocking:
+                self.is_moving.wait()
 
-    def move_absolute(self, xyt_positions, use_map=False, use_dslam=False):
+    def move_absolute(self, xyt_positions, blocking=True):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
@@ -106,9 +132,11 @@ class HelloRobotMover(MoverInterface):
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            self.bot.go_to_absolute(
-                base_canonical_coords_to_pyrobot_coords(xyt),
-            )
+            global_coords = base_canonical_coords_to_pyrobot_coords(xyt)
+            self.is_moving.wait()
+            self.is_moving = self.bot.go_to_absolute(global_coords)
+            if blocking:
+                self.is_moving.wait()
         return "finished"
 
     def get_base_pos_in_canonical_coords(self):
@@ -122,7 +150,8 @@ class HelloRobotMover(MoverInterface):
          return:
          (x, z, yaw) of the robot base in standard coordinates
         """
-        x_global, y_global, yaw = safe_call(self.bot.get_base_state)
+        future = safe_call(self.bot.get_base_state)
+        x_global, y_global, yaw = future.value
         x_standard = -y_global
         z_standard = x_global
         return np.array([x_standard, z_standard, yaw])
@@ -137,22 +166,32 @@ class HelloRobotMover(MoverInterface):
         Returns:
             an RGBDepth object
         """
+        # this takes 93ms
         rgb, depth, rot, trans = self.cam.get_pcd_data()
+
+        # 93ms
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+
+        # 93ms
         depth = np.asarray(depth)
         rot = np.asarray(rot)
         trans = np.asarray(trans)
         depth = depth.astype(np.float32)
+
+        # 93ms
         d = copy.deepcopy(depth)
         depth /= 1000.0
         depth = depth.reshape(-1)
+
+        # 100ms
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
         pts = pts + trans.reshape(-1)
-        pts = transform_pose(pts, self.bot.get_base_state())
+        pts = transform_pose(pts, self.bot.get_base_state().value)
+
         return RGBDepth(rgb, d, pts)
 
     def turn(self, yaw):
