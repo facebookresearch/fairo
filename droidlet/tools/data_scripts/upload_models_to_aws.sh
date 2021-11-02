@@ -10,9 +10,9 @@ function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
-ROOTDIR=$(pyabspath $(dirname "$0")/../../)
+ROOTDIR=$(pyabspath $(dirname "$0")/../../../)
 echo "$ROOTDIR"
-. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only
+. ${ROOTDIR}/droidlet/tools/data_scripts/checksum_fn.sh --source-only
 
 if [ -z $1 ]
 then

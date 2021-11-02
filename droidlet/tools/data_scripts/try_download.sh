@@ -8,7 +8,7 @@ function pyabspath() {
     python3 -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
-ROOTDIR=$(pyabspath $(dirname "$0")/../../)
+ROOTDIR=$(pyabspath $(dirname "$0")/../../../)
 echo "Rootdir ${ROOTDIR}"
 
 # Optionally fetch secure resources for internal users and prod systems

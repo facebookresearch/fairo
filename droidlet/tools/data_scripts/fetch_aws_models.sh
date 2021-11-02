@@ -6,7 +6,7 @@ function pyabspath() {
     python3 -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
-ROOTDIR=$(pyabspath $(dirname "$0")/../../)
+ROOTDIR=$(pyabspath $(dirname "$0")/../../../)
 echo "$ROOTDIR"
 MODELS_DIRNAME=models_folder
 
@@ -20,7 +20,7 @@ fi
 
 if [ -z $2 ]
 then
-	CHECKSUM_FILE="${ROOTDIR}/tools/data_scripts/default_checksums/nsp.txt"
+	CHECKSUM_FILE="${ROOTDIR}/droidlet/tools/data_scripts/default_checksums/nsp.txt"
 	CHECKSUM=`cat $CHECKSUM_FILE`  
 	echo "Downloading model folder with default checksum from file: '$CHECKSUM_FILE'"
 else

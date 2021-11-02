@@ -10,10 +10,10 @@ function pyabspath() {
     python -c "import os; import sys; print(os.path.realpath(sys.argv[1]))" $1
 }
 
-ROOTDIR=$(pyabspath $(dirname "$0")/../../)
+ROOTDIR=$(pyabspath $(dirname "$0")/../../../)
 echo "Rootdir $ROOTDIR"
 
-. ${ROOTDIR}/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
+. ${ROOTDIR}/droidlet/tools/data_scripts/checksum_fn.sh --source-only # import checksum function
 
 if [ -z $1 ]
 then
@@ -37,8 +37,8 @@ cd ${ROOTDIR}/agents/$AGENT
 echo "Computing hashes ..."
 if [ "$HASH_PATH" = "models" ]
 then
-    calculate_sha1sum  "${ROOTDIR}/agents/$AGENT/models/perception" "${ROOTDIR}/tools/data_scripts/default_checksums/${AGENT}_perception.txt"
-    calculate_sha1sum "${ROOTDIR}/agents/$AGENT/models/semantic_parser" "${ROOTDIR}/tools/data_scripts/default_checksums/nsp.txt"
+    calculate_sha1sum  "${ROOTDIR}/agents/$AGENT/models/perception" "${ROOTDIR}/droidlet//data_scripts/default_checksums/${AGENT}_perception.txt"
+    calculate_sha1sum "${ROOTDIR}/agents/$AGENT/models/semantic_parser" "${ROOTDIR}/droidlet/tools/data_scripts/default_checksums/nsp.txt"
 else # datasets
-    calculate_sha1sum "${ROOTDIR}/agents/$AGENT/datasets/" "${ROOTDIR}/tools/data_scripts/default_checksums/datasets.txt"
+    calculate_sha1sum "${ROOTDIR}/agents/$AGENT/datasets/" "${ROOTDIR}/droidlet/tools/data_scripts/default_checksums/datasets.txt"
 fi

@@ -38,7 +38,7 @@ def compute_checksum_for_directory(
     agent_path = os.path.join(ROOTDIR, 'agents/' + agent)
 
     print("Now computing hashes ...")
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
     checksum_name = ''
     artifact_folder_name = ''
     if artifact_type == "models":
@@ -58,7 +58,7 @@ def compute_checksum_for_directory(
         checksum_name = 'datasets.txt'
 
     artifact_path = os.path.join(agent_path, artifact_folder_name)
-    checksum_write_path = os.path.join(ROOTDIR, 'tools/data_scripts/default_checksums/' + checksum_name)
+    checksum_write_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/default_checksums/' + checksum_name)
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
