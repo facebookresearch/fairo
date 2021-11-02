@@ -6,6 +6,6 @@ def callback(pkt):
     print(f"Got {pkt.payload}")
 
 
-s = a0.Subscriber("topic", a0.INIT_AWAIT_NEW, a0.ITER_NEXT, callback)
+s = a0.Subscriber("some/topic", a0.INIT_AWAIT_NEW, a0.ITER_NEXT, callback)
 
 signal.pause()

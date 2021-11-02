@@ -133,7 +133,7 @@ class Launcher(BaseLauncher):
                 os.kill(proc_pid, signal.SIGKILL)
         except:
             pass
-        return
+        sys.exit(0)
 
 
 class Conda(BaseRuntime):

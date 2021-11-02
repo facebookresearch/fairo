@@ -11,6 +11,7 @@ import io
 import json
 import os
 import pwd
+import sys
 import typing
 
 
@@ -110,25 +111,14 @@ class Launcher(BaseLauncher):
         self.set_state(BaseLauncher.State.STOPPED)
         # TODO(lshamis): Restart policy goes here.
 
-    async def command_handler(self):
-        async for pkt in a0.aio_sub(
-            f"fbrp/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
-        ):
-            try:
-                cmd = json.loads(pkt.payload)
-                handle = {
-                    "down": self.handle_down,
-                }[cmd["action"]]
-                await handle(**cmd.get("kwargs", {}))
-            except:
-                pass
-
     async def handle_down(self):
         self.set_state(BaseLauncher.State.STOPPING)
         await self.proc.stop()
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
         await self.proc.delete(force=True)
+        self.set_state(BaseLauncher.State.STOPPED)
+        sys.exit(0)
 
 
 class Docker(BaseRuntime):

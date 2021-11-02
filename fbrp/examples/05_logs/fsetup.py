@@ -1,10 +1,18 @@
 import fbrp
 
 fbrp.process(
-    name="proc",
+    name="alice",
     runtime=fbrp.Conda(
-        dependencies=["python>=3.7"],
-        run_command=["python3", "proc.py"],
+        yaml="env.yml",
+        run_command=["python3", "alice.py"],
+    ),
+)
+
+fbrp.process(
+    name="bob",
+    runtime=fbrp.Conda(
+        yaml="env.yml",
+        run_command=["python3", "bob.py"],
     ),
 )
 
@@ -19,7 +27,7 @@ fbrp.process(
         "rules": [
             {
                 "protocol": "pubsub",
-                "topic": "some/topic",
+                "topic": "from/*",
                 "policies": [{"type": "save_all"}],
             }
         ],

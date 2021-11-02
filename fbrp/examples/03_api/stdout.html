@@ -29,24 +29,26 @@
           </nav>
 
           <div class="column" style="height: 100%">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Process</th>
-                  <th>Level</th>
-                  <th>Timestamp</th>
-                  <th>Content</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="msg in messages" :key="msg.idx" v-if="enabled_processes[msg.proc] && enabled_levels[msg.level]">
-                  <th>{{msg.proc}}</th>
-                  <th>{{msg.level}}</th>
-                  <th>{{msg.timestamp}}</th>
-                  <th>{{msg.content}}</th>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-container" style="overflow-y: scroll; height: 100%;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Process</th>
+                    <th>Level</th>
+                    <th>Timestamp</th>
+                    <th>Content</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="msg in messages" :key="msg.idx" v-if="enabled_processes[msg.proc] && enabled_levels[msg.level]">
+                    <th>{{msg.proc}}</th>
+                    <th>{{msg.level}}</th>
+                    <th>{{msg.timestamp}}</th>
+                    <th>{{msg.content}}</th>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
