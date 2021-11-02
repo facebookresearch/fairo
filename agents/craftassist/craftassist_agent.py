@@ -54,7 +54,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import (
 )
 from droidlet.lowlevel.minecraft import shape_util
 from droidlet.perception.craftassist import heuristic_perception
-from droidlet.tools.data_scripts.try_download import try_download_artifacts
+from tools.data_scripts.try_download import try_download_artifacts
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)
