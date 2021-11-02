@@ -25,6 +25,7 @@ class Navigator extends React.Component {
       move: 0.3,
       yaw: 0.01,
       velocity: 0.1,
+      data_logging_time: 30,
       keyboard_enabled: false,
     };
 
@@ -32,11 +33,15 @@ class Navigator extends React.Component {
 
     this.handleSubmit = this.handleSubmit.bind(this);
     this.onYawChange = this.onYawChange.bind(this);
+    this.onDataLoggingTimeChange = this.onDataLoggingTimeChange.bind(this);
     this.onMoveChange = this.onMoveChange.bind(this);
     this.onVelocityChange = this.onVelocityChange.bind(this);
     this.navRef = React.createRef();
     this.keyCheckRef = React.createRef();
     this.handleClick = this.handleClick.bind(this);
+    this.logData = this.logData.bind(this);
+    this.stopRobot = this.stopRobot.bind(this);
+    this.unstopRobot = this.unstopRobot.bind(this);
     this.keyboardToggle = this.keyboardToggle.bind(this);
     this.addKeyListener = this.addKeyListener.bind(this);
     this.removeKeyListener = this.removeKeyListener.bind(this);
@@ -54,6 +59,21 @@ class Navigator extends React.Component {
   handleSubmit(event) {
     stateManager.setUrl(this.state.url);
     event.preventDefault();
+  }
+
+  logData(event) {
+    stateManager.socket.emit("logData", this.state.data_logging_time);
+    console.log("logData", this.state.data_logging_time);
+  }
+
+  stopRobot(event) {
+    stateManager.socket.emit("stopRobot");
+    console.log("Robot Stopped");
+  }
+
+  unstopRobot(event) {
+    stateManager.socket.emit("unstopRobot");
+    console.log("Robot UnStopped");
   }
 
   addKeyListener() {
@@ -76,6 +96,9 @@ class Navigator extends React.Component {
     if (stateManager) stateManager.connect(this);
   }
 
+  onDataLoggingTimeChange(value) {
+    this.setState({ data_logging_time: value });
+  }
   onYawChange(value) {
     this.setState({ yaw: value });
   }
@@ -111,6 +134,16 @@ class Navigator extends React.Component {
   render() {
     return (
       <div ref={this.navRef}>
+        <button
+          id="stop_robot"
+          style={{ fontSize: 48 + "px" }}
+          onClick={this.stopRobot}
+        >
+          <strike>STOP ROBOT</strike>
+        </button>
+        <button id="unstop_robot" onClick={this.unstopRobot}>
+          Clear Runstop
+        </button>
         <br />
         <br />
         <div>
@@ -130,6 +163,8 @@ class Navigator extends React.Component {
             Right
           </button>
         </div>
+        <br />
+        <br />
         <br />
         <br />
         <div>
@@ -199,6 +234,26 @@ class Navigator extends React.Component {
             step={0.05}
             onChange={this.onVelocityChange}
           />
+        </div>
+        <div>
+          <div style={slider_style}>
+            <label style={labelStyle}>
+              Data Logging Time (seconds): &nbsp;
+            </label>
+            <span>{this.state.data_logging_time}</span>
+            <br />
+            <br />
+            <Slider
+              value={this.state.data_logging_time}
+              min={0}
+              max={300}
+              step={1}
+              onChange={this.onDataLoggingTimeChange}
+            />
+          </div>
+          <button id="log_data" onClick={this.logData}>
+            Log Data
+          </button>
         </div>
       </div>
     );
