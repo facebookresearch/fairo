@@ -9,7 +9,6 @@ dependencies:
     # Build dependencies
     - cmake
     - cpuonly
-    - cudatoolkit=11.3
     - doxygen
     - eigen=3.3.9
     - grpc-cpp
