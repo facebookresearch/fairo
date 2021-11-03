@@ -500,7 +500,7 @@ class MCInterpreter(Interpreter):
             task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
             return self.task_objects["control"](agent, task_data), None, None
         else:
-            return new_tasks, None, None
+            return new_tasks(), None, None
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
