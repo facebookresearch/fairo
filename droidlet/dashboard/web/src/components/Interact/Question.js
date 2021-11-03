@@ -252,7 +252,7 @@ class Question extends Component {
           question_word = "to remember or learn something you taught it ?";
         } else if (dialogue_type === "NOOP") {
           // no operation was requested.
-          question_word = "to not perform an action ?";
+          question_word = "to just respond verbally with no action ?";
         }
       } else {
         // NOTE: This should never happen ...
@@ -262,7 +262,7 @@ class Question extends Component {
       //end screen, user can put any additional feedback
       return (
         <div>
-          <h3> Thanks for marking this error! </h3>
+          <h3> Thanks! Press to continue.</h3>
           <Button
             variant="contained"
             color="primary"

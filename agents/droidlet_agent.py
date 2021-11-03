@@ -189,7 +189,7 @@ class DroidletAgent(BaseAgent):
         @sio.on("taskStackPoll")
         def poll_task_stack(sid):
             logging.info("Poll to see if task stack is empty")
-            task =  self.memory.task_stack_peek()
+            task = True if self.memory.task_stack_peek() else False
             res = {
                 "task": task,
             }

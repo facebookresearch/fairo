@@ -10,7 +10,13 @@ import React, { Component } from "react";
 import "./AgentThinking.css";
 
 class AgentThinking extends Component {
-  allowedStates = ["sent", "received", "thinking", "executing"];
+  allowedStates = [
+    "sent",
+    "received",
+    "thinking",
+    "done_thinking",
+    "executing",
+  ];
   constructor(props) {
     super(props);
     this.initialState = {
@@ -31,10 +37,9 @@ class AgentThinking extends Component {
   }
 
   taskStackPoll(res) {
-    console.log(res.task);
     if (!res.task) {
       // If there's no task, leave this pane and go to error labeling
-      this.goToQuestion(0);
+      this.props.goToQuestion(0);
     }
   }
 
@@ -54,21 +59,26 @@ class AgentThinking extends Component {
 
     // General purpose interval function
     const intervalId = setInterval(() => {
-      //console.log(this.props.stateManager.memory.commandState);
+      const commandState = this.props.stateManager.memory.commandState;
+      console.log("Command State: " + commandState);
       this.safetyCheck(); // Check that we're in an allowed state and haven't timed out
-      this.props.stateManager.socket.emit("taskStackPoll"); // Poll the agent to see if the task stack is empty
+
+      // Once we've added the first task, poll the agent to see when the task stack is empty
+      if (commandState === "done_thinking" || commandState === "executing") {
+        this.props.stateManager.socket.emit("taskStackPoll");
+      }
 
       // Ellipsis animation and update command status
       this.setState((prevState) => {
         if (prevState.ellipsis.length > 6) {
           return {
             ellipsis: "",
-            commandState: this.props.stateManager.memory.commandState,
+            commandState: commandState,
           };
         } else {
           return {
             ellipsis: prevState.ellipsis + ".",
-            commandState: this.props.stateManager.memory.commandState,
+            commandState: commandState,
           };
         }
       });
@@ -137,6 +147,21 @@ class AgentThinking extends Component {
             <br />
             <br />
             <h2>Assistant is thinking{this.state.ellipsis}</h2>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+          </div>
+        ) : null}
+        {this.state.commandState === "done_thinking" ? (
+          <div>
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <h2>Assistant is executing command</h2>
             <br />
             <br />
             <br />

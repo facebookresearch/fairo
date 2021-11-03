@@ -317,7 +317,10 @@ class StateManager {
     // Set the commandState to display 'received' for one poll cycle and then switch
     this.memory.commandState = "received";
     setTimeout(() => {
-      this.memory.commandState = "thinking";
+      if (this.memory.commandState === "received") {
+        // May have moved on already, in which case leave it
+        this.memory.commandState = "thinking";
+      }
     }, this.memory.commandPollTime - 1); // avoid race condition
 
     // once confirm that this chat has been sent, clear last chat action dict
@@ -387,7 +390,11 @@ class StateManager {
     this.updateTimeline();
 
     // If the agent has finished processing the command
-    // and there's an action to take in the world,
+    // notify the user to look for an empty task stack
+    if (JSON.parse(res).name === "perceive") {
+      this.memory.commandState = "done_thinking";
+    }
+    // If there's an action to take in the world,
     // notify the user that it's executing
     if (JSON.parse(res).name === "interpreter") {
       this.memory.commandState = "executing";

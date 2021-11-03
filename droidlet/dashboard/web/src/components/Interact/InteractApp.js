@@ -127,6 +127,7 @@ class InteractApp extends Component {
             <AgentThinking
               stateManager={this.props.stateManager}
               goToMessage={this.goToMessage.bind(this)}
+              goToQuestion={this.goToQuestion.bind(this)}
             />
           ) : null}
         </div>
