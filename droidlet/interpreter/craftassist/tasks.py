@@ -348,6 +348,7 @@ class Build(Task):
     @Task.step_wrapper
     def step(self):
         super().step()
+        print(self.memid)
         agent = self.agent
         if self.finished:
             return
@@ -892,18 +893,19 @@ class Dig(Task):
 
     Examples::
 
-        >>> task_data = {"ORIGIN": (0, 0, 1), "length": 3, "width": 2, "depth": 1}
+        >>> task_data = {"ORIGIN": (0, 0, 1), "schematic": SCHEMATIC}
         >>> dig = Dig(agent, task_data)
     """
 
     def __init__(self, agent, task_data):
         super().__init__(agent)
         self.origin = task_data["origin"]
-        self.length = task_data["length"]
-        self.width = task_data["width"]
-        self.depth = task_data["depth"]
+        self.schematic = task_data["blocks_list"]
+
         self.destroy_task = None
         self.last_stepped_time = agent.memory.get_time()
+        self.submitted_destroy = False
+
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def undo(self, agent):
@@ -913,30 +915,21 @@ class Dig(Task):
     @Task.step_wrapper
     def step(self):
         super().step()
+        if not self.submitted_destroy:
+            # HACK:  this needs to go in memory, not get called here:
+            h = int(ground_height(self.agent, self.origin, 0)[0][0])
 
-        mx, My, mz = self.origin
-        Mx = mx + (self.width - 1)
-        my = My - (self.depth - 1)
-        Mz = mz + (self.length - 1)
-
-        blocks = self.agent.get_blocks(mx, Mx, my, My, mz, Mz)
-
-        # if top row is above ground, make sure you are digging into the ground
-        if np.isin(blocks[-1, :, :, 0], PASSABLE_BLOCKS).all():
-            my -= 1
-
-        schematic = [
-            ((x, y, z), (0, 0))
-            for x in range(mx, Mx + 1)
-            for y in range(my, My + 1)
-            for z in range(mz, Mz + 1)
-        ]
-        #        TODO ADS unwind this
-        #        schematic = fill_idmeta(agent, poss)
-        destroy_task = Destroy(self.agent, {"schematic": schematic, "dig_message": True})
-        self.add_child_task(destroy_task)
-
-        self.finished = True
+            schematic_ys = [l[1] for (l, idm) in self.schematic]
+            H = max(schematic_ys)
+            mx, my, mz = self.origin
+            schematic = [
+                ((l[0] + mx, h - H + l[1] - 1, l[2] + mz), (0, 0)) for (l, idm) in self.schematic
+            ]
+            destroy_task = Destroy(self.agent, {"schematic": schematic, "dig_message": True})
+            self.submitted_destroy = True
+            self.add_child_task(destroy_task)
+        else:
+            self.finished = True
 
 
 class Get(Task):
