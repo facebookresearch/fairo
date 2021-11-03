@@ -1,8 +1,8 @@
 name: polymetis-local
 channels:
+  - pytorch
   - fair-robotics
   - aihabitat
-  - pytorch
   - conda-forge
   - defaults
 dependencies:
@@ -14,7 +14,7 @@ dependencies:
     - eigen=3.3.9
     - grpc-cpp
     - libprotobuf
-    - openmpi ==2.1.2
+    - openmpi
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python

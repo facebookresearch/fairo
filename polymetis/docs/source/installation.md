@@ -15,7 +15,7 @@
 
 1. Install polymetis using conda. This should pull the latest successful build from `main` branch.
     ```bash
-    conda install -c fair-robotics -c aihabitat -c conda-forge polymetis
+    conda install -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis
     ```
 
 ## For advanced users & developers
@@ -44,9 +44,9 @@
         ```bash
         ./scripts/build_libfranka.sh
         ```
-    - Optionally, install the CUDA-enabled version of our PyTorch build (by default, only the CPU version is enabled):
+    - Optionally, install the CUDA-enabled version of PyTorch (by default, only the CPU version is enabled):
         ```bash
-        conda install -c fair-robotics pytorch
+        conda install -c pytorch pytorch
         ```
     - Build Polymetis from source:
         ```bash
@@ -87,6 +87,7 @@ We rebuild a new conda package during CI on every pushed commit, and store it as
     - Install polymetis from the local channel:
         ```bash
         conda install -c file://$(eval pwd)/conda/channel \
+            -c pytorch \
             -c fair-robotics \
             -c aihabitat \
             -c conda-forge \
