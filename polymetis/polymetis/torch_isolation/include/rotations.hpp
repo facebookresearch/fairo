@@ -13,9 +13,9 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
+#include "dtt.h"
 #include <torch/script.h>
 #include <torch/torch.h>
-#include "dtt.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +36,8 @@ C_TORCH_EXPORT torch::Tensor quatToMatrix(torch::Tensor q);
 C_TORCH_EXPORT torch::Tensor quatToRotvec(torch::Tensor q);
 C_TORCH_EXPORT torch::Tensor matrixToQuat(torch::Tensor m);
 C_TORCH_EXPORT torch::Tensor rotvecToQuat(torch::Tensor r);
-C_TORCH_EXPORT torch::Tensor quaternionMultiply(torch::Tensor q1, torch::Tensor q2);
+C_TORCH_EXPORT torch::Tensor quaternionMultiply(torch::Tensor q1,
+                                                torch::Tensor q2);
 
 #endif
 
