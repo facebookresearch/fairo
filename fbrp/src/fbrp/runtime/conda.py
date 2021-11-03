@@ -26,10 +26,10 @@ class CondaEnv:
         return CondaEnv(result.get("channels", []), result.get("dependencies", []))
 
     @staticmethod
-    def from_env(bin, name):
+    def from_env(name):
         return CondaEnv.load(
             subprocess.run(
-                [bin, "env", "export", "-n", name], check=True, capture_output=True
+                ["conda", "env", "export", "-n", name], check=True, capture_output=True
             ).stdout
         )
 
@@ -65,13 +65,11 @@ class CondaEnv:
 class Launcher(BaseLauncher):
     def __init__(
         self,
-        bin: str,
         run_command: typing.List[str],
         name: str,
         proc_def: ProcDef,
         args: argparse.Namespace,
     ):
-        self.bin = bin
         self.run_command = run_command
         self.name = name
         self.proc_def = proc_def
@@ -81,8 +79,8 @@ class Launcher(BaseLauncher):
         self.set_state(BaseLauncher.State.STARTING)
         self.proc = await asyncio.create_subprocess_shell(
             f"""
-                eval "$({self.bin} shell.bash hook)"
-                {self.bin} activate fbrp_{self.name}
+                eval "$(conda shell.bash hook)"
+                conda activate fbrp_{self.name}
                 cd {self.proc_def.root}
                 {shlex.join(self.run_command)}
             """,
@@ -148,21 +146,16 @@ class Conda(BaseRuntime):
         channels=[],
         dependencies=[],
         setup_commands=[],
-        bin=None,
+        use_mamba=None,
     ):
         self.yaml = yaml
         self.env = env
         self.run_command = run_command
         self.conda_env = CondaEnv(channels[:], dependencies[:])
         self.setup_commands = setup_commands
-
-        self.bin = None
-        for possible_bin in [bin, shutil.which("mamba"), shutil.which("conda")]:
-            if possible_bin:
-                self.bin = possible_bin
-                break
-        if not self.bin:
-            util.fail(f"Conda binary not found")
+        self.use_mamba = (
+            use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
+        )
 
     def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         if self.yaml:
@@ -172,7 +165,7 @@ class Conda(BaseRuntime):
             )
 
         if self.env:
-            self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.bin, self.env))
+            self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.env))
 
         self.conda_env.fix_pip()
 
@@ -192,8 +185,10 @@ class Conda(BaseRuntime):
 
         print(f"creating conda env for {name}. This will take a minute...")
 
+        update_bin = "mamba" if self.use_mamba else "conda"
         result = subprocess.run(
-            [self.bin, "env", "update", "-f", env_path], capture_output=not args.verbose
+            [update_bin, "env", "update", "-f", env_path],
+            capture_output=not args.verbose,
         )
         if result.returncode:
             util.fail(f"Failed to set up conda env: {result.stderr}")
@@ -203,8 +198,8 @@ class Conda(BaseRuntime):
             setup_command = "\n".join([shlex.join(cmd) for cmd in self.setup_commands])
             result = subprocess.run(
                 f"""
-                    eval "$({self.bin} shell.bash hook)"
-                    {self.bin} activate {env_name}
+                    eval "$(conda shell.bash hook)"
+                    conda activate {env_name}
                     cd {proc_def.root}
                     {setup_command}
                 """,
@@ -216,7 +211,7 @@ class Conda(BaseRuntime):
                 util.fail(f"Failed to set up conda env: {result.stderr}")
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
-        return Launcher(self.bin, self.run_command, name, proc_def, args)
+        return Launcher(self.run_command, name, proc_def, args)
 
 
 __all__ = ["Conda"]
