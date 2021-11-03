@@ -4,6 +4,7 @@ import a0
 import argparse
 import asyncio
 import contextlib
+import enum
 import psutil
 import json
 
@@ -15,6 +16,17 @@ class BaseLauncher:
     async def run(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         raise NotImplementedError("Launcher hasn't implemented run!")
 
+    class State(enum.Enum):
+        STARTING = "STARTING"
+        STARTED = "STARTED"
+        STOPPING = "STOPPING"
+        STOPPED = "STOPPED"
+
+    def set_state(self, state: State):
+        a0.Cfg("fbrp/state").mergepatch(
+            {self.name: {"state": state.value, "timestamp": str(a0.TimeWall.now())}}
+        )
+
     def get_pid(self):
         raise NotImplementedError("Launcher hasn't implemented get_pid!")
 
@@ -25,7 +37,7 @@ class BaseLauncher:
 
     async def command_handler(self):
         async for pkt in a0.aio_sub(
-            f"_/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
+            f"fbrp/control/{self.name}", a0.INIT_AWAIT_NEW, a0.ITER_NEXT
         ):
             try:
                 cmd = json.loads(pkt.payload)
@@ -40,7 +52,7 @@ class BaseLauncher:
         raise NotImplementedError("Launcher hasn't implemented handle_down!")
 
     async def log_psutil(self):
-        out = a0.Publisher(f"_/psutil/{self.name}")
+        out = a0.Publisher(f"fbrp/psutil/{self.name}")
         while True:
             with contextlib.suppress(asyncio.TimeoutError):
                 # TODO(lshamis): Make polling interval configurable.

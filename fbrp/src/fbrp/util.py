@@ -69,6 +69,8 @@ def is_ldap_user():
 def nfs_root(path):
     result = subprocess.run(["findmnt", "-T", path], capture_output=True)
     lines = result.stdout.decode().split("\n")
+    if len(lines) < 2:
+        return None
     properties = dict(zip(lines[0].split(), lines[1].split()))
     if properties["FSTYPE"] != "nfs":
         return None

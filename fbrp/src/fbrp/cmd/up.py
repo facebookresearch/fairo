@@ -24,8 +24,10 @@ def transitive_closure(proc_names):
     return all_proc_names
 
 
-def get_proc_names(root_proc_names, include_deps):
-    proc_names = root_proc_names or ["main"]
+def get_proc_names(proc_names, include_deps):
+    if not proc_names:
+        return registrar.defined_processes.keys()
+
     if include_deps:
         proc_names = transitive_closure(proc_names)
     unknown_proc_names = [
@@ -68,11 +70,6 @@ class up_cmd(BaseCommand):
                 print(f"built {name}\n")
 
         if args.run:
-            try:
-                os.mkdir("/dev/shm/fbrp")
-            except:
-                pass
-
             for name in names:
                 print(f"running {name}...")
 
