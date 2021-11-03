@@ -124,7 +124,10 @@ class InteractApp extends Component {
             />
           ) : null}
           {this.state.currentView === 3 ? (
-            <AgentThinking stateManager={this.props.stateManager} />
+            <AgentThinking
+              stateManager={this.props.stateManager}
+              goToMessage={this.goToMessage.bind(this)}
+            />
           ) : null}
         </div>
       </div>

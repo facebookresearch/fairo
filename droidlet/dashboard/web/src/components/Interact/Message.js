@@ -127,10 +127,13 @@ class Message extends Component {
       this.props.stateManager.logInteractiondata("text command", chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+      //update StateManager command state
+      this.props.stateManager.memory.commandState = "sent";
       //clear the textbox
       document.getElementById("msg").innerHTML = "";
+      //change to the AgentThinking view pane
+      this.props.goToAgentThinking();
     }
-    this.props.goToAgentThinking();
   }
 
   render() {

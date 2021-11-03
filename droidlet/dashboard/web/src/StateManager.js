@@ -19,6 +19,7 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
+import { SortIndicator } from "react-virtualized";
 
 /**
  * The main state manager for the dashboard.
@@ -69,6 +70,8 @@ class StateManager {
     timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
     timelineSearchPattern: "",
     agentType: "locobot",
+    commandState: "idle",
+    commandPollTime: 500,
   };
   session_id = null;
 
@@ -311,6 +314,12 @@ class StateManager {
     }
     this.memory.chats = res.allChats;
 
+    // Set the commandState to display 'received' for one poll cycle and then switch
+    this.memory.commandState = "received";
+    setTimeout(() => {
+      this.memory.commandState = "thinking";
+    }, this.memory.commandPollTime - 1); // avoid race condition
+
     // once confirm that this chat has been sent, clear last chat action dict
     this.memory.lastChatActionDict = null;
 
@@ -333,7 +342,7 @@ class StateManager {
   updateVoxelWorld(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        console.log("update Voxel World with " + res.world_state);
+        //console.log("update Voxel World with " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,
@@ -360,9 +369,6 @@ class StateManager {
         ref.setState({
           agent_reply: res.agent_reply,
         });
-        if (!res.agent_reply.includes("while you decide")) {
-          ref.goToQuestion(0);
-        }
       }
     });
   }
@@ -379,6 +385,13 @@ class StateManager {
     this.memory.timelineEventHistory.push(res);
     this.memory.timelineEvent = res;
     this.updateTimeline();
+
+    // If the agent has finished processing the command
+    // and there's an action to take in the world,
+    // notify the user that it's executing
+    if (JSON.parse(res).name === "interpreter") {
+      this.memory.commandState = "executing";
+    }
   }
 
   updateTimelineResults() {
@@ -894,7 +907,7 @@ class StateManager {
         }
         j++;
       }
-      if (res.objects[i].mask.length == 0) {
+      if (res.objects[i].mask.length === 0) {
         res.objects.splice(i, 1);
         continue;
       }
