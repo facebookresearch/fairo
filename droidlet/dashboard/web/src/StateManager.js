@@ -19,7 +19,6 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
-import { SortIndicator } from "react-virtualized";
 
 /**
  * The main state manager for the dashboard.

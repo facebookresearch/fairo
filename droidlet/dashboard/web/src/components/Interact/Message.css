@@ -23,10 +23,15 @@ Copyright (c) Facebook, Inc. and its affiliates.
 }
 
 .Chat {
-  margin-top: 2px auto;
+  margin: 100px auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 #msg {
+  width: 90%;
   border-color: white;
 }
 

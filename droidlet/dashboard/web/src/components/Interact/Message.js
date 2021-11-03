@@ -170,14 +170,10 @@ class Message extends Component {
         ) : (
           <div>
             <p>Enter the command to the assistant in the input box below.</p>
-            {/*<p>
-              Click "Mark Error" next to the message if the outcome wasn't as
-              expected.
-            </p> */}
           </div>
         )}
 
-        <List>{this.renderChatHistory(this.props.status)}</List>
+        {/*<List>{this.renderChatHistory(this.props.status)}</List>*/}
         {this.props.isMobile === true ? (
           <div
             style={{ outline: " solid 1px black" }}
