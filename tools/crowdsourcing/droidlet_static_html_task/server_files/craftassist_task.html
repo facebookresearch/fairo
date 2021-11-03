@@ -237,16 +237,25 @@
 <section class="container" style="margin-bottom: 20px">
   <fieldset>
     <div class="input-group center">
-      <label>Please rate the clarity and usability of this HIT</label>
+      <h4>Please rate the clarity and usability of this HIT</h4>
       <select class="form-control" name="usability-rating" onchange="usabilityRated()">
         <option selected="selected" value="">(select one)</option>
         <option value="7">7 - Perfect</option>
-        <option value="6">6 - Very good</option>
+        <option value="6">6 - Very Good</option>
         <option value="5">5 - Decent</option>
         <option value="4">4 - OK</option>
         <option value="3">3 - Poor</option>
         <option value="2">2 - Very Poor</option>
         <option value="1">1 - Unusable</option>
+      </select><br>
+      <h4>Please rate your own performance and the quality of your contribution</h4>
+      <select class="form-control" name="self-rating" onchange="selfRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="5">5 - Outstanding</option>
+        <option value="4">4 - Good</option>
+        <option value="3">3 - Acceptable</option>
+        <option value="2">2 - Poor</option>
+        <option value="1">1 - Very Poor</option>
       </select>
       <input type="hidden" id="clickedElements" name="clickedElements" value="0">
       <input type="hidden" id="instructionsReadTime" name="instructionsReadTime" value="0">
@@ -261,6 +270,7 @@
 <script>
   var timerStopped = false;
   var ratingComplete = false;
+  var selfRatingComplete = false;
 
   var clickedElements = new Array();
   function recordClick(ele) {
@@ -270,7 +280,8 @@
   }
 
   function checkSubmitDisplay() {
-    if (ratingComplete && timerStopped) {  //Only display the submit button if the worker has interacted with the dashboard and rated usability
+    //Only display the submit button if the worker has interacted with the dashboard and completed the survey
+    if (ratingComplete && selfRatingComplete && timerStopped) {
       document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
       window.scrollTo(0,document.body.scrollHeight);
     }
@@ -279,6 +290,12 @@
   function usabilityRated() {
     ratingComplete = true;
     recordClick("usability-rated");
+    checkSubmitDisplay();
+  }
+
+  function selfRated() {
+    selfRatingComplete = true;
+    recordClick("self-rated");
     checkSubmitDisplay();
   }
 

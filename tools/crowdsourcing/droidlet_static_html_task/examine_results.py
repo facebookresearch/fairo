@@ -53,6 +53,10 @@ def format_for_printing_data(data):
     except:
         pass
     try:
+        output_string += f"Self Performance Rating: {outputs['self-rating']}\n"
+    except:
+        pass
+    try:
         output_string += f"Instructions Read Time (sec): {outputs['instructionsReadTime']}\n"
     except:
         pass

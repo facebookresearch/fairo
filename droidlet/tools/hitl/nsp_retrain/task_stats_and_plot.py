@@ -164,6 +164,7 @@ def timing_charts(run_id: int) -> None:
 
     data_browser = DataBrowser(db=db)
     usability = []
+    self_rating = []
     read_time = []
     pre_interact = []
     interact_time = []
@@ -181,6 +182,10 @@ def timing_charts(run_id: int) -> None:
             usability.append(int(outputs["usability-rating"]))
         except:
             usability.append(0)
+        try:
+            self_rating.append(int(outputs["self-rating"]))
+        except:
+            self_rating.append(0)
         try:
             read_time.append(int(outputs["instructionsReadTime"]))
         except:
@@ -201,6 +206,10 @@ def timing_charts(run_id: int) -> None:
     keys = range(len(usability))
     u_dict = dict(zip(keys, usability))
     plot_hist(u_dict, xlabel="", ylabel="Usability Score", ymax=7)
+    self_rating.sort()
+    keys = range(len(self_rating))
+    s_dict = dict(zip(keys, self_rating))
+    plot_hist(s_dict, xlabel="", ylabel="Self Rated Performance Score", ymax=5)
     read_time.sort()
     keys = range(len(read_time))
     r_dict = dict(zip(keys, read_time))
