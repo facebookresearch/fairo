@@ -23,6 +23,7 @@ class Question extends Component {
       // adtt: false,
       // adtt_text: "",
       parsing_error: false,
+      task_error: false,
       action_dict: {},
       // new_action_dict: {},
       feedback: "",
@@ -41,6 +42,7 @@ class Question extends Component {
       // asr: this.state.asr,
       // adtt: this.state.adtt,
       parsing_error: this.state.parsing_error,
+      task_error: this.state.task_error,
       // adtt_text: this.state.adtt_text,
       msg: this.props.chats[this.props.failidx].msg,
       feedback: this.state.feedback,
@@ -81,8 +83,28 @@ class Question extends Component {
       <div>
         <h3>
           {" "}
-          Okay, looks like I understood your command but couldn't follow it all
-          the way through. Tell me more about what I did wrong :{" "}
+          Okay, it seems like I understood your command. Did I successfully do
+          the task you asked me to complete?{" "}
+        </h3>
+        <List className="answers" component="nav">
+          <ListItem button onClick={() => this.answerAction(1)}>
+            <ListItemText primary="Yes" />
+          </ListItem>
+          <ListItem button onClick={() => this.answerAction(2)}>
+            <ListItemText primary="No" />
+          </ListItem>
+        </List>
+      </div>
+    );
+  }
+
+  renderActionFail() {
+    return (
+      <div>
+        <h3>
+          {" "}
+          Okay, looks like I understood your command but didn't complete it.
+          Please tell me more about what I did wrong:{" "}
         </h3>
         <TextField
           id="outlined-uncontrolled"
@@ -102,11 +124,12 @@ class Question extends Component {
       </div>
     );
   }
+
   renderEnd() {
     //end screen, user can put any additional feedback
     return (
       <div>
-        <h3> Thanks! Submit any other feedback here: </h3>
+        <h3> Thanks! Submit any other feedback here (optional): </h3>
         <TextField
           style={{
             backgroundColor: "white",
@@ -275,7 +298,7 @@ class Question extends Component {
     }
     return (
       <div className="question">
-        <h5>Did you want the assistant {question_word}</h5>
+        <h3>Did you want the assistant {question_word}</h3>
         <List className="answers" component="nav">
           <ListItem button onClick={() => this.answerParsing(1)}>
             <ListItemText primary="Yes" />
@@ -289,10 +312,7 @@ class Question extends Component {
   }
 
   answerParsing(index) {
-    //handles after the user submits the answer (y/n) to if asr errored or not
-    // if (index === 1) { //no of adtt, ask to annotate the tree, set Labeling tool view.
-    //   this.setState({ adtt: true, view: 2 });
-    // } else
+    //handles after the user submits the answer (y/n) to if NSP errored or not
     if (index === 1) {
       // yes, so not a parsing error
       this.setState({ view: 2 });
@@ -302,16 +322,30 @@ class Question extends Component {
     }
   }
 
+  answerAction(index) {
+    //handles after the user submits the answer (y/n) to if the agent task was correct
+    if (index === 1) {
+      // yes, so not a task error
+      this.setState({ view: 4 });
+    } else if (index === 2) {
+      // no, so yes a task error
+      this.setState({ task_error: true, view: 3 });
+    }
+  }
+
   goToEnd(new_action_dict) {
     //go to the last feedback page and save the new dict from labeling
-    this.setState({ view: 3, new_action_dict: new_action_dict });
+    this.setState({ view: 4, new_action_dict: new_action_dict });
   }
 
   componentDidMount() {
     window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
+    this.props.stateManager.memory.commandState = "idle";
     var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
-    var chatMsg = this.props.chats[this.props.failidx].msg;
-    this.setState({ action_dict: lastChatActionDict });
+    this.setState({
+      action_dict: lastChatActionDict,
+      agent_reply: this.props.agent_reply, // In case the agent chat updates while this pane is displayed
+    });
   }
 
   render() {
@@ -323,7 +357,7 @@ class Question extends Component {
         </div>
         <div className="msg-header">
           The assistant responded:<br></br>
-          <strong>{this.props.agent_reply}</strong>
+          <strong>{this.state.agent_reply}</strong>
         </div>
         {/* {this.state.view === 0 ?  this.renderASRQuestion() : null} */}
         {this.state.view === 0
@@ -331,9 +365,10 @@ class Question extends Component {
           : null}
         {this.state.view === 1 ? this.renderParsingFail() : null}
         {this.state.view === 2 ? this.renderParsingSuccess() : null}
+        {this.state.view === 3 ? this.renderActionFail() : null}
         {/* {this.state.view === 1 ? this.renderADTTQuestion() : null} */}
         {/* {this.state.view === 2 ? <Labeling action_dict={this.state.action_dict} message={(this.props.chats[this.props.failidx]).msg} goToEnd={this.goToEnd.bind(this)} /> : null} */}
-        {this.state.view === 3 ? this.renderEnd() : null}
+        {this.state.view === 4 ? this.renderEnd() : null}
       </div>
     );
   }

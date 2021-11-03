@@ -108,81 +108,21 @@ class AgentThinking extends Component {
 
   render() {
     return (
-      <div>
+      <div className="container">
         {this.state.commandState === "sent" ? (
-          <div>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <h2>Sending command{this.state.ellipsis}</h2>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
+          <h2>Sending command{this.state.ellipsis}</h2>
         ) : null}
         {this.state.commandState === "received" ? (
-          <div>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <h2>Command received</h2>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
+          <h2>Command received</h2>
         ) : null}
         {this.state.commandState === "thinking" ? (
-          <div>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <h2>Assistant is thinking{this.state.ellipsis}</h2>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
+          <h2>Assistant is thinking{this.state.ellipsis}</h2>
         ) : null}
         {this.state.commandState === "done_thinking" ? (
-          <div>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <h2>Assistant is executing command</h2>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
+          <h2>Assistant is doing the task</h2>
         ) : null}
         {this.state.commandState === "executing" ? (
-          <div>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-            <h2>Assistant is executing command</h2>
-            <br />
-            <br />
-            <br />
-            <br />
-            <br />
-          </div>
+          <h2>Assistant is doing the task</h2>
         ) : null}
       </div>
     );
