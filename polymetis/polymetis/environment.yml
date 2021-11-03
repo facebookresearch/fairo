@@ -1,4 +1,4 @@
-name: remove-custom-pytorch
+name: polymetis-local
 channels:
   - fair-robotics
   - aihabitat
