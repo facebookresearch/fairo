@@ -39,7 +39,7 @@ inverse_dynamics(State *state, const Eigen::VectorXd &q,
 C_TORCH_EXPORT void inverse_kinematics(State *state,
                                        const Eigen::Vector3d &ee_pos_,
                                        const Eigen::Quaterniond &ee_quat,
-                                       const Eigen::VectorXd rest_pose,
+                                       Eigen::VectorXd &rest_pose,
                                        double eps = 1e-4,
                                        int64_t max_iters = 1000,
                                        double dt = 0.1, double damping = 1e-12);

@@ -99,6 +99,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     torch::Tensor pos_result = torch::zeros(3, torch::kFloat32);
     torch::Tensor quat_result = torch::zeros(4, torch::kFloat32);
 
+    joint_positions = validTensor(joint_positions);
     auto result_intermediate = pinocchio_wrapper::forward_kinematics(
         pinocchio_state_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)));
