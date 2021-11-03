@@ -236,7 +236,6 @@ class DroidletAgent(BaseAgent):
         if isinstance(e, ErrorWithResponse):
             self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
             self.memory.task_stack_clear()
-            self.dialogue_manager.dialogue_stack.clear()
             self.uncaught_error_count += 1
             if self.uncaught_error_count >= 100:
                 raise e

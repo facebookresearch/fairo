@@ -348,7 +348,6 @@ class Build(Task):
     @Task.step_wrapper
     def step(self):
         super().step()
-        print(self.memid)
         agent = self.agent
         if self.finished:
             return

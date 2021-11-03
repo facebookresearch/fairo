@@ -4,6 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import logging
 import datetime
+from copy import deepcopy
 from typing import Tuple, Dict, Any, Optional
 from droidlet.event import dispatch
 
@@ -67,12 +68,8 @@ class Interpreter(InterpreterBase):
 
     Args:
         speaker: The name of the player/human/agent who uttered the chat resulting in this interpreter
-        action_dict: The logical form, e.g. returned by a semantic parser
-
-    Keyword Args:
-        agent: the agent running this Interpreter
-        memory: the agent's memory
-        dialogue_stack: a DialogueStack object where this Interpreter object will live
+        logical_form_memid:  pointer to the parse to be interpreted
+        agent_memory:  memory of the agent that will interpret the parse
     """
 
     def __init__(self, speaker, logical_form_memid, agent_memory, memid=None):
@@ -135,6 +132,15 @@ class Interpreter(InterpreterBase):
             tasks_to_push = []
             for action_def in actions:
                 action_type = action_def["action_type"]
+                # FIXME!: THIS IS A HACK to be removed by dec2021:
+                # special case to push loops into the handlers if
+                # there is only one action in the sequence but
+                # there is a control structure around the sequence:
+                if len(actions) == 1 and self.logical_form.get("remove_condition") is not None:
+                    action_def = deepcopy(action_def)
+                    action_def["remove_condition"] = deepcopy(
+                        self.logical_form.get("remove_condition")
+                    )
                 r = self.action_handlers[action_type](agent, self.speaker, action_def)
                 if len(r) == 3:
                     task, response, dialogue_data = r

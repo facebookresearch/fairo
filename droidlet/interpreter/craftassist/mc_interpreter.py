@@ -16,7 +16,6 @@ from droidlet.interpreter import (
     Interpreter,
     SPEAKERLOOK,
     interpret_relative_direction,
-    get_repeat_num,
     filter_by_sublocation,
     interpret_dance_filter,
 )
@@ -437,8 +436,6 @@ class MCInterpreter(Interpreter):
         """
 
         def new_tasks():
-            repeat = get_repeat_num(d)
-            tasks_to_do = []
             # only go around the x has "around"; FIXME allow other kinds of dances
             location_d = d.get("location")
             if location_d is not None:
@@ -455,29 +452,23 @@ class MCInterpreter(Interpreter):
                         if len(objmems) == 0:
                             raise ErrorWithResponse("I don't understand where you want me to go.")
                         ref_obj = objmems[0]
-                    for i in range(repeat):
-                        refmove = dance.RefObjMovement(
-                            agent,
-                            ref_object=ref_obj,
-                            relative_direction=location_d["relative_direction"],
-                        )
-                        t = self.task_objects["dance"](agent, {"movement": refmove})
-                        tasks_to_do.append(t)
-                    return maybe_task_list_to_control_block(tasks_to_do, agent)
+                    refmove = dance.RefObjMovement(
+                        agent,
+                        ref_object=ref_obj,
+                        relative_direction=location_d["relative_direction"],
+                    )
+                    t = self.task_objects["dance"](agent, {"movement": refmove})
+                    return t
 
             dance_type = d.get("dance_type", {})
             if dance_type.get("point"):
                 target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
-                for i in range(repeat):
-                    t = self.task_objects["point"](agent, {"target": target})
-                    tasks_to_do.append(t)
+                t = self.task_objects["point"](agent, {"target": target})
             # MC bot does not control body turn separate from head
             elif dance_type.get("look_turn") or dance_type.get("body_turn"):
                 lt = dance_type.get("look_turn") or dance_type.get("body_turn")
                 f = self.subinterpret["facing"](self, speaker, lt)
-                for i in range(repeat):
-                    t = self.task_objects["dancemove"](agent, f)
-                    tasks_to_do.append(t)
+                t = self.task_objects["dancemove"](agent, f)
             else:
                 if location_d is None:
                     dance_location = None
@@ -495,23 +486,21 @@ class MCInterpreter(Interpreter):
                 if dance_memids:
                     dance_memid = random.choice(dance_memids)
                     dance_mem = self.memory.get_mem_by_id(dance_memid)
-                    for i in range(repeat):
-                        dance_obj = dance.Movement(
-                            agent=agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
-                        )
-                        t = self.task_objects["dance"](agent, {"movement": dance_obj})
-                        tasks_to_do.append(t)
+                    dance_obj = dance.Movement(
+                        agent=agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
+                    )
+                    t = self.task_objects["dance"](agent, {"movement": dance_obj})
                 else:
                     # dance out of scope
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
-            return maybe_task_list_to_control_block(tasks_to_do, agent)
+            return t
 
         if "remove_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
             task_data = {"new_tasks": new_tasks, "remove_condition": condition, "action_dict": d}
             return self.task_objects["control"](agent, task_data), None, None
         else:
-            return new_tasks(), None, None
+            return new_tasks, None, None
 
     # FIXME this is not compositional/does not handle loops ("get all the x")
     def handle_get(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
