@@ -1,26 +1,24 @@
-name: polymetis-local
+name: remove-custom-pytorch
 channels:
   - fair-robotics
   - aihabitat
-  - conda-forge/label/old_feature_broken
+  - pytorch
   - conda-forge
   - defaults
 dependencies:
     # Build dependencies
-    - assimp=5.0.1=hdca8b6f_4
     - cmake
-    - cudatoolkit=10.1
+    - cpuonly
+    - cudatoolkit=11.3
     - doxygen
-    - grpc-cpp=1.35.0=h146f9af_0
-    - hpp-fcl=1.6.0=py38h75fc22a_1
+    - grpc-cpp
     - libprotobuf
-    - openmpi ==2.1.2
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
-    - pytorch-cpu=1.6.0=py3.8_cpu_1_cxx11_abi
-    - urdfdom=2.3.3=hc9558a2_0
-    - urdfdom_headers=1.0.5=hc9558a2_2
+    - pytorch
+    - urdfdom
+    - urdfdom_headers
     - yaml-cpp
 
     # Run dependencies
