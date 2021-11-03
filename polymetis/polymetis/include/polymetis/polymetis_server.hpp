@@ -11,6 +11,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <fstream>
 
 #include <grpc/grpc.h>
 #include <grpcpp/security/server_credentials.h>
