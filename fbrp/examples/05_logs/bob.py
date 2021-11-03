@@ -3,6 +3,7 @@ import signal
 
 p = a0.Publisher("from/bob")
 
+
 def callback(pkt):
     p.pub(a0.Packet([(a0.DEP, pkt.id)], f"Got {pkt.payload}"))
 

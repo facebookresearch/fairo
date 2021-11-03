@@ -78,7 +78,7 @@ class Launcher(BaseLauncher):
         self.set_state(BaseLauncher.State.STARTING)
         self.proc = await asyncio.create_subprocess_shell(
             f"""
-                . $CONDA_PREFIX/etc/profile.d/conda.sh
+                eval "$(conda shell.bash hook)"
                 conda activate fbrp_{self.name}
                 cd {self.proc_def.root}
                 {shlex.join(self.run_command)}
