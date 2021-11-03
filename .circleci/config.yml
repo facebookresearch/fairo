@@ -65,7 +65,7 @@ commands:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda build -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
+            conda build -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
           destination: conda_pkg
