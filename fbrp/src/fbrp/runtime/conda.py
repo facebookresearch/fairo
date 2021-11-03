@@ -26,10 +26,10 @@ class CondaEnv:
         return CondaEnv(result.get("channels", []), result.get("dependencies", []))
 
     @staticmethod
-    def from_env(name):
+    def from_env(bin, name):
         return CondaEnv.load(
             subprocess.run(
-                ["conda", "env", "export", "-n", name], check=True, capture_output=True
+                [bin, "env", "export", "-n", name], check=True, capture_output=True
             ).stdout
         )
 
@@ -172,7 +172,7 @@ class Conda(BaseRuntime):
             )
 
         if self.env:
-            self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.env))
+            self.conda_env = CondaEnv.merge(self.conda_env, CondaEnv.from_env(self.bin, self.env))
 
         self.conda_env.fix_pip()
 
