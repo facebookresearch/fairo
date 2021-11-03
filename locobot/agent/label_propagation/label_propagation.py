@@ -257,7 +257,7 @@ def propogate_label(
         np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)), annot_img.astype(np.uint32))
 
 
-def run_label_prop(out_dir, gtframes, propagation_step, root_path):
+def run_label_prop(out_dir, gtframes, propagation_step, root_path, src_img_ids=None):
     start = time.time()
     # load the file for train images to be used for label propogation
     # root_path = data_path
@@ -280,8 +280,9 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path):
     propagation_step = min(propagation_step, int(delta/2))
     train_img_id['propagation_step'] = propagation_step
     
-    for x in range(gtframes):
-        src_img_indx += delta
+    # for x in range(gtframes):
+        # src_img_indx += delta
+    for src_img_indx in src_img_ids:
         if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
             result.append(
                 propogate_label.remote(

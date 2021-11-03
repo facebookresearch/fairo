@@ -57,6 +57,8 @@ test_jsons = [os.path.join(jsons_root, x) for x in test_jsons]
 
 val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/seg/coco_train.json'
 img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/rgb'
+# val_json = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/seg/coco_gt5_val.json'
+# img_dir_val = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/rgb'
 
 ## Detectron2 Setup
 
@@ -180,8 +182,10 @@ class COCOTrain:
         self.train()
 
 
-maxiters = [500, 800]
-lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
+# maxiters = [1000, 2000]
+maxiters = [500, 1000]
+# lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
+lrs = [0.001, 0.0005]
 warmups = [100, 200]
 
 def write_summary_to_file(filename, results, header_str):

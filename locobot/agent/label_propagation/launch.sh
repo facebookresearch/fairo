@@ -1,10 +1,10 @@
 source activate /private/home/apratik/.conda/envs/denv3
 
-'''
-./launch.sh <root folder with all trajectory data> <setting specific path> <num of trajectories> <num of training runs> <slurm or local>
-Example commands to run this file
-./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 10 5
-'''
+
+# ./launch.sh <root folder with all trajectory data> <setting specific path> <num of trajectories> <num of training runs> <slurm or local>
+# Example commands to run this file
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 10 5
+
 
 data_path=$1
 # Base dir for all jobs
@@ -28,4 +28,9 @@ cp run_pipeline.py $codedir/run_pipeline.py
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --slurm #--active
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --slurm --active
+
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 10 3
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 20 3
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 2 2
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 20 3
