@@ -10,31 +10,33 @@
 #include <iostream>
 #include <string>
 
-#include "dtt.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
 #include <torch/script.h>
 #include <torch/torch.h>
+#include "dtt.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-Eigen::Quaternionf tensor4ToQuat(torch::Tensor T);
-Eigen::Matrix3f tensor33ToMatrix(torch::Tensor T);
-Eigen::AngleAxisf tensor3ToAngleAxis(torch::Tensor T);
-Eigen::Vector4f quatToVector(Eigen::Quaternionf q);
+#define C_TORCH_EXPORT __attribute__((visibility("default")))
 
-torch::Tensor normalizeQuaternion(torch::Tensor q);
-torch::Tensor invertQuaternion(torch::Tensor q);
-torch::Tensor quatToAxis(torch::Tensor q);
-torch::Tensor quatToAngle(torch::Tensor q);
-torch::Tensor quatToMatrix(torch::Tensor q);
-torch::Tensor quatToRotvec(torch::Tensor q);
-torch::Tensor matrixToQuat(torch::Tensor m);
-torch::Tensor rotvecToQuat(torch::Tensor r);
-torch::Tensor quaternionMultiply(torch::Tensor q1, torch::Tensor q2);
+C_TORCH_EXPORT Eigen::Quaternionf tensor4ToQuat(torch::Tensor T);
+C_TORCH_EXPORT Eigen::Matrix3f tensor33ToMatrix(torch::Tensor T);
+C_TORCH_EXPORT Eigen::AngleAxisf tensor3ToAngleAxis(torch::Tensor T);
+C_TORCH_EXPORT Eigen::Vector4f quatToVector(Eigen::Quaternionf q);
+
+C_TORCH_EXPORT torch::Tensor normalizeQuaternion(torch::Tensor q);
+C_TORCH_EXPORT torch::Tensor invertQuaternion(torch::Tensor q);
+C_TORCH_EXPORT torch::Tensor quatToAxis(torch::Tensor q);
+C_TORCH_EXPORT torch::Tensor quatToAngle(torch::Tensor q);
+C_TORCH_EXPORT torch::Tensor quatToMatrix(torch::Tensor q);
+C_TORCH_EXPORT torch::Tensor quatToRotvec(torch::Tensor q);
+C_TORCH_EXPORT torch::Tensor matrixToQuat(torch::Tensor m);
+C_TORCH_EXPORT torch::Tensor rotvecToQuat(torch::Tensor r);
+C_TORCH_EXPORT torch::Tensor quaternionMultiply(torch::Tensor q1, torch::Tensor q2);
 
 #endif
 

@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.14)
 project(polymetis)
 
 SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+
+add_subdirectory("torch_isolation/")
+
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 
 if(DEFINED ENV{PREFIX})
@@ -21,13 +24,8 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-# find_package(Protobuf CONFIG REQUIRED)
-# message(STATUS "Using protobuf ${Protobuf_VERSION}")
 set(_PROTOBUF_LIBPROTOBUF $ENV{CONDA_PREFIX}/lib/libprotobuf.so)
 set(Protobuf_FOUND ON)
-add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
-set_target_properties(protobuf::libprotobuf PROPERTIES
-  IMPORTED_LOCATION "${_PROTOBUF_LIBPROTOBUF}")
 
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)
@@ -94,7 +92,8 @@ include_directories(
     "$ENV{CONDA_PREFIX}/include/"
     ${EIGEN3_INCLUDE_DIR}
     ${pinocchio_INCLUDE_DIRS} 
-    "/private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 )
 
 # Add server
@@ -104,77 +103,77 @@ target_link_libraries(polymetis_server
     generated_grpc_protos
     yaml-cpp
 )
-# target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchscript_pinocchio.so)
-target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorchrot.so)
-target_link_libraries(polymetis_server -Wl,--no-as-needed /private/home/yixinlin/dev/fairo/polymetis/polymetis/torch_isolation/build/libtorch_server_ops.so)
+target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
+target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
+target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 
 add_executable(run_server "src/run_server.cpp")
 target_link_libraries(run_server polymetis_server)
 
-# # Add test client
-# add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
-# )
-# target_link_libraries(empty_statistics_client
-#     generated_grpc_protos
-#     yaml-cpp
-# )
+# Add test client
+add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
+)
+target_link_libraries(empty_statistics_client
+    generated_grpc_protos
+    yaml-cpp
+)
 
-# if(BUILD_FRANKA)
-#   if(NOT DEFINED Franka_DIR)
-#     set(Franka_DIR "src/clients/franka_panda_client/third_party/libfranka/build")
-#   endif()
-#   message("Compiling Franka client with libfranka from ${Franka_DIR}")
-#   find_package(Franka REQUIRED)
+if(BUILD_FRANKA)
+  if(NOT DEFINED Franka_DIR)
+    set(Franka_DIR "src/clients/franka_panda_client/third_party/libfranka/build")
+  endif()
+  message("Compiling Franka client with libfranka from ${Franka_DIR}")
+  find_package(Franka REQUIRED)
 
-#   include_directories(
-#     ${Franka_INCLUDE_DIRS}
-#   )
+  include_directories(
+    ${Franka_INCLUDE_DIRS}
+  )
 
-#   # Add Franka clients
-#   add_executable(franka_panda_client
-#       src/clients/franka_panda_client/franka_panda_client.cpp
-#   )
-#   target_link_libraries(franka_panda_client
-#       generated_grpc_protos
-#       Franka::Franka
-#       yaml-cpp
-#   )
+  # Add Franka clients
+  add_executable(franka_panda_client
+      src/clients/franka_panda_client/franka_panda_client.cpp
+  )
+  target_link_libraries(franka_panda_client
+      generated_grpc_protos
+      Franka::Franka
+      yaml-cpp
+  )
 
-#   # Add Franka gripper server
-#   add_executable(franka_gripper_server src/franka_gripper_server.cpp)
-#   target_link_libraries(franka_gripper_server
-#       generated_grpc_protos
-#       Franka::Franka
-#       yaml-cpp
-#   )
-# endif()
+  # Add Franka gripper server
+  add_executable(franka_gripper_server src/franka_gripper_server.cpp)
+  target_link_libraries(franka_gripper_server
+      generated_grpc_protos
+      Franka::Franka
+      yaml-cpp
+  )
+endif()
 
 
-# if(BUILD_TESTS)
-#   include(FetchContent)
-#   FetchContent_Declare(
-#     googletest
-#     # Specify the commit you depend on and update it regularly.
-#     URL https://github.com/google/googletest/archive/23ef29555ef4789f555f1ba8c51b4c52975f0907.zip
-#   )
-#   FetchContent_MakeAvailable(googletest)
+if(BUILD_TESTS)
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    # Specify the commit you depend on and update it regularly.
+    URL https://github.com/google/googletest/archive/23ef29555ef4789f555f1ba8c51b4c52975f0907.zip
+  )
+  FetchContent_MakeAvailable(googletest)
 
-#   include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-#   add_executable(test_server ./tests/cpp/test_server.cpp)
-#   target_link_libraries(test_server polymetis_server gtest)
-# endif()
+  include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+  add_executable(test_server ./tests/cpp/test_server.cpp)
+  target_link_libraries(test_server polymetis_server gtest)
+endif()
 
-# if(BUILD_DOCS)
-#   find_package(Doxygen)
+if(BUILD_DOCS)
+  find_package(Doxygen)
 
-#   # set input and output files
-#   set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/../docs/Doxyfile)
+  # set input and output files
+  set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/../docs/Doxyfile)
 
-#   # note the option ALL which allows to build the docs together with the application
-#   add_custom_target( doc_doxygen ALL
-#       COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_IN}
-#       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../docs/
-#       COMMENT "Generating API documentation with Doxygen"
-#       VERBATIM )
+  # note the option ALL which allows to build the docs together with the application
+  add_custom_target( doc_doxygen ALL
+      COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_IN}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../docs/
+      COMMENT "Generating API documentation with Doxygen"
+      VERBATIM )
 
-# endif()
+endif()

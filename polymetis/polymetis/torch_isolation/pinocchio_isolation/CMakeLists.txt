@@ -26,5 +26,3 @@ set_target_properties(pinocchio_wrapper PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_link_libraries(pinocchio_wrapper
     ${pinocchio_LIBRARIES}
 )
-
-message("ASDF ${pinocchio_LIBRARIES}")

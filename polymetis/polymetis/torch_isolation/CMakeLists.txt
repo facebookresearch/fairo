@@ -5,11 +5,16 @@
 cmake_minimum_required(VERSION 3.14)
 project(torch_isolation)
 
-SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+add_subdirectory("pinocchio_isolation/")
+
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
 
 # Find Torch
-set(Torch_DIR "/private/home/yixinlin/Downloads/libtorch-1.10-old-abi/share/cmake/Torch")
+execute_process (
+    COMMAND bash -c "python -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())' | tr -d '\n'"
+    OUTPUT_VARIABLE site_packages_path
+)
+set(Torch_DIR "${site_packages_path}/torch/share/cmake/Torch/")
 find_package(Torch REQUIRED)
 
 # Find Eigen
@@ -17,23 +22,27 @@ find_package(Eigen3 REQUIRED)
 
 include_directories(
     "include"
-    ${TORCH_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIR}
+    "${TORCH_INCLUDE_DIRS}"
+    "${EIGEN3_INCLUDE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/pinocchio_isolation/include"
 )
 
 add_library(torch_server_ops SHARED src/torch_server_ops.cpp)
-target_link_libraries(torch_server_ops
-    ${TORCH_LIBRARIES}
+set_target_properties(torch_server_ops PROPERTIES CXX_VISIBILITY_PRESET hidden)
+target_link_libraries(torch_server_ops PRIVATE
+    "${TORCH_LIBRARIES}"
 )
 
 add_library(torchrot SHARED src/rotations.cpp)
-target_link_libraries(torchrot
-    ${TORCH_LIBRARIES}
+set_target_properties(torchrot PROPERTIES CXX_VISIBILITY_PRESET hidden)
+target_link_libraries(torchrot PRIVATE
+    "${TORCH_LIBRARIES}"
 )
 
 add_library(torchscript_pinocchio SHARED src/pinocchio.cpp)
-target_link_libraries(torchscript_pinocchio
-    /private/home/yixinlin/dev/fairo/polymetis/polymetis/pinocchio_isolation/build/libpinocchio_wrapper.so
-    ${TORCH_LIBRARIES}
+set_target_properties(torchscript_pinocchio PROPERTIES CXX_VISIBILITY_PRESET hidden)
+target_link_libraries(torchscript_pinocchio PRIVATE
+    pinocchio_wrapper
+    "${TORCH_LIBRARIES}"
     torchrot
 )
