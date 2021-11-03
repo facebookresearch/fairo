@@ -22,7 +22,7 @@ requirements:
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
-    - pytorch
+    - pytorch ==1.10.0
     - urdfdom
     - urdfdom_headers
     - yaml-cpp
@@ -51,7 +51,7 @@ requirements:
     - pytest
     - pytest-benchmark
     - python
-    - pytorch
+    - pytorch ==1.10.0
     - scipy
     - sphinx
     - sphinx-book-theme
