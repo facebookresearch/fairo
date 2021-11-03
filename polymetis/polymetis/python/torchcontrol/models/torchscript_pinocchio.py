@@ -10,13 +10,13 @@ from polymetis.utils.data_dir import PKG_ROOT_DIR
 
 try:
     torch.classes.load_library(
-        f"{os.environ['CONDA_PREFIX']}/lib/libtorchscript_pinocchio.so"
+        f"{os.environ['CONDA_PREFIX']}/lib/torch_isolation/libtorchscript_pinocchio.so"
     )
 except OSError:
     lib_path = os.path.abspath(
         os.path.join(
             PKG_ROOT_DIR,
-            "../../build/libtorchscript_pinocchio.so",
+            "../../build/torch_isolation/libtorchscript_pinocchio.so",
         )
     )
     print(

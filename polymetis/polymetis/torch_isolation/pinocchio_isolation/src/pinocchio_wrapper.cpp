@@ -101,7 +101,7 @@ inverse_dynamics(State *state, const Eigen::VectorXd &q,
 
 void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
                         const Eigen::Quaterniond &ee_quat_,
-                        Eigen::VectorXd ik_sol_p_, double eps,
+                        Eigen::VectorXd &ik_sol_p_, double eps,
                         int64_t max_iters, double dt, double damping) {
   auto model_ = state->model;
   auto model_data_ = state->model_data;
