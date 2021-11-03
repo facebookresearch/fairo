@@ -10,9 +10,7 @@ from polymetis.utils.data_dir import PKG_ROOT_DIR
 
 
 try:
-    torch.ops.load_library(
-        f"{os.environ['CONDA_PREFIX']}/lib/torch_isolation/libtorchrot.so"
-    )
+    torch.ops.load_library(f"{os.environ['CONDA_PREFIX']}/lib/libtorchrot.so")
 except OSError:
     lib_path = os.path.abspath(
         os.path.join(
