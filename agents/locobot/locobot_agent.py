@@ -61,7 +61,7 @@ class LocobotAgent(DroidletAgent):
         name (string, optional): a name for your agent (default: Locobot)
 
     Example:
-        >>> python locobot_agent.py --backend 'locobot'
+        >>> python locobot_agent.py --backend 'habitat'
     """
 
     coordinate_transforms = rotation
