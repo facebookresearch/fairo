@@ -53,7 +53,6 @@ enum ControllerStatus {
 TODO
 */
 struct CustomControllerContext {
-  ServerContext *server_context;
   uint episode_begin = -1;
   uint episode_end = -1;
   uint timestep = 0;
