@@ -214,9 +214,6 @@ Status PolymetisControllerServerImpl::SetController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  resetControllerContext();
-  custom_controller_context_.server_context = context;
-
   // Read chunks of the binary serialized controller. The binary messages
   // would be written into the preallocated buffer used for the Torch
   // controllers.
@@ -232,16 +229,25 @@ Status PolymetisControllerServerImpl::SetController(
   memstream model_stream(controller_model_buffer_.data(),
                          controller_model_buffer_.size());
   try {
-    custom_controller_context_.custom_controller =
-        new TorchScriptedController(model_stream);
+    // Load new controller
+    auto new_controller = new TorchScriptedController(model_stream);
+
+    // Switch in new controller by updating controller context
+    custom_controller_context_.controller_mtx.lock();
+
+    resetControllerContext();
+    custom_controller_context_.custom_controller = new_controller;
+    custom_controller_context_.status = READY;
+
+    custom_controller_context_.controller_mtx.unlock();
+    std::cout << "Loaded new controller.\n";
+
   } catch (const std::exception &e) {
     std::cerr << "error loading the model:\n";
     std::cerr << e.what() << std::endl;
 
     return Status::CANCELLED;
   }
-  custom_controller_context_.status = READY;
-  std::cout << "Loaded new controller.\n";
 
   // Respond with start index
   while (custom_controller_context_.status == READY) {
