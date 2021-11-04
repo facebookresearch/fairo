@@ -64,10 +64,11 @@ class PickGoodCandidates:
     def find_nearest(self, x):
         dist = 10000
         res = -1
-        for y in self.good_candidates:
+        for y, _ in self.good_candidates:
             if abs(x-y) < dist:
                 dist = abs(x-y)
                 res = y
+        # now look in vicinity of res for frame with max size 
         return res
     
     def sample_uniform_nn(self, n):
@@ -79,15 +80,7 @@ class PickGoodCandidates:
         delta = int(num_imgs / n)
         cand = [delta*x for x in range(1,n+1)]
         return [self.find_nearest(x) for x in cand]
-        
-    def sample_n(self, n):
-        if not self.filtered:
-            self.filter_candidates()
-            
-        # uniformly sample 
-        # randomly sample 
-        return [x[0] for x in random.sample(self.good_candidates, n)]
-
+    
     def find_nearest2(self, x):
         dist = 10000
         res = -1
@@ -110,18 +103,27 @@ class PickGoodCandidates:
         delta = int(num_imgs / n)
         cand = [delta*x for x in range(1,n+1)]
         return [self.find_nearest2(x) for x in cand]
+        
+    def sample_n(self, n):
+        if not self.filtered:
+            self.filter_candidates()
+            
+        # uniformly sample 
+        # randomly sample 
+        return [x[0] for x in random.sample(self.good_candidates, n)]
     
     def filter_candidates(self):
         self.good_candidates = []
         self.bad_candidates = []
-        for x in range(len(os.listdir(self.imgdir)) + 1):
-            res = self.is_good_candidate(x)
+        for x in range(len(os.listdir(img_dir)) + 1):
+            res, size = self.is_good_candidate(x)
             if res == True:
-                self.good_candidates.append(x)
+                self.good_candidates.append((x, size))
+#                 self.vis(x)
             elif res == False:
                 self.bad_candidates.append(x)
                 
-        print(f'{len(self.good_candidates)} found, {len(self.bad_candidates)} bad candidates')
+        print(f'{len(self.good_candidates)} good candidates, {len(self.bad_candidates)} bad candidates')
         self.filtered = True
 #         print(f'good candidates {self.good_candidates}')
             
@@ -200,21 +202,17 @@ class PickGoodCandidates:
             
         if not all_binary_mask.any():
 #             print(f'no masks')
-            return False
+            return False, None
         
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
         if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
-            return False
+            return False, None
         
         if (all_binary_mask == 1).sum() < 5000:
-            return False
+            return False, None
         
-#         print(f'avg area {avg_area}, total_objects {total_objects}, total_area {(all_binary_mask == 1).sum()}')
-#         plt.imshow(all_binary_mask)
-#         plt.show()
-        
-        return True
+        return True, (all_binary_mask == 1).sum()
         
     def vis(self, x, contours=None):
         
@@ -223,17 +221,9 @@ class PickGoodCandidates:
         
         if contours:
             image = cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
-        
-#         print(f'{len(valid_contours)} valid contours')
-
-    #     print(d)
-    #     depth_img = Image.fromarray((d / 10 * 255).astype(np.uint8), mode="L")
-
-#         img = cv2.imread(imgpath)
-#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
+      
         arr = [image]
-        titles = ['rgb']
+        titles = ["{:05d}.jpg".format(x)]
         plt.figure(figsize=(5,4))
         for i, data in enumerate(arr):
     #         print(f'data.shape {data.shape}')
