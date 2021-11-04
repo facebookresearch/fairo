@@ -183,9 +183,9 @@ class COCOTrain:
 
 
 # maxiters = [1000, 2000]
-maxiters = [500, 1000]
+maxiters = [500, 1000, 2000, 4000]
 # lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
-lrs = [0.001, 0.0005]
+lrs = [0.001, 0.0005, 0.002]
 warmups = [100, 200]
 
 def write_summary_to_file(filename, results, header_str):
