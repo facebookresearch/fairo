@@ -58,6 +58,7 @@ class CocoCreator:
         
         for d in dataset_dicts:
             img = cv2.imread(d["file_name"])
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             x = d['file_name'].split('/')[-1]
             print(f"filename {d['file_name'], x}, visual_file {os.path.join(save_dir, x)}")
             visualizer = Visualizer(img[:, :, ::-1], metadata=MetadataCatalog.get('foobar'), scale=0.5)

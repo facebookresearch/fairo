@@ -47,6 +47,7 @@ class PickGoodCandidates:
         self.depthdir = depth_dir
         self.segdir = seg_dir
         self.filtered = False
+        self.chosen = set()
         
     def is_open_contour(self, c):
         # check for a bunch of edge points
@@ -86,6 +87,29 @@ class PickGoodCandidates:
         # uniformly sample 
         # randomly sample 
         return [x[0] for x in random.sample(self.good_candidates, n)]
+
+    def find_nearest2(self, x):
+        dist = 10000
+        res = -1
+        for y, _ in self.good_candidates:
+            if abs(x-y) < dist and y not in self.chosen:
+                dist = abs(x-y)
+                res = y
+        # now look in vicinity of res for frame with max size 
+        for x in range(4):
+            self.chosen.add(res+x)
+            self.chosen.add(res-x)
+        return res
+    
+    def sample_uniform_nn2(self, n):
+        if not self.filtered:
+            self.filter_candidates()
+            
+        num_imgs = len(glob.glob(self.imgdir + '/*.jpg'))
+        print(f'num_imgs {num_imgs}')
+        delta = int(num_imgs / n)
+        cand = [delta*x for x in range(1,n+1)]
+        return [self.find_nearest2(x) for x in cand]
     
     def filter_candidates(self):
         self.good_candidates = []
@@ -183,7 +207,7 @@ class PickGoodCandidates:
         if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
             return False
         
-        if (all_binary_mask == 1).sum() < 10000:
+        if (all_binary_mask == 1).sum() < 5000:
             return False
         
 #         print(f'avg area {avg_area}, total_objects {total_objects}, total_area {(all_binary_mask == 1).sum()}')
@@ -249,7 +273,7 @@ def _runner(traj, gt, p, args):
                     depth_dir=os.path.join(traj_path, 'depth'),
                     seg_dir=os.path.join(traj_path, 'seg')
                 )
-            src_img_ids = s.sample_uniform_nn(gt)
+            src_img_ids = s.sample_uniform_nn2(gt)
             # src_img_ids = get_src_img_ids('active', traj)
             run_label_prop(outdir, gt, p, traj_path, src_img_ids)
             # run_label_prop(outdir, gt, p, traj_path)
@@ -272,7 +296,7 @@ def _runner(traj, gt, p, args):
                     depth_dir=os.path.join(traj_path, 'depth'),
                     seg_dir=os.path.join(traj_path, 'seg')
                 )
-                src_img_ids = s.sample_uniform_nn(gt)
+                src_img_ids = s.sample_uniform_nn2(gt)
                 # src_img_ids = get_src_img_ids('active', traj)
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
                 if len(glob.glob1(outdir,"*.npy")) > 0:
