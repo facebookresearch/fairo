@@ -67,13 +67,14 @@ class Question extends Component {
           {" "}
           Thanks for letting me know that I didn't understand the command right.{" "}
         </h3>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={this.finishQuestions.bind(this)}
-        >
-          Done
-        </Button>
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 0 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
       </div>
     );
   }
@@ -88,10 +89,13 @@ class Question extends Component {
         </h3>
         <List className="answers" component="nav">
           <ListItem button onClick={() => this.answerAction(1)}>
-            <ListItemText primary="Yes" />
+            <ListItemText className="listButton" primary="Yes" />
           </ListItem>
           <ListItem button onClick={() => this.answerAction(2)}>
-            <ListItemText primary="No" />
+            <ListItemText className="listButton" primary="No" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 0 })}>
+            <ListItemText className="listButton" primary="Go Back" />
           </ListItem>
         </List>
       </div>
@@ -113,14 +117,14 @@ class Question extends Component {
           variant="outlined"
           onChange={(event) => this.saveFeedback(event)}
         />
-        <div></div>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={this.finishQuestions.bind(this)}
-        >
-          Done
-        </Button>
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 2 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
       </div>
     );
   }
@@ -137,14 +141,14 @@ class Question extends Component {
           variant="outlined"
           onChange={(event) => this.saveFeedback(event)}
         />
-        <div></div>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={this.finishQuestions.bind(this)}
-        >
-          Done
-        </Button>
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 2 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
       </div>
     );
   }
@@ -298,10 +302,10 @@ class Question extends Component {
         <h3>Did you want the assistant {question_word}</h3>
         <List className="answers" component="nav">
           <ListItem button onClick={() => this.answerParsing(1)}>
-            <ListItemText primary="Yes" />
+            <ListItemText className="listButton" primary="Yes" />
           </ListItem>
           <ListItem button onClick={() => this.answerParsing(2)}>
-            <ListItemText primary="No" />
+            <ListItemText className="listButton" primary="No" />
           </ListItem>
         </List>
       </div>
@@ -312,7 +316,7 @@ class Question extends Component {
     //handles after the user submits the answer (y/n) to if NSP errored or not
     if (index === 1) {
       // yes, so not a parsing error
-      this.setState({ view: 2 });
+      this.setState({ parsing_error: false, view: 2 });
     } else if (index === 2) {
       // no, so parsing error
       this.setState({ parsing_error: true, view: 1 });

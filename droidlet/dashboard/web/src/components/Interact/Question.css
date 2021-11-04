@@ -18,6 +18,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
   outline: white;
 }
 
+.listButton {
+  text-decoration: underline;
+}
+
 .inputtext {
   min-width: 10px;
 }
