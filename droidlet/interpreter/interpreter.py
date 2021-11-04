@@ -17,7 +17,7 @@ from .interpret_filters import FilterInterpreter
 from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
 from droidlet.task.task import maybe_task_list_to_control_block
 from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
-from droidlet.dialog.dialogue_task import ConfirmTask
+from droidlet.dialog.dialogue_task import ConfirmTask, Say
 
 
 class InterpreterBase:
@@ -175,6 +175,7 @@ class Interpreter(InterpreterBase):
         except NextDialogueStep:
             return
         except ErrorWithResponse as err:
+            Say(agent, task_data={"response_options": err.chat})
             self.finished = True
         return
 

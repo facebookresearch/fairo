@@ -49,7 +49,7 @@ def special_reference_search_data(interpreter, speaker, S, entity_id=None, agent
         elif S == "SPEAKER_LOOK":
             q = "SELECT MEMORY FROM Attention WHERE type_name={}".format(entity_id)
         else:
-            raise Exception("unknown special reference: {}".format(S))
+            raise ErrorWithResponse("unknown special reference: {}".format(S))
     return q
 
 
