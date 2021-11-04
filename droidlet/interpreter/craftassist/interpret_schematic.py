@@ -292,7 +292,7 @@ def interpret_mob_schematic(interpreter, speaker, filters_d):
     # "spawn three different kinds of mobs".  we don't have examples
     # like that yet anyway ...
 
-    if filters_d.get("selector", {}) is not None:
+    if filters_d.get("selector", {}):
         if filters_d["selector"].get("same", "ALLOWED") == "DISALLOWED":
             filters_d["selector"]["same"] = "ALLOWED"
 
