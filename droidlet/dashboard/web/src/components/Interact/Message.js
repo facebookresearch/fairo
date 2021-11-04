@@ -128,6 +128,8 @@ class Message extends Component {
       this.props.stateManager.memory.commandState = "sent";
       //clear the textbox
       document.getElementById("msg").innerHTML = "";
+      //clear the agent reply that will be shown in the question pane
+      this.props.stateManager.memory.agent_reply = "";
       //change to the AgentThinking view pane
       this.props.goToAgentThinking();
     }

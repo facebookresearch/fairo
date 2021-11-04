@@ -10,6 +10,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
   min-width: 90px;
   white-space: nowrap;
   text-align: center;
+  color: white;
+}
+
+.MuiInputBase-root {
+  background-color: black;
+  outline: white;
 }
 
 .inputtext {

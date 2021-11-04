@@ -71,6 +71,7 @@ class StateManager {
     agentType: "locobot",
     commandState: "idle",
     commandPollTime: 500,
+    agent_reply: "",
   };
   session_id = null;
 
@@ -365,10 +366,11 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    this.memory.agent_reply = res.agent_reply;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
-          agent_reply: res.agent_reply,
+          agent_reply: this.memory.agent_reply,
         });
       }
     });

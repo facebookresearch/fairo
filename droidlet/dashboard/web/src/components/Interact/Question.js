@@ -131,9 +131,6 @@ class Question extends Component {
       <div>
         <h3> Thanks! Submit any other feedback here (optional): </h3>
         <TextField
-          style={{
-            backgroundColor: "white",
-          }}
           id="outlined-uncontrolled"
           label=""
           margin="normal"
