@@ -7,7 +7,7 @@ krovetz
 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.9/index.html
 detectron2
 face_recognition
-git+git://github.com/waspinator/pycococreator.git@0.2.0
+https://github.com/waspinator/pycococreator/archive/refs/tags/0.2.0.zip
 pycocotools
 
 

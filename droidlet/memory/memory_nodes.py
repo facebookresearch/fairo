@@ -97,6 +97,24 @@ def link_archive_to_mem(agent_memory, memid, archive_memid):
     agent_memory.add_triple(subj=memid, pred_text="_has_archive", obj=archive_memid)
 
 
+def dehydrate(lf):
+    """ 
+    replace any MemoryNode m in a logical form with {"dehydrated_mem": m.memid}
+    This is used to store a logical form in the db; as logical forms may contain
+    MemoryNodes as values, this makes it easier to serialize (text instead of python object).  
+    """
+    for k, v in lf.items():
+        if isinstance(v, MemoryNode):
+            lf[k] = {"dehydrated_mem": v.memid}
+        elif type(v) is list:
+            for d in v:
+                dehydrate(d)
+        elif type(v) is dict:
+            dehydrate(v)
+        else:
+            pass
+
+
 class ProgramNode(MemoryNode):
     """This class represents the logical forms (outputs from
     the semantic parser)
@@ -128,7 +146,9 @@ class ProgramNode(MemoryNode):
         text = self.agent_memory._db_read_one(
             "SELECT logical_form FROM Programs WHERE uuid=?", self.memid
         )[0]
-        self.logical_form = json.loads(text)
+        lf = json.loads(text)
+        self.rehydrate(lf)
+        self.logical_form = lf
 
     @classmethod
     def create(cls, memory, logical_form: dict, snapshot=False) -> str:
@@ -148,6 +168,7 @@ class ProgramNode(MemoryNode):
             >>> create(memory, logical_form)
         """
         memid = cls.new(memory, snapshot=snapshot)
+        dehydrate(logical_form)
         logical_form_text = json.dumps(logical_form)
         memory.db_write(
             "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)",
@@ -155,6 +176,23 @@ class ProgramNode(MemoryNode):
             format(logical_form_text),
         )
         return memid
+
+    def rehydrate(self, lf):
+        """ 
+        replace any {"dehydrated_mem": m.memid} with the associated MemoryNode
+        This is used when retrieving a logical form in the db; as logical forms may contain
+        MemoryNodes as values, this makes it easier to serialize (text instead of python object).
+        """
+        for k, v in lf.items():
+            if type(v) is dict:
+                memid = v.get("dehydrated_mem")
+                if memid:
+                    lf[k] = self.agent_memory.get_mem_by_id(memid)
+                else:
+                    self.rehydrate(v)
+            elif type(v) is list:
+                for d in v:
+                    self.rehydrate(d)
 
 
 # TODO FIXME instantiate as a side effect of making triples
@@ -311,7 +349,6 @@ class TripleNode(MemoryNode):
         return memid
 
 
-# for now the table entry just has the memid
 class InterpreterNode(MemoryNode):
     """for representing interpreter objects"""
 
@@ -321,15 +358,37 @@ class InterpreterNode(MemoryNode):
 
     def __init__(self, agent_memory, memid: str):
         super().__init__(agent_memory, memid)
+        finished, awaiting_response, interpreter_type = agent_memory._db_read_one(
+            "SELECT finished, awaiting_response, interpreter_type FROM InterpreterMems where uuid=?",
+            memid,
+        )
+        self.finished = finished
+        self.awaiting_response = awaiting_response
+        self.interpreter_type = interpreter_type
 
     @classmethod
-    def create(cls, memory, snapshot=False) -> str:
+    def create(
+        cls,
+        memory,
+        interpreter_type="interpeter",
+        finished=False,
+        awaiting_response=False,
+        snapshot=False,
+    ) -> str:
         memid = cls.new(memory, snapshot=snapshot)
-        memory.db_write("INSERT INTO InterpreterMems(uuid) VALUES (?)", memid)
+        memory.db_write(
+            "INSERT INTO InterpreterMems(uuid, finished, awaiting_response, interpreter_type) VALUES (?,?,?,?)",
+            memid,
+            finished,
+            awaiting_response,
+            interpreter_type,
+        )
         return memid
 
-    def snapshot(self, agent_memory):
-        return InterpreterNode.create(agent_memory, snapshot=True)
+    def finish(self):
+        self.agent_memory.db_write(
+            "UPDATE InterpreterMems SET finished=? WHERE uuid=?", 1, self.memid
+        )
 
 
 # the table entry just has the memid and a modification time,

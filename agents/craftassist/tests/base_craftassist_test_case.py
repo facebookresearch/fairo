@@ -56,7 +56,7 @@ class BaseCraftassistTestCase(unittest.TestCase):
         self.add_incoming_chat(chatstr, self.speaker)
         self.agent.set_logical_form(d, chatstr, self.speaker)
         changes = self.flush(max_steps, stop_on_chat=stop_on_chat)
-        if len(self.agent.dialogue_manager.dialogue_stack) != 0 and answer is not None:
+        if answer is not None:
             self.add_incoming_chat(answer, self.speaker)
             changes.update(self.flush(max_steps, stop_on_chat=stop_on_chat))
         return changes
@@ -89,16 +89,17 @@ class BaseCraftassistTestCase(unittest.TestCase):
 
     def agent_should_stop(self, stop_on_chat=False):
         stop = False
-        if (
-            len(self.agent.dialogue_manager.dialogue_stack) == 0
-            and not self.agent.memory.task_stack_peek()
-        ):
+        _, interpreter_mems = self.agent.memory.basic_search(
+            "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+        )
+        if len(interpreter_mems) == 0 and not self.agent.memory.task_stack_peek():
             stop = True
+
         # stuck waiting for answer?
-        _, task_mems = self.agent.memory.basic_search(
+        _, answer_task_mems = self.agent.memory.basic_search(
             "SELECT MEMORY FROM Task WHERE (action_name=awaitresponse AND prio>-1)"
         )
-        if task_mems and not any([m.finished for m in task_mems]):
+        if answer_task_mems and not any([m.finished for m in answer_task_mems]):
             stop = True
         if stop_on_chat and self.agent.get_last_outgoing_chat():
             stop = True

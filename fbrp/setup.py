@@ -3,8 +3,8 @@ from setuptools import setup
 
 
 setup(
-    name="facebook_robotics_platform",
-    version="0.0.2",
+    name="fbrp",
+    version="0.0.4",
     author="Leonid Shamis",
     package_dir={"": "src"},
     packages=find_packages(
@@ -17,6 +17,7 @@ setup(
         "alephzero>=v0.3",
         "docker>=5.0.0",
         "psutil>=5.8.0",
+        "pyyaml>=6.0",
         "six>=1.16.0",
     ],
 )
