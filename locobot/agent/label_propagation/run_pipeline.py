@@ -115,7 +115,7 @@ class PickGoodCandidates:
     def filter_candidates(self):
         self.good_candidates = []
         self.bad_candidates = []
-        for x in range(len(os.listdir(img_dir)) + 1):
+        for x in range(len(os.listdir(self.imgdir)) + 1):
             res, size = self.is_good_candidate(x)
             if res == True:
                 self.good_candidates.append((x, size))
