@@ -36,12 +36,15 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
     print("CHECKSUM: %r" % checksum_val)
 
     artifact_path = os.path.join(agent_path, artifact_name)
+    write_path = artifact_path
     if artifact_name == "models":
         if not model_name:
             model_name = "nlu"
             print("Model type not specified, defaulting to NLU model.")
         artifact_path = artifact_path + "/" + model_name
         artifact_name = artifact_name + '_' + model_name
+
+    
 
     file_name = agent + "_" + artifact_name + "_folder_" + checksum_val + ".tar.gz"
     """Get tar file from s3 using : agent name, artifact name and checksum combination as unique identifier"""
@@ -69,7 +72,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
         shutil.rmtree(artifact_path, ignore_errors=True) # force delete if directory has content in it
     mode = 0o777
     os.mkdir(artifact_path, mode)
-    write_path = artifact_path
+    
     print("Writing to : %r" % write_path)
     process = Popen(
         [
