@@ -58,7 +58,7 @@ struct CustomControllerContext {
   uint timestep = 0;
   ControllerStatus status = UNINITIALIZED;
   std::mutex controller_mtx;
-  TorchScriptedController *custom_controller;
+  TorchScriptedController *custom_controller = nullptr;
 
   ~CustomControllerContext() { delete custom_controller; }
 };
@@ -69,7 +69,7 @@ TODO
 struct RobotClientContext {
   long int last_update_ns = 0;
   RobotClientMetadata metadata;
-  TorchScriptedController *default_controller;
+  TorchScriptedController *default_controller = nullptr;
 };
 
 /**
