@@ -33,6 +33,7 @@ private:
 
 public:
   TorchRobotState(int num_dofs);
+  ~TorchRobotState();
   void update_state(int timestamp_s, int timestamp_ns,
                     std::vector<float> joint_positions,
                     std::vector<float> joint_velocities,
@@ -53,6 +54,7 @@ private:
 
 public:
   TorchScriptedController(std::istream &stream);
+  ~TorchScriptedController();
 
   std::vector<float> forward(TorchRobotState &input);
 
