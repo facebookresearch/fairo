@@ -173,7 +173,7 @@ private:
   CustomControllerContext custom_controller_context_;
   RobotClientContext robot_client_context_;
 
-  TorchRobotState torch_robot_state_ = TorchRobotState(1);
+  std::unique_ptr<TorchRobotState> torch_robot_state_;
 };
 
 #endif

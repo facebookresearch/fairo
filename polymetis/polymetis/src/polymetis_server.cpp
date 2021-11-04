@@ -75,7 +75,8 @@ Status PolymetisControllerServerImpl::InitRobotClient(
 
   num_dofs_ = robot_client_metadata->dof();
 
-  torch_robot_state_ = TorchRobotState(num_dofs_);
+  torch_robot_state_ =
+      std::unique_ptr<TorchRobotState>(new TorchRobotState(num_dofs_));
 
   // Load default controller bytes into model buffer
   controller_model_buffer_.clear();
@@ -138,7 +139,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // Parse robot state
-  torch_robot_state_.update_state(
+  torch_robot_state_->update_state(
       robot_state->timestamp().seconds(), robot_state->timestamp().nanos(),
       std::vector<float>(robot_state->joint_positions().begin(),
                          robot_state->joint_positions().end()),
@@ -180,7 +181,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     controller = robot_client_context_.default_controller;
   }
 
-  std::vector<float> desired_torque = controller->forward(torch_robot_state_);
+  std::vector<float> desired_torque = controller->forward(*torch_robot_state_);
   // Unlock
   custom_controller_context_.controller_mtx.unlock();
   for (int i = 0; i < num_dofs_; i++) {
