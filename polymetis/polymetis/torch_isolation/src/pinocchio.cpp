@@ -55,7 +55,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     initialize();
   }
 
-  ~RobotModelPinocchio() { delete pinocchio_state_; }
+  ~RobotModelPinocchio() { pinocchio_wrapper::destroy(pinocchio_state_); }
 
   void initialize() {
     pinocchio_state_ =

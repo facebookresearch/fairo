@@ -44,6 +44,8 @@ struct State *initialize(const std::string &ee_link_name,
   return state;
 }
 
+void destroy(struct State *state) { delete state; }
+
 Eigen::VectorXd get_lower_position_limits(struct State *pinocchio_state) {
   return pinocchio_state->model.lowerPositionLimit;
 }

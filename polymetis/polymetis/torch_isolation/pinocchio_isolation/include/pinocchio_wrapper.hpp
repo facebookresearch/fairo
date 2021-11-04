@@ -18,6 +18,8 @@ struct State;
 C_TORCH_EXPORT struct State *initialize(const std::string &ee_link_name,
                                         const std::string &xml_buffer);
 
+C_TORCH_EXPORT void destroy(State *state);
+
 C_TORCH_EXPORT Eigen::VectorXd
 get_lower_position_limits(struct State *pinocchio_state);
 C_TORCH_EXPORT Eigen::VectorXd
