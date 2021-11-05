@@ -16,7 +16,7 @@ import time
 from scipy.spatial.transform import Rotation
 import glob
 import argparse
-from droidlet.lowlevel.locobot import transform_pose
+from droidlet.lowlevel.robot_mover_utils import transform_pose
 
 class LabelPropagate(AbstractHandler):
     def __call__(self,    

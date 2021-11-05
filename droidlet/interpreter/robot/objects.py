@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 from collections import namedtuple
 import math
-
+import time
 
 class AttributeDict(dict):
     __getattr__ = dict.__getitem__
