@@ -11,7 +11,9 @@
 </div>
 
 <div class="finished d-none">
-  <div>Your server is ready! The ip address is:</div>
+  <h1>Welcome!</h1>
+  <h3>Here we provide two ways for you to interact with our Craftassist Agent</h3>
+  <h4>1. If you have previous experience with Minecraft and have access to a game client, you can connect to our server with the following ip address:</h4>
   <div class="ip-address text-success" style="text-align: center; font-size: 64pt;"></div>
   <div>Please open Minecraft, and navigate to <b>Multiplayer</b> > <b>Direct Connect</b>, enter the address, and click
     <b>Join Server</b>.</div>
@@ -41,7 +43,12 @@
       here</a>
     to change your game version to <b>1.12.x</b>
   </div>
-
+  <br>
+  <br>
+  <br>
+  <h4>2. If you prefer not to connect with a game client, you can also interact with our agent using the Dashboard: </h4>
+  <br>
+  <a class="dashboard_url" href="http://localhost:5000" style="text-align: center; font-size: 24pt;">Click here to open Dashboard</a>
 </div>
 {% endblock %}
 
@@ -59,7 +66,8 @@ $(document).ready(function() {
                 if (r.progress == 100) {
                     clearInterval(interval);
                     instance_ip_address = r.ip;
-                    window.location.replace("http://" + instance_ip_address);
+                    <!-- window.location.replace("http://" + instance_ip_address); -->
+                    finished(r.ip)
                 }
             }).fail(function(err) {
                 console.error(err)
@@ -77,6 +85,7 @@ function finished(ip) {
     $('.loading').addClass('d-none')
     $('.finished').removeClass('d-none')
     $('.ip-address').text(ip)
+    $('.dashboard_url').attr("href", "http://" + ip + "/turk.html")
 }
 {% endblock %}
 
