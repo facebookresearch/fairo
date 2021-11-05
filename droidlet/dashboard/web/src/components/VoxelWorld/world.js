@@ -153,6 +153,8 @@ function World() {
       }
       if (id == 0) {
         this.game.setBlock(xyz, id);
+      } else if (id == 62 || id == 63 || id == 64 || id == 65) {
+        continue;
       } else {
         this.game.createBlock(xyz, id);
       }
