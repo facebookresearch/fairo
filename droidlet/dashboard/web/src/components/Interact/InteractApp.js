@@ -129,6 +129,7 @@ class InteractApp extends Component {
               stateManager={this.props.stateManager}
               goToMessage={this.goToMessage.bind(this)}
               goToQuestion={this.goToQuestion.bind(this)}
+              setInteractState={this.setInteractState.bind(this)}
             />
           ) : null}
         </div>

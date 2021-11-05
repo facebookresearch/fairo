@@ -6,6 +6,7 @@
  */
 
 import React, { Component } from "react";
+import Button from "@material-ui/core/Button";
 
 import "./AgentThinking.css";
 
@@ -28,6 +29,7 @@ class AgentThinking extends Component {
     this.state = this.initialState;
 
     this.taskStackPoll = this.taskStackPoll.bind(this);
+    this.issueStopCommand = this.issueStopCommand.bind(this);
     this.elementRef = React.createRef();
   }
 
@@ -37,6 +39,12 @@ class AgentThinking extends Component {
   }
 
   taskStackPoll(res) {
+    // If we get a response of any kind, reset the timeout clock
+    if (res) {
+      this.setState({
+        now: Date.now(),
+      });
+    }
     if (!res.task) {
       // If there's no task, leave this pane and go to error labeling
       this.props.goToQuestion(0);
@@ -99,11 +107,39 @@ class AgentThinking extends Component {
     // If we've gotten here during idle somehow, or timed out, escape to safety
     if (
       !this.allowedStates.includes(this.state.commandState) ||
-      Date.now() - this.state.now > 30000
+      Date.now() - this.state.now > 40000
     ) {
       console.log("Safety check failed, exiting to Message pane.");
       this.props.goToMessage();
     }
+  }
+
+  issueStopCommand() {
+    console.log("Stop command issued");
+    const chatmsg = "stop";
+    //add to chat history box of parent
+    this.props.setInteractState({ msg: chatmsg, failed: false });
+    //log message to flask
+    this.props.stateManager.logInteractiondata("text command", chatmsg);
+    //socket connection
+    this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+    //update StateManager command state
+    this.props.stateManager.memory.commandState = "sent";
+  }
+
+  renderPerformingTask() {
+    return (
+      <div>
+        <h2>Assistant is doing the task</h2>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={this.issueStopCommand.bind(this)}
+        >
+          Stop
+        </Button>
+      </div>
+    );
   }
 
   render() {
@@ -118,12 +154,12 @@ class AgentThinking extends Component {
         {this.state.commandState === "thinking" ? (
           <h2>Assistant is thinking{this.state.ellipsis}</h2>
         ) : null}
-        {this.state.commandState === "done_thinking" ? (
-          <h2>Assistant is doing the task</h2>
-        ) : null}
-        {this.state.commandState === "executing" ? (
-          <h2>Assistant is doing the task</h2>
-        ) : null}
+        {this.state.commandState === "done_thinking"
+          ? this.renderPerformingTask()
+          : null}
+        {this.state.commandState === "executing"
+          ? this.renderPerformingTask()
+          : null}
       </div>
     );
   }

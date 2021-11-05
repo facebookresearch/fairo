@@ -11,7 +11,7 @@ mephisto:
     task_description: "Interact with an assistant in a 3-D world creative game."
     task_reward: 3.0
     allowed_concurrent: 1
-    maximum_units_per_worker: 7
+    maximum_units_per_worker: 5
     task_tags: "assistant, game, interact"
     task_name: "uiux-exp2-10-29-21-t1"
   architect:
