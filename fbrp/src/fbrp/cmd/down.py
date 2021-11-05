@@ -1,8 +1,6 @@
-from fbrp import util
+from fbrp import life_cycle
 from fbrp import registrar
-import a0
 import argparse
-import json
 
 
 @registrar.register_command("down")
@@ -13,27 +11,11 @@ class down_cmd:
 
     @staticmethod
     def exec(args: argparse.Namespace):
-        procs = {
-            name: def_
-            for name, def_ in registrar.defined_processes.items()
-            if def_.runtime
-        }
+        procs = life_cycle.system_state().procs.keys()
 
         given_proc_names = args.proc[0]
         if given_proc_names:
-            procs = {
-                name: def_ for name, def_ in procs.items() if name in given_proc_names
-            }
+            procs = set(procs) & set(given_proc_names)
 
-        if not procs:
-            util.fail(f"No processes found to down")
-
-        for name, def_ in procs.items():
-            with util.common_env_context(def_):
-                a0.Publisher(f"fbrp/control/{name}").pub(
-                    json.dumps(
-                        dict(
-                            action="down",
-                        )
-                    )
-                )
+        for proc_name in procs:
+            life_cycle.ask(proc_name, life_cycle.Ask.DOWN)
