@@ -1,0 +1,7 @@
+README.md
+setup.py
+python/moveit_bridge.egg-info/PKG-INFO
+python/moveit_bridge.egg-info/SOURCES.txt
+python/moveit_bridge.egg-info/dependency_links.txt
+python/moveit_bridge.egg-info/requires.txt
+python/moveit_bridge.egg-info/top_level.txt
