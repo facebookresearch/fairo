@@ -34,7 +34,7 @@ class LocoView extends React.Component {
         type={"rgb"}
         height={320}
         width={320}
-        offsetH={320 + 80}
+        offsetH={10}
         offsetW={10}
         stateManager={stateManager}
         />
@@ -42,21 +42,21 @@ class LocoView extends React.Component {
         type={"depth"}
         height={320}
         width={320}
-        offsetH={320 + 80}
+        offsetH={10}
         offsetW={10 + 320 + 10}
         stateManager={stateManager}
         />
         <LiveObjects
         height={320}
         width={320}
-        offsetH={320 + 60 + 320 + 30}
+        offsetH={10 + 320 + 10}
         offsetW={10}
         stateManager={stateManager}
         />
         <LiveHumans
         height={320}
         width={320}
-        offsetH={320 + 60 + 320 + 30}
+        offsetH={10 + 320 + 10}
         offsetW={10 + 320 + 10}
         stateManager={stateManager}
         />
