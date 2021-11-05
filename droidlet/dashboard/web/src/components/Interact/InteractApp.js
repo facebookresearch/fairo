@@ -98,7 +98,7 @@ class InteractApp extends Component {
 
   render() {
     return (
-      <div className="App">
+      <div className="App" style={{padding: 0}}>
         <div className="content">
           {this.state.currentView === 1 ? (
             <Message
