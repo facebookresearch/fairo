@@ -244,6 +244,11 @@ class DroidletAgent(BaseAgent):
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
             if self.opts.agent_debug_mode:
+                _, interpreter_mems = self.memory.basic_search(
+                    "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+                )
+                for i in interpreter_mems:
+                    i.finish()
                 return
             else:
                 raise e
