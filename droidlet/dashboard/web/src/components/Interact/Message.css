@@ -23,7 +23,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 }
 
 .Chat {
-  margin: 100px auto;
+  margin: 20px auto;
   display: flex;
   flex-direction: column;
   justify-content: center;

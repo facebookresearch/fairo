@@ -1,8 +1,10 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
 .App {
+  display: flex;
+  flex-direction: column;
   text-align: center;
-  margin-top: 0px 0;
+  margin: 10% auto;
 }
 
 .App-header {
