@@ -302,31 +302,34 @@ def write_summary_to_file(filename, results, header_str):
 from pathlib import Path
 import string
 
-def run_training(img_dir_train, n, traj, x, gt, p, train_json, val_json, job_dir, name):
+def core(lr, warmup, maxiter, dataset_name, train_json, img_dir_train, val_json, results_dir, n):
+    for i in range(n):
+        c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
+        # dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
+        print(f'dataset_name {dataset_name}')
+        c.run_train(train_json, img_dir_train, dataset_name, val_json, img_dir_train)
+        res_eval = c.run_val(dataset_name, val_json, img_dir_train)
+        with open(os.path.join(results_dir, "validation_results.txt"), "a") as f:
+            f.write(f'val_json {val_json}\n')
+            f.write(f'lr {lr} warmup {warmup} maxiter {maxiter}\n')
+            f.write(json.dumps(res_eval) + '\n')
+
+def run_training(img_dir_train, n, traj, x, gt, p, train_json, val_json, job_dir, name, slurm):
     results_dir = os.path.join(job_dir, str(traj), x, str(gt), str(p))
     if not os.path.isdir(results_dir):
         os.makedirs(results_dir)
-    for lr in lrs:
-        for warmup in warmups:
-            for maxiter in maxiters:
-                results = {
-                    "bbox": {
-                        "AP50": []
-                    },
-                    "segm": {
-                        "AP50": []
-                    }
-                }
-                for i in range(n):
-                    c = COCOTrain(lr, warmup, maxiter, i, name)
-                    dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
-                    print(f'dataset_name {dataset_name}')
-                    c.run_train(train_json, img_dir_train, dataset_name, val_json, img_dir_train)
-                    res_eval = c.run_val(dataset_name, val_json, img_dir_train)
-                    with open(os.path.join(results_dir, "validation_results.txt"), "a") as f:
-                        f.write(f'val_json {val_json}\n')
-                        f.write(f'lr {lr} warmup {warmup} maxiter {maxiter}\n')
-                        f.write(json.dumps(res_eval) + '\n')
+    jobs = []
+    with executor.batch():
+        for lr in lrs:
+            for warmup in warmups:
+                for maxiter in maxiters:
+                    if slurm:
+                        job = executor.submit(core, lr, warmup, maxiter, name, train_json, img_dir_train, val_json, results_dir, n)
+                        jobs.append(job)
+                    else:
+                        print('running locally ...')
+                        core(lr, warmup, maxiter, name, train_json, img_dir_train, val_json, results_dir, n)
+    print(f'{len(jobs)} jobs launched!')                
 
 
 data_path = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019'
@@ -368,20 +371,8 @@ if __name__ == "__main__":
         },
         slurm_comment="CVPR deadline, 11/16"
     )
-    if args.slurm:
-        job_baseline = executor.submit(
-            run_training, os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0'
-        )
-        print(f'job_baseline id {job_baseline.job_id}')
-
-        job_prop = executor.submit(
-            run_training, os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 4, p4_train, pr_val, args.job_folder, 'p4'
-        )
-        print(f'job_prop id {job_prop.job_id}')
-
-    else:
-        # just sanity checking for errors
-        run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0')
+    run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0', args.slurm)
+    run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 4, p4_train, pr_val, args.job_folder, 'p4', args.slurm)
 
     
 
