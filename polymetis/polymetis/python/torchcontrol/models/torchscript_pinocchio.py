@@ -16,7 +16,7 @@ except OSError:
     lib_path = os.path.abspath(
         os.path.join(
             PKG_ROOT_DIR,
-            "../../build/libtorchscript_pinocchio.so",
+            "../../build/torch_isolation/libtorchscript_pinocchio.so",
         )
     )
     print(

@@ -52,3 +52,31 @@ def bin_points(XYZ_cm, map_size, z_bins, xy_resolution):
     counts = np.reshape(count, [map_size, map_size, n_z_bins])
 
     return counts
+
+
+def get_relative_state(cur_state, init_state):
+    """
+    helpful for calculating the relative state of cur_state wrt to init_state [both states are wrt same frame]
+    :param cur_state: frame for which position to be calculated
+    :param init_state: frame in which position to be calculated
+    
+    :type cur_state: tuple [x_robot, y_robot, yaw_robot]
+    :type init_state: tuple [x_robot, y_robot, yaw_robot]
+
+    :return: relative state of cur_state wrt to init_state
+    :rtype list [x_robot_rel, y_robot_rel, yaw_robot_rel]
+    """
+    # get relative in global frame
+    rel_X = cur_state[0] - init_state[0]
+    rel_Y = cur_state[1] - init_state[1]
+    # transfer from global frame to init frame
+    R = np.array(
+        [
+            [np.cos(init_state[2]), np.sin(init_state[2])],
+            [-np.sin(init_state[2]), np.cos(init_state[2])],
+        ]
+    )
+    rel_x, rel_y = np.matmul(R, np.array([rel_X, rel_Y]).reshape(-1, 1))
+
+    return rel_x[0], rel_y[0], cur_state[2] - init_state[2]
+

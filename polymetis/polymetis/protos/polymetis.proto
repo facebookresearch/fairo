@@ -97,6 +97,7 @@ message RobotClientMetadata {
   string ee_link_name = 7;
   int32 ee_link_idx = 8;
   repeated float rest_pose = 9;
+  string polymetis_version = 10;
 }
 
 message RobotState {

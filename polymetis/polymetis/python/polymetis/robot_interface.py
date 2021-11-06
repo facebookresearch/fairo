@@ -12,6 +12,7 @@ import threading
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
 
+import polymetis
 from polymetis_pb2 import LogInterval, RobotState, ControllerChunk, Empty
 from polymetis_pb2_grpc import PolymetisControllerServerStub
 
@@ -59,13 +60,23 @@ class BaseRobotInterface:
         port: Port to connect to on the IP address.
     """
 
-    def __init__(self, ip_address: str = "localhost", port: int = 50051):
+    def __init__(
+        self, ip_address: str = "localhost", port: int = 50051, enforce_version=True
+    ):
         # Create connection
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = PolymetisControllerServerStub(self.channel)
 
         # Get metadata
         self.metadata = self.grpc_connection.GetRobotClientMetadata(EMPTY)
+
+        # Check version
+        if enforce_version:
+            client_ver = polymetis.__version__
+            server_ver = self.metadata.polymetis_version
+            assert (
+                client_ver == server_ver
+            ), "Version mismatch between client & server detected! Set enforce_version=False to bypass this error."
 
     def __del__(self):
         # Close connection in destructor
