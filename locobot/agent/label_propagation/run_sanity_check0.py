@@ -172,13 +172,14 @@ class MyTrainer(DefaultTrainer):
         return hooks
 
 class COCOTrain:
-    def __init__(self, lr, w, maxiters, seed):
+    def __init__(self, lr, w, maxiters, seed, name):
         self.cfg = get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
         self.cfg.SOLVER.BASE_LR = lr  # pick a good LR
         self.cfg.SOLVER.MAX_ITER = maxiters
         self.cfg.SOLVER.WARMUP_ITERS = w
         self.seed = seed
+        self.name = name
         
     def reset(self, train_json, img_dir_train, dataset_name):
         DatasetCatalog.clear()
@@ -234,13 +235,13 @@ class COCOTrain:
         cfg.SOLVER.IMS_PER_BATCH = 16
         
         cfg.SOLVER.GAMMA=0.75
-        cfg.SOLVER.STEPS=tuple([100*(i+1) for i in range(100) if 100*(i+1) < cfg.SOLVER.MAX_ITER])
+        cfg.SOLVER.STEPS=tuple([200*(i+1) for i in range(100) if 200*(i+1) < cfg.SOLVER.MAX_ITER])
         
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128 
         MetadataCatalog.get(self.train_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
-        cfg.OUTPUT_DIR = os.path.join('output_aug_1108', str(cfg.SOLVER.MAX_ITER), self.dataset_name + str(self.seed))
+        cfg.OUTPUT_DIR = os.path.join('output_aug_1108', self.name, str(cfg.SOLVER.MAX_ITER), self.dataset_name + str(self.seed))
         print(f"recreating {cfg.OUTPUT_DIR}")
         # if os.path.isdir(cfg.OUTPUT_DIR):
         #     shutil.rmtree(cfg.OUTPUT_DIR)
@@ -284,12 +285,9 @@ class COCOTrain:
         self.train(val_json, img_dir_val)
 
 
-# maxiters = [500, 800]
-# lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
-# warmups = [100, 200]
-lrs = [0.004]
-maxiters = [2000]
-warmups = [200]
+maxiters = [1500]
+lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
+warmups = [100, 200]
 
 def write_summary_to_file(filename, results, header_str):
     if isinstance(results['bbox']['AP50'][0], list):
@@ -304,7 +302,7 @@ def write_summary_to_file(filename, results, header_str):
 from pathlib import Path
 import string
 
-def run_training(img_dir_train, n, traj, x, gt, p, train_json, val_json, job_dir):
+def run_training(img_dir_train, n, traj, x, gt, p, train_json, val_json, job_dir, name):
     results_dir = os.path.join(job_dir, str(traj), x, str(gt), str(p))
     if not os.path.isdir(results_dir):
         os.makedirs(results_dir)
@@ -320,7 +318,7 @@ def run_training(img_dir_train, n, traj, x, gt, p, train_json, val_json, job_dir
                     }
                 }
                 for i in range(n):
-                    c = COCOTrain(lr, warmup, maxiter, i)
+                    c = COCOTrain(lr, warmup, maxiter, i, name)
                     dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
                     print(f'dataset_name {dataset_name}')
                     c.run_train(train_json, img_dir_train, dataset_name, val_json, img_dir_train)
@@ -372,18 +370,18 @@ if __name__ == "__main__":
     )
     if args.slurm:
         job_baseline = executor.submit(
-            run_training, os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder
+            run_training, os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0'
         )
         print(f'job_baseline id {job_baseline.job_id}')
 
         job_prop = executor.submit(
-            run_training, os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 4, p4_train, pr_val, args.job_folder 
+            run_training, os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 4, p4_train, pr_val, args.job_folder, 'p4'
         )
         print(f'job_prop id {job_prop.job_id}')
 
     else:
         # just sanity checking for errors
-        run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder)
+        run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0')
 
     
 

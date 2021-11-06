@@ -25,6 +25,6 @@ cp run_sanity_check0.py $codedir/run_sanity_check0.py
 
 cd $codedir
 chmod +x run_sanity_check0.py
-python3.7 run_sanity_check0.py --job_folder $jobdir #--slurm 
+python3.7 run_sanity_check0.py --job_folder $jobdir --slurm 
 
 # ./launch_sanity.sh
