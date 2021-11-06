@@ -225,7 +225,7 @@ class COCOTrain:
         
         self.val_data = self.dataset_name + "_val" + str(self.seed)
         self.val_json = val_json
-        cfg.DATASETS.TEST = (self.val_data,)
+        cfg.DATASETS.TEST = (self.val_data,self.train_data)
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
         MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         
@@ -241,7 +241,7 @@ class COCOTrain:
         MetadataCatalog.get(self.train_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
-        cfg.OUTPUT_DIR = os.path.join('output_aug_1108', self.name, str(cfg.SOLVER.MAX_ITER), self.dataset_name + str(self.seed))
+        cfg.OUTPUT_DIR = os.path.join('output', self.name, str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS), self.dataset_name + str(self.seed))
         print(f"recreating {cfg.OUTPUT_DIR}")
         # if os.path.isdir(cfg.OUTPUT_DIR):
         #     shutil.rmtree(cfg.OUTPUT_DIR)
@@ -285,7 +285,7 @@ class COCOTrain:
         self.train(val_json, img_dir_val)
 
 
-maxiters = [1500]
+maxiters = [800,1500,2000]
 lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
 warmups = [100, 200]
 
