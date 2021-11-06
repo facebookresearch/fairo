@@ -15,7 +15,7 @@ except OSError:
     lib_path = os.path.abspath(
         os.path.join(
             PKG_ROOT_DIR,
-            "../../build/libtorchrot.so",
+            "../../build/torch_isolation/libtorchrot.so",
         )
     )
     print(
