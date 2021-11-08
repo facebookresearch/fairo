@@ -33,6 +33,31 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION=2
+def roty(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([[cos(ar), 0, sin(ar)],
+                     [0, 1, 0],
+                     [-sin(ar), 0, cos(ar)]])
+def rotx(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([
+        [1, 0, 0],
+        [0, cos(ar), -sin(ar)],
+        [0, sin(ar), cos(ar)]
+    ])
+def rotz(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([
+        [cos(ar), -sin(ar), 0],
+        [sin(ar), cos(ar), 0],
+        [0, 0, 1],
+    ])
 
 def safe_call(f, *args, **kwargs):
     try:
@@ -63,10 +88,10 @@ class HelloRobotMover(MoverInterface):
         _ = safe_call(self.data_logger.ready)
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
-        intrinsic_mat = np.asarray(safe_call(self.cam.get_intrinsics))
+        intrinsic_mat = safe_call(self.cam.get_intrinsics)
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-        img_resolution = safe_call(self.cam.get_img_resolution)
-        img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1]
+        img_resolution = safe_call(self.cam.get_img_resolution, rotate=False)
+        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
@@ -166,33 +191,84 @@ class HelloRobotMover(MoverInterface):
         Returns:
             an RGBDepth object
         """
-        # this takes 93ms
-        rgb, depth, rot, trans = self.cam.get_pcd_data()
+        rgb, depth, rot, trans = self.cam.get_pcd_data(rotate=False)
 
-        # 93ms
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
-        # 93ms
-        depth = np.asarray(depth)
-        rot = np.asarray(rot)
-        trans = np.asarray(trans)
         depth = depth.astype(np.float32)
 
-        # 93ms
-        d = copy.deepcopy(depth)
-        depth /= 1000.0
-        depth = depth.reshape(-1)
+        thres = 8000
+        depth[depth > thres] = thres
 
-        # 100ms
+        depth_copy = np.copy(depth)
+
+        # get_pcd_data multiplies depth by 1000 to convert to mm, so reverse that
+        depth /= 1000.0
+        depth = depth.reshape(rgb.shape[0] * rgb.shape[1])
+
+        # normalize by the camera's intrinsic matrix
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
-        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
-        pts = pts_in_cam[:3, :].T
+        pts = pts_in_cam.T
+
+        # Now, the points are in camera frame.
+        # In camera frame
+        # z is positive into the camera
+        # (larger the z, more into the camera)
+        # x is positive to the right
+        # (larger the x, more right of the origin)
+        # y is positive to the bottom
+        # (larger the y, more to the bottom of the origin)
+        #                                 /
+        #                                /
+        #                               / z-axis
+        #                              /
+        #                             /_____________ x-axis (640)
+        #                             |
+        #                             |
+        #                             | y-axis (480)
+        #                             |
+        #                             |
+
+
+        # We now need to transform this to pyrobot frame, where
+        # x is into the camera, y is positive to the left,
+        # z is positive upwards
+        # https://pyrobot.org/docs/navigation
+        #                            |    /
+        #                 z-axis     |   /
+        #                            |  / x-axis
+        #                            | /
+        #  y-axis        ____________|/
+        #
+        # If you hold the first configuration in your right hand, and
+        # visualize the transformations needed to get to the second
+        # configuration, you'll see that
+        # you have to rotate 90 degrees anti-clockwise around the y axis, and then
+        # 90 degrees clockwise around the x axis.
+        # This results in the final configuration
+        rotyt = roty(90)
+        pts = np.dot(pts, rotyt.T)
+
+        rotxt = rotx(-90)
+        pts = np.dot(pts, rotxt.T)
+
+        # next, rotate and translate pts by
+        # the robot pose and location
         pts = np.dot(pts, rot.T)
         pts = pts + trans.reshape(-1)
         pts = transform_pose(pts, self.bot.get_base_state().value)
 
-        return RGBDepth(rgb, d, pts)
+        # now rewrite the ordering of pts so that the colors (rgb_rotated)
+        # match the indices of pts
+        pts = pts.reshape((rgb.shape[0], rgb.shape[1], 3))
+        pts = np.rot90(pts, k=1, axes=(1, 0))
+        pts = pts.reshape(rgb.shape[0] * rgb.shape[1], 3)
+
+        depth_rotated = np.rot90(depth_copy, k=1, axes=(1,0))
+        rgb_rotated = np.rot90(rgb, k=1, axes=(1,0))
+
+        return RGBDepth(rgb_rotated, depth_rotated, pts)
 
     def turn(self, yaw):
         """turns the bot by the yaw specified.
