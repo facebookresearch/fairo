@@ -3,22 +3,11 @@ from multiprocessing import Queue
 from droidlet.shared_data_structs import Time
 from typing import Optional, List, Tuple, Sequence, Union
 from droidlet.base_util import XYZ, Block, npy_to_blocks_list
-from droidlet.interpreter.task import *
+from droidlet.task.task import *
 from droidlet.interpreter.craftassist.tasks import *
 import pickle
 import uuid
-from droidlet.memory.craftassist.mc_memory_nodes import (  # noqa
-    # DanceNode,
-    VoxelObjectNode,
-    # BlockObjectNode,
-    # BlockTypeNode,
-    # MobNode,
-    # ItemStackNode,
-    # MobTypeNode,
-    # InstSegNode,
-    # SchematicNode,
-    # NODELIST,
-)
+from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
 
 NONPICKLE_ATTRS = [
     "agent",
@@ -31,6 +20,7 @@ NONPICKLE_ATTRS = [
     "stop_condition",
     "movement",
 ]
+
 
 class ForkedPdb(pdb.Pdb):
     """A Pdb subclass that may be used
@@ -45,15 +35,11 @@ class ForkedPdb(pdb.Pdb):
         finally:
             sys.stdin = _stdin
 
-class SwarmWorkerMemory():
+
+class SwarmWorkerMemory:
     """Represents the memory for the agent in Minecraft"""
 
-    def __init__(self,
-        memory_send_queue,
-        memory_receive_queue,
-        memory_tag,
-        agent_time=None,
-    ):
+    def __init__(self, memory_send_queue, memory_receive_queue, memory_tag, agent_time=None):
         self.send_queue = memory_send_queue
         self.receive_queue = memory_receive_queue
         self.memory_tag = memory_tag
@@ -61,7 +47,9 @@ class SwarmWorkerMemory():
         self.init_time_interface(agent_time)
         self._safe_pickle_saved_attrs = {}
         mem_id_len = len(uuid.uuid4().hex)
-        self.self_memid = "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
+        self.self_memid = (
+            "0" * (mem_id_len // 2) + uuid.uuid4().hex[: mem_id_len - mem_id_len // 2]
+        )
         self.db_write(
             "INSERT INTO Memories VALUES (?,?,?,?,?,?)", self.self_memid, "Player", 0, 0, -1, False
         )
@@ -71,7 +59,7 @@ class SwarmWorkerMemory():
         self.tag(self.self_memid, "_not_location")
         self.tag(self.self_memid, "AGENT")
         # self.tag(self.self_memid, "SELF")
-    
+
     def init_time_interface(self, agent_time=None):
         """Initialiaze the current time in memory
         Args:
@@ -134,11 +122,14 @@ class SwarmWorkerMemory():
         del self.receive_dict[query_id]
         return to_return
 
-    def _db_read_one(self, query:str, *args):
+    def _db_read_one(self, query: str, *args):
         return self._db_command("_db_read_one", query, *args)
-    
+
     def _db_write(self, query: str, *args) -> int:
-        if query == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)":
+        if (
+            query
+            == "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)"
+        ):
             memid = args[0]
             self.tag(memid, self.memory_tag)
         to_return = self._db_command("_db_write", query, *args)
@@ -146,10 +137,10 @@ class SwarmWorkerMemory():
 
     def db_write(self, query: str, *args) -> int:
         return self._db_command("db_write", query, *args)
-    
+
     def _db_read(self, query: str, *args) -> List[Tuple]:
         return self._db_command("_db_read", query, *args)
-    
+
     def tag(self, subj_memid: str, tag_text: str):
         return self._db_command("tag", subj_memid, tag_text)
 
@@ -159,7 +150,8 @@ class SwarmWorkerMemory():
     def forget(self, memid):
         return self._db_command("forget", memid)
 
-    def add_triple(self,
+    def add_triple(
+        self,
         subj: str = None,  # this is a memid if given
         obj: str = None,  # this is a memid if given
         subj_text: str = None,
@@ -167,36 +159,52 @@ class SwarmWorkerMemory():
         obj_text: str = None,
         confidence: float = 1.0,
     ):
-        return self._db_command("add_triple", subj, obj, subj_text, pred_text, obj_text, confidence)
+        return self._db_command(
+            "add_triple", subj, obj, subj_text, pred_text, obj_text, confidence
+        )
+
+    def get_triples(
+        self,
+        subj: str = None,
+        obj: str = None,
+        subj_text: str = None,
+        pred_text: str = None,
+        obj_text: str = None,
+        return_obj_text: str = "if_exists",
+    ) -> List[Tuple[str, str, str]]:
+        return self._db_command(
+            "get_triples", subj, obj, subj_text, pred_text, obj_text, return_obj_text
+        )
 
     def check_memid_exists(self, memid: str, table: str) -> bool:
         return self._db_command("check_memid_exists", memid, table)
 
     def get_mem_by_id(self, memid: str, node_type: str = None):
         return self._db_command("get_mem_by_id", memid, node_type)
-    
+
     def basic_search(self, query):
         return self._db_command("basic_search", query)
-    
+
     def get_block_object_by_xyz(self, xyz: XYZ) -> Optional["VoxelObjectNode"]:
         return self._db_command("get_block_object_by_xyz", xyz)
-    
+
     def get_block_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         return self._db_command("get_block_object_ids_by_xyz", xyz)
-    
+
     def get_object_info_by_xyz(self, xyz: XYZ, ref_type: str, just_memid=True):
         return self._db_command("get_object_info_by_xyz", xyz, ref_type, just_memid)
-    
+
     def get_block_object_by_id(self, memid: str) -> "VoxelObjectNode":
         return self._db_command("get_block_object_by_id", memid)
-    
+
     def get_object_by_id(self, memid: str, table="BlockObjects") -> "VoxelObjectNode":
         return self._db_command("get_object_by_id", memid, table)
-    
+
     def get_instseg_object_ids_by_xyz(self, xyz: XYZ) -> List[str]:
         return self._db_command("get_instseg_object_ids_by_xyz", xyz)
-    
-    def upsert_block(self,
+
+    def upsert_block(
+        self,
         block: Block,
         memid: str,
         ref_type: str,
@@ -204,8 +212,10 @@ class SwarmWorkerMemory():
         agent_placed: bool = False,
         update: bool = True,  # if update is set to False, forces a write
     ):
-        return self._db_command("upsert_block", block, memid, ref_type, player_placed, agent_placed, update)
-    
+        return self._db_command(
+            "upsert_block", block, memid, ref_type, player_placed, agent_placed, update
+        )
+
     def _update_voxel_count(self, memid, dn):
         return self._db_command("_update_voxel_count", memid, dn)
 
@@ -220,15 +230,9 @@ class SwarmWorkerMemory():
 
     def set_memory_attended_time(self, memid):
         return self._db_command("set_memory_attended_time", memid)
-    
+
     # def set_mob_position(self, mob) -> "MobNode":
     #     return self._db_command("set_mob_position", mob)
-    
+
     def add_chat(self, speaker_memid: str, chat: str) -> str:
         return self._db_command("add_chat", speaker_memid, chat)
-    
-
-    
-
-
-

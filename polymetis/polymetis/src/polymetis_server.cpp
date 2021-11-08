@@ -9,7 +9,6 @@
 PolymetisControllerServerImpl::PolymetisControllerServerImpl() {
   controller_model_buffer_.reserve(MAX_MODEL_BYTES);
   updates_model_buffer_.reserve(MAX_MODEL_BYTES);
-  input_.push_back(state_dict_);
 }
 
 Status PolymetisControllerServerImpl::GetRobotState(ServerContext *context,
@@ -76,18 +75,8 @@ Status PolymetisControllerServerImpl::InitRobotClient(
 
   num_dofs_ = robot_client_metadata->dof();
 
-  // Create initial state dictionary
-  rs_timestamp_ = torch::zeros(2).to(torch::kInt32);
-  rs_joint_positions_ = torch::zeros(num_dofs_);
-  rs_joint_velocities_ = torch::zeros(num_dofs_);
-  rs_motor_torques_measured_ = torch::zeros(num_dofs_);
-  rs_motor_torques_external_ = torch::zeros(num_dofs_);
-
-  state_dict_.insert("timestamp", rs_timestamp_);
-  state_dict_.insert("joint_positions", rs_joint_positions_);
-  state_dict_.insert("joint_velocities", rs_joint_velocities_);
-  state_dict_.insert("motor_torques_measured", rs_motor_torques_measured_);
-  state_dict_.insert("motor_torques_external", rs_motor_torques_external_);
+  torch_robot_state_ =
+      std::unique_ptr<TorchRobotState>(new TorchRobotState(num_dofs_));
 
   // Load default controller bytes into model buffer
   controller_model_buffer_.clear();
@@ -100,10 +89,11 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   memstream model_stream(controller_model_buffer_.data(),
                          controller_model_buffer_.size());
   try {
-    robot_client_context_.default_controller = torch::jit::load(model_stream);
-  } catch (const c10::Error &e) {
+    robot_client_context_.default_controller =
+        new TorchScriptedController(model_stream);
+  } catch (const std::exception &e) {
     std::cerr << "error loading default controller:\n";
-    std::cerr << e.msg() << std::endl;
+    std::cerr << e.what() << std::endl;
     return Status::CANCELLED;
   }
 
@@ -149,15 +139,16 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // Parse robot state
-  auto timestamp_msg = robot_state->timestamp();
-  rs_timestamp_[0] = timestamp_msg.seconds();
-  rs_timestamp_[1] = timestamp_msg.nanos();
-  for (int i = 0; i < num_dofs_; i++) {
-    rs_joint_positions_[i] = robot_state->joint_positions(i);
-    rs_joint_velocities_[i] = robot_state->joint_velocities(i);
-    rs_motor_torques_measured_[i] = robot_state->motor_torques_measured(i);
-    rs_motor_torques_external_[i] = robot_state->motor_torques_external(i);
-  }
+  torch_robot_state_->update_state(
+      robot_state->timestamp().seconds(), robot_state->timestamp().nanos(),
+      std::vector<float>(robot_state->joint_positions().begin(),
+                         robot_state->joint_positions().end()),
+      std::vector<float>(robot_state->joint_velocities().begin(),
+                         robot_state->joint_velocities().end()),
+      std::vector<float>(robot_state->motor_torques_measured().begin(),
+                         robot_state->motor_torques_measured().end()),
+      std::vector<float>(robot_state->motor_torques_external().begin(),
+                         robot_state->motor_torques_external().end()));
 
   // Lock to prevent 1) controller updates while controller is running; 2)
   // external termination during controller selection, which might cause loading
@@ -175,7 +166,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     custom_controller_context_.episode_end = robot_state_buffer_.size() - 1;
     custom_controller_context_.status = TERMINATED;
 
-    robot_client_context_.default_controller.get_method("reset")(empty_input_);
+    robot_client_context_.default_controller->reset();
 
     std::cout
         << "Terminating custom controller, switching to default controller."
@@ -183,25 +174,18 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // Select controller
-  torch::jit::script::Module *controller;
+  TorchScriptedController *controller;
   if (custom_controller_context_.status == RUNNING) {
-    controller = &custom_controller_context_.custom_controller;
+    controller = custom_controller_context_.custom_controller;
   } else {
-    controller = &robot_client_context_.default_controller;
+    controller = robot_client_context_.default_controller;
   }
 
-  // Step controller & generate torque command response
-  c10::Dict<torch::jit::IValue, torch::jit::IValue> controller_state_dict =
-      controller->forward(input_).toGenericDict();
-
+  std::vector<float> desired_torque = controller->forward(*torch_robot_state_);
   // Unlock
   custom_controller_context_.controller_mtx.unlock();
-
-  torch::jit::IValue key = torch::jit::IValue("joint_torques");
-  torch::Tensor desired_torque = controller_state_dict.at(key).toTensor();
-
   for (int i = 0; i < num_dofs_; i++) {
-    torque_command->add_joint_torques(desired_torque[i].item<float>());
+    torque_command->add_joint_torques(desired_torque[i]);
   }
   setTimestampToNow(torque_command->mutable_timestamp());
 
@@ -216,7 +200,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   // Update timestep & check termination
   if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.timestep++;
-    if (controller->get_method("is_terminated")(empty_input_).toBool()) {
+    if (controller->is_terminated()) {
       custom_controller_context_.status = TERMINATING;
     }
   }
@@ -230,9 +214,6 @@ Status PolymetisControllerServerImpl::SetController(
     ServerContext *context, ServerReader<ControllerChunk> *stream,
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
-
-  resetControllerContext();
-  custom_controller_context_.server_context = context;
 
   // Read chunks of the binary serialized controller. The binary messages
   // would be written into the preallocated buffer used for the Torch
@@ -249,16 +230,25 @@ Status PolymetisControllerServerImpl::SetController(
   memstream model_stream(controller_model_buffer_.data(),
                          controller_model_buffer_.size());
   try {
-    custom_controller_context_.custom_controller =
-        torch::jit::load(model_stream);
-  } catch (const c10::Error &e) {
+    // Load new controller
+    auto new_controller = new TorchScriptedController(model_stream);
+
+    // Switch in new controller by updating controller context
+    custom_controller_context_.controller_mtx.lock();
+
+    resetControllerContext();
+    custom_controller_context_.custom_controller = new_controller;
+    custom_controller_context_.status = READY;
+
+    custom_controller_context_.controller_mtx.unlock();
+    std::cout << "Loaded new controller.\n";
+
+  } catch (const std::exception &e) {
     std::cerr << "error loading the model:\n";
-    std::cerr << e.msg() << std::endl;
+    std::cerr << e.what() << std::endl;
 
     return Status::CANCELLED;
   }
-  custom_controller_context_.status = READY;
-  std::cout << "Loaded new controller.\n";
 
   // Respond with start index
   while (custom_controller_context_.status == READY) {
@@ -287,30 +277,22 @@ Status PolymetisControllerServerImpl::UpdateController(
   }
 
   // Load param container
-  torch::jit::script::Module param_dict_container;
   memstream model_stream(updates_model_buffer_.data(),
                          updates_model_buffer_.size());
-  try {
-    param_dict_container = torch::jit::load(model_stream);
-  } catch (const c10::Error &e) {
-    std::cerr << "error loading the param container:\n";
-    std::cerr << e.msg() << std::endl;
-
+  if (!custom_controller_context_.custom_controller->param_dict_load(
+          model_stream)) {
     return Status::CANCELLED;
   }
 
-  // Create controller update input dict
-  param_dict_input_.clear();
-  param_dict_input_.push_back(param_dict_container.forward(empty_input_));
-
   // Update controller & set intervals
-  if (custom_controller_context_.status != UNINITIALIZED) {
+  if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
-    custom_controller_context_.custom_controller.get_method("update")(
-        param_dict_input_);
     interval->set_start(robot_state_buffer_.size());
+    custom_controller_context_.custom_controller->param_dict_update_module();
     custom_controller_context_.controller_mtx.unlock();
   } else {
+    std::cout << "Warning: Tried to perform a controller update with no "
+                 "controller running.\n";
     interval->set_start(-1);
   }
 
@@ -323,7 +305,7 @@ Status PolymetisControllerServerImpl::TerminateController(
     ServerContext *context, const Empty *, LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  if (custom_controller_context_.status != UNINITIALIZED) {
+  if (custom_controller_context_.status == RUNNING) {
     custom_controller_context_.controller_mtx.lock();
     custom_controller_context_.status = TERMINATING;
     custom_controller_context_.controller_mtx.unlock();
@@ -335,6 +317,8 @@ Status PolymetisControllerServerImpl::TerminateController(
     interval->set_start(custom_controller_context_.episode_begin);
     interval->set_end(custom_controller_context_.episode_end);
   } else {
+    std::cout << "Warning: Tried to terminate controller with no controller "
+                 "running.\n";
     interval->set_start(-1);
     interval->set_end(-1);
   }

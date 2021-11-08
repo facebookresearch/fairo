@@ -8,7 +8,7 @@ import math
 import unittest
 import logging
 
-from droidlet.lowlevel.locobot.locobot_mover_utils import (
+from droidlet.lowlevel.robot_mover_utils import (
     get_move_target_for_point,
     xyz_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
@@ -52,7 +52,7 @@ class UtilsTest(unittest.TestCase):
 
 class LocoboMoverUtilsTest(unittest.TestCase):
     """
-    Coordinate transform related tests https://github.com/facebookresearch/droidlet/blob/main/locobot/coordinates.MD
+    Coordinate transform related tests https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD
     """
 
     def test_pyrobot_to_canonical_to_pyrobot(self):

@@ -1,14 +1,19 @@
 -r ../../requirements.txt
+norfair
+opencv-python
+dlib>=19.19.0
+facenet-pytorch
+krovetz
+-f https://dl.fbaipublicfiles.com/detectron2/wheels/cu111/torch1.9/index.html
+detectron2
+face_recognition
+https://github.com/waspinator/pycococreator/archive/refs/tags/0.2.0.zip
+pycocotools
+
+
 pyro4
 scikit-build
 webcolors>=1.10
-dlib>=19.19.0
-opencv-python
-face_recognition
-norfair
-facenet-pytorch
--f https://dl.fbaipublicfiles.com/detectron2/wheels/cu110/torch1.7/index.html
-detectron2
 scipy>=1.5.4
 scikit-fmm
 scikit-image
@@ -16,7 +21,4 @@ scikit-learn
 tenacity
 wordcloud
 fuzzywuzzy
-krovetz
 open3d
-git+git://github.com/waspinator/pycococreator.git@0.2.0
-pycocotools

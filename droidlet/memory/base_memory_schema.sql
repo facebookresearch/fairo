@@ -165,6 +165,14 @@ CREATE TABLE NamedAbstractions(
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 
+CREATE TABLE InterpreterMems(
+    uuid                   NCHAR(36)       PRIMARY KEY,
+    interpreter_type       TEXT,            
+    finished               BOOLEAN         NOT NULL DEFAULT 0,
+    awaiting_response      BOOLEAN         NOT NULL DEFAULT 0,
+    
+    FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
+);
 
 CREATE TABLE SetMems(
     uuid    NCHAR(36)       PRIMARY KEY,

@@ -17,7 +17,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import (
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.wait_for_cuberite import (
     wait_for_cuberite,
 )
-from droidlet.lowlevel.minecraft.shape_helpers import build_shape_scene
+from droidlet.lowlevel.minecraft.shape_util import build_shape_scene
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)

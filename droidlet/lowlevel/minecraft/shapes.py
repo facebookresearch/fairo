@@ -1,6 +1,7 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
+from droidlet.base_util import get_bounds
 
 """This file has implementation for a variety of shapes and
 their arrangements"""
@@ -23,7 +24,7 @@ DEFAULT_IDM = (5, 0)
 
 
 def hollow_triangle(
-        size=3, depth=1, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme=False, **kwargs
+    size=3, depth=1, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme=False, **kwargs
 ):
     """
     Construct an empty isosceles triangle with a given half base length (b/2).
@@ -60,14 +61,14 @@ def hollow_triangle(
 
 
 def hollow_rectangle(
-        size: Tuple[int, int] = (5, 3),
-        height: Optional[int] = None,
-        length: Optional[int] = None,
-        bid: IDM = DEFAULT_IDM,
-        thickness=1,
-        orient="xy",
-        labelme=False,
-        **kwargs,
+    size: Tuple[int, int] = (5, 3),
+    height: Optional[int] = None,
+    length: Optional[int] = None,
+    bid: IDM = DEFAULT_IDM,
+    thickness=1,
+    orient="xy",
+    labelme=False,
+    **kwargs,
 ):
     R = rectangle(size=size, height=height, length=length, bid=bid, orient=orient)
     l = [r[0] for r in R]
@@ -89,13 +90,13 @@ def hollow_rectangle(
 
 
 def rectangle(
-        size=(5, 3),
-        height: Optional[int] = None,
-        length: Optional[int] = None,
-        bid: IDM = DEFAULT_IDM,
-        orient="xy",
-        labelme=False,
-        **kwargs,
+    size=(5, 3),
+    height: Optional[int] = None,
+    length: Optional[int] = None,
+    bid: IDM = DEFAULT_IDM,
+    orient="xy",
+    labelme=False,
+    **kwargs,
 ):
     if type(size) is int:
         size = [size, size]
@@ -150,7 +151,7 @@ def triangle(size=3, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme=False, *
 
 
 def circle(
-        radius=4, size=None, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme=False, **kwargs
+    radius=4, size=None, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme=False, **kwargs
 ):
     if size is not None:
         radius = size // 2
@@ -210,7 +211,7 @@ def disk(radius=5, size=None, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme
 
 
 def rectanguloid(
-        size=None, depth=None, height=None, width=None, bid=DEFAULT_IDM, labelme=False, **kwargs
+    size=None, depth=None, height=None, width=None, bid=DEFAULT_IDM, labelme=False, **kwargs
 ):
     """Construct a solid rectanguloid"""
     if type(size) is int:
@@ -253,7 +254,7 @@ def near_extremes(x, a, b, r):
 
 
 def rectanguloid_frame(
-        size=3, thickness=1, bid=DEFAULT_IDM, only_corners=False, labelme=False, **kwargs
+    size=3, thickness=1, bid=DEFAULT_IDM, only_corners=False, labelme=False, **kwargs
 ):
     """Construct just the lines of a rectanguloid"""
     R = hollow_rectanguloid(size=size, thickness=thickness, bid=bid, labelme=False, **kwargs)
@@ -385,7 +386,7 @@ def spherical_shell(radius=5, size=None, thickness=2, bid=DEFAULT_IDM, labelme=F
 
 
 def square_pyramid(
-        slope=1, radius=10, size=None, height=None, bid=DEFAULT_IDM, labelme=False, **kwargs
+    slope=1, radius=10, size=None, height=None, bid=DEFAULT_IDM, labelme=False, **kwargs
 ):
     if size is not None:
         radius = size + 2  # this is a heuristic
@@ -609,20 +610,20 @@ def get_rect_instance_seg(bx, by, bz):
     ]
 
     I["top_edge"] = [
-                        tuple((s, by[1], bz[i]) for s in range(bx[0], bx[1] + 1)) for i in range(2)
-                    ] + [tuple((bx[i], by[1], s) for s in range(bz[0], bz[1] + 1)) for i in range(2)]
+        tuple((s, by[1], bz[i]) for s in range(bx[0], bx[1] + 1)) for i in range(2)
+    ] + [tuple((bx[i], by[1], s) for s in range(bz[0], bz[1] + 1)) for i in range(2)]
 
     I["bottom_edge"] = [
-                           tuple((s, by[0], bz[i]) for s in range(bx[0], bx[1] + 1)) for i in range(2)
-                       ] + [tuple((bx[i], by[0], s) for s in range(bz[0], bz[1] + 1)) for i in range(2)]
+        tuple((s, by[0], bz[i]) for s in range(bx[0], bx[1] + 1)) for i in range(2)
+    ] + [tuple((bx[i], by[0], s) for s in range(bz[0], bz[1] + 1)) for i in range(2)]
 
     I["face"] = [
-                    tuple((s, t, bz[i]) for s in range(bx[0], bx[1] + 1) for t in range(by[0], by[1] + 1))
-                    for i in range(2)
-                ] + [
-                    tuple((bx[i], t, s) for s in range(bz[0], bz[1] + 1) for t in range(by[0], by[1] + 1))
-                    for i in range(2)
-                ]
+        tuple((s, t, bz[i]) for s in range(bx[0], bx[1] + 1) for t in range(by[0], by[1] + 1))
+        for i in range(2)
+    ] + [
+        tuple((bx[i], t, s) for s in range(bz[0], bz[1] + 1) for t in range(by[0], by[1] + 1))
+        for i in range(2)
+    ]
 
     I["top"] = [
         tuple((s, by[1], t) for s in range(bx[0], bx[1] + 1) for t in range(bz[0], bz[1] + 1))
@@ -645,16 +646,6 @@ def labels_from_instance_seg(I, L=None):
                     if label not in L[p]:
                         L[p].append(label)
     return L
-
-
-# TODO: merge this with the one in build utils
-def get_bounds(S):
-    """
-    S should be a list of tuples, where each tuple is a pair of
-    (x,y,z) and ids
-    """
-    x, y, z = list(zip(*list(zip(*S))[0]))
-    return min(x), max(x), min(y), max(y), min(z), max(z)
 
 
 # TODO: vector direction?

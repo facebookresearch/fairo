@@ -97,6 +97,24 @@ def link_archive_to_mem(agent_memory, memid, archive_memid):
     agent_memory.add_triple(subj=memid, pred_text="_has_archive", obj=archive_memid)
 
 
+def dehydrate(lf):
+    """ 
+    replace any MemoryNode m in a logical form with {"dehydrated_mem": m.memid}
+    This is used to store a logical form in the db; as logical forms may contain
+    MemoryNodes as values, this makes it easier to serialize (text instead of python object).  
+    """
+    for k, v in lf.items():
+        if isinstance(v, MemoryNode):
+            lf[k] = {"dehydrated_mem": v.memid}
+        elif type(v) is list:
+            for d in v:
+                dehydrate(d)
+        elif type(v) is dict:
+            dehydrate(v)
+        else:
+            pass
+
+
 class ProgramNode(MemoryNode):
     """This class represents the logical forms (outputs from
     the semantic parser)
@@ -128,7 +146,9 @@ class ProgramNode(MemoryNode):
         text = self.agent_memory._db_read_one(
             "SELECT logical_form FROM Programs WHERE uuid=?", self.memid
         )[0]
-        self.logical_form = json.loads(text)
+        lf = json.loads(text)
+        self.rehydrate(lf)
+        self.logical_form = lf
 
     @classmethod
     def create(cls, memory, logical_form: dict, snapshot=False) -> str:
@@ -148,6 +168,7 @@ class ProgramNode(MemoryNode):
             >>> create(memory, logical_form)
         """
         memid = cls.new(memory, snapshot=snapshot)
+        dehydrate(logical_form)
         logical_form_text = json.dumps(logical_form)
         memory.db_write(
             "INSERT INTO Programs(uuid, logical_form) VALUES (?,?)",
@@ -155,6 +176,23 @@ class ProgramNode(MemoryNode):
             format(logical_form_text),
         )
         return memid
+
+    def rehydrate(self, lf):
+        """ 
+        replace any {"dehydrated_mem": m.memid} with the associated MemoryNode
+        This is used when retrieving a logical form in the db; as logical forms may contain
+        MemoryNodes as values, this makes it easier to serialize (text instead of python object).
+        """
+        for k, v in lf.items():
+            if type(v) is dict:
+                memid = v.get("dehydrated_mem")
+                if memid:
+                    lf[k] = self.agent_memory.get_mem_by_id(memid)
+                else:
+                    self.rehydrate(v)
+            elif type(v) is list:
+                for d in v:
+                    self.rehydrate(d)
 
 
 # TODO FIXME instantiate as a side effect of making triples
@@ -311,11 +349,53 @@ class TripleNode(MemoryNode):
         return memid
 
 
+class InterpreterNode(MemoryNode):
+    """for representing interpreter objects"""
+
+    TABLE_COLUMNS = ["uuid"]
+    TABLE = "InterpreterMems"
+    NODE_TYPE = "Interpreter"
+
+    def __init__(self, agent_memory, memid: str):
+        super().__init__(agent_memory, memid)
+        finished, awaiting_response, interpreter_type = agent_memory._db_read_one(
+            "SELECT finished, awaiting_response, interpreter_type FROM InterpreterMems where uuid=?",
+            memid,
+        )
+        self.finished = finished
+        self.awaiting_response = awaiting_response
+        self.interpreter_type = interpreter_type
+
+    @classmethod
+    def create(
+        cls,
+        memory,
+        interpreter_type="interpeter",
+        finished=False,
+        awaiting_response=False,
+        snapshot=False,
+    ) -> str:
+        memid = cls.new(memory, snapshot=snapshot)
+        memory.db_write(
+            "INSERT INTO InterpreterMems(uuid, finished, awaiting_response, interpreter_type) VALUES (?,?,?,?)",
+            memid,
+            finished,
+            awaiting_response,
+            interpreter_type,
+        )
+        return memid
+
+    def finish(self):
+        self.agent_memory.db_write(
+            "UPDATE InterpreterMems SET finished=? WHERE uuid=?", 1, self.memid
+        )
+
+
 # the table entry just has the memid and a modification time,
 # actual set elements are handled as triples
 class SetNode(MemoryNode):
     """for representing sets of objects, so that it is easier to build complex relations
-    using RDF/triplestore format.  is currently fetal- not used in main codebase yet"""
+    using RDF/triplestore format."""
 
     TABLE_COLUMNS = ["uuid"]
     TABLE = "SetMems"
@@ -328,11 +408,11 @@ class SetNode(MemoryNode):
     @classmethod
     def create(cls, memory, snapshot=False) -> str:
         memid = cls.new(memory, snapshot=snapshot)
-        memory.db_write("INSERT INTO SetMems(uuid) VALUES (?)", memid, memory.get_time())
+        memory.db_write("INSERT INTO SetMems(uuid) VALUES (?)", memid)
         return memid
 
     def get_members(self):
-        return self.agent_memory.get_triples(pred_text="set_member_", obj=self.memid)
+        return self.agent_memory.get_triples(pred_text="member_of", obj=self.memid)
 
     def snapshot(self, agent_memory):
         return SetNode.create(agent_memory, snapshot=True)
@@ -794,12 +874,14 @@ class TaskNode(MemoryNode):
             run_count,
             created,
             finished,
+            paused,
             action_name,
         ) = self.agent_memory._db_read_one(
-            "SELECT pickled, prio, running, run_count, created, finished, action_name FROM Tasks WHERE uuid=?",
+            "SELECT pickled, prio, running, run_count, created, finished, paused, action_name FROM Tasks WHERE uuid=?",
             memid,
         )
         self.prio = prio
+        self.paused = paused
         self.run_count = run_count
         self.running = running
         self.task = self.agent_memory.safe_unpickle(pickled)
@@ -813,6 +895,14 @@ class TaskNode(MemoryNode):
     def create(cls, memory, task) -> str:
         """Creates a new entry into the Tasks table
 
+        the input task can be an instantiated Task 
+            or a dict with followng structure:
+            {"class": TaskClass,
+             "task_data": {...}}
+            in this case, the TaskClass is the uninstantiated class
+            and the agent will run update_task() when it is instantiated
+
+
         Returns:
             string: memid of the entry
 
@@ -824,16 +914,27 @@ class TaskNode(MemoryNode):
         old_memid = getattr(task, "memid", None)
         if old_memid:
             return old_memid
+        if type(task) is dict:
+            # this is an egg to be hatched by agent
+            prio = task["task_data"].get("task_node_data", {}).get("prio", -3)
+            running = task["task_data"].get("task_node_data", {}).get("running", 0)
+            run_count = task["task_data"].get("task_node_data", {}).get("run_count", 0)
+            action_name = task["class"].__name__.lower()
+        else:
+            action_name = task.__class__.__name__.lower()
+            prio = -1
+            running = 0
+            run_count = task.run_count
         memid = cls.new(memory)
-        task.memid = memid  # FIXME: this shouldn't be necessary, merge Task and TaskNode?
+        task.memid = memid
         memory._db_write(
             "INSERT INTO Tasks (uuid, action_name, pickled, prio, running, run_count, created) VALUES (?,?,?,?,?,?,?)",
             memid,
-            task.__class__.__name__.lower(),
+            action_name,
             memory.safe_pickle(task),
-            task.prio,
-            task.running,
-            task.run_count,
+            prio,
+            running,
+            run_count,
             memory.get_time(),
         )
         return memid
@@ -861,22 +962,26 @@ class TaskNode(MemoryNode):
             setattr(self.task, k, condition)
         self.update_task()
 
-    # FIXME TODO don't need paused, set prio to 0 and have a condtion for unpausing
+    # FIXME names/constants for some specific prios
     # use this to update prio or running, don't do it directly on task or in db!!
     def get_update_status(self, status, force_db_update=True, force_task_update=True):
         """
-        status is a dict with possible keys "prio", "running", "finished".
+        status is a dict with possible keys "prio", "running", "paused", "finished".
 
         prio > 0  :  run me if possible, check my stop condition
         prio = 0  :  check my run_condition, run if true
         prio = -1 :  check my init_condition, set prio = 0 if True
-        prio < -1 :  don't even check init_condition or run_condition, I'm done
+        prio < -1 :  don't even check init_condition or run_condition, I'm done or unhatched
+        prio = -3 :  I'm unhatched
 
         running = 1 :  task should be stepped if possible and not explicitly paused
         running = 0 :  task should not be stepped
 
         finished >  0 :  task has run and is complete, completed at the time indicated
         finished = -1 :  task has not completed
+
+        paused = 1 : explicitly stopped by some other process; don't check any condtions and leave me alone
+        paused = 0 : go on as normal
 
         this method updates these columns of the DB for each of the keys if have values
         if force_db_update is set, these will be updated with the relevant attr from self.task
@@ -885,21 +990,25 @@ class TaskNode(MemoryNode):
         and whatever is in the dict will be put on the task.
         """
         status_out = {}
-        for k in ["prio", "running", "finished"]:
+        for k in ["finished", "prio", "running", "paused"]:
             # update the task itself, hopefully don't need to do this when task objects are re-written as MemoryNode s
             if force_task_update:
                 s = status.get(k)
-                if s is None:
-                    s = getattr(self.task, k)
-                setattr(self.task, k, s)
-            status_out[k] = getattr(self.task, k)
+                if s:
+                    setattr(self.task, k, s)
             if k == "finished":
                 if self.task.finished:
                     status_out[k] = self.agent_memory.get_time()
+                    # warning: using the order of the iterator!
+                    status["running"] = 0
+                    status["prio"] = -2
                 else:
                     status_out[k] = -1
-
-            if status.get(k) or force_db_update:
+            else:
+                status_out[k] = (
+                    status.get(k) if status.get(k) is not None else getattr(self.task, k, None)
+                )
+            if (status.get(k) is not None) or (force_db_update and status_out[k]):
                 cmd = "UPDATE Tasks SET " + k + "=? WHERE uuid=?"
                 self.agent_memory.db_write(cmd, status_out[k], self.memid)
         return status_out
@@ -989,6 +1098,7 @@ NODELIST = [
     LocationNode,
     AttentionNode,
     TripleNode,
+    InterpreterNode,
     SetNode,
     TimeNode,
     PlayerNode,

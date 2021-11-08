@@ -9,14 +9,15 @@ import pickle
 import torch
 
 from .utils_model import build_model, load_model
+from .utils_parsing import beam_search
 from .utils_parsing import *
 from .decoder_with_loss import *
 from .encoder_decoder import *
 from .caip_dataset import *
 
 
-class TTADBertModel(object):
-    """TTAD model class that loads a pretrained model and runs inference in the agent.
+class NSPBertModel(object):
+    """NSPBertModel model class that loads a pretrained model and runs inference in the agent.
 
     Attributes:
         tokenizer (str): Pretrained tokenizer used to tokenize input. Runs end-to-end
@@ -33,7 +34,6 @@ class TTADBertModel(object):
         data_dir (str): Path to directory containing all datasets used by the NSP model.
             Note that this data is not used in inference, rather we load from the ground truth
             data directory.
-
     """
 
     def __init__(self, model_dir, data_dir, model_name="caip_test_model"):

@@ -384,7 +384,7 @@ def process_result(full_d):
     #     action_dict, words = fix_spans_due_to_empty_words(action_dict, words)
     words = []
     for key in full_d:
-        if "Input.word" in key:
+        if "Input.word" in key and full_d[key] != "NONE":
             words.append(full_d[key])
     return worker_id, action_dict, words, original_child_name
 
@@ -447,23 +447,23 @@ def resolve_spans(words, dicts):
                     inner[k] = new_v
                 elif k == "repeat":
 
-                    if "stop_condition" in v:
+                    if "remove_condition" in v:
                         new_v = {}
-                        new_v["stop_condition"] = {}
+                        new_v["remove_condition"] = {}
                         x = {}
-                        x["condition_type"] = v["stop_condition"]["condition_type"]
+                        x["condition_type"] = v["remove_condition"]["condition_type"]
 
                         new_vals = []
                         if (
-                            v["stop_condition"]["block_type"][0]
-                            == v["stop_condition"]["block_type"][1]
+                            v["remove_condition"]["block_type"][0]
+                            == v["remove_condition"]["block_type"][1]
                         ):
-                            new_vals.append(words[v["stop_condition"]["block_type"][0]])
+                            new_vals.append(words[v["remove_condition"]["block_type"][0]])
                         else:
-                            for item in v["stop_condition"]["block_type"]:
+                            for item in v["remove_condition"]["block_type"]:
                                 new_vals.append(words[item])
                         x["block_type"] = new_vals
-                        new_v["stop_condition"] = x
+                        new_v["remove_condition"] = x
                         inner["repeat"] = new_v
                 else:
                     inner[k] = v
@@ -579,7 +579,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in all_agreements_dict.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\t" + v + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\t" + v + "\n")
 
     # write disagreements to a file
     disag = str(no_agreement)
@@ -587,7 +587,7 @@ if __name__ == "__main__":
     with open(f, "w") as outfile:
         for k, v in disagreement.items():
             cmd, child = k.split("$$$")
-            outfile.write(cmd + "\t" + child + "\n")
+            outfile.write(cmd.strip() + "\t" + child + "\n")
             for item in v:
                 outfile.write(item + "\n")
             outfile.write("\n")

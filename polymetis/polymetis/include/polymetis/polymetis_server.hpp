@@ -6,6 +6,7 @@
 #define polymetis_SERVER_H
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <mutex>
 #include <string>
@@ -21,9 +22,8 @@
 #include "polymetis.grpc.pb.h"
 
 #include "polymetis/utils.h"
+#include "torch_server_ops.hpp"
 #include "yaml-cpp/yaml.h"
-
-#include <torch/script.h>
 
 #define MAX_CIRCULAR_BUFFER_SIZE 300000 // 5 minutes of data at 1kHz
 #define MAX_MODEL_BYTES 1048576         // 1 megabyte
@@ -53,13 +53,14 @@ enum ControllerStatus {
 TODO
 */
 struct CustomControllerContext {
-  ServerContext *server_context;
   uint episode_begin = -1;
   uint episode_end = -1;
   uint timestep = 0;
   ControllerStatus status = UNINITIALIZED;
   std::mutex controller_mtx;
-  torch::jit::script::Module custom_controller;
+  TorchScriptedController *custom_controller = nullptr;
+
+  ~CustomControllerContext() { delete custom_controller; }
 };
 
 /**
@@ -68,7 +69,7 @@ TODO
 struct RobotClientContext {
   long int last_update_ns = 0;
   RobotClientMetadata metadata;
-  torch::jit::script::Module default_controller;
+  TorchScriptedController *default_controller = nullptr;
 };
 
 /**
@@ -171,19 +172,7 @@ private:
   CustomControllerContext custom_controller_context_;
   RobotClientContext robot_client_context_;
 
-  // Robot states
-  torch::Tensor rs_timestamp_;
-  torch::Tensor rs_joint_positions_;
-  torch::Tensor rs_joint_velocities_;
-  torch::Tensor rs_motor_torques_measured_;
-  torch::Tensor rs_motor_torques_external_;
-
-  c10::Dict<std::string, torch::Tensor> state_dict_;
-
-  // Inputs
-  std::vector<torch::jit::IValue> input_;
-  std::vector<torch::jit::IValue> empty_input_;
-  std::vector<torch::jit::IValue> param_dict_input_;
+  std::unique_ptr<TorchRobotState> torch_robot_state_;
 };
 
 #endif

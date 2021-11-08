@@ -16,6 +16,7 @@ requirements:
     - cmake
     - cudatoolkit=10.1
     - doxygen
+    - eigen=3.3.9
     - grpc-cpp=1.35.0=h146f9af_0
     - hpp-fcl=1.6.0=py38h75fc22a_1
     - libprotobuf
@@ -48,7 +49,7 @@ requirements:
     - plotly
     - poco ==1.9.0 # needed by libfranka
     - protobuf
-    - pybullet
+    - pybullet ==3.17
     - pytest
     - pytest-benchmark
     - python

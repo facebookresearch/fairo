@@ -14,8 +14,8 @@ if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
     sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 import cv2
 
-from droidlet.perception.robot.perception_helpers import get_color_tag
-from droidlet.lowlevel.locobot.locobot_mover_utils import xyz_pyrobot_to_canonical_coords
+from droidlet.perception.robot.perception_util import get_color_tag
+from droidlet.lowlevel.robot_mover_utils import xyz_pyrobot_to_canonical_coords
 
 class AbstractHandler:
     """Interface for implementing perception handlers.
@@ -55,9 +55,6 @@ class WorldObject:
             self.bounds[3], self.bounds[4], self.bounds[5])
 
     def get_masked_img(self):
-        raise NotImplementedError
-
-    def save_to_memory(self):
         raise NotImplementedError
 
     def to_struct(self):

@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import unittest
 from droidlet.base_util import *
+from droidlet.base_util import get_bounds
 from droidlet.lowlevel.minecraft.shapes import cube
 
 

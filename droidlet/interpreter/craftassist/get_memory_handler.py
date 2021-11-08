@@ -11,9 +11,10 @@ from droidlet.interpreter import (
     ReferenceLocationInterpreter,
     GetMemoryHandler,
 )
-from .attribute_helper import MCAttributeInterpreter
+from .interpret_attributes import MCAttributeInterpreter
 from .spatial_reasoning import ComputeLocations
 from .point_target import PointTargetInterpreter
+from droidlet.memory.memory_nodes import InterpreterNode
 from droidlet.shared_data_structs import ErrorWithResponse
 from droidlet.interpreter.craftassist.tasks import Build, Point
 from droidlet.base_util import prepend_a_an
@@ -32,8 +33,9 @@ class MCGetMemoryHandler(GetMemoryHandler):
 
     """
 
-    def __init__(self, speaker_name: str, action_dict: Dict, **kwargs):
-        super().__init__(speaker_name, action_dict, **kwargs)
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
+        self.get_locs_from_entity = low_level_data["get_locs_from_entity"]
         self.subinterpret = {
             "filters": FilterInterpreter(),
             "reference_objects": ReferenceObjectInterpreter(interpret_reference_object),

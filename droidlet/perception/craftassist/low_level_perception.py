@@ -1,17 +1,10 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-import os
-import sys
 import numpy as np
-
-from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, pos_to_np, euclid_dist, diag_adjacent
-from droidlet.base_util import to_block_pos
 from typing import Tuple, List
-from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.block_data import BORING_BLOCKS
-
-from droidlet.memory.memory_nodes import PlayerNode, AttentionNode
-from droidlet.memory.craftassist.mc_memory_nodes import BlockObjectNode
+from droidlet.base_util import to_block_pos, XYZ, IDM, pos_to_np, euclid_dist
+from droidlet.shared_data_struct.craftassist_shared_utils import CraftAssistPerceptionData
 
 
 def capped_line_of_sight(agent, player_struct, cap=20):
@@ -26,8 +19,7 @@ def capped_line_of_sight(agent, player_struct, cap=20):
 
 
 class LowLevelMCPerception:
-    """Perceive the world at a given frequency and update agent
-    memory.
+    """Perceive the world at a given frequency and send updates back to the agent
 
     updates positions of other players, mobs, self, and changed blocks,
     takes this information directly from the craftassist_cuberite_utils server
@@ -39,7 +31,7 @@ class LowLevelMCPerception:
 
     def __init__(self, agent, perceive_freq=5):
         self.agent = agent
-        self.memory = agent.memory
+        self.memory = agent.memory  # NOTE: remove this once done
         self.pending_agent_placed_blocks = set()
         self.perceive_freq = perceive_freq
 
@@ -55,197 +47,138 @@ class LowLevelMCPerception:
         """
         # FIXME (low pri) remove these in code, get from sql
         self.agent.pos = to_block_pos(pos_to_np(self.agent.get_player().pos))
+        boring_blocks = self.agent.low_level_data["boring_blocks"]
+        """
+        perceive_info is a dictionary with the following possible members :
+            - mobs(list) : List of mobs in perception range
+            - agent_pickable_items(dict) - member with the following possible children:
+                - in_perception_items(list) - List of item_stack
+                - all_items(set) - Set of item stack entityIds
+            - agent_attributes(NamedTuple) - returns the namedTuple Player for agent
+            - other_player_list(List) - List of [player, location] of all other players
+            - changed_block_attributes(dict) - Dictionary of mappings from (xyz, idm) to [
+                                                                                        interesting,
+                                                                                        player_placed,
+                                                                                        agent_placed,
+                                                                                    ]
+            
+        """
+        perceive_info = {}
+        perceive_info["mobs"] = None
+        perceive_info["agent_pickable_items"] = {}
+        perceive_info["agent_attributes"] = None
+        perceive_info["other_player_list"] = []
+        perceive_info["changed_block_attributes"] = {}
 
         if self.agent.count % self.perceive_freq == 0 or force:
+            # Find mobs in perception range
+            mobs = []
             for mob in self.agent.get_mobs():
-                if euclid_dist(self.agent.pos, pos_to_np(mob.pos)) < self.memory.perception_range:
-                    self.memory.set_mob_position(mob)
-            item_stack_set = set()
+                if (
+                    euclid_dist(self.agent.pos, pos_to_np(mob.pos))
+                    < self.agent.memory.perception_range
+                ):
+                    mobs.append(mob)
+            perceive_info["mobs"] = mobs if mobs else None
+
+            # Find items that can be picked by the agent, and in perception range
+            all_items = set()
+            in_perception_items = []
             for item_stack in self.agent.get_item_stacks():
-                item_stack_set.add(item_stack.entityId)
+                all_items.add(item_stack.entityId)
                 if (
                     euclid_dist(self.agent.pos, pos_to_np(item_stack.pos))
-                    < self.memory.perception_range
+                    < self.agent.memory.perception_range
                 ):
-                    self.memory.set_item_stack_position(item_stack)
-            old_item_stacks = self.memory.get_all_item_stacks()
-            if old_item_stacks:
-                for old_item_stack in old_item_stacks:
-                    memid = old_item_stack[0]
-                    eid = old_item_stack[1]
-                    if eid not in item_stack_set:
-                        self.memory.untag(memid, "_on_ground")
-                    else:
-                        self.memory.tag(memid, "_on_ground")
+                    in_perception_items.append(item_stack)
+            perceive_info["agent_pickable_items"] = perceive_info.get("agent_pickable_items", {})
+            perceive_info["agent_pickable_items"]["in_perception_items"] = (
+                in_perception_items if in_perception_items else None
+            )
+            perceive_info["agent_pickable_items"]["all_items"] = all_items if all_items else None
 
         # note: no "force"; these run on every perceive call.  assumed to be fast
-        self.update_self_memory()
-        self.update_other_players(self.agent.get_other_players())
-
-        # use safe_get_changed_blocks to deal with pointing
+        perceive_info["agent_attributes"] = self.get_agent_player()  # Get Agent attributes
+        # List of other players in-game
+        perceive_info["other_player_list"] = self.update_other_players(
+            self.agent.get_other_players()
+        )
+        # Changed blocks and their attributes
+        perceive_info["changed_block_attributes"] = {}
         for (xyz, idm) in self.agent.safe_get_changed_blocks():
-            self.on_block_changed(xyz, idm)
+            interesting, player_placed, agent_placed = self.on_block_changed(
+                xyz, idm, boring_blocks
+            )
+            perceive_info["changed_block_attributes"][(xyz, idm)] = [
+                interesting,
+                player_placed,
+                agent_placed,
+            ]
 
-    def update_self_memory(self):
-        """Update agent's current position and attributes in memory"""
-        p = self.agent.get_player()
-        memid = self.memory.get_player_by_eid(p.entityId).memid
-        cmd = "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
-        cmd = cmd + "uuid=?"
-        self.memory.db_write(
-            cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
+        return CraftAssistPerceptionData(
+            mobs=perceive_info["mobs"],
+            agent_pickable_items=perceive_info["agent_pickable_items"],
+            agent_attributes=perceive_info["agent_attributes"],
+            other_player_list=perceive_info["other_player_list"],
+            changed_block_attributes=perceive_info["changed_block_attributes"],
         )
 
+    def get_agent_player(self):
+        """Return agent's current position and attributes"""
+        return self.agent.get_player()
+
     def update_other_players(self, player_list: List, force=False):
-        """Update other in-game players in agen't memory
+        """Update the location of other in-game players wrt to agent's line of sight
         Args:
-            a list of player_structs from agent
+            a list of [player_struct, updated location] from agent
         """
-        for p in player_list:
-            mem = self.memory.get_player_by_eid(p.entityId)
-            if mem is None:
-                memid = PlayerNode.create(self.memory, p)
-            else:
-                memid = mem.memid
-            cmd = (
-                "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
-            )
-            cmd = cmd + "uuid=?"
-            self.memory.db_write(
-                cmd, p.entityId, p.name, p.pos.x, p.pos.y, p.pos.z, p.look.pitch, p.look.yaw, memid
-            )
-            loc = capped_line_of_sight(self.agent, p)
-            loc[1] += 1
-            memids = self.memory._db_read_one(
-                'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
-                p.entityId,
-            )
-            if memids:
-                self.memory.db_write(
-                    "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
-                    loc[0],
-                    loc[1],
-                    loc[2],
-                    memids[0],
-                )
-            else:
-                AttentionNode.create(self.memory, loc, attender=p.entityId)
+        updated_player_list = []
+        for player in player_list:
+            location = capped_line_of_sight(self.agent, player)
+            location[1] += 1
+            updated_player_list.append([player, location])
+        return updated_player_list
 
-    # TODO replace name by eid everywhere
-    def get_player_struct_by_name(self, name):
-        """Get the raw player struct by player name
-        Returns:
-            a raw player struct, e.g. to use in agent.get_player_line_of_sight
-        """
-        for p in self.agent.get_other_players():
-            if p.name == name:
-                return p
-        return None
-
-    def on_block_changed(self, xyz: XYZ, idm: IDM):
+    def on_block_changed(self, xyz: XYZ, idm: IDM, boring_blocks: Tuple[int]):
         """Update the state of the world when a block is changed."""
         # TODO don't need to do this for far away blocks if this is slowing down bot
-        self.maybe_remove_inst_seg(xyz)
-        self.maybe_remove_block_from_memory(xyz, idm)
-        self.maybe_add_block_to_memory(xyz, idm)
+        interesting, player_placed, agent_placed = self.mark_blocks_with_env_change(
+            xyz, idm, boring_blocks
+        )
+        return interesting, player_placed, agent_placed
 
     def clear_air_surrounded_negatives(self):
         pass
 
-    def maybe_remove_inst_seg(self, xyz):
-        """if the block is changed, the old instance segmentation is considered no longer valid"""
-        # get all associated instseg nodes
-        # FIXME make this into a basic search
-        inst_seg_memids = self.memory.get_instseg_object_ids_by_xyz(xyz)
-        if inst_seg_memids:
-            # delete the InstSeg, they are ephemeral and should be recomputed
-            # TODO/FIXME  more refined approach: if a block changes
-            # ask the models to recompute.  if the tags are the same, keep it
-            for i in inst_seg_memids:
-                self.memory.forget(i[0])
-
-    # clean all this up...
     # eventually some conditions for not committing air/negative blocks
-    def maybe_add_block_to_memory(self, xyz: XYZ, idm: IDM, agent_placed=False):
-        """Update blocks to memory when any change in the environment
-        is caused either by agent or player"""
+    def mark_blocks_with_env_change(
+        self, xyz: XYZ, idm: IDM, boring_blocks: Tuple[int], agent_placed=False
+    ):
+        """
+        Mark the interesting blocks when any change happens in the environment
+        """
         if not agent_placed:
             interesting, player_placed, agent_placed = self.is_placed_block_interesting(
-                xyz, idm[0]
+                xyz, idm[0], boring_blocks
             )
         else:
             interesting = True
             player_placed = False
-        if not interesting:
-            return
 
-        # TODO remove this, clean up
+        if not interesting:
+            return None, None, None
+
         if agent_placed:
             try:
                 self.pending_agent_placed_blocks.remove(xyz)
             except:
                 pass
-
-        adjacent = [
-            self.memory.get_object_info_by_xyz(a, "BlockObjects", just_memid=False)
-            for a in diag_adjacent(xyz)
-        ]
-
-        if idm[0] == 0:
-            # block removed / air block added
-            adjacent_memids = [a[0][0] for a in adjacent if len(a) > 0 and a[0][1] == 0]
-        else:
-            # normal block added
-            adjacent_memids = [a[0][0] for a in adjacent if len(a) > 0 and a[0][1] > 0]
-        adjacent_memids = list(set(adjacent_memids))
-        if len(adjacent_memids) == 0:
-            # new block object
-            BlockObjectNode.create(self.agent.memory, [(xyz, idm)])
-        elif len(adjacent_memids) == 1:
-            # update block object
-            memid = adjacent_memids[0]
-            self.memory.upsert_block(
-                (xyz, idm), memid, "BlockObjects", player_placed, agent_placed
-            )
-            self.memory.set_memory_updated_time(memid)
-            self.memory.set_memory_attended_time(memid)
-        else:
-            chosen_memid = adjacent_memids[0]
-            self.memory.set_memory_updated_time(chosen_memid)
-            self.memory.set_memory_attended_time(chosen_memid)
-
-            # merge tags
-            where = " OR ".join(["subj=?"] * len(adjacent_memids))
-            self.memory.db_write(
-                "UPDATE Triples SET subj=? WHERE " + where, chosen_memid, *adjacent_memids
-            )
-
-            # merge multiple block objects (will delete old ones)
-            where = " OR ".join(["uuid=?"] * len(adjacent_memids))
-            cmd = "UPDATE VoxelObjects SET uuid=? WHERE "
-            self.memory.db_write(cmd + where, chosen_memid, *adjacent_memids)
-
-            # insert new block
-            self.memory.upsert_block(
-                (xyz, idm), chosen_memid, "BlockObjects", player_placed, agent_placed
-            )
-
-    def maybe_remove_block_from_memory(self, xyz: XYZ, idm: IDM):
-        """Update agent's memory with blocks that have been destroyed."""
-        tables = ["BlockObjects"]
-        for table in tables:
-            info = self.memory.get_object_info_by_xyz(xyz, table, just_memid=False)
-            if not info or len(info) == 0:
-                continue
-            assert len(info) == 1
-            memid, b, m = info[0]
-            delete = (b == 0 and idm[0] > 0) or (b > 0 and idm[0] == 0)
-            if delete:
-                self.memory.remove_voxel(*xyz, table)
-                self.agent.areas_to_perceive.append((xyz, 3))
+        return interesting, player_placed, agent_placed
 
     # FIXME move removal of block to parent
-    def is_placed_block_interesting(self, xyz: XYZ, bid: int) -> Tuple[bool, bool, bool]:
+    def is_placed_block_interesting(
+        self, xyz: XYZ, bid: int, boring_blocks: Tuple[int]
+    ) -> Tuple[bool, bool, bool]:
         """Return three values:
         - bool: is the placed block interesting?
         - bool: is it interesting because it was placed by a player?
@@ -266,6 +199,6 @@ class LowLevelMCPerception:
                 interesting = True
                 if not agent_placed:
                     player_placed = True
-        if bid not in BORING_BLOCKS:
+        if bid not in boring_blocks:
             interesting = True
         return interesting, player_placed, agent_placed

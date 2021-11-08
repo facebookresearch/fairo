@@ -2,31 +2,11 @@ import unittest
 import numpy as np
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.interpreter.craftassist.default_behaviors import build_random_shape, come_to_player
-from droidlet.lowlevel.minecraft import shape_helpers as sh
+from droidlet.lowlevel.minecraft import shape_util as sh
 
 class TestDefaultBehavior(BaseCraftassistTestCase):
     def setUp(self):
         super().setUp()
-
-    def test_build_random_shape(self):
-        schematic = [1] * 1000
-        # only build small things, otherwise test takes a long time and is likely to
-        # spill out of world space (and so take forever)
-        shape_helper_dict = {
-            "shape_names": sh.SHAPE_NAMES,
-            "shape_helper": sh.SHAPE_HELPERS,
-            "bid": sh.bid(),
-            "shape_fns": sh.SHAPE_FNS
-        }
-        while len(schematic) > 200:
-            self.agent.memory.task_stack_clear()
-            schematic = build_random_shape(self.agent, shape_helper_dict, rand_range=(1, 0, 1))
-        # Assert that some non-zero size schematic was built
-        self.assertTrue(len(schematic) > 0)
-        changes = self.flush(10000)
-        # Assert that build task was pushed and completed successfully
-        self.assertTrue(self.agent.memory.get_last_finished_root_task().action_name, "build")
-        self.assertTrue(len(changes) == len(schematic))
 
     def test_come_to_player(self):
         come_to_player(self.agent)

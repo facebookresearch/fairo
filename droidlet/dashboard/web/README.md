@@ -127,9 +127,9 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/tr
 
 ### New React component
 If you want to add a new React component to the project:
-1. Add the corresponding React component `js` and `css` files to the [components folder under `src`](https://github.com/facebookresearch/droidlet/tree/main/droidlet/dashboard/web/src/components).
-2. Add your component to [index.js](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/src/index.js) to render it in the layout. If you want to add another stacked column check how `Memory 2D` component is added in the layout to be rendered on top right (or `Navigator` on bottom right). The ordering of components in `index.js` is consistent with how these are rendered in the frontend.
-3. Manage and set the state of your component [in `StateManager`](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/src/StateManager.js). 
+1. Add the corresponding React component `js` and `css` files to the [components folder under `src`](https://github.com/facebookresearch/fairo/tree/main/droidlet/dashboard/web/src/components).
+2. Add your component to [index.js](https://github.com/facebookresearch/fairo/blob/main/droidlet/dashboard/web/src/index.js) to render it in the layout. If you want to add another stacked column check how `Memory 2D` component is added in the layout to be rendered on top right (or `Navigator` on bottom right). The ordering of components in `index.js` is consistent with how these are rendered in the frontend.
+3. Manage and set the state of your component [in `StateManager`](https://github.com/facebookresearch/fairo/blob/main/droidlet/dashboard/web/src/StateManager.js). 
   - An example snippet of how to receive and process information from backend on this component :
     1. First define the method in `StateManager` :
        ```
@@ -146,8 +146,8 @@ If you want to add a new React component to the project:
         socket.on("setComponentState", this.setComponent);
         ```
       Your method will now be called when the backend sends the socket event : `"setComponentState"`.
-  - An example of how to send information from this component to backend is [here](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/src/components/QuerySemanticParser.js#L29). The individual components should always send socket events via the `StateManager`.  
-4. Add new dependencies introduced by your component to [package.json](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/package.json) and [yarn.lock](https://github.com/facebookresearch/droidlet/blob/main/droidlet/dashboard/web/yarn.lock) using `yarn add [package name]`.
+  - An example of how to send information from this component to backend is [here](https://github.com/facebookresearch/fairo/blob/main/droidlet/dashboard/web/src/components/QuerySemanticParser.js#L29). The individual components should always send socket events via the `StateManager`.  
+4. Add new dependencies introduced by your component to [package.json](https://github.com/facebookresearch/fairo/blob/main/droidlet/dashboard/web/package.json) and [yarn.lock](https://github.com/facebookresearch/fairo/blob/main/droidlet/dashboard/web/yarn.lock) using `yarn add [package name]`.
 
 ### Frontend changes
 

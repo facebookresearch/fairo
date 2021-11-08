@@ -8,22 +8,62 @@ from typing import Tuple, Dict, Any, Optional
 from droidlet.event import dispatch
 
 from .interpreter_utils import SPEAKERLOOK
-# point target should be subinterpret, dance should be in agents subclassed interpreters
-from .reference_object_helpers import ReferenceObjectInterpreter, interpret_reference_object
-from .location_helpers import ReferenceLocationInterpreter, interpret_relative_direction
-from .filter_helper import FilterInterpreter
-from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
-from .task import maybe_task_list_to_control_block
-from droidlet.memory.memory_nodes import TripleNode, TaskNode
-# NOTE: this should be removed
-from droidlet.dialog.dialogue_objects import DialogueObject, ConfirmTask
 
-class Interpreter(DialogueObject):
+# point target should be subinterpret, dance should be in agents subclassed interpreters
+from .interpret_reference_objects import ReferenceObjectInterpreter, interpret_reference_object
+from .interpret_location import ReferenceLocationInterpreter, interpret_relative_direction
+from .interpret_filters import FilterInterpreter
+from droidlet.shared_data_structs import ErrorWithResponse, NextDialogueStep
+from droidlet.task.task import maybe_task_list_to_control_block
+from droidlet.memory.memory_nodes import TripleNode, TaskNode, InterpreterNode
+from droidlet.dialog.dialogue_task import ConfirmTask
+
+
+class InterpreterBase:
+    def __init__(
+        self, speaker, logical_form_memid, agent_memory, memid=None, interpreter_type="interpreter"
+    ):
+        self.speaker = speaker  # TODO put this in memory
+        self.memory = agent_memory
+        if not memid:
+            self.memid = InterpreterNode.create(self.memory, interpreter_type=interpreter_type)
+            if (
+                logical_form_memid != "NULL"
+            ):  # if it were "NULL", this is a dummy interpreter of some sort...
+                self.memory.add_triple(
+                    subj=self.memid, pred_text="logical_form_memid", obj=logical_form_memid
+                )
+        else:
+            # ALL state is stored in memory, associated to the interpreter memid.
+            self.memid = memid
+            logical_form_memids, _ = agent_memory.basic_search(
+                "SELECT uuid FROM Program WHERE <<#{}, logical_form_memid, ?>>".format(memid)
+            )
+            if not logical_form_memids:
+                raise Exception(
+                    "tried to make an interpreter from memid but no logical form was associated to it"
+                )
+            if len(logical_form_memids) > 1:
+                raise Exception("multiple logical forms associated to single interpreter memory")
+            logical_form_memid = logical_form_memids[0]
+
+        if (
+            logical_form_memid != "NULL"
+        ):  # if it were "NULL", this is a dummy interpreter of some sort...
+            logical_form_mem = agent_memory.get_mem_by_id(logical_form_memid)
+            self.logical_form = logical_form_mem.logical_form
+
+    def step(self, agent):
+        raise NotImplementedError()
+
+
+class Interpreter(InterpreterBase):
     """
-    | This class processes incoming chats and modifies the task stack.
-    | Handlers should add/remove/reorder tasks on the stack, but not execute them.
-    | Most of the logic of the interpreter is run in the subinterpreters or task handlers.
-    | The keyword args in __init__ match the base DialogueObject class
+    | This class takes a logical form from the semantic parser that specifies a
+    | (world affecting) action for the agent 
+    | and the world state (from the agent's memory),
+    | and uses these to intialize tasks to run
+    | Most of the logic of the interpreter is run in the subinterpreters and task handlers.
 
     Args:
         speaker: The name of the player/human/agent who uttered the chat resulting in this interpreter
@@ -35,14 +75,9 @@ class Interpreter(DialogueObject):
         dialogue_stack: a DialogueStack object where this Interpreter object will live
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
-        super().__init__(**kwargs)
-        self.speaker = speaker
-        self.action_dict = action_dict
-        self.provisional: Dict = {}
-        self.action_dict_frozen = False
-        self.loop_data = None
-        self.archived_loop_data = None
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None):
+        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
+
         self.default_debug_path = "debug_interpreter.txt"
         self.post_process_loc = lambda loc, interpreter: loc
 
@@ -61,7 +96,7 @@ class Interpreter(DialogueObject):
             # FIXME, just make a class
             "reference_objects": ReferenceObjectInterpreter(interpret_reference_object),
             "reference_locations": ReferenceLocationInterpreter(),
-            # make sure to do this in sfubclass
+            # make sure to do this in subclass
             # "attribute": MCAttributeInterpreter(),
             # "condition": ConditionInterpreter(),
             # "specify_locations": ComputeLocations(),
@@ -84,13 +119,13 @@ class Interpreter(DialogueObject):
 
     def step(self, agent) -> Tuple[Optional[str], Any]:
         start_time = datetime.datetime.now()
-        assert self.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND"
+        assert self.logical_form["dialogue_type"] == "HUMAN_GIVE_COMMAND"
         try:
             actions = []
-            if "action" in self.action_dict:
-                actions.append(self.action_dict["action"])
-            elif "action_sequence" in self.action_dict:
-                actions = self.action_dict["action_sequence"]
+            if "action" in self.logical_form:
+                actions.append(self.logical_form["action"])
+            elif "action_sequence" in self.logical_form:
+                actions = self.logical_form["action_sequence"]
 
             if len(actions) == 0:
                 # The action dict is in an unexpected state
@@ -122,21 +157,20 @@ class Interpreter(DialogueObject):
             self.finished = True
             end_time = datetime.datetime.now()
             hook_data = {
-                "name" : "interpreter",
-                "start_time" : start_time,
-                "end_time" : end_time,
-                "elapsed_time" : (end_time - start_time).total_seconds(),
-                "agent_time" : self.memory.get_time(),
-                "tasks_to_push" : tasks_to_push,
-                "task_mem" : task_mem,
+                "name": "interpreter",
+                "start_time": start_time,
+                "end_time": end_time,
+                "elapsed_time": (end_time - start_time).total_seconds(),
+                "agent_time": self.memory.get_time(),
+                "tasks_to_push": tasks_to_push,
+                "task_mem": task_mem,
             }
             dispatch.send("interpreter", data=hook_data)
-            return response, dialogue_data
         except NextDialogueStep:
-            return None, None
+            return
         except ErrorWithResponse as err:
             self.finished = True
-            return err.chat, None
+        return
 
     def handle_undo(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         Undo = self.task_objects["undo"]
@@ -147,15 +181,16 @@ class Interpreter(DialogueObject):
         if old_task is None:
             raise ErrorWithResponse("Nothing to be undone ...")
         undo_tasks = [Undo(agent, {"memid": old_task.memid})]
+        for u in undo_tasks:
+            agent.memory.get_mem_by_id(u.memid).get_update_status({"paused": 1})
         undo_command = old_task.get_chat().chat_text
 
         logging.debug("Pushing ConfirmTask tasks={}".format(undo_tasks))
-        # FIXME agent
-        self.memory.dialogue_stack_append_new(
-            ConfirmTask,
-            'Do you want me to undo the command: "{}" ?'.format(undo_command),
-            undo_tasks,
-        )
+        confirm_data = {
+            "task_memids": [u.memid for u in undo_tasks],
+            "question": 'Do you want me to undo the command: "{}" ?'.format(undo_command),
+        }
+        ConfirmTask(agent, confirm_data)
         self.finished = True
         return None, None
 
@@ -163,14 +198,21 @@ class Interpreter(DialogueObject):
         Move = self.task_objects["move"]
         Control = self.task_objects["control"]
 
+        loop_mem = None
+        if "remove_condition" in d:
+            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
+            location_d = d.get("location", SPEAKERLOOK)
+            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+            if mems:
+                loop_mem = mems[0]
+
         def new_tasks():
             # TODO if we do this better will be able to handle "stay between the x"
             default_loc = getattr(self, "default_loc", SPEAKERLOOK)
             location_d = d.get("location", default_loc)
-            # FIXME! this loop_data trick can now be done more properly with
-            # a fixed mem filter
-            if self.loop_data and hasattr(self.loop_data, "get_pos"):
-                mems = [self.loop_data]
+            # FIXME, this is hacky.  need more careful way of storing this in task
+            if loop_mem:
+                mems = [loop_mem]
             else:
                 mems = self.subinterpret["reference_locations"](self, speaker, location_d)
             # FIXME this should go in the ref_location subinterpret:
@@ -185,13 +227,6 @@ class Interpreter(DialogueObject):
             return task
 
         if "remove_condition" in d:
-            condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
-            location_d = d.get("location", SPEAKERLOOK)
-            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
-            if mems:
-                self.loop_data = mems[0]
-            steps, reldir = interpret_relative_direction(self, location_d)
-
             # FIXME grammar to handle "remove" vs "stop"
             loop_task_data = {
                 "new_tasks": new_tasks,
@@ -205,10 +240,6 @@ class Interpreter(DialogueObject):
     # TODO mark in memory it was stopped by command
     def handle_stop(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
-        if self.loop_data is not None:
-            # TODO if we want to be able stop and resume old tasks, will need to store
-            self.archived_loop_data = self.loop_data
-            self.loop_data = None
         if self.memory.task_stack_pause():
             return None, "Stopping.  What should I do next?", None
         else:
@@ -219,10 +250,6 @@ class Interpreter(DialogueObject):
     def handle_resume(self, agent, speaker, d) -> Tuple[Optional[str], Any]:
         self.finished = True
         if self.memory.task_stack_resume():
-            if self.archived_loop_data is not None:
-                # TODO if we want to be able stop and resume old tasks, will need to store
-                self.loop_data = self.archived_loop_data
-                self.archived_loop_data = None
             return None, "resuming", None
         else:
             return None, "nothing to resume", None

@@ -145,7 +145,7 @@ Also has support for Point / Turn / Look.
 { "action_type" : 'DANCE',
   <Location> (additional relative_direction values: ['CLOCKWISE', 'ANTICLOCKWISE']),
   <DanceType>
-  "stop_condition" : {
+  "remove_condition" : {
       "condition_type" : NEVER,
   },
   <RemoveCondition>,
@@ -239,9 +239,9 @@ Note: for "relative_direction" == 'BETWEEN' the location dict will have two chil
       }
   } 
 ```
-#### Stop Condition ####
+#### Remove Condition ####
 ```
-"stop_condition" : {
+"remove_condition" : {
       "condition_type" : 'ADJACENT_TO_BLOCK_TYPE' / 'NEVER',
       "block_type" : span
   }

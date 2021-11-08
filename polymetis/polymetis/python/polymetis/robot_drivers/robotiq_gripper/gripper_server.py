@@ -51,26 +51,37 @@ class RobotiqGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer)
         state = polymetis_pb2.GripperState()
 
         state.timestamp.GetCurrentTime()
-        state.pos = self.gripper.get_pos()
-        state.is_ready = self.gripper.is_ready()
+        state.width = self.gripper.get_pos()
+        state.max_width = self.gripper.stroke
+        state.is_grasped = self.gripper.object_detected()
         state.is_moving = self.gripper.is_moving()
-        state.is_stopped = self.gripper.is_stopped()
 
         return state
 
     def GripperGoto(self, request, context):
-        self.gripper.goto(pos=request.pos, vel=request.vel, force=request.force)
+        self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
+        self.gripper.sendCommand()
+
+        return polymetis_pb2.Empty()
+
+    def Grasp(self, request, context):
+        self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
         self.gripper.sendCommand()
 
         return polymetis_pb2.Empty()
 
 
-def run_server(ip, port, comport):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
+class GripperServerLauncher:
+    def __init__(self, ip="localhost", port="50052", comport="/dev/ttyUSB0"):
+        self.address = f"{ip}:{port}"
+        self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
 
-    polymetis_pb2_grpc.add_PolymetisControllerServerServicer_to_server(
-        RobotiqGripperServer(comport), server
-    )
-    server.add_insecure_port(f"{ip}:{port}")
-    server.start()
-    server.wait_for_termination()
+        polymetis_pb2_grpc.add_GripperServerServicer_to_server(
+            RobotiqGripperServer(comport), self.server
+        )
+        self.server.add_insecure_port(self.address)
+
+    def run(self):
+        self.server.start()
+        print(f"Robotiq-2F gripper server running at {self.address}.")
+        self.server.wait_for_termination()

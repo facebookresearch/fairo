@@ -23,9 +23,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <torch/jit.h>
-#include <torch/script.h>
-
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReader;

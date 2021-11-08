@@ -5,7 +5,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from typing import Tuple, Dict, Any, Optional
 
 from droidlet.memory.memory_nodes import PlayerNode
-from droidlet.interpreter.task import ControlBlock, maybe_task_list_to_control_block
+from droidlet.task.task import ControlBlock, maybe_task_list_to_control_block
 from droidlet.interpreter import (
     AGENTPOS,
     ConditionInterpreter,
@@ -17,7 +17,7 @@ from droidlet.interpreter import (
 
 from droidlet.shared_data_structs import ErrorWithResponse
 from .spatial_reasoning import ComputeLocations
-from .facing_helper import FacingInterpreter
+from .interpret_facing import FacingInterpreter
 from .point_target import PointTargetInterpreter
 
 import droidlet.interpreter.robot.dance as dance
@@ -42,14 +42,8 @@ class LocoInterpreter(Interpreter):
     execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, low_level_data: Dict = None, **kwargs):
-        super().__init__(speaker, action_dict, **kwargs)
-        self.speaker = speaker
-        self.action_dict = action_dict
-        self.provisional: Dict = {}
-        self.action_dict_frozen = False
-        self.loop_data = None
-        self.archived_loop_data = None
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
         self.default_debug_path = "debug_interpreter.txt"
         self.post_process_loc = post_process_loc
         add_default_locs(self)
@@ -161,7 +155,7 @@ class LocoInterpreter(Interpreter):
                     tasks_to_do.append(T(agent, f))
             else:
                 dance_triples = dance_filters_d.get("triples", [])
-                if any([t.get("obj_text") == "wave" for t in dance_triples]):
+                if any([t.get("obj_text") == "dance" for t in dance_triples]):
                     new_task = self.task_objects["dance"](agent, {"movement_type": "wave"})
                     tasks_to_do.append(new_task)
                     # FIXME ! merge dances, refactor.  search by name

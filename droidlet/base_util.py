@@ -4,14 +4,10 @@ Copyright (c) Facebook, Inc. and its affiliates.
 from collections import defaultdict, namedtuple
 import binascii
 import hashlib
-
-import numpy
 import numpy as np
 from word2number.w2n import word_to_num
 from typing import Tuple, List, TypeVar
 import uuid
-
-from droidlet.lowlevel.minecraft.shapes import get_bounds
 
 XYZ = Tuple[int, int, int]
 # two points p0(x0, y0, z0), p1(x1, y1, z1) determine a 3d cube(point_at_target)
@@ -26,11 +22,6 @@ Pos = namedtuple("pos", ["x", "y", "z"])
 Look = namedtuple("look", "yaw, pitch")
 Player = namedtuple("Player", "entityId, name, pos, look")
 
-TICKS_PER_SEC = 100
-TICKS_PER_MINUTE = 60 * TICKS_PER_SEC
-TICKS_PER_HOUR = 60 * TICKS_PER_MINUTE
-TICKS_PER_DAY = 24 * TICKS_PER_HOUR
-
 
 def number_from_span(s):
     try:
@@ -42,23 +33,19 @@ def number_from_span(s):
             return
     return n
 
+
 def hash_user(username):
     """Encrypt username"""
     # uuid is used to generate a random number
     salt = uuid.uuid4().hex
     return hashlib.sha256(salt.encode() + username.encode()).hexdigest() + ":" + salt
 
+
 def check_username(hashed_username, username):
     """Compare the username with the hash to check if they
     are same"""
     user, salt = hashed_username.split(":")
     return user == hashlib.sha256(salt.encode() + username.encode()).hexdigest()
-
-
-def get_bounds(locs):
-    M = np.max(locs, axis=0)
-    m = np.min(locs, axis=0)
-    return m[0], M[0], m[1], M[1], m[2], M[2]
 
 
 def group_by(items, key_fn):
@@ -123,41 +110,6 @@ def npy_to_blocks_list(npy, origin=(0, 0, 0)):
     return blocks
 
 
-MOBS_BY_ID = {
-    50: "creeper",
-    51: "skeleton",
-    52: "spider",
-    53: "giant",
-    54: "zombie",
-    55: "slime",
-    56: "ghast",
-    57: "pig zombie",
-    58: "enderman",
-    59: "cave spider",
-    60: "silverfish",
-    61: "blaze",
-    62: "lava slime",
-    63: "ender dragon",
-    64: "wither boss",
-    65: "bat",
-    66: "witch",
-    68: "guardian",
-    90: "pig",
-    91: "sheep",
-    92: "cow",
-    93: "chicken",
-    94: "squid",
-    95: "wolf",
-    96: "mushroom cow",
-    97: "snow man",
-    98: "ozelot",
-    99: "villager golem",
-    100: "entity horse",
-    101: "rabbit",
-    120: "villager",
-}
-
-
 def blocks_list_to_npy(blocks, xyz=False):
     """Convert a list of blockid meta (x, y, z), (id, meta) to numpy"""
     xyzbm = np.array([(x, y, z, b, m) for ((x, y, z), (b, m)) in blocks])
@@ -178,44 +130,6 @@ def blocks_list_to_npy(blocks, xyz=False):
     return npy, offsets
 
 
-def arrange(arrangement, schematic=None, shapeparams={}):
-    """This function arranges an Optional schematic in a given arrangement
-    and returns the offsets"""
-    N = shapeparams.get("N", 7)
-    extra_space = shapeparams.get("extra_space", 1)
-    if schematic is None:
-        bounds = [0, 1, 0, 1, 0, 1]
-    else:
-        bounds = get_bounds(schematic)
-
-    if N <= 0:
-        raise NotImplementedError(
-            "TODO arrangement just based on extra space, need to specify number for now"
-        )
-    offsets = []
-    if arrangement == "circle":
-        orient = shapeparams.get("orient", "xy")
-        encircled_object_radius = shapeparams.get("encircled_object_radius", 1)
-        b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
-        radius = max(((b + extra_space) * N) / (2 * np.pi), encircled_object_radius + b + 1)
-        offsets = [
-            (radius * np.cos(2 * s * np.pi / N), 0, radius * np.sin(2 * s * np.pi / N))
-            for s in range(N)
-        ]
-        if orient == "yz":
-            offsets = [np.round(np.asarray(0, offsets[i][0], offsets[i][2])) for i in range(N)]
-        if orient == "xz":
-            offsets = [
-                np.round(np.asarray((offsets[i][0], offsets[i][2], 0))) for i in range(N)
-            ]
-    elif arrangement == "line":
-        orient = shapeparams.get("orient")  # this is a vector here
-        b = max(bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
-        b += extra_space + 1
-        offsets = [np.round(i * b * np.asarray(orient)) for i in range(N)]
-    return offsets
-
-
 def prepend_a_an(name):
     """Add a/an to a name"""
     if name[0] in ["a", "e", "i", "o", "u"]:
@@ -232,3 +146,75 @@ def to_block_pos(array):
 def to_block_center(array):
     """Return the array centered at [0.5, 0.5, 0.5]"""
     return to_block_pos(array).astype("float") + [0.5, 0.5, 0.5]
+
+
+def adjacent(p):
+    """Return the positions adjacent to position p"""
+    return (
+        (p[0] + 1, p[1], p[2]),
+        (p[0] - 1, p[1], p[2]),
+        (p[0], p[1] + 1, p[2]),
+        (p[0], p[1] - 1, p[2]),
+        (p[0], p[1], p[2] + 1),
+        (p[0], p[1], p[2] - 1),
+    )
+
+
+def depth_first_search(blocks_shape, pos, fn, adj_fn=adjacent):
+    """Do depth-first search on array with blocks_shape starting
+    from pos
+
+    Calls fn(p) on each index `p` in DFS-order. If fn returns True,
+    continue searching. If False, do not add adjacent blocks.
+
+    Args:
+    - blocks_shape: a tuple giving the shape of the blocks
+    - pos: a relative position in blocks
+    - fn: a function called on each position in DFS-order. Return
+      True to continue searching from that node
+    - adj_fn: a function (pos) -> list[pos], of adjacent positions
+
+    Returns: visited, a bool array with blocks.shape
+    """
+    visited = np.zeros(blocks_shape, dtype="bool")
+    q = [tuple(pos)]
+    visited[tuple(pos)] = True
+    i = 0
+    while i < len(q):
+        p = q.pop()
+        if fn(p):
+            for a in adj_fn(p):
+                try:
+                    if not visited[a]:
+                        visited[a] = True
+                        q.append(a)
+                except IndexError:
+                    pass
+    return visited
+
+
+def diag_adjacent(p):
+    """Return the adjacent positions to p including diagonal adjaceny"""
+    return [
+        (x, y, z)
+        for x in range(p[0] - 1, p[0] + 2)
+        for y in range(p[1] - 1, p[1] + 2)
+        for z in range(p[2] - 1, p[2] + 2)
+        if (x, y, z) != p
+    ]
+
+
+def get_bounds(S):
+    """
+    S should be a list of tuples, where each tuple is a pair of
+    (x, y, z) and ids;
+    else a list of (x, y, z)
+    """
+    if len(S) == 0:
+        return 0, 0, 0, 0, 0, 0
+    if len(S[0]) == 3:
+        T = [(l, (0, 0)) for l in S]
+    else:
+        T = S
+    x, y, z = list(zip(*list(zip(*T))[0]))
+    return min(x), max(x), min(y), max(y), min(z), max(z)

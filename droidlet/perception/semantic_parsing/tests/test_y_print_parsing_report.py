@@ -84,7 +84,8 @@ common_functional_commands = {
                             ]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "ALLOWED",
                         },
                     }
@@ -164,7 +165,8 @@ common_functional_commands = {
                             ]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "ALLOWED",
                         },
                     }
@@ -358,7 +360,8 @@ common_functional_commands = {
                             "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "DISALLOWED",
                         },
                     }
@@ -596,7 +599,8 @@ common_functional_commands = {
                             "AND": [{"pred_text": "has_name", "obj_text": [0, [2, 2]]}]
                         },
                         "selector": {
-                            "return_quantity": {"random": [0, [1, 1]]},
+                            "return_quantity": "RANDOM",
+                            "ordinal": [0, [1, 1]],
                             "same": "ALLOWED",
                         },
                     }
@@ -740,9 +744,9 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "NAME"},
             "selector": {
+                "ordinal": {"fixed_value": "FIRST"},
                 "return_quantity": {
                     "argval": {
-                        "ordinal": {"fixed_value": "FIRST"},
                         "polarity": "MIN",
                         "quantity": {
                             "attribute": {
@@ -853,9 +857,9 @@ common_functional_commands = {
         "filters": {
             "output": {"attribute": "NAME"},
             "selector": {
+                "ordinal": {"fixed_value": "FIRST"},
                 "return_quantity": {
                     "argval": {
-                        "ordinal": {"fixed_value": "FIRST"},
                         "polarity": "MIN",
                         "quantity": {
                             "attribute": {
@@ -1240,7 +1244,7 @@ class TestDialogueManager(unittest.TestCase):
         opts.ground_truth_data_dir = GROUND_TRUTH_DATA_DIR
         opts.nsp_models_dir = TTAD_MODEL_DIR
         opts.no_ground_truth = False
-        self.chat_parser = NSPQuerier(opts)
+        self.chat_parser = NSPQuerier(opts=opts)
         self.ground_truth_actions = {}
         print("fetching data from ground truth, from directory: %r" % (opts.ground_truth_data_dir))
         if not opts.no_ground_truth:
