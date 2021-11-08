@@ -361,9 +361,7 @@ class Question extends Component {
           <strong>{this.state.agent_reply}</strong>
         </div>
         {/* {this.state.view === 0 ?  this.renderASRQuestion() : null} */}
-        {this.state.view === 0
-          ? this.renderSemanticParserErrorQuestion()
-          : null}
+        {this.state.view === 0 ? this.renderSemanticParserErrorQuestion() : null}
         {this.state.view === 1 ? this.renderParsingFail() : null}
         {this.state.view === 2 ? this.renderParsingSuccess() : null}
         {this.state.view === 3 ? this.renderActionFail() : null}

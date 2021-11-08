@@ -53,10 +53,7 @@ class AgentThinking extends Component {
 
   componentDidMount() {
     // Send a message to the parent iframe for analytics logging
-    window.parent.postMessage(
-      JSON.stringify({ msg: "goToAgentThinking" }),
-      "*"
-    );
+    window.parent.postMessage(JSON.stringify({ msg: "goToAgentThinking" }), "*");
 
     if (this.props.stateManager) {
       this.props.stateManager.socket.on(
