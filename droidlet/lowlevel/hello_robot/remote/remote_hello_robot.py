@@ -77,7 +77,7 @@ class RemoteHelloRobot(object):
 
         # Get Camera transform
         self.tm.set_joint("joint_head_pan", head_pan)
-        self.tm.set_joint("joint_head_pan", head_pan)
+        self.tm.set_joint("joint_head_tilt", head_tilt)
         camera_transform = self.tm.get_transform('camera_link', 'base_link')
 
         return camera_transform
