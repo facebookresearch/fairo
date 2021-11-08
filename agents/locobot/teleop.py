@@ -64,7 +64,12 @@ class O3dViz(threading.Thread):
                 except:
                     print("failed to add geometry to scene")
                 if not reset_camera:
-                    w.reset_camera_to_default()
+                    # w.reset_camera_to_default()
+                    # Look at A from camera placed at B with Y axis
+                    # pointing at C
+                    w.scene.camera.look_at([1, 0, 0],
+                                           [-5, 0, 1],
+                                           [0, 0, 1])
                     reset_camera = True
                 w.post_redraw()
             except queue.Empty:
@@ -99,8 +104,86 @@ logging.getLogger().handlers.clear()
 
 mover = None
 
+@sio.on("sendCommandToAgent")
+def get_command(sid, command):
+    command, value = command.split()
+    value = float(value)
+    print(command)
+    print(value)
+    test_command(sid, [command], value=value)
+
+@sio.on("logData")
+def log_data(sid, seconds):
+    test_command(sid, ["LOG_DATA"], value=seconds)
+
+@sio.on("stopRobot")
+def stop_robot(sid):
+    test_command(sid, ["STOP_ROBOT"])
+
+@sio.on("unstopRobot")
+def unstop_robot(sid):
+    test_command(sid, ["UNSTOP_ROBOT"])
+
+
 @sio.on("movement command")
-def test_command(sid, commands, yaw_velocity):
+def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3}, value=None):
+    print(commands, data, value)
+    move = float(data['move'])
+    yaw = float(data['yaw'])
+    velocity = float(data['velocity'])
+    global mover
+    if mover == None:
+        return
+    if value is not None:
+        move = value
+
+    def sync():
+        time.sleep(10)
+        for i in range(50):
+            mover.get_rgb_depth()
+
+    movement = [0.0, 0.0, 0.0]
+    for command in commands:
+        if command == "MOVE_FORWARD":
+            movement[0] += move
+            print("action: FORWARD", movement)
+            mover.move_relative([movement], blocking=False)
+        elif command == "MOVE_BACKWARD":
+            movement[0] -= move
+            print("action: BACKWARD", movement)
+            mover.move_relative([movement], blocking=False)
+        elif command == "MOVE_LEFT":
+            movement[2] += yaw
+            print("action: LEFT", movement)
+            mover.move_relative([movement], blocking=False)
+        elif command == "MOVE_RIGHT":
+            movement[2] -= yaw
+            print("action: RIGHT", movement)
+            mover.move_relative([movement], blocking=False)
+        elif command == "PAN_LEFT":
+            mover.bot.set_pan(mover.bot.get_pan() + yaw)
+            sync()
+        elif command == "PAN_RIGHT":
+            mover.bot.set_pan(mover.bot.get_pan() - yaw)
+            sync()
+        elif command == "TILT_UP":
+            mover.bot.set_tilt(mover.bot.get_tilt() + yaw)
+            sync()
+        elif command == "TILT_DOWN":
+            mover.bot.set_tilt(mover.bot.get_tilt() - yaw)
+            sync()
+        elif command == "SET_PAN":
+            print("action: SET_PAN", float(value))
+            mover.bot.set_pan(float(value))
+            sync()
+        elif command == "SET_TILT":
+            print("action: SET_TILT", float(value))
+            mover.bot.set_tilt(float(value))
+            sync()
+
+        print(command, movement)
+
+def test_commandaa(sid, commands, yaw_velocity):
     print(commands, yaw_velocity)
     global mover
     if mover == None:
@@ -162,9 +245,6 @@ if __name__ == "__main__":
             counter = 0
             start_time = time.time()
 
-        movement = [0.0, 0.0, 0.3]
-        mover.move_relative([movement])
-
         base_state = mover.get_base_pos_in_canonical_coords()
         print("base_state: ", base_state)
         print("rgb_depth: ", mover.get_rgb_depth())
@@ -182,9 +262,12 @@ if __name__ == "__main__":
             "depthMin": serialized_image["depth_min"],
         })
 
-        pcd = mover.get_current_pcd(in_global=True)
-        points = pcd[0]
-        colors = pcd[1]/255.
+        points, colors = rgb_depth.ptcloud.reshape(-1, 3), rgb_depth.rgb.reshape(-1, 3)
+        colors = colors / 255.
+
+        # pcd = mover.get_current_pcd(in_global=True)
+        # points = pcd[0]
+        # colors = pcd[1]/255.
 
         if all_points is None:
             all_points = points
@@ -230,12 +313,13 @@ if __name__ == "__main__":
                                                        cylinder_height = .50,
                                                        cone_height = .4,
                                                        resolution=20)
-        robot_orientation.compute_vertex_normals()
-        robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
         
         robot_orientation.translate([y, -x, 0.5], relative=False)
         robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
-        robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
+        if yaw != 0:
+            robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))  
+        robot_orientation.compute_vertex_normals()
+        robot_orientation.paint_uniform_color([0.1, 0.9, 0.1])
 
         o3dviz.put('bot_orientation', cmd, robot_orientation)
 
@@ -248,61 +332,4 @@ if __name__ == "__main__":
         o3dviz.put('bot_base', cmd, robot_base)
 
 
-        # start the SLAM
-        mover.explore()
-        
-        # get the SLAM goals
-        goal_loc, stg = None, None # mover.bot.get_slam_goal()    
-
-        # plot the final goal
-        if goal_loc is not None:
-            goal_x, goal_y, goal_z = goal_loc
-            cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
-                                                             height=3.,)
-            cone.translate([goal_x, goal_y, 0.4], relative=False)
-            cone.compute_vertex_normals()
-            cone.paint_uniform_color([0.0, 1.0, 1.0])
-            o3dviz.put('goal_cone', cmd, cone)
-
-        # plot the short term goal in yellow and the path in green
-        if stg is not None:
-            stg_x, stg_y = stg
-            cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
-                                                             height=3.,)
-            cone.translate([stg_x, stg_y, 1.4], relative=False)
-            cone.compute_vertex_normals()
-            cone.paint_uniform_color([1.0, 1.0, 0.0])
-            o3dviz.put('stg', cmd, cone)
-
-            if prev_stg is None:
-                prev_stg = [y, -x]
-            cur_stg = [stg_x, stg_y]
-
-            arrow_length = distance.euclidean(cur_stg, prev_stg)
-            if arrow_length > 0.0001:                
-                path = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.03,
-                                                              cone_radius=.04,
-                                                              cylinder_height = arrow_length / 2,
-                                                              cone_height = arrow_length / 2,)
-                path.compute_vertex_normals()
-                path.paint_uniform_color([0.0, 1.0, 0.0])
-        
-                path.translate([prev_stg[0], prev_stg[1], 0.2], relative=False)
-                path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
-                path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
-                o3dviz.put('short_term_goal_path_{}'.format(path_count), 'add', path)
-                path_count = path_count + 1
-            prev_stg = cur_stg
-
-        # # get the obstacle map and plot it
-        # obstacles = mover.bot.get_map()
-        # obstacles = np.asarray(obstacles)
-        # obstacles = np.concatenate((-obstacles[:, [1]], -obstacles[:, [0]], np.zeros((obstacles.shape[0], 1))), axis=1)
-        # obspcd = o3d.geometry.PointCloud()
-        # obspcd.points = o3d.utility.Vector3dVector(obstacles)
-        # obspcd.paint_uniform_color([1.0, 0., 0.])
-        # obsvox = o3d.geometry.VoxelGrid.create_from_point_cloud(obspcd, 0.03)
-        # o3dviz.put('obstacles', cmd, obsvox)                
-            
-        
         time.sleep(0.001)
