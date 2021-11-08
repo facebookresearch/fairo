@@ -229,13 +229,13 @@ class COCOTrain:
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
         MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         
-        cfg.TEST.EVAL_PERIOD = 100
+        
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
         cfg.SOLVER.IMS_PER_BATCH = 16
-        
+        cfg.TEST.EVAL_PERIOD = 100
         cfg.SOLVER.GAMMA=0.75
-        cfg.SOLVER.STEPS=tuple([200*(i+1) for i in range(100) if 200*(i+1) < cfg.SOLVER.MAX_ITER])
+        cfg.SOLVER.STEPS=tuple([100*(i+1) for i in range(100) if 100*(i+1) < cfg.SOLVER.MAX_ITER])
         
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128 
         MetadataCatalog.get(self.train_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
@@ -285,9 +285,9 @@ class COCOTrain:
         self.train(val_json, img_dir_val)
 
 
-maxiters = [800,1500,2000]
-lrs = [0.0001, 0.0005, 0.001, 0.002, 0.005]
-warmups = [100, 200]
+maxiters = [1500]
+lrs = [0.001, 0.002]
+warmups = [100, 50]
 
 def write_summary_to_file(filename, results, header_str):
     if isinstance(results['bbox']['AP50'][0], list):
@@ -339,6 +339,7 @@ job_dir = '/checkpoint/apratik/jobs/active_vision/pipeline/apartment_0/straightl
 p0_train = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/seg/coco_gt5_0train.json'
 p4_train = '/checkpoint/apratik/jobs/active_vision/pipeline/apartment_0/straightline/no_noise/04-11-2021/14:30:11/1/default/pred_label_gt5p4/coco_train.json'
 pr_val = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/seg/coco_gt5_4val.json'
+leaky_val = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/seg/coco_gt5_4leakyval.json'
 
 gt = 5
 x = 'default'
@@ -371,8 +372,9 @@ if __name__ == "__main__":
         },
         slurm_comment="CVPR deadline, 11/16"
     )
-    run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0', args.slurm)
-    run_training(os.path.join(traj_path, 'rgb'), 1, str(traj), x, gt, 4, p4_train, pr_val, args.job_folder, 'p4', args.slurm)
+    num_train_samples = 3
+    run_training(os.path.join(traj_path, 'rgb'), num_train_samples, str(traj), x, gt, 0, p0_train, pr_val, args.job_folder, 'p0', args.slurm)
+    run_training(os.path.join(traj_path, 'rgb'), num_train_samples, str(traj), x, gt, 4, p4_train, pr_val, args.job_folder, 'p4', args.slurm)
 
     
 

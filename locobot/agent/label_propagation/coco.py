@@ -122,6 +122,8 @@ class CocoCreator:
 
                 binary_mask = (annot == i).astype(np.uint32)
 
+                # if (binary_mask == 1).sum() > 1000
+
                 annotation_info = pycococreatortools.create_annotation_info(
                     count, coco_img_id, category_info, binary_mask, img.size, tolerance=2
                 )

@@ -117,7 +117,7 @@ class PickGoodCandidates:
         self.bad_candidates = []
         for x in range(len(os.listdir(self.imgdir)) + 1):
             res, size = self.is_good_candidate(x)
-            if res == True:
+            if res:
                 self.good_candidates.append((x, size))
 #                 self.vis(x)
             elif res == False:
@@ -264,7 +264,6 @@ def _runner(traj, gt, p, args):
                     seg_dir=os.path.join(traj_path, 'seg')
                 )
             src_img_ids = s.sample_uniform_nn2(gt)
-            # src_img_ids = get_src_img_ids('active', traj)
             run_label_prop(outdir, gt, p, traj_path, src_img_ids)
             # run_label_prop(outdir, gt, p, traj_path)
             if len(glob.glob1(outdir,"*.npy")) > 0:
@@ -274,7 +273,7 @@ def _runner(traj, gt, p, args):
                 with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                     f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
     else:
-        for x in ['default']:#, 'activeonly']:
+        for x in ['default', 'activeonly']:
             traj_path = os.path.join(args.data_path, str(traj), x)
             if os.path.isdir(traj_path):
                 if not basic_sanity(traj_path):
@@ -357,7 +356,7 @@ if __name__ == "__main__":
         with executor.batch():
             for traj in range(args.num_traj):
                 for gt in range(5, 30, 5):
-                    for p in range(0, 10, 2):
+                    for p in range(2, 4, 2):
                         job = executor.submit(_runner, traj, gt, p, args)
                         jobs.append(job)
         
