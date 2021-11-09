@@ -22,37 +22,39 @@ struct StateDict;         // c10::Dict<std::string, struct TorchTensor>
 
 class C_TORCH_EXPORT TorchRobotState {
 private:
-  struct StateDict *state_dict_;
+  struct StateDict *state_dict_ = nullptr;
 
   // Robot states
-  struct TorchTensor *rs_timestamp_;
-  struct TorchTensor *rs_joint_positions_;
-  struct TorchTensor *rs_joint_velocities_;
-  struct TorchTensor *rs_motor_torques_measured_;
-  struct TorchTensor *rs_motor_torques_external_;
+  struct TorchTensor *rs_timestamp_ = nullptr;
+  struct TorchTensor *rs_joint_positions_ = nullptr;
+  struct TorchTensor *rs_joint_velocities_ = nullptr;
+  struct TorchTensor *rs_motor_torques_measured_ = nullptr;
+  struct TorchTensor *rs_motor_torques_external_ = nullptr;
 
 public:
   TorchRobotState(int num_dofs);
+  ~TorchRobotState();
   void update_state(int timestamp_s, int timestamp_ns,
                     std::vector<float> joint_positions,
                     std::vector<float> joint_velocities,
                     std::vector<float> motor_torques_measured,
                     std::vector<float> motor_torques_external);
-  struct TorchInput *input_;
+  struct TorchInput *input_ = nullptr;
   int num_dofs_;
 };
 
 class C_TORCH_EXPORT TorchScriptedController {
 private:
-  struct TorchScriptModule *module_;
+  struct TorchScriptModule *module_ = nullptr;
   TorchRobotState robot_state_ = TorchRobotState(1);
 
   // Inputs
-  struct TorchInput *param_dict_input_;
-  struct TorchInput *empty_input_;
+  struct TorchInput *param_dict_input_ = nullptr;
+  struct TorchInput *empty_input_ = nullptr;
 
 public:
   TorchScriptedController(std::istream &stream);
+  ~TorchScriptedController();
 
   std::vector<float> forward(TorchRobotState &input);
 

@@ -34,7 +34,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   Eigen::VectorXd ik_sol_p_;
   Eigen::VectorXd ik_sol_v_;
 
-  pinocchio_wrapper::State *pinocchio_state_;
+  pinocchio_wrapper::State *pinocchio_state_ = nullptr;
 
   std::string xml_buffer_;
   std::string ee_link_name_;
@@ -54,6 +54,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     xml_buffer_ = serialized_state[1];
     initialize();
   }
+
+  ~RobotModelPinocchio() { pinocchio_wrapper::destroy(pinocchio_state_); }
 
   void initialize() {
     pinocchio_state_ =

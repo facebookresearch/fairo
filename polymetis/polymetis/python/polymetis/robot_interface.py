@@ -12,6 +12,7 @@ import threading
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
 
+import polymetis
 from polymetis_pb2 import LogInterval, RobotState, ControllerChunk, Empty
 from polymetis_pb2_grpc import PolymetisControllerServerStub
 

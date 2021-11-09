@@ -47,6 +47,16 @@ TorchRobotState::TorchRobotState(int num_dofs) {
   input_->data.push_back(state_dict_->data);
 }
 
+TorchRobotState::~TorchRobotState() {
+  delete rs_timestamp_;
+  delete rs_joint_positions_;
+  delete rs_joint_velocities_;
+  delete rs_motor_torques_measured_;
+  delete rs_motor_torques_external_;
+  delete state_dict_;
+  delete input_;
+}
+
 void TorchRobotState::update_state(int timestamp_s, int timestamp_ns,
                                    std::vector<float> joint_positions,
                                    std::vector<float> joint_velocities,
@@ -67,6 +77,12 @@ TorchScriptedController::TorchScriptedController(std::istream &stream) {
 
   param_dict_input_ = new TorchInput{std::vector<torch::jit::IValue>()};
   empty_input_ = new TorchInput{std::vector<torch::jit::IValue>()};
+}
+
+TorchScriptedController::~TorchScriptedController() {
+  delete module_;
+  delete param_dict_input_;
+  delete empty_input_;
 }
 
 std::vector<float> TorchScriptedController::forward(TorchRobotState &input) {

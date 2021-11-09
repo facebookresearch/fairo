@@ -7,6 +7,7 @@ import dataclasses
 import json
 import os
 import shlex
+import shutil
 import signal
 import subprocess
 import argparse
@@ -78,7 +79,7 @@ class Launcher(BaseLauncher):
         self.set_state(BaseLauncher.State.STARTING)
         self.proc = await asyncio.create_subprocess_shell(
             f"""
-                . $CONDA_PREFIX/etc/profile.d/conda.sh
+                eval "$(conda shell.bash hook)"
                 conda activate fbrp_{self.name}
                 cd {self.proc_def.root}
                 {shlex.join(self.run_command)}
@@ -145,12 +146,16 @@ class Conda(BaseRuntime):
         channels=[],
         dependencies=[],
         setup_commands=[],
+        use_mamba=None,
     ):
         self.yaml = yaml
         self.env = env
         self.run_command = run_command
         self.conda_env = CondaEnv(channels[:], dependencies[:])
         self.setup_commands = setup_commands
+        self.use_mamba = (
+            use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
+        )
 
     def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         if self.yaml:
@@ -180,8 +185,10 @@ class Conda(BaseRuntime):
 
         print(f"creating conda env for {name}. This will take a minute...")
 
+        update_bin = "mamba" if self.use_mamba else "conda"
         result = subprocess.run(
-            ["conda", "env", "update", "-f", env_path], capture_output=not args.verbose
+            [update_bin, "env", "update", "-f", env_path],
+            capture_output=not args.verbose,
         )
         if result.returncode:
             util.fail(f"Failed to set up conda env: {result.stderr}")
@@ -191,11 +198,11 @@ class Conda(BaseRuntime):
             setup_command = "\n".join([shlex.join(cmd) for cmd in self.setup_commands])
             result = subprocess.run(
                 f"""
-                . $CONDA_PREFIX/etc/profile.d/conda.sh
-                conda activate {env_name}
-                cd {proc_def.root}
-                {setup_command}
-            """,
+                    eval "$(conda shell.bash hook)"
+                    conda activate {env_name}
+                    cd {proc_def.root}
+                    {setup_command}
+                """,
                 shell=True,
                 executable="/bin/bash",
                 capture_output=not args.verbose,

@@ -53,13 +53,14 @@ enum ControllerStatus {
 TODO
 */
 struct CustomControllerContext {
-  ServerContext *server_context;
   uint episode_begin = -1;
   uint episode_end = -1;
   uint timestep = 0;
   ControllerStatus status = UNINITIALIZED;
   std::mutex controller_mtx;
-  TorchScriptedController *custom_controller;
+  TorchScriptedController *custom_controller = nullptr;
+
+  ~CustomControllerContext() { delete custom_controller; }
 };
 
 /**
@@ -68,7 +69,7 @@ TODO
 struct RobotClientContext {
   long int last_update_ns = 0;
   RobotClientMetadata metadata;
-  TorchScriptedController *default_controller;
+  TorchScriptedController *default_controller = nullptr;
 };
 
 /**
@@ -171,7 +172,7 @@ private:
   CustomControllerContext custom_controller_context_;
   RobotClientContext robot_client_context_;
 
-  TorchRobotState torch_robot_state_ = TorchRobotState(1);
+  std::unique_ptr<TorchRobotState> torch_robot_state_;
 };
 
 #endif

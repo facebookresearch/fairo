@@ -15,6 +15,8 @@
 
 #include "pinocchio_wrapper.hpp"
 
+extern "C" {
+
 namespace pinocchio_wrapper {
 
 struct State {
@@ -41,6 +43,8 @@ struct State *initialize(const std::string &ee_link_name,
 
   return state;
 }
+
+void destroy(struct State *state) { delete state; }
 
 Eigen::VectorXd get_lower_position_limits(struct State *pinocchio_state) {
   return pinocchio_state->model.lowerPositionLimit;
@@ -157,4 +161,4 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
 
 } // namespace pinocchio_wrapper
 
-extern "C" {} /* extern "C" */
+} /* extern "C" */

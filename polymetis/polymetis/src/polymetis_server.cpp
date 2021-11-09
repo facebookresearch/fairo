@@ -75,7 +75,8 @@ Status PolymetisControllerServerImpl::InitRobotClient(
 
   num_dofs_ = robot_client_metadata->dof();
 
-  torch_robot_state_ = TorchRobotState(num_dofs_);
+  torch_robot_state_ =
+      std::unique_ptr<TorchRobotState>(new TorchRobotState(num_dofs_));
 
   // Load default controller bytes into model buffer
   controller_model_buffer_.clear();
@@ -138,7 +139,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
   }
 
   // Parse robot state
-  torch_robot_state_.update_state(
+  torch_robot_state_->update_state(
       robot_state->timestamp().seconds(), robot_state->timestamp().nanos(),
       std::vector<float>(robot_state->joint_positions().begin(),
                          robot_state->joint_positions().end()),
@@ -180,7 +181,7 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     controller = robot_client_context_.default_controller;
   }
 
-  std::vector<float> desired_torque = controller->forward(torch_robot_state_);
+  std::vector<float> desired_torque = controller->forward(*torch_robot_state_);
   // Unlock
   custom_controller_context_.controller_mtx.unlock();
   for (int i = 0; i < num_dofs_; i++) {
@@ -214,9 +215,6 @@ Status PolymetisControllerServerImpl::SetController(
     LogInterval *interval) {
   std::lock_guard<std::mutex> service_lock(service_mtx_);
 
-  resetControllerContext();
-  custom_controller_context_.server_context = context;
-
   // Read chunks of the binary serialized controller. The binary messages
   // would be written into the preallocated buffer used for the Torch
   // controllers.
@@ -232,16 +230,25 @@ Status PolymetisControllerServerImpl::SetController(
   memstream model_stream(controller_model_buffer_.data(),
                          controller_model_buffer_.size());
   try {
-    custom_controller_context_.custom_controller =
-        new TorchScriptedController(model_stream);
+    // Load new controller
+    auto new_controller = new TorchScriptedController(model_stream);
+
+    // Switch in new controller by updating controller context
+    custom_controller_context_.controller_mtx.lock();
+
+    resetControllerContext();
+    custom_controller_context_.custom_controller = new_controller;
+    custom_controller_context_.status = READY;
+
+    custom_controller_context_.controller_mtx.unlock();
+    std::cout << "Loaded new controller.\n";
+
   } catch (const std::exception &e) {
     std::cerr << "error loading the model:\n";
     std::cerr << e.what() << std::endl;
 
     return Status::CANCELLED;
   }
-  custom_controller_context_.status = READY;
-  std::cout << "Loaded new controller.\n";
 
   // Respond with start index
   while (custom_controller_context_.status == READY) {
