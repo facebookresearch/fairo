@@ -7,16 +7,10 @@ import logging
 
 from interaction_jobs import InteractionJob, InteractionLogListener
 from droidlet.tools.hitl.task_runner import TaskRunner
+from droidlet.tools.hitl.hitl_logger import set_logging_root_path
 
-log_formatter = logging.Formatter(
-    "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
-)
-logger = logging.getLogger()
-logger.handlers.clear()
-logger.setLevel("INFO")
-sh = logging.StreamHandler()
-sh.setFormatter(log_formatter)
-logger.addHandler(sh)
+HITL_LOG_DIR = ""
+set_logging_root_path(HITL_LOG_DIR)
 
 # TODO: Parameterize those
 # This specifies how long jobs should be running before we manually kill them
