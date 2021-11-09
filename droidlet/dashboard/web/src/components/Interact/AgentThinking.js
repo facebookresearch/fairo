@@ -28,7 +28,8 @@ class AgentThinking extends Component {
     };
     this.state = this.initialState;
 
-    this.taskStackPoll = this.taskStackPoll.bind(this);
+    this.sendTaskStackPoll = this.sendTaskStackPoll.bind(this);
+    this.receiveTaskStackPoll = this.receiveTaskStackPoll.bind(this);
     this.issueStopCommand = this.issueStopCommand.bind(this);
     this.elementRef = React.createRef();
   }
@@ -38,48 +39,57 @@ class AgentThinking extends Component {
     return this.elementRef.current != null;
   }
 
-  taskStackPoll(res) {
+  sendTaskStackPoll() {
+    console.log("Sending task stack poll");
+    this.props.stateManager.socket.emit("taskStackPoll");
+  }
+
+  receiveTaskStackPoll(res) {
+    console.log("Received task stack poll response")
     // If we get a response of any kind, reset the timeout clock
     if (res) {
       this.setState({
         now: Date.now(),
       });
-    }
-    if (!res.task) {
-      // If there's no task, leave this pane and go to error labeling
-      this.props.goToQuestion(0);
+      if (!res.task) {
+        // If there's no task, leave this pane and go to error labeling
+        this.props.goToQuestion(0);
+      } else {
+        // Otherwise send out a new task stack poll after a delay
+        setTimeout(() => {
+          this.sendTaskStackPoll();
+        }, 1000);
+      }
     }
   }
 
   componentDidMount() {
+    this.props.stateManager.connect(this);  // Add to refs
+
     // Send a message to the parent iframe for analytics logging
     window.parent.postMessage(JSON.stringify({ msg: "goToAgentThinking" }), "*");
 
     if (this.props.stateManager) {
-      this.props.stateManager.socket.on(
-        "taskStackPollResponse",
-        this.taskStackPoll
-      );
+      this.props.stateManager.socket.on( "taskStackPollResponse", this.receiveTaskStackPoll );
     }
 
-    // General purpose interval function
+    // Ellipsis animation and update command status
     const intervalId = setInterval(() => {
       const commandState = this.props.stateManager.memory.commandState;
       console.log("Command State: " + commandState);
+      
       this.safetyCheck(); // Check that we're in an allowed state and haven't timed out
 
-      // Once we've added the first task, poll the agent to see when the task stack is empty
-      if (commandState === "done_thinking" || commandState === "executing") {
-        this.props.stateManager.socket.emit("taskStackPoll");
-      }
-
-      // Ellipsis animation and update command status
       this.setState((prevState) => {
+        if (prevState.commandState != commandState) {
+          // Log changes in command state to mephisto for analytics
+          window.parent.postMessage(JSON.stringify({ msg: commandState }), "*");
+        }
         if (prevState.ellipsis.length > 6) {
           return {
             ellipsis: "",
             commandState: commandState,
-          };
+           };
         } else {
           return {
             ellipsis: prevState.ellipsis + ".",
@@ -87,7 +97,7 @@ class AgentThinking extends Component {
           };
         }
       });
-    }, this.props.stateManager.memory.commandPollTime); // Parameterize in stateManager
+    }, this.props.stateManager.memory.commandPollTime);
 
     this.setState({
       ellipsisInterval: intervalId,
@@ -98,6 +108,11 @@ class AgentThinking extends Component {
 
   componentWillUnmount() {
     clearInterval(this.state.ellipsisInterval);
+    clearInterval(this.state.GPInterval);
+    if (this.props.stateManager) {
+      this.props.stateManager.disconnect(this);
+      this.props.stateManager.socket.off("taskStackPollResponse", this.receiveTaskStackPoll);
+    }
   }
 
   safetyCheck() {

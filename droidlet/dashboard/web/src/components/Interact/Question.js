@@ -280,7 +280,7 @@ class Question extends Component {
         }
       } else {
         // NOTE: This should never happen ...
-        question_word = "did you want me to do nothing ?";
+        question_word = "to do nothing ?";
       }
     } else {
       //end screen, user can put any additional feedback

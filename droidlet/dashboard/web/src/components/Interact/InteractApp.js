@@ -22,6 +22,7 @@ class InteractApp extends Component {
     };
     this.state = this.initialState;
     this.setAssistantReply = this.setAssistantReply.bind(this);
+    this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
     this.MessageRef = React.createRef();
   }
 
@@ -52,6 +53,7 @@ class InteractApp extends Component {
 
   componentWillUnmount() {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
+    this.props.stateManager.socket.off("setLastChatActionDict", this.goToQuestionWindow)
   }
 
   getUrlParameterByName(name) {
@@ -85,15 +87,17 @@ class InteractApp extends Component {
       this.state.chats[idx]["msg"]
     );
 
-    // then wait 3 seconds for the logical form of last chat and show the Fail page (by setting currentView)
-    setTimeout(() => {
-      this.setState({
-        agent_reply: this.props.stateManager.memory.agent_reply,
-        currentView: 2,
-        chats: this.state.chats,
-        failidx: idx,
-      });
-    }, 3000);
+    // then wait for the logical form of last chat and show the Fail page
+    this.props.stateManager.socket.on("setLastChatActionDict", this.goToQuestionWindow)
+  }
+
+  goToQuestionWindow() {
+    this.setState({
+      agent_reply: this.props.stateManager.memory.agent_reply,
+      currentView: 2,
+      chats: this.state.chats,
+      failidx: 0,
+    });
   }
 
   render() {

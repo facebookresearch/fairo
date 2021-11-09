@@ -19,6 +19,7 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
+import AgentThinking from "./components/Interact/AgentThinking";
 
 /**
  * The main state manager for the dashboard.
@@ -322,7 +323,7 @@ class StateManager {
       }
     }, this.memory.commandPollTime - 1); // avoid race condition
 
-    // once confirm that this chat has been sent, clear last chat action dict
+    // once confirm that this chat has been sent, clear last action dict
     this.memory.lastChatActionDict = null;
 
     this.refs.forEach((ref) => {
@@ -393,6 +394,11 @@ class StateManager {
     // notify the user to look for an empty task stack
     if (JSON.parse(res).name === "perceive") {
       this.memory.commandState = "done_thinking";
+      this.refs.forEach((ref) => {
+        if (ref instanceof AgentThinking) {
+          ref.sendTaskStackPoll();  // Do this once from here
+        }
+      });
     }
     // If there's an action to take in the world,
     // notify the user that it's executing
