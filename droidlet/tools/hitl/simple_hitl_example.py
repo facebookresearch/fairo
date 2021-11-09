@@ -21,7 +21,7 @@ from .job_listener import JobListener
 from .task_runner import TaskRunner
 
 
-WORKDIR = "/private/home/yuxuans/Workspace/tmp/droidlet/droidlet/tools/hitl/tmp/"
+WORKDIR = ""
 
 log_formatter = logging.Formatter(
     "%(asctime)s [%(filename)s:%(lineno)s - %(funcName)s() %(levelname)s]: %(message)s"
