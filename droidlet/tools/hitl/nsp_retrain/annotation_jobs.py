@@ -36,13 +36,25 @@ logging.basicConfig(level="INFO")
 
 
 class AnnotationJob(DataGenerator):
-    def __init__(self, batch_id, command, cmd_id, timeout=-1):
+    """
+    This Data Generator is responsible for spinning up Annotation Jobs.
+
+    Each Annotation Job is a HIT where turkers are asked to annotate the given command using the annotation tool
+    we've built previously which will generate a logical form for the annotated command after several steps.
+
+    On a high level:
+    - The input of this data generator is a single text command to be annotated
+    - The output of this data generator is a (command, logical form) pair
+
+    """
+
+    def __init__(self, batch_id: int, command: str, cmd_id: int, timeout: float = -1) -> None:
         super(AnnotationJob, self).__init__(timeout)
         self._batch_id = batch_id
         self._command = command
         self._cmd_id = cmd_id
 
-    def run(self):
+    def run(self) -> None:
         try:
             MTURK_AWS_ACCESS_KEY_ID = os.environ["MTURK_AWS_ACCESS_KEY_ID"]
             MTURK_AWS_SECRET_ACCESS_KEY = os.environ["MTURK_AWS_SECRET_ACCESS_KEY"]
@@ -51,20 +63,24 @@ class AnnotationJob(DataGenerator):
             with open(f"{HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id}/input.txt", "w+") as f:
                 f.write(self._command)
 
-            annotation_process_timeout = ANNOTATION_PROCESS_TIMEOUT_DEFAULT #if self.get_remaining_time() < 0 else self.get_remaining_time() + 1
+            annotation_process_timeout = (
+                ANNOTATION_PROCESS_TIMEOUT_DEFAULT
+            )  # if self.get_remaining_time() < 0 else self.get_remaining_time() + 1
             p = subprocess.Popen(
                 [
-                    f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
+                    #     f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
+                    # ],
+                    f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --dev --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
                 ],
-                #     f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --dev --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
-                # ],
                 shell=True,
                 preexec_fn=os.setsid,
             )
 
             # Keep running Mephisto until timeout or job finished
             while not self.check_is_timeout() and p.poll() is None:
-                logging.info(f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] still running...Remaining time: {self.get_remaining_time()}")
+                logging.info(
+                    f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] still running...Remaining time: {self.get_remaining_time()}"
+                )
                 time.sleep(ANNOTATION_JOB_POLL_TIME)
 
             if p.poll() is None:
@@ -74,55 +90,28 @@ class AnnotationJob(DataGenerator):
                 time.sleep(10)
                 os.killpg(os.getpgid(p.pid), signal.SIGKILL)
 
-            logging.info(f"Uploading annotated data {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt to S3...")
+            logging.info(
+                f"Uploading annotated data {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt to S3..."
+            )
             # upload annotated commands to S3
             combined_fname = f"{HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id}/all_combined.txt"
             with open(combined_fname, "rb") as f:
                 s3.upload_fileobj(
-                    f, f"{S3_BUCKET_NAME}", f"{self._batch_id}/annotated/{self._cmd_id}_all_combined.txt"
+                    f,
+                    f"{S3_BUCKET_NAME}",
+                    f"{self._batch_id}/annotated/{self._cmd_id}_all_combined.txt",
                 )
-            logging.info(f"Uploading completed: {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt")
+            logging.info(
+                f"Uploading completed: {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt"
+            )
         except:
-            logging.info(f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] terminated unexpectedly...")
+            logging.info(
+                f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] terminated unexpectedly..."
+            )
 
         self.set_finished()
 
-def delete_mturk_hits():
-    import os
-    import boto3
-    from datetime import datetime
-
-    access_key = os.getenv("MTURK_AWS_ACCESS_KEY_ID")
-    secret_key = os.getenv("MTURK_AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("MTURK_AWS_REGION", default="us-east-1")
-
-    MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)
-
-    mturk = boto3.client(
-        "mturk",
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-        region_name=aws_region,
-        endpoint_url=MTURK_URL,
-    )
-
-    all_hits = mturk.list_hits()["HITs"]
-    hit_ids = [item["HITId"] for item in all_hits]
-    # This is slow but there's no better way to get the status of pending HITs
-    for hit_id in hit_ids:
-        # Get HIT status
-        status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
-        try:
-            response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
-            mturk.delete_hit(HITId=hit_id)
-        except:
-            pass
-        print(f"Hit {hit_id}, status: {status}")
 
 if __name__ == "__main__":
     aj = AnnotationJob(987, "destory the biggest house behind me", 1, 300)
     aj.run()
-    # delete_mturk_hits()
-
-    
-
