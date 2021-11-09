@@ -422,7 +422,7 @@ class RobotInterface(BaseRobotInterface):
             Kxd = self.Kxd_default
 
         joint_pos_current = self.get_joint_angles()
-        torch_policy = toco.policies.CartesianSpaceMoveTo(
+        torch_policy = toco.policies.CartesianTargetJointMoveTo(
             joint_pos_current=joint_pos_current,
             ee_pos_desired=position,
             ee_quat_desired=orientation,
