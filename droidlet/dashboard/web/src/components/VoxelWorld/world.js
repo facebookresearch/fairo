@@ -52,6 +52,7 @@ function defaultSetup(game, avatar) {
   window.addEventListener("keydown", function (ev) {
     if (ev.keyCode === "1".charCodeAt(0)) {
       game.createAdjacent(game.raycastVoxels(), 57);
+      console.log(window.parent);
       window.parent.postMessage("TESTINGGG", "*");
     }
   });

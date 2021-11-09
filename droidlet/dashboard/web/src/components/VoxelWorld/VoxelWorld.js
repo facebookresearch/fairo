@@ -19,11 +19,11 @@ class VoxelWorld extends React.Component {
 
   componentDidUpdate() {
     this.worldContainerRef.current.contentWindow.postMessage(this.state, "*");
-    this.worldContainerRef.current.contentWindow.onmessage = (event) => {
-      // event.data will be the data sent from the iframe
-      console.log("ACTUALLY GETTING MESSAGE");
-      console.log(event.data);
-    };
+    // this.worldContainerRef.current.contentWindow.onmessage = (event) => {
+    //   // event.data will be the data sent from the iframe
+    //   console.log("ACTUALLY GETTING MESSAGE");
+    //   console.log(event.data);
+    // };
   }
 
   componentDidMount() {
