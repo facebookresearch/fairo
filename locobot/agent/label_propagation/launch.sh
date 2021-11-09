@@ -34,7 +34,7 @@ cp run_pipeline.py $codedir/run_pipeline.py
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --active --slurm --active 
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --active --slurm #--active 
 
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 1
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 20 3

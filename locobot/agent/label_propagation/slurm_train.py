@@ -141,7 +141,7 @@ class LossEvalHook(HookBase):
         self.trainer.storage.put_scalar('validation_loss', mean_loss)
         comm.synchronize()
 
-        return np.mean(loss_batch)
+        return losses
             
     def _get_loss(self, data):
         # How loss is calculated on train_loop 
@@ -154,32 +154,42 @@ class LossEvalHook(HookBase):
         # print(f"Validation loss dict {metrics_dict}")
         total_losses_reduced = sum(loss for loss in metrics_dict.values())
         return total_losses_reduced
+
+    def _do_test_eval(self):
+        with open(os.path.join(self.cfg.OUTPUT_DIR, "test_results.txt"), "a") as f:
+            f.write(f'lr {self.cfg.SOLVER.BASE_LR} warmup {self.cfg.SOLVER.WARMUP_ITERS} iter {self.trainer.iter}\n')
+            for yix in range(len(test_jsons)):
+                output_folder = os.path.join(self.cfg.OUTPUT_DIR, "test_inference")
+                evaluator = COCOEvaluator('test' + str(yix), ("bbox", "segm"), False, self.cfg.OUTPUT_DIR, use_fast_impl=False)
+                data_loader = build_detection_test_loader(
+                    DatasetCatalog.get('test' + str(yix)),
+                    mapper=DatasetMapper(self.cfg, is_train=False)
+                )
+                results = inference_on_dataset(self._model, data_loader, evaluator)
+                f.write(json.dumps(results) + '\n')
         
     def after_step(self):
         # print(f'self._period {self._period} next_iter {self.trainer.iter}....')
-        global poorly_named_global_outd
         next_iter = self.trainer.iter + 1
         is_final = next_iter == self.trainer.max_iter
         if is_final or (self._period > 0 and next_iter % self._period == 0):
             losses = self._do_loss_eval()
             l = np.mean(losses)
             # write validation loss, AP
-            print(f'val los {self.trainer.iter} losses {l}')
-            print(f"writing to {os.path.join(poorly_named_global_outd, 'validation_results.txt')}")
-            with open(os.path.join(poorly_named_global_outd, "validation_results.txt"), "a") as f:
+            print(f'val los {self.trainer.iter} losses.mean {l}')
+            print(f"writing to {os.path.join(self.cfg.OUTPUT_DIR, 'validation_results.txt')}")
+            with open(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
                 f.write(f'lr {self.cfg.SOLVER.BASE_LR} warmup {self.cfg.SOLVER.WARMUP_ITERS} iter {self.trainer.iter}\n')
                 f.write(f'validation loss {l}\n')
-                output_folder = os.path.join(self.cfg.OUTPUT_DIR, "inference")
-                self.evaluator = COCOEvaluator(self.cfg.DATASETS.TEST[0], self.cfg, False, output_folder)
-                results = inference_on_dataset(self._model, self._data_loader, self.evaluator)
+                output_folder = os.path.join(self.cfg.OUTPUT_DIR, "val_inference")
+                evaluator = COCOEvaluator(self.cfg.DATASETS.TEST[0], self.cfg, False, output_folder)
+                results = inference_on_dataset(self._model, self._data_loader, evaluator)
                 f.write(json.dumps(results) + '\n')
-           
 
             # write test AP 
+            self._do_test_eval()
 
         self.trainer.storage.put_scalars(timetest=12)
-
-        
         
         
 # class ActiveWriter(EventWriter):
@@ -226,16 +236,17 @@ class MyTrainer(DefaultTrainer):
 
     def build_hooks(self):
         hooks = super().build_hooks()
-        print(f'self.cfg.TEST.EVAL_PERIOD {self.cfg.TEST.EVAL_PERIOD}')
+        print(f'hooks {len(hooks), hooks}')
         hooks.insert(-1,LossEvalHook(
             self.cfg,
             self.model,
             build_detection_test_loader(
                 self.cfg,
                 self.cfg.DATASETS.TEST[0],
-                DatasetMapper(self.cfg,True)
+                DatasetMapper(self.cfg, is_train=True)
             ),
         ))
+        print(f'hooks {len(hooks), hooks}')
         return hooks
 
 
@@ -256,6 +267,13 @@ class COCOTrain:
         self.dataset_name = dataset_name
         self.train_json = train_json
         register_coco_instances(self.train_data, {}, train_json, img_dir_train)
+
+        # Register test json
+        for yix in range(len(test_jsons)):
+            register_coco_instances('test' + str(yix), {}, test_jsons[yix], img_dir_test)
+            MetadataCatalog.get('test' + str(yix)).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
+            print(MetadataCatalog.get('test' + str(yix)).thing_classes)
+
         self.results = {
             "bbox": {
                 "AP50": []
@@ -306,7 +324,7 @@ class COCOTrain:
         MetadataCatalog.get(self.train_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
-        cfg.OUTPUT_DIR = os.path.join('output', self.name, str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS))
+        cfg.OUTPUT_DIR = os.path.join('output', self.name, str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS), str(self.seed))
         print(f"recreating {cfg.OUTPUT_DIR}")
         # if os.path.isdir(cfg.OUTPUT_DIR):
         #     shutil.rmtree(cfg.OUTPUT_DIR)
@@ -315,34 +333,6 @@ class COCOTrain:
         self.trainer = MyTrainer(cfg) #DefaultTrainer(cfg)  #Trainer(cfg)
         self.trainer.resume_or_load(resume=False)
         self.trainer.train()
-        
-    def run_val(self, dataset_name, val_json, img_dir_val):
-        # self.val_data = dataset_name + "_val" + str(self.seed)
-        # self.val_json = val_json
-        # self.cfg.DATASETS.TEST = (self.val_data,)
-        # register_coco_instances(self.val_data, {}, val_json, img_dir_val)
-        # MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
-        # print(f'classes {MetadataCatalog.get(self.val_data)}')
-        self.evaluator = COCOEvaluator(self.val_data, ("bbox", "segm"), False, output_dir=self.cfg.OUTPUT_DIR)
-        self.val_loader = build_detection_test_loader(self.cfg, self.val_data)
-        results = inference_on_dataset(self.trainer.model, self.val_loader, self.evaluator)
-        self.val_results['bbox']['AP50'].append(results['bbox']['AP50'])
-        self.val_results['segm']['AP50'].append(results['segm']['AP50'])
-        return results
-
-    def run_test(self, dataset_name, test_json, img_dir_test):
-        self.test_data = dataset_name + "_test" + str(self.seed)
-        self.test_json = test_json
-        self.cfg.DATASETS.TEST = (self.test_data,)
-        register_coco_instances(self.test_data, {}, test_json, img_dir_test)
-        MetadataCatalog.get(self.test_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
-        print(f'classes {MetadataCatalog.get(self.test_data)}')
-        self.evaluator = COCOEvaluator(self.test_data, ("bbox", "segm"), False, output_dir=self.cfg.OUTPUT_DIR)
-        self.val_loader = build_detection_test_loader(self.cfg, self.test_data)
-        results = inference_on_dataset(self.trainer.model, self.val_loader, self.evaluator)
-        self.results['bbox']['AP50'].append(results['bbox']['AP50'])
-        self.results['segm']['AP50'].append(results['segm']['AP50'])
-        return results
         
     def run_train(self, train_json, img_dir_train, dataset_name, val_json, img_dir_val):
         self.reset(train_json, img_dir_train, dataset_name)
@@ -374,8 +364,6 @@ from pathlib import Path
 import string
 
 def run_training(out_dir, img_dir_train, n=10):
-    global poorly_named_global_outd
-    poorly_named_global_outd = out_dir
     train_json = os.path.join(out_dir, 'coco_train.json')
     for lr in lrs:
         for warmup in warmups:
@@ -394,19 +382,3 @@ def run_training(out_dir, img_dir_train, n=10):
                     c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
                     print(f'dataset_name {dataset_name}')
                     c.run_train(train_json, img_dir_train, dataset_name, val_json0, img_dir_val0)
-                    # res_eval = c.run_val(dataset_name, val_json0, img_dir_val0)
-                    # with open(os.path.join(out_dir, "validation_results.txt"), "a") as f:
-                    #     f.write(f'lr {lr} warmup {warmup} maxiter {maxiter}\n')
-                    #     f.write(json.dumps(res_eval) + '\n')
-                    for yix in range(len(test_jsons)):
-                        r = c.run_test(dataset_name + str(yix), test_jsons[yix], img_dir_test)
-                        with open(os.path.join(out_dir, "all_results.txt"), "a") as f:
-                            f.write(json.dumps(r) + '\n')
-                    print(f'all results {c.results}')
-                    results['bbox']['AP50'].append(c.results['bbox']['AP50'])
-                    results['segm']['AP50'].append(c.results['segm']['AP50'])
-                    write_summary_to_file(os.path.join(out_dir, str(n) + '_granular.txt'), c.results, f'\ntrain_json {train_json}')
-                
-                itername = str(lr) + ' ' + str(warmup) + ' ' + str(maxiter) + ' ' + str(n)
-                write_summary_to_file(os.path.join(out_dir, itername + '_results_averaged.txt'), results, f'\ntrain_json {train_json}, average over {n} runs')
-   
