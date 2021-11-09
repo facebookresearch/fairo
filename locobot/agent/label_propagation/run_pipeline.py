@@ -264,8 +264,8 @@ def _runner(traj, gt, p, args):
                     seg_dir=os.path.join(traj_path, 'seg')
                 )
             src_img_ids = s.sample_uniform_nn2(gt)
+            # src_img_ids = [10, 20, 30, 40, 50]
             run_label_prop(outdir, gt, p, traj_path, src_img_ids)
-            # run_label_prop(outdir, gt, p, traj_path)
             if len(glob.glob1(outdir,"*.npy")) > 0:
                 run_coco(outdir, traj_path)
                 run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
@@ -290,7 +290,7 @@ def _runner(traj, gt, p, args):
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
                 if len(glob.glob1(outdir,"*.npy")) > 0:
                     run_coco(outdir, traj_path)
-                    run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
+                    run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples, active=True)
                     end = datetime.now()
                     with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                         f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
@@ -365,6 +365,6 @@ if __name__ == "__main__":
     else:
         print('running locally ...')
         for traj in range(args.num_traj):
-                for gt in range(5, 30, 5):
-                    for p in range(2, 6, 2): # only run for fixed gt locally to test
+                for gt in range(5, 10, 5):
+                    for p in range(0, 6, 2): # only run for fixed gt locally to test
                         _runner(traj, gt, p, args)

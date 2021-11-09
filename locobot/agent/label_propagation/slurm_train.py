@@ -363,7 +363,7 @@ def write_summary_to_file(filename, results, header_str):
 from pathlib import Path
 import string
 
-def run_training(out_dir, img_dir_train, n=10):
+def run_training(out_dir, img_dir_train, n=10, active=False):
     train_json = os.path.join(out_dir, 'coco_train.json')
     for lr in lrs:
         for warmup in warmups:
@@ -378,7 +378,8 @@ def run_training(out_dir, img_dir_train, n=10):
                 }
                 for i in range(n):
                     # dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
-                    dataset_name = "/".join(out_dir.split('/')[-3:])
+                    dataset_name = "/".join(out_dir.split('/')[-3 if active else -2:])
+                    print(f'dataset_name {dataset_name}')
                     c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
                     print(f'dataset_name {dataset_name}')
                     c.run_train(train_json, img_dir_train, dataset_name, val_json0, img_dir_val0)
