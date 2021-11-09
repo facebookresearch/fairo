@@ -266,6 +266,8 @@ class Question extends Component {
                 "'";
             }
             question_word = question_word + " ?";
+          } else if (["otheraction"].indexOf(action_type) >= 0) {
+            question_word = "to perform an action not in assistant capabilities ?";
           }
         } else if (dialogue_type === "GET_MEMORY") {
           // you asked the bot a question
