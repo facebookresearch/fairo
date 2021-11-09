@@ -49,6 +49,13 @@ function defaultSetup(game, avatar) {
     if (ev.keyCode === "R".charCodeAt(0)) avatar.toggle();
   });
 
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "1".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 57);
+      window.parent.postMessage("TESTINGGG", "*");
+    }
+  });
+
   // block interaction stuff, uses highlight data
   var currentMaterial = 1;
 
