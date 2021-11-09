@@ -43,8 +43,9 @@ class JointPlanExecutor(toco.PolicyModule):
         self.N = steps
 
         # Control
+        joint_pos_initial, _, _ = self.plan(0)
         self.control = toco.policies.JointImpedanceControl(
-            joint_pos_current=joint_pos_current,
+            joint_pos_current=joint_pos_initial,
             Kp=Kp,
             Kd=Kd,
             robot_model=robot_model,
@@ -59,8 +60,8 @@ class JointPlanExecutor(toco.PolicyModule):
         q_desired, qd_desired, _ = self.plan(self.i)
 
         # Compute control
-        self.control.joint_pos_desired = q_desired
-        self.control.joint_vel_desired = qd_desired
+        self.control.joint_pos_desired.data.copy_(q_desired)
+        self.control.joint_vel_desired.data.copy_(qd_desired)
 
         output = self.control(state_dict)
 
@@ -74,6 +75,7 @@ class JointPlanExecutor(toco.PolicyModule):
 
 class JointSpaceMoveTo(JointPlanExecutor):
     def __init__(
+        self,
         joint_pos_current,
         joint_pos_desired,
         time_to_go: float,
@@ -113,6 +115,7 @@ class JointSpaceMoveTo(JointPlanExecutor):
 
 class CartesianTargetJointMoveTo(JointPlanExecutor):
     def __init__(
+        self,
         joint_pos_current,
         ee_pos_desired,
         time_to_go: float,
@@ -240,10 +243,10 @@ class CartesianSpaceMoveTo(toco.PolicyModule):
         ee_posquat_desired, ee_twist_desired, _ = self.plan(self.i)
 
         # Compute control
-        self.control.ee_pos_desired = ee_posquat_desired[:3]
-        self.control.ee_quat_desired = ee_posquat_desired[3:]
-        self.control.ee_vel_desired = ee_twist_desired[:3]
-        self.control.ee_rvel_desired = ee_twist_desired[3:]
+        self.control.ee_pos_desired.data.copy_(ee_posquat_desired[:3])
+        self.control.ee_quat_desired.data.copy_(ee_posquat_desired[3:])
+        self.control.ee_vel_desired.data.copy_(ee_twist_desired[:3])
+        self.control.ee_rvel_desired.data.copy_(ee_twist_desired[3:])
 
         output = self.control(state_dict)
 
