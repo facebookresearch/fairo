@@ -50,6 +50,7 @@ class FileWriter(DataGenerator):
     - Generate 5 new files all with extension name .stat. The file contents are all the same: a single-line text 'ready'
 
     """
+
     def __init__(self, file_num: int) -> None:
         super(FileWriter, self).__init__()
         self.file_num = file_num
@@ -68,7 +69,7 @@ class FileWriter(DataGenerator):
 
 
 class FileListener(JobListener):
-     """
+    """
     This is a simple example demonstrating the purpose of a JobListener.
 
     A DataGenrator should:
