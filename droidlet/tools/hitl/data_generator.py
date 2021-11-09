@@ -73,3 +73,6 @@ class DataGenerator(ABC):
         Return remaining time before task timeout
         """
         return self.timeout - ((time.time() - self.start_time) // 60)
+
+    def shutdown(self) -> None:
+        pass

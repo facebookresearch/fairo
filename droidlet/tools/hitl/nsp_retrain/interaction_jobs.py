@@ -75,6 +75,7 @@ class InteractionJob(DataGenerator):
         self._instance_num = instance_num
         self.instance_ids = None
         self._batch_id = generate_batch_id()
+        self.process = None
 
     def run(self) -> None:
         batch_id = self._batch_id
@@ -89,7 +90,7 @@ class InteractionJob(DataGenerator):
         MEPHISTO_AWS_ACCESS_KEY_ID = os.environ["MEPHISTO_AWS_ACCESS_KEY_ID"]
         MEPHISTO_AWS_SECRET_ACCESS_KEY = os.environ["MEPHISTO_AWS_SECRET_ACCESS_KEY"]
         MEPHISTO_REQUESTER = os.environ["MEPHISTO_REQUESTER"]
-        p = subprocess.Popen(
+        self.process = subprocess.Popen(
             [
                 f"echo -ne '\n' |  AWS_ACCESS_KEY_ID='{MEPHISTO_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MEPHISTO_AWS_SECRET_ACCESS_KEY}' python ../../../../tools/crowdsourcing/droidlet_static_html_task/static_run_with_qual.py mephisto.provider.requester_name={MEPHISTO_REQUESTER}"
             ],
@@ -106,12 +107,8 @@ class InteractionJob(DataGenerator):
 
         # if mephisto is still running after job timeout, terminate it
         logging.info(f"Manually terminate Mephisto after timeout...")
-        if p.poll() is None:
-            os.killpg(os.getpgid(p.pid), signal.SIGINT)
-            time.sleep(300)
-            os.killpg(os.getpgid(p.pid), signal.SIGINT)
-            time.sleep(300)
-            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+        if self.process.poll() is None:
+            self._clean_up()
 
         # Deregister DNS records
         logging.info(f"Deregister DNS records...")
@@ -154,6 +151,19 @@ class InteractionJob(DataGenerator):
 
     def get_batch_id(self):
         return self._batch_id
+
+    def shutdown(self) -> None:
+        if self.process is not None and self.process.poll() is None:
+            self._clean_up()
+        
+    def _clean_up(self) -> None:
+        os.killpg(os.getpgid(self.process.pid), signal.SIGINT)
+        time.sleep(300)
+        os.killpg(os.getpgid(self.process.pid), signal.SIGINT)
+        time.sleep(300)
+        os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
+        self.set_finished()
+
 
 
 class InteractionLogListener(JobListener):
@@ -253,6 +263,9 @@ class InteractionLogListener(JobListener):
             s3.Object(f"{S3_BUCKET_NAME}", f"{batch_id}/meta.txt").put(Body=meta_content)
         except:
             logging.info("[Interaction Log Listener] Err on uploading annotated data to S3...")
+
+    def shutdown(self) -> None:
+        self.set_finished()
 
 
 if __name__ == "__main__":

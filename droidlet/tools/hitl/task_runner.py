@@ -53,16 +53,29 @@ class TaskRunner:
         Assign resources and schedule task runnings
         For now it just start all the registered tasks
         """
-        while not self._finished:
-            for data_generator in self._data_generators:
-                data_generator.start()
+        try:
+            while not self._finished:
+                for data_generator in self._data_generators:
+                    data_generator.start()
 
-            for job_listener in self._job_listeners:
-                job_listener.start(self)
+                for job_listener in self._job_listeners:
+                    job_listener.start(self)
 
-            self._finished = self._check_is_finished()
-            logging.info(f"Task is running...")
-            time.sleep(RUN_POLL_TIME)
+                self._finished = self._check_is_finished()
+                logging.info(f"Task is running...")
+                time.sleep(RUN_POLL_TIME)
+        except (KeyboardInterrupt, Exception) as e:
+             logging.error(f"Encountered errors during task running, shutting down everything")
+             self._clean_up()
+
+
+    def _clean_up(self) -> None:
+        for data_generator in self._data_generators:
+            data_generator.shutdown()
+
+        for job_listener in self._job_listeners:
+            job_listener.shutdown()
+
 
     def _check_is_finished(self) -> bool:
         """

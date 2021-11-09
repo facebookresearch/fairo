@@ -53,6 +53,7 @@ class AnnotationJob(DataGenerator):
         self._batch_id = batch_id
         self._command = command
         self._cmd_id = cmd_id
+        self.process = None
 
     def run(self) -> None:
         try:
@@ -66,7 +67,7 @@ class AnnotationJob(DataGenerator):
             annotation_process_timeout = (
                 ANNOTATION_PROCESS_TIMEOUT_DEFAULT
             )  # if self.get_remaining_time() < 0 else self.get_remaining_time() + 1
-            p = subprocess.Popen(
+            self.process = subprocess.Popen(
                 [
                     #     f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
                     # ],
@@ -77,18 +78,14 @@ class AnnotationJob(DataGenerator):
             )
 
             # Keep running Mephisto until timeout or job finished
-            while not self.check_is_timeout() and p.poll() is None:
+            while not self.check_is_timeout() and self.process.poll() is None:
                 logging.info(
                     f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] still running...Remaining time: {self.get_remaining_time()}"
                 )
                 time.sleep(ANNOTATION_JOB_POLL_TIME)
 
-            if p.poll() is None:
-                # if mturk job is still running after timeout, terminate it
-                logging.info(f"Manually terminate turk job after timeout...")
-                os.killpg(os.getpgid(p.pid), signal.SIGINT)
-                time.sleep(10)
-                os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+            if self.process.poll() is None:
+                self._clean_up()
 
             logging.info(
                 f"Uploading annotated data {self._batch_id}/annotated/{self._cmd_id}_all_combined.txt to S3..."
@@ -109,6 +106,17 @@ class AnnotationJob(DataGenerator):
                 f"Annotation Job [{self._batch_id}-{self._cmd_id}-{self._command}] terminated unexpectedly..."
             )
 
+        self.set_finished()
+
+    def _clean_up(self) -> None:
+        # if mturk job is still running after timeout, terminate it
+        logging.info(f"Manually terminate turk job after timeout...")
+        os.killpg(os.getpgid(self.process.pid), signal.SIGINT)
+        time.sleep(10)
+        os.killpg(os.getpgid(self.process.pid), signal.SIGKILL)
+
+    def shutdown(self) -> None:
+        self._clean_up()
         self.set_finished()
 
 
