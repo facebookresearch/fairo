@@ -324,7 +324,7 @@ class COCOTrain:
         MetadataCatalog.get(self.train_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
-        cfg.OUTPUT_DIR = os.path.join('output', self.name, str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS), str(self.seed))
+        cfg.OUTPUT_DIR = os.path.join('output_droid', self.name, str(self.seed), str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS))
         print(f"recreating {cfg.OUTPUT_DIR}")
         # if os.path.isdir(cfg.OUTPUT_DIR):
         #     shutil.rmtree(cfg.OUTPUT_DIR)

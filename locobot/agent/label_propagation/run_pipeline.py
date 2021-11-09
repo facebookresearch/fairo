@@ -355,8 +355,8 @@ if __name__ == "__main__":
     if args.slurm:
         with executor.batch():
             for traj in range(args.num_traj):
-                for gt in range(5, 10, 5):
-                    for p in range(0, 6, 2):
+                for gt in range(5, 30, 5):
+                    for p in range(0, 10, 2):
                         job = executor.submit(_runner, traj, gt, p, args)
                         jobs.append(job)
         
@@ -365,6 +365,6 @@ if __name__ == "__main__":
     else:
         print('running locally ...')
         for traj in range(args.num_traj):
-                for gt in range(5, 10, 5):
-                    for p in range(0, 8, 2): # only run for fixed gt locally to test
+                for gt in range(5, 30, 5):
+                    for p in range(2, 6, 2): # only run for fixed gt locally to test
                         _runner(traj, gt, p, args)
