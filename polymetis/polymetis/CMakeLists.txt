@@ -6,6 +6,9 @@ cmake_minimum_required(VERSION 3.14)
 project(polymetis)
 
 SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
+
+add_subdirectory("torch_isolation/")
+
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 
 if(DEFINED ENV{PREFIX})
@@ -21,15 +24,6 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-# Find Torch
-execute_process (
-    COMMAND bash -c "python -c 'from distutils.sysconfig import get_python_lib; print(get_python_lib())' | tr -d '\n'"
-    OUTPUT_VARIABLE site_packages_path
-)
-set(Torch_DIR ${site_packages_path}/torch/share/cmake/Torch/)
-find_package(Torch REQUIRED)
-
-# Find Protobuf
 set(_PROTOBUF_LIBPROTOBUF $ENV{CONDA_PREFIX}/lib/libprotobuf.so)
 set(Protobuf_FOUND ON)
 
@@ -41,10 +35,6 @@ set(gRPC_DIR $ENV{CONDA_PREFIX}/lib/cmake/grpc/)
 find_package(gRPC REQUIRED)
 set(_REFLECTION gRPC::grpc++_reflection)
 set(_GRPC_GRPCPP gRPC::grpc++)
-
-# Find Pinocchio
-set(pinocchio_DIR $ENV{CONDA_PREFIX}/lib/cmake/pinocchio)
-find_package(pinocchio REQUIRED)
 
 # Find gRPC plugins
 find_program(_GRPC_CPP_PLUGIN_EXECUTABLE $ENV{CONDA_PREFIX}/bin/grpc_cpp_plugin)
@@ -100,26 +90,10 @@ include_directories(
     include
     "${CMAKE_CURRENT_BINARY_DIR}"
     "$ENV{CONDA_PREFIX}/include/"
-    ${TORCH_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIR}
     ${pinocchio_INCLUDE_DIRS} 
-)
-
-add_library(torchrot SHARED
-    src/torchscript_operators/rotations.cpp
-)
-target_link_libraries(torchrot
-    ${TORCH_LIBRARIES}
-)
-
-# Add Torchscript Pinocchio wrapper
-add_library(torchscript_pinocchio SHARED
-    src/torchscript_operators/pinocchio.cpp
-)
-target_link_libraries(torchscript_pinocchio
-    ${pinocchio_LIBRARIES}
-    ${TORCH_LIBRARIES}
-    torchrot
+    "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/torch_isolation/pinocchio_isolation/include"
 )
 
 # Add server
@@ -127,24 +101,20 @@ add_library(polymetis_server "src/polymetis_server.cpp")
 
 target_link_libraries(polymetis_server
     generated_grpc_protos
-    ${TORCH_LIBRARIES}
     yaml-cpp
-    torchscript_pinocchio
-    torchrot
 )
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
 target_link_libraries(polymetis_server -Wl,--no-as-needed torchrot)
+target_link_libraries(polymetis_server -Wl,--no-as-needed torch_server_ops)
 
 add_executable(run_server "src/run_server.cpp")
-target_link_libraries(run_server polymetis_server -Wl,--no-as-needed torchscript_pinocchio)
-target_link_libraries(run_server polymetis_server -Wl,--no-as-needed torchrot)
+target_link_libraries(run_server polymetis_server)
 
 # Add test client
 add_executable(empty_statistics_client "src/clients/empty_statistics_client.cpp"
 )
 target_link_libraries(empty_statistics_client
     generated_grpc_protos
-    ${TORCH_LIBRARIES}
     yaml-cpp
 )
 

@@ -6,21 +6,17 @@
 #include <iostream>
 #include <string>
 
-#include "dtt.h"
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
 
 #include <torch/script.h>
 #include <torch/torch.h>
 
-#include "pinocchio/algorithm/frames.hpp"
-#include "pinocchio/algorithm/jacobian.hpp"
-#include "pinocchio/algorithm/joint-configuration.hpp"
-#include "pinocchio/algorithm/kinematics.hpp"
-#include "pinocchio/algorithm/rnea.hpp"
-#include "pinocchio/parsers/urdf.hpp"
+#include "dtt.h"
+#include "pinocchio_wrapper.hpp"
+#include "rotations.hpp"
 
-#include "polymetis/torchscript_operators/rotations.hpp"
+extern "C" {
 
 torch::Tensor validTensor(torch::Tensor x) {
   if (x.dim() < 2) {
@@ -35,12 +31,10 @@ Eigen::VectorXd matrixToVector(Eigen::MatrixXd A) {
 }
 
 struct RobotModelPinocchio : torch::CustomClassHolder {
-  pinocchio::Model model_;
-  pinocchio::Data model_data_;
-  pinocchio::FrameIndex ee_frame_idx_;
   Eigen::VectorXd ik_sol_p_;
   Eigen::VectorXd ik_sol_v_;
-  pinocchio::Data::Matrix6x ik_sol_J_;
+
+  pinocchio_wrapper::State *pinocchio_state_ = nullptr;
 
   std::string xml_buffer_;
   std::string ee_link_name_;
@@ -61,24 +55,27 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     initialize();
   }
 
-  void initialize() {
-    pinocchio::urdf::buildModelFromXML(xml_buffer_, model_);
-    model_data_ = pinocchio::Data(model_);
-    ee_frame_idx_ = model_.getBodyId(ee_link_name_);
+  ~RobotModelPinocchio() { pinocchio_wrapper::destroy(pinocchio_state_); }
 
-    ik_sol_p_ = Eigen::VectorXd(model_.nq);
-    ik_sol_v_ = Eigen::VectorXd(model_.nv);
-    ik_sol_J_ = pinocchio::Data::Matrix6x(6, model_.nv);
+  void initialize() {
+    pinocchio_state_ =
+        pinocchio_wrapper::initialize(ee_link_name_, xml_buffer_);
   }
 
   c10::List<torch::Tensor> get_joint_angle_limits(void) {
     c10::List<torch::Tensor> result;
-    torch::Tensor l_result = torch::zeros(model_.nq, torch::kFloat32);
-    torch::Tensor u_result = torch::zeros(model_.nq, torch::kFloat32);
+    int nq = pinocchio_wrapper::get_nq(pinocchio_state_);
+    torch::Tensor l_result = torch::zeros(nq, torch::kFloat32);
+    torch::Tensor u_result = torch::zeros(nq, torch::kFloat32);
 
-    for (int i = 0; i < model_.nq; i++) {
-      l_result[i] = model_.lowerPositionLimit[i];
-      u_result[i] = model_.upperPositionLimit[i];
+    auto lower_limit =
+        pinocchio_wrapper::get_lower_position_limits(pinocchio_state_);
+    auto upper_limit =
+        pinocchio_wrapper::get_upper_position_limits(pinocchio_state_);
+
+    for (int i = 0; i < nq; i++) {
+      l_result[i] = lower_limit[i];
+      u_result[i] = upper_limit[i];
     }
     result.push_back(l_result);
     result.push_back(u_result);
@@ -87,10 +84,13 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   }
 
   torch::Tensor get_joint_velocity_limits(void) {
-    torch::Tensor result = torch::zeros(model_.nq, torch::kFloat32);
+    int nq = pinocchio_wrapper::get_nq(pinocchio_state_);
+    torch::Tensor result = torch::zeros(nq, torch::kFloat32);
+    auto velocity_limit =
+        pinocchio_wrapper::get_velocity_limits(pinocchio_state_);
 
-    for (int i = 0; i < model_.nq; i++) {
-      result[i] = model_.velocityLimit[i];
+    for (int i = 0; i < nq; i++) {
+      result[i] = velocity_limit[i];
     }
 
     return result;
@@ -102,22 +102,16 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     torch::Tensor quat_result = torch::zeros(4, torch::kFloat32);
 
     joint_positions = validTensor(joint_positions);
-    pinocchio::forwardKinematics(
-        model_, model_data_,
+    auto result_intermediate = pinocchio_wrapper::forward_kinematics(
+        pinocchio_state_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)));
-    pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
-
-    auto pos_data = model_data_.oMf[ee_frame_idx_].translation().transpose();
-    auto quat_data =
-        Eigen::Quaterniond(model_data_.oMf[ee_frame_idx_].rotation());
 
     for (int i = 0; i < 3; i++) {
-      pos_result[i] = pos_data[i];
+      pos_result[i] = result_intermediate[i];
     }
-    quat_result[0] = quat_data.x();
-    quat_result[1] = quat_data.y();
-    quat_result[2] = quat_data.z();
-    quat_result[3] = quat_data.w();
+    for (int i = 0; i < 4; i++) {
+      quat_result[i] = result_intermediate[i + 3];
+    }
 
     result.push_back(pos_result);
     result.push_back(quat_result);
@@ -126,15 +120,15 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   }
 
   torch::Tensor compute_jacobian(torch::Tensor joint_positions) {
+    int nq = pinocchio_wrapper::get_nq(pinocchio_state_);
     joint_positions = validTensor(joint_positions);
 
-    torch::Tensor result = torch::zeros({6, model_.nq}, torch::kFloat64);
+    torch::Tensor result = torch::zeros({6, nq}, torch::kFloat64);
     Eigen::Map<dtt::MatrixXrm<double>> J(result.data_ptr<double>(),
                                          result.size(0), result.size(1));
-    pinocchio::computeFrameJacobian(
-        model_, model_data_,
-        matrixToVector(dtt::libtorch2eigen<double>(joint_positions)),
-        ee_frame_idx_, pinocchio::LOCAL_WORLD_ALIGNED, J);
+    pinocchio_wrapper::compute_jacobian(
+        pinocchio_state_,
+        matrixToVector(dtt::libtorch2eigen<double>(joint_positions)), J);
 
     return result;
   }
@@ -150,7 +144,7 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     auto a = matrixToVector(dtt::libtorch2eigen<double>(joint_accelerations));
 
     Eigen::Matrix<double, Eigen::Dynamic, 1> tau =
-        pinocchio::rnea(model_, model_data_, q, v, a);
+        pinocchio_wrapper::inverse_dynamics(pinocchio_state_, q, v, a);
     std::vector<int64_t> dims = {tau.rows()};
     return torch::from_blob(tau.data(), dims, torch::kFloat64).clone();
   }
@@ -165,55 +159,13 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
 
     auto quat = tensor4ToQuat(ee_quat);
     auto ee_quat_ = Eigen::Quaterniond(quat).cast<double>();
-    auto ee_orient_ = ee_quat_.toRotationMatrix();
 
-    // Initialize IK variables
-    const pinocchio::SE3 desired_ee(ee_orient_, ee_pos_);
     rest_pose = validTensor(rest_pose);
     ik_sol_p_ = matrixToVector(dtt::libtorch2eigen<double>(rest_pose));
 
-    ik_sol_J_.setZero();
-
-    Eigen::Matrix<double, 6, 1> err;
-    ik_sol_v_ = Eigen::VectorXd(model_.nv);
-    ik_sol_v_.setZero();
-
-    // Reset robot pose
-    pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
-    pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
-
-    // Solve IK iteratively
-    for (int i = 0; i < max_iters; i++) {
-      // Compute forward kinematics error
-      pinocchio::forwardKinematics(model_, model_data_, ik_sol_p_);
-      pinocchio::updateFramePlacement(model_, model_data_, ee_frame_idx_);
-      const pinocchio::SE3 dMf =
-          desired_ee.actInv(model_data_.oMf[ee_frame_idx_]);
-      err = pinocchio::log6(dMf).toVector();
-
-      // Check termination
-      if (err.norm() < eps) {
-        std::cout << "Ending IK at " << i + 1 << "/" << max_iters
-                  << " iteration." << std::endl;
-        break;
-      }
-
-      // Descent solution
-      pinocchio::computeFrameJacobian(model_, model_data_, ik_sol_p_,
-                                      ee_frame_idx_, pinocchio::LOCAL,
-                                      ik_sol_J_);
-
-      pinocchio::Data::Matrix6 JJt;
-      JJt.noalias() = ik_sol_J_ * ik_sol_J_.transpose();
-      JJt.diagonal().array() += damping;
-      ik_sol_v_.noalias() = -ik_sol_J_.transpose() * JJt.ldlt().solve(err);
-      ik_sol_p_ = pinocchio::integrate(model_, ik_sol_p_, ik_sol_v_ * dt);
-    }
-
-    if (err.norm() >= eps) {
-      std::cerr << "WARNING: IK did not converge!" << std::endl;
-    }
-
+    pinocchio_wrapper::inverse_kinematics(pinocchio_state_, ee_pos_, ee_quat_,
+                                          ik_sol_p_, eps, max_iters, dt,
+                                          damping);
     std::vector<int64_t> dims = {ik_sol_p_.rows()};
     return torch::from_blob(ik_sol_p_.data(), dims, torch::kFloat64).clone();
   }
@@ -243,3 +195,5 @@ TORCH_LIBRARY(torchscript_pinocchio, m) {
             return c10::make_intrusive<RobotModelPinocchio>(std::move(state));
           });
 }
+
+} /* extern "C" */

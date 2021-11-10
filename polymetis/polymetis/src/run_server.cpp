@@ -4,6 +4,7 @@
 // LICENSE file in the root directory of this source tree.
 #include "polymetis/polymetis_server.hpp"
 #include "real_time.hpp"
+#include "torch_server_ops.hpp"
 
 void *RunServer(void *server_address_ptr) {
   std::string &server_address =
