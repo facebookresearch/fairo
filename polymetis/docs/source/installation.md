@@ -59,7 +59,7 @@
         make -j
         ```
 
-5. Start developing! Remember to rebuild if modifying C++ source code.
+5. Start developing! Remember to rebuild if modifying C++ source code. When updating, you may need to do a `mamba env update --file ./polymetis/environment.yml --prune` to update dependencies.
 
 ### From a local conda package
 
