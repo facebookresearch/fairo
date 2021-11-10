@@ -21,9 +21,6 @@ from ..robot_mover import MoverInterface
 from ..robot_mover_utils import (
     get_camera_angles,
     angle_diff,
-    MAX_PAN_RAD,
-    CAMERA_HEIGHT,
-    ARM_HEIGHT,
     transform_pose,
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
@@ -59,6 +56,8 @@ class HelloRobotMover(MoverInterface):
         self.bot = Pyro4.Proxy("PYRONAME:hello_robot@" + ip)
         self.bot._pyroAsync()
         self.is_moving = self.bot.is_moving()
+        self.camera_transform = self.bot.get_camera_transform().value
+        self.camera_height = self.camera_transform[2, 3]
         self.cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + ip)
 
         self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
@@ -82,10 +81,49 @@ class HelloRobotMover(MoverInterface):
         self.data_logger.stop()
 
     def bot_step(self):
-        pass
+        f = not self.bot.is_moving().value
+        return f
 
-    def look_at(self):
-        pass
+    def look_at(self, target, turn_base=True):
+        """
+        Executes "look at" by setting the pan, tilt of the camera
+        or turning the base if required.
+        Uses both the base state and object coordinates in 
+        canonical world coordinates to calculate expected yaw and pitch.
+
+        Args:
+            target (list): object coordinates as saved in memory.
+            turn_base: if False, will try to look at point only by moving camera and not base
+        """
+        old_pan = self.get_pan()
+        old_tilt = self.get_tilt()
+        pos = self.get_base_pos_in_canonical_coords()
+        cam_transform = self.bot.get_camera_transform().value
+        cam_pos = cam_transform[0:3, 3]
+        # convert cam_pos to canonical co-ordinates
+        cam_pos = [pos[0], cam_pos[2], pos[1]]
+
+        logging.info(f"Current base state (x, z, yaw): {pos}, camera state (x, y, z): {cam_pos}")
+        logging.info(f"looking at x,y,z: {target}")
+        
+        pan_rad, tilt_rad = get_camera_angles(cam_pos, target)
+        tilt_rad = -tilt_rad
+        logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
+
+        head_res = angle_diff(pos[2], pan_rad)
+
+        # TODO: fix the turning logic to be correct
+        MAX_PAN_RAD = 1.7763497523715726
+        if np.abs(head_res) > MAX_PAN_RAD and turn_base:
+            dyaw = np.sign(head_res) * (np.abs(head_res) - MAX_PAN_RAD)
+            self.turn(dyaw)
+            pan_rad = np.sign(head_res) * MAX_PAN_RAD
+        else:
+            pan_rad = head_res
+        logging.info(f"Camera new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
+        self.bot.set_pan_tilt(pan_rad, tilt_rad)
+
+        return "finished"
 
     def stop(self):
         """immediately stop the robot."""
