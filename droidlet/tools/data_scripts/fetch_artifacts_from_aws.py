@@ -9,6 +9,53 @@ ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
 print("Rootdir : %r" % ROOTDIR)
 
 
+def fetch_test_assets_from_aws(agent=None):
+    assert agent=="locobot"
+    file_name = 'locobot_perception_test_assets.tar.gz'
+    aws_asset_file = 'https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz'
+    os.chdir(ROOTDIR)
+    print("====== Downloading " + aws_asset_file + " to " + ROOTDIR + file_name + " ======")
+
+    process = Popen(
+        [
+            'curl',
+            'https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz',
+            '-o',
+            file_name
+        ],
+        stdout=PIPE,
+        stderr=PIPE
+    )
+    stdout, stderr = process.communicate()
+    print(stdout.decode("utf-8"))
+    print(stderr.decode("utf-8"))
+
+    test_artifact_path = os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/')
+    """Now update the local directory and with untar'd file contents"""
+    if os.path.isdir(test_artifact_path):
+        print("Overwriting the directory: %r" % test_artifact_path)
+        shutil.rmtree(test_artifact_path, ignore_errors=True)  # force delete if directory has content in it
+    mode = 0o777
+    os.mkdir(test_artifact_path, mode)
+
+    print("Writing to : %r" % test_artifact_path)
+    process = Popen(
+        [
+            'tar',
+            '-xzvf',
+            file_name, '-C',
+            test_artifact_path,
+            '--strip-components',
+            '1'
+        ],
+        stdout=PIPE,
+        stderr=PIPE
+    )
+    stdout, stderr = process.communicate()
+    print(stdout.decode("utf-8"))
+    print(stderr.decode("utf-8"))
+
+
 def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name, checksum_val):
     """
     Uses the agent name, artifact_name, model_name and checksum to fetch the right tar file from s3
