@@ -1,0 +1,26 @@
+fieldset {
+    padding: 10px;
+    background: #fbfbfb;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+#instructions {
+    padding: 10px;
+}
+
+.previews {
+    width: 33%;
+    height: 180px;
+}
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.input_location {
+    background-color: blanchedalmond;
+    padding: 10px;
+}
