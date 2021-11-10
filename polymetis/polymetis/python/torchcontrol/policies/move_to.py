@@ -42,35 +42,42 @@ class JointPlanExecutor(toco.PolicyModule):
         self.plan = plan
         self.N = steps
 
-        # Control
-        joint_pos_initial, _, _ = self.plan(0)
-        self.control = toco.policies.JointImpedanceControl(
-            joint_pos_current=joint_pos_initial,
-            Kp=Kp,
-            Kd=Kd,
-            robot_model=robot_model,
-            ignore_gravity=ignore_gravity,
+        # Control modules
+        self.robot_model = robot_model
+        self.invdyn = toco.modules.feedforward.InverseDynamics(
+            self.robot_model, ignore_gravity=ignore_gravity
         )
+        self.joint_pd = toco.modules.feedback.JointSpacePD(Kp, Kd)
 
         # Initialize step count
         self.i = 0
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        # Query plan
-        q_desired, qd_desired, _ = self.plan(self.i)
+        # Parse current state
+        joint_pos_current = state_dict["joint_positions"]
+        joint_vel_current = state_dict["joint_velocities"]
 
-        # Compute control
-        self.control.joint_pos_desired.data.copy_(q_desired)
-        self.control.joint_vel_desired.data.copy_(qd_desired)
+        # Query plan for desired state
+        joint_pos_desired, joint_vel_desired, _ = self.plan(self.i)
 
-        output = self.control(state_dict)
+        # Control logic
+        torque_feedback = self.joint_pd(
+            joint_pos_current,
+            joint_vel_current,
+            joint_pos_desired,
+            joint_vel_desired,
+        )
+        torque_feedforward = self.invdyn(
+            joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
+        )  # coriolis
+        torque_out = torque_feedback + torque_feedforward
 
         # Increment & termination
         self.i += 1
         if self.i == self.N:
             self.set_terminated()
 
-        return output
+        return {"joint_torques": torque_out}
 
 
 class JointSpaceMoveTo(JointPlanExecutor):
@@ -227,32 +234,49 @@ class CartesianSpaceMoveTo(toco.PolicyModule):
         )
 
         # Control
-        self.control = toco.policies.CartesianImpedanceControl(
-            joint_pos_current=joint_pos_current,
-            Kp=Kp,
-            Kd=Kd,
-            robot_model=robot_model,
-            ignore_gravity=ignore_gravity,
+        self.robot_model = robot_model
+        self.invdyn = toco.modules.feedforward.InverseDynamics(
+            self.robot_model, ignore_gravity=ignore_gravity
         )
+        self.pose_pd = toco.modules.feedback.CartesianSpacePDFast(Kp, Kd)
 
         # Initialize step count
         self.i = 0
 
     def forward(self, state_dict: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        # Query plan
+        # Parse current state
+        joint_pos_current = state_dict["joint_positions"]
+        joint_vel_current = state_dict["joint_velocities"]
+
+        ee_pos_current, ee_quat_current = self.robot_model.forward_kinematics(
+            joint_pos_current
+        )
+        jacobian = self.robot_model.compute_jacobian(joint_pos_current)
+        ee_twist_current = jacobian @ joint_vel_current
+
+        # Query plan for desired state
         ee_posquat_desired, ee_twist_desired, _ = self.plan(self.i)
 
-        # Compute control
-        self.control.ee_pos_desired.data.copy_(ee_posquat_desired[:3])
-        self.control.ee_quat_desired.data.copy_(ee_posquat_desired[3:])
-        self.control.ee_vel_desired.data.copy_(ee_twist_desired[:3])
-        self.control.ee_rvel_desired.data.copy_(ee_twist_desired[3:])
+        # Control logic
+        force_feedback = self.pose_pd(
+            ee_pos_current,
+            ee_quat_current,
+            ee_twist_current,
+            ee_posquat_desired[0:3],
+            ee_posquat_desired[3:7],
+            ee_twist_desired,
+        )
+        torque_feedback = jacobian.T @ force_feedback
 
-        output = self.control(state_dict)
+        torque_feedforward = self.invdyn(
+            joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
+        )  # coriolis
+
+        torque_out = torque_feedback + torque_feedforward
 
         # Increment & termination
         self.i += 1
         if self.i == self.N:
             self.set_terminated()
 
-        return output
+        return {"joint_torques": torque_out}
