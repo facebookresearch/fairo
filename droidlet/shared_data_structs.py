@@ -81,10 +81,12 @@ class RGBDepth:
         import base64
 
         rgb = self.rgb
-        depth = self.depth 
+        depth = self.depth
+        height, width = rgb.shape[0], rgb.shape[1]
         if size is not None:
-            rgb = cv2.resize(rgb, (size, size), interpolation=cv2.INTER_LINEAR)
-            depth = cv2.resize(depth, (size, size), interpolation=cv2.INTER_LINEAR)
+            new_height, new_width = size, int(size * float(width) / height)
+            rgb = cv2.resize(rgb, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
+            depth = cv2.resize(depth, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
 
         depth_img = cv2.normalize(depth, None, 0, 255, cv2.NORM_MINMAX)
         depth_img = 255 - depth_img
