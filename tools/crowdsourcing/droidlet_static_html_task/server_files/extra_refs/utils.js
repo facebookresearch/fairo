@@ -4,9 +4,13 @@ var selfRatingComplete = false;
 var clickedElements = new Array();
 
 function recordClick(ele) {
+  if (ele === "timerOFF") {  // Check to allow submission if all qualifications are met
+    timerStopped = true;
+    checkSubmitDisplay();
+  }
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = clickedElements;
-  console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
@@ -40,7 +44,6 @@ function recordReadTime() {
             data = JSON.parse(event.data);
             console.log(data);
             recordClick(data.msg);
-            checkSubmitDisplay();
         }, false);
     }
     else if (window.attachEvent) {  // Cross compatibility for old versions of IE
@@ -48,7 +51,6 @@ function recordReadTime() {
             data = JSON.parse(event.data);
             console.log(data);
             recordClick(data.msg);
-            checkSubmitDisplay();
         });
     }
 }
