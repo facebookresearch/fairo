@@ -8,7 +8,7 @@ pip install -r agents/locobot/requirements.txt
 python setup.py develop
 
 echo "Downloading datasets, models ..."
-yes | python droidlet/tools/data_scripts/try_download.py --agent_name locobot &
+yes | python droidlet/tools/data_scripts/try_download.py --agent_name locobot --test_mode &
 wait
 echo "Done!"
 

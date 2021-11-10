@@ -7,13 +7,14 @@ import os
 import glob
 import subprocess
 from droidlet.tools.data_scripts.fetch_internal_resources import fetch_safety_words_file
-from droidlet.tools.data_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, fetch_datasets_from_aws
+from droidlet.tools.data_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, \
+    fetch_datasets_from_aws, fetch_test_assets_from_aws
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
 print("Rootdir : %r" % ROOTDIR)
 
 
-def try_download_artifacts(agent=None):
+def try_download_artifacts(agent=None, test_mode=False):
     """
     Tries to download artifacts if they are out of date.
     """
@@ -33,6 +34,9 @@ def try_download_artifacts(agent=None):
     os.makedirs(os.path.join(agent_path, 'models'), exist_ok=True)
     os.makedirs(os.path.join(agent_path, 'models/nlu'), exist_ok=True)
     os.makedirs(os.path.join(agent_path, 'models/perception'), exist_ok=True)
+    if test_mode:
+        # Download test artifacts for Locobot tests
+        os.makedirs(os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/'), exist_ok=True)
 
     # Remove existing checksum files so that they can be re-calculated
     fileList = [os.path.join(agent_path, 'models/nlu/nlu_checksum.txt'),
@@ -69,6 +73,10 @@ def try_download_artifacts(agent=None):
                                      text=True)
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "datasets")
+
+    if test_mode:
+        print("Now downloading test assets...")
+        fetch_test_assets_from_aws(agent=agent)
 
 
 def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact_name=None):
@@ -126,5 +134,9 @@ if __name__ == "__main__":
         type=str,
         default="craftassist",
     )
+    parser.add_argument(
+        "--test_mode",
+        action="store_true"
+    )
     args = parser.parse_args()
-    try_download_artifacts(agent=args.agent_name)
+    try_download_artifacts(agent=args.agent_name, test_mode=args.test_mode)
