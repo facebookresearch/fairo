@@ -53,35 +53,42 @@ class PutMemoryHandler(InterpreterBase):
             output_chat: An optional string for when the agent wants to send a chat
             step_data: Any other data that this step would like to send to the task
         """
-        r = self._step(agent)
-        self.finished = True
-        return r
-
-    def _step(self, agent) -> Tuple[Optional[str], Any]:
-        """Read the action dictionary and take immediate actions based
-        on memory type - either delegate to other handlers or raise an exception.
-
-        Returns:
-            output_chat: An optional string for when the agent wants to send a chat
-            step_data: Any other data that this step would like to send to the task
-        """
-        memory_type = self.logical_form["upsert"]["memory_data"]["memory_type"]
-        if memory_type == "REWARD":
-            return self.handle_reward(agent)
-        elif memory_type == "SET":
-            return self.handle_set(agent)
-        elif memory_type == "TRIPLE":
-            return self.handle_triple(agent)
-        else:
-            raise NotImplementedError
+        try:
+            # FIXME this will fail at clarifications
+            self.finished = True
+            memory_type = self.logical_form["upsert"]["memory_data"]["memory_type"]
+            if memory_type == "REWARD":
+                self.handle_reward(agent)
+            elif memory_type == "SET":
+                self.handle_set(agent)
+            elif memory_type == "TRIPLE":
+                self.handle_triple(agent)
+            else:
+                logging.debug(
+                    "unknown memory type {} encountered in PutMemory handler".format(
+                        self.logical_form
+                    )
+                )
+        except ErrorWithResponse as err:
+            self.finished = True
+            Say(agent, task_data={"response_options": err.chat})
+        return
 
     def handle_reward(self, agent) -> Tuple[Optional[str], Any]:
         """Creates a new node of memory type : RewardNode and
         returns a confirmation.
 
         """
-        reward_value = self.logical_form["upsert"]["memory_data"]["reward_value"]
-        assert reward_value in ("POSITIVE", "NEGATIVE"), self.logical_form
+        self.finished = True
+        try:
+            reward_value = self.logical_form["upsert"]["memory_data"]["reward_value"]
+            assert reward_value in ("POSITIVE", "NEGATIVE")
+        except:
+            # no subinterpreters called, etc; just fail silently if somehow this came from user...
+            logging.debug(
+                "unknown reward type {} encountered in PutMemory handler".format(self.logical_form)
+            )
+            return
         RewardNode.create(self.memory, reward_value)
         if reward_value == "POSITIVE":
             r = "Thank you!"
@@ -112,7 +119,7 @@ class PutMemoryHandler(InterpreterBase):
 
         schematic_memid = (
             self.memory.convert_block_object_to_schematic(mem.memid).memid
-            if isinstance(mem, VoxelObjectNode)
+            if isinstance(mem, VoxelObjectNode) and len(mem.blocks) > 0
             else None
         )
 

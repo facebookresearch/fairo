@@ -24,20 +24,35 @@ logger.addHandler(sh)
 
 
 class TaskRunner:
-    def __init__(self):
+    """
+    This class acts as a job scheduler that is responsible for registering data generators &
+    job listeners and scheduling the runnings of registered tasks.
+    """
+
+    def __init__(self) -> None:
         self._data_generators = []
         self._job_listeners = []
         self._finished = False
 
-    def register_data_generators(self, data_generators: List[DataGenerator]):
+    def register_data_generators(self, data_generators: List[DataGenerator]) -> None:
+        """
+        Register new data generator tasks
+        """
         for data_generator in data_generators:
             self._data_generators.append(data_generator)
 
-    def register_job_listeners(self, job_listeners: List[JobListener]):
+    def register_job_listeners(self, job_listeners: List[JobListener]) -> None:
+        """
+        Register new job listener tasks
+        """
         for job_listener in job_listeners:
             self._job_listeners.append(job_listener)
 
-    def run(self):
+    def run(self) -> None:
+        """
+        Assign resources and schedule task runnings
+        For now it just start all the registered tasks
+        """
         while not self._finished:
             for data_generator in self._data_generators:
                 data_generator.start()
@@ -50,6 +65,11 @@ class TaskRunner:
             time.sleep(RUN_POLL_TIME)
 
     def _check_is_finished(self) -> bool:
+        """
+        Return if the runner has finished.
+
+        The runner is considered finished when all registered tasks have finsihed
+        """
         finished = True
         if any(
             [

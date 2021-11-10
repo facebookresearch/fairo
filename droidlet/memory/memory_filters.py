@@ -12,6 +12,14 @@ from droidlet.memory.filters_conversions import get_inequality_symbol, sqly_to_n
 ### in various filter interpreters
 ####################################################################################
 
+# attribute has function signature list(mems) --> list(value)
+class Attribute:
+    def __init__(self, memory):
+        self.memory = memory
+
+    def __call__(self, mems):
+        raise NotImplementedError("Implemented by subclass")
+
 
 def check_well_formed_triple(clause):
     # TODO search by pred?
@@ -24,6 +32,37 @@ def check_well_formed_triple(clause):
     )
     assert not ("subj" in clause and "subj_text" in clause)
     assert not ("obj" in clause and "obj_text" in clause)
+
+
+def check_value_comparison_match(value, comparison_symbol):
+    try:
+        if comparison_symbol != "%" or comparison_symbol != "<>":
+            assert len(value) == 1
+        else:
+            assert len(value) == 2
+    except:
+        raise Exception(
+            "comparison symbol in basic search is {} but value is {}".format(
+                comparison_symbol, value
+            )
+        )
+
+
+def get_all_memids_of_node_type(agent_memory, memtype, allow_archives=False):
+    # FIXME memtype might be a union of node types
+    memtypes = agent_memory.node_children[memtype]
+    node_type_clause = "(" + (" OR node_type=? " * len(memtypes))[3:-1] + ")"
+    cmd = "SELECT uuid FROM Memories WHERE " + node_type_clause
+    # FIXME deal with this better with node types:
+    if not allow_archives:
+        cmd = cmd + " AND is_snapshot=?"
+        memtypes.append(0)
+    all_memids = agent_memory._db_read(cmd, *memtypes)
+    return [m[0] for m in all_memids]
+
+
+# FIXME! refactor get_property_value, search_by_property, search_by_attribute
+# lots of duplicated code
 
 
 def get_property_value(agent_memory, mem, prop, get_all=False):
@@ -90,17 +129,7 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     2: table corresponding to the nodes .TABLE
     3: triple with the nodes memid as subject and prop as predicate
     """
-    try:
-        if comparison_symbol != "%" or comparison_symbol != "<>":
-            assert len(value) == 1
-        else:
-            assert len(value) == 2
-    except:
-        raise Exception(
-            "comparison symbol in basic search is {} but value is {}".format(
-                comparison_symbol, value
-            )
-        )
+    check_value_comparison_match(value, comparison_symbol)
 
     if comparison_symbol == "%":
         where = "WHERE " + prop + " % " + str(value[0]) + " =?"
@@ -144,6 +173,46 @@ def search_by_property(agent_memory, prop, value, comparison_symbol, memtype):
     if len(triples) > 0:
         return [t[0] for t in triples if agent_memory.get_node_from_memid(t[0]) in node_children]
     return []
+
+
+def search_by_attribute(agent_memory, attribute, value, comparison_symbol, memtype):
+    """
+    Tries to find memories with a specified attribute value
+
+    Args:
+        agent_memory: an AgentMemory object
+        attribute: a callable that inputs a list of MemoryNodes and 
+            outputs a list of values
+        value: the value to match.  if comparison_symbol is <>,
+            should be a tuple of (low, high); and if comparison symbol is
+            "%", should be a tuple of (modulus, remainder)
+            otherwise value should be a singleton tuple
+        comparison_symbol: one of "=", "<", "<=", ">", ">=", "%", "<>"
+        memtype: a memory type
+
+    returns a list of memids
+    """
+    check_value_comparison_match(value, comparison_symbol)
+    memids = get_all_memids_of_node_type(agent_memory, memtype)
+    values = attribute([agent_memory.get_mem_by_id(m) for m in memids])
+    pairs = zip(memids, values)
+
+    v = value
+    if comparison_symbol == "%":
+        filtered_memids = [p[0] for p in pairs if (p[1] and p[1] % value[0] == value[1])]
+    elif comparison_symbol == "<>":
+        filtered_memids = [p[0] for p in pairs if (p[1] and value[0] <= p[1] and p[1] <= value[1])]
+    else:
+        s = {
+            "=": lambda x, y: x == y,
+            "<": lambda x, y: x < y,
+            "<=": lambda x, y: x <= y,
+            ">": lambda x, y: x > y,
+            ">=": lambda x, y: x >= y,
+        }
+        filtered_memids = [p[0] for p in pairs if (p[1] and s[comparison_symbol](p[1], value[0]))]
+
+    return filtered_memids
 
 
 def try_float(value, where_clause):
@@ -231,68 +300,43 @@ class MemorySearcher:
         else:
             return query
 
-    def handle_where(self, agent_memory, where_clause, memtype):
+    def handle_comparator_where_leaf(self, agent_memory, where_clause, memtype):
+        """ 
+        find all records matching a single comparator
         """
-        returns a list of memids whose memories satisfy the where clause
-        """
-        # do this brutally for now, if we need can make more efficient
-        if where_clause.get("AND"):
-            memid_lists = []
-            for c in where_clause["AND"]:
-                memid_lists.append(self.handle_where(agent_memory, c, memtype))
-            return list(set.intersection(*[set(m) for m in memid_lists]))
-        if where_clause.get("OR"):
-            memid_lists = []
-            for c in where_clause["OR"]:
-                memid_lists.append(self.handle_where(agent_memory, c, memtype))
-            return list(set.union(*[set(m) for m in memid_lists]))
-        if where_clause.get("NOT"):
-            # FIXME memtype might be a union of node types
-            # maybe FIXME? don't retrieve everything until necessary
-            memtypes = agent_memory.node_children[memtype]
-            node_type_clause = ("OR node_type=? " * len(memtypes))[3:-1]
-            all_memids = agent_memory._db_read(
-                "SELECT uuid FROM Memories WHERE " + node_type_clause, *memtypes
-            )
-            all_memids = set([m[0] for m in all_memids])
-            memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
-            return list(all_memids - set(memids))
-
         # TODO: if input_left or input_right are subqueries...
-        if where_clause.get("input_left"):
-            # this is a leaf, actually search:
-            input_left = where_clause["input_left"]["value_extractor"]
-            input_right = where_clause["input_right"]["value_extractor"]
-            if type(input_left) is dict or type(input_right) is dict:
-                raise Exception(
-                    "currently search assumes comparator attributes are explicitly stored property of the memory: {}".format(
-                        where_clause
-                    )
+        v = where_clause["input_left"]["value_extractor"]
+        input_left = v.get("attribute")
+        input_right = where_clause["input_right"]["value_extractor"]
+        if type(input_right) is dict:
+            raise Exception(
+                "currently basic search assumes input_right is a fixed value (not FILTERS): {}".format(
+                    input_right
                 )
-            ctype = where_clause.get("comparison_type", "EQUAL")
-            comparison_symbol = get_inequality_symbol(ctype)
-            # FIXME do close tolerance for modulus
-            if type(ctype) is dict and ctype.get("close_tolerance"):
-                comparison_symbol = "<>"
-                v = try_float(input_right, where_clause)
-                value = (v - ctype["close_tolerance"], v + ctype["close_tolerance"])
-            elif comparison_symbol[0] == "<" or comparison_symbol[0] == ">":
-                # going to convert back to str later, doing this for data sanitation/debugging
-                value = (try_float(input_right, where_clause),)
-            elif type(ctype) is dict and ctype.get("modulus"):
-                comparison_symbol = "%"
-                value = (ctype["modulus"], input_right)
-            else:
-                value = (input_right,)
+            )
+        ctype = where_clause.get("comparison_type", "EQUAL")
+        comparison_symbol = get_inequality_symbol(ctype)
+        # FIXME do close tolerance for modulus
+        if type(ctype) is dict and ctype.get("close_tolerance"):
+            comparison_symbol = "<>"
+            v = try_float(input_right, where_clause)
+            value = (v - ctype["close_tolerance"], v + ctype["close_tolerance"])
+        elif comparison_symbol[0] == "<" or comparison_symbol[0] == ">":
+            # going to convert back to str later, doing this for data sanitation/debugging
+            value = (try_float(input_right, where_clause),)
+        elif type(ctype) is dict and ctype.get("modulus"):
+            comparison_symbol = "%"
+            value = (ctype["modulus"], input_right)
+        else:
+            value = (input_right,)
+        if type(input_left) is str:
             return search_by_property(agent_memory, input_left, value, comparison_symbol, memtype)
+        elif isinstance(input_left, Attribute):
+            return search_by_attribute(agent_memory, input_left, value, comparison_symbol, memtype)
+        else:
+            raise Exception("malformed input_left in comparator {}".format(where_clause))
 
-        # if we made it here, this is a triple leaf, actually search...
-
-        # check if triples dict is well formed:
-        try:
-            check_well_formed_triple(where_clause)
-        except:
-            raise Exception("poorly formed triple dict{}".format(where_clause))
+    def handle_triple_where_leaf(self, agent_memory, where_clause, memtype):
         # run any subqueries:
         for k, v in where_clause.items():
             if callable(v):
@@ -318,6 +362,40 @@ class MemorySearcher:
         # TODO move checking if it is proper node type to main body or to a "handle_from"
         node_children = agent_memory.node_children[memtype]
         return [m for m in memids if agent_memory.get_node_from_memid(m) in node_children]
+
+    def handle_where(self, agent_memory, where_clause, memtype):
+        """
+        returns a list of memids whose memories satisfy the where clause
+        """
+        # do this brutally for now, if we need can make more efficient
+        if where_clause.get("AND"):
+            memid_lists = []
+            for c in where_clause["AND"]:
+                memid_lists.append(self.handle_where(agent_memory, c, memtype))
+            return list(set.intersection(*[set(m) for m in memid_lists]))
+        if where_clause.get("OR"):
+            memid_lists = []
+            for c in where_clause["OR"]:
+                memid_lists.append(self.handle_where(agent_memory, c, memtype))
+            return list(set.union(*[set(m) for m in memid_lists]))
+        if where_clause.get("NOT"):
+            # maybe FIXME? don't retrieve everything until necessary
+            all_memids = set(get_all_memids_of_node_type(agent_memory, memtype))
+            memids = self.handle_where(agent_memory, where_clause["NOT"][0], memtype)
+            return list(all_memids - set(memids))
+
+        if where_clause.get("input_left"):
+            # this is a cmparator leaf, actually search:
+            return self.handle_comparator_where_leaf(agent_memory, where_clause, memtype)
+
+        # if we made it here, this is a triple
+        try:
+            # check if triples dict is well formed:
+            check_well_formed_triple(where_clause)
+            # run the query
+            return self.handle_triple_where_leaf(agent_memory, where_clause, memtype)
+        except:
+            raise Exception("poorly formed triple dict{}".format(where_clause))
 
     def handle_selector(self, agent_memory, query, memids):
         if query.get("selector"):
