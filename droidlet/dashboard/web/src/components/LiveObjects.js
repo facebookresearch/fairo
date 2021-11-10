@@ -38,8 +38,9 @@ class LiveObjects extends React.Component {
     this.onNextFrame = this.onNextFrame.bind(this);
 
     this.initialState = {
-      height: props.height,
-      width: props.width,
+      height: 640, //  props.height,
+      width: 480, // props.width,
+      scale: 1.0,
       rgb: null,
       objects: null,
       modelMetrics: null,
@@ -97,6 +98,7 @@ class LiveObjects extends React.Component {
           label: obj.label,
           properties: obj.properties.split("\n "),
           type: obj.type,
+          id: obj.id,
         }));
         fixer.setState({
           image: this.state.rgb,
@@ -184,10 +186,14 @@ class LiveObjects extends React.Component {
         return;
       }
       let obj_id = obj.id;
-      let label = String(obj_id).concat(obj.label);
+      let color_id = i;
+      if (Number.isInteger(obj_id)) {
+        color_id = obj_id;
+      }
+      let label = String(obj_id).concat("_" + obj.label);
       let properties = obj.properties;
-      let color = COLORS[i % COLORS.length];
-      let scale = height / 512;
+      let color = COLORS[color_id % COLORS.length];
+      let scale = this.state.scale;
       let x1 = parseInt(obj.bbox[0] * scale);
       let y1 = parseInt(obj.bbox[1] * scale);
       let x2 = parseInt(obj.bbox[2] * scale);
@@ -203,16 +209,7 @@ class LiveObjects extends React.Component {
           height={h}
           fillEnabled={false}
           stroke={color}
-        />
-      );
-      renderedObjects.push(
-        <Text
-          key={[j++, label]}
-          text={label.concat("\n", properties)}
-          x={x1}
-          y={y1}
-          fill={color}
-          fontSize={10}
+          opacity={1.0}
         />
       );
       if (obj && obj.mask) {
@@ -230,7 +227,7 @@ class LiveObjects extends React.Component {
                 context.fillStrokeShape(shape);
               }}
               fill={color}
-              opacity={0.5}
+              opacity={1}
               stroke={obj.type === "detector" ? "white" : "black"}
               strokeWidth={1}
               key={`${i}-${j}`}
@@ -238,6 +235,17 @@ class LiveObjects extends React.Component {
           );
         }
       }
+      renderedObjects.push(
+        <Text
+          key={[j++, label]}
+          text={label} //.concat("\n", properties)}
+          x={x1}
+          y={y1}
+          fill={"white"}
+          opacity={1.0}
+          fontSize={20}
+        />
+      );
     });
 
     let offlineButtons = null;
