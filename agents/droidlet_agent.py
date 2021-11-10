@@ -31,6 +31,7 @@ class DroidletAgent(BaseAgent):
         logging.info("Agent.__init__ started")
         self.name = name or default_agent_name()
         self.opts = opts
+        self.dialogue_manager = None
         self.init_physical_interfaces()
         super(DroidletAgent, self).__init__(opts, name=self.name)
         self.uncaught_error_count = 0
@@ -41,7 +42,7 @@ class DroidletAgent(BaseAgent):
         self.perceive_on_chat = False
         self.agent_type = None
         self.scheduler = EmptyScheduler()
-        self.dialogue_manager = None
+        
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
