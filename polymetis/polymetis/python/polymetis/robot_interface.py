@@ -288,22 +288,6 @@ class RobotInterface(BaseRobotInterface):
 
         self.use_grav_comp = use_grav_comp
 
-        # Default Cartesian gains (equivalent to joint gains at home pose)
-        j_home = self.robot_model.compute_jacobian(self.home_pose)
-        j_home_pinv = torch.pinverse(j_home)
-        j_home_t_pinv = torch.pinverse(j_home.T)
-        self.Kx_default = 2.0 * torch.diag(
-            j_home_t_pinv @ torch.diag(self.Kq_default) @ j_home_pinv
-        )
-        self.Kxd_default = 2.0 * torch.diag(
-            j_home_t_pinv @ torch.diag(self.Kqd_default) @ j_home_pinv
-        )
-
-        self.Kx_default[:3] = torch.mean(self.Kx_default[:3]) * torch.ones(3)
-        self.Kx_default[3:] = torch.mean(self.Kx_default[3:]) * torch.ones(3)
-        self.Kxd_default[:3] = torch.mean(self.Kxd_default[:3]) * torch.ones(3)
-        self.Kxd_default[3:] = torch.mean(self.Kxd_default[3:]) * torch.ones(3)
-
     """
     Setter methods
     """
@@ -405,8 +389,8 @@ class RobotInterface(BaseRobotInterface):
         position: torch.Tensor,
         orientation: torch.Tensor = None,
         time_to_go: float = None,
-        Kx: torch.Tensor = None,
-        Kxd: torch.Tensor = None,
+        Kq: torch.Tensor = None,
+        Kqd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation)."""
@@ -417,9 +401,9 @@ class RobotInterface(BaseRobotInterface):
         if time_to_go is None:
             time_to_go = self.time_to_go_default
         if Kx is None:
-            Kx = self.Kx_default
+            Kq = self.Kx_default
         if Kxd is None:
-            Kxd = self.Kxd_default
+            Kqd = self.Kxd_default
 
         joint_pos_current = self.get_joint_angles()
         torch_policy = toco.policies.CartesianTargetJointMoveTo(
@@ -427,8 +411,8 @@ class RobotInterface(BaseRobotInterface):
             ee_pos_desired=position,
             ee_quat_desired=orientation,
             time_to_go=time_to_go,
-            Kp=Kx,
-            Kd=Kxd,
+            Kp=Kq,
+            Kd=Kqd,
             robot_model=self.robot_model,
             hz=self.hz,
             ignore_gravity=self.use_grav_comp,
