@@ -1,5 +1,12 @@
 version: 2.1
 commands:
+  install_mamba:
+    steps:
+      - run:
+          name: Install mamba / boa
+          command: |
+            . /opt/conda/etc/profile.d/conda.sh
+            conda install mamba boa -n base -c conda-forge -y
   polymetis_local_build:
     steps:
       - run:
@@ -54,18 +61,13 @@ commands:
           name: Create Conda environment
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-env ] || conda create -n polymetis-env python=3.8
-      - run:
-          name: Install conda-build
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda install conda-build -y
+            [ -d /opt/conda/envs/polymetis-env ] || mamba create -n polymetis-env python=3.8
       - run:
           name: Create Conda package
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda build -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis/polymetis/conda/conda_recipe
+            conda mambabuild -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
           destination: conda_pkg
@@ -76,11 +78,6 @@ commands:
             conda activate polymetis-env
             cd ./polymetis/polymetis/conda/
             PKG_PATH="/opt/conda/conda-bld/linux-64/polymetis*.tar.bz2" ./build_conda_package.sh
-      - run:
-          name: Install mamba
-          command: |
-            . /opt/conda/etc/profile.d/conda.sh
-            conda install mamba -n base -c conda-forge -y
       - run:
           name: Install from conda
           command: |
@@ -124,7 +121,7 @@ commands:
               then
                 . /opt/conda/etc/profile.d/conda.sh
                 conda activate polymetis-env
-                conda install anaconda-client
+                mamba install anaconda-client
                 anaconda login --username $ANACONDA_USER --password $ANACONDA_PASSWORD
                 anaconda upload --user fair-robotics --skip /opt/conda/conda-bld/linux-64/polymetis*.tar.bz2
             fi
@@ -251,11 +248,12 @@ jobs:
       - checkout
       - restore_cache:
           key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - install_mamba
       - run:
           name: Create Conda environment
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+            [ -d /opt/conda/envs/polymetis-local ] || mamba env create -f polymetis/polymetis/environment.yml
       - save_cache:
           key: deps9-{{ .Branch }}-ubuntu-18-{{ checksum "polymetis/polymetis/environment.yml" }}
           paths:
@@ -271,11 +269,12 @@ jobs:
       - checkout
       - restore_cache:
           key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
+      - install_mamba
       - run:
           name: Create Conda environment
           command: |
             . /opt/conda/etc/profile.d/conda.sh
-            [ -d /opt/conda/envs/polymetis-local ] || conda env create -f polymetis/polymetis/environment.yml
+            [ -d /opt/conda/envs/polymetis-local ] || mamba env create -f polymetis/polymetis/environment.yml
       - save_cache:
           key: deps9-{{ .Branch }}-ubuntu-20-{{ checksum "polymetis/polymetis/environment.yml" }}
           paths:
@@ -290,6 +289,7 @@ jobs:
     resource_class: medium+
     steps:
       - checkout
+      - install_mamba
       - polymetis_build_conda_pkg
   polymetis-conda-ubuntu-20:
     docker:
@@ -300,6 +300,7 @@ jobs:
     resource_class: medium+
     steps:
       - checkout
+      - install_mamba
       - polymetis_build_conda_pkg
   polymetis-formatting:
     docker:

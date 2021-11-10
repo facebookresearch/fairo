@@ -13,7 +13,7 @@ class InteractApp extends Component {
     super(props);
     this.initialState = {
       currentView: 1,
-      chatResponse: "",
+      lastChatActionDict: "",
       status: "",
       chats: [{ msg: "", failed: false }],
       failidx: -1,
@@ -71,12 +71,20 @@ class InteractApp extends Component {
   }
 
   goToQuestion(idx) {
-    //change the state to switch view to show Fail page
-    this.setState({
-      currentView: 2,
-      chats: this.state.chats,
-      failidx: idx,
-    });
+    // first send request to retrieve the logic form of last sent command before showing NSP Error annotation page to users
+    this.props.stateManager.socket.emit(
+      "getChatActionDict",
+      this.state.chats[idx]["msg"]
+    );
+
+    // then wait 3 seconds for the logical form of last chat and show the Fail page (by setting currentView)
+    setTimeout(() => {
+      this.setState({
+        currentView: 2,
+        chats: this.state.chats,
+        failidx: idx,
+      });
+    }, 3000);
   }
 
   render() {

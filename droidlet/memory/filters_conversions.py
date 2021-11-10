@@ -223,7 +223,11 @@ def sqlyify_where_clause(c):
             assert len(v) == 1
         for clause in v:
             if clause.get("input_left"):
-                input_left = str(clause["input_left"]["value_extractor"])
+                input_left = clause["input_left"]["value_extractor"]
+                if input_left.get("attribute"):
+                    input_left = str(input_left["attribute"])
+                else:
+                    input_left = str(input_left)
                 input_right = str(clause["input_right"]["value_extractor"])
                 inequality_symbol = get_inequality_symbol(clause["comparison_type"])
                 s = input_left + " " + inequality_symbol + " " + input_right
@@ -536,9 +540,10 @@ def where_leaf_to_comparator(clause):
         right_text = clause[eq_idx + len(mod_text) :]
 
     left_value = maybe_eval_literal(left_text.strip())
+    # TODO warn if right_value was something that needed eval?
     right_value = maybe_eval_literal(right_text.strip())
     f = {
-        "input_left": {"value_extractor": left_value},
+        "input_left": {"value_extractor": {"attribute": left_value}},
         "input_right": {"value_extractor": right_value},
         "comparison_type": ct,
     }
