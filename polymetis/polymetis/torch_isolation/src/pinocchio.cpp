@@ -122,15 +122,20 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   }
 
   torch::Tensor compute_jacobian(torch::Tensor joint_positions) {
+    std::cout << "a" << std::endl;
     int nq = pinocchio_wrapper::get_nq(pinocchio_state_);
     joint_positions = validTensor(joint_positions);
+    std::cout << "b" << std::endl;
 
     torch::Tensor result = torch::zeros({6, nq}, torch::kFloat64);
+    std::cout << "c" << std::endl;
     Eigen::Map<dtt::MatrixXrm<double>> J(result.data_ptr<double>(),
                                          result.size(0), result.size(1));
+    std::cout << "d" << std::endl;
     pinocchio_wrapper::compute_jacobian(
         pinocchio_state_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)), J);
+    std::cout << "e" << std::endl;
 
     return result;
   }

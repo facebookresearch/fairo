@@ -92,13 +92,18 @@ void compute_jacobian(
     State *state, const Eigen::VectorXd &joint_positions,
     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
                              Eigen::RowMajor>> &J) {
+                               std::cout << "1" << std::endl;
   auto model = state->model;
+                               std::cout << "2" << std::endl;
   auto model_data = state->model_data;
+                               std::cout << "3" << std::endl;
   auto ee_frame_idx = state->ee_frame_idx;
+                               std::cout << "4" << std::endl;
 
   pinocchio::computeFrameJacobian(model, model_data, joint_positions,
                                   ee_frame_idx, pinocchio::LOCAL_WORLD_ALIGNED,
                                   J);
+                               std::cout << "5" << std::endl;
 }
 
 Eigen::Matrix<double, Eigen::Dynamic, 1>
