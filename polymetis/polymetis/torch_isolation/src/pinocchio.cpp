@@ -102,9 +102,11 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     torch::Tensor quat_result = torch::zeros(4, torch::kFloat32);
 
     joint_positions = validTensor(joint_positions);
+    std::cout << "1" << std::endl;
     auto result_intermediate = pinocchio_wrapper::forward_kinematics(
         pinocchio_state_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)));
+    std::cout << "2" << std::endl;
 
     for (int i = 0; i < 3; i++) {
       pos_result[i] = result_intermediate[i];

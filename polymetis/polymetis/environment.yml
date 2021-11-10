@@ -1,4 +1,4 @@
-name: polymetis-local
+name: test-new-pytorch
 channels:
   - fair-robotics
   - aihabitat

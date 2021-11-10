@@ -63,21 +63,28 @@ Eigen::VectorXd forward_kinematics(struct State *pinocchio_state,
   auto model_data = pinocchio_state->model_data;
   auto ee_frame_idx = pinocchio_state->ee_frame_idx;
 
+  std::cout << "a" << std::endl;
   pinocchio::forwardKinematics(model, model_data, q);
+  std::cout << "b" << std::endl;
   pinocchio::updateFramePlacement(model, model_data, ee_frame_idx);
+  std::cout << "c" << std::endl;
 
   auto pos_data = model_data.oMf[ee_frame_idx].translation().transpose();
+  std::cout << "d" << std::endl;
   auto quat_data = Eigen::Quaterniond(model_data.oMf[ee_frame_idx].rotation());
+  std::cout << "e" << std::endl;
 
   Eigen::VectorXd result(7);
   for (int i = 0; i < 3; i++) {
     result[i] = pos_data[i];
   }
+  std::cout << "f" << std::endl;
   result[3] = quat_data.x();
   result[4] = quat_data.y();
   result[5] = quat_data.z();
   result[6] = quat_data.w();
 
+  std::cout << "g" << std::endl;
   return result;
 }
 
