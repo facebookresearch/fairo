@@ -1,4 +1,4 @@
-name: test-new-pytorch
+name: polymetis-local
 channels:
   - fair-robotics
   - aihabitat
@@ -12,14 +12,14 @@ dependencies:
     - cudatoolkit=10.1
     - doxygen
     - eigen=3.3.9
-    - grpc-cpp=1.35.0=h146f9af_0
+    - grpc-cpp
     - hpp-fcl=1.6.0=py38h75fc22a_1
     - libprotobuf
-    - openmpi ==2.1.2
+    - openmpi
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
-    - pytorch-cpu=1.6.0=py3.8_cpu_1_cxx11_abi
+    - pytorch=1.10.0
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
     - yaml-cpp
