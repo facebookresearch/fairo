@@ -11,6 +11,7 @@
 #include "pinocchio/algorithm/joint-configuration.hpp"
 #include "pinocchio/algorithm/kinematics.hpp"
 #include "pinocchio/algorithm/rnea.hpp"
+#include "pinocchio/parsers/sample-models.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 
 #include "pinocchio_wrapper.hpp"
@@ -20,71 +21,61 @@ extern "C" {
 namespace pinocchio_wrapper {
 
 struct State {
-  pinocchio::Model model;
-  pinocchio::Data model_data;
+  pinocchio::Model *model = nullptr;
+  pinocchio::Data *model_data = nullptr;
   pinocchio::FrameIndex ee_frame_idx;
-
   Eigen::VectorXd ik_sol_v;
   pinocchio::Data::Matrix6x ik_sol_J;
 };
 
-struct State *initialize(const std::string &ee_link_name,
-                         const std::string &xml_buffer) {
-  pinocchio::Model model;
-  pinocchio::urdf::buildModelFromXML(xml_buffer, model);
+State *initialize(const char *ee_link_name, const char *xml_buffer) {
+  auto model = new pinocchio::Model();
+  pinocchio::urdf::buildModelFromXML(xml_buffer, *model);
+  auto model_data = new pinocchio::Data(*model);
 
-  struct State *state = new struct State;
-
-  state->model = model;
-  state->model_data = pinocchio::Data(model);
-  state->ee_frame_idx = model.getBodyId(ee_link_name);
-  state->ik_sol_v = Eigen::VectorXd(model.nv);
-  state->ik_sol_J = pinocchio::Data::Matrix6x(6, model.nv);
-
-  return state;
+  return new State{model, model_data, model->getBodyId(ee_link_name),
+                   Eigen::VectorXd(model->nv),
+                   pinocchio::Data::Matrix6x(6, model->nv)};
 }
 
-void destroy(struct State *state) { delete state; }
+void destroy(State *state) {
+  delete state->model;
+  delete state->model_data;
+  delete state;
+}
 
-Eigen::VectorXd get_lower_position_limits(struct State *pinocchio_state) {
-  return pinocchio_state->model.lowerPositionLimit;
+Eigen::VectorXd get_lower_position_limits(State *pinocchio_state) {
+  return pinocchio_state->model->lowerPositionLimit;
 }
-Eigen::VectorXd get_upper_position_limits(struct State *pinocchio_state) {
-  return pinocchio_state->model.upperPositionLimit;
+Eigen::VectorXd get_upper_position_limits(State *pinocchio_state) {
+  return pinocchio_state->model->upperPositionLimit;
 }
-Eigen::VectorXd get_velocity_limits(struct State *pinocchio_state) {
-  return pinocchio_state->model.velocityLimit;
+Eigen::VectorXd get_velocity_limits(State *pinocchio_state) {
+  return pinocchio_state->model->velocityLimit;
 }
-int get_nq(struct State *pinocchio_state) { return pinocchio_state->model.nq; }
+int get_nq(State *pinocchio_state) { return pinocchio_state->model->nq; }
 
-Eigen::VectorXd forward_kinematics(struct State *pinocchio_state,
+Eigen::VectorXd forward_kinematics(State *pinocchio_state,
                                    const Eigen::VectorXd &q) {
-  auto model = pinocchio_state->model;
-  auto model_data = pinocchio_state->model_data;
+  auto model = *pinocchio_state->model;
+  auto model_data = *pinocchio_state->model_data;
   auto ee_frame_idx = pinocchio_state->ee_frame_idx;
 
-  std::cout << "a" << std::endl;
   pinocchio::forwardKinematics(model, model_data, q);
-  std::cout << "b" << std::endl;
   pinocchio::updateFramePlacement(model, model_data, ee_frame_idx);
-  std::cout << "c" << std::endl;
 
   auto pos_data = model_data.oMf[ee_frame_idx].translation().transpose();
-  std::cout << "d" << std::endl;
   auto quat_data = Eigen::Quaterniond(model_data.oMf[ee_frame_idx].rotation());
-  std::cout << "e" << std::endl;
 
   Eigen::VectorXd result(7);
   for (int i = 0; i < 3; i++) {
     result[i] = pos_data[i];
   }
-  std::cout << "f" << std::endl;
   result[3] = quat_data.x();
   result[4] = quat_data.y();
   result[5] = quat_data.z();
   result[6] = quat_data.w();
 
-  std::cout << "g" << std::endl;
   return result;
 }
 
@@ -92,25 +83,19 @@ void compute_jacobian(
     State *state, const Eigen::VectorXd &joint_positions,
     Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic,
                              Eigen::RowMajor>> &J) {
-                               std::cout << "1" << std::endl;
-  auto model = state->model;
-                               std::cout << "2" << std::endl;
-  auto model_data = state->model_data;
-                               std::cout << "3" << std::endl;
+  auto model = *state->model;
+  auto model_data = *state->model_data;
   auto ee_frame_idx = state->ee_frame_idx;
-                               std::cout << "4" << std::endl;
-
   pinocchio::computeFrameJacobian(model, model_data, joint_positions,
                                   ee_frame_idx, pinocchio::LOCAL_WORLD_ALIGNED,
                                   J);
-                               std::cout << "5" << std::endl;
 }
 
 Eigen::Matrix<double, Eigen::Dynamic, 1>
 inverse_dynamics(State *state, const Eigen::VectorXd &q,
                  const Eigen::VectorXd &v, const Eigen::VectorXd &a) {
-  auto model = state->model;
-  auto model_data = state->model_data;
+  auto model = *state->model;
+  auto model_data = *state->model_data;
   auto ee_frame_idx = state->ee_frame_idx;
   return pinocchio::rnea(model, model_data, q, v, a);
 }
@@ -119,8 +104,8 @@ void inverse_kinematics(State *state, const Eigen::Vector3d &ee_pos_,
                         const Eigen::Quaterniond &ee_quat_,
                         Eigen::VectorXd &ik_sol_p_, double eps,
                         int64_t max_iters, double dt, double damping) {
-  auto model_ = state->model;
-  auto model_data_ = state->model_data;
+  auto model_ = *state->model;
+  auto model_data_ = *state->model_data;
   auto ee_frame_idx_ = state->ee_frame_idx;
   auto ik_sol_v_ = state->ik_sol_v;
   auto ik_sol_J_ = state->ik_sol_J;

@@ -57,7 +57,6 @@ class RobotModelPinocchio(torch.nn.Module):
         Returns:
             Tuple[torch.Tensor, torch.Tensor]: End-effector position, end-effector orientation as quaternion
         """
-        import pdb; pdb.set_trace()
         pos, quat = self.model.forward_kinematics(joint_positions)
         return pos.to(joint_positions), quat.to(joint_positions)
 

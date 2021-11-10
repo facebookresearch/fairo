@@ -43,8 +43,9 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     ee_link_name_ = ee_link_name;
 
     std::ifstream stream(urdf_filename);
-    xml_buffer_ = std::string((std::istreambuf_iterator<char>(stream)),
-                              std::istreambuf_iterator<char>());
+    std::stringstream buffer;
+    buffer << stream.rdbuf();
+    xml_buffer_ = buffer.str();
 
     initialize();
   }
@@ -58,8 +59,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   ~RobotModelPinocchio() { pinocchio_wrapper::destroy(pinocchio_state_); }
 
   void initialize() {
-    pinocchio_state_ =
-        pinocchio_wrapper::initialize(ee_link_name_, xml_buffer_);
+    pinocchio_state_ = pinocchio_wrapper::initialize(ee_link_name_.c_str(),
+                                                     xml_buffer_.c_str());
   }
 
   c10::List<torch::Tensor> get_joint_angle_limits(void) {
@@ -102,11 +103,9 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     torch::Tensor quat_result = torch::zeros(4, torch::kFloat32);
 
     joint_positions = validTensor(joint_positions);
-    std::cout << "1" << std::endl;
     auto result_intermediate = pinocchio_wrapper::forward_kinematics(
         pinocchio_state_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)));
-    std::cout << "2" << std::endl;
 
     for (int i = 0; i < 3; i++) {
       pos_result[i] = result_intermediate[i];
@@ -122,20 +121,15 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   }
 
   torch::Tensor compute_jacobian(torch::Tensor joint_positions) {
-    std::cout << "a" << std::endl;
     int nq = pinocchio_wrapper::get_nq(pinocchio_state_);
     joint_positions = validTensor(joint_positions);
-    std::cout << "b" << std::endl;
 
     torch::Tensor result = torch::zeros({6, nq}, torch::kFloat64);
-    std::cout << "c" << std::endl;
     Eigen::Map<dtt::MatrixXrm<double>> J(result.data_ptr<double>(),
                                          result.size(0), result.size(1));
-    std::cout << "d" << std::endl;
     pinocchio_wrapper::compute_jacobian(
         pinocchio_state_,
         matrixToVector(dtt::libtorch2eigen<double>(joint_positions)), J);
-    std::cout << "e" << std::endl;
 
     return result;
   }
