@@ -37,7 +37,7 @@ requirements:
     - cudatoolkit=10.1
     - dash
     - doxygen
-    - grpc-cpp=1.35.0=h146f9af_0
+    - grpc-cpp
     - grpcio
     - habitat-sim=0.2.1=py3.8_bullet_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9
     - hydra-core==1.0.6
