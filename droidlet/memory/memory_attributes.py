@@ -2,16 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
-from .memory_filters import get_property_value
-
-
-# attribute has function signature list(mems) --> list(value)
-class Attribute:
-    def __init__(self, memory):
-        self.memory = memory
-
-    def __call__(self, mems):
-        raise NotImplementedError("Implemented by subclass")
+from .memory_filters import get_property_value, Attribute
 
 
 class TableColumn(Attribute):
