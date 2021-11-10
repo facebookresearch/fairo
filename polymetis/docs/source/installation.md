@@ -1,5 +1,7 @@
 # Installation
 
+> We recommend [mamba](https://github.com/mamba-org/mamba) as a faster drop-in replacement for conda. After installing `mamba` (`conda install mamba -n base -c conda-forge`), simply substitute `mamba` for `conda` in all of the following instructions.
+
 ## Simple
 
 ### From Anaconda
