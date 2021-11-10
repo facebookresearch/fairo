@@ -23,6 +23,16 @@ LINEAR_EXTENTS = {
             }
         },
     },
+    "distance from joe": {
+        "relative_direction": "AWAY",
+        "source": {
+            "reference_object": {
+                "filters": {
+                    "where_clause": {"AND": [{"pred_text": "has_name", "obj_text": "joe"}]}
+                }
+            }
+        },
+    },
     "distance from me": {
         "relative_direction": "AWAY",
         "source": {"reference_object": {"special_reference": "SPEAKER"}},
@@ -1078,6 +1088,7 @@ CONDITIONS = {
         },
     },
 }
+
 
 CONDITIONS["18 seconds after that cow has x greater than 5"] = {
     "condition_type": "TIME",
