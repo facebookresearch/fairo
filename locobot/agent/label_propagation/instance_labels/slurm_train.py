@@ -240,7 +240,7 @@ class COCOTrain:
         
         self.val_data = self.dataset_name + "_val" + str(self.seed)
         self.val_json = val_json
-        cfg.DATASETS.TEST = (self.val_data,)
+        cfg.DATASETS.TEST = (self.val_data,self.train_data)
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
         MetadataCatalog.get(self.val_data).thing_classes = self.thing_classes
         
@@ -267,9 +267,9 @@ class COCOTrain:
         self.train(val_json, img_dir_val)
 
 
-maxiters = [500]
-lrs = [0.001, 0.002]
-warmups = [50]
+maxiters = [1000]
+lrs = [0.001, 0.002, 0.004]
+warmups = [100]
 
 # # maxiters = [1000, 2000]
 # maxiters = [500, 1000, 2000, 4000, 6000]
@@ -292,6 +292,8 @@ import string
 
 def run_training(out_dir, img_dir_train, n=10, active=False):
     train_json = os.path.join(out_dir, 'coco_train.json')
+    img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/rgb'
+    val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/coco_val.json'
     for lr in lrs:
         for warmup in warmups:
             for maxiter in maxiters:
@@ -304,7 +306,7 @@ def run_training(out_dir, img_dir_train, n=10, active=False):
                     }
                 }
                 for i in range(n):
-                    dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
+                    dataset_name = out_dir.split('/')[-1]
                     c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
                     print(f'dataset_name {dataset_name}')
-                    c.run_train(train_json, img_dir_train, dataset_name, train_json, img_dir_train)
+                    c.run_train(train_json, img_dir_train, dataset_name, val_json, img_dir_val)

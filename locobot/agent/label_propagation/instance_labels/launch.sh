@@ -43,7 +43,7 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_sam
 
 # anurag's
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone apartment_0/straightline/no_noise 1 --slurm
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone apartment_0/default/no_noise 1 
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone apartment_0/default/no_noise 1 --slurm 
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 50 3
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 5 3
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 2 2

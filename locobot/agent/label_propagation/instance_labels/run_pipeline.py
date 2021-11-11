@@ -60,7 +60,20 @@ def _runner(gt, p, args):
             end = datetime.now()
             with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                 f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
-    
+    log_job_end(args)
+
+def log_job_start(args, jobs):
+    with open('/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/slurm_launch_start.txt', 'a') as f:
+        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Job Folder {args.job_folder}\n")
+        f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
+        f.write(f"num_jobs {str(len(jobs))}\n")
+
+def log_job_end(args):
+    with open('/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/slurm_launch_end.txt', 'a') as f:
+        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Job Folder {args.job_folder}\n")
+
 if __name__ == "__main__":
     """
     \scene_path
@@ -115,13 +128,17 @@ if __name__ == "__main__":
         slurm_comment="CVPR deadline, 11/16"
     )
 
+    
+
     jobs = []
     if args.slurm:
         with executor.batch():
-            for gt in range(5, 10, 5):
-                for p in range(0, 10, 2):
+            for gt in range(5, 15, 5):
+                for p in range(0, 24, 4):
                     job = executor.submit(_runner, gt, p, args)
                     jobs.append(job)
+
+        log_job_start(args, jobs)
         
         print(f'{len(jobs)} jobs submitted')
     
