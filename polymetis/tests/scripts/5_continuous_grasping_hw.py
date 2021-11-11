@@ -70,11 +70,11 @@ class ManipulatorSystem:
         # Plan trajectory
         pos_curr, quat_curr = self.arm.pose_ee()
         N = int(time_to_go / PLANNER_DT)
-        plan = toco.modules.CartesianSpaceMinJerkPlanner(
+        waypoints = toco.planning.generate_cartesian_space_min_jerk(
             start=T.from_rot_xyz(R.from_quat(quat_curr), pos_curr),
             goal=T.from_rot_xyz(R.from_quat(quat), pos),
-            steps=N,
             time_to_go=time_to_go,
+            hz=self.arm.metadata.hz,
         )
 
         # Execute trajectory
@@ -82,11 +82,13 @@ class ManipulatorSystem:
         t_target = t0
         for i in range(N):
             # Update traj
-            ee_posquat_desired, ee_twist_desired, _ = plan(i)
+            ee_pos_desired = waypoints[i]["pose"].translation()
+            ee_quat_desired = waypoints[i]["pose"].rotation().as_quat()
+            # ee_twist_desired = waypoints[i]["twist"]
             self.arm.update_current_policy(
                 {
-                    "ee_pos_desired": ee_posquat_desired[:3],
-                    "ee_quat_desired": ee_posquat_desired[3:],
+                    "ee_pos_desired": ee_pos_desired,
+                    "ee_quat_desired": ee_quat_desired,
                     # "ee_vel_desired": ee_twist_desired[:3],
                     # "ee_rvel_desired": ee_twist_desired[3:],
                 }
