@@ -78,8 +78,11 @@ class HelloRobotMover(MoverInterface):
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
-    def log_data(self, seconds):
+    def log_data_start(self, seconds):
         self.data_logger.save_batch(seconds)
+
+    def log_data_stop(self):
+        self.data_logger.stop()
 
     def bot_step(self):
         pass
