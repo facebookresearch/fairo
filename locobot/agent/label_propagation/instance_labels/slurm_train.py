@@ -7,7 +7,6 @@ import numpy as np
 import sys
 if '/opt/ros/kinetic/lib/python2.7/dist-packages' in sys.path:
     sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
-
 import cv2
 import detectron2
 from detectron2.utils.logger import setup_logger
@@ -34,6 +33,7 @@ from detectron2.data import build_detection_test_loader, build_detection_train_l
 import detectron2.data.transforms as T
 import shutil
 from setuptools.namespaces import flatten
+from pycocotools.coco import COCO
 
 import random
 import torch 
@@ -52,38 +52,8 @@ lvis_yaml2 = "LVIS-InstanceSegmentation/mask_rcnn_R_101_FPN_1x.yaml"
 pano_yaml = "COCO-PanopticSegmentation/panoptic_fpn_R_50_3x.yaml"
 
 jsons_root = '/checkpoint/apratik/finals/jsons/active_vision/'
-img_dir_test = '/checkpoint/apratik/ActiveVision/active_vision/replica_random_exploration_data/frl_apartment_1/rgb'
-test_jsons = ['frlapt1_20n0.json', 'frlapt1_20n1.json', 'frlapt1_20n2.json']
-test_jsons = [os.path.join(jsons_root, x) for x in test_jsons]
-
-val_json0 = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/seg/coco_train.json'
-# val_json0 = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/seg/coco_val20.json'
-img_dir_val0 = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200/83/rgb'
-# val_json = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/seg/coco_gt5_val.json'
-# img_dir_val0 = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/rgb'
-# val_json0 = '/checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019/1/default/seg/coco_gt5_4val.json'
 
 ## Detectron2 Setup
-
-# from copy_paste import CopyPaste
-# import albumentations as A
-
-class Trainer(DefaultTrainer):
-#     @classmethod
-#     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
-#         if output_folder is None:
-#             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
-#         return COCOEvaluator(dataset_name, output_dir=output_folder)
-    
-    @classmethod
-    def build_train_loader(cls, cfg):
-        mapper = DatasetMapper(cfg, is_train=True, augmentations=[
-            T.ResizeShortestEdge(short_edge_length=cfg.INPUT.MIN_SIZE_TRAIN, max_size=1333, sample_style='choice'),
-            T.RandomFlip(prob=0.5),
-            T.RandomCrop("absolute", (640, 640)),
-            T.RandomBrightness(0.9, 1.1)
-        ])
-        return build_detection_train_loader(cfg, mapper=mapper)
 
 from detectron2.engine.hooks import HookBase, EvalHook
 from detectron2.evaluation import inference_context
@@ -160,7 +130,7 @@ class LossEvalHook(HookBase):
             f.write(f'lr {self.cfg.SOLVER.BASE_LR} warmup {self.cfg.SOLVER.WARMUP_ITERS} iter {self.trainer.iter}\n')
             for yix in range(len(test_jsons)):
                 output_folder = os.path.join(self.cfg.OUTPUT_DIR, "test_inference")
-                evaluator = COCOEvaluator('test' + str(yix), ("bbox", "segm"), False, self.cfg.OUTPUT_DIR, use_fast_impl=False)
+                evaluator = COCOEvaluator('test' + str(yix), ("bbox", "segm"), False, self.cfg.OUTPUT_DIR, use_fast_impl=True)
                 data_loader = build_detection_test_loader(
                     DatasetCatalog.get('test' + str(yix)),
                     mapper=DatasetMapper(self.cfg, is_train=False)
@@ -187,18 +157,10 @@ class LossEvalHook(HookBase):
                 f.write(json.dumps(results) + '\n')
 
             # write test AP 
-            self._do_test_eval()
+            # self._do_test_eval()
 
         self.trainer.storage.put_scalars(timetest=12)
         
-        
-# class ActiveWriter(EventWriter):
-
-#     def write(self):
-#         storage = get_event_storage()
-#         print(f'writing from ActiveWriter {storage.iter}')
-#         print(storage)
-
 
 class MyTrainer(DefaultTrainer):
     @classmethod
@@ -216,23 +178,6 @@ class MyTrainer(DefaultTrainer):
         if output_folder is None:
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         return COCOEvaluator(dataset_name, cfg, False, output_folder)
-
-    # @classmethod
-    # def test(cls, cfg, model, evaluators=None):
-    #     results = super().test(cfg, model, evaluators)
-    #     print(results)
-    #     print(f'len(results) {cls.iter, results[0]}, cfg.OUTPUT_DIR {cfg.OUTPUT_DIR}')
-    #     # save to file here
-    #     # with open(os.path.join(cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
-    #     #     f.write(f'lr {cfg.SOLVER.BASE_LR} warmup {cfg.SOLVER.WARMUP_ITERS} iter {cls.iter}\n')
-    #     #     f.write(json.dumps(results[0]) + '\n')
-    #     return results
-
-    # def build_writers(self):
-    #     writers = super().build_writers()
-    #     print(f'current writers {writers}')
-    #     writers.append(ActiveWriter())
-    #     return writers
 
     def build_hooks(self):
         hooks = super().build_hooks()
@@ -268,28 +213,14 @@ class COCOTrain:
         self.train_json = train_json
         register_coco_instances(self.train_data, {}, train_json, img_dir_train)
 
-        # Register test json
-        for yix in range(len(test_jsons)):
-            register_coco_instances('test' + str(yix), {}, test_jsons[yix], img_dir_test)
-            MetadataCatalog.get('test' + str(yix)).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
-            print(MetadataCatalog.get('test' + str(yix)).thing_classes)
-
-        self.results = {
-            "bbox": {
-                "AP50": []
-            },
-            "segm": {
-                "AP50": []
-            }
-        }
-        self.val_results = {
-            "bbox": {
-                "AP50": []
-            },
-            "segm": {
-                "AP50": []
-            }
-        }
+        # roundabout way to set metadata https://detectron2.readthedocs.io/en/latest/tutorials/datasets.html#metadata-for-datasets
+        coco = COCO(train_json)
+        # display COCO categories and supercategories
+        cats = coco.loadCats(coco.getCatIds())
+        self.thing_classes = [cat['name'] for cat in cats]
+        print(f'thing_classes {self.thing_classes}')
+        MetadataCatalog.get(self.train_data).thing_classes = self.thing_classes
+        # TODO: Register test json
     
     def vis(self):
         dataset_dicts = DatasetCatalog.get(self.train_data)
@@ -309,9 +240,9 @@ class COCOTrain:
         
         self.val_data = self.dataset_name + "_val" + str(self.seed)
         self.val_json = val_json
-        cfg.DATASETS.TEST = (self.val_data,self.train_data)
+        cfg.DATASETS.TEST = (self.val_data,)
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
-        MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
+        MetadataCatalog.get(self.val_data).thing_classes = self.thing_classes
         
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
@@ -321,14 +252,10 @@ class COCOTrain:
         cfg.SOLVER.STEPS=tuple([100*(i+1) for i in range(100) if 100*(i+1) < cfg.SOLVER.MAX_ITER])
         
         cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128 
-        MetadataCatalog.get(self.train_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
         cfg.OUTPUT_DIR = os.path.join('output_droid', self.name, str(self.seed), str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS))
         print(f"recreating {cfg.OUTPUT_DIR}")
-        # if os.path.isdir(cfg.OUTPUT_DIR):
-        #     shutil.rmtree(cfg.OUTPUT_DIR)
-        print(cfg.OUTPUT_DIR)
         os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
         self.trainer = MyTrainer(cfg) #DefaultTrainer(cfg)  #Trainer(cfg)
         self.trainer.resume_or_load(resume=False)
@@ -340,9 +267,9 @@ class COCOTrain:
         self.train(val_json, img_dir_val)
 
 
-maxiters = [750]
+maxiters = [500]
 lrs = [0.001, 0.002]
-warmups = [100]
+warmups = [50]
 
 # # maxiters = [1000, 2000]
 # maxiters = [500, 1000, 2000, 4000, 6000]
@@ -377,9 +304,7 @@ def run_training(out_dir, img_dir_train, n=10, active=False):
                     }
                 }
                 for i in range(n):
-                    # dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
-                    dataset_name = "/".join(out_dir.split('/')[-3 if active else -2:])
-                    print(f'dataset_name {dataset_name}')
+                    dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
                     c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
                     print(f'dataset_name {dataset_name}')
-                    c.run_train(train_json, img_dir_train, dataset_name, val_json0, img_dir_val0)
+                    c.run_train(train_json, img_dir_train, dataset_name, train_json, img_dir_train)

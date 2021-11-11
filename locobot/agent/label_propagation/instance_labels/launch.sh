@@ -14,7 +14,7 @@ fi
 
 data_path=$1
 # Base dir for all jobs
-base_dir=/checkpoint/${USER}/jobs/active_vision/pipeline/$2
+base_dir=/checkpoint/${USER}/jobs/active_vision/pipeline/instance_det/$2
 mkdir -p $base_dir
 dt=$(date '+%d-%m-%Y/%H:%M:%S');
 
@@ -28,17 +28,28 @@ codedir=$jobdir/code
 mkdir -p $codedir
 
 cp coco.py $codedir/coco.py
-cp label_propagation.py $codedir/label_propagation.py
+cp ../label_propagation.py $codedir/label_propagation.py
 cp slurm_train.py $codedir/slurm_train.py
 cp run_pipeline.py $codedir/run_pipeline.py
+cp candidates.py $codedir/candidates.py
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 $5 --slurm
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_samples $3 $4
 
 # please clean up your checkpoints before running these so as not to exceed the 8TB space limit
 # cd /checkpoint/$USER/jobs/active_vision/pipeline 
-# find . -name output_aug -exec rm -rf {} \;
+# find . -name output_droid -exec rm -rf {} \;
+
+# anurag's
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone apartment_0/straightline/no_noise 1 --slurm
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone apartment_0/default/no_noise 1 
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 50 3
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 5 3
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 2 2
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 50 3
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 20 3 --active
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 2 --active
 
 # arthur's
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 50 3
@@ -49,9 +60,3 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # kavya's
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/noise/mul_traj_200_activeandrandom apartment_0/straightline/noise 50 3 --active
 
-# anurag's
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 50 3
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 2 2
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 50 3
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 20 3 --active
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 2 --active

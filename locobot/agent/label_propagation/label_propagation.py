@@ -269,7 +269,9 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, src_img_ids=N
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
 
-    with open(os.path.join(root_path, "data.json"), "r") as f:
+    json_path = os.path.join(root_path, 'data.json')
+    assert os.path.isfile(json_path)
+    with open(json_path, "r") as f:
         base_pose_data = json.load(f)
 
     num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
