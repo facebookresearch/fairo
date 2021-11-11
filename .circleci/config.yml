@@ -130,8 +130,8 @@ commands:
 jobs:
   minecraft:
     machine:
-      - image: ubuntu-2004:202104-01
-      - name: minecraft
+      image: ubuntu-2004:202104-01
+      name: "minecraft"
     resource_class: gpu.small
     steps:
       - run:
