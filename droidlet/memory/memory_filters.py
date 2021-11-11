@@ -763,6 +763,9 @@ class FixedMemFilter(MemoryFilter):
         super().__init__(agent_memory)
         self.memid = memid
 
+    def set_memid(self, memid):
+        self.memid = memid
+
     def check_null(self):
         if self.memid == "NULL":
             raise Exception("Tried to run a FixedMemFilter with a NULL fixed memid")
