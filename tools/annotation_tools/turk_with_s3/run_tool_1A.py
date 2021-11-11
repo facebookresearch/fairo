@@ -32,16 +32,9 @@ dev_flag = "--dev" if args.dev else ""
 default_write_dir = args.default_write_dir
 timeout = args.timeout
 
-# dev_flag = ""
-# # Parse flags passed into script run
-# if len(sys.argv) > 1:
-#     # flag to toggle dev mode is --dev
-#     dev_flag = sys.argv[1]
-
 # CSV input
 rc = subprocess.call(
     [
-        # "python3 ../text_to_tree_tool/construct_input_for_turk.py --input_file input.txt > A/turk_input.csv"
         f"python3 construct_input_for_turk.py --input_file {default_write_dir}/input.txt > {default_write_dir}/A/turk_input.csv"
     ],
     shell=True,
@@ -49,18 +42,6 @@ rc = subprocess.call(
 if rc != 0:
     print("Error preprocessing. Exiting.")
     sys.exit()
-
-# # Load input commands and create a separate HIT for each row
-# rc = subprocess.call(
-#     [
-#         # "python3 create_jobs.py --tool_num 1 --xml_file fetch_question_A.xml --input_csv A/turk_input.csv --job_spec_csv A/turk_job_specs.csv {}".format(dev_flag)
-#         f"python3 create_jobs.py --tool_num 1 --xml_file fetch_question_A.xml --input_csv {default_write_dir}/A/turk_input.csv --job_spec_csv {default_write_dir}/A/turk_job_specs.csv {dev_flag}"
-#     ],
-#     shell=True,
-# )
-# if rc != 0:
-#     print("Error creating HIT jobs. Exiting.")
-#     sys.exit()
 
 hit_id = create_turk_job("fetch_question_A.xml", 1, f"{default_write_dir}/A/turk_input.csv", f"{default_write_dir}/A/turk_job_specs.csv", dev_flag)
 
@@ -87,22 +68,9 @@ mturk = boto3.client(
 
 get_hit_result(mturk, hit_id, f"{default_write_dir}/A/turk_output.csv", True if dev_flag else False, timeout)
 
-# # Check if results are ready
-# rc = subprocess.call(
-#     [
-#         # "python3 get_results.py --output_csv A/turk_output.csv {}".format(dev_flag)
-#         f"python3 get_results.py --output_csv {default_write_dir}/A/turk_output.csv {dev_flag}"
-#     ],
-#     shell=True,
-# )
-# if rc != 0:
-#     print("Error fetching HIT results. Exiting.")
-#     sys.exit()
-
 # Collate datasets
 print("*"*50)
 print("*** Collating turk outputs and input job specs ***")
-# rc = subprocess.call(["python3 collate_answers.py --turk_output_csv A/turk_output.csv --job_spec_csv A/turk_job_specs.csv --collate_output_csv A/processed_outputs.csv"], shell=True)
 rc = subprocess.call([f"python3 collate_answers.py --turk_output_csv {default_write_dir}/A/turk_output.csv --job_spec_csv {default_write_dir}/A/turk_job_specs.csv --collate_output_csv {default_write_dir}/A/processed_outputs.csv"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
@@ -111,7 +79,6 @@ if rc != 0:
 # Postprocess
 print("*"*50)
 print("*** Postprocessing results ***")
-# rc = subprocess.call(["python3 parse_tool_A_outputs.py"], shell=True)
 rc = subprocess.call([f"python3 parse_tool_A_outputs.py --folder_name {default_write_dir}/A/"], shell=True)
 if rc != 0:
     print("Error collating answers. Exiting.")
@@ -123,5 +90,4 @@ print("*** Creating inputs for B and C ***")
 rc = subprocess.call([f"python3 generate_input_for_tool_B_and_C.py --write_dir_path {default_write_dir}"], shell=True)
 if rc != 0:
     print("Error generating input for other tools. Exiting.")
-    sys.exit()
 print("*"*50)
