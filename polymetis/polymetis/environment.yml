@@ -9,10 +9,10 @@ dependencies:
     # Build dependencies
     - assimp=5.0.1=hdca8b6f_4
     - cmake
-    - cudatoolkit=10.1
+    - cudatoolkit=11.3
     - doxygen
     - eigen=3.3.9
-    - grpc-cpp ==1.35.0
+    - grpc-cpp
     - hpp-fcl=1.6.0=py38h75fc22a_1
     - libprotobuf
     - openmpi

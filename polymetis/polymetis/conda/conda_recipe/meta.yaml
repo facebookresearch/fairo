@@ -14,7 +14,7 @@ requirements:
   build:
     - assimp=5.0.1=hdca8b6f_4
     - cmake
-    - cudatoolkit=10.1
+    - cudatoolkit=11.3
     - doxygen
     - eigen=3.3.9
     - grpc-cpp
@@ -34,7 +34,7 @@ requirements:
     - boost ==1.72.0
     - boost-cpp ==1.72.0
     - breathe
-    - cudatoolkit=10.1
+    - cudatoolkit=11.3
     - dash
     - doxygen
     - grpc-cpp
