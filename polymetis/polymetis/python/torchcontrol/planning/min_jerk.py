@@ -169,7 +169,7 @@ def generate_position_min_jerk(start, goal, time_to_go: float, hz: float) -> Lis
     """
     assert start.shape == torch.Size([3])
     assert goal.shape == torch.Size([3])
-    return generate_joint_space_min_jerk(start, goal, hz, time_to_go)
+    return generate_joint_space_min_jerk(start, goal, time_to_go, hz)
 
 
 def generate_cartesian_target_joint_min_jerk(
