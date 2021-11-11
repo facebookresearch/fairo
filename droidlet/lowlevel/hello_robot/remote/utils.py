@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 import cv2
+
 def transform_global_to_base(XYT, current_pose):
     """
     Transforms the point cloud into geocentric frame to account for
@@ -19,6 +20,29 @@ def transform_global_to_base(XYT, current_pose):
     out_XYT = np.matmul(XYT.reshape(-1, 3), R).reshape((-1, 3))
     out_XYT = out_XYT.ravel()
     return [out_XYT[0], out_XYT[1], new_T]
+
+def transform_base_to_global(out_XYT, current_pose):
+    """
+    Transforms the point cloud from base frame into geocentric frame
+    Input:
+        XYZ                     : ...x3
+        current_pose            : base position (x, y, theta (radians))
+    Output:
+        XYZ : ...x3
+    """
+    R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
+    Rinv = np.linalg.inv(R)
+
+    XYT = np.matmul(R, out_XYT)    
+
+    XYT[0] = XYT[0] + current_pose[0]
+    XYT[1] = XYT[1] + current_pose[1]
+
+    XYT[2] =  out_XYT[2] + current_pose[2]
+   
+    XYT = np.asarray(XYT)
+    
+    return XYT
 
 
 from math import *
