@@ -23,10 +23,10 @@ class MyTestCase(unittest.TestCase):
                 stdout=f,
                 preexec_fn=os.setsid,
             )
-            time.sleep(5)  # let cuberite fully starts
+            time.sleep(60)  # let cuberite fully starts
             sa = CraftAssistAgent(opts)
             os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            time.sleep(5)  # let cuberite fully terminates
+            time.sleep(60)  # let cuberite fully terminates
 
         with open("cuberite_log.txt", "r") as f:
             cuberite_log = f.read()
