@@ -39,8 +39,7 @@ class AnnotationJob(DataGenerator):
     """
     This Data Generator is responsible for spinning up Annotation Jobs.
 
-    Each Annotation Job is a HIT where turkers are asked to annotate the given command using the annotation tool
-    we've built previously which will generate a logical form for the annotated command after several steps.
+    Each Annotation Job is a HIT where turkers are asked to annotate the given command using the annotation tool.
 
     On a high level:
     - The input of this data generator is a single text command to be annotated
@@ -68,9 +67,7 @@ class AnnotationJob(DataGenerator):
             )  # if self.get_remaining_time() < 0 else self.get_remaining_time() + 1
             p = subprocess.Popen(
                 [
-                    #     f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
-                    # ],
-                    f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --dev --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
+                    f"AWS_ACCESS_KEY_ID='{MTURK_AWS_ACCESS_KEY_ID}' AWS_SECRET_ACCESS_KEY='{MTURK_AWS_SECRET_ACCESS_KEY}' cd ../../../../tools/annotation_tools/turk_with_s3 && python run_all_tasks.py --default_write_dir={HITL_TMP_DIR}/{self._batch_id}/{self._cmd_id} --timeout {annotation_process_timeout}"
                 ],
                 shell=True,
                 preexec_fn=os.setsid,
