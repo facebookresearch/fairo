@@ -28,7 +28,7 @@ class CocoCreator:
     def __init__(self, root_data_dir, segm_dir, semantic_json_root, instance_ids):
         self.rdd = root_data_dir
         self.sjr = semantic_json_root
-        self.segm_dir = segm_dir
+        self.segm_dir = os.path.join(root_data_dir, 'seg')
         self.instance_ids = instance_ids
         
     def create_coco(self, scene, coco_file_name, pct):
@@ -171,10 +171,10 @@ class CocoCreator:
             fs.append(cs[x])
         return fs 
 
-def run_coco(segm_dir, root_data_dir, instance_ids):
-    cbase = CocoCreator(root_data_dir, segm_dir, semantic_json_root, instance_ids)
+def run_coco(root_data_dir, instance_ids):
+    cbase = CocoCreator(root_data_dir, semantic_json_root, instance_ids)
     cbase.create_coco(
         scene='apartment_0', 
-        coco_file_name=os.path.join(segm_dir, 'coco_train.json'),
+        coco_file_name=os.path.join(root_data_dir, 'coco_train.json'),
         pct=1,
     )

@@ -22,7 +22,7 @@ from scipy.spatial.transform import Rotation
 from pycocotools.coco import COCO
 import glob
 import argparse
-
+import shutil
 
 # this function is implemented at 'from locobot.agent.locobot_mover_utils import transform_pose'
 # however ray was having toruble finding the function
@@ -51,6 +51,7 @@ def propogate_label(
     propogation_step: int,
     base_pose_data: np.ndarray,
     out_dir: str,
+    frame_range_begin: int
 ):
     """Take the label for src_img_indx and propogate it to [src_img_indx - propogation_step, src_img_indx + propogation_step]
     Args:
@@ -60,8 +61,10 @@ def propogate_label(
         propogation_step (int): number of steps to progate the label
         base_pose_data(np.ndarray): (x,y,theta)
         out_dir (str): path to store labeled propogation image
+        frame_range_begin (int): filename indx to begin dumping out files from
     """
     print(f" root {root_path}, out {out_dir}, p {propogation_step}")
+
     ### load the inputs ###
     # load robot trajecotry data which has pose information coreesponding to each img observation taken
     with open(os.path.join(root_path, "data.json"), "r") as f:
@@ -122,9 +125,10 @@ def propogate_label(
     # param usful to search nearest point cloud in a region
     kernal_size = 3
 
+    out_indx = frame_range_begin
+
     for img_indx in range(image_range[0], image_range[1] + 1):
         print("img_index = {}".format(img_indx))
-
         ### create point cloud in wolrd frame for img_indx ###
         
         try:
@@ -254,7 +258,14 @@ def propogate_label(
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
         # store the annotation file
-        np.save(os.path.join(out_dir, "{:05d}.npy".format(img_indx)), annot_img.astype(np.uint32))
+        np.save(os.path.join(os.path.join(out_dir, 'seg'), "{:05d}.npy".format(out_indx)), annot_img.astype(np.uint32))
+        # copy rgn as out_indx.job
+        shutil.copyfile(
+            os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)), 
+            os.path.join(os.path.join(out_dir, 'rgb'),"{:05d}.jpg".format(out_indx))
+        )
+        out_indx += 1
+
 
 
 def run_label_prop(out_dir, gtframes, propagation_step, root_path, src_img_ids=None):
@@ -269,6 +280,15 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, src_img_ids=N
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
 
+    # create out_dir rgb and seg
+    seg_dir = os.path.join(out_dir, 'seg')
+    img_dir = os.path.join(out_dir, 'rgb')
+
+    if not os.path.isdir(seg_dir):
+        os.makedirs(seg_dir)
+    if not os.path.isdir(img_dir):
+        os.makedirs(img_dir)
+
     json_path = os.path.join(root_path, 'data.json')
     assert os.path.isfile(json_path)
     with open(json_path, "r") as f:
@@ -278,12 +298,8 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, src_img_ids=N
     result = []
     train_img_id = {"img_id": []}
     src_img_indx = 0
-    delta = int(num_imgs / gtframes)
-    propagation_step = min(propagation_step, int(delta/2))
     train_img_id['propagation_step'] = propagation_step
-    
-    # for x in range(gtframes):
-        # src_img_indx += delta
+    frame_range_begin = 0
     for src_img_indx in src_img_ids:
         if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
             result.append(
@@ -296,9 +312,11 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, src_img_ids=N
                     propogation_step=propagation_step,
                     base_pose_data=base_pose_data,
                     out_dir=out_dir,
+                    frame_range_begin=frame_range_begin,
                 )
             )
             train_img_id["img_id"].append(src_img_indx)
+            frame_range_begin += 2*propagation_step + 1
 
     with open(os.path.join(out_dir, "train_img_id.json"), "w") as fp:
         json.dump(train_img_id, fp)

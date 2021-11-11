@@ -55,17 +55,18 @@ def _runner(gt, p, args):
         print(f'selected imgids {src_img_ids}')
         run_label_prop(outdir, gt, p, traj_path, src_img_ids)
         if len(glob.glob1(outdir,"*.npy")) > 0:
-            run_coco(outdir, traj_path, instance_ids)
+            run_coco(outdir, instance_ids)
             run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
             end = datetime.now()
             with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
-                f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
+                f.write(f"gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
     log_job_end(args)
 
 def log_job_start(args, jobs):
     with open('/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/slurm_launch_start.txt', 'a') as f:
         f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Job Folder {args.job_folder}\n")
+        f.write(f"Data Dir {args.data_path}\n")
         f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
         f.write(f"num_jobs {str(len(jobs))}\n")
 
@@ -145,5 +146,5 @@ if __name__ == "__main__":
     else:
         print('running locally ...')
         for gt in range(5, 10, 5):
-            for p in range(0, 6, 2): # only run for fixed gt locally to test
+            for p in range(20, 22, 2): # only run for fixed gt locally to test
                 _runner(gt, p, args)
