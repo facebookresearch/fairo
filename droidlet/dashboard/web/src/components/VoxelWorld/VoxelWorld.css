@@ -1,0 +1,24 @@
+
+#world-container {
+    position: relative;
+}
+
+#prompt {
+    position: absolute;
+    z-index: 101;
+    background-color: transparent;
+    width: 100%;
+    overflow: hidden;
+    text-align: center;
+    top: 40%;
+    left: 0;
+    pointer-events: none;
+}
+
+#prompt-text {
+    color: red;
+    font-size: 2em;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+    pointer-events: none;
+}

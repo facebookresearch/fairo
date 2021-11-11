@@ -41,14 +41,14 @@ function recordReadTime() {
     document.getElementsByClassName("btn-default")[0].classList.add("hidden");
     if (window.addEventListener) {
         window.addEventListener("message", (event) => {
-            data = JSON.parse(event.data);
+            let data = JSON.parse(event.data);
             console.log(data);
             recordClick(data.msg);
         }, false);
     }
     else if (window.attachEvent) {  // Cross compatibility for old versions of IE
         window.attachEvent("onmessage", (event) => {
-            data = JSON.parse(event.data);
+            let data = JSON.parse(event.data);
             console.log(data);
             recordClick(data.msg);
         });

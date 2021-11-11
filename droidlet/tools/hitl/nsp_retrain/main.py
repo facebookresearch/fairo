@@ -20,7 +20,7 @@ logger.addHandler(sh)
 
 # TODO: Parameterize those
 # This specifies how long jobs should be running before we manually kill them
-IJ_TIMEOUT = 720
+IJ_TIMEOUT = 360
 IL_TIMEOUT = IJ_TIMEOUT + 20
 NDL_TIMEOUT = IL_TIMEOUT + 20
 

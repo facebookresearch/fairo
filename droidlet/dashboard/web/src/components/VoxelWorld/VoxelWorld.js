@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 */
 import React from "react";
+import "./VoxelWorld.css";
 
 class VoxelWorld extends React.Component {
   constructor(props) {
@@ -24,6 +25,15 @@ class VoxelWorld extends React.Component {
   componentDidMount() {
     if (this.props.stateManager) this.props.stateManager.connect(this);
     this.getVoxelWorldInitialState();
+
+    // Listen for a message from the iframe to remove the prompt text when the user clicks in
+    window.addEventListener("message", (event) => {
+      let data = JSON.parse(event.data);
+      if (data.msg === "click") {
+        let p = document.getElementById("prompt");
+        if (p) {p.remove()};
+      }
+    }, false);
   }
 
   render() {
@@ -38,9 +48,12 @@ class VoxelWorld extends React.Component {
             height="500"
             ref={this.worldContainerRef}
           ></iframe>
+          <div id="prompt">
+            <span id="prompt-text">Click in this window to enter 3D world</span>
+          </div>
         </div>
         <p>
-          Tip: press 'esc' to leave the voxel world, w/a/s/d to move, space to
+          Tip: press 'esc' to leave the 3D world, w/a/s/d to move, space to
           jump
         </p>
       </div>
