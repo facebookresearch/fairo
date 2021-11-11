@@ -311,6 +311,7 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     # Crawl turk logs directory
     all_turk_interactions = None
     len_dist = {}
+    len_dist[15] = 0
     time_dist = {}
     time_turker_map = {}
     turker_hit_cnt = {}
@@ -375,8 +376,12 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
             # get command count stats
             cmd_cnt = len(csv_file['command'])
             if cmd_cnt not in len_dist:
-                len_dist[cmd_cnt] = 0
-            len_dist[cmd_cnt] += 1
+                if cmd_cnt < 15:
+                    len_dist[cmd_cnt] = 0
+            if cmd_cnt > 15:
+                len_dist[15] += 1
+            else:
+                len_dist[cmd_cnt] += 1
 
             # get cmd cnt turker map
             turker_map = cmd_cnt_turker_map.get(cmd_cnt, {})
@@ -409,11 +414,11 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211027100532/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211027100532")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211110132314/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211110132314")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211027100532", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211110132314", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211027100532", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211110132314", "error_details")
 
 #%%
 if __name__ == "__main__":
