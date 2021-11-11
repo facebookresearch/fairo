@@ -133,7 +133,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
         jacobian = self.robot_model.compute_jacobian(joint_pos_current)
         ee_twist_current = jacobian @ joint_vel_current
 
-        force_feedback = self.pose_pd(
+        wrench_feedback = self.pose_pd(
             ee_pos_current,
             ee_quat_current,
             ee_twist_current,
@@ -141,7 +141,7 @@ class CartesianImpedanceControl(toco.PolicyModule):
             self.ee_quat_desired,
             torch.cat([self.ee_vel_desired, self.ee_rvel_desired]),
         )
-        torque_feedback = jacobian.T @ force_feedback
+        torque_feedback = jacobian.T @ wrench_feedback
 
         torque_feedforward = self.invdyn(
             joint_pos_current, joint_vel_current, torch.zeros_like(joint_pos_current)
