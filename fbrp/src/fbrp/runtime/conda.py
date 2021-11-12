@@ -1,8 +1,6 @@
-import dataclasses
-from fbrp import util
-from fbrp.runtime.base import BaseLauncher, BaseRuntime
-from fbrp.process import ProcDef
+import argparse
 import asyncio
+import copy 
 import dataclasses
 import json
 import os
@@ -10,20 +8,27 @@ import shlex
 import shutil
 import signal
 import subprocess
-import argparse
+import sys
 import typing
 import yaml as pyyaml
+
+from fbrp import util
+from fbrp.runtime.base import BaseLauncher, BaseRuntime
+from fbrp.process import ProcDef
 
 
 @dataclasses.dataclass
 class CondaEnv:
-    channels: typing.List[str]
-    dependencies: typing.List[typing.Union[str, dict]]
+    channels: typing.List[str] = []
+    dependencies: typing.List[typing.Union[str, dict]] = []
+    env_variables: typing.Dict[str, str] = {}
 
     @staticmethod
     def load(flo):
         result = pyyaml.safe_load(flo)
-        return CondaEnv(result.get("channels", []), result.get("dependencies", []))
+        return CondaEnv(result.get("channels", []), 
+                        result.get("dependencies", []),
+                        result.get("env_variables", {}))
 
     @staticmethod
     def from_env(name):
@@ -65,17 +70,26 @@ class CondaEnv:
 class Launcher(BaseLauncher):
     def __init__(
         self,
+        env_variables: typing.Dict[str, object],
         run_command: typing.List[str],
         name: str,
         proc_def: ProcDef,
         args: argparse.Namespace,
     ):
+        self.env_variables = env_variables
         self.run_command = run_command
         self.name = name
         self.proc_def = proc_def
         self.args = args
 
     async def run(self):
+        # we want to copy all of parent's env variables to subprocess here
+        # this is intentional as we want to carry over any parent process
+        # env variables
+        parent_env = os.environ.copy()
+        # merge parent env variables with provided env variables with latter
+        # taking precedence over the former
+        subprocess_env = {**parent_env, **self.env_variables}
         self.set_state(BaseLauncher.State.STARTING)
         self.proc = await asyncio.create_subprocess_shell(
             f"""
@@ -87,6 +101,7 @@ class Launcher(BaseLauncher):
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
+            env=subprocess_env,
         )
         self.set_state(BaseLauncher.State.STARTED)
 
@@ -145,13 +160,14 @@ class Conda(BaseRuntime):
         env=None,
         channels=[],
         dependencies=[],
+        env_variables={},
         setup_commands=[],
         use_mamba=None,
     ):
         self.yaml = yaml
         self.env = env
         self.run_command = run_command
-        self.conda_env = CondaEnv(channels[:], dependencies[:])
+        self.conda_env = CondaEnv(channels[:], dependencies[:], copy.deepcopy(env_variables))
         self.setup_commands = setup_commands
         self.use_mamba = (
             use_mamba if use_mamba is not None else bool(shutil.which("mamba"))
