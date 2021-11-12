@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-import ping_cuberite
+from tools.servermgr import ping_cuberite
 
 from hitl_utils import generate_batch_id
 
