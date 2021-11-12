@@ -218,6 +218,9 @@ class Robot:
             self.reset()
 
     def update_grasp_state(self, is_grasped):
+        if not self._use_gripper:
+            return
+
         self.desired_grasp_state = is_grasped
 
         # Send command if gripper is idle and desired grasp state is different from current grasp state
