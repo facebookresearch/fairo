@@ -51,10 +51,11 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/noise/mul_traj_200_activeandrandom apartment_0/straightline/noise 50 3 --active
 
 # anurag's
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 10 3 --active
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 50 3
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 2 --active
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 5 2
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 2 2
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 5 3
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 2 2
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 50 3
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 10 3
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 20 3 --active
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 2 --active

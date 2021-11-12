@@ -37,6 +37,13 @@ cd $codedir
 chmod +x run_pipeline.py
 python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_samples $3 $4
 
+# play book to run the pipeline on Hello
+# pick frames to label, one per instance for the train set where the instance.  
+# convert coco format labels into seg format (each pixel is the instance id, same dim as the image)
+# set labeled image ids to src_img_ids in run_pipeline.py
+# plug and play ./launch.sh <the root folder with rgb, depth, seg, data.json> <scene>/<heu>/real_world num_train_sample --slurm
+
+
 # please clean up your checkpoints before running these so as not to exceed the 8TB space limit
 # cd /checkpoint/$USER/jobs/active_vision/pipeline 
 # find . -name output_droid -exec rm -rf {} \;

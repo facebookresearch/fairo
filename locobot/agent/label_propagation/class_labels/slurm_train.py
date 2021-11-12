@@ -324,7 +324,7 @@ class COCOTrain:
 
 
 maxiters = [500]
-lrs = [0.0005, 0.001, 0.002]
+lrs = [0.001, 0.002]
 warmups = [100]
 
 # # maxiters = [1000, 2000]

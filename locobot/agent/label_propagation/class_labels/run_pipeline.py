@@ -149,7 +149,7 @@ if __name__ == "__main__":
         with executor.batch():
             for traj in range(args.num_traj):
                 for gt in range(5, 15, 5):
-                    for p in range(0, 30, 4):
+                    for p in range(0, 30, 5):
                         job = executor.submit(_runner, traj, gt, p, args)
                         jobs.append(job)
         log_job_start(args, jobs)
