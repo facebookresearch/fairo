@@ -141,9 +141,12 @@ class TeleopDevice:
 class Robot:
     """Wrapper around arm and gripper"""
 
-    def __init__(self, ip_address="localhost"):
+    def __init__(self, ip_address="localhost", use_gripper=False):
+        self._use_gripper = use_gripper
+
         self.arm = RobotInterface(ip_address=ip_address)
-        self.gripper = GripperInterface(ip_address=ip_address)
+        if self._use_gripper:
+            self.gripper = GripperInterface(ip_address=ip_address)
         time.sleep(0.5)
 
         # Move arm to home
@@ -227,12 +230,14 @@ class Robot:
                     self._open_gripper()
 
     def _close_gripper(self):
-        self.gripper.grasp(speed=0.1, force=1.0, blocking=False)
-        self.grasp_state = 1
+        if self._use_gripper:
+            self.gripper.grasp(speed=0.1, force=1.0, blocking=False)
+            self.grasp_state = 1
 
     def _open_gripper(self):
-        self.gripper.goto(width=0.1, speed=0.1, force=1.0, blocking=False)
-        self.grasp_state = 0
+        if self._use_gripper:
+            self.gripper.goto(width=0.1, speed=0.1, force=1.0, blocking=False)
+            self.grasp_state = 0
 
 
 def interpolate_pose(pose1, pose2, pct):
@@ -264,7 +269,7 @@ def main(args):
 
     # Initialize interfaces
     print("Connecting to devices...")
-    robot = Robot()
+    robot = Robot(ip_address=args.ip, use_gripper=args.use_gripper)
     teleop = TeleopDevice(mode=mode)
     print("Connected.")
 
@@ -316,7 +321,13 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument(
+        "--ip", type=str, default="localhost", help="IP address of NUC."
+    )
+    parser.add_argument(
         "-k", "--keyboard", action="store_true", help="Teleop with keyboard mode."
+    )
+    parser.add_argument(
+        "-g", "--use_gripper", action="store_true", help="Run with gripper enabled."
     )
     args = parser.parse_args()
 
