@@ -270,8 +270,9 @@ def main(args):
     # Initialize interfaces
     print("Connecting to devices...")
     robot = Robot(ip_address=args.ip, use_gripper=args.use_gripper)
+    print("Connected to robot.")
     teleop = TeleopDevice(mode=mode)
-    print("Connected.")
+    print("Connected to teleop device.")
 
     # Initialize variables
     vr_pose_ref = sp.SE3()
