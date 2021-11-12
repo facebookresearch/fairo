@@ -9,7 +9,7 @@ function recordClick(ele) {
     checkSubmitDisplay();
   }
   clickedElements.push({id: ele, timestamp: Date.now()});
-  document.getElementById("clickedElements").value = clickedElements;
+  document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
   //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");

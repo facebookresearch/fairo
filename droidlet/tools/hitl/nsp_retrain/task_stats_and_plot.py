@@ -100,70 +100,6 @@ def timing_charts(run_id: int) -> None:
 
     data_browser = DataBrowser(db=db)
     usability = []
-    read_time = []
-    pre_interact = []
-    interact_time = []
-    starttime = math.inf
-    endtime = -math.inf
-    for unit in completed_units:
-        data = data_browser.get_data_from_unit(unit)
-        content = data["data"]
-        if (content["times"]["task_start"] < starttime):
-            starttime = content["times"]["task_start"]
-        if (content["times"]["task_start"] > endtime):
-            endtime = content["times"]["task_end"]
-        outputs = content["outputs"]
-        try:
-            usability.append(int(outputs["usability-rating"]))
-        except:
-            usability.append(0)
-        try:
-            read_time.append(int(outputs["instructionsReadTime"]))
-        except:
-            read_time.append(0)
-        try:
-            pre_interact.append(int(outputs["preInteractTime"]))
-        except:
-            pre_interact.append(0)
-        try:
-            interact_time.append(int(outputs["interactTime"]))
-        except:
-            interact_time.append(0)
-
-    print(f"Start time: {datetime.fromtimestamp(starttime)}")
-    print(f"End time: {datetime.fromtimestamp(endtime)}")
-    print(f"Average usability score: {(sum(usability)/len(usability)):.1f}")
-
-    usability.sort()
-    keys = range(len(usability))
-    u_dict = dict(zip(keys, usability))
-    plot_hist(u_dict, xlabel="", ylabel="Usability Score", ymax=7)
-    read_time.sort()
-    keys = range(len(read_time))
-    r_dict = dict(zip(keys, read_time))
-    plot_hist(r_dict, target_val=180, xlabel="", ylabel="Instructions Read Time (sec)")
-    pre_interact.sort()
-    keys = range(len(pre_interact))
-    p_dict = dict(zip(keys, pre_interact))
-    plot_hist(p_dict, target_val=30, xlabel="", ylabel="Time between instructions and interaction start (sec)")
-    interact_time.sort()
-    keys = range(len(interact_time))
-    i_dict = dict(zip(keys, interact_time))
-    plot_hist(i_dict, target_val=300, xlabel="", ylabel="Interaction time (sec)")
-
-#%%
-def timing_charts(run_id: int) -> None:
-    db = LocalMephistoDB()
-    units = db.find_units(task_run_id=run_id)
-    completed_num = 0
-    completed_units = []
-    for unit in units:
-        if unit.db_status == "completed":
-            completed_num += 1
-            completed_units .append(unit)
-
-    data_browser = DataBrowser(db=db)
-    usability = []
     self_rating = []
     read_time = []
     pre_interact = []
@@ -187,20 +123,23 @@ def timing_charts(run_id: int) -> None:
         except:
             self_rating.append(0)
         try:
-            read_time.append(int(outputs["instructionsReadTime"]))
+            clicks = outputs["clickedElements"]
+            for click in clicks:
+                print(json.loads(click))
         except:
-            read_time.append(0)
-        try:
-            pre_interact.append(int(outputs["preInteractTime"]))
-        except:
-            pre_interact.append(0)
-        try:
-            interact_time.append(int(outputs["interactTime"]))
-        except:
-            interact_time.append(0)
+            pass
+            
+
+    promoters = len([i for i in usability if i > 5])
+    detractors = len([i for i in usability if i < 5 and i > 0])
+    actual_usability = [i for i in usability if i > 0]
+    actual_self_rating = [i for i in self_rating if i > 0]
 
     print(f"Start time: {datetime.fromtimestamp(starttime)}")
     print(f"End time: {datetime.fromtimestamp(endtime)}")
+    print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
+    print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
+    print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
 
     usability.sort()
     keys = range(len(usability))
@@ -213,15 +152,15 @@ def timing_charts(run_id: int) -> None:
     read_time.sort()
     keys = range(len(read_time))
     r_dict = dict(zip(keys, read_time))
-    plot_hist(r_dict, xlabel="", ylabel="Instructions Read Time")
+    plot_hist(r_dict, target_val=180, xlabel="", ylabel="Instructions Read Time (sec)")
     pre_interact.sort()
     keys = range(len(pre_interact))
     p_dict = dict(zip(keys, pre_interact))
-    plot_hist(p_dict, xlabel="", ylabel="Time between instructions and interaction start")
+    plot_hist(p_dict, target_val=30, xlabel="", ylabel="Time between instructions and interaction start (sec)")
     interact_time.sort()
     keys = range(len(interact_time))
     i_dict = dict(zip(keys, interact_time))
-    plot_hist(i_dict, xlabel="", ylabel="Interaction time")
+    plot_hist(i_dict, target_val=300, xlabel="", ylabel="Interaction time (sec)")
 
 #%%
 def read_s3_bucket(s3_logs_dir, output_dir):
