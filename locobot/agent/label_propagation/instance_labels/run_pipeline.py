@@ -62,7 +62,7 @@ def _runner(gt, p, args):
                 f.write(f"gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
 
 def log_job_start(args, jobs):
-    with open('/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/slurm_launch_start.txt', 'a') as f:
+    with open(f"/checkpoint/{os.environ.get('USER')}/jobs/active_vision/pipeline/instance_det/slurm_launch_start.txt", 'a') as f:
         f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Job Folder {args.job_folder}\n")
         f.write(f"Data Dir {args.data_path}\n")

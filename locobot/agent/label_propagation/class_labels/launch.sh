@@ -48,7 +48,7 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019_sampled20 apartment_0/straightline/no_noise 20 3 --active 
 
 # kavya's
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/noise/mul_traj_200_activeandrandom apartment_0/straightline/noise 50 3 --active
+# ./launch.sh checkpoint/apratik/data_devfair0187/apartment_0/straightline/noise/mul_traj_201_sampled apartment_0/straightline/noise 20 3 --active
 
 # anurag's
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019_sampled20 apartment_0/straightline/no_noise 2 2 --active
