@@ -324,8 +324,8 @@ class COCOTrain:
 
 
 maxiters = [500]
-lrs = [0.001, 0.002]
-warmups = [50]
+lrs = [0.0005, 0.001, 0.002]
+warmups = [100]
 
 # # maxiters = [1000, 2000]
 # maxiters = [500, 1000, 2000, 4000, 6000]
@@ -360,7 +360,6 @@ def run_training(out_dir, img_dir_train, n=10, active=False):
                     }
                 }
                 for i in range(n):
-                    # dataset_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
                     dataset_name = "/".join(out_dir.split('/')[-3 if active else -2:])
                     print(f'dataset_name {dataset_name}')
                     c = COCOTrain(lr, warmup, maxiter, i, dataset_name)

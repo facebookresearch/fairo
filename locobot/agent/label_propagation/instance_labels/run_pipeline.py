@@ -36,7 +36,7 @@ def get_src_img_ids(heu, traj):
     return 
 
 # for apartment_0
-instance_ids = [193,404,196,172,243,133,129,170]
+instance_ids = [243,404,196,133,170] #[193,404,196,172,243,133,129,170]
 
 def _runner(gt, p, args):
     start = datetime.now()
@@ -128,8 +128,8 @@ if __name__ == "__main__":
     jobs = []
     if args.slurm:
         with executor.batch():
-            for gt in range(5, 15, 5):
-                for p in range(0, 24, 4):
+            for gt in range(1, 2):
+                for p in range(0, 30, 4):
                     job = executor.submit(_runner, gt, p, args)
                     jobs.append(job)
 
@@ -139,6 +139,6 @@ if __name__ == "__main__":
     
     else:
         print('running locally ...')
-        for gt in range(5, 10, 5):
-            for p in range(20, 22, 2): # only run for fixed gt locally to test
+        for gt in range(1, 2):
+            for p in range(0, 30, 4): # only run for fixed gt locally to test
                 _runner(gt, p, args)

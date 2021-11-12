@@ -42,26 +42,6 @@ class PickGoodCandidates:
             return True
         return False
 
-    def find_nearest(self, x):
-        dist = 10000
-        res = -1
-        for y, _ in self.good_candidates:
-            if abs(x-y) < dist:
-                dist = abs(x-y)
-                res = y
-        # now look in vicinity of res for frame with max size 
-        return res
-    
-    def sample_uniform_nn(self, n):
-        if not self.filtered:
-            self.filter_candidates()
-            
-        num_imgs = len(glob.glob(self.imgdir + '/*.jpg'))
-        print(f'num_imgs {num_imgs}')
-        delta = int(num_imgs / n)
-        cand = [delta*x for x in range(1,n+1)]
-        return [self.find_nearest(x) for x in cand]
-    
     def find_nearest2(self, x):
         dist = 10000
         res = -1
@@ -76,28 +56,37 @@ class PickGoodCandidates:
         return res
     
     def sample_uniform_nn2(self, n):
-        if not self.filtered:
-            self.filter_candidates()
+        if n > 1:
+            print(f'WARNING: NOT IMPLEMENTED FOR N > 1 {n} YET!')
+            return
+        frames = set()
+        for x in self.iids:
+            if not self.filtered:
+                self.filter_candidates(x)
+                
+            # now pick n best ids
+            print(f'{len(self.good_candidates)} good candidates for instance id {x}')
             
-        num_imgs = len(glob.glob(self.imgdir + '/*.jpg'))
-        print(f'num_imgs {num_imgs}')
-        delta = int(num_imgs / n)
-        cand = [delta*x for x in range(1,n+1)]
-        return [self.find_nearest2(x) for x in cand]
+            if len(self.good_candidates) > 0:
+                # sort a list of tuples by the second element 
+                sorted(self.good_candidates, key= lambda x: x[1])
+
+                print(f'sorted candidates {self.good_candidates}')
+                picked = 0
+                for c in self.good_candidates:
+                    if c[0] not in frames:
+                        print(f'picking {c[0]} for {x}, n {n}')
+                        frames.add(c[0])
+                        picked += 1
+                        if picked == n:
+                            break
+        return list(frames)
         
-    def sample_n(self, n):
-        if not self.filtered:
-            self.filter_candidates()
-            
-        # uniformly sample 
-        # randomly sample 
-        return [x[0] for x in random.sample(self.good_candidates, n)]
-    
-    def filter_candidates(self):
+    def filter_candidates(self, iid):
         self.good_candidates = []
         self.bad_candidates = []
         for x in range(len(os.listdir(self.imgdir))):
-            res, size = self.is_good_candidate(x)
+            res, size = self.is_good_candidate(x, iid)
             if res:
                 self.good_candidates.append((x, size))
 #                 self.vis(x)
@@ -105,12 +94,51 @@ class PickGoodCandidates:
                 self.bad_candidates.append(x)
             elif not res:
                 print(f'None for {x}')
+                
         assert len(os.listdir(self.imgdir)) == len(self.good_candidates) + len(self.bad_candidates)
-        print(f'len(img_dir) {len(os.listdir(self.imgdir))}')
-        print(f'{len(self.good_candidates)} good candidates, {len(self.bad_candidates)} bad candidates')
-        self.filtered = True
 #         print(f'good candidates {self.good_candidates}')
+        
+    def is_good_candidate(self, fname, iid, vis=False):
+        dpath = os.path.join(self.depthdir, "{:05d}.npy".format(fname))
+        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(fname))
+        segpath = os.path.join(self.segdir, "{:05d}.npy".format(fname))
+                
+        # Load Image
+        if not os.path.isfile(imgpath):
+            print(f'looking for {imgpath}')
+            return None, None
+        img = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
+#         print(img.shape)
+        
+        # Load Annotations 
+        annot = np.load(segpath).astype(np.uint32)
+        binary_mask = np.zeros_like(annot)
+        
+        if iid in np.unique(annot):
+#             print(f'{iid} in {np.unique(annot)}')
+            binary_mask = (annot == iid).astype(np.uint32)
+#             print(f'mask area {binary_mask.sum()}')
+#             plt.imshow(binary_mask)
+#             plt.show()
+
+        if vis:
+            plt.imshow(binary_mask)
+            plt.show()
+#             print(np.unique(all_binary_mask))
+
+        if binary_mask.sum() < 1000:
+            return False, None
             
+        if not binary_mask.any():
+            return False, None
+        
+        # Check that all masks are within a certain distance from the boundary
+        # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
+        if binary_mask[:10,:].any() or binary_mask[:,:10].any() or binary_mask[:,-10:].any() or binary_mask[-10:,:].any():
+            return False, None
+        
+        return True, (binary_mask == 1).sum()
+        
     def visualize_good_bad(self, num):
         # TODO: sample num numbers from all, then look at he 
         # sample num from good bad
@@ -134,73 +162,26 @@ class PickGoodCandidates:
                 plt.imshow(data)
             plt.show()
         
-    def is_good_candidate(self, x, vis=False):
-        dpath = os.path.join(self.depthdir, "{:05d}.npy".format(x))
-        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(x))
-        segpath = os.path.join(self.segdir, "{:05d}.npy".format(x))
+    def vis(self, imgid, contours=None):
         
-        # Load Image
-        if not os.path.isfile(imgpath):
-            print(f'looking for {imgpath}')
-            return None, None
-        img = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
-#         print(img.shape)
-        
-        # Load Annotations 
-        annot = np.load(segpath).astype(np.uint32)
-        count = 0
-        all_binary_mask = np.zeros_like(annot)
-#         print(f'{annot.shape, all_binary_mask.shape}')
-
-        total_area = 0
-        total_objects = 0
-        
-        for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
-            if i in self.iids:
-                try:
-                    if hsd["id_to_label"][i] < 1:# or hsd["id_to_label"][i] not in self.label_id_dict:
-                        continue
-                except Exception as ex:
-                    print(ex)
-                    continue
-
-                binary_mask = (annot == i).astype(np.uint32)
-                all_binary_mask = np.bitwise_or(binary_mask, all_binary_mask)
-    #             plt.imshow(binary_mask, alpha=0.5)
-
-        if vis:
-            plt.imshow(all_binary_mask)
-            plt.show()
-#             print(np.unique(all_binary_mask))
-            
-        if not all_binary_mask.any():
-#             print(f'no masks')
-            return False, None
-        
-        # Check that all masks are within a certain distance from the boundary
-        # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
-        if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
-            return False, None
-        
-        if (all_binary_mask == 1).sum() < 5000:
-            return False, None
-        
-        return True, (all_binary_mask == 1).sum()
-        
-    def vis(self, x, contours=None):
-        
-        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(x))
+        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(imgid))
         image = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
+        prop_path = os.path.join(self.segdir, "{:05d}.npy".format(imgid))
+        annot = np.load(prop_path).astype(np.uint32)
+        
+        abm = np.zeros_like(annot)
+        for x in self.iids:
+            abm = np.bitwise_or(abm, annot == x).astype(np.uint32)
         
         if contours:
             image = cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
       
-        arr = [image]
-        titles = ["{:05d}.jpg".format(x)]
+        arr = [image, abm]
+        titles = ["{:05d}.jpg".format(imgid), "{:05d}.npy".format(imgid)]
         plt.figure(figsize=(5,4))
         for i, data in enumerate(arr):
     #         print(f'data.shape {data.shape}')
-            ax = plt.subplot(1, 1, i+1)
+            ax = plt.subplot(1, 2, i+1)
             ax.axis('off')
             ax.set_title(titles[i])
             plt.imshow(data)

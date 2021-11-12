@@ -50,9 +50,7 @@ def _runner(traj, gt, p, args):
         traj_path = os.path.join(args.data_path, str(traj))
         # print(f'traj_path {traj_path}')
         if os.path.isdir(traj_path):
-            if not basic_sanity(traj_path):
-                print(f'skipping {traj_path}, didnt pass basic sanity')
-                return
+            basic_sanity(traj_path)
             outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
             s = PickGoodCandidates(
                     img_dir=os.path.join(traj_path, 'rgb'), 
@@ -73,9 +71,7 @@ def _runner(traj, gt, p, args):
         for x in ['default', 'activeonly']:
             traj_path = os.path.join(args.data_path, str(traj), x)
             if os.path.isdir(traj_path):
-                if not basic_sanity(traj_path):
-                    print(f'skipping {traj_path}, didnt pass basic sanity')
-                    return
+                basic_sanity(traj_path)
                 outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
                 s = PickGoodCandidates(
                     img_dir=os.path.join(traj_path, 'rgb'), 
@@ -152,7 +148,7 @@ if __name__ == "__main__":
     if args.slurm:
         with executor.batch():
             for traj in range(args.num_traj):
-                for gt in range(5, 10, 5):
+                for gt in range(5, 15, 5):
                     for p in range(0, 30, 4):
                         job = executor.submit(_runner, traj, gt, p, args)
                         jobs.append(job)

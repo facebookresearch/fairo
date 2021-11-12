@@ -42,5 +42,5 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_sam
 # find . -name output_droid -exec rm -rf {} \;
 
 # anurag's
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone apartment_0/straightline/no_noise 1 --slurm
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone apartment_0/default/no_noise 1 --slurm 
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone_auto apartment_0/straightline/no_noise 1 --slurm
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_3 apartment_0/default/no_noise 1 --slurm 

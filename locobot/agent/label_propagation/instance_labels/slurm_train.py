@@ -241,8 +241,13 @@ class COCOTrain:
         self.val_data = self.dataset_name + "_val" + str(self.seed)
         self.val_json = val_json
         cfg.DATASETS.TEST = (self.val_data,self.train_data)
+
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
-        MetadataCatalog.get(self.val_data).thing_classes = self.thing_classes
+        coco = COCO(val_json)
+        # display COCO categories and supercategories
+        cats = coco.loadCats(coco.getCatIds())
+        val_thing_classes = [cat['name'] for cat in cats]
+        MetadataCatalog.get(self.val_data).thing_classes = val_thing_classes
         
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo

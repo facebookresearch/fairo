@@ -25,7 +25,7 @@ semantic_json_root = '/checkpoint/apratik/ActiveVision/active_vision/info_semant
 
 class CocoCreator:
     # Assumes root_data_dir has both te GT and propagated segmentation labels
-    def __init__(self, root_data_dir, segm_dir, semantic_json_root, instance_ids):
+    def __init__(self, root_data_dir, semantic_json_root, instance_ids):
         self.rdd = root_data_dir
         self.sjr = semantic_json_root
         self.segm_dir = os.path.join(root_data_dir, 'seg')
