@@ -58,8 +58,12 @@ class LabelPropSaver:
         while time.time() - start_time <= seconds :
             rgb, depth = safe_call(self.cam.get_rgb_depth)
             base_pos = safe_call(self.bot.get_base_state)
+            cam_pan = safe_call(self.bot.get_pan)
+            cam_tilt = safe_call(self.bot.get_tilt)
+            cam_transform = safe_call(self.bot.get_camera_transform)
+
             name = "{}".format(frame_count)
-            self.save(self.save_id, name, rgb, depth, base_pos, pose_dict)
+            self.save(self.save_id, name, rgb, depth, base_pos, cam_pan, cam_tilt, cam_transform, pose_dict)
             frame_count += 1
             print('.', end='', flush=True)
         print(' {} frames at {} fps'.format(frame_count, round(float(frame_count) / seconds, 1)))
@@ -68,7 +72,7 @@ class LabelPropSaver:
         return True
             
 
-    def save(self, id_, name, rgb, depth, pos, pose_dict):
+    def save(self, id_, name, rgb, depth, pos, cam_pan, cam_tilt, cam_transform, pose_dict):
         img_folder, img_folder_dbg, depth_folder, data_file = self.return_paths(id_)
 
         self.skip_frame_count += 1
@@ -98,7 +102,11 @@ class LabelPropSaver:
 
             # store pos
             if pos is not None:
-                pose_dict[name] = pos
+                pose_dict[name] = {
+                    'base_xyt': pos,
+                    'cam_pan_tilt': [cam_pan, cam_tilt],
+                    'cam_transform': cam_transform.tolist(),
+                    }
             
             with open(data_file, "w") as fp:
                 json.dump(pose_dict, fp)
