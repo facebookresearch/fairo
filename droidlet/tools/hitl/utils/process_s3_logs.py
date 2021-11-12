@@ -47,7 +47,6 @@ def get_stats(command_list):
     total_len = 0
     interested = 0
     for c in l:
-        # print(c)
         if any(word in c.lower() for word in AC):
             interested += 1
         total_len += len(c.split())
@@ -88,8 +87,6 @@ def read_turk_logs(turk_output_directory, filename):
 
     # Drop duplicates
     all_turk_interactions.drop_duplicates()
-    # print(all_turk_interactions.head())
-    # print(all_turk_interactions.shape)
 
     get_stats(list(all_turk_interactions["command"]))
     # return all commands as a list
@@ -97,29 +94,21 @@ def read_turk_logs(turk_output_directory, filename):
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser()
-    # # User needs to provide file I/O paths
-    # parser.add_argument(
-    #     "--turk_logs_directory",
-    #     help="where to read s3 logs from eg. ~/turk_interactions_with_agent",
-    # )
-    # parser.add_argument(
-    #     "--parsed_output_directory",
-    #     help="where to write the collated NSP outputs eg. ~/parsed_turk_logs",
-    # )
-    # parser.add_argument(
-    #     "--filename",
-    #     default="nsp_outputs",
-    #     help="name of the CSV file we want to read, eg. nsp_outputs",
-    # )
-    # args = parser.parse_args()
-    # read_s3_bucket(args.turk_logs_directory, args.parsed_output_directory)
-    # read_turk_logs(args.parsed_output_directory, args.filename)
-
-    # read_s3_bucket("/private/home/yuxuans/.tmp/turk_logs", "/private/home/yuxuans/.tmp/parsed")
-    NSP_OUTPUT_FNAME = "nsp_outputs"
-    print('-------NSP---------')
-    read_turk_logs("/private/home/yuxuans/.tmp/parsed", NSP_OUTPUT_FNAME)
-    print('-------error---------')
-    NSP_OUTPUT_FNAME = "error_details"
-    read_turk_logs("/private/home/yuxuans/.tmp/parsed", NSP_OUTPUT_FNAME)
+    parser = argparse.ArgumentParser()
+    # User needs to provide file I/O paths
+    parser.add_argument(
+        "--turk_logs_directory",
+        help="where to read s3 logs from eg. ~/turk_interactions_with_agent",
+    )
+    parser.add_argument(
+        "--parsed_output_directory",
+        help="where to write the collated NSP outputs eg. ~/parsed_turk_logs",
+    )
+    parser.add_argument(
+        "--filename",
+        default="nsp_outputs",
+        help="name of the CSV file we want to read, eg. nsp_outputs",
+    )
+    args = parser.parse_args()
+    read_s3_bucket(args.turk_logs_directory, args.parsed_output_directory)
+    read_turk_logs(args.parsed_output_directory, args.filename)
