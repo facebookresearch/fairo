@@ -4,8 +4,11 @@ set -ex
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate droidlet_env
 
+pip install -r agents/locobot/requirements.txt
+python setup.py develop
+
 echo "Downloading datasets, models ..."
-yes | tools/data_scripts/try_download.sh locobot &
+yes | python droidlet/tools/data_scripts/try_download.py --agent_name locobot --test_mode &
 wait
 echo "Done!"
 
@@ -33,9 +36,8 @@ popd
 
 conda activate habitat_env
 droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
+
 conda activate droidlet_env
-pip install -r agents/locobot/requirements.txt
-python setup.py develop
 
 pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=droidlet droidlet/lowlevel/locobot/tests/test_mover.py --disable-pytest-warnings
 

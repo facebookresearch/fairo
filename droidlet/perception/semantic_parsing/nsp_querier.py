@@ -190,7 +190,7 @@ class NSPQuerier(object):
         elif self.parsing_model:
             logical_form = parsing_model.query_for_logical_form(chat)
             time_now = time.time()
-            logical_form_source = "semantic_parser"
+            logical_form_source = "NLU_model"
         else:
             logical_form = {"dialogue_type": "NOOP"}
             logging.info("Not found in ground truth, no parsing model initiated. Returning NOOP.")

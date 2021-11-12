@@ -1,10 +1,8 @@
 import boto3
 import subprocess
 import os
-import sys
 
-
-def fetch_safety_words():
+def fetch_safety_words_file(file_path):
     """
     Fetch secure s3 resources for internal users and production systems, eg. safety keyword list.
 
@@ -15,7 +13,7 @@ def fetch_safety_words():
         response = s3.head_bucket(Bucket='droidlet-internal')
         if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
             print("Authenticated user, fetching safety words list.")
-            path_to_root = os.path.realpath(sys.argv[1])
+            path_to_root = os.path.realpath(file_path)
             return subprocess.run(
                 "aws s3 cp s3://droidlet-internal/safety.txt {}".format(path_to_root), shell=True
             )
@@ -32,10 +30,7 @@ def fetch_safety_words():
         s3.download_file(
             'droidlet-internal',
             'safety.txt',
-            os.path.realpath(sys.argv[1])
+            os.path.realpath(file_path)
         )
     except Exception as e:
         print(e)
-
-if __name__ == "__main__":
-    fetch_safety_words()
