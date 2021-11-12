@@ -28,11 +28,11 @@ semantic_json_root = '/checkpoint/apratik/ActiveVision/active_vision/info_semant
 
 class CocoCreator:
     # Assumes root_data_dir has both te GT and propagated segmentation labels
-    def __init__(self, root_data_dir, semantic_json_root, labels, segm_dir):
+    def __init__(self, root_data_dir, semantic_json_root, labels):
         self.rdd = root_data_dir
         self.sjr = semantic_json_root
         self.labels = labels
-        self.segm_dir = segm_dir
+        self.segm_dir = os.path.join(root_data_dir, 'seg')
         sorted(self.labels)
 #         print(f"Init CocoCreator for labels {self.labels}")
         
@@ -51,7 +51,7 @@ class CocoCreator:
         MetadataCatalog.get('foobar')
         dataset_dicts = DatasetCatalog.get('foobar')
         
-        save_dir = os.path.join(self.segm_dir, 'coco_visuals')
+        save_dir = os.path.join(self.rdd, 'coco_visuals')
         print(f'save_dir {save_dir}')
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -170,9 +170,9 @@ class CocoCreator:
             fs.append(cs[x])
         return fs 
 
-def run_coco(out_dir, img_dir):
-    cbase = CocoCreator(img_dir, semantic_json_root, labels, out_dir)
+def run_coco(root_data_dir):
+    cbase = CocoCreator(root_data_dir, semantic_json_root, labels)
     cbase.create_coco(
         scene='apartment_0', 
-        coco_file_name=os.path.join(out_dir, 'coco_train.json'), 
+        coco_file_name=os.path.join(root_data_dir, 'coco_train.json'), 
     )

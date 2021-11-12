@@ -54,13 +54,12 @@ def _runner(gt, p, args):
         # src_img_ids = [10, 20, 30, 40, 50]
         print(f'selected imgids {src_img_ids}')
         run_label_prop(outdir, gt, p, traj_path, src_img_ids)
-        if len(glob.glob1(outdir,"*.npy")) > 0:
+        if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
             run_coco(outdir, instance_ids)
-            run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
+            run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
             end = datetime.now()
             with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                 f.write(f"gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
-    log_job_end(args)
 
 def log_job_start(args, jobs):
     with open('/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/slurm_launch_start.txt', 'a') as f:
@@ -69,11 +68,6 @@ def log_job_start(args, jobs):
         f.write(f"Data Dir {args.data_path}\n")
         f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
         f.write(f"num_jobs {str(len(jobs))}\n")
-
-def log_job_end(args):
-    with open('/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/slurm_launch_end.txt', 'a') as f:
-        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Job Folder {args.job_folder}\n")
 
 if __name__ == "__main__":
     """

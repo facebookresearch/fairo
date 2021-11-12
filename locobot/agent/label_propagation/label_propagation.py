@@ -261,7 +261,7 @@ def propogate_label(
         np.save(os.path.join(os.path.join(out_dir, 'seg'), "{:05d}.npy".format(out_indx)), annot_img.astype(np.uint32))
         # copy rgn as out_indx.job
         shutil.copyfile(
-            os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)), 
+            os.path.join(root_path, "rgb/{:05d}.jpg".format(img_indx)), 
             os.path.join(os.path.join(out_dir, 'rgb'),"{:05d}.jpg".format(out_indx))
         )
         out_indx += 1

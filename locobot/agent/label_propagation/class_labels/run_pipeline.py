@@ -249,10 +249,20 @@ def get_src_img_ids(heu, traj):
             # return [335, 644, 1005, 1340, 1675] # one frame changed
     return 
 
+def log_job_start(args, jobs):
+    with open('/checkpoint/apratik/jobs/active_vision/pipeline/class_slurm_launch_start.txt', 'a') as f:
+        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Job Folder {args.job_folder}\n")
+        f.write(f"Data Dir {args.data_path}\n")
+        f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
+        f.write(f"num_jobs {str(len(jobs))}\n")
+
+
 def _runner(traj, gt, p, args):
     start = datetime.now()
     if not args.active:
         traj_path = os.path.join(args.data_path, str(traj))
+        # print(f'traj_path {traj_path}')
         if os.path.isdir(traj_path):
             if not basic_sanity(traj_path):
                 print(f'skipping {traj_path}, didnt pass basic sanity')
@@ -265,10 +275,11 @@ def _runner(traj, gt, p, args):
                 )
             src_img_ids = s.sample_uniform_nn2(gt)
             # src_img_ids = [10, 20, 30, 40, 50]
+            print(f'src_img_ids {src_img_ids}, outdir {outdir}')
             run_label_prop(outdir, gt, p, traj_path, src_img_ids)
-            if len(glob.glob1(outdir,"*.npy")) > 0:
-                run_coco(outdir, traj_path)
-                run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples)
+            if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
+                run_coco(outdir)
+                run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
                 end = datetime.now()
                 with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                     f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
@@ -288,9 +299,9 @@ def _runner(traj, gt, p, args):
                 src_img_ids = s.sample_uniform_nn2(gt)
                 # src_img_ids = get_src_img_ids('active', traj)
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
-                if len(glob.glob1(outdir,"*.npy")) > 0:
-                    run_coco(outdir, traj_path)
-                    run_training(outdir, os.path.join(traj_path, 'rgb'), args.num_train_samples, active=True)
+                if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
+                    run_coco(outdir)
+                    run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples, active=True)
                     end = datetime.now()
                     with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                         f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
@@ -355,16 +366,16 @@ if __name__ == "__main__":
     if args.slurm:
         with executor.batch():
             for traj in range(args.num_traj):
-                for gt in range(5, 30, 5):
-                    for p in range(0, 10, 2):
+                for gt in range(5, 10, 5):
+                    for p in range(20, 30, 4):
                         job = executor.submit(_runner, traj, gt, p, args)
                         jobs.append(job)
-        
+        log_job_start(args, jobs)
         print(f'{len(jobs)} jobs submitted')
     
     else:
         print('running locally ...')
         for traj in range(args.num_traj):
                 for gt in range(5, 10, 5):
-                    for p in range(0, 6, 2): # only run for fixed gt locally to test
+                    for p in range(5, 10, 4): # only run for fixed gt locally to test
                         _runner(traj, gt, p, args)

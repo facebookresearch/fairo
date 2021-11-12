@@ -46,7 +46,7 @@ class CocoCreator:
         MetadataCatalog.get('foobar')
         dataset_dicts = DatasetCatalog.get('foobar')
         
-        save_dir = os.path.join(self.segm_dir, 'coco_visuals')
+        save_dir = os.path.join(self.rdd, 'coco_visuals')
         print(f'save_dir {save_dir}, coco_file_name {coco_file_name}')
         if os.path.exists(save_dir):
             shutil.rmtree(save_dir)
