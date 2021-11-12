@@ -11,6 +11,9 @@ import boto3
 
 
 def generate_batch_id():
+    """
+    Generate a unique id for each hitl run
+    """
     import datetime
 
     dt = datetime.datetime.now()
@@ -18,6 +21,9 @@ def generate_batch_id():
 
 
 def deregister_dashboard_subdomain(batch_id):
+    """
+    Deregister all subdomains of a given batch on craftassist.io
+    """
     if (
         os.getenv("CLOUDFLARE_TOKEN")
         and os.getenv("CLOUDFLARE_ZONE_ID")
@@ -39,6 +45,10 @@ def deregister_dashboard_subdomain(batch_id):
                 print(f'Deleted cf dns record: {record["name"]}')
 
 def dedup_commands(command_list):
+    """
+    Deduplicate a command list.
+    Now it only removes repeated commands.
+    """
     cmd_set = set()
     deduped_cmd_list = []
     for command in command_list:
@@ -48,6 +58,9 @@ def dedup_commands(command_list):
     return deduped_cmd_list
 
 def examine_hit(hit_id):
+    """
+    Examine all assignments of a given HIT
+    """
     access_key = os.getenv("MTURK_AWS_ACCESS_KEY_ID")
     secret_key = os.getenv("MTURK_AWS_SECRET_ACCESS_KEY")
     aws_region = os.getenv("MTURK_AWS_REGION", default="us-east-1")
@@ -73,6 +86,10 @@ def examine_hit(hit_id):
 
 
 def delete_all_mturk_hits():
+    """
+    Delete all HITs of a given account.
+    Please use it with caution.
+    """
     import os
     import boto3
     from datetime import datetime
