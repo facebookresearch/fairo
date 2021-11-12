@@ -144,14 +144,25 @@ if __name__ == "__main__":
         slurm_comment="CVPR deadline, 11/16"
     )
 
+    gtps = set()
+    for gt in range(5, 15, 5):
+        for p in range(0, 30, 5):
+            gtps.add((gt,p))
+
+    for gt in range(5, 30, 5):
+        for p in range(0,15,5):
+            gtps.add((gt,p))
+
+    gtps = sorted(list(gtps))
+    print(len(gtps), gtps)
+
     jobs = []
     if args.slurm:
         with executor.batch():
             for traj in range(args.num_traj):
-                for gt in range(5, 15, 5):
-                    for p in range(0, 30, 5):
-                        job = executor.submit(_runner, traj, gt, p, args)
-                        jobs.append(job)
+                for gt, p in gtps:
+                    job = executor.submit(_runner, traj, gt, p, args)
+                    jobs.append(job)
         log_job_start(args, jobs)
         print(f'{len(jobs)} jobs submitted')
     
@@ -159,5 +170,5 @@ if __name__ == "__main__":
         print('running locally ...')
         for traj in range(args.num_traj):
                 for gt in range(5, 10, 5):
-                    for p in range(5, 10, 4): # only run for fixed gt locally to test
+                    for p in range(5, 10, 5): # only run for fixed gt locally to test
                         _runner(traj, gt, p, args)

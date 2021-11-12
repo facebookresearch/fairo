@@ -172,9 +172,30 @@ class LossEvalHook(HookBase):
         # print(f'self._period {self._period} next_iter {self.trainer.iter}....')
         next_iter = self.trainer.iter + 1
         is_final = next_iter == self.trainer.max_iter
+        do_test_eval = False
         if is_final or (self._period > 0 and next_iter % self._period == 0):
             losses = self._do_loss_eval()
             l = np.mean(losses)
+            
+            # get min val loss
+            def get_min_val_loss(fname):
+                min_val = 1000000
+                with open(fname) as f:
+                    lines = f.readlines()
+                    for i in range(0, len(lines), 3):
+                        # best val
+                        val_loss = float(lines[i+1].split()[-1])
+                        if val_loss < min_val:
+                            min_val = val_loss
+                print(f'min_val {min_val} for {fname}')
+                return min_val
+            
+            if os.path.isfile(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt")):
+                if get_min_val_loss(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt")) >= l:
+                    do_test_eval = True
+            else:
+                do_test_eval = True
+
             # write validation loss, AP
             print(f'val los {self.trainer.iter} losses.mean {l}')
             print(f"writing to {os.path.join(self.cfg.OUTPUT_DIR, 'validation_results.txt')}")
@@ -187,7 +208,8 @@ class LossEvalHook(HookBase):
                 f.write(json.dumps(results) + '\n')
 
             # write test AP 
-            self._do_test_eval()
+            if do_test_eval:
+                self._do_test_eval()
 
         self.trainer.storage.put_scalars(timetest=12)
         
@@ -292,7 +314,7 @@ class COCOTrain:
         
         self.val_data = self.dataset_name + "_val" + str(self.seed)
         self.val_json = val_json
-        cfg.DATASETS.TEST = (self.val_data,self.train_data)
+        cfg.DATASETS.TEST = (self.val_data,)
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
         MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         
