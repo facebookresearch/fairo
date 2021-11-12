@@ -15,11 +15,13 @@ import pandas as pd
 import re
 from datetime import datetime
 import argparse
-import boto3
 import os
 import tarfile
 import json
 import math
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
@@ -101,11 +103,28 @@ def timing_charts(run_id: int) -> None:
     data_browser = DataBrowser(db=db)
     usability = []
     self_rating = []
+    inst_timing = {
+        0: [],
+        1 : [],
+        2 : [],
+        3 : [],
+        4 : [],
+        5 : [],
+    }
     read_time = []
     pre_interact = []
     interact_time = []
+    command_num = []
+    command_timing  = {
+        'send' : [],
+        'think' : [],
+        'process' : [],
+        'execute' : [],
+        'total' : []
+    }
     starttime = math.inf
     endtime = -math.inf
+    HITtime = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         content = data["data"]
@@ -113,6 +132,7 @@ def timing_charts(run_id: int) -> None:
             starttime = content["times"]["task_start"]
         if (content["times"]["task_start"] > endtime):
             endtime = content["times"]["task_end"]
+        HITtime.append(content["times"]["task_end"] - content["times"]["task_start"])
         outputs = content["outputs"]
         try:
             usability.append(int(outputs["usability-rating"]))
@@ -123,13 +143,66 @@ def timing_charts(run_id: int) -> None:
         except:
             self_rating.append(0)
         try:
-            clicks = outputs["clickedElements"]
+            clicks = json.loads(outputs["clickedElements"])
+            command_count = 0
+            last_status_time = 0
+            last_pg_read_time = 0
+            interaction_start_time = 0
+            prev_page = 1
             for click in clicks:
-                print(json.loads(click))
-        except:
-            pass
-            
+                # They might not read all of the instructions pages...
+                if click["id"] == 'start':
+                    inst_timing[0].append(click["timestamp"])
+                    last_pg_read_time = click["timestamp"]
+                if 'page-' in click["id"]:
+                    inst_timing[prev_page].append(int((click["timestamp"] - last_pg_read_time)/1000))
+                    last_pg_read_time = click["timestamp"]
+                    prev_page = int(click["id"][-1])
+                if click["id"] == 'instructions-popup-close':
+                    inst_timing[5].append(int((click["timestamp"] - last_pg_read_time)/1000))
+                    read_time.append(int((click["timestamp"] - inst_timing[0][-1])/1000))
+                    last_pg_read_time = click["timestamp"]
 
+                # Primary timing metrics
+                if click["id"] == 'timerON':
+                    interaction_start_time = click["timestamp"]
+                    pre_interact.append(int((interaction_start_time - last_pg_read_time)/1000))
+                if click["id"] == 'timerOFF': interact_time.append(int((click["timestamp"] - interaction_start_time)/1000))
+                
+                # Command timing metrics:
+                if click["id"] == 'goToAgentThinking':
+                    command_count += 1
+                    command_start_time = click["timestamp"]
+                    last_status_time = click["timestamp"]
+                if click["id"] == 'received':
+                    command_timing['send'].append((click["timestamp"] - last_status_time)/1000)
+                    last_status_time = click["timestamp"]
+                if click["id"] == 'done_thinking':
+                    command_timing['think'].append((click["timestamp"] - last_status_time)/1000)
+                    last_status_time = click["timestamp"]
+                if click["id"] == 'executing':
+                    command_timing['process'].append((click["timestamp"] - last_status_time)/1000)
+                    last_status_time = click["timestamp"]
+                if click["id"] == 'goToMessaage':
+                    command_timing['execute'].append((click["timestamp"] - last_status_time)/1000)
+                    command_timing['total'].append((click["timestamp"] - command_start_time)/1000)
+                    # Reset and set up for next command:
+                    last_status_time = None
+                    num_commands = max([len(value) for value in command_timing.values()])
+                    for status in command_timing.keys():
+                        if len(command_timing[status]) < num_commands:
+                            command_timing[status].append(0)
+
+            # Set page read times to 0 for all pages that were skipped
+            num_units = max([len(value) for value in inst_timing.values()])
+            for page in inst_timing.keys():
+                if len(inst_timing[page]) < num_units:
+                    inst_timing[page].append(0)
+
+            command_num.append(command_count)
+        except:
+            raise
+            
     promoters = len([i for i in usability if i > 5])
     detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
@@ -137,9 +210,13 @@ def timing_charts(run_id: int) -> None:
 
     print(f"Start time: {datetime.fromtimestamp(starttime)}")
     print(f"End time: {datetime.fromtimestamp(endtime)}")
+    print(f"Avg Number of commands: {sum(command_num)/len(command_num):.1f}")
+    print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
     print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
     print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
     print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
+
+    print(command_timing['send'])
 
     usability.sort()
     keys = range(len(usability))
@@ -161,6 +238,21 @@ def timing_charts(run_id: int) -> None:
     keys = range(len(interact_time))
     i_dict = dict(zip(keys, interact_time))
     plot_hist(i_dict, target_val=300, xlabel="", ylabel="Interaction time (sec)")
+    command_num.sort()
+    keys = range(len(command_num))
+    c_dict = dict(zip(keys, command_num))
+    plot_hist(c_dict, target_val=5, xlabel="", ylabel="Number of commands per HIT")
+
+    for page in inst_timing.keys():
+        inst_timing[page].sort()
+        keys = range(len(inst_timing[page]))
+        page_dict = dict(zip(keys, inst_timing[page]))
+        plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
+    for status in command_timing.keys():
+        command_timing[status].sort()
+        keys = range(len(command_timing[status]))
+        command_dict = dict(zip(keys, command_timing[status]))
+        plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
 
 #%%
 def read_s3_bucket(s3_logs_dir, output_dir):
@@ -212,10 +304,6 @@ def get_stats(command_list):
 
 #%%
 def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None):
-    import matplotlib
-    import matplotlib.pyplot as plt
-    import numpy as np
-    #matplotlib.use('TkAgg')
     plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
     if target_val:
         line = [target_val] * len(dictionary)
@@ -229,16 +317,10 @@ def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None
 
 #%%
 def plot_dual_hist(x, y1, y2, ylabel_1="Num of commands with 0 execution time", ylabel_2="Num of HITs completed"):
-    import matplotlib
-    import matplotlib.pyplot as plt
-    # matplotlib.use('TkAgg')
-    import numpy as np
     x_locs = np.arange(len(x))
     plt.bar(x_locs, y1, 0.3, color='g')
     plt.bar(x_locs + 0.3, y2 , 0.3, color='r')
     plt.xticks(x_locs, x, rotation='vertical')
-
-    import matplotlib.patches as mpatches
 
     pop_a = mpatches.Patch(color='g', label=ylabel_1)
     pop_b = mpatches.Patch(color='r', label=ylabel_2)
@@ -340,7 +422,7 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
         plot_hist(len_dist, xlabel="Command Length (words)", ylabel="Command Length Count")
         #plot_hist(time_cmd_cnt_map, ylabel="Command Count per Command Time Length")
         #plot_hist(time_turker_map, ylabel="Command Time Length per Turker")
-        # #plot_hist(cmd_cnt_turker_map, ylabel="Command Count per Turker")
+        #plot_hist(cmd_cnt_turker_map, ylabel="Command Count per Turker")
 
     if all_turk_interactions is None:
         return []
