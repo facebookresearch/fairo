@@ -4,6 +4,7 @@ from fbrp import life_cycle
 from fbrp import registrar
 import argparse
 import threading
+import types
 
 
 @registrar.register_command("wait")
@@ -11,6 +12,7 @@ class wait_cmd:
     @classmethod
     def define_argparse(cls, parser: argparse.ArgumentParser):
         parser.add_argument("proc", action="append", nargs="*")
+        parser.add_argument("-t", "--timeout", action="store", type=float, default=0)
 
     @staticmethod
     def exec(args: argparse.Namespace):
@@ -20,10 +22,7 @@ class wait_cmd:
         if given_proc_names:
             procs = set(procs) & set(given_proc_names)
 
-        class Namespace:
-            pass
-
-        ns = Namespace()
+        ns = types.SimpleNamespace()
         ns.cv = threading.Condition()
         ns.sat = False
 
@@ -38,4 +37,4 @@ class wait_cmd:
         watcher = life_cycle.system_state_watcher(callback)
 
         with ns.cv:
-            ns.cv.wait_for(lambda: ns.sat)
+            ns.cv.wait_for(lambda: ns.sat, timeout=args.timeout or None)

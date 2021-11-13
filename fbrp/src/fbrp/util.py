@@ -14,18 +14,18 @@ def fail(msg):
     sys.exit(1)
 
 
-def common_env(proc_name):
+def common_env(proc_def):
     return dict(
-        FBRP_NAME=proc_name,
-        A0_TOPIC=proc_name,
+        FBRP_NAME=proc_def.name,
+        A0_TOPIC=proc_def.name,
         PYTHONUNBUFFERED="1",
     )
 
 
 @contextlib.contextmanager
-def common_env_context(proc_name):
+def common_env_context(proc_def):
     old_environ = dict(os.environ)
-    os.environ.update(common_env(proc_name))
+    os.environ.update(common_env(proc_def))
     try:
         yield
     finally:
@@ -79,35 +79,3 @@ def nfs_root(path):
 
 def random_string(alphabet=string.ascii_lowercase, length=16):
     return "".join(random.choices(alphabet, k=length))
-
-
-
-
-
-
-
-
-# import subprocess
-
-# proc = subprocess.run("""
-# echo cat
-# export foo=bar
-# echo dog
-# export PATH=$PATH:/foo=bar
-# echo fbrp_export_env
-# env
-# """, shell=True, cwd="/tmp", env={}, stdout=subprocess.PIPE, executable='/bin/bash')
-
-# lines = proc.stdout.decode().split("\n")
-# lines = lines[lines.index("fbrp_export_env") + 1:-1]
-
-# proc_env = dict([kv.split("=", 1) for kv in lines])
-
-
-# proc2 = subprocess.run("""
-# env
-# """, shell=True, cwd="/dev/shm", env=proc_env, stdout=subprocess.PIPE, executable='/bin/bash')
-
-# proc2_env = dict([kv.split("=", 1) for kv in proc2.stdout.decode().split("\n")[:-1]])
-
-# print(proc2_env)

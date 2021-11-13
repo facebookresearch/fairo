@@ -18,4 +18,4 @@ class down_cmd:
             procs = set(procs) & set(given_proc_names)
 
         for proc_name in procs:
-            life_cycle.ask(proc_name, life_cycle.Ask.DOWN)
+            life_cycle.set_ask(proc_name, life_cycle.Ask.DOWN)

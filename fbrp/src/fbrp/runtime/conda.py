@@ -1,4 +1,5 @@
 import dataclasses
+from fbrp import life_cycle
 from fbrp import util
 from fbrp.runtime.base import BaseLauncher, BaseRuntime
 from fbrp.process import ProcDef
@@ -76,19 +77,46 @@ class Launcher(BaseLauncher):
         self.args = args
 
     async def run(self):
-        self.set_state(BaseLauncher.State.STARTING)
-        self.proc = await asyncio.create_subprocess_shell(
+        life_cycle.set_state(self.name, life_cycle.State.STARTING)
+
+        # We grab the conda env variables separate from executing the run
+        # command to simplify detecting pid and removing some race conditions.
+
+        envinfo = await asyncio.create_subprocess_shell(
             f"""
                 eval "$(conda shell.bash hook)"
                 conda activate fbrp_{self.name}
-                cd {self.proc_def.root}
-                {shlex.join(self.run_command)}
+                echo "fbrp env begin"
+                env
+                echo "fbrp env end"
             """,
+            stdout=asyncio.subprocess.PIPE,
+            executable="/bin/bash",
+            cwd=self.proc_def.root,
+        )
+
+        # read blocks until EOF.
+        lines = (await envinfo.stdout.read()).decode().split("\n")
+        lines = lines[lines.index("fbrp env begin") + 1 : lines.index("fbrp env end")]
+        # Multiline functions may be defined with the form "FOO%%=() { ...}"
+        # For now, try to ignore those.
+        # TODO(lshamis): Find a better way to parse/extract env.
+        lines = [l for l in lines if "=" in l and "%%=" not in l]
+        conda_env = dict(line.split("=", 1) for line in lines)
+
+        cmd = self.run_command
+        if type(self.run_command) == list:
+            cmd = shlex.join(self.run_command)
+
+        self.proc = await asyncio.create_subprocess_shell(
+            cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
+            cwd=self.proc_def.root,
+            env=conda_env,
         )
-        self.set_state(BaseLauncher.State.STARTED)
+        life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
         async def log_pipe(logger, pipe):
             while True:
@@ -103,17 +131,17 @@ class Launcher(BaseLauncher):
             log_pipe(util.stderr_logger(), self.proc.stderr),
             self.log_psutil(),
             self.death_handler(),
-            self.command_handler(),
+            self.down_watcher(self.handle_down),
         )
 
     def get_pid(self):
-        shell_pid = self.proc.pid
-        proc_pid = list(util.pid_children(shell_pid))[0]
-        return proc_pid
+        return self.proc.pid
 
     async def death_handler(self):
         await self.proc.wait()
-        self.set_state(BaseLauncher.State.STOPPED)
+        life_cycle.set_state(
+            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
+        )
         # TODO(lshamis): Restart policy goes here.
 
     async def handle_down(self):
@@ -122,7 +150,7 @@ class Launcher(BaseLauncher):
                 return
             proc_pid = self.get_pid()
 
-            self.set_state(BaseLauncher.State.STOPPING)
+            life_cycle.set_state(self.name, life_cycle.State.STOPPING)
             os.kill(proc_pid, signal.SIGTERM)
 
             for _ in range(100):
@@ -134,7 +162,6 @@ class Launcher(BaseLauncher):
                 os.kill(proc_pid, signal.SIGKILL)
         except:
             pass
-        sys.exit(0)
 
 
 class Conda(BaseRuntime):
