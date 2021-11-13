@@ -28,7 +28,7 @@ codedir=$jobdir/code
 mkdir -p $codedir
 
 cp coco.py $codedir/coco.py
-cp ../label_propagation.py $codedir/label_propagation.py
+cp label_propagation.py $codedir/label_propagation.py
 cp slurm_train.py $codedir/slurm_train.py
 cp run_pipeline.py $codedir/run_pipeline.py
 cp candidates.py $codedir/candidates.py

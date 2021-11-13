@@ -21,11 +21,21 @@ def load_semantic_json(scene):
 
 hsd = load_semantic_json('apartment_0')
 
+class Candidate:
+    def __init__(self, img_id, l, r, iid):
+        self.img_id = img_id
+        self.left_prop = l
+        self.right_prop = r
+        self.instance_id = iid
+        
+    def __repr__(self):
+        return f'[candidate for {self.instance_id}: img_id {self.img_id}, max left prop {self.left_prop}, max right prop {self.right_prop}]\n'
+
 class PickGoodCandidates:
     def __init__(self, img_dir, depth_dir, seg_dir, instance_ids):
-        self.imgdir = img_dir
-        self.depthdir = depth_dir
-        self.segdir = seg_dir
+        self.img_dir = img_dir
+        self.depth_dir = depth_dir
+        self.seg_dir = seg_dir
         self.iids = instance_ids
         self.filtered = False
         self.chosen = set()
@@ -41,148 +51,108 @@ class PickGoodCandidates:
         if len(edge_points) > 0:
             return True
         return False
-
-    def find_nearest2(self, x):
-        dist = 10000
-        res = -1
-        for y, _ in self.good_candidates:
-            if abs(x-y) < dist and y not in self.chosen:
-                dist = abs(x-y)
-                res = y
-        # now look in vicinity of res for frame with max size 
-        for x in range(4):
-            self.chosen.add(res+x)
-            self.chosen.add(res-x)
-        return res
     
-    def sample_uniform_nn2(self, n):
-        if n > 1:
-            print(f'WARNING: NOT IMPLEMENTED FOR N > 1 {n} YET!')
-            return
-        frames = set()
-        for x in self.iids:
-            if not self.filtered:
-                self.filter_candidates(x)
-                
-            # now pick n best ids
-            print(f'{len(self.good_candidates)} good candidates for instance id {x}')
-            
-            if len(self.good_candidates) > 0:
-                # sort a list of tuples by the second element 
-                sorted(self.good_candidates, key= lambda x: x[1])
-
-                print(f'sorted candidates {self.good_candidates}')
-                picked = 0
-                for c in self.good_candidates:
-                    if c[0] not in frames:
-                        print(f'picking {c[0]} for {x}, n {n}')
-                        frames.add(c[0])
-                        picked += 1
-                        if picked == n:
-                            break
-        return list(frames)
-        
-    def filter_candidates(self, iid):
-        self.good_candidates = []
-        self.bad_candidates = []
-        for x in range(len(os.listdir(self.imgdir))):
-            res, size = self.is_good_candidate(x, iid)
-            if res:
-                self.good_candidates.append((x, size))
-#                 self.vis(x)
-            elif res == False:
-                self.bad_candidates.append(x)
-            elif not res:
-                print(f'None for {x}')
-                
-        assert len(os.listdir(self.imgdir)) == len(self.good_candidates) + len(self.bad_candidates)
-#         print(f'good candidates {self.good_candidates}')
-        
-    def is_good_candidate(self, fname, iid, vis=False):
-        dpath = os.path.join(self.depthdir, "{:05d}.npy".format(fname))
-        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(fname))
-        segpath = os.path.join(self.segdir, "{:05d}.npy".format(fname))
-                
-        # Load Image
-        if not os.path.isfile(imgpath):
-            print(f'looking for {imgpath}')
-            return None, None
-        img = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
-#         print(img.shape)
-        
-        # Load Annotations 
-        annot = np.load(segpath).astype(np.uint32)
+    def is_iid_in_full_view(self, img_id, iid):
+        seg_path = os.path.join(self.seg_dir, "{:05d}.npy".format(img_id))
+#         print(f'seg_path {seg_path}')
+        annot = np.load(seg_path).astype(np.uint32)
         binary_mask = np.zeros_like(annot)
         
         if iid in np.unique(annot):
-#             print(f'{iid} in {np.unique(annot)}')
             binary_mask = (annot == iid).astype(np.uint32)
-#             print(f'mask area {binary_mask.sum()}')
-#             plt.imshow(binary_mask)
-#             plt.show()
 
-        if vis:
-            plt.imshow(binary_mask)
-            plt.show()
-#             print(np.unique(all_binary_mask))
-
-        if binary_mask.sum() < 1000:
-            return False, None
-            
-        if not binary_mask.any():
-            return False, None
+        area = binary_mask.sum()
+        if area < 1000: # too small
+            return False, area
         
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
         if binary_mask[:10,:].any() or binary_mask[:,:10].any() or binary_mask[:,-10:].any() or binary_mask[-10:,:].any():
-            return False, None
+            return False, area
         
-        return True, (binary_mask == 1).sum()
+        return True, area
         
-    def visualize_good_bad(self, num):
-        # TODO: sample num numbers from all, then look at he 
-        # sample num from good bad
-        good = random.sample(self.good_candidates, num)
-        bad = random.sample(self.bad_candidates, num)
         
-        for x in range(num):
-            gim = os.path.join(self.imgdir, "{:05d}.jpg".format(good[x][0]))
-            gim = cv2.cvtColor(cv2.imread(gim), cv2.COLOR_BGR2RGB)
+    def sample_uniform_nn2(self, n):
+        if n > 1:
+            print(f'WARNING: NOT IMPLEMENTED FOR N > 1 YET!')
+            return
+        frames = []
+        for iid in self.iids:
+            """
+            for each frame that has the instance in view, find the left and right neighborhood of views.
+            this is the maxmimal prop length on each side. 
+            Pick the frame that has maximal(l+r).
+            visualize the entire range. propagate l, r
+            """
+            print(f'picking {n} candidate for instance {iid} ... ')
+            view_arr = {}
+            imgs = os.listdir(self.img_dir)
+            for img in imgs:
+                img_id = int(img.split('.')[0])
+                in_view, area = self.is_iid_in_full_view(img_id, iid)
+                view_arr[img_id] = (in_view, area)
+                
+#             print(view_arr)
+            # find contiguous blocks
+            seq_len = np.zeros(len(imgs))
+            for i in range(len(imgs)):
+                if view_arr[i][0]:
+                    seq_len[i] = 1 + (seq_len[i-1] if i > 0 else 0)
+                else:
+                    seq_len[i] = 0
+                    
+            # find index with max value
+            candidate = seq_len.argmax()
             
-            bim = os.path.join(self.imgdir, "{:05d}.jpg".format(bad[x]))
-            bim = cv2.cvtColor(cv2.imread(bim), cv2.COLOR_BGR2RGB)
+            # now return the max prop length to the left and right of this frame
+            l = 0
+            d = 1
+            while True:
+                nxt = candidate - d
+                if nxt >= 0 and view_arr[nxt][1] > 0:
+                    l += 1
+                    d += 1
+                else:
+                    break
+                    
+            r = 0
+            d = 1
+            while True:
+                nxt = candidate + d
+                if nxt < len(imgs) and view_arr[nxt][1] > 0:
+                    r += 1
+                    d += 1
+                else:
+                    break
             
-            arr = [gim, bim]
-            titles = ['good', 'bad']
-            plt.figure(figsize=(5,4))
-            for i, data in enumerate(arr):
-                ax = plt.subplot(1, 2, i+1)
-                ax.axis('off')
-                ax.set_title(titles[i])
-                plt.imshow(data)
-            plt.show()
+                
+            print(f'picked candidate {candidate}, max left prop {l}, max right prop {r}')
+            frames.append(Candidate(candidate, l, r, iid))
+        return frames
         
-    def vis(self, imgid, contours=None):
+    def vis(self, candidate, contours=None):
         
-        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(imgid))
-        image = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
-        prop_path = os.path.join(self.segdir, "{:05d}.npy".format(imgid))
-        annot = np.load(prop_path).astype(np.uint32)
+        # visualize left prop
+        fig, axs = plt.subplots(1, candidate.left_prop+1, figsize=(2*candidate.left_prop,4))
+        l = candidate.img_id-candidate.left_prop
+        for x in range(candidate.img_id-candidate.left_prop, candidate.img_id+1):
+            img_path = os.path.join(self.img_dir, "{:05d}.jpg".format(x))
+            image = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
+            axs[x-l].imshow(image)
+            axs[x-l].set_title("{:05d}.jpg".format(x))
+        plt.show()
         
-        abm = np.zeros_like(annot)
-        for x in self.iids:
-            abm = np.bitwise_or(abm, annot == x).astype(np.uint32)
-        
-        if contours:
-            image = cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
-      
-        arr = [image, abm]
-        titles = ["{:05d}.jpg".format(imgid), "{:05d}.npy".format(imgid)]
-        plt.figure(figsize=(5,4))
-        for i, data in enumerate(arr):
-    #         print(f'data.shape {data.shape}')
-            ax = plt.subplot(1, 2, i+1)
-            ax.axis('off')
-            ax.set_title(titles[i])
-            plt.imshow(data)
+        fig2, axs2 = plt.subplots(1, candidate.right_prop+1, figsize=(2*candidate.right_prop, 4))
+        l = candidate.img_id
+        for x in range(candidate.img_id, candidate.img_id+candidate.right_prop+1):
+            img_path = os.path.join(self.img_dir, "{:05d}.jpg".format(x))
+            image = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
+            if candidate.right_prop == 0:
+                axs2.imshow(image)
+                axs2.set_title("{:05d}.jpg".format(x))
+            else:
+                axs2[x-l].imshow(image)
+                axs2[x-l].set_title("{:05d}.jpg".format(x))
+            
         plt.show()

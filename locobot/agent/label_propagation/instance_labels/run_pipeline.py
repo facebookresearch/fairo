@@ -1,7 +1,7 @@
 from label_propagation import run_label_prop
 from coco import run_coco
 from slurm_train import run_training
-from candidates import PickGoodCandidates
+from candidates import PickGoodCandidates, Candidate
 import submitit
 import argparse
 import os
@@ -50,13 +50,13 @@ def _runner(gt, p, args):
                 seg_dir=os.path.join(traj_path, 'seg'),
                 instance_ids=instance_ids,
             )
-        src_img_ids = s.sample_uniform_nn2(gt)
+        candidates = s.sample_uniform_nn2(gt)
         # src_img_ids = [10, 20, 30, 40, 50]
-        print(f'selected imgids {src_img_ids}')
-        run_label_prop(outdir, gt, p, traj_path, src_img_ids)
+        print(f'selected candidates {candidates}')
+        run_label_prop(outdir, gt, p, traj_path, candidates)
         if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
             run_coco(outdir, instance_ids)
-            run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
+            # run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
             end = datetime.now()
             with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                 f.write(f"gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     if args.slurm:
         with executor.batch():
             for gt in range(1, 2):
-                for p in range(0, 30, 4):
+                for p in range(0, 16, 4):
                     job = executor.submit(_runner, gt, p, args)
                     jobs.append(job)
 
@@ -140,5 +140,5 @@ if __name__ == "__main__":
     else:
         print('running locally ...')
         for gt in range(1, 2):
-            for p in range(0, 30, 4): # only run for fixed gt locally to test
+            for p in range(4, 30, 8): # only run for fixed gt locally to test
                 _runner(gt, p, args)
