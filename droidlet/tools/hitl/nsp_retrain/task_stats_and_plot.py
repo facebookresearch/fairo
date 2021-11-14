@@ -103,36 +103,30 @@ def timing_charts(run_id: int) -> None:
     data_browser = DataBrowser(db=db)
     usability = []
     self_rating = []
-    inst_timing = {
-        0: [],
-        1 : [],
-        2 : [],
-        3 : [],
-        4 : [],
-        5 : [],
-    }
+    inst_timing = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] }
     read_time = []
     pre_interact = []
     interact_time = []
+    pre_first_command_time = []
+    post_last_command_time = []
+    rating_time = []
     command_num = []
-    command_timing  = {
-        'send' : [],
-        'think' : [],
-        'process' : [],
-        'execute' : [],
-        'total' : []
-    }
+    command_timing  = { 'send': [], 'NSP': [], 'plan': [], 'execute': [], 'total': [] }
+    command_timing_by_hit = { 'start': [], 'end': [] }
     starttime = math.inf
     endtime = -math.inf
     HITtime = []
+    unit_num = 1
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         content = data["data"]
-        if (content["times"]["task_start"] < starttime):
-            starttime = content["times"]["task_start"]
-        if (content["times"]["task_start"] > endtime):
-            endtime = content["times"]["task_end"]
-        HITtime.append(content["times"]["task_end"] - content["times"]["task_start"])
+        HIT_start_time = content["times"]["task_start"]
+        HIT_end_time = content["times"]["task_end"]
+        if (HIT_start_time < starttime):
+            starttime = HIT_start_time
+        if (HIT_start_time > endtime):
+            endtime = HIT_end_time
+        HITtime.append(HIT_end_time - HIT_start_time)
         outputs = content["outputs"]
         try:
             usability.append(int(outputs["usability-rating"]))
@@ -142,82 +136,125 @@ def timing_charts(run_id: int) -> None:
             self_rating.append(int(outputs["self-rating"]))
         except:
             self_rating.append(0)
-        try:
-            clicks = json.loads(outputs["clickedElements"])
-            command_count = 0
-            last_status_time = 0
-            last_pg_read_time = 0
-            interaction_start_time = 0
-            prev_page = 1
-            for click in clicks:
-                # They might not read all of the instructions pages...
-                if click["id"] == 'start':
-                    inst_timing[0].append(click["timestamp"])
-                    last_pg_read_time = click["timestamp"]
+        clicks = json.loads(outputs["clickedElements"])
+        command_count = 0
+        last_status_time = 0
+        last_pg_read_time = 0
+        interaction_start_time = 0
+        interaction_end_time = None
+        prev_page = 1
+        command_start_times = []
+        command_end_times = []
+        first_command = True
+        for click in clicks:
+            # They might not read all of the instructions pages...
+            if click["id"] == 'start':
+                inst_timing[0].append(click["timestamp"])
+                last_pg_read_time = click["timestamp"]
+            try:
                 if 'page-' in click["id"]:
-                    inst_timing[prev_page].append(int((click["timestamp"] - last_pg_read_time)/1000))
+                    inst_timing[prev_page].append((click["timestamp"] - last_pg_read_time)/1000)
                     last_pg_read_time = click["timestamp"]
                     prev_page = int(click["id"][-1])
-                if click["id"] == 'instructions-popup-close':
-                    inst_timing[5].append(int((click["timestamp"] - last_pg_read_time)/1000))
-                    read_time.append(int((click["timestamp"] - inst_timing[0][-1])/1000))
-                    last_pg_read_time = click["timestamp"]
+            except:
+                pass
+            if click["id"] == 'instructions-popup-close':
+                inst_timing[5].append((click["timestamp"] - last_pg_read_time)/1000)
+                read_time.append(round((click["timestamp"] - inst_timing[0][-1])/1000))
+                last_pg_read_time = click["timestamp"]
 
-                # Primary timing metrics
-                if click["id"] == 'timerON':
-                    interaction_start_time = click["timestamp"]
-                    pre_interact.append(int((interaction_start_time - last_pg_read_time)/1000))
-                if click["id"] == 'timerOFF': interact_time.append(int((click["timestamp"] - interaction_start_time)/1000))
-                
-                # Command timing metrics:
-                if click["id"] == 'goToAgentThinking':
-                    command_count += 1
-                    command_start_time = click["timestamp"]
-                    last_status_time = click["timestamp"]
-                if click["id"] == 'received':
-                    command_timing['send'].append((click["timestamp"] - last_status_time)/1000)
-                    last_status_time = click["timestamp"]
-                if click["id"] == 'done_thinking':
-                    command_timing['think'].append((click["timestamp"] - last_status_time)/1000)
-                    last_status_time = click["timestamp"]
-                if click["id"] == 'executing':
-                    command_timing['process'].append((click["timestamp"] - last_status_time)/1000)
-                    last_status_time = click["timestamp"]
-                if click["id"] == 'goToMessaage':
-                    command_timing['execute'].append((click["timestamp"] - last_status_time)/1000)
-                    command_timing['total'].append((click["timestamp"] - command_start_time)/1000)
-                    # Reset and set up for next command:
-                    last_status_time = None
-                    num_commands = max([len(value) for value in command_timing.values()])
-                    for status in command_timing.keys():
-                        if len(command_timing[status]) < num_commands:
-                            command_timing[status].append(0)
+            # Interaction timing metrics
+            if click["id"] == 'timerON':
+                interaction_start_time = click["timestamp"]
+                pre_interact.append(round((interaction_start_time - last_pg_read_time)/1000))
+            if click["id"] == 'timerOFF':
+                interaction_end_time = click["timestamp"]
+                interact_time.append(round((interaction_end_time - interaction_start_time)/1000))
+            
+            # Command timing metrics:
+            if click["id"] == 'goToAgentThinking':
+                command_count += 1
+                command_start_time = click["timestamp"]
+                command_start_times.append(command_start_time)
+                last_status_time = click["timestamp"]
+                if first_command:
+                    pre_first_command_time.append(round((command_start_time - interaction_start_time)/1000))
+                    first_command = False
+            if click["id"] == 'received':
+                command_timing['send'].append((click["timestamp"] - last_status_time)/1000)
+                last_status_time = click["timestamp"]
+            if click["id"] == 'done_thinking':
+                command_timing['NSP'].append((click["timestamp"] - last_status_time)/1000)
+                last_status_time = click["timestamp"]
+            if click["id"] == 'executing':
+                command_timing['plan'].append((click["timestamp"] - last_status_time)/1000)
+                last_status_time = click["timestamp"]
+            if click["id"] == 'goToMessaage':
+                command_timing['execute'].append((click["timestamp"] - last_status_time)/1000)
+                command_timing['total'].append((click["timestamp"] - command_start_time)/1000)
+                command_end_times.append(click["timestamp"])
+                # Reset and set up for next command:
+                last_status_time = click["timestamp"]
+                num_commands = max([len(value) for value in command_timing.values()])
+                for status in command_timing.keys():
+                    if len(command_timing[status]) < num_commands:
+                        command_timing[status].append(0)
 
-            # Set page read times to 0 for all pages that were skipped
-            num_units = max([len(value) for value in inst_timing.values()])
-            for page in inst_timing.keys():
-                if len(inst_timing[page]) < num_units:
-                    inst_timing[page].append(0)
+        if interaction_end_time:
+            rating_time.append(HIT_end_time - round((interaction_end_time/1000)))
+            if last_status_time:
+                post_last_command_time.append((interaction_end_time - last_status_time)/1000)
+        pre_first_command_time = [x for x in pre_first_command_time if x<1000000]
 
-            command_num.append(command_count)
-        except:
-            raise
+        # Set timing logs to 0 for logs that don't exist
+        for page in inst_timing.keys():
+            if len(inst_timing[page]) < unit_num:
+                inst_timing[page].append(0)
+        if len(read_time) < unit_num: read_time.append(0)
+        if len(pre_interact) < unit_num: pre_interact.append(0)
+        if len(interact_time) < unit_num: interact_time.append(0)
+
+        command_num.append(command_count)
+        command_timing_by_hit["start"].append(command_start_times)
+        command_timing_by_hit["end"].append(command_end_times)
+        unit_num += 1
+
+    command_times_by_order = { 1: [], 2: [], 3: [], 4: [], 5: [] }
+    for j in range(5):
+        for i in range(unit_num-1):
+            try:
+                start = command_timing_by_hit["start"][i][j]
+                end = command_timing_by_hit["end"][i][j]
+                command_times_by_order[(j+1)].append((end - start)/1000)
+            except:
+                pass
             
     promoters = len([i for i in usability if i > 5])
     detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
 
-    print(f"Start time: {datetime.fromtimestamp(starttime)}")
-    print(f"End time: {datetime.fromtimestamp(endtime)}")
-    print(f"Avg Number of commands: {sum(command_num)/len(command_num):.1f}")
-    print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
-    print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
-    print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
-    print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
-
-    print(command_timing['send'])
-
+    # print(f"Units logged: {unit_num-1}")
+    # print(f"Start time: {datetime.fromtimestamp(starttime)}")
+    # print(f"End time: {datetime.fromtimestamp(endtime)}")
+    # print(f"Avg Number of commands: {sum(command_num)/len(command_num):.1f}")
+    # print(f"Units w/ no commands: {command_num.count(0)}")
+    # print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
+    # print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
+    # print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
+    # print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
+    calc_percentiles(read_time, "Total Read Time")
+    for page in inst_timing.keys():
+        calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
+    calc_percentiles(pre_interact, "Pre-Interaction Time")
+    calc_percentiles(interact_time, "Interaction Time")
+    calc_percentiles(pre_first_command_time, "Time After Start Before First Command")
+    calc_percentiles(post_last_command_time, "Time After Last Command Before End")
+    calc_percentiles(rating_time, "Time After Interaction End")
+    calc_percentiles(command_timing['total'], "Avg Command Time")
+    for order in command_times_by_order.keys():
+        calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
+    '''
     usability.sort()
     keys = range(len(usability))
     u_dict = dict(zip(keys, usability))
@@ -226,10 +263,12 @@ def timing_charts(run_id: int) -> None:
     keys = range(len(self_rating))
     s_dict = dict(zip(keys, self_rating))
     plot_hist(s_dict, xlabel="", ylabel="Self Rated Performance Score", ymax=5)
+    read_time = [360 if x>360 else x for x in read_time]
     read_time.sort()
     keys = range(len(read_time))
     r_dict = dict(zip(keys, read_time))
     plot_hist(r_dict, target_val=180, xlabel="", ylabel="Instructions Read Time (sec)")
+    pre_interact = [100 if x>100 else x for x in pre_interact]
     pre_interact.sort()
     keys = range(len(pre_interact))
     p_dict = dict(zip(keys, pre_interact))
@@ -243,16 +282,33 @@ def timing_charts(run_id: int) -> None:
     c_dict = dict(zip(keys, command_num))
     plot_hist(c_dict, target_val=5, xlabel="", ylabel="Number of commands per HIT")
 
+    inst_timing[5] = inst_timing[5][-100:]  # This is a hack until I can find the bug
+
     for page in inst_timing.keys():
+        inst_timing[page] = [0 if x<0 else x for x in inst_timing[page]]
+        inst_timing[page] = [90 if x>90 else x for x in inst_timing[page]]
         inst_timing[page].sort()
         keys = range(len(inst_timing[page]))
         page_dict = dict(zip(keys, inst_timing[page]))
         plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
     for status in command_timing.keys():
+        command_timing[status] = [0 if x<0 else x for x in command_timing[status]]
+        command_timing[status] = [50 if x>50 else x for x in command_timing[status]]
         command_timing[status].sort()
         keys = range(len(command_timing[status]))
         command_dict = dict(zip(keys, command_timing[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
+    '''
+
+#%%
+def calc_percentiles(data, label):
+    real_data = [x for x in data if x > 0]
+    tenth = np.percentile(real_data, 10)
+    median = np.median(real_data)
+    nintieth = np.percentile(real_data, 90)
+    print(f"{label} tenth percentile: {tenth:.1f}")
+    print(f"{label} median {median:.1f}")
+    print(f"{label} nintieth percentile: {nintieth:.1f}")
 
 #%%
 def read_s3_bucket(s3_logs_dir, output_dir):
@@ -435,11 +491,11 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211110132314/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211110132314")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211112115924/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211112115924")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211110132314", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211112115924", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211110132314", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211112115924", "error_details")
 
 #%%
 if __name__ == "__main__":

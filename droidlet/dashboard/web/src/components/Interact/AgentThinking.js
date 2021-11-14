@@ -119,7 +119,7 @@ class AgentThinking extends Component {
     // If we've gotten here during idle somehow, or timed out, escape to safety
     if (
       !this.allowedStates.includes(this.state.commandState) ||
-      Date.now() - this.state.now > 40000
+      Date.now() - this.state.now > 50000
     ) {
       console.log("Safety check failed, exiting to Message pane.");
       this.props.goToMessage();

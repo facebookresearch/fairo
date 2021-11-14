@@ -72,6 +72,10 @@ def format_for_printing_data(data):
         output_string += f"Clicks (timestamp): {outputs['clickedElements']}\n"
     except:
         pass
+    try:
+        output_string += f"OS & Browser Info: {outputs['userAgent']}\n"
+    except:
+        pass
     #found_files = outputs.get("files")
     #if found_files is not None:
     #    file_dir = Unit(db, data["unit_id"]).get_assigned_agent().get_data_dir()
