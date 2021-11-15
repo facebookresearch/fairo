@@ -274,10 +274,8 @@ Status PolymetisControllerServerImpl::UpdateController(
   }
 
   // Load param container
-  memstream model_stream(updates_model_buffer_.data(),
-                         updates_model_buffer_.size());
   if (!custom_controller_context_.custom_controller->param_dict_load(
-          model_stream)) {
+          updates_model_buffer_.data(), updates_model_buffer_.size())) {
     return Status::CANCELLED;
   }
 

@@ -151,7 +151,9 @@ void TorchScriptedController::reset() {
   module_->data.get_method("reset")(empty_input_->data);
 }
 
-bool TorchScriptedController::param_dict_load(std::istream &model_stream) {
+bool TorchScriptedController::param_dict_load(char *data, size_t size) {
+  memstream model_stream(data, size);
+
   torch::jit::script::Module param_dict_container;
   try {
     param_dict_container = torch::jit::load(model_stream);

@@ -58,7 +58,7 @@ public:
 
   std::vector<float> forward(TorchRobotState &input);
 
-  bool param_dict_load(std::istream &stream);
+  bool param_dict_load(char *data, size_t size);
   void param_dict_update_module();
 
   bool is_terminated();
