@@ -27,7 +27,8 @@ function defaultSetup(game, avatar) {
   var makeFly = fly(game);
   var target = game.controls.target();
   game.flyer = makeFly(target);
-
+  game.playerPos = null;
+  game.lastUpdatedTime = 0;
   // highlight blocks when you look at them, hold <Ctrl> for block placement
   var blockPosPlace, blockPosErase;
   var hl = (game.highlighter = highlight(game, { color: 0xff0000 }));
@@ -49,6 +50,37 @@ function defaultSetup(game, avatar) {
     if (ev.keyCode === "R".charCodeAt(0)) avatar.toggle();
   });
 
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "1".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 57);
+    }
+  });
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "2".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 50);
+    }
+  });
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "3".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 59);
+    }
+  });
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "4".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 47);
+    }
+  });
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "5".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 56);
+    }
+  });
+  window.addEventListener("keydown", function (ev) {
+    if (ev.keyCode === "6".charCodeAt(0)) {
+      game.createAdjacent(game.raycastVoxels(), 60);
+    }
+  });
+
   // block interaction stuff, uses highlight data
   var currentMaterial = 1;
 
@@ -68,6 +100,34 @@ function defaultSetup(game, avatar) {
     var vz = Math.abs(target.velocity.z);
     if (vx > 0.001 || vz > 0.001) walk.stopWalking();
     else walk.startWalking();
+
+    t = game.controls.target();
+    p = parseFloat(t.pitch.rotation["x"]);
+    y = parseFloat(t.yaw.rotation["y"]);
+    pos = [
+      parseFloat(t.position["x"]),
+      parseFloat(t.position["y"]),
+      parseFloat(t.position["z"]),
+    ];
+    if (
+      game.playerPos == null ||
+      game.playerPos[0] != pos[0] ||
+      game.playerPos[1] != pos[1] ||
+      game.playerPos[2] != pos[2]
+    ) {
+      const timeNow = new Date().getTime();
+      if (timeNow - game.lastUpdatedTime > 1000) {
+        payload = {
+          status: "updateDashboardAgentPos",
+          pos: pos,
+          pitch: p,
+          yaw: y,
+        };
+        window.postMessage(payload, "*");
+        game.playerPos = pos;
+        game.lastUpdatedTime = timeNow;
+      }
+    }
   });
 }
 
