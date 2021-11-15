@@ -17,10 +17,10 @@ requirements:
     - cudatoolkit=11.3
     - doxygen
     - eigen=3.3.9
-    - grpc-cpp
+    - grpc-cpp ==1.41.1
     - hpp-fcl=1.6.0=py38h75fc22a_1
-    - libprotobuf
-    - openmpi
+    - libprotobuf ==3.18.1
+    - openmpi ==2.1.2
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
@@ -37,13 +37,13 @@ requirements:
     - cudatoolkit=11.3
     - dash
     - doxygen
-    - grpc-cpp
+    - grpc-cpp ==1.41.1
     - grpcio
     - habitat-sim=0.2.1=py3.8_bullet_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9
     - hydra-core==1.0.6
     - myst-parser
     - numpy
-    - openmpi
+    - openmpi ==2.1.2
     - pandas
     - pinocchio ==2.5.2
     - plotly

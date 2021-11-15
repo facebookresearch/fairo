@@ -11,10 +11,10 @@ dependencies:
     - cudatoolkit=11.3
     - doxygen
     - eigen=3.3.9
-    - grpc-cpp
+    - grpc-cpp=1.41.1
     - hpp-fcl=1.6.0=py38h75fc22a_1
-    - libprotobuf
-    - openmpi
+    - libprotobuf=3.18.1
+    - openmpi=2.1.2
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
