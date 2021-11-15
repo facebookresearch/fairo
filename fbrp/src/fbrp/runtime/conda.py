@@ -95,9 +95,8 @@ class Launcher(BaseLauncher):
 
         await envinfo.wait()
         conda_env = {}
-        with open(f"/tmp/fbrp_conda_{self.name}.env") as f:
-            lines = f.read().split("\0")
-            conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
+        lines = open(f"/tmp/fbrp_conda_{self.name}.env").read().split("\0")
+        conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
 
         cmd = self.run_command
         if type(self.run_command) == list:
