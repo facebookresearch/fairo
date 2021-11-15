@@ -14,6 +14,7 @@ requirements:
   build:
     - assimp=5.0.1=hdca8b6f_4
     - cmake
+    - cpuonly
     - cudatoolkit=11.3
     - doxygen
     - eigen=3.3.9
