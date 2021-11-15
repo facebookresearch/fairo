@@ -37,7 +37,7 @@ echo $5
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_samples $3 $4 --comment $5
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_samples $3 --comment $4 $5
 
 # play book to run the pipeline on Hello
 # pick frames to label, one per instance for the train set where the instance.  
@@ -66,7 +66,7 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_sam
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled3/baseline apartment_0/default/no_noise 1 --slurm
 
 
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114/active apartment_0/straightline/no_noise 1 --slurm prop_all
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114/baseline apartment_0/default/no_noise 1 --slurm prop_all
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1115_nodownsamplingbaseline/active apartment_0/straightline/no_noise 1 --slurm prop_all_no_downsampling_baseline
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1115_nodownsamplingbaseline/baseline apartment_0/default/no_noise 1 --slurm prop_all_no_downsampling_baseline
 
 # /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114

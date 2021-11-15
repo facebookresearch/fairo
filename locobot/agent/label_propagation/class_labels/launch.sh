@@ -62,10 +62,11 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 2 2
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_combined_2 apartment_0/default/noise 5 3
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200 apartment_0/default/no_noise 2 2
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 10 3
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 2 2 no_downsampling
+
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 20 3 --active
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 2 --active
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314 apartment_0/straightline/no_noise 2 2 no_downsampling --active
 
 
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314_sampled20_1115 apartment_0/straightline/no_noise 3 2 new_candidate_test --active 
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115 apartment_0/default/no_noise 3 2 new_candidate_test
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314_sampled20_1115_nodownsamplingbaseline apartment_0/straightline/no_noise 1 1 no_downsampling_baseline --active 
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115_nodownsamplingbaseline apartment_0/default/no_noise 1 1 no_downsampling_baseline

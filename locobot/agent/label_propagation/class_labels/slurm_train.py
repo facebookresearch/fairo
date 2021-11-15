@@ -312,12 +312,23 @@ class COCOTrain:
         print(f'SOLVER PARAMS {cfg.SOLVER.MAX_ITER, cfg.SOLVER.WARMUP_ITERS, cfg.SOLVER.BASE_LR}')
         cfg.DATASETS.TRAIN = (self.train_data,)
         
+        # register validation set
         self.val_data = self.dataset_name + "_val" + str(self.seed)
         self.val_json = val_json
-        cfg.DATASETS.TEST = (self.val_data,)
         register_coco_instances(self.val_data, {}, val_json, img_dir_val)
         MetadataCatalog.get(self.val_data).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
         
+        # register test set
+        test_data = []
+        for x in range(len(test_jsons)):
+            tjson = test_jsons[x]
+            tdata = self.dataset_name + "_test_" + str(self.seed) + '_' + str(x)
+            test_data.append(tdata)
+            register_coco_instances(tdata, {}, tjson, img_dir_test)
+            MetadataCatalog.get(tdata).thing_classes = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
+
+        cfg.DATASETS.TEST = (self.val_data,test_data[0])
+
         cfg.DATALOADER.NUM_WORKERS = 2
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
         cfg.SOLVER.IMS_PER_BATCH = 16

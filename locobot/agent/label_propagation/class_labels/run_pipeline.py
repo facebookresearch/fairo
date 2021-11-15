@@ -39,6 +39,8 @@ def log_job_start(args, jobs):
     with open(f"/checkpoint/{os.environ.get('USER')}/jobs/active_vision/pipeline/class_slurm_launch_start.txt", 'a') as f:
         f.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Experiment comment {args.comment}\n")
+        f.write(f"Num traj {str(args.num_traj)}\n")
+        f.write(f"Num train samples {str(args.num_train_samples)}\n")
         f.write(f"Job Folder {args.job_folder}\n")
         f.write(f"Data Dir {args.data_path}\n")
         f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
@@ -49,7 +51,7 @@ def _runner(traj, gt, p, args):
     start = datetime.now()
     if not args.active:
         traj_path = os.path.join(args.data_path, str(traj))
-        # print(f'traj_path {traj_path}')
+        print(f'traj_path {traj_path}')
         if os.path.isdir(traj_path):
             basic_sanity(traj_path)
             outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
