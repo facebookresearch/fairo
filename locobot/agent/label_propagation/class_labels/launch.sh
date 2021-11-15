@@ -39,7 +39,7 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 
 # please clean up your checkpoints before running these so as not to exceed the 8TB space limit
 # cd /checkpoint/$USER/jobs/active_vision/pipeline 
-# find . -name output_aug -exec rm -rf {} \;
+# find . -name instances_predictions.pth -exec rm -vf {} \;
 
 # arthur's
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115_nodownsamplingbaseline apartment_0/default/no_noise 5 2 rehearsal_run
