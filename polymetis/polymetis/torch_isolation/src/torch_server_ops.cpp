@@ -3,11 +3,52 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 #include "torch_server_ops.hpp"
+#include <istream>
+#include <streambuf>
 #include <torch/jit.h>
 #include <torch/script.h>
 #include <torch/torch.h>
+#include <vector>
 
 extern "C" {
+
+/*
+A preallocated chunk of memory, required to convert a char array to an istream.
+*/
+class membuf : public std::basic_streambuf<char> {
+public:
+  membuf(const char *p, size_t l) {
+    this->setg((char *)p, (char *)p, (char *)p + l);
+  }
+
+  pos_type seekoff(off_type off, std::ios_base::seekdir dir,
+                   std::ios_base::openmode which = std::ios_base::in) override {
+    if (dir == std::ios_base::cur)
+      gbump(off);
+    else if (dir == std::ios_base::end)
+      setg(eback(), egptr() + off, egptr());
+    else if (dir == std::ios_base::beg)
+      setg(eback(), eback() + off, egptr());
+    return gptr() - eback();
+  }
+
+  pos_type seekpos(pos_type sp, std::ios_base::openmode which) override {
+    return seekoff(sp - pos_type(off_type(0)), std::ios_base::beg, which);
+  }
+};
+
+/**
+TODO
+*/
+class memstream : public std::istream {
+public:
+  memstream(const char *p, size_t l) : std::istream(&_buffer), _buffer(p, l) {
+    rdbuf(&_buffer);
+  }
+
+private:
+  membuf _buffer;
+};
 
 struct TorchTensor {
   torch::Tensor data;
@@ -72,7 +113,8 @@ void TorchRobotState::update_state(int timestamp_s, int timestamp_ns,
   }
 }
 
-TorchScriptedController::TorchScriptedController(std::istream &stream) {
+TorchScriptedController::TorchScriptedController(char *data, size_t size) {
+  memstream stream(data, size);
   module_ = new TorchScriptModule{torch::jit::load(stream)};
 
   param_dict_input_ = new TorchInput{std::vector<torch::jit::IValue>()};
@@ -86,6 +128,7 @@ TorchScriptedController::~TorchScriptedController() {
 }
 
 std::vector<float> TorchScriptedController::forward(TorchRobotState &input) {
+  torch::NoGradGuard no_grad;
   // Step controller & generate torque command response
   c10::Dict<torch::jit::IValue, torch::jit::IValue> controller_state_dict =
       module_->data.forward(input.input_->data).toGenericDict();
@@ -108,7 +151,9 @@ void TorchScriptedController::reset() {
   module_->data.get_method("reset")(empty_input_->data);
 }
 
-bool TorchScriptedController::param_dict_load(std::istream &model_stream) {
+bool TorchScriptedController::param_dict_load(char *data, size_t size) {
+  memstream model_stream(data, size);
+
   torch::jit::script::Module param_dict_container;
   try {
     param_dict_container = torch::jit::load(model_stream);
