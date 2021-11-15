@@ -104,6 +104,13 @@ class PickGoodCandidates:
                     
             # find index with max value
             candidate = seq_len.argmax()
+
+            # go to median 
+            while candidate >= 0:
+#                 print(candidate, seq_len[candidate], seq_len.max())
+                if seq_len[candidate] <= seq_len.max()/2:
+                    break
+                candidate -= 1
             
             # now return the max prop length to the left and right of this frame
             l = 0
