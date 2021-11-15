@@ -187,6 +187,32 @@ class CraftAssistAgent(DroidletAgent):
             }
             sio.emit("setVoxelWorldInitialState", payload)
 
+        @sio.on("updateDashboardAgentPos")
+        def update_dashboard_agent_pos(sid, payload):
+            updated_player_pos = payload["pos"]
+            updated_player_pitch = payload["pitch"]
+            updated_player_yaw = payload["yaw"]
+            dashboard_player_eid = DASHBOARD_PLAYER_EID
+
+            mem = self.memory.get_player_by_eid(DASHBOARD_PLAYER_EID)
+            if mem is None:
+                player = Player(
+                    DASHBOARD_PLAYER_EID, DASHBOARD_PLAYER_NAME, Pos(updated_player_pos[0], updated_player_pos[1], updated_player_pos[2]), Look(updated_player_pitch, updated_player_yaw), Item(0, 0)
+                )
+                memid = PlayerNode.create(self.memory, player)
+            else:
+                memid = mem.memid
+            
+            cmd = (
+                    "UPDATE ReferenceObjects SET eid=?, name=?, x=?,  y=?, z=?, pitch=?, yaw=? WHERE "
+            )
+            cmd = cmd + "uuid=?"
+            self.memory.db_write(
+                cmd, DASHBOARD_PLAYER_EID, DASHBOARD_PLAYER_NAME, updated_player_pos[0], updated_player_pos[1], updated_player_pos[2],
+                updated_player_pitch, updated_player_yaw, memid
+            )
+
+
     def init_inventory(self):
         """Initialize the agent's inventory"""
         self.inventory = inventory.Inventory()

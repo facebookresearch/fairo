@@ -56,9 +56,12 @@
 
       // document.getElementById("text-container").innerHTML=event.data
       status = event.data['status']
-      worldState = event.data['world_state']
-      updateAgents(worldState['agent'])
-      updateBlocks(worldState['block'])
+      if (status != "updateDashboardAgentPos") {
+        worldState = event.data['world_state']
+        updateAgents(worldState['agent'])
+        updateBlocks(worldState['block'])
+      }
+      
     }, false);
   </script>
 </html>

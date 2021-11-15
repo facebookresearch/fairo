@@ -23,7 +23,23 @@ class VoxelWorld extends React.Component {
   }
 
   componentDidMount() {
-    if (this.props.stateManager) this.props.stateManager.connect(this);
+    if (this.props.stateManager) {
+      this.props.stateManager.connect(this);
+
+      this.worldContainerRef.current.contentWindow.addEventListener(
+        "message",
+        (event) => {
+          const payload = event["data"];
+          if (payload["status"] == "updateDashboardAgentPos") {
+            this.props.stateManager.socket.emit(
+              "updateDashboardAgentPos",
+              payload
+            );
+          }
+        },
+        false
+      );
+    }
     this.getVoxelWorldInitialState();
 
     // Listen for a message from the iframe to remove the prompt text when the user clicks in
