@@ -149,9 +149,9 @@ if __name__ == "__main__":
         for p in range(0, 30, 5):
             gtps.add((gt,p))
 
-    for gt in range(5, 30, 5):
-        for p in range(0,15,5):
-            gtps.add((gt,p))
+    # for gt in range(5, 30, 5):
+    #     for p in range(0,15,5):
+    #         gtps.add((gt,p))
 
     gtps = sorted(list(gtps))
     print(len(gtps), gtps)

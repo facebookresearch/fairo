@@ -33,9 +33,11 @@ cp slurm_train.py $codedir/slurm_train.py
 cp run_pipeline.py $codedir/run_pipeline.py
 cp candidates.py $codedir/candidates.py
 
+echo $5
+
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_samples $3 $4
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_samples $3 $4 --comment $5
 
 # play book to run the pipeline on Hello
 # pick frames to label, one per instance for the train set where the instance.  
@@ -49,5 +51,22 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_sam
 # find . -name output_droid -exec rm -rf {} \;
 
 # anurag's
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone_auto apartment_0/straightline/no_noise 1 --slurm
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_3 apartment_0/default/no_noise 1 --slurm 
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone_auto apartment_0/straightline/no_noise 3 --slurm
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_3 apartment_0/default/no_noise 3 --slurm 
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_detection_ids_allinone_auto apartment_0/straightline/no_noise 3 --slurm
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_3 apartment_0/default/no_noise 3 --slurm 
+
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1/active apartment_0/straightline/no_noise 1 --slurm "test commment"
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1/baseline apartment_0/default/no_noise 1 --slurm "only prop candidate instance label"
+
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/instance_traj_man apartment_0/straightline/no_noise 1 --slurm
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled2/baseline apartment_0/default/no_noise 1 --slurm
+
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled3/active apartment_0/straightline/no_noise 1 --slurm
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled3/baseline apartment_0/default/no_noise 1 --slurm
+
+
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114/active apartment_0/straightline/no_noise 1 --slurm prop_all
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114/baseline apartment_0/default/no_noise 1 --slurm prop_all
+
+# /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114

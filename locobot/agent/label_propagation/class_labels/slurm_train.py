@@ -200,6 +200,8 @@ class LossEvalHook(HookBase):
             print(f'val los {self.trainer.iter} losses.mean {l}')
             print(f"writing to {os.path.join(self.cfg.OUTPUT_DIR, 'validation_results.txt')}")
             with open(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
+                f.write(f'validation loss {l}\n')
+            with open(os.path.join(self.cfg.OUTPUT_DIR, "validation_results2.txt"), "a") as f:
                 f.write(f'lr {self.cfg.SOLVER.BASE_LR} warmup {self.cfg.SOLVER.WARMUP_ITERS} iter {self.trainer.iter}\n')
                 f.write(f'validation loss {l}\n')
                 output_folder = os.path.join(self.cfg.OUTPUT_DIR, "val_inference")
@@ -239,16 +241,14 @@ class MyTrainer(DefaultTrainer):
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         return COCOEvaluator(dataset_name, cfg, False, output_folder)
 
-    # @classmethod
-    # def test(cls, cfg, model, evaluators=None):
-    #     results = super().test(cfg, model, evaluators)
-    #     print(results)
-    #     print(f'len(results) {cls.iter, results[0]}, cfg.OUTPUT_DIR {cfg.OUTPUT_DIR}')
-    #     # save to file here
-    #     # with open(os.path.join(cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
-    #     #     f.write(f'lr {cfg.SOLVER.BASE_LR} warmup {cfg.SOLVER.WARMUP_ITERS} iter {cls.iter}\n')
-    #     #     f.write(json.dumps(results[0]) + '\n')
-    #     return results
+    @classmethod
+    def test(cls, cfg, model, evaluators=None):
+        results = super().test(cfg, model, evaluators)
+        print(results)
+        # save to file here to compare with saving inside the hook
+        with open(os.path.join(cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
+            f.write(json.dumps(results) + '\n')
+        return results
 
     # def build_writers(self):
     #     writers = super().build_writers()
@@ -259,7 +259,7 @@ class MyTrainer(DefaultTrainer):
     def build_hooks(self):
         hooks = super().build_hooks()
         print(f'hooks {len(hooks), hooks}')
-        hooks.insert(-1,LossEvalHook(
+        hooks.insert(-2,LossEvalHook(
             self.cfg,
             self.model,
             build_detection_test_loader(

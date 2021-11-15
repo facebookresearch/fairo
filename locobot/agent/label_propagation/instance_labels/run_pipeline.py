@@ -36,7 +36,7 @@ def get_src_img_ids(heu, traj):
     return 
 
 # for apartment_0
-instance_ids = [243,404,196,133,170] #[193,404,196,172,243,133,129,170]
+instance_ids = [404,196,133] #[193,404,196,172,243,133,129,170]
 
 def _runner(gt, p, args):
     start = datetime.now()
@@ -56,14 +56,15 @@ def _runner(gt, p, args):
         run_label_prop(outdir, gt, p, traj_path, candidates)
         if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
             run_coco(outdir, instance_ids)
-            # run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
+            run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
             end = datetime.now()
             with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                 f.write(f"gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
 
 def log_job_start(args, jobs):
     with open(f"/checkpoint/{os.environ.get('USER')}/jobs/active_vision/pipeline/instance_det/slurm_launch_start.txt", 'a') as f:
-        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Experiment comment {args.comment}\n")
         f.write(f"Job Folder {args.job_folder}\n")
         f.write(f"Data Dir {args.data_path}\n")
         f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
@@ -101,6 +102,7 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument("--job_folder", type=str, default="", help="")
+    parser.add_argument("--comment", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--num_train_samples", type=int, default=1, help="total number of times we want to train the same model")
 
@@ -129,7 +131,7 @@ if __name__ == "__main__":
     if args.slurm:
         with executor.batch():
             for gt in range(1, 2):
-                for p in range(0, 16, 4):
+                for p in range(0, 30, 4):
                     job = executor.submit(_runner, gt, p, args)
                     jobs.append(job)
 

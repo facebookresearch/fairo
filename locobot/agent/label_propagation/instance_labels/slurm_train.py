@@ -147,8 +147,9 @@ class LossEvalHook(HookBase):
             l = np.mean(losses)
             # write validation loss, AP
             print(f'val los {self.trainer.iter} losses.mean {l}')
-            print(f"writing to {os.path.join(self.cfg.OUTPUT_DIR, 'validation_results.txt')}")
             with open(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
+                f.write(f'validation loss {l}\n')
+            with open(os.path.join(self.cfg.OUTPUT_DIR, "validation_results2.txt"), "a") as f:
                 f.write(f'lr {self.cfg.SOLVER.BASE_LR} warmup {self.cfg.SOLVER.WARMUP_ITERS} iter {self.trainer.iter}\n')
                 f.write(f'validation loss {l}\n')
                 output_folder = os.path.join(self.cfg.OUTPUT_DIR, "val_inference")
@@ -179,10 +180,19 @@ class MyTrainer(DefaultTrainer):
             output_folder = os.path.join(cfg.OUTPUT_DIR, "inference")
         return COCOEvaluator(dataset_name, cfg, False, output_folder)
 
+    @classmethod
+    def test(cls, cfg, model, evaluators=None):
+        results = super().test(cfg, model, evaluators)
+        print(results)
+        # save to file here to compare with saving inside the hook
+        with open(os.path.join(cfg.OUTPUT_DIR, "validation_results.txt"), "a") as f:
+            f.write(json.dumps(results) + '\n')
+        return results
+
     def build_hooks(self):
         hooks = super().build_hooks()
         print(f'hooks {len(hooks), hooks}')
-        hooks.insert(-1,LossEvalHook(
+        hooks.insert(-2,LossEvalHook(
             self.cfg,
             self.model,
             build_detection_test_loader(
@@ -297,8 +307,12 @@ import string
 
 def run_training(out_dir, img_dir_train, n=10, active=False):
     train_json = os.path.join(out_dir, 'coco_train.json')
-    img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/rgb'
-    val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/coco_val.json'
+    # img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/rgb'
+    # val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/coco_val.json'
+    # val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_2/coco_val.json'
+    # img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_2/rgb'
+    img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/rgb'
+    val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/coco_val.json'
     for lr in lrs:
         for warmup in warmups:
             for maxiter in maxiters:

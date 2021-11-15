@@ -54,7 +54,8 @@ def propogate_label(
     propogation_step: int,
     base_pose_data: np.ndarray,
     out_dir: str,
-    frame_range_begin: int
+    frame_range_begin: int,
+    instance_to_prop: int,
 ):
     """Take the label for src_img_indx and propogate it to [src_img_indx - propogation_step, src_img_indx + propogation_step]
     Args:
@@ -112,7 +113,7 @@ def propogate_label(
 
     ### figure out unique label values in provided gt label which is greater than 0 ###
     unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
-    unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0]
+    unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0] # and i == instance_to_prop]
 
     ### for each unique label, figure out points in world frame ###
     # first figure out pixel index
@@ -299,7 +300,7 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
 
     num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
     result = []
-    train_img_id = {"img_id": [], "max_left_prop": [], "max_right_prop": []}
+    train_img_id = {"img_id": [], "max_left_prop": [], "max_right_prop": [], "candidate_instance_id": []}
     src_img_indx = 0
     train_img_id['propagation_step'] = propagation_step
 
@@ -324,11 +325,13 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
                     base_pose_data=base_pose_data,
                     out_dir=out_dir,
                     frame_range_begin=frame_range_begin,
+                    instance_to_prop=candidate.instance_id,
                 )
             )
             train_img_id["img_id"].append(int(candidate.img_id))
             train_img_id["max_left_prop"].append(int(candidate.left_prop))
             train_img_id["max_right_prop"].append(int(candidate.right_prop))
+            train_img_id["candidate_instance_id"].append(int(candidate.instance_id))
             frame_range_begin += left_prop + right_prop + 1
 
     with open(os.path.join(out_dir, "train_img_id.json"), "w") as fp:
