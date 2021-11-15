@@ -46,7 +46,7 @@ if __name__ == "__main__":
     ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
     batch_id = ij.get_batch_id()
     listener = InteractionLogListener(batch_id, IL_TIMEOUT)
-    ndl = NSPNewDataListener(batch_id=batch_id, opts=opts, timeout=NDL_TIMEOUT)
+    ndl = NSPNewDataListener(batch_id=batch_id, opts=opts)
 
     runner = TaskRunner()
     runner.register_data_generators([ij])

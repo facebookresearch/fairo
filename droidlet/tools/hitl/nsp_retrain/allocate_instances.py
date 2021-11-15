@@ -152,7 +152,7 @@ def request_instance(instance_num, timeout=-1):
             cnt += 1
         finally:
             logging.info(f"[ECS] Progress: {cnt}/{instance_num}")
-    
+    instance_num = len(instances_ids)
     def is_timeout(start_time, timeout):
         if timeout < 0:
             return False
