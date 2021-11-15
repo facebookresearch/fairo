@@ -86,23 +86,16 @@ class Launcher(BaseLauncher):
             f"""
                 eval "$(conda shell.bash hook)"
                 conda activate fbrp_{self.name}
-                echo "fbrp env begin"
-                env
-                echo "fbrp env end"
+                cp /proc/self/environ /tmp/fbrp_conda_{self.name}.env
             """,
             stdout=asyncio.subprocess.PIPE,
             executable="/bin/bash",
             cwd=self.proc_def.root,
         )
 
-        # read blocks until EOF.
-        lines = (await envinfo.stdout.read()).decode().split("\n")
-        lines = lines[lines.index("fbrp env begin") + 1 : lines.index("fbrp env end")]
-        # Multiline functions may be defined with the form "FOO%%=() { ...}"
-        # For now, try to ignore those.
-        # TODO(lshamis): Find a better way to parse/extract env.
-        lines = [l for l in lines if "=" in l and "%%=" not in l]
-        conda_env = dict(line.split("=", 1) for line in lines)
+        await envinfo.wait()
+        lines = open(f"/tmp/fbrp_conda_{self.name}.env").read().split("\0")
+        conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
 
         cmd = self.run_command
         if type(self.run_command) == list:

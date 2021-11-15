@@ -87,10 +87,10 @@ class Launcher(BaseLauncher):
 
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()
-        life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
         proc_info = await self.proc.show()
         self.proc_pid = proc_info["State"]["Pid"]
+        life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
         async def log_pipe(logger, pipe):
             async for line in pipe:
