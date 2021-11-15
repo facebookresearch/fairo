@@ -11,12 +11,12 @@ mephisto:
     task_description: "Interact with an assistant in a 3-D world creative game."
     task_reward: 3.0
     allowed_concurrent: 1
-    maximum_units_per_worker: 5
+    maximum_units_per_worker: 20
     task_tags: "assistant, game, interact"
-    task_name: "uiux-exp2-11-8-21-100"
+    task_name: "baseline-0-11-14-1000"
   architect:
     heroku_config_args:
       AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
       AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: uiux-exp2-11-8-21-100
+    heroku_app_name: baseline-0-11-14-1000

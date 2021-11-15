@@ -252,7 +252,7 @@ if __name__ == "__main__":
         "--user", type=str, default="rebeccaqian@fb.com", help="Email of the CloudFlare account"
     )
     args = parser.parse_args()
-    instance_ips, instance_ids = request_instance(args.instance_num, 1)
+    instance_ips, instance_ids = request_instance(args.instance_num)
     batch_id = args.batch_id
     # register subdomain to proxy instance IP
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
@@ -265,7 +265,7 @@ if __name__ == "__main__":
         # Write the subdomains and batch IDs to input CSV for Mephisto
         # CSV file headers
         headers = ["subdomain", "batch"]
-        with open("../../crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
+        with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
             csv_writer = csv.writer(fd, delimiter=",")
             csv_writer.writerow(headers)
             for x in range(len(instance_ips)):
