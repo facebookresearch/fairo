@@ -71,6 +71,8 @@ class VoxelWorld extends React.Component {
         <p>
           Tip: press 'esc' to leave the 3D world, w/a/s/d to move, space to
           jump
+          <br />
+          press 1/2/3/4/5/6 to place blocks, left-click to destroy/dig blocks
         </p>
       </div>
     );
