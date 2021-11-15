@@ -94,7 +94,6 @@ class Launcher(BaseLauncher):
         )
 
         await envinfo.wait()
-        conda_env = {}
         lines = open(f"/tmp/fbrp_conda_{self.name}.env").read().split("\0")
         conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
 
