@@ -1,5 +1,6 @@
-from fbrp import util
+from fbrp import life_cycle
 from fbrp import registrar
+from fbrp import util
 from fbrp.cmd.base import BaseCommand
 import a0
 import argparse
@@ -72,6 +73,7 @@ class up_cmd(BaseCommand):
         if args.run:
             for name in names:
                 print(f"running {name}...")
+                life_cycle.set_ask(name, life_cycle.Ask.UP)
 
                 if os.fork() != 0:
                     continue
@@ -88,5 +90,7 @@ class up_cmd(BaseCommand):
                 # Set up configuration.
                 with util.common_env_context(proc_def):
                     a0.Cfg(a0.env.topic()).write(json.dumps(proc_def.cfg))
+                    life_cycle.set_launcher_running(name, True)
                     asyncio.run(proc_def.runtime._launcher(name, proc_def, args).run())
+                    life_cycle.set_launcher_running(name, False)
                     sys.exit(0)
