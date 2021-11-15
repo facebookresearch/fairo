@@ -46780,15 +46780,20 @@ function defaultSetup(game, avatar) {
       parseFloat(t.position["y"]),
       parseFloat(t.position["z"]),
     ];
-    if (game.playerPos == null || (game.playerPos[0] != pos[0] || game.playerPos[1] != pos[1] ||game.playerPos[2] != pos[2])) {
+    if (
+      game.playerPos == null ||
+      game.playerPos[0] != pos[0] ||
+      game.playerPos[1] != pos[1] ||
+      game.playerPos[2] != pos[2]
+    ) {
       const timeNow = new Date().getTime();
       if (timeNow - game.lastUpdatedTime > 1000) {
         payload = {
-          "status": "updateDashboardAgentPos",
-          "pos": pos,
-          "pitch": p,
-          "yaw": y
-        }
+          status: "updateDashboardAgentPos",
+          pos: pos,
+          pitch: p,
+          yaw: y,
+        };
         window.postMessage(payload, "*");
         game.playerPos = pos;
         game.lastUpdatedTime = timeNow;
