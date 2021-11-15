@@ -35,14 +35,14 @@ def compute_checksum_for_directory(
         print("Model name not given, defaulting to nlu model")
         model_name = "nlu"
 
-    agent_path = os.path.join(ROOTDIR, 'agents/' + agent)
+    # agent_path = os.path.join(ROOTDIR, 'agents/' + agent)
 
     print("Now computing hashes ...")
     compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
     checksum_name = ''
     artifact_folder_name = ''
     if artifact_type == "models":
-        artifact_folder_name = 'models/' + model_name
+        artifact_folder_name = 'models/' + model_name + "/" + agent
         if model_name == "nlu":
             # compute for NLU model
             checksum_name = 'nlu.txt'
@@ -57,7 +57,7 @@ def compute_checksum_for_directory(
         artifact_folder_name = 'datasets/'
         checksum_name = 'datasets.txt'
 
-    artifact_path = os.path.join(agent_path, artifact_folder_name)
+    artifact_path = os.path.join(ROOTDIR, 'droidlet/artifacts', artifact_folder_name)# agent_path, artifact_folder_name)
     checksum_write_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/default_checksums/' + checksum_name)
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
