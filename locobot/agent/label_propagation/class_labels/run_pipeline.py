@@ -37,7 +37,8 @@ def get_src_img_ids(heu, traj):
 
 def log_job_start(args, jobs):
     with open(f"/checkpoint/{os.environ.get('USER')}/jobs/active_vision/pipeline/class_slurm_launch_start.txt", 'a') as f:
-        f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Experiment comment {args.comment}\n")
         f.write(f"Job Folder {args.job_folder}\n")
         f.write(f"Data Dir {args.data_path}\n")
         f.write(f"job_id prefix {str(jobs[0].job_id.split('_')[0])}\n")
@@ -52,11 +53,7 @@ def _runner(traj, gt, p, args):
         if os.path.isdir(traj_path):
             basic_sanity(traj_path)
             outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
-            s = PickGoodCandidates(
-                    img_dir=os.path.join(traj_path, 'rgb'), 
-                    depth_dir=os.path.join(traj_path, 'depth'),
-                    seg_dir=os.path.join(traj_path, 'seg')
-                )
+            s = PickGoodCandidates(traj_path, active=False)
             src_img_ids = s.sample_uniform_nn2(gt)
             # src_img_ids = [10, 20, 30, 40, 50]
             print(f'src_img_ids {src_img_ids}, outdir {outdir}')
@@ -68,16 +65,12 @@ def _runner(traj, gt, p, args):
                 with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                     f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
     else:
-        for x in ['default', 'activeonly']:
+        for x in ['default']: #, 'activeonly']:
             traj_path = os.path.join(args.data_path, str(traj), x)
             if os.path.isdir(traj_path):
                 basic_sanity(traj_path)
                 outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
-                s = PickGoodCandidates(
-                    img_dir=os.path.join(traj_path, 'rgb'), 
-                    depth_dir=os.path.join(traj_path, 'depth'),
-                    seg_dir=os.path.join(traj_path, 'seg')
-                )
+                s = PickGoodCandidates(traj_path, active=True)
                 src_img_ids = s.sample_uniform_nn2(gt)
                 # src_img_ids = get_src_img_ids('active', traj)
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
@@ -120,6 +113,7 @@ if __name__ == "__main__":
         type=str,
     )
     parser.add_argument("--job_folder", type=str, default="", help="")
+    parser.add_argument("--comment", type=str)
     parser.add_argument("--slurm", action="store_true", default=False, help="Run the pipeline on slurm, else locally")
     parser.add_argument("--active", action="store_true", default=False, help="Active Setting")
     parser.add_argument("--num_traj", type=int, default=1, help="total number of trajectories to run pipeline for")
@@ -159,7 +153,7 @@ if __name__ == "__main__":
     jobs = []
     if args.slurm:
         with executor.batch():
-            for traj in range(args.num_traj):
+            for traj in range(args.num_traj+1):
                 for gt, p in gtps:
                     job = executor.submit(_runner, traj, gt, p, args)
                     jobs.append(job)
@@ -168,7 +162,7 @@ if __name__ == "__main__":
     
     else:
         print('running locally ...')
-        for traj in range(args.num_traj):
+        for traj in range(args.num_traj+1):
                 for gt in range(5, 10, 5):
                     for p in range(5, 10, 5): # only run for fixed gt locally to test
                         _runner(traj, gt, p, args)

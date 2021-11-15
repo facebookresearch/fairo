@@ -28,14 +28,14 @@ codedir=$jobdir/code
 mkdir -p $codedir
 
 cp coco.py $codedir/coco.py
-cp ../label_propagation.py $codedir/label_propagation.py
+cp label_propagation.py $codedir/label_propagation.py
 cp slurm_train.py $codedir/slurm_train.py
 cp run_pipeline.py $codedir/run_pipeline.py
 cp candidates.py $codedir/candidates.py
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 $5 --slurm
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --comment $5 $6 --slurm 
 
 # please clean up your checkpoints before running these so as not to exceed the 8TB space limit
 # cd /checkpoint/$USER/jobs/active_vision/pipeline 
@@ -65,3 +65,7 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/default/no_noise 10 3
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 20 3 --active
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 2 2 --active
+
+
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314_sampled20_1115 apartment_0/straightline/no_noise 1 1 new_candidate_test --active 
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115 apartment_0/default/no_noise 1 1 new_candidate_test

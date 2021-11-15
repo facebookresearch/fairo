@@ -24,6 +24,9 @@ import glob
 import argparse
 import shutil
 
+
+os.environ['RAY_OBJECT_STORE_ALLOW_SLOW_STORAGE']='1'
+
 # this function is implemented at 'from locobot.agent.locobot_mover_utils import transform_pose'
 # however ray was having toruble finding the function
 def transform_pose(XYZ, current_pose):

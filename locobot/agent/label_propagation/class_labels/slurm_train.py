@@ -190,11 +190,11 @@ class LossEvalHook(HookBase):
                 print(f'min_val {min_val} for {fname}')
                 return min_val
             
-            if os.path.isfile(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt")):
-                if get_min_val_loss(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt")) >= l:
-                    do_test_eval = True
-            else:
-                do_test_eval = True
+            # if os.path.isfile(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt")):
+            #     if get_min_val_loss(os.path.join(self.cfg.OUTPUT_DIR, "validation_results.txt")) >= l:
+            #         do_test_eval = True
+            # else:
+            #     do_test_eval = True
 
             # write validation loss, AP
             print(f'val los {self.trainer.iter} losses.mean {l}')
@@ -210,8 +210,8 @@ class LossEvalHook(HookBase):
                 f.write(json.dumps(results) + '\n')
 
             # write test AP 
-            if do_test_eval:
-                self._do_test_eval()
+            # if do_test_eval:
+            #     self._do_test_eval()
 
         self.trainer.storage.put_scalars(timetest=12)
         

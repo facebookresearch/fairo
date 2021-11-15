@@ -37,11 +37,27 @@ for obj_cls in hsd["classes"]:
         idc += 1
         
 class PickGoodCandidates:
-    def __init__(self, img_dir, depth_dir, seg_dir):
-        self.imgdir = img_dir
-        self.depthdir = depth_dir
-        self.segdir = seg_dir
+    def __init__(self, root_dir, active):
+        self.imgdir = os.path.join(root_dir, 'rgb')
+        self.depthdir = os.path.join(root_dir, 'depth')
+        self.segdir = os.path.join(root_dir, 'seg')
+        
+        num_imgs = len(os.listdir(self.imgdir))
+        
+        self.is_good = np.zeros(num_imgs+1)
+        self.area = np.zeros(num_imgs+1)
+        self.is_active = np.zeros(num_imgs+1)
+        
+        if active:
+            with open(os.path.join(root_dir, 'active_frames.txt'), 'r') as f:
+                active_frames = f.readlines()
+                active_frames = [int(x.strip()) for x in active_frames]
+                for x in active_frames:
+                    if x < len(self.is_active):
+                        self.is_active[x] = True
+        
         self.filtered = False
+        self.active = active
         self.chosen = set()
         
     def is_open_contour(self, c):
@@ -77,19 +93,48 @@ class PickGoodCandidates:
         return [self.find_nearest(x) for x in cand]
     
     def find_nearest2(self, x):
-        dist = 10000
+        dist = 100000
         res = -1
-        for y, _ in self.good_candidates:
-            if abs(x-y) < dist and y not in self.chosen:
-                dist = abs(x-y)
-                res = y
-        # now look in vicinity of res for frame with max size 
-        for x in range(4):
+        
+        # look in the eps neighborhood of x 
+        # find the closest good + active candidate
+        # find the closest good candidate
+        eps = 0
+        while True:
+            left = x - eps
+            if left >= 0 and self.is_good[left] and self.is_active[left] and left not in self.chosen:
+                res = left
+                break
+            right = x + eps
+            if right < len(self.is_good) and self.is_good[right] and self.is_active[right] and right not in self.chosen:
+                res = right
+                break
+            eps += 1
+            if left < 0 and right >= len(self.is_good):
+                break
+        
+        if res == -1:
+            eps = 0
+            while True:
+                left = x - eps
+                if left >= 0 and self.is_good[left] and left not in self.chosen:
+                    res = left
+                    break
+                right = x + eps
+                if right < len(self.is_good) and self.is_good[right] and right not in self.chosen:
+                    res = right
+                    break
+                eps += 1
+                if left < 0 and right >= len(self.is_good):
+                    break
+
+        for x in range(10):
             self.chosen.add(res+x)
             self.chosen.add(res-x)
         return res
     
     def sample_uniform_nn2(self, n):
+        self.chosen = set()
         if not self.filtered:
             self.filter_candidates()
             
@@ -108,19 +153,13 @@ class PickGoodCandidates:
         return [x[0] for x in random.sample(self.good_candidates, n)]
     
     def filter_candidates(self):
-        self.good_candidates = []
-        self.bad_candidates = []
         for x in range(len(os.listdir(self.imgdir)) + 1):
-            res, size = self.is_good_candidate(x)
-            if res:
-                self.good_candidates.append((x, size))
-#                 self.vis(x)
-            elif res == False:
-                self.bad_candidates.append(x)
-                
-        print(f'{len(self.good_candidates)} good candidates, {len(self.bad_candidates)} bad candidates')
+            if x % 100 == 0:
+                print(x)
+            is_good, area = self.is_good_candidate(x)
+            self.is_good[x] = is_good
+            self.area[x] = area
         self.filtered = True
-#         print(f'good candidates {self.good_candidates}')
             
     def visualize_good_bad(self, num):
         # TODO: sample num numbers from all, then look at he 
@@ -146,14 +185,13 @@ class PickGoodCandidates:
             plt.show()
         
     def is_good_candidate(self, x, vis=False):
-        dpath = os.path.join(self.depthdir, "{:05d}.npy".format(x))
-        imgpath = os.path.join(self.imgdir, "{:05d}.jpg".format(x))
         segpath = os.path.join(self.segdir, "{:05d}.npy".format(x))
         
         # Load Image
-        if not os.path.isfile(imgpath):
-            return None, None
-        img = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
+        if not os.path.isfile(segpath):
+            return False, 0
+        
+#         img = cv2.cvtColor(cv2.imread(imgpath), cv2.COLOR_BGR2RGB)
 #         print(img.shape)
         
         # Load Annotations 
@@ -180,7 +218,7 @@ class PickGoodCandidates:
 #             plt.imshow(binary_mask, alpha=0.5)
 
             annotation_info = pycococreatortools.create_annotation_info(
-                count, 1, category_info, binary_mask, img.shape[:2], tolerance=2
+                count, 1, category_info, binary_mask, annot.shape, tolerance=2
             )
 #             print(annotation_info)
             if annotation_info and 'area' in annotation_info.keys():
@@ -194,20 +232,22 @@ class PickGoodCandidates:
             plt.imshow(all_binary_mask)
             plt.show()
 #             print(np.unique(all_binary_mask))
+        
+        area = all_binary_mask.sum()
             
         if not all_binary_mask.any():
 #             print(f'no masks')
-            return False, None
+            return False, 0
         
         # Check that all masks are within a certain distance from the boundary
         # all pixels [:10,:], [:,:10], [-10:], [:-10] must be 0:
         if all_binary_mask[:10,:].any() or all_binary_mask[:,:10].any() or all_binary_mask[:,-10:].any() or all_binary_mask[-10:,:].any():
-            return False, None
+            return False, area
         
         if (all_binary_mask == 1).sum() < 5000:
-            return False, None
+            return False, area
         
-        return True, (all_binary_mask == 1).sum()
+        return True, area
         
     def vis(self, x, contours=None):
         
