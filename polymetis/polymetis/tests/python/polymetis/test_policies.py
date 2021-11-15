@@ -9,6 +9,8 @@ import torch
 import pytest
 
 import torchcontrol as toco
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
 
 # Setup variables
 project_root_dir = (
@@ -51,6 +53,37 @@ test_parametrized_data = [
         ),
         False,
         {"ee_pos_desired": torch.rand(3)},
+    ),
+    (
+        toco.policies.JointTrajectoryExecutor,
+        dict(
+            joint_pos_trajectory=[torch.rand(num_dofs) for _ in range(time_horizon)],
+            joint_vel_trajectory=[torch.rand(num_dofs) for _ in range(time_horizon)],
+            Kp=torch.rand(num_dofs, num_dofs),
+            Kd=torch.rand(num_dofs, num_dofs),
+            robot_model=robot_model,
+            ignore_gravity=True,
+        ),
+        True,
+        None,
+    ),
+    (
+        toco.policies.EndEffectorTrajectoryExecutor,
+        dict(
+            ee_pose_trajectory=[
+                T.from_rot_xyz(
+                    rotation=R.from_rotvec(torch.rand(3)), translation=torch.rand(3)
+                )
+                for _ in range(time_horizon)
+            ],
+            ee_twist_trajectory=[torch.rand(6) for _ in range(time_horizon)],
+            Kp=torch.rand(6, 6),
+            Kd=torch.rand(6, 6),
+            robot_model=robot_model,
+            ignore_gravity=True,
+        ),
+        True,
+        None,
     ),
     (
         toco.policies.iLQR,

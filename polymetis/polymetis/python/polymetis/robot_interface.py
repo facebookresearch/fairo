@@ -17,6 +17,8 @@ from polymetis_pb2 import LogInterval, RobotState, ControllerChunk, Empty
 from polymetis_pb2_grpc import PolymetisControllerServerStub
 
 import torchcontrol as toco
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
 
 
 # Maximum bytes we send per message to server (so as not to overload it).
