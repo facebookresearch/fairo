@@ -41,7 +41,7 @@ class Launcher(BaseLauncher):
 
         # Environmental variables.
         env = util.common_env(self.proc_def)
-        env.update(self.kwargs.pop("Env", {}))
+        env.update(self.proc_def.env)
 
         # Docker labels.
         labels = {
