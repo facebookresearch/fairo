@@ -29,7 +29,7 @@ from droidlet.dialog.dialogue_manager import DialogueManager
 from droidlet.base_util import Pos, Look, npy_to_blocks_list
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 from agents.droidlet_agent import DroidletAgent
-from droidlet.memory.memory_nodes import PlayerNode
+from droidlet.memory.memory_nodes import AttentionNode, PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.argument_parser import ArgumentParser
 from droidlet.dialog.craftassist.mc_dialogue_task import MCBotCapabilities
@@ -68,6 +68,8 @@ logging.getLogger().handlers.clear()
 sentry_sdk.init()  # enabled if SENTRY_DSN set in env
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 DEFAULT_FRAME = "SPEAKER"
+DASHBOARD_PLAYER_EID = 12345678
+DASHBOARD_PLAYER_NAME = "dashboard"
 Player = namedtuple("Player", "entityId, name, pos, look, mainHand")
 Item = namedtuple("Item", "id, meta")
 
@@ -130,13 +132,11 @@ class CraftAssistAgent(DroidletAgent):
         player called "dashboard" if it doesn't already exist."""
         all_players = self.cagent.get_other_players()
         updated_players = all_players
-        player_exists = False
-        for player in all_players:
-            if player.name == "dashboard":
-                player_exists = True
-        if not player_exists:
+
+        mem = self.memory.get_player_by_eid(DASHBOARD_PLAYER_EID)
+        if mem is None:
             newPlayer = Player(
-                12345678, "dashboard", Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
+                DASHBOARD_PLAYER_EID, DASHBOARD_PLAYER_NAME, Pos(0.0, 64.0, 0.0), Look(0.0, 0.0), Item(0, 0)
             )
             updated_players.append(newPlayer)
         return updated_players
@@ -209,6 +209,22 @@ class CraftAssistAgent(DroidletAgent):
                 cmd, DASHBOARD_PLAYER_EID, DASHBOARD_PLAYER_NAME, updated_player_pos[0], updated_player_pos[1], updated_player_pos[2],
                 updated_player_pitch, updated_player_yaw, memid
             )
+
+            memids = self.memory._db_read_one(
+                'SELECT uuid FROM ReferenceObjects WHERE ref_type="attention" AND type_name=?',
+                DASHBOARD_PLAYER_EID,
+            )
+            location = [updated_player_pos[0], updated_player_pos[1], updated_player_pos[2]]
+            if memids:
+                self.memory.db_write(
+                    "UPDATE ReferenceObjects SET x=?, y=?, z=? WHERE uuid=?",
+                    location[0],
+                    location[1],
+                    location[2],
+                    memids[0],
+                )
+            else:
+                AttentionNode.create(self, location, attender=DASHBOARD_PLAYER_EID)
 
 
     def init_inventory(self):
