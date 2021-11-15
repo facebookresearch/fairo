@@ -2,7 +2,6 @@ name: polymetis-local
 channels:
   - fair-robotics
   - aihabitat
-  - conda-forge/label/old_feature_broken
   - conda-forge
   - defaults
 dependencies:
