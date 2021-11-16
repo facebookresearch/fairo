@@ -26,10 +26,6 @@ PREGRASP_HEIGHT = 0.55
 GRASP_HEIGHT = 0.25
 PLANNER_DT = 0.02
 
-# controller gains (modified from libfranka example)
-KP_DEFAULT = torch.Tensor([300.0, 300.0, 300.0, 30.0, 30.0, 30.0])
-KD_DEFAULT = 2 * torch.sqrt(KP_DEFAULT)
-
 
 class ManipulatorSystem:
     def __init__(self):
@@ -60,8 +56,8 @@ class ManipulatorSystem:
         joint_pos_current = self.arm.get_joint_angles()
         policy = toco.policies.CartesianImpedanceControl(
             joint_pos_current=joint_pos_current,
-            Kp=KP_DEFAULT,
-            Kd=KD_DEFAULT,
+            Kp=torch.Tensor(self.arm.metadata.Kx_default),
+            Kd=torch.Tensor(self.arm.metadata.Kxd_default),
             robot_model=self.arm.robot_model,
         )
         self.arm.send_torch_policy(policy, blocking=False)
