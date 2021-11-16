@@ -27,9 +27,11 @@ import shutil
 from candidates import Candidate
 
 
-intrinsic_mat = [[381.75515747   0.         326.06439209]
-                 [  0.         381.75515747 239.70599365]
-                 [  0.           0.           1.        ]]
+intrinsic_mat = np.asarray([
+    [381.75515747,   0.,         326.06439209],
+    [  0.,         381.75515747, 239.70599365],
+    [  0.,           0.,           1.        ]
+])
 intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
 img_resolution = (480, 640)
 img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
