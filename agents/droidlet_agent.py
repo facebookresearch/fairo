@@ -11,6 +11,7 @@ import os
 from agents.core import BaseAgent
 from agents.scheduler import EmptyScheduler
 from droidlet.shared_data_structs import ErrorWithResponse
+from droidlet.interpreter import InterpreterBase
 from droidlet.event import sio, dispatch
 from droidlet.memory.save_and_fetch_commands import *
 
@@ -20,8 +21,7 @@ DATABASE_FILE_FOR_DASHBOARD = "dashboard_data.db"
 DEFAULT_BEHAVIOUR_TIMEOUT = 20
 MEMORY_DUMP_KEYFRAME_TIME = 0.5
 # a BaseAgent with:
-# 1: a controller that is (mostly) a dialogue manager, and the dialogue manager
-#      is powered by a neural semantic parser.
+# 1: a controller that is (mostly) a scripted interpreter + neural semantic parser.
 # 2: has a turnable head, can point, and has basic locomotion
 # 3: can send and receive chats
 
@@ -31,6 +31,7 @@ class DroidletAgent(BaseAgent):
         logging.info("Agent.__init__ started")
         self.name = name or default_agent_name()
         self.opts = opts
+        self.dialogue_manager = None
         self.init_physical_interfaces()
         super(DroidletAgent, self).__init__(opts, name=self.name)
         self.uncaught_error_count = 0
@@ -41,6 +42,7 @@ class DroidletAgent(BaseAgent):
         self.perceive_on_chat = False
         self.agent_type = None
         self.scheduler = EmptyScheduler()
+        
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -130,32 +132,39 @@ class DroidletAgent(BaseAgent):
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
-            logical_form = {}
-            status = ""
-            try:
-                chat_parse = self.perception_modules["language_understanding"].get_logical_form(
-                    chat=command,
-                    parsing_model=self.perception_modules["language_understanding"].parsing_model,
-                )
-                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                    speaker="dashboard", chat=command, logical_form=chat_parse
-                )
-                logging.debug("logical form is : %r" % (logical_form))
-                status = "Sent successfully"
-            except Exception as e:
-                logging.error("error in sending chat", e)
-                status = "Error in sending chat"
+            status = "Sent successfully"
             # update server memory
-            self.dashboard_memory["chatResponse"][command] = logical_form
             self.dashboard_memory["chats"].pop(0)
             self.dashboard_memory["chats"].append({"msg": command, "failed": False})
             payload = {
                 "status": status,
                 "chat": command,
-                "chatResponse": self.dashboard_memory["chatResponse"][command],
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
+
+        @sio.on("getChatActionDict")
+        def get_chat_action_dict(sid, chat):
+            logging.debug(f"Looking for action dict for command [{chat}] in memory")
+            logical_form = None
+            try:
+                chat_memids, _ = self.memory.basic_search(f"SELECT MEMORY FROM Chat WHERE chat={chat}")
+                logical_form_triples = self.memory.get_triples(
+                    subj=chat_memids[0], pred_text="has_logical_form"
+                )
+                if logical_form_triples:
+                    logical_form = self.memory.get_logical_form_by_id(
+                        logical_form_triples[0][2]
+                    ).logical_form
+                if logical_form:
+                    logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=chat, logical_form=logical_form)
+            except Exception as e:
+                logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
+            
+            payload = {
+                "action_dict": logical_form
+            }
+            sio.emit("setLastChatActionDict", payload)
 
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
@@ -236,7 +245,6 @@ class DroidletAgent(BaseAgent):
         if isinstance(e, ErrorWithResponse):
             self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
             self.memory.task_stack_clear()
-            self.dialogue_manager.dialogue_stack.clear()
             self.uncaught_error_count += 1
             if self.uncaught_error_count >= 100:
                 raise e
@@ -244,6 +252,11 @@ class DroidletAgent(BaseAgent):
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
             if self.opts.agent_debug_mode:
+                _, interpreter_mems = self.memory.basic_search(
+                    "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+                )
+                for i in interpreter_mems:
+                    i.finish()
                 return
             else:
                 raise e
@@ -287,25 +300,39 @@ class DroidletAgent(BaseAgent):
         # n hundreth of seconds since agent init
         return self.memory.get_time()
 
+    def process_language_perception(self, speaker, chat, preprocessed_chat, chat_parse):
+        """this munges the results of the semantic parser and writes them to memory"""
+
+        # add postprocessed chat here
+        chat_memid = self.memory.add_chat(
+            self.memory.get_player_by_name(speaker).memid, preprocessed_chat
+        )
+        post_processed_parse = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+            speaker=speaker, chat=chat, logical_form=chat_parse
+        )
+        logical_form_memid = self.memory.add_logical_form(post_processed_parse)
+        self.memory.add_triple(
+            subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
+        )
+        # New chat, mark as uninterpreted.
+        self.memory.tag(subj_memid=chat_memid, tag_text="uninterpreted")
+        return logical_form_memid, chat_memid
+
     def perceive(self, force=False):
         start_time = datetime.datetime.now()
+
+        # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.perception_modules["language_understanding"].perceive(
             force=force
         )
+        # unpack the results from the semantic parsing model
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )
         if received_chats_flag:
-            # add postprocessed chat here
-            chat_memid = self.memory.add_chat(
-                self.memory.get_player_by_name(speaker).memid, preprocessed_chat
-            )
-            logical_form_memid = self.memory.add_logical_form(chat_parse)
-            self.memory.add_triple(
-                subj=chat_memid, pred_text="has_logical_form", obj=logical_form_memid
-            )
-            # New chat, mark as unprocessed.
-            self.memory.tag(subj_memid=chat_memid, tag_text="unprocessed")
+            # put results from semantic parsing model into memory, if necessary
+            self.process_language_perception(speaker, chat, preprocessed_chat, chat_parse)
+
             # Send data to the dashboard timeline
             end_time = datetime.datetime.now()
             hook_data = {
@@ -323,7 +350,6 @@ class DroidletAgent(BaseAgent):
 
     def controller_step(self):
         """Process incoming chats and modify task stack"""
-
         obj = self.dialogue_manager.step()
         if not obj:
             # Maybe add default task
@@ -333,6 +359,17 @@ class DroidletAgent(BaseAgent):
         elif type(obj) is dict:
             # this is a dialogue Task, set it to run:
             obj["task"](self, task_data=obj["data"])
+        elif isinstance(obj, InterpreterBase):
+            # this object is an Interpreter, step it and check if its finished
+            obj.step(self)
+            if obj.finished:
+                self.memory.get_mem_by_id(obj.memid).finish()
+        else:
+            raise Exception(
+                "strange obj (not Interpreter or DialogueTask) returned from dialogue manager {}".format(
+                    obj
+                )
+            )
 
         # check to see if some Tasks were put in memory that need to be
         # hatched using agent object (self):
@@ -343,14 +380,10 @@ class DroidletAgent(BaseAgent):
                 self, task_data=task_mem.task["task_data"], memid=task_mem.memid
             )
 
-        # Always call dialogue_stack.step(), even if chat is empty
-        if len(self.memory.dialogue_stack) > 0:
-            self.memory.dialogue_stack.step(self)
-
     def maybe_run_slow_defaults(self):
         """Pick a default task task to run
         with a low probability"""
-        if self.memory.task_stack_peek() or len(self.dialogue_manager.dialogue_stack) > 0:
+        if self.memory.task_stack_peek():
             return
 
         # default behaviors of the agent not visible in the game

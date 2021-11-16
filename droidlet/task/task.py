@@ -287,7 +287,10 @@ class BaseMovementTask(Task):
 def maybe_task_list_to_control_block(maybe_task_list, agent):
     """
     if input is a list of tasks with len > 1, outputs a ControlBlock wrapping them
-    if it is a list of tasks with len = 1, returns that task
+    if input is a list of tasks with len = 1, returns that task
+    if inpput is a callable, it is assumed to be a new_tasks() fn,
+        returns a ControlBlock wrapping input.
+
 
     Args:
         maybe_task_list:  could be a list of Task objects or a Task object
@@ -300,7 +303,11 @@ def maybe_task_list_to_control_block(maybe_task_list, agent):
     if len(maybe_task_list) == 1:
         return maybe_task_list[0]
     if type(maybe_task_list) is not list:
-        return maybe_task_list
+        if callable(maybe_task_list):
+            return ControlBlock(agent, {"new_tasks": maybe_task_list})
+        else:
+            assert isinstance(maybe_task_list, Task)
+            return maybe_task_list
     W = TaskListWrapper(agent)
     for t in maybe_task_list:
         W.append(t)

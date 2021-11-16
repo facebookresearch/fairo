@@ -4,8 +4,11 @@ set -ex
 source ~/miniconda3/etc/profile.d/conda.sh
 conda activate droidlet_env
 
+pip install -r agents/locobot/requirements.txt
+python setup.py develop
+
 echo "Downloading datasets, models ..."
-yes | tools/data_scripts/try_download.sh locobot &
+yes | python droidlet/tools/data_scripts/try_download.py --agent_name locobot --test_mode &
 wait
 echo "Done!"
 
@@ -20,49 +23,29 @@ python -m Pyro4.naming -n $LOCOBOT_IP &
 sleep 3
 
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
-BGPID=$!
-sleep 45
+droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
 conda activate droidlet_env
 python droidlet/lowlevel/locobot/tests/smoke_test.py
-kill -9 $BGPID
-sleep 5
 
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
-BGPID=$!
-sleep 45
+droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
 conda activate droidlet_env
 pushd droidlet/lowlevel/locobot/tests/
 pytest --cov-report=xml:$SHARED_PATH/test_habitat.xml --cov=../ test_habitat.py --disable-pytest-warnings
 popd
-kill -9 $BGPID
-sleep 5
 
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
-BGPID=$!
-sleep 45
+droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
+
 conda activate droidlet_env
-pip install -r agents/locobot/requirements.txt
-python setup.py develop
 
 pytest --cov-report=xml:$SHARED_PATH/test_mover.xml --cov=droidlet droidlet/lowlevel/locobot/tests/test_mover.py --disable-pytest-warnings
-kill -9 $BGPID
-sleep 5
 
 
-# start habitat
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
-BGPID=$!
-sleep 45
-
-# run test
+droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
 conda activate droidlet_env
 pytest --cov-report=xml:$SHARED_PATH/test_handlers.xml --cov=droidlet droidlet/perception/robot/tests/test_perception.py --disable-pytest-warnings
-
-kill -9 $BGPID # kill habitat
 
 
 pytest --cov-report=xml:$SHARED_PATH/test_memory.xml --cov=agents --cov=droidlet agents/locobot/tests/test_memory.py --disable-pytest-warnings
@@ -71,15 +54,7 @@ pytest --cov-report=xml:$SHARED_PATH/test_memory_low_level.xml --cov=droidlet dr
 pytest --cov-report=xml:$SHARED_PATH/test_utils.xml --cov=droidlet droidlet/lowlevel/locobot/tests/test_utils.py --disable-pytest-warnings
 
 
-# start habitat
 conda activate habitat_env
-python droidlet/lowlevel/locobot/remote/remote_locobot.py --ip $LOCOBOT_IP --backend habitat &
-BGPID=$!
-sleep 45
-
-# run test
+droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
 conda activate droidlet_env
 ./agents/locobot/tests/test_agent.sh
-
-# kill habitat
-kill -9 $BGPID

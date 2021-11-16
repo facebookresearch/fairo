@@ -33,11 +33,8 @@ class MCGetMemoryHandler(GetMemoryHandler):
 
     """
 
-    def __init__(
-        self, speaker_name: str, action_dict: Dict, low_level_data: Dict = None, **kwargs
-    ):
-        super().__init__(speaker_name, action_dict, **kwargs)
-        self.memid = InterpreterNode.create(self.memory)
+    def __init__(self, speaker, logical_form_memid, agent_memory, memid=None, low_level_data=None):
+        super().__init__(speaker, logical_form_memid, agent_memory, memid=memid)
         self.get_locs_from_entity = low_level_data["get_locs_from_entity"]
         self.subinterpret = {
             "filters": FilterInterpreter(),

@@ -111,10 +111,18 @@ class ManipulatorSystem:
         self.gripper.grasp(speed=0.1, force=1.0)
         time.sleep(0.5)
 
+        # Check state
+        state = self.gripper.get_state()
+        assert state.width < state.max_width
+
     def open_gripper(self):
         max_width = self.gripper.get_state().max_width
         self.gripper.goto(width=max_width, speed=0.1, force=1.0)
         time.sleep(0.5)
+
+        # Check state
+        state = self.gripper.get_state()
+        assert np.allclose(state.width, state.max_width, atol=1e-3)
 
     def grasp_pose_to_pos_quat(self, grasp_pose, z):
         x, y, rz = grasp_pose

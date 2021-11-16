@@ -14,16 +14,18 @@ requirements:
   build:
     - assimp=5.0.1=hdca8b6f_4
     - cmake
-    - cudatoolkit=10.1
+    - cpuonly
+    - cudatoolkit=11.3
     - doxygen
-    - grpc-cpp=1.35.0=h146f9af_0
+    - eigen=3.3.9
+    - grpc-cpp ==1.41.1
     - hpp-fcl=1.6.0=py38h75fc22a_1
-    - libprotobuf
+    - libprotobuf ==3.18.1
     - openmpi ==2.1.2
     - pinocchio ==2.5.2
     - poco ==1.9.0 # needed by libfranka
     - python
-    - pytorch-cpu=1.6.0=py3.8_cpu_1_cxx11_abi
+    - pytorch ==1.10.0
     - urdfdom=2.3.3=hc9558a2_0
     - urdfdom_headers=1.0.5=hc9558a2_2
     - yaml-cpp
@@ -33,10 +35,10 @@ requirements:
     - boost ==1.72.0
     - boost-cpp ==1.72.0
     - breathe
-    - cudatoolkit=10.1
+    - cudatoolkit=11.3
     - dash
     - doxygen
-    - grpc-cpp=1.35.0=h146f9af_0
+    - grpc-cpp ==1.41.1
     - grpcio
     - habitat-sim=0.2.1=py3.8_bullet_linux_fc7fb11ccec407753a73ab810d1dbb5f57d0f9b9
     - hydra-core==1.0.6
@@ -52,7 +54,7 @@ requirements:
     - pytest
     - pytest-benchmark
     - python
-    - pytorch=1.6.0=py3.8_cuda10.1_cudnn7.6.5_1_cxx11_abi
+    - pytorch ==1.10.0
     - scipy
     - sphinx
     - sphinx-book-theme

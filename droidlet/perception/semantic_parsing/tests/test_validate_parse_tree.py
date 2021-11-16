@@ -7,7 +7,7 @@ from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from droidlet.shared_data_structs import MockOpt
 
 TTAD_MODEL_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/models/semantic_parser/"
+    os.path.dirname(__file__), "../../../../agents/craftassist/models/nlu/"
 )
 TTAD_BERT_DATA_DIR = os.path.join(
     os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"

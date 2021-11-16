@@ -4,62 +4,86 @@ Deploy, launch, manage, and orchestrate heteronigious robots with ease!
 
 ## Install
 
-Before installing, you'll need python3+pip and docker.
+Before installing, you'll need python3+pip, conda, and docker. The later two only if using the runtime.
 
 ```sh
-pip install .
-docker build -t fbrp/base .
+pip install fbrp
 ```
 
-## Example
+## Commands
 
-The example has three dummy processes, to show off different aspects of `fbrp_setup.py`.
+### up
 
-* mycamera: A docker-based process.
-* myimu: A conda-based process.
-* myimageproc: A docker-based process, with a dependency on mycamera.
-
-`cd` into the example and run one of:
+Starts all defined processes, or a given subset.
 ```sh
 # To bring up all the processes:
-python fbrp_setup.py up
-# To bring up the image processer and the camera dependency:
-python fbrp_setup.py up myimageproc
-# To bring up the image processer without any dependencies:
-python fbrp_setup.py up myimageproc --nodeps
-# To rebuild the process and run replace it within the running system:
-python fbrp_setup.py up myimageproc -f --nodeps
+python fsetup.py up
+# To bring up myproc:
+python fsetup.py up myproc
+# Add -v for verbose building print-outs:
+python fsetup.py up -v myproc
 ```
 
+### down
+Stops all defined processes, or a given subset.
+```sh
+# To bring down all the processes:
+python fsetup.py down
+# To bring down myproc:
+python fsetup.py down myproc
+```
+
+### logs
 All the processes default to running in the background. To see the stdout:
 ```sh
-python fbrp_setup.py logs
+# Attach to the log stream of all processes:
+python fsetup.py logs
+# Attach to the log stream of myproc:
+python fsetup.py logs myproc
+# Attach to the log stream of all processes, starting from the beginning:
+python fsetup.py logs --old
 ```
 
-To bring down one process in the running system:
-```
-python fbrp_setup.py down <process>
-```
-
-To bring down the whole system:
-```
-python fbrp_setup.py down
+### ps
+See the state of running processes:
+```sh
+python fsetup.py ps
 ```
 
-To debug a process in pdb:
-```
-python fbrp_setup.py pdb
+## Runtime
+
+### Conda
+
+Run a process within a conda environment:
+```py
+fbrp.process(
+    name="proc",
+    runtime=fbrp.Conda(
+        yaml="env.yml",
+        run_command=["python3", "proc.py"],
+    ),
+)
 ```
 
-## TODO:
+The environment can be provided as a yaml file, local env name, or a list of channels and dependencies.
 
-* Consider non-docker container environments:
-  * Singularity
-  * Conda
-* Remote execution.
-* Extend api.
-* Provide utility processes:
-  * Logging
-  * System monitoring
-  * Configuration
-  * ...
+### Docker
+
+```py
+fbrp.process(
+    name="api",
+    runtime=fbrp.Docker(image="ghcr.io/alephzero/api:latest"),
+)
+```
+
+The environment can be provided as a dockerfile or image name.
+
+Mount points can be added with
+```py
+runtime=fbrp.Docker(
+    image="ghcr.io/alephzero/log:latest",
+    mount=["/tmp/logs:/tmp/logs"],
+),
+```
+
+Other kwargs passed to Docker will be passed directly to the docker engine.

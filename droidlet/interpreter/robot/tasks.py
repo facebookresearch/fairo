@@ -11,7 +11,7 @@ from droidlet.memory.memory_nodes import TaskNode
 
 from droidlet.interpreter.robot.objects import DanceMovement
 
-from droidlet.lowlevel.locobot.locobot_mover_utils import (
+from droidlet.lowlevel.robot_mover_utils import (
     get_move_target_for_point,
     ARM_HEIGHT,
     get_camera_angles,
@@ -80,8 +80,10 @@ class Look(Task):
 class Point(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.target = np.array(task_data["target"])
+        self.target = np.asarray(task_data["target"])
+        print(f'type {type(self.target), self.target}')
         self.steps = ["not_started"] * 2
+        TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def get_pt_from_region(self, region):
         assert (
@@ -92,30 +94,31 @@ class Point(Task):
     @Task.step_wrapper
     def step(self):
         self.interrupted = False
+        print(f'target {self.target}')
         pt = self.get_pt_from_region(self.target.tolist())
         logging.info(f"Calling bot to Point at {pt}")
-        logging.info(f"base pos {agent.mover.get_base_pos_in_canonical_coords()}")
+        logging.info(f"base pos {self.agent.mover.get_base_pos_in_canonical_coords()}")
 
         # Step 1 - Move close to the object.
         if self.steps[0] == "not_started":
             base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
             target = get_move_target_for_point(base_pos, pt)
             logging.info(f"Move Target for point {target}")
-            self.add_child_task(Move(self.agent, {"target": target}), self.agent)
+            self.add_child_task(Move(self.agent, {"target": target}))
             self.steps[0] = "finished"
             return
 
         # Step 2 - Turn so that the object is in FOV
         if self.steps[0] == "finished" and self.steps[1] == "not_started":
-            base_pos = agent.mover.get_base_pos_in_canonical_coords()
+            base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
             yaw_rad, _ = get_camera_angles([base_pos[0], ARM_HEIGHT, base_pos[1]], pt)
-            self.add_child_task(Turn(agent, {"yaw": yaw_rad}), agent)
+            self.add_child_task(Turn(self.agent, {"yaw": yaw_rad}))
             self.steps[1] = "finished"
             return
 
         # Step 3 - Point at the object
         if self.steps[0] == "finished" and self.steps[1] == "finished":
-            status = agent.mover.point_at(pt)
+            status = self.agent.mover.point_at(pt)
             if status == "finished":
                 self.finished = True
 
