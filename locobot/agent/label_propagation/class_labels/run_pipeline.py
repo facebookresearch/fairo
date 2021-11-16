@@ -47,40 +47,50 @@ def log_job_start(args, jobs):
         f.write(f"num_jobs {str(len(jobs))}\n")
 
 
-def _runner(traj, gt, p, args):
+from diskcache import Cache
+cache = Cache("/checkpoint/soumith/cache")
+
+@cache.memoize(name="get_candidates", tag="get_candidates")
+def get_candidates(traj_path, gt, active):
+    s = PickGoodCandidates(traj_path, active=active)
+    src_img_ids = s.sample_uniform_nn2(gt)
+    return src_img_ids
+
+
+def _runner(traj, gt, p, active, data_path, job_folder, num_train_samples):
     start = datetime.now()
-    if not args.active:
-        traj_path = os.path.join(args.data_path, str(traj))
+    if not active:
+        traj_path = os.path.join(data_path, str(traj))
         print(f'traj_path {traj_path}')
         if os.path.isdir(traj_path):
             basic_sanity(traj_path)
-            outdir = os.path.join(args.job_folder, str(traj), f'pred_label_gt{gt}p{p}')
+            outdir = os.path.join(job_folder, str(traj), f'pred_label_gt{gt}p{p}')
             s = PickGoodCandidates(traj_path, active=False)
-            src_img_ids = s.sample_uniform_nn2(gt)
+            src_img_ids = get_candidates(traj_path, gt, False)
             # src_img_ids = [10, 20, 30, 40, 50]
             print(f'src_img_ids {src_img_ids}, outdir {outdir}')
             run_label_prop(outdir, gt, p, traj_path, src_img_ids)
             if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
                 run_coco(outdir)
-                run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples)
+                run_training(outdir, os.path.join(outdir, 'rgb'), num_train_samples)
                 end = datetime.now()
-                with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
+                with open(os.path.join(job_folder, 'timelog.txt'), "a") as f:
                     f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
     else:
         for x in ['default']: #, 'activeonly']:
-            traj_path = os.path.join(args.data_path, str(traj), x)
+            traj_path = os.path.join(data_path, str(traj), x)
             if os.path.isdir(traj_path):
                 basic_sanity(traj_path)
-                outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
-                s = PickGoodCandidates(traj_path, active=True)
-                src_img_ids = s.sample_uniform_nn2(gt)
+                outdir = os.path.join(job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
+                src_img_ids = get_candidates(traj_path, gt, True)
+                print('src_img_ids', src_img_ids)
                 # src_img_ids = get_src_img_ids('active', traj)
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
                 if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
                     run_coco(outdir)
-                    run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples, active=True)
+                    run_training(outdir, os.path.join(outdir, 'rgb'), num_train_samples, active=True)
                     end = datetime.now()
-                    with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
+                    with open(os.path.join(job_folder, 'timelog.txt'), "a") as f:
                         f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
 
 if __name__ == "__main__":
@@ -165,6 +175,6 @@ if __name__ == "__main__":
     else:
         print('running locally ...')
         for traj in range(args.num_traj+1):
-                for gt in range(5, 10, 5):
-                    for p in range(5, 10, 5): # only run for fixed gt locally to test
-                        _runner(traj, gt, p, args)
+            for gt in range(5, 10, 5):
+                for p in range(5, 10, 5): # only run for fixed gt locally to test
+                    _runner(traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples)
