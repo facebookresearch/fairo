@@ -23,9 +23,20 @@ from pycocotools.coco import COCO
 import glob
 import argparse
 import shutil
-
+from numba import njit
 
 os.environ['RAY_OBJECT_STORE_ALLOW_SLOW_STORAGE']='1'
+
+@njit
+def meshgrid(x, y):
+    h, w = len(y), len(x)
+    o = np.zeros((h, w))
+    p = np.zeros((h, w))
+    for i in range(w):
+        for j in range(h):
+            o[j, i] = x[i]
+            p[j, i] = y[j]
+    return o, p
 
 # this function is implemented at 'from locobot.agent.locobot_mover_utils import transform_pose'
 # however ray was having toruble finding the function
@@ -44,6 +55,100 @@ def transform_pose(XYZ, current_pose):
     XYZ[:, 0] = XYZ[:, 0] + current_pose[0]
     XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
     return XYZ
+
+from numba import njit
+
+# only consider depth matching for these points
+# filter out point based on projected depth value wold frmae,
+# this helps us get rid of pixels for which view to the object
+# is blocked by any other object, as in that was projected
+# 3D point in wolrd frmae for the current pix wont
+# match with 3D point in the gt provide label
+@njit
+def _process(annot_img, pix_color, req_pts_in_world, pts_in_cur_img, kernal_size, height, width, cur_pts_in_world):
+    
+    # filter out index which fall beyond the shape of img size
+    filtered_img_indx = np.logical_and(
+        np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
+        np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
+    )
+
+    dist_thr = 5e-2  # this is in meter
+    for pixel_index in range(len(filtered_img_indx)):
+        if filtered_img_indx[pixel_index]:
+            # search in the region
+            gt_pix_depth_in_world = req_pts_in_world[pixel_index]
+            y = list(range(
+                    int(pts_in_cur_img[pixel_index][1] - kernal_size),
+                    int(pts_in_cur_img[pixel_index][1] + kernal_size),
+                ))
+            x = list(range(
+                    int(pts_in_cur_img[pixel_index][0] - kernal_size),
+                    int(pts_in_cur_img[pixel_index][0] + kernal_size),
+                ))
+
+            p, q = meshgrid(x, y)
+            loc = p * width + q
+            loc = loc.reshape(-1).astype(np.int32)
+            loc = np.clip(loc, 0, width * height - 1).astype(np.int32)
+
+            # min_dist = min(np.linalg.norm(diff, axis=1))
+            diff = cur_pts_in_world[loc] - gt_pix_depth_in_world
+            min_dist = 99999999.
+            for i in range(diff.shape[1]):
+                norm = np.linalg.norm(diff[:, i])
+                if norm < min_dist:
+                    min_dist = norm
+
+            if (min_dist > dist_thr):
+                filtered_img_indx[pixel_index] = False
+
+    # take out filtered pix values
+    pts_in_cur_img = pts_in_cur_img[filtered_img_indx]
+    # step to take care of quantization erros
+    pts_in_cur_img = np.concatenate(
+        (
+            np.concatenate(
+                (
+                    np.ceil(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                    np.ceil(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                ),
+                axis=1,
+            ),
+            np.concatenate(
+                (
+                    np.floor(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                    np.floor(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                ),
+                axis=1,
+            ),
+            np.concatenate(
+                (
+                    np.ceil(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                    np.floor(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                ),
+                axis=1,
+            ),
+            np.concatenate(
+                (
+                    np.floor(pts_in_cur_img[:, 0]).reshape(-1, 1),
+                    np.ceil(pts_in_cur_img[:, 1]).reshape(-1, 1),
+                ),
+                axis=1,
+            ),
+        )
+    )
+    pts_in_cur_img = pts_in_cur_img[:, :2].astype(np.int32)
+
+    # filter out index which fall beyonf the shape of img size, had to perform this step again to take care if any out of the image size point is introduced by the above quantization step
+    pts_in_cur_img = pts_in_cur_img[
+        np.logical_and(
+            np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
+            np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
+        )
+    ]
+
+    return pts_in_cur_img
 
 
 @ray.remote
@@ -175,90 +280,14 @@ def propogate_label(
             pts_in_cur_img = np.matmul(intrinsic_mat, pts_in_cur_cam.T).T
             pts_in_cur_img /= pts_in_cur_img[:, 2].reshape([-1, 1])
 
-            # filter out index which fall beyond the shape of img size
-            filtered_img_indx = np.logical_and(
-                np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
-                np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
-            )
 
-            # only consider depth matching for these points
-            # filter out point based on projected depth value wold frmae, this helps us get rid of pixels for which view to the object is blocked by any other object, as in that was projected 3D point in wolrd frmae for the current pix wont match with 3D point in the gt provide label
-            dist_thr = 5e-2  # this is in meter
-            for pixel_index in range(len(filtered_img_indx)):
-                if filtered_img_indx[pixel_index]:
-                    # search in the region
-                    gt_pix_depth_in_world = req_pts_in_world[pixel_index]
-                    p, q = np.meshgrid(
-                        range(
-                            int(pts_in_cur_img[pixel_index][1] - kernal_size),
-                            int(pts_in_cur_img[pixel_index][1] + kernal_size),
-                        ),
-                        range(
-                            int(pts_in_cur_img[pixel_index][0] - kernal_size),
-                            int(pts_in_cur_img[pixel_index][0] + kernal_size),
-                        ),
-                    )
-                    loc = p * width + q
-                    loc = loc.reshape(-1).astype(np.int32)
-                    loc = np.clip(loc, 0, width * height - 1).astype(np.int32)
-
-                    if (
-                        min(np.linalg.norm(cur_pts_in_world[loc] - gt_pix_depth_in_world, axis=1))
-                        > dist_thr
-                    ):
-                        filtered_img_indx[pixel_index] = False
-
-            # take out filtered pix values
-            pts_in_cur_img = pts_in_cur_img[filtered_img_indx]
-
-            # step to take care of quantization erros
-            pts_in_cur_img = np.concatenate(
-                (
-                    np.concatenate(
-                        (
-                            np.ceil(pts_in_cur_img[:, 0]).reshape(-1, 1),
-                            np.ceil(pts_in_cur_img[:, 1]).reshape(-1, 1),
-                        ),
-                        axis=1,
-                    ),
-                    np.concatenate(
-                        (
-                            np.floor(pts_in_cur_img[:, 0]).reshape(-1, 1),
-                            np.floor(pts_in_cur_img[:, 1]).reshape(-1, 1),
-                        ),
-                        axis=1,
-                    ),
-                    np.concatenate(
-                        (
-                            np.ceil(pts_in_cur_img[:, 0]).reshape(-1, 1),
-                            np.floor(pts_in_cur_img[:, 1]).reshape(-1, 1),
-                        ),
-                        axis=1,
-                    ),
-                    np.concatenate(
-                        (
-                            np.floor(pts_in_cur_img[:, 0]).reshape(-1, 1),
-                            np.ceil(pts_in_cur_img[:, 1]).reshape(-1, 1),
-                        ),
-                        axis=1,
-                    ),
-                )
-            )
-            pts_in_cur_img = pts_in_cur_img[:, :2].astype(int)
-
-            # filter out index which fall beyonf the shape of img size, had to perform this step again to take care if any out of the image size point is introduced by the above quantization step
-            pts_in_cur_img = pts_in_cur_img[
-                np.logical_and(
-                    np.logical_and(0 <= pts_in_cur_img[:, 0], pts_in_cur_img[:, 0] < height),
-                    np.logical_and(0 <= pts_in_cur_img[:, 1], pts_in_cur_img[:, 1] < width),
-                )
-            ]
+            pts_in_cur_img = _process(annot_img, pix_color, req_pts_in_world, pts_in_cur_img, kernal_size, height, width, cur_pts_in_world)
+            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color                
 
             # number of pointf for the label found in cur img
             # print("pts in cam = {}".format(len(pts_in_cur_cam)))
 
             # assign label to correspoinding pix values
-            annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
         # store the annotation file
         np.save(os.path.join(os.path.join(out_dir, 'seg'), "{:05d}.npy".format(out_indx)), annot_img.astype(np.uint32))
