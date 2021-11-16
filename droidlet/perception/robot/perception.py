@@ -22,7 +22,7 @@ class Perception:
     models (for example our object detector) as a separate process.
 
     Args:
-        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
+        model_data_dir (string): path for all perception models (default: droidlet/artifacts/models/perception/locobot)
     """
 
     def __init__(self, model_data_dir, default_keypoints_path=False):

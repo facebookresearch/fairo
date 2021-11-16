@@ -329,14 +329,14 @@ def main():
     )
     parser.add_argument(
         "--output_dir",
-        default="agents/craftassist/models/nlu/ttad_bert_updated/",
+        default="droidlet/artifacts/models/nlu/ttad_bert_updated/",
         type=str,
         help="Where we save the model",
     )
     parser.add_argument("--model_name", default="caip_parser", type=str, help="Model name")
     parser.add_argument(
         "--tree_voc_file",
-        default="agents/craftassist/models/nlu/ttad_bert_updated/caip_test_model_tree.json",
+        default="droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model_tree.json",
         type=str,
         help="Pre-computed grammar and output vocabulary",
     )

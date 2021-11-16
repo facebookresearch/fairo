@@ -58,7 +58,7 @@ class ArgumentParser:
         )
         nsp_parser.add_argument(
             "--nsp_models_dir",
-            default="models/nlu/",
+            default="droidlet/artifacts/models/nlu/",
             help="path to semantic parsing models",
         )
         nsp_parser.add_argument(
@@ -105,7 +105,7 @@ class ArgumentParser:
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",
-            default="models/perception/",
+            default="droidlet/artifacts/models/perception/locobot",
             help="path to perception model data dir",
         )
         loco_parser.add_argument(
