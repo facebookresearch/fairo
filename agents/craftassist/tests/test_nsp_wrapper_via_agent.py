@@ -48,13 +48,13 @@ class FakeAgent(DroidletAgent):
 
 
 TTAD_MODEL_DIR = os.path.join(
-    os.path.dirname(__file__), "../models/nlu/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/models/nlu/"
 )
 TTAD_BERT_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../datasets/annotated_data/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/annotated_data/"
 )
 GROUND_TRUTH_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../datasets/ground_truth/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/ground_truth/"
 )
 
 

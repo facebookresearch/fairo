@@ -4,10 +4,10 @@ import unittest
 from droidlet.perception.semantic_parsing.nsp_transformer_model.query_model import NSPBertModel as Model
 
 NLU_MODEL_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/models/nlu/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/models/nlu/"
 )
 NLU_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/annotated_data/"
 )
 
 class TestNSPModel(unittest.TestCase):
