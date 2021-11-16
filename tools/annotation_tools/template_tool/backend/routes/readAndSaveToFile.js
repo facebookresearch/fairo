@@ -144,7 +144,7 @@ router.post("/uploadDataToS3", function (req, res, next) {
     return res.status(500).json({ error: error.toString() });
   }
 
-  res.send("Saved processed dataset to ~/droidlet/craftassist/agent/datasets/full_data/");
+  res.send("Saved processed dataset to ~/droidlet/artifacts/datasets/full_data/");
 });
 
 module.exports = router;

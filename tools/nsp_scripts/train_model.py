@@ -460,7 +460,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_dir",
-        default="agents/craftassist/datasets/annotated_data/",
+        default="droidlet/artifacts/datasets/annotated_data/",
         type=str,
         help="train/valid/test data",
     )
