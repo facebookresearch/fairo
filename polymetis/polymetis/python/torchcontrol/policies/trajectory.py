@@ -22,6 +22,8 @@ class JointTrajectoryExecutor(toco.PolicyModule):
         ignore_gravity=True,
     ):
         """
+        Executes a joint trajectory by using a joint PD controller to stabilize around waypoints in the trajectory.
+
         Args:
             joint_pos_trajectory: Joint position trajectory as list of tensors
             joint_vel_trajectory: Joint position trajectory as list of tensors
@@ -90,6 +92,10 @@ class EndEffectorTrajectoryExecutor(toco.PolicyModule):
         ignore_gravity: bool = True,
     ):
         """
+        Executes a EE pose trajectory by using a Cartesian PD controller to stabilize around waypoints in the trajectory.
+
+        TODO: Currently not performant enough to run on hardware.
+
         Args:
             ee_pose_trajectory: End effector pose trajectory as a list of TransformationObj
             ee_twist_trajectory: End effector twist (velocity + angular velocity) trajectory as list of tensors
