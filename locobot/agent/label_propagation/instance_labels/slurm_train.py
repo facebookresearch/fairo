@@ -311,8 +311,12 @@ def run_training(out_dir, img_dir_train, n=10, active=False):
     # val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/coco_val.json'
     # val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_2/coco_val.json'
     # img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_2/rgb'
-    img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/rgb'
-    val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/coco_val.json'
+    # img_dir_val = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/rgb'
+    # val_json = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1114/coco_val.json'
+    # val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_test_cvpr2/coco_val.json'
+    # img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_test_cvpr2/rgb'
+    val_json_1116 = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/coco_val.json'
+    img_dir_val_1116 = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/rgb'
     for lr in lrs:
         for warmup in warmups:
             for maxiter in maxiters:
@@ -328,4 +332,4 @@ def run_training(out_dir, img_dir_train, n=10, active=False):
                     dataset_name = out_dir.split('/')[-1]
                     c = COCOTrain(lr, warmup, maxiter, i, dataset_name)
                     print(f'dataset_name {dataset_name}')
-                    c.run_train(train_json, img_dir_train, dataset_name, val_json, img_dir_val)
+                    c.run_train(train_json, img_dir_train, dataset_name, val_json_1116, img_dir_val_1116)

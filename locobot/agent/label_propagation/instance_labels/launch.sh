@@ -66,7 +66,11 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_train_sam
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled3/baseline apartment_0/default/no_noise 1 --slurm
 
 
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1115_nodownsamplingbaseline/active apartment_0/straightline/no_noise 1 --slurm prop_all_no_downsampling_baseline
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1116_cvpr/active apartment_0/straightline/no_noise 1 cvpr_run --slurm 
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1116_cvpr/baseline apartment_0/default/no_noise 1 cvpr_run --slurm
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled3_1116_cvpr/active apartment_0/straightline/no_noise 1 cvpr_run --slurm 
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled3_1116_cvpr/baseline apartment_0/default/no_noise 1 cvpr_run --slurm
+
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1115_nodownsamplingbaseline/baseline apartment_0/default/no_noise 1 --slurm prop_all_no_downsampling_baseline
 
 # /checkpoint/apratik/data_devfair0187/apartment_0/instance_det_sampled1_1114

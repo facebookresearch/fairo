@@ -167,7 +167,7 @@ if __name__ == "__main__":
         with executor.batch():
             for traj in range(args.num_traj+1):
                 for gt, p in gtps:
-                    job = executor.submit(_runner, traj, gt, p, args)
+                    job = executor.submit(_runner, traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples)
                     jobs.append(job)
         log_job_start(args, jobs)
         print(f'{len(jobs)} jobs submitted')

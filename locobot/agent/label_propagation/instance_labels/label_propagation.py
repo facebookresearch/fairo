@@ -279,7 +279,7 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
     # out_dir = args.out_dir #os.path.join(root_path, args.out_dir)
     ray.shutdown()
     # use all avialeble cpus -1
-    ray.init(num_cpus=os.cpu_count() - 1)
+    ray.init(num_cpus=os.cpu_count()-1)
     result_ids = []
     if not os.path.isdir(out_dir):
         os.makedirs(out_dir)
@@ -308,8 +308,8 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
     frame_range_begin = 0
     for candidate in candidates:
         src_img_indx = candidate.img_id
-        left_prop = min(propagation_step, candidate.left_prop)
-        right_prop = min(propagation_step, candidate.right_prop)
+        left_prop = propagation_step #min(propagation_step, candidate.left_prop)
+        right_prop = propagation_step #min(propagation_step, candidate.right_prop)
 
         if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
             result.append(

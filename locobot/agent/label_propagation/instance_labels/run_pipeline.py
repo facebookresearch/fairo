@@ -36,11 +36,13 @@ def get_src_img_ids(heu, traj):
     return 
 
 # for apartment_0
-instance_ids = [404,196,133] #[193,404,196,172,243,133,129,170]
+instance_ids = [243,404,196,133,166,170,172] #[404,196,133] #[193,404,196,172,243,133,129,170]
 
 def _runner(gt, p, args):
     start = datetime.now()
     traj_path = args.data_path
+    if not os.path.isdir(args.data_path):
+        print(f'{args.data_path} does not exist!')
     if os.path.isdir(traj_path):
         basic_sanity(traj_path)
         outdir = os.path.join(args.job_folder, f'pred_label_gt{gt}p{p}')
@@ -142,5 +144,5 @@ if __name__ == "__main__":
     else:
         print('running locally ...')
         for gt in range(1, 2):
-            for p in range(4, 30, 8): # only run for fixed gt locally to test
+            for p in range(0, 8, 4): # only run for fixed gt locally to test
                 _runner(gt, p, args)

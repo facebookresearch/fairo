@@ -42,7 +42,7 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # find . -name instances_predictions.pth -exec rm -vf {} \;
 
 # arthur's
-# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115_nodownsamplingbaseline apartment_0/default/no_noise 5 2 rehearsal_run
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115_nodownsamplingbaseline apartment_0/default/no_noise 1 1 rehearsal_run
 
 # soumith's
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314_sampled20_1115_nodownsamplingbaseline apartment_0/straightline/no_noise 5 2 rehearsal_run --active 
