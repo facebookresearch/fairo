@@ -8,6 +8,7 @@
 # 3. Project the point cloud back the images
 from tokenize import String
 import numpy as np
+import math
 import os
 import sys
 if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
@@ -102,8 +103,8 @@ def get_pcd(depth, base_pose, rot, trans):
 
 def get_telemetry(data, idx):
     data = data[str(idx)]
-    base_pose = data['base_xyt']
-    T = data['cam_transform']
+    base_pose = np.asarray(data['base_xyt'])
+    T = np.asarray(data['cam_transform'])
     
     rot = T[:3, :3]
     rot = np.array(rot)
@@ -149,8 +150,11 @@ def propogate_label(
         src_pose, src_rot, src_trans = get_telemetry(pose_data, src_img_indx)
     except:
         print(f"Couldn't load index {src_img_indx} from {root_path}")
+        raise
         return
 
+    height, width, channels = src_img.shape
+    img_resolution = (height, width)
 
     ### calculate point cloud in different frmaes ###
     # point cloud in camera frmae
