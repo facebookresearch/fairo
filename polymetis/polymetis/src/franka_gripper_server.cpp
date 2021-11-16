@@ -56,6 +56,7 @@ public:
     std::cout << "Moving to width " << gripper_command->width()
               << " at speed=" << gripper_command->speed() << std::endl;
     is_moving_ = true;
+    gripper_->stop();
     gripper_->move(gripper_command->width(), gripper_command->speed());
     is_moving_ = false;
 
@@ -65,6 +66,7 @@ public:
   Status Grasp(ServerContext *context, const GripperCommand *gripper_command,
                Empty *) override {
     is_moving_ = true;
+    gripper_->stop();
     gripper_->grasp(gripper_command->width(), gripper_command->speed(),
                     gripper_command->force(), EPSILON_INNER, EPSILON_OUTER);
     is_moving_ = false;
