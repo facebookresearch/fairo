@@ -95,8 +95,8 @@ def _process(annot_img, pix_color, req_pts_in_world, pts_in_cur_img, kernal_size
             # min_dist = min(np.linalg.norm(diff, axis=1))
             diff = cur_pts_in_world[loc] - gt_pix_depth_in_world
             min_dist = 99999999.
-            for i in range(diff.shape[1]):
-                norm = np.linalg.norm(diff[:, i])
+            for i in range(diff.shape[0]):
+                norm = np.linalg.norm(diff[i, :])
                 if norm < min_dist:
                     min_dist = norm
 
