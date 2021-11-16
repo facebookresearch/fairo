@@ -20,13 +20,50 @@ import time
 import ray
 from scipy.spatial.transform import Rotation
 from pycocotools.coco import COCO
+import numpy as np
 import glob
 import argparse
 import shutil
 from candidates import Candidate
 
-# this function is implemented at 'from locobot.agent.locobot_mover_utils import transform_pose'
-# however ray was having toruble finding the function
+
+intrinsic_mat = [[381.75515747   0.         326.06439209]
+                 [  0.         381.75515747 239.70599365]
+                 [  0.           0.           1.        ]]
+intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+img_resolution = (480, 640)
+img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+img_pixs = img_pixs.reshape(2, -1)
+img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+
+def roty(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([[cos(ar), 0, sin(ar)],
+                     [0, 1, 0],
+                     [-sin(ar), 0, cos(ar)]])
+def rotx(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([
+        [1, 0, 0],
+        [0, cos(ar), -sin(ar)],
+        [0, sin(ar), cos(ar)]
+    ])
+def rotz(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([
+        [cos(ar), -sin(ar), 0],
+        [sin(ar), cos(ar), 0],
+        [0, 0, 1],
+    ])
+
 def transform_pose(XYZ, current_pose):
     """
     Transforms the point cloud into geocentric frame to account for
@@ -43,6 +80,36 @@ def transform_pose(XYZ, current_pose):
     XYZ[:, 1] = XYZ[:, 1] + current_pose[1]
     return XYZ
 
+def get_pcd(depth, base_pose, rot, trans):
+    depth = (depth.astype(np.float32) / 1000.0).reshape(-1)
+    pts_in_cam = np.multiply(uv_one_in_cam, depth)
+    pts = pts_in_cam.T
+
+    rotyt = roty(90)
+    pts = np.dot(pts, rotyt.T)
+
+    rotxt = rotx(-90)
+    pts = np.dot(pts, rotxt.T)
+
+    pts = np.dot(pts, rot.T)
+    pts = pts + trans.reshape(-1)
+    pts = transform_pose(pts, base_pose)
+
+    return pts
+
+
+def get_telemetry(data, idx):
+    data = data[str(idx)]
+    base_pose = data['base_xyt']
+    T = data['cam_transform']
+    
+    rot = T[:3, :3]
+    rot = np.array(rot)
+
+    trans = T[:3, 3]
+    trans = np.array(trans).reshape(-1, 1)
+    
+    return base_pose, rot, trans
 
 @ray.remote
 def propogate_label(
@@ -52,7 +119,6 @@ def propogate_label(
     left_prop: int,
     right_prop: int,
     propogation_step: int,
-    base_pose_data: np.ndarray,
     out_dir: str,
     frame_range_begin: int,
     instance_to_prop: int,
@@ -63,7 +129,6 @@ def propogate_label(
         src_img_indx (int): source image index
         src_label (np.ndarray): array with labeled images are stored (hwc format)
         propogation_step (int): number of steps to progate the label
-        base_pose_data(np.ndarray): (x,y,theta)
         out_dir (str): path to store labeled propogation image
         frame_range_begin (int): filename indx to begin dumping out files from
     """
@@ -72,44 +137,22 @@ def propogate_label(
     ### load the inputs ###
     # load robot trajecotry data which has pose information coreesponding to each img observation taken
     with open(os.path.join(root_path, "data.json"), "r") as f:
-        base_pose_data = json.load(f)
+        pose_data = json.load(f)
     # load img
     try:
         src_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)))
         # load depth in mm
         src_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(src_img_indx)))
         # load robot pose for img index
-        src_pose = base_pose_data["{}".format(src_img_indx)]
+        src_pose, src_rot, src_trans = get_telemetry(pose_data, src_img_indx)
     except:
         print(f"Couldn't load index {src_img_indx} from {root_path}")
         return
 
-    ### data needed to convert depth img to pointcloud ###
-    # values extracted from pyrobot habitat agent
-    intrinsic_mat = np.array([[256, 0, 256], [0, 256, 256], [0, 0, 1]])
-    rot = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
-    trans = np.array([0, 0, 0.6])
-    # precompute some values necessary to depth to point cloud
-    intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-    height, width, channels = src_img.shape
-    img_resolution = (height, width)
-    img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
-    img_pixs = img_pixs.reshape(2, -1)
-    img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
-    uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
-    uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
     ### calculate point cloud in different frmaes ###
     # point cloud in camera frmae
-    depth = (src_depth.astype(np.float32) / 1000.0).reshape(-1)
-    pts_in_cam = np.multiply(uv_one_in_cam, depth)
-    pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
-    # point cloud in robot base frame
-    pts_in_base = pts_in_cam[:3, :].T
-    pts_in_base = np.dot(pts_in_base, rot.T)
-    pts_in_base = pts_in_base + trans.reshape(-1)
-    # point cloud in world frame (pyrobot)
-    pts_in_world = transform_pose(pts_in_base, src_pose)
+    pts_in_world = get_pcd(src_depth, src_pose, src_rot, src_trans)
 
     ### figure out unique label values in provided gt label which is greater than 0 ###
     unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
@@ -137,24 +180,14 @@ def propogate_label(
         
         try:
             # get the robot pose value
-            base_pose = base_pose_data[str(img_indx)]
+            cur_pose, cur_rot, cur_trans = get_telemetry(pose_data, img_indx)
             # get the depth
             cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
         except:
             print(f'{img_indx} out of bounds! Total images {len(os.listdir(os.path.join(root_path, "rgb")))}')
             continue
-        # convert depth to point cloud in camera frmae
-        cur_depth = (cur_depth.astype(np.float32) / 1000.0).reshape(-1)
-        cur_pts_in_cam = np.multiply(uv_one_in_cam, cur_depth)
-        cur_pts_in_cam = np.concatenate(
-            (cur_pts_in_cam, np.ones((1, cur_pts_in_cam.shape[1]))), axis=0
-        )
-        # convert point cloud in camera fromae to base frame
-        cur_pts_in_base = cur_pts_in_cam[:3, :].T
-        cur_pts_in_base = np.dot(cur_pts_in_base, rot.T)
-        cur_pts_in_base = cur_pts_in_base + trans.reshape(-1)
-        # convert point cloud from base frame to world frmae
-        cur_pts_in_world = transform_pose(cur_pts_in_base, base_pose)
+
+        cur_pts_in_world = get_pcd(cur_depth, cur_pose, cur_rot, cur_trans)
 
         ### generate label for new img indx ###
         # crete annotation files with all zeros
@@ -165,12 +198,12 @@ def propogate_label(
         ):
             # convert point cloud for label from world pose to current (img_indx) base pose
             pts_in_cur_base = copy(req_pts_in_world)
-            pts_in_cur_base = transform_pose(pts_in_cur_base, (-base_pose[0], -base_pose[1], 0))
-            pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -base_pose[2]))
+            pts_in_cur_base = transform_pose(pts_in_cur_base, (-cur_pose[0], -cur_pose[1], 0))
+            pts_in_cur_base = transform_pose(pts_in_cur_base, (0.0, 0.0, -cur_pose[2]))
 
             # conver point from current base to current camera frame
-            pts_in_cur_cam = pts_in_cur_base - trans.reshape(-1)
-            pts_in_cur_cam = np.dot(pts_in_cur_cam, rot)
+            pts_in_cur_cam = pts_in_cur_base - cur_trans.reshape(-1)
+            pts_in_cur_cam = np.dot(pts_in_cur_cam, cur_rot)
 
             # conver pts in current camera frame into 2D pix values
             pts_in_cur_img = np.matmul(intrinsic_mat, pts_in_cur_cam.T).T
@@ -295,8 +328,6 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
 
     json_path = os.path.join(root_path, 'data.json')
     assert os.path.isfile(json_path)
-    with open(json_path, "r") as f:
-        base_pose_data = json.load(f)
 
     num_imgs = len(glob.glob(os.path.join(root_path, "rgb/*.jpg")))
     result = []
@@ -322,7 +353,6 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
                         os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
                     ),
                     propogation_step=propagation_step,
-                    base_pose_data=base_pose_data,
                     out_dir=out_dir,
                     frame_range_begin=frame_range_begin,
                     instance_to_prop=candidate.instance_id,
