@@ -84,18 +84,22 @@ class CocoCreator:
         self.IMAGES = []
         self.ANNOTATIONS = []
         self.class_id_label = {}
-        for x in hsd['classes']:
-            self.class_id_label[x['id']] = x['name']
+        # for x in ['1_cup'] # hsd['classes']:
+        #     self.class_id_label[x['id']] = x['name']
         self.label_id_dict = {}
         self.new_old_id = {}
         idc = 1
-        for i in self.instance_ids:
-            instance_label = str(i) + '_' + self.class_id_label[hsd['id_to_label'][i]]
-            print(f'instance_label {instance_label}')
-            self.CATEGORIES.append({"id": idc, "name": instance_label, "supercategory": "shape"})
-            self.label_id_dict[i] = instance_label # name the classes as instance_id + class 
-            self.new_old_id[i] = idc
-            idc += 1
+        self.CATEGORIES.append({"id": 1, "name": '1_cup', "supercategory": "shape"})
+        self.CATEGORIES.append({"id": 2, "name": '2_chair', "supercategory": "shape"})
+        self.CATEGORIES.append({"id": 3, "name": '3_sofa', "supercategory": "shape"})
+        self.CATEGORIES.append({"id": 4, "name": '4_door', "supercategory": "shape"})
+        # for i in self.instance_ids:
+        #     instance_label = str(i) + '_' + self.class_id_label[hsd['id_to_label'][i]]
+        #     print(f'instance_label {instance_label}')
+        #     self.CATEGORIES.append({"id": idc, "name": instance_label, "supercategory": "shape"})
+        #     self.label_id_dict[i] = instance_label # name the classes as instance_id + class 
+        #     self.new_old_id[i] = idc
+        #     idc += 1
     
     def create_annos(self, hsd, scene, pct):
         coco_img_id = -1
@@ -133,9 +137,11 @@ class CocoCreator:
                 if i in self.instance_ids:
 #                     print(f'{i} in {self.instance_ids}')
                     try:
-                        if hsd["id_to_label"][i] < 1:# or hsd["id_to_label"][i] not in self.label_id_dict:
+                        if i < 1:
+                        # if hsd["id_to_label"][i] < 1:# or hsd["id_to_label"][i] not in self.label_id_dict:
                             continue
-                        category_info = {"id": self.new_old_id[i], "is_crowd": False}
+                        # category_info = {"id": self.new_old_id[i], "is_crowd": False}
+                        category_info = {"id": i, "is_crowd": False}
     #                     print(f'category_info {category_info}')
                     except:
                         continue

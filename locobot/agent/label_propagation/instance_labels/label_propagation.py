@@ -84,6 +84,8 @@ def transform_pose(XYZ, current_pose):
     return XYZ
 
 def get_pcd(depth, base_pose, rot, trans):
+    depth = np.rot90(depth, k=-1, axes=(1,0)) # rotate depth -90 to undo correction
+    H, W = depth.shape[0], depth.shape[1]
     depth = (depth.astype(np.float32) / 1000.0).reshape(-1)
     pts_in_cam = np.multiply(uv_one_in_cam, depth)
     pts = pts_in_cam.T
@@ -97,6 +99,10 @@ def get_pcd(depth, base_pose, rot, trans):
     pts = np.dot(pts, rot.T)
     pts = pts + trans.reshape(-1)
     pts = transform_pose(pts, base_pose)
+
+    pts = pts.reshape((H, W, 3))
+    pts = np.rot90(pts, k=1, axes=(1, 0))
+    pts = pts.reshape(H * W, 3)
 
     return pts
 
@@ -154,7 +160,6 @@ def propogate_label(
         return
 
     height, width, channels = src_img.shape
-    img_resolution = (height, width)
 
     ### calculate point cloud in different frmaes ###
     # point cloud in camera frmae
@@ -163,6 +168,7 @@ def propogate_label(
     ### figure out unique label values in provided gt label which is greater than 0 ###
     unique_pix_value = np.unique(src_label.reshape(-1), axis=0)
     unique_pix_value = [i for i in unique_pix_value if np.linalg.norm(i) > 0] # and i == instance_to_prop]
+    print(unique_pix_value)
 
     ### for each unique label, figure out points in world frame ###
     # first figure out pixel index
@@ -300,6 +306,7 @@ def propogate_label(
             # assign label to correspoinding pix values
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
+        print("annot_img", np.unique(annot_img))
         # store the annotation file
         np.save(os.path.join(os.path.join(out_dir, 'seg'), "{}.npy".format(out_indx)), annot_img.astype(np.uint32))
         # copy rgn as out_indx.job
