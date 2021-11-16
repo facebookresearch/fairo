@@ -54,7 +54,7 @@ class StateManager {
   initialMemoryState = {
     objects: new Map(),
     humans: new Map(),
-    chatResponse: {},
+    lastChatActionDict: null,
     chats: [
       { msg: "", failed: false },
       { msg: "", failed: false },
@@ -75,6 +75,7 @@ class StateManager {
   constructor() {
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
+    this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
@@ -247,6 +248,7 @@ class StateManager {
     });
 
     socket.on("setChatResponse", this.setChatResponse);
+    socket.on("setLastChatActionDict", this.setLastChatActionDict);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
     socket.on("updateAgentType", this.updateAgentType);
@@ -307,7 +309,9 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-    this.memory.chatResponse[res.chat] = res.chatResponse;
+
+    // once confirm that this chat has been sent, clear last chat action dict
+    this.memory.lastChatActionDict = null;
 
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -319,6 +323,10 @@ class StateManager {
         ref.forceUpdate();
       }
     });
+  }
+
+  setLastChatActionDict(res) {
+    this.memory.lastChatActionDict = res.action_dict;
   }
 
   updateVoxelWorld(res) {

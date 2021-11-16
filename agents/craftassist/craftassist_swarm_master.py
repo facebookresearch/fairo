@@ -8,12 +8,12 @@ import random
 import sentry_sdk
 from multiprocessing import set_start_method
 from collections import namedtuple
-import subprocess
 
 from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
+from droidlet.tools.data_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     # Check that models and datasets are up to date and download latest resources.
     # Also fetches additional resources for internal users.
     if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "craftassist"])
+        try_download_artifacts(agent="craftassist")
 
     set_start_method("spawn", force=True)
 

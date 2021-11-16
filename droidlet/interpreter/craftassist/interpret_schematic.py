@@ -141,7 +141,14 @@ def interpret_fill_schematic(
 
 
 def interpret_shape_schematic(
-    interpreter, speaker, d, block_data_info, color_bid_map, special_shape_function, shapename=None
+    interpreter,
+    speaker,
+    d,
+    block_data_info,
+    color_bid_map,
+    special_shape_function,
+    shapename=None,
+    is_dig=False,
 ) -> Tuple[List[Block], List[Tuple[str, str]]]:
     """Return a tuple of 2 values:
     - the schematic blocks, list[(xyz, idm)]
@@ -163,7 +170,8 @@ def interpret_shape_schematic(
         )
 
     triples = get_triples_from_flattened_clauses(flattened_clauses)
-    return special_shape_function[shape.upper()](**attrs), triples
+    schematic = special_shape_function[shape.upper()](**attrs)
+    return schematic, triples
 
 
 def interpret_size(interpreter, text) -> Union[int, List[int]]:
@@ -278,6 +286,15 @@ def interpret_mob_schematic(interpreter, speaker, filters_d):
     else:
         new_where = {"AND": [spawn_clause, deepcopy(where)]}
         where = new_where
+
+    # HACK for nsp/data weirdness: for now don't allow
+    # 'same': 'DISALLOWED' in Selector so could not e.g.
+    # "spawn three different kinds of mobs".  we don't have examples
+    # like that yet anyway ...
+
+    if filters_d.get("selector", {}):
+        if filters_d["selector"].get("same", "ALLOWED") == "DISALLOWED":
+            filters_d["selector"]["same"] = "ALLOWED"
 
     # FIXME! we don't need to recopy this here, do more composably
     W = interpret_where_backoff(interpreter, speaker, where, memory_type="Schematic")

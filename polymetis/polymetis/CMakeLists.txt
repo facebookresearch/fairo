@@ -7,6 +7,15 @@ project(polymetis)
 
 SET(CMAKE_CXX_FLAGS "-std=c++14 -O3")
 
+add_library(protobuf::libprotobuf UNKNOWN IMPORTED)
+set_target_properties(protobuf::libprotobuf PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/google/protobuf/")
+set_target_properties(protobuf::libprotobuf PROPERTIES
+  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libprotobuf.so")
+set_property(TARGET protobuf::libprotobuf APPEND PROPERTY
+  INTERFACE_COMPILE_FEATURES cxx_std_11
+)
+
 add_subdirectory("torch_isolation/")
 
 add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
@@ -24,8 +33,6 @@ find_package(yaml-cpp REQUIRED)
 ### eigen3
 find_package(Eigen3 REQUIRED)
 
-set(_PROTOBUF_LIBPROTOBUF $ENV{CONDA_PREFIX}/lib/libprotobuf.so)
-set(Protobuf_FOUND ON)
 
 # Find protoc
 set(_PROTOBUF_PROTOC $ENV{CONDA_PREFIX}/bin/protoc)

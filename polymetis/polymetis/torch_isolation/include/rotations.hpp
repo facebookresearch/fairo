@@ -14,7 +14,6 @@
 #include <Eigen/Geometry>
 
 #include "dtt.h"
-#include <torch/script.h>
 #include <torch/torch.h>
 
 #ifdef __cplusplus

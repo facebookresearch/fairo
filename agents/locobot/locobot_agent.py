@@ -3,7 +3,6 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import os
-import subprocess
 import time
 import signal
 import random
@@ -13,6 +12,7 @@ from multiprocessing import set_start_method
 import shutil
 
 from droidlet import dashboard
+from droidlet.tools.data_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -344,7 +344,7 @@ if __name__ == "__main__":
 
     # Check that models and datasets are up to date
     if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "locobot"])
+        try_download_artifacts(agent="locobot")
 
     set_start_method("spawn", force=True)
 

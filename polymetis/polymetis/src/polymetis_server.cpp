@@ -86,11 +86,9 @@ Status PolymetisControllerServerImpl::InitRobotClient(
   }
 
   // Load default controller from model buffer
-  memstream model_stream(controller_model_buffer_.data(),
-                         controller_model_buffer_.size());
   try {
-    robot_client_context_.default_controller =
-        new TorchScriptedController(model_stream);
+    robot_client_context_.default_controller = new TorchScriptedController(
+        controller_model_buffer_.data(), controller_model_buffer_.size());
   } catch (const std::exception &e) {
     std::cerr << "error loading default controller:\n";
     std::cerr << e.what() << std::endl;
@@ -227,11 +225,10 @@ Status PolymetisControllerServerImpl::SetController(
     }
   }
 
-  memstream model_stream(controller_model_buffer_.data(),
-                         controller_model_buffer_.size());
   try {
     // Load new controller
-    auto new_controller = new TorchScriptedController(model_stream);
+    auto new_controller = new TorchScriptedController(
+        controller_model_buffer_.data(), controller_model_buffer_.size());
 
     // Switch in new controller by updating controller context
     custom_controller_context_.controller_mtx.lock();
@@ -277,10 +274,8 @@ Status PolymetisControllerServerImpl::UpdateController(
   }
 
   // Load param container
-  memstream model_stream(updates_model_buffer_.data(),
-                         updates_model_buffer_.size());
   if (!custom_controller_context_.custom_controller->param_dict_load(
-          model_stream)) {
+          updates_model_buffer_.data(), updates_model_buffer_.size())) {
     return Status::CANCELLED;
   }
 

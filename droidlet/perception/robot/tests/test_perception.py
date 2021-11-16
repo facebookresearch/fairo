@@ -37,16 +37,14 @@ PERCEPTION_MODELS_DIR = os.path.join(
 OFFICE_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
     "test_assets",
-    "perception_handlers",
     "office_chair.jpg",
 )
 GROUP_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
     "test_assets",
-    "perception_handlers",
     "obama_trump.jpg",
 )
-FACES_IDS_DIR = os.path.join(os.path.dirname(__file__), "test_assets/perception_handlers/faces")
+FACES_IDS_DIR = os.path.join(os.path.dirname(__file__), "test_assets/faces")
 
 logging.getLogger().setLevel(logging.INFO)
 

@@ -20,9 +20,9 @@ def main():
     )
     args = parser.parse_args()
 
-    model = "craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model.pth"
+    model = "craftassist/agent/models/nlu/ttad_bert_updated/caip_test_model.pth"
     args_path = (
-        "craftassist/agent/models/semantic_parser/ttad_bert_updated/caip_test_model_args.pk"
+        "craftassist/agent/models/nlu/ttad_bert_updated/caip_test_model_args.pk"
     )
     args = pickle.load(open(args_path, "rb"))
 
