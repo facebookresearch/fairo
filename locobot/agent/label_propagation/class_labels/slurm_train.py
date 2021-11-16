@@ -330,7 +330,7 @@ class COCOTrain:
 
         cfg.DATASETS.TEST = (self.val_data,test_data[0])
 
-        cfg.DATALOADER.NUM_WORKERS = 2
+        cfg.DATALOADER.NUM_WORKERS = 4
         cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(coco_yaml)  # Let training initialize from model zoo
         cfg.SOLVER.IMS_PER_BATCH = 16
         cfg.TEST.EVAL_PERIOD = 50
