@@ -142,9 +142,9 @@ def propogate_label(
         pose_data = json.load(f)
     # load img
     try:
-        src_img = cv2.imread(os.path.join(root_path, "rgb/{:05d}.jpg".format(src_img_indx)))
+        src_img = cv2.imread(os.path.join(root_path, "rgb/{}.jpg".format(src_img_indx)))
         # load depth in mm
-        src_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(src_img_indx)))
+        src_depth = np.load(os.path.join(root_path, "depth/{}.npy".format(src_img_indx)))
         # load robot pose for img index
         src_pose, src_rot, src_trans = get_telemetry(pose_data, src_img_indx)
     except:
@@ -184,7 +184,7 @@ def propogate_label(
             # get the robot pose value
             cur_pose, cur_rot, cur_trans = get_telemetry(pose_data, img_indx)
             # get the depth
-            cur_depth = np.load(os.path.join(root_path, "depth/{:05d}.npy".format(img_indx)))
+            cur_depth = np.load(os.path.join(root_path, "depth/{}.npy".format(img_indx)))
         except:
             print(f'{img_indx} out of bounds! Total images {len(os.listdir(os.path.join(root_path, "rgb")))}')
             continue
@@ -297,11 +297,11 @@ def propogate_label(
             annot_img[pts_in_cur_img[:, 1], pts_in_cur_img[:, 0]] = pix_color
 
         # store the annotation file
-        np.save(os.path.join(os.path.join(out_dir, 'seg'), "{:05d}.npy".format(out_indx)), annot_img.astype(np.uint32))
+        np.save(os.path.join(os.path.join(out_dir, 'seg'), "{}.npy".format(out_indx)), annot_img.astype(np.uint32))
         # copy rgn as out_indx.job
         shutil.copyfile(
-            os.path.join(root_path, "rgb/{:05d}.jpg".format(img_indx)), 
-            os.path.join(os.path.join(out_dir, 'rgb'),"{:05d}.jpg".format(out_indx))
+            os.path.join(root_path, "rgb/{}.jpg".format(img_indx)), 
+            os.path.join(os.path.join(out_dir, 'rgb'),"{}.jpg".format(out_indx))
         )
         out_indx += 1
 
@@ -344,7 +344,7 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
         left_prop = min(propagation_step, candidate.left_prop)
         right_prop = min(propagation_step, candidate.right_prop)
 
-        if os.path.isfile(os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))):
+        if os.path.isfile(os.path.join(root_path, f"seg/{src_img_indx}.npy")):
             result.append(
                 propogate_label.remote(
                     root_path=root_path,
@@ -352,7 +352,7 @@ def run_label_prop(out_dir, gtframes, propagation_step, root_path, candidates):
                     left_prop=left_prop,
                     right_prop=right_prop,
                     src_label=np.load(
-                        os.path.join(root_path, "seg/{:05d}.npy".format(src_img_indx))
+                        os.path.join(root_path, f"seg/{src_img_indx}.npy")
                     ),
                     propogation_step=propagation_step,
                     out_dir=out_dir,

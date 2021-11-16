@@ -109,13 +109,13 @@ class CocoCreator:
         for f in tqdm(fs):
             image_id = int(f.split('.')[0])
             try:
-                prop_path = os.path.join(segm_dir, "{:05d}.npy".format(image_id))
+                prop_path = os.path.join(segm_dir, "{}.npy".format(image_id))
                 annot = np.load(prop_path).astype(np.uint32)
             except Exception as e:
                 print(e)
                 continue
 
-            img_filename = "{:05d}.jpg".format(image_id)            
+            img_filename = "{}.jpg".format(image_id)            
             img = Image.open(os.path.join(img_dir, img_filename))
 
             # COCO ID and names

@@ -53,7 +53,7 @@ class PickGoodCandidates:
         return False
     
     def is_iid_in_full_view(self, img_id, iid):
-        seg_path = os.path.join(self.seg_dir, "{:05d}.npy".format(img_id))
+        seg_path = os.path.join(self.seg_dir, "{}.npy".format(img_id))
 #         print(f'seg_path {seg_path}')
         annot = np.load(seg_path).astype(np.uint32)
         binary_mask = np.zeros_like(annot)
@@ -144,22 +144,22 @@ class PickGoodCandidates:
         fig, axs = plt.subplots(1, candidate.left_prop+1, figsize=(2*candidate.left_prop,4))
         l = candidate.img_id-candidate.left_prop
         for x in range(candidate.img_id-candidate.left_prop, candidate.img_id+1):
-            img_path = os.path.join(self.img_dir, "{:05d}.jpg".format(x))
+            img_path = os.path.join(self.img_dir, "{}.jpg".format(x))
             image = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
             axs[x-l].imshow(image)
-            axs[x-l].set_title("{:05d}.jpg".format(x))
+            axs[x-l].set_title("{}.jpg".format(x))
         plt.show()
         
         fig2, axs2 = plt.subplots(1, candidate.right_prop+1, figsize=(2*candidate.right_prop, 4))
         l = candidate.img_id
         for x in range(candidate.img_id, candidate.img_id+candidate.right_prop+1):
-            img_path = os.path.join(self.img_dir, "{:05d}.jpg".format(x))
+            img_path = os.path.join(self.img_dir, "{}.jpg".format(x))
             image = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2RGB)
             if candidate.right_prop == 0:
                 axs2.imshow(image)
-                axs2.set_title("{:05d}.jpg".format(x))
+                axs2.set_title("{}.jpg".format(x))
             else:
                 axs2[x-l].imshow(image)
-                axs2[x-l].set_title("{:05d}.jpg".format(x))
+                axs2[x-l].set_title("{}.jpg".format(x))
             
         plt.show()
