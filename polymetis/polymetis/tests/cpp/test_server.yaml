@@ -7,6 +7,8 @@ robot_client:
     _target_: polymetis.robot_client.metadata.RobotClientMetadata
     default_Kq: [0, 0, 0, 0, 0, 0, 0]
     default_Kqd: [0, 0, 0, 0, 0, 0, 0]
+    default_Kx: [0, 0, 0, 0, 0, 0, 0]
+    default_Kxd: [0, 0, 0, 0, 0, 0, 0]
     hz: 1000
     robot_model_cfg: ${robot_model}
   executable_cfg:
