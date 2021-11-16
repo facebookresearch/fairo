@@ -25,6 +25,7 @@ import numpy as np
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
+from mephisto.data_model.worker import Worker
 
 pd.set_option("display.max_rows", 10)
 
@@ -101,6 +102,11 @@ def timing_charts(run_id: int) -> None:
             completed_units .append(unit)
 
     data_browser = DataBrowser(db=db)
+    workers = []
+    workers_read_instructions = []
+    workers_timer_on = []
+    workers_timer_off = []
+    workers_sent_command = []
     usability = []
     self_rating = []
     inst_timing = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] }
@@ -119,6 +125,8 @@ def timing_charts(run_id: int) -> None:
     unit_num = 1
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
+        worker = Worker(db, data["worker_id"]).worker_name
+        workers.append(worker)
         content = data["data"]
         HIT_start_time = content["times"]["task_start"]
         HIT_end_time = content["times"]["task_end"]
@@ -162,14 +170,17 @@ def timing_charts(run_id: int) -> None:
                 inst_timing[5].append((click["timestamp"] - last_pg_read_time)/1000)
                 read_time.append(round((click["timestamp"] - inst_timing[0][-1])/1000))
                 last_pg_read_time = click["timestamp"]
+                workers_read_instructions.append(worker)
 
             # Interaction timing metrics
             if click["id"] == 'timerON':
                 interaction_start_time = click["timestamp"]
                 pre_interact.append(round((interaction_start_time - last_pg_read_time)/1000))
+                workers_timer_on.append(worker)
             if click["id"] == 'timerOFF':
                 interaction_end_time = click["timestamp"]
                 interact_time.append(round((interaction_end_time - interaction_start_time)/1000))
+                workers_timer_off.append(worker)
             
             # Command timing metrics:
             if click["id"] == 'goToAgentThinking':
@@ -178,6 +189,7 @@ def timing_charts(run_id: int) -> None:
                 command_start_times.append(command_start_time)
                 last_status_time = click["timestamp"]
                 if first_command:
+                    workers_sent_command.append(worker)
                     pre_first_command_time.append(round((command_start_time - interaction_start_time)/1000))
                     first_command = False
             if click["id"] == 'received':
@@ -228,21 +240,26 @@ def timing_charts(run_id: int) -> None:
                 command_times_by_order[(j+1)].append((end - start)/1000)
             except:
                 pass
-            
+    
+    workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211112115924", "nsp_outputs")
+    compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+
+    '''
     promoters = len([i for i in usability if i > 5])
     detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
 
-    # print(f"Units logged: {unit_num-1}")
-    # print(f"Start time: {datetime.fromtimestamp(starttime)}")
-    # print(f"End time: {datetime.fromtimestamp(endtime)}")
-    # print(f"Avg Number of commands: {sum(command_num)/len(command_num):.1f}")
-    # print(f"Units w/ no commands: {command_num.count(0)}")
-    # print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
-    # print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
-    # print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
-    # print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
+    print(f"Units logged: {unit_num-1}")
+    print(f"Start time: {datetime.fromtimestamp(starttime)}")
+    print(f"End time: {datetime.fromtimestamp(endtime)}")
+    print(f"Avg Number of commands: {sum(command_num)/len(command_num):.1f}")
+    print(f"Units w/ no commands: {command_num.count(0)}")
+    print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
+    print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
+    print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
+    print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
+    
     calc_percentiles(read_time, "Total Read Time")
     for page in inst_timing.keys():
         calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
@@ -254,7 +271,8 @@ def timing_charts(run_id: int) -> None:
     calc_percentiles(command_timing['total'], "Avg Command Time")
     for order in command_times_by_order.keys():
         calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
-    '''
+
+    
     usability.sort()
     keys = range(len(usability))
     u_dict = dict(zip(keys, usability))
@@ -299,6 +317,59 @@ def timing_charts(run_id: int) -> None:
         command_dict = dict(zip(keys, command_timing[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
     '''
+
+#%%
+def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
+    workers = []
+    for csv_path in glob.glob(
+        "{turk_logs_dir}/**/{csv_filename}".format(
+            turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv"
+        )
+    ):     
+        meta_path = os.path.join(os.path.dirname(csv_path), meta_fname)
+        if os.path.exists(meta_path):
+            with open(meta_path, "r+") as f:
+                meta = json.load(f)
+                workers.append(meta["turk_worker_id"])
+        else:
+            pass
+    return workers
+
+#%%
+def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs):
+    from collections import Counter
+    all_lists = [total, read_instructions, timer_off, submit_command, logs]
+    list_names = ["'Full List'", "'Read Instructions'", "'Turned Timer Off'", "'Submitted a command'", "'Recorded S3 Logs'"]
+    print(f"Total number of workers: {len(total)}")
+    print(f"Worker HIT count: {Counter(total)}")
+    print(f"Number of workers who read instructions: {len(read_instructions)}")
+    print(f"Number of workers who turned the timer off: {len(timer_off)}")
+    print(f"Number of workers who submitted a command (recorded by Mephisto): {len(submit_command)}")
+    print(f"Number of workers who submitted logs to S3: {len(logs)}")
+    print(f"Number of Workers who submitted a job but did not read instructions: {len([x for x in total if x not in read_instructions])}")
+    print(f"Number of Workers who submitted a job but did not turn the timer off: {len([x for x in total if x not in timer_off])}")
+    print(f"Number of Workers who submitted a job but did not submit a command: {len([x for x in total if x not in submit_command])}")
+    print(f"Number of Workers who submitted a job but did not log to S3: {len([x for x in total if x not in logs])}")
+    print(f"Number of Workers who read instructions but did not turn the timer off: {len([x for x in read_instructions if x not in timer_off])}")
+    print(f"Number of Workers who read instructions but did not dubmit a command: {len([x for x in read_instructions if x not in submit_command])}")
+    print(f"Number of Workers who turned the timer off but did not submit a command: {len([x for x in timer_off if x not in submit_command])}")
+    print(f"Number of Workers who turned the timer off but did not log to S3: {len([x for x in timer_off if x not in logs])}")
+    print(f"Number of Workers who submitted a command but did not log to S3: {len([x for x in submit_command if x not in logs])}")
+    print(f"Number of Workers who submitted a log to S3 but did not submit a command: {len([x for x in logs if x not in submit_command])}")
+
+    for i,l in enumerate(all_lists):
+        d1 = Counter(l)
+        #print(f"Worker dict {list_names[i]}: {d1}")
+        for j,k in enumerate(all_lists):
+            d2 = Counter(k)
+            for key in d1.keys():
+                try:
+                    if d1[key] > d2[key]:
+                        print(f"{key} appears in {list_names[i]} {d1[key] - d2[key]} times more than in {list_names[j]}")
+                except:
+                    print(f"{key} appears in {list_names[i]} but not {list_names[j]}")
+
+    
 
 #%%
 def calc_percentiles(data, label):

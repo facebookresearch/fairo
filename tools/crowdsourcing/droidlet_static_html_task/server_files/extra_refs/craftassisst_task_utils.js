@@ -1,3 +1,9 @@
+/*
+   Copyright (c) Facebook, Inc. and its affiliates.
+
+ * utils.js contains a variety of click handlers and timing analytics for craftassist_task
+ */
+
 var timerStopped = false;
 var ratingComplete = false;
 var selfRatingComplete = false;
