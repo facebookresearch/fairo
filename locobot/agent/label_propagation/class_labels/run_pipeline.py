@@ -73,8 +73,8 @@ def _runner(traj, gt, p, args):
                 basic_sanity(traj_path)
                 outdir = os.path.join(args.job_folder, str(traj), x, f'pred_label_gt{gt}p{p}')
                 s = PickGoodCandidates(traj_path, active=True)
-                src_img_ids = s.sample_uniform_nn2(gt)
-                # src_img_ids = get_src_img_ids('active', traj)
+                # src_img_ids = s.sample_uniform_nn2(gt)
+                src_img_ids = get_src_img_ids('active', traj)
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
                 if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
                     # run_coco(outdir)
