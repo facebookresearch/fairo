@@ -9,6 +9,8 @@ import torch
 import pytest
 
 import torchcontrol as toco
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
 
 # Setup variables
 project_root_dir = (
@@ -31,48 +33,6 @@ time_horizon = int(time_to_go * hz)
 # (policy, kwargs, is_terminating, update_params)
 test_parametrized_data = [
     (
-        toco.policies.JointSpaceMoveTo,
-        dict(
-            joint_pos_current=torch.rand(num_dofs),
-            joint_pos_desired=torch.rand(num_dofs),
-            Kp=torch.rand(num_dofs, num_dofs),
-            Kd=torch.rand(num_dofs, num_dofs),
-            robot_model=robot_model,
-            time_to_go=time_to_go,
-            hz=hz,
-        ),
-        True,
-        None,
-    ),
-    (
-        toco.policies.CartesianTargetJointMoveTo,
-        dict(
-            joint_pos_current=torch.rand(num_dofs),
-            ee_pos_desired=torch.rand(3),
-            Kp=torch.rand(num_dofs, num_dofs),
-            Kd=torch.rand(num_dofs, num_dofs),
-            robot_model=robot_model,
-            time_to_go=time_to_go,
-            hz=hz,
-        ),
-        True,
-        None,
-    ),
-    (
-        toco.policies.CartesianSpaceMoveTo,
-        dict(
-            joint_pos_current=torch.rand(num_dofs),
-            ee_pos_desired=torch.rand(3),
-            Kp=torch.rand(6, 6),
-            Kd=torch.rand(6, 6),
-            robot_model=robot_model,
-            time_to_go=time_to_go,
-            hz=hz,
-        ),
-        True,
-        None,
-    ),
-    (
         toco.policies.JointImpedanceControl,
         dict(
             joint_pos_current=torch.rand(num_dofs),
@@ -93,6 +53,37 @@ test_parametrized_data = [
         ),
         False,
         {"ee_pos_desired": torch.rand(3)},
+    ),
+    (
+        toco.policies.JointTrajectoryExecutor,
+        dict(
+            joint_pos_trajectory=[torch.rand(num_dofs) for _ in range(time_horizon)],
+            joint_vel_trajectory=[torch.rand(num_dofs) for _ in range(time_horizon)],
+            Kp=torch.rand(num_dofs, num_dofs),
+            Kd=torch.rand(num_dofs, num_dofs),
+            robot_model=robot_model,
+            ignore_gravity=True,
+        ),
+        True,
+        None,
+    ),
+    (
+        toco.policies.EndEffectorTrajectoryExecutor,
+        dict(
+            ee_pose_trajectory=[
+                T.from_rot_xyz(
+                    rotation=R.from_rotvec(torch.rand(3)), translation=torch.rand(3)
+                )
+                for _ in range(time_horizon)
+            ],
+            ee_twist_trajectory=[torch.rand(6) for _ in range(time_horizon)],
+            Kp=torch.rand(6, 6),
+            Kd=torch.rand(6, 6),
+            robot_model=robot_model,
+            ignore_gravity=True,
+        ),
+        True,
+        None,
     ),
     (
         toco.policies.iLQR,
