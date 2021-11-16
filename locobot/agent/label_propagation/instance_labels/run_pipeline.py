@@ -22,7 +22,7 @@ def basic_sanity(traj_path):
     # load json
     with open(os.path.join(traj_path, 'data.json'), 'r') as f:
         data = json.load(f)
-    assert ll(traj_path, 'rgb', '.jpg') == ll(traj_path, 'seg', '.npy') == ll(traj_path, 'depth', '.npy') == len(data.keys())
+    # assert ll(traj_path, 'rgb', '.jpg') == ll(traj_path, 'seg', '.npy') == ll(traj_path, 'depth', '.npy') == len(data.keys())
 
 def get_src_img_ids(heu, traj):
     if heu == 'active':
@@ -36,7 +36,7 @@ def get_src_img_ids(heu, traj):
     return 
 
 # for apartment_0
-instance_ids = [404,196,133] #[193,404,196,172,243,133,129,170]
+instance_ids = [1,2,3,4] #[193,404,196,172,243,133,129,170]
 
 def _runner(gt, p, args):
     start = datetime.now()
@@ -50,8 +50,16 @@ def _runner(gt, p, args):
                 seg_dir=os.path.join(traj_path, 'seg'),
                 instance_ids=instance_ids,
             )
-        candidates = s.sample_uniform_nn2(gt)
+        # candidates = s.sample_uniform_nn2(gt)
         # src_img_ids = [10, 20, 30, 40, 50]
+        # baseline ids
+        src_img_ids = [0, 100, 200, 360, 460, 560, 681, 781, 881, 981,
+                      1387, 1487, 1587, 1687, 1770, 1870, 1970, 2070,
+                      2148, 2248, 2348, 2518, 2618, 2718, 2818, 2894,
+                      2994, 3094]
+        candidates = []
+        for _id in src_img_ids:
+            candidates.append(Candidate(img_id=_id, l=p, r=p, iid=0))
         print(f'selected candidates {candidates}')
         run_label_prop(outdir, gt, p, traj_path, candidates)
         if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
