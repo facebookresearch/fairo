@@ -94,8 +94,6 @@ class EndEffectorTrajectoryExecutor(toco.PolicyModule):
         """
         Executes a EE pose trajectory by using a Cartesian PD controller to stabilize around waypoints in the trajectory.
 
-        TODO: Currently not performant enough to run on hardware.
-
         Args:
             ee_pose_trajectory: End effector pose trajectory as a list of TransformationObj
             ee_twist_trajectory: End effector twist (velocity + angular velocity) trajectory as list of tensors
