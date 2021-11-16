@@ -92,7 +92,7 @@ class ManipulatorSystem:
 
     def close_gripper(self):
         self.gripper.grasp(speed=0.1, force=1.0)
-        time.sleep(0.5)
+        time.sleep(1)
 
         # Check state
         state = self.gripper.get_state()
@@ -101,7 +101,7 @@ class ManipulatorSystem:
     def open_gripper(self):
         max_width = self.gripper.get_state().max_width
         self.gripper.goto(width=max_width, speed=0.1, force=1.0)
-        time.sleep(0.5)
+        time.sleep(1)
 
         # Check state
         state = self.gripper.get_state()
