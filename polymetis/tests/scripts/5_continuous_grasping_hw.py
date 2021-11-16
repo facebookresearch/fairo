@@ -105,7 +105,7 @@ class ManipulatorSystem:
 
         # Check state
         state = self.gripper.get_state()
-        assert np.allclose(state.width, state.max_width, atol=1e-3)
+        assert state.width > 0.0
 
     def grasp_pose_to_pos_quat(self, grasp_pose, z):
         x, y, rz = grasp_pose
