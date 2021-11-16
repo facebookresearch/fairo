@@ -9,7 +9,7 @@ fbrp.process(
     ),
     env={
         "my_conda_path" : "/tmp/",
-        "my_conda)time_out" : "2",
+        "my_conda_time_out" : "2",
     },
 )
 

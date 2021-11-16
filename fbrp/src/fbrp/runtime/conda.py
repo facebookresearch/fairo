@@ -81,7 +81,7 @@ class Launcher(BaseLauncher):
 
         # We grab the conda env variables separate from executing the run
         # command to simplify detecting pid and removing some race conditions.
-        subprocess_env = os.environ
+        subprocess_env = os.environ.copy()
         subprocess_env.update(self.proc_def.env)
         envinfo = await asyncio.create_subprocess_shell(
             f"""
