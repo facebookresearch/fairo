@@ -81,16 +81,18 @@ class Launcher(BaseLauncher):
 
         # We grab the conda env variables separate from executing the run
         # command to simplify detecting pid and removing some race conditions.
+        subprocess_env = os.environ
+        subprocess_env.update(self.proc_def.env)
         envinfo = await asyncio.create_subprocess_shell(
             f"""
                 eval "$(conda shell.bash hook)"
                 conda activate fbrp_{self.name}
-                cp /proc/self/environ /tmp/fbrp_conda_{self.name}.env
+                cp -f /proc/self/environ /tmp/fbrp_conda_{self.name}.env
             """,
             stdout=asyncio.subprocess.PIPE,
             executable="/bin/bash",
             cwd=self.proc_def.root,
-            env=self.proc_def.env
+            env=subprocess_env,
         )
 
         await envinfo.wait()
