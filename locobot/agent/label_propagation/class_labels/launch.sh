@@ -35,7 +35,7 @@ cp candidates.py $codedir/candidates.py
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --comment $5 $6 --slurm 
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --comment $5 $6 #--slurm 
 
 # please clean up your checkpoints before running these so as not to exceed the 8TB space limit
 # cd /checkpoint/$USER/jobs/active_vision/pipeline 
@@ -45,10 +45,10 @@ python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 -
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2_sampled20_1115_nodownsamplingbaseline apartment_0/default/no_noise 5 2 rehearsal_run
 
 # soumith's
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314_sampled20_1115_nodownsamplingbaseline apartment_0/straightline/no_noise 5 2 rehearsal_run --active 
+# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1636839314_sampled20_1115_nodownsamplingbaseline apartment_0/straightline/no_noise 50 2 cvpr_run --active 
 
 # kavya's
-# ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/noise/mul_traj_201_sampled apartment_0/straightline/noise 20 3 --active
+# ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/no_noise/mul_traj_200_combined_2 apartment_0/straightline/no_noise 50 2 cvpr_run
 
 # yuxuan's
 # ./launch.sh /checkpoint/apratik/data/data/apartment_0/default/noise/mul_traj_200_sampled apartment_0/default/noise 20 3

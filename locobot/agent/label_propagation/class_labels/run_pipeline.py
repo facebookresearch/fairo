@@ -36,7 +36,7 @@ def get_src_img_ids(heu, traj):
     return 
 
 def log_job_start(args, jobs):
-    with open(f"/checkpoint/{os.environ.get('USER')}/jobs/active_vision/pipeline/class_slurm_launch_start.txt", 'a') as f:
+    with open(f"/checkpoint/aszlam/jobs/active_vision/pipeline/class_slurm_launch_start.txt", 'a') as f:
         f.write(f"\n{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"Experiment comment {args.comment}\n")
         f.write(f"Num traj {str(args.num_traj)}\n")
@@ -77,8 +77,8 @@ def _runner(traj, gt, p, args):
                 # src_img_ids = get_src_img_ids('active', traj)
                 run_label_prop(outdir, gt, p, traj_path, src_img_ids)
                 if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
-                    run_coco(outdir)
-                    run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples, active=True)
+                    # run_coco(outdir)
+                    # run_training(outdir, os.path.join(outdir, 'rgb'), args.num_train_samples, active=True)
                     end = datetime.now()
                     with open(os.path.join(args.job_folder, 'timelog.txt'), "a") as f:
                         f.write(f"traj {traj}, gt {gt}, p {p} = {(end-start).total_seconds()} seconds, start {start.strftime('%H:%M:%S')}, end {end.strftime('%H:%M:%S')}\n")
