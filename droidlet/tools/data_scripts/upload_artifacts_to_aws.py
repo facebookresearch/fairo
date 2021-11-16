@@ -19,9 +19,6 @@ def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
         agent = "craftassist"
         print("Agent name not specified, defaulting to craftassist")
 
-    # agent_path = os.path.join(ROOTDIR, 'agents/' + agent)
-    # print("Agent path: %r" % (agent_path))
-
     """Compute checksum for local artifact folder (to check in to tar file)"""
     checksum_name = 'checksum.txt'
     artifact_path_name = artifact_name + "/"

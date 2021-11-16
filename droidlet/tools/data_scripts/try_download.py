@@ -26,8 +26,8 @@ def try_download_artifacts(agent=None, test_mode=False):
         print("Agent name not specified, defaulting to craftassist")
         agent = "craftassist"
 
-    artifact_path = os.path.join(ROOTDIR, 'droidlet/artifacts')
-
+    artifact_path_original = os.path.join(ROOTDIR, 'droidlet/artifacts')
+    artifact_path = artifact_path_original
     # in case directories don't exist, create them
     os.makedirs(os.path.join(artifact_path, 'datasets'), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, 'models'), exist_ok=True)
@@ -51,24 +51,25 @@ def try_download_artifacts(agent=None, test_mode=False):
     compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
 
     # Compute local checksum for nlu directory and try download if different from remote.
-    artifact_path = os.path.join(artifact_path, 'models/nlu')
-    checksum_write_path = os.path.join(artifact_path, 'models/nlu/nlu_checksum.txt')
+
+    artifact_path = os.path.join(artifact_path_original, 'models/nlu')
+    checksum_write_path = os.path.join(artifact_path, 'nlu_checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "nlu")
 
     # Compute and attempt download for perception model
-    artifact_path = os.path.join(artifact_path, 'models/perception', agent)
-    checksum_write_path = os.path.join(artifact_path, 'models/perception', agent, 'perception_checksum.txt')
+    artifact_path = os.path.join(artifact_path_original, 'models/perception', agent)
+    checksum_write_path = os.path.join(artifact_path, 'perception_checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "perception")
 
     # Compute and attempt download for datasets
-    artifact_path = os.path.join(artifact_path, 'datasets')
-    checksum_write_path = os.path.join(artifact_path, 'datasets/checksum.txt')
+    artifact_path = os.path.join(artifact_path_original, 'datasets')
+    checksum_write_path = os.path.join(artifact_path, 'checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
