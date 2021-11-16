@@ -284,6 +284,8 @@ class RobotInterface(BaseRobotInterface):
 
         self.Kq_default = torch.Tensor(self.metadata.default_Kq)
         self.Kqd_default = torch.Tensor(self.metadata.default_Kqd)
+        self.Kx_default = torch.Tensor(self.metadata.default_Kx)
+        self.Kxd_default = torch.Tensor(self.metadata.default_Kxd)
         self.hz = self.metadata.hz
 
         self.time_to_go_default = time_to_go_default
@@ -400,8 +402,8 @@ class RobotInterface(BaseRobotInterface):
         position: torch.Tensor,
         orientation: torch.Tensor = None,
         time_to_go: float = None,
-        Kq: torch.Tensor = None,
-        Kqd: torch.Tensor = None,
+        Kx: torch.Tensor = None,
+        Kxd: torch.Tensor = None,
         **kwargs,
     ) -> List[RobotState]:
         """Uses an operational space controller to move to a desired end-effector position (and, optionally orientation)."""
@@ -409,34 +411,38 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
+        ee_pos_current, ee_quat_current = self.pose_ee()
+
         # Parse parameters
         if time_to_go is None:
             time_to_go = self.time_to_go_default
         if Kx is None:
-            Kq = self.Kx_default
+            Kx = self.Kx_default
         if Kxd is None:
-            Kqd = self.Kxd_default
+            Kxd = self.Kxd_default
         if orientation is None:
-            _, orientation = self.pose_ee()
+            orientation = ee_quat_current
 
         # Plan trajectory
-        joint_pos_current = self.get_joint_angles()
+        ee_pose_current = T.from_rot_xyz(
+            rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
+        )
         ee_pose_desired = T.from_rot_xyz(
             rotation=R.from_quat(orientation), translation=position
         )
-        waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
-            joint_pos_start=joint_pos_current,
-            ee_pose_goal=ee_pose_desired,
+        waypoints = toco.planning.generate_cartesian_space_min_jerk(
+            start=ee_pose_current,
+            goal=ee_pose_desired,
             time_to_go=time_to_go,
             hz=self.hz,
         )
 
         # Create & execute policy
-        torch_policy = toco.policies.JointTrajectoryExecutor(
-            joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
-            joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
-            Kp=Kq,
-            Kd=Kqd,
+        torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
+            ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
+            ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
+            Kp=Kx,
+            Kd=Kxd,
             robot_model=self.robot_model,
             ignore_gravity=self.use_grav_comp,
         )
