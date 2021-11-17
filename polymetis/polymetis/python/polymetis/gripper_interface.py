@@ -38,8 +38,9 @@ class GripperInterface:
 
     def _command_executor(self, update_event, done_event):
         while True:
-            done_event.clear()
             update_event.wait()
+            update_event.clear()
+            done_event.clear()
 
             # Pop from command cache
             command, msg = self._command_cache
@@ -47,10 +48,7 @@ class GripperInterface:
 
             # Execute command
             command(msg)
-
-            # Reset events
             done_event.set()
-            update_event.clear()
 
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
         self._command_cache = (command, msg)
