@@ -1,3 +1,4 @@
+import time
 import pytest
 import unittest
 from unittest.mock import MagicMock
@@ -23,7 +24,9 @@ def test_gripper_interface(mocked_gripper, blocking):
     # Test methods
     mocked_gripper.get_state()
     mocked_gripper.goto(width=width, speed=speed, force=force, blocking=blocking)
+    time.sleep(0.1)
     mocked_gripper.grasp(speed=speed, force=force, blocking=blocking)
+    time.sleep(0.1)
 
     # Check asserts
     mocked_gripper.grpc_connection.GetState.assert_called_once()
