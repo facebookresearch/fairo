@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import threading
+import time
 
 import grpc
 
@@ -25,11 +26,28 @@ class GripperInterface:
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
+        # Cache latest command for non-blocking commands
+        self._command_cache = None
+        threading.Thread(target=self._async_commands, daemon=True).start()
+
+    def _async_commands(self):
+        while True:
+            if self._command_cache is None:
+                time.sleep(0.01)
+
+            else:
+                # Pop from command cache
+                command, msg = self._command_cache
+                self._command_cache = None
+
+                # Execute command
+                command(msg)
+
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
         if blocking:
             command(msg)
         else:
-            threading.Thread(target=command, args=(msg,), daemon=True).start()
+            self._command_cache = (command, msg)
 
     def get_state(self) -> polymetis_pb2.GripperState:
         """Returns the state of the gripper
