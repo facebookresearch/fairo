@@ -19,14 +19,14 @@ class Question extends Component {
 
     this.state = {
       view: 0,
-      // asr: false,
-      // adtt: false,
-      // adtt_text: "",
       parsing_error: false,
       task_error: false,
       action_dict: {},
-      // new_action_dict: {},
       feedback: "",
+      // asr: false,
+      // adtt: false,
+      // adtt_text: "",
+      // new_action_dict: {},
     };
   }
 
@@ -38,14 +38,14 @@ class Question extends Component {
      */
     var data = {
       action_dict: this.state.action_dict,
+      parsing_error: this.state.parsing_error,
+      task_error: this.state.task_error,
+      msg: this.props.chats[this.props.failidx].msg,
+      feedback: this.state.feedback,
       // new_action_dict: this.state.new_action_dict,
       // asr: this.state.asr,
       // adtt: this.state.adtt,
-      parsing_error: this.state.parsing_error,
-      task_error: this.state.task_error,
       // adtt_text: this.state.adtt_text,
-      msg: this.props.chats[this.props.failidx].msg,
-      feedback: this.state.feedback,
     };
 
     // Emit socket.io event to save data to error logs
@@ -198,10 +198,7 @@ class Question extends Component {
   // }
 
   renderSemanticParserErrorQuestion() {
-    /* check if the parser was right.
-    Yes -> correct, go to any feedback page
-    No -> mark as aprsing error.
-    */
+    /* check if the parser was right.*/
 
     if (this.state.action_dict) {
       if ("dialogue_type" in this.state.action_dict) {
@@ -214,56 +211,47 @@ class Question extends Component {
           var action_dict = this.state.action_dict.action_sequence[0];
           var action_type = action_dict.action_type.toLowerCase();
           question_word = "to " + action_type + " ";
-          // action is build
+          // action is build or dig
           if (["build", "dig"].indexOf(action_type) >= 0) {
             if ("schematic" in action_dict) {
-              question_word =
-                question_word + "'" + action_dict.schematic.text_span + "'";
+              if ("text_span" in action_dict.schematic) {
+                question_word = question_word + "'" + action_dict.schematic.text_span + "'";
+              }
             }
             if ("location" in action_dict) {
-              question_word =
-                question_word +
-                " at location '" +
-                action_dict.location.text_span +
-                "'";
+              if ("text_span" in action_dict.location) {
+                question_word = question_word + " at location '" + action_dict.location.text_span + "'";
+              } else {
+                question_word = question_word + " like this"
+              }
             }
             question_word = question_word + " ?";
-          } else if (
-            ["destroy", "fill", "spawn", "copy", "get", "scout"].indexOf(
-              action_type
-            ) >= 0
-          ) {
+          } else if (["destroy", "fill", "spawn", "copy", "get", "scout", "freebuild"].indexOf(action_type) >= 0) {
             if ("reference_object" in action_dict) {
-              question_word =
-                question_word +
-                "'" +
-                action_dict.reference_object.text_span +
-                "'";
+              if ("text_span" in action_dict.reference_object) {
+                question_word = question_word + "'" + action_dict.reference_object.text_span + "'";
+              }
             }
             if ("location" in action_dict) {
-              question_word =
-                question_word +
-                " at location '" +
-                action_dict.location.text_span +
-                "'";
+              if ("text_span" in action_dict.location) {
+                question_word = question_word + " at location '" + action_dict.location.text_span + "'";
+              } else {
+                question_word = question_word + " like this"
+              }
             }
             question_word = question_word + " ?";
           } else if (["move"].indexOf(action_type) >= 0) {
             if ("location" in action_dict) {
-              question_word =
-                question_word +
-                " at location '" +
-                action_dict.location.text_span +
-                "'";
+              if ("text_span" in action_dict.location) {
+                question_word = question_word + " to location '" + action_dict.location.text_span + "'";
+              } else {
+                question_word = question_word + " to here"
+              }
             }
             question_word = question_word + " ?";
           } else if (["stop", "resume", "undo"].indexOf(action_type) >= 0) {
             if ("target_action_type" in action_dict) {
-              question_word =
-                question_word +
-                " at location '" +
-                action_dict.target_action_type +
-                "'";
+              question_word = question_word + " at location '" + action_dict.target_action_type + "'";
             }
             question_word = question_word + " ?";
           } else if (["otheraction"].indexOf(action_type) >= 0) {
@@ -271,8 +259,7 @@ class Question extends Component {
           }
         } else if (dialogue_type === "GET_MEMORY") {
           // you asked the bot a question
-          question_word =
-            "to answer a question about something in the Minecraft world ?";
+          question_word = "to answer a question about something in the Minecraft world ?";
         } else if (dialogue_type === "PUT_MEMORY") {
           // you were trying to teach the bot something
           question_word = "to remember or learn something you taught it ?";
@@ -343,6 +330,9 @@ class Question extends Component {
 
   componentDidMount() {
     window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
+    let command_and_lf = { command: this.props.chats[this.props.failidx].msg + "|" + JSON.stringify(this.state.action_dict) };
+    // Parsed: data.msg.command = "command|logical_form"
+    window.parent.postMessage(JSON.stringify({ msg: command_and_lf }), "*");
     this.props.stateManager.memory.commandState = "idle";
     var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
     this.setState({

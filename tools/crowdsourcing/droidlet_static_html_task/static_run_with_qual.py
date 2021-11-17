@@ -24,6 +24,7 @@ from typing import List, Any
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
+    "_self_",
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "heroku"},
     {"mephisto/provider": "mock"},
@@ -84,8 +85,8 @@ def main(cfg: DictConfig) -> None:
     db, cfg = load_db_and_process_config(cfg)
     operator = Operator(db)
 
-    operator.validate_and_run_config(cfg.mephisto, shared_state)
-    #operator.validate_and_run_config(cfg.mephisto)
+    #operator.validate_and_run_config(cfg.mephisto, shared_state)
+    operator.validate_and_run_config(cfg.mephisto)
     operator.wait_for_runs_then_shutdown(skip_input=True, log_rate=30)
 
 

@@ -45,15 +45,17 @@ class AgentThinking extends Component {
   }
 
   receiveTaskStackPoll(res) {
-    console.log("Received task stack poll response")
+    var foo = JSON.stringify(res);
+    console.log("Received task stack poll response:" + foo);
     // If we get a response of any kind, reset the timeout clock
     if (res) {
       this.setState({
         now: Date.now(),
       });
       if (!res.task) {
+        console.log("no task on stack");
         // If there's no task, leave this pane and go to error labeling
-        this.props.goToQuestion(0);
+        this.props.goToQuestion(this.props.chats.length-1);
       } else {
         // Otherwise send out a new task stack poll after a delay
         setTimeout(() => {
@@ -81,7 +83,7 @@ class AgentThinking extends Component {
       this.safetyCheck(); // Check that we're in an allowed state and haven't timed out
 
       this.setState((prevState) => {
-        if (prevState.commandState != commandState) {
+        if (prevState.commandState !== commandState) {
           // Log changes in command state to mephisto for analytics
           window.parent.postMessage(JSON.stringify({ msg: commandState }), "*");
         }
@@ -130,7 +132,7 @@ class AgentThinking extends Component {
     console.log("Stop command issued");
     const chatmsg = "stop";
     //add to chat history box of parent
-    this.props.setInteractState({ msg: chatmsg, failed: false });
+    this.props.setInteractState({ msg: chatmsg, timestamp: Date.now() });
     //log message to flask
     this.props.stateManager.logInteractiondata("text command", chatmsg);
     //socket connection

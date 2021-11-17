@@ -16,12 +16,12 @@ class InteractApp extends Component {
       currentView: 1,
       lastChatActionDict: "",
       status: "",
-      chats: [{ msg: "", failed: false }],
+      chats: [{msg: "", timestamp: Date.now()}],
       failidx: -1,
-      agent_reply: "",
+      agent_replies: [],
+      last_reply: "",
     };
     this.state = this.initialState;
-    this.setAssistantReply = this.setAssistantReply.bind(this);
     this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
     this.MessageRef = React.createRef();
   }
@@ -29,31 +29,14 @@ class InteractApp extends Component {
   setInteractState(chat) {
     // make a shallow copy of chats
     var new_chats = [...this.state.chats];
-    new_chats.shift();
+    //new_chats.shift();
     new_chats.push(chat);
     this.setState({ chats: new_chats });
-  }
-
-  setAssistantReply(res) {
-    // show assistant's reply in the Message component
-    this.setState({
-      agent_reply: res.agent_reply,
-    });
-  }
-
-  componentDidMount() {
-    if (this.props.stateManager) {
-      this.props.stateManager.connect(this);
-      this.props.stateManager.socket.on(
-        "showAssistantReply",
-        this.setAssistantReply
-      );
-    }
+    console.log(this.state.chats)
   }
 
   componentWillUnmount() {
     if (this.props.stateManager) this.props.stateManager.disconnect(this);
-    this.props.stateManager.socket.off("setLastChatActionDict", this.goToQuestionWindow)
   }
 
   getUrlParameterByName(name) {
@@ -81,22 +64,26 @@ class InteractApp extends Component {
   }
 
   goToQuestion(idx) {
-    // first send request to retrieve the logic form of last sent command before showing NSP Error annotation page to users
+    // Wait for the logical form of last chat and show the Fail page
+    this.props.stateManager.socket.on("setLastChatActionDict", this.goToQuestionWindow);
+
+    // Send request to retrieve the logic form of last sent command
     this.props.stateManager.socket.emit(
       "getChatActionDict",
       this.state.chats[idx]["msg"]
     );
-
-    // then wait for the logical form of last chat and show the Fail page
-    this.props.stateManager.socket.on("setLastChatActionDict", this.goToQuestionWindow)
   }
 
   goToQuestionWindow() {
+    this.props.stateManager.socket.off("setLastChatActionDict", this.goToQuestionWindow);  // Don't proliferate sio listeners
+    const replies_len = this.props.stateManager.memory.agent_replies.length;
+    const chats_len = this.state.chats.length;
     this.setState({
-      agent_reply: this.props.stateManager.memory.agent_reply,
+      agent_replies: this.props.stateManager.memory.agent_replies,
+      last_reply: this.props.stateManager.memory.agent_replies[replies_len-1].msg,
       currentView: 2,
       chats: this.state.chats,
-      failidx: 0,
+      failidx: chats_len-1,
     });
   }
 
@@ -112,7 +99,7 @@ class InteractApp extends Component {
               ref={this.MessageRef}
               chats={this.state.chats}
               enableVoice={false} // Right now this is hard coded for this branch, should move to stateManager
-              agent_reply={this.state.agent_reply}
+              agent_replies={this.state.agent_replies}
               goToQuestion={this.goToQuestion.bind(this)}
               goToAgentThinking={this.goToAgentThinking.bind(this)}
               setInteractState={this.setInteractState.bind(this)}
@@ -125,12 +112,13 @@ class InteractApp extends Component {
               failidx={this.state.failidx}
               goToMessage={this.goToMessage.bind(this)}
               failmsg={this.state.chats[this.state.failidx].msg}
-              agent_reply={this.state.agent_reply}
+              agent_reply={this.state.last_reply}
             />
           ) : null}
           {this.state.currentView === 3 ? (
             <AgentThinking
               stateManager={this.props.stateManager}
+              chats={this.state.chats}
               goToMessage={this.goToMessage.bind(this)}
               goToQuestion={this.goToQuestion.bind(this)}
               setInteractState={this.setInteractState.bind(this)}

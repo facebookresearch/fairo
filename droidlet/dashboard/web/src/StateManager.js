@@ -20,6 +20,7 @@ import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
 import AgentThinking from "./components/Interact/AgentThinking";
+import Message from "./components/Interact/Message";
 
 /**
  * The main state manager for the dashboard.
@@ -72,7 +73,7 @@ class StateManager {
     agentType: "locobot",
     commandState: "idle",
     commandPollTime: 500,
-    agent_reply: "",
+    agent_replies: [{}],
   };
   session_id = null;
 
@@ -300,9 +301,12 @@ class StateManager {
     this.refs.forEach((ref) => {
       // this has a potential race condition
       // (i.e. ref is not registered by the time socketio connects)
-      // hence, in Settings' componentDidMount, we also
+      // hence, in ref componentDidMount, we also
       // check set connected state
       if (ref instanceof Settings) {
+        ref.setState({ connected: status });
+      }
+      if (ref instanceof Message) {
         ref.setState({ connected: status });
       }
     });
@@ -367,11 +371,11 @@ class StateManager {
   }
 
   showAssistantReply(res) {
-    this.memory.agent_reply = res.agent_reply;
+    this.memory.agent_replies.push({msg: res.agent_reply, timestamp: Date.now()});
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
-          agent_reply: this.memory.agent_reply,
+          agent_replies: this.memory.agent_replies,
         });
       }
     });

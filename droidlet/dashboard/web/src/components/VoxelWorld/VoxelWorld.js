@@ -28,10 +28,14 @@ class VoxelWorld extends React.Component {
 
     // Listen for a message from the iframe to remove the prompt text when the user clicks in
     window.addEventListener("message", (event) => {
-      let data = JSON.parse(event.data);
-      if (data.msg === "click") {
-        let p = document.getElementById("prompt");
-        if (p) {p.remove()};
+      try {
+        let data = JSON.parse(event.data);
+        if (data.msg === "click") {
+          let p = document.getElementById("prompt");
+          if (p) {p.remove()};
+        }
+      } catch (e) {
+          return false
       }
     }, false);
   }
@@ -44,7 +48,7 @@ class VoxelWorld extends React.Component {
             id="ifr"
             src="VoxelWorld/world.html"
             title="Voxel World"
-            width="900"
+            width="100%"
             height="500"
             ref={this.worldContainerRef}
           ></iframe>

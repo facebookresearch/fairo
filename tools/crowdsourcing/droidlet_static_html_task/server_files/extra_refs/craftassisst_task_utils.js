@@ -1,9 +1,3 @@
-/*
-   Copyright (c) Facebook, Inc. and its affiliates.
-
- * utils.js contains a variety of click handlers and timing analytics for craftassist_task
- */
-
 var timerStopped = false;
 var ratingComplete = false;
 var selfRatingComplete = false;
@@ -16,64 +10,63 @@ function recordClick(ele) {
   }
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
-  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
 function checkSubmitDisplay() {
-    //Only display the submit button if the worker has interacted with the dashboard and completed the survey
-    if (ratingComplete && selfRatingComplete && timerStopped) {
-        document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
-        window.scrollTo(0,document.body.scrollHeight);
-    }
+  //Only display the submit button if the worker has interacted with the dashboard and completed the survey
+  if (ratingComplete && selfRatingComplete && timerStopped) {
+    document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
+    window.scrollTo(0,document.body.scrollHeight);
+  }
 }
 
 function usabilityRated() {
-    ratingComplete = true;
-    recordClick("usability-rated");
-    checkSubmitDisplay();
+  ratingComplete = true;
+  recordClick("usability-rated");
+  checkSubmitDisplay();
 }
 
 function selfRated() {
-    selfRatingComplete = true;
-    recordClick("self-rated");
-    checkSubmitDisplay();
+  selfRatingComplete = true;
+  recordClick("self-rated");
+  checkSubmitDisplay();
 }
 
 function recordReadTime() {
-    recordClick("instructions-popup-close");
-
-    //Also take this opportunity to do some other housekeeping that doesn't work well with MTurk...
-    document.getElementsByClassName("btn-default")[0].classList.add("hidden");
-    if (window.addEventListener) {
-        window.addEventListener("message", (event) => {
-            let data = JSON.parse(event.data);
-            console.log(data);
-            recordClick(data.msg);
-        }, false);
-    }
-    else if (window.attachEvent) {  // Cross compatibility for old versions of IE
-        window.attachEvent("onmessage", (event) => {
-            let data = JSON.parse(event.data);
-            console.log(data);
-            recordClick(data.msg);
-        });
-    }
+  recordClick("instructions-popup-close");
+  //Also take this opportunity to do some other housekeeping that doesn't work well with MTurk...
+  document.getElementsByClassName("btn-default")[0].classList.add("hidden");
+  if (window.addEventListener) {
+    window.addEventListener("message", (event) => {
+      let data = JSON.parse(event.data);
+      console.log(data);
+      recordClick(data.msg);
+    }, false);
+  }
+  else if (window.attachEvent) {  // Cross compatibility for old versions of IE
+    window.attachEvent("onmessage", (event) => {
+      let data = JSON.parse(event.data);
+      console.log(data);
+      recordClick(data.msg);
+    });
+  }
 }
 
 function showHideInstructions() {
-    if (document.getElementById("instructionsWrapper").classList.contains("in")){
-        for (let ele of document.getElementsByClassName("collapse")){
-            if (ele.classList.contains("in")) ele.classList.remove("in");
-        }
+  if (document.getElementById("instructionsWrapper").classList.contains("in")){
+    for (let ele of document.getElementsByClassName("collapse")){
+      if (ele.classList.contains("in")) ele.classList.remove("in");
     }
-    else {
-        for (let ele of document.getElementsByClassName("collapse")){
-            if (ele.classList.contains("in")) continue;
-            else ele.classList.add("in");
-        }
+  }
+  else {
+    for (let ele of document.getElementsByClassName("collapse")){
+      if (ele.classList.contains("in")) continue;
+      else ele.classList.add("in");
     }
-    recordClick("toggle-instructions");
+  }
+  recordClick("toggle-instructions");
 }
 
 var page = 1;

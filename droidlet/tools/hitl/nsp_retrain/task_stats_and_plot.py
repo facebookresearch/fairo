@@ -242,7 +242,8 @@ def timing_charts(run_id: int) -> None:
                 pass
     
     workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211112115924", "nsp_outputs")
-    compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+    #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+    get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211112115924')
 
     '''
     promoters = len([i for i in usability if i > 5])
@@ -359,7 +360,6 @@ def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs
 
     for i,l in enumerate(all_lists):
         d1 = Counter(l)
-        #print(f"Worker dict {list_names[i]}: {d1}")
         for j,k in enumerate(all_lists):
             d2 = Counter(k)
             for key in d1.keys():
@@ -369,7 +369,32 @@ def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs
                 except:
                     print(f"{key} appears in {list_names[i]} but not {list_names[j]}")
 
+#%%
+def get_commands_from_turk_id(turk_id, turk_output_directory):
     
+    commands = []
+    for csv_path in glob.glob(
+        "{turk_logs_dir}/**/{csv_filename}".format(
+            turk_logs_dir=turk_output_directory, csv_filename="nsp_outputs.csv"
+        )
+    ):
+        readfile = False
+        meta_path = os.path.join(os.path.dirname(csv_path), "job_metadata.json")
+        if os.path.exists(meta_path):
+            with open(meta_path, "r+") as f:
+                meta = json.load(f)
+                if meta["turk_worker_id"] == turk_id: readfile = True
+        else:
+            pass
+
+        if readfile:
+            with open(csv_path) as fd:
+                # collect the NSP outputs CSV
+                csv_file = pd.read_csv(csv_path, delimiter="|")
+                commands += list(csv_file["command"])
+    
+    print(f"Commands from worker {turk_id}: {commands}")
+    print(f"Worker {turk_id} command #: {len(commands)}")
 
 #%%
 def calc_percentiles(data, label):
