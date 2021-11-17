@@ -14,15 +14,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data_dir",
-        default="craftassist/agent/datasets/annotated_data/",
+        default="droidlet/artifacts/datasets/annotated_data/",
         type=str,
         help="train/valid/test data",
     )
     args = parser.parse_args()
 
-    model = "craftassist/agent/models/nlu/ttad_bert_updated/caip_test_model.pth"
+    model = "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model.pth"
     args_path = (
-        "craftassist/agent/models/nlu/ttad_bert_updated/caip_test_model_args.pk"
+        "droidlet/artifacts/models/nlu/ttad_bert_updated/caip_test_model_args.pk"
     )
     args = pickle.load(open(args_path, "rb"))
 

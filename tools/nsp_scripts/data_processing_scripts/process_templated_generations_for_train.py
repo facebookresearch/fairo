@@ -18,11 +18,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--full_path",
-        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/full_data/templated.txt",
+        default="droidlet/artifacts/datasets/full_data/templated.txt",
     )
     parser.add_argument(
         "--train_dir_path",
-        default="/private/home/rebeccaqian/minecraft/craftassist/agent/datasets/annotated_data/",
+        default="droidlet/artifacts/datasets/annotated_data/",
     )
     opts = parser.parse_args()
     f = open(opts.raw_templated_path)

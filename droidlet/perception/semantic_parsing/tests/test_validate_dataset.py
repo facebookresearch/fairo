@@ -5,7 +5,7 @@ import os
 import unittest
 from droidlet.perception.semantic_parsing.utils.validate_json import JSONValidator
 
-FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../agents/craftassist/datasets/full_data/")
+FULL_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/full_data/")
 SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "../../../documents/json_schema/")
 
 
