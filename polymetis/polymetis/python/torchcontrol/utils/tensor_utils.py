@@ -13,6 +13,14 @@ def to_tensor(input):
         return torch.tensor(input).to(torch.Tensor())
 
 
+def stack_trajectory(input):
+    if torch.is_tensor(input):
+        return input
+    else:
+        assert type(input) is list
+        return torch.stack(input)
+
+
 def diagonalize_gain(input: torch.Tensor):
     """Converts a 1-D vector into a diagonal 2-D matrix.
 

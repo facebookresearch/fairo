@@ -41,7 +41,13 @@ class Launcher(BaseLauncher):
 
         # Environmental variables.
         env = util.common_env(self.proc_def)
-        env.update(self.kwargs.pop("Env", {}))
+        for kv in self.kwargs.pop("Env", []):
+            if "=" in kv:
+                k, v = kv.split("=", 1)
+                env[k] = v
+            else:
+                del env[kv]
+        env.update(self.proc_def.env)
 
         # Docker labels.
         labels = {
@@ -124,13 +130,14 @@ class Launcher(BaseLauncher):
 
 
 class Docker(BaseRuntime):
-    def __init__(self, image=None, dockerfile=None, mount=[], **kwargs):
+    def __init__(self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}):
         if bool(image) == bool(dockerfile):
             util.fail("Docker process must define exactly one of image or dockerfile")
         self.image = image
         self.dockerfile = dockerfile
         self.mount = mount
-        self.kwargs = kwargs
+        self.build_kwargs = build_kwargs
+        self.run_kwargs = run_kwargs
 
     def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         docker_api = docker.from_env()
@@ -149,7 +156,7 @@ class Docker(BaseRuntime):
                 "dockerfile": dockerfile_path,
                 "rm": True,
             }
-            build_kwargs.update(self.kwargs)
+            build_kwargs.update(self.build_kwargs)
 
             for line in docker_api.lowlevel.build(**build_kwargs):
                 lineinfo = json.loads(line.decode())
@@ -238,4 +245,4 @@ class Docker(BaseRuntime):
             ]
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
-        return Launcher(self.image, self.mount, name, proc_def, args, **self.kwargs)
+        return Launcher(self.image, self.mount, name, proc_def, args, **self.run_kwargs)
