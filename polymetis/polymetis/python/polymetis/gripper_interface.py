@@ -26,25 +26,25 @@ class GripperInterface:
         self.channel = grpc.insecure_channel(f"{ip_address}:{port}")
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
-        # Cache latest command for non-blocking commands
-        self._command_cache = None
+        # Execute commands from cache in separate thread
         self._update_event = threading.Event()
         self._done_event = threading.Event()
-        threading.Thread(
+        self._command_thr = threading.Thread(
             target=self._command_executor,
             args=(self._update_event, self._done_event),
             daemon=True,
-        ).start()
+        )
+
+        self._command_cache = None
+        self._command_thr.start()
 
     def _command_executor(self, update_event, done_event):
         while True:
             update_event.wait()
-            update_event.clear()
-            done_event.clear()
 
             # Pop from command cache
             command, msg = self._command_cache
-            self._command_cache = None
+            update_event.clear()
 
             # Execute command
             command(msg)
@@ -53,6 +53,7 @@ class GripperInterface:
 
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
         self._command_cache = (command, msg)
+        self._done_event.clear()
         self._update_event.set()
 
         if blocking:
