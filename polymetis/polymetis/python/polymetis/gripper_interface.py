@@ -48,7 +48,8 @@ class GripperInterface:
 
             # Execute command
             command(msg)
-            done_event.set()
+            if not update_event.isSet():
+                done_event.set()
 
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
         self._command_cache = (command, msg)
