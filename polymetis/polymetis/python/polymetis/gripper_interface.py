@@ -3,6 +3,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import threading
+import queue
 import time
 
 import grpc
@@ -27,37 +28,25 @@ class GripperInterface:
         self.grpc_connection = polymetis_pb2_grpc.GripperServerStub(self.channel)
 
         # Execute commands from cache in separate thread
-        self._update_event = threading.Event()
-        self._done_event = threading.Event()
         self._command_thr = threading.Thread(
             target=self._command_executor,
-            args=(self._update_event, self._done_event),
             daemon=True,
         )
 
-        self._command_cache = None
+        self._command_queue = queue.Queue(maxsize=1)
         self._command_thr.start()
 
-    def _command_executor(self, update_event, done_event):
+    def _command_executor(self):
         while True:
-            update_event.wait()
-
-            # Pop from command cache
-            command, msg = self._command_cache
-            update_event.clear()
-
-            # Execute command
+            command, msg = self._command_queue.get()
             command(msg)
-            if not update_event.isSet():
-                done_event.set()
+            self._command_queue.task_done()
 
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
-        self._command_cache = (command, msg)
-        self._done_event.clear()
-        self._update_event.set()
+        self._command_queue.put((command, msg))
 
         if blocking:
-            self._done_event.wait()
+            self._command_queue.join()
 
     def get_state(self) -> polymetis_pb2.GripperState:
         """Returns the state of the gripper
