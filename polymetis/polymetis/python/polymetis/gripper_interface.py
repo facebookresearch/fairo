@@ -28,26 +28,36 @@ class GripperInterface:
 
         # Cache latest command for non-blocking commands
         self._command_cache = None
-        threading.Thread(target=self._async_commands, daemon=True).start()
+        self._update_event = threading.Event()
+        self._done_event = threading.Event()
+        threading.Thread(
+            target=self._command_executor,
+            args=(self._update_event, self._done_event),
+            daemon=True,
+        ).start()
 
-    def _async_commands(self):
+    def _command_executor(self, update_event, done_event):
         while True:
-            if self._command_cache is None:
-                time.sleep(0.01)
+            done_event.clear()
+            update_event.wait()
 
-            else:
-                # Pop from command cache
-                command, msg = self._command_cache
-                self._command_cache = None
+            # Pop from command cache
+            command, msg = self._command_cache
+            self._command_cache = None
 
-                # Execute command
-                command(msg)
+            # Execute command
+            command(msg)
+
+            # Reset events
+            done_event.set()
+            update_event.clear()
 
     def _send_gripper_command(self, command, msg, blocking: bool = True) -> None:
+        self._command_cache = (command, msg)
+        self._update_event.set()
+
         if blocking:
-            command(msg)
-        else:
-            self._command_cache = (command, msg)
+            self._done_event.wait()
 
     def get_state(self) -> polymetis_pb2.GripperState:
         """Returns the state of the gripper
