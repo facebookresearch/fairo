@@ -378,6 +378,11 @@ class StateManager {
           agent_replies: this.memory.agent_replies,
         });
       }
+      if (ref instanceof Message) {
+        ref.setState({
+          agent_replies: this.memory.agent_replies,
+        });
+      }
     });
   }
 

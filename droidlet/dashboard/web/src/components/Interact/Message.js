@@ -17,6 +17,7 @@ class Message extends Component {
       recognizing: false,
       enableVoice: this.props.enableVoice,
       connected: false,
+      agent_replies: this.props.agent_replies,
     };
     this.state = this.initialState;
     this.elementRef = React.createRef();
@@ -24,9 +25,9 @@ class Message extends Component {
   }
 
   renderChatHistory() {
-    // Pull in user chats and agent replies from props, filter out any empty ones
+    // Pull in user chats and agent replies, filter out any empty ones
     let chats = this.props.chats.filter(chat => chat.msg !== "");
-    let replies = this.props.agent_replies.filter(reply => reply.msg !== "");
+    let replies = this.state.agent_replies.filter(reply => reply.msg !== "");
     chats = chats.filter(chat => chat.msg)
     replies = replies.filter(reply => reply.msg)
     // Label each chat based on where it came from
@@ -44,7 +45,7 @@ class Message extends Component {
 
     return chat_history.map((chat) =>
       React.cloneElement(
-        <li className={chat.sender}>
+        <li className={chat.sender} key={chat.timestamp.toString()}>
           {chat.msg}
         </li>
       )
