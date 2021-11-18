@@ -51,16 +51,18 @@ class LiveObjects extends React.Component {
 
   componentDidUpdate() {
     if (this.state.updateFixup) {
-      this.onFixup()
-      this.setState({ updateFixup: false })
+      this.onFixup();
+      this.setState({ updateFixup: false });
     }
   }
 
   addObject(object) {
-    let newObjects = this.state.objects ? this.state.objects.concat(object) : [object]
+    let newObjects = this.state.objects
+      ? this.state.objects.concat(object)
+      : [object];
     this.setState({
-      objects: newObjects
-    })
+      objects: newObjects,
+    });
   }
 
   onResize(e, direction, ref, delta, position) {
@@ -117,26 +119,26 @@ class LiveObjects extends React.Component {
 
   onAnnotationSave() {
     if (this.props.stateManager) {
-      this.props.stateManager.onSave()
+      this.props.stateManager.onSave();
     }
   }
 
   onModelSwitch() {
     if (this.props.stateManager) {
-      console.log("switching model...")
-      this.props.stateManager.socket.emit("switch_detector")
+      console.log("switching model...");
+      this.props.stateManager.socket.emit("switch_detector");
     }
   }
 
   onPrevFrame() {
     if (this.props.stateManager) {
-      this.props.stateManager.previousFrame()
+      this.props.stateManager.previousFrame();
     }
   }
 
   onNextFrame() {
     if (this.props.stateManager) {
-      this.props.stateManager.nextFrame()
+      this.props.stateManager.nextFrame();
     }
   }
 
@@ -178,6 +180,9 @@ class LiveObjects extends React.Component {
     }
     let j = 0;
     parsed_objects.forEach((obj, i) => {
+      if (obj.label === "person") {
+        return;
+      }
       let obj_id = obj.id;
       let label = String(obj_id).concat(obj.label);
       let properties = obj.properties;
@@ -235,12 +240,14 @@ class LiveObjects extends React.Component {
       }
     });
 
-    let offlineButtons = null
+    let offlineButtons = null;
     if (this.state.offline) {
-      offlineButtons = <span style={{ float: "right" }}>
-        <button onClick={this.onPrevFrame}>{"<-"}</button>
-        <button onClick={this.onNextFrame}>{"->"}</button>
-      </span>
+      offlineButtons = (
+        <span style={{ float: "right" }}>
+          <button onClick={this.onPrevFrame}>{"<-"}</button>
+          <button onClick={this.onNextFrame}>{"->"}</button>
+        </span>
+      );
     }
 
     return (
