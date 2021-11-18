@@ -51,7 +51,7 @@
       </div>	
       <div class="modal-body" id="modal"></div>	
       <div class="modal-footer">	
-        <button class="btn btn-primary" id="close-instructions-btn" onclick="recordReadTime()" data-dismiss="modal" type="button" style="display:none">Close</button>	
+        <button class="btn btn-primary" id="close-instructions-btn" onclick="recordClick('instructions-popup-close')" data-dismiss="modal" type="button" style="display:none">Close</button>	
       </div>	
     </div>	
   </div>	
@@ -270,6 +270,6 @@
     $(".modal").modal("show");
   });
 </script>
-<script src="craftassist_task_utils.js"></script>	
-<script src="browser_info.js"></script>	
+<script src="utils.js"></script>	
+<script src="browserInfo.js"></script>	
 <link rel="stylesheet" href="craftassist_task.css">

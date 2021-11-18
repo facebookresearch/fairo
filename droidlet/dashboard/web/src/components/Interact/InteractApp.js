@@ -29,7 +29,6 @@ class InteractApp extends Component {
   setInteractState(chat) {
     // make a shallow copy of chats
     var new_chats = [...this.state.chats];
-    //new_chats.shift();
     new_chats.push(chat);
     this.setState({ chats: new_chats });
     console.log(this.state.chats)
@@ -45,18 +44,19 @@ class InteractApp extends Component {
   }
 
   goToMessage() {
+    // Send a message to the parent iframe for analytics logging
+    window.parent.postMessage(JSON.stringify({ msg: "goToMessaage" }), "*");
+
     //change the state to switch the view to show Message and save the user input necessary for socket connection
-    var newchats = this.state.chats;
-    if (this.state.failidx !== -1) {
-      newchats[this.state.failidx].failed = true;
-    }
     this.setState({
       currentView: 1,
-      chats: newchats,
     });
   }
 
   goToAgentThinking() {
+    // Send a message to the parent iframe for analytics logging
+    window.parent.postMessage(JSON.stringify({ msg: "goToAgentThinking" }), "*");
+
     //change the state to switch the view to show AgentThinking window
     this.setState({
       currentView: 3,
@@ -75,7 +75,10 @@ class InteractApp extends Component {
   }
 
   goToQuestionWindow() {
-    this.props.stateManager.socket.off("setLastChatActionDict", this.goToQuestionWindow);  // Don't proliferate sio listeners
+    // Send a message to the parent iframe for analytics logging
+    window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
+    // Don't proliferate sio listeners
+    this.props.stateManager.socket.off("setLastChatActionDict", this.goToQuestionWindow);
     const replies_len = this.props.stateManager.memory.agent_replies.length;
     const chats_len = this.state.chats.length;
     this.setState({

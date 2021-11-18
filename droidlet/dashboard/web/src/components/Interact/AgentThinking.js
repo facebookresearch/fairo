@@ -45,8 +45,8 @@ class AgentThinking extends Component {
   }
 
   receiveTaskStackPoll(res) {
-    var foo = JSON.stringify(res);
-    console.log("Received task stack poll response:" + foo);
+    var response = JSON.stringify(res);
+    console.log("Received task stack poll response:" + response);
     // If we get a response of any kind, reset the timeout clock
     if (res) {
       this.setState({
@@ -67,9 +67,6 @@ class AgentThinking extends Component {
 
   componentDidMount() {
     this.props.stateManager.connect(this);  // Add to refs
-
-    // Send a message to the parent iframe for analytics logging
-    window.parent.postMessage(JSON.stringify({ msg: "goToAgentThinking" }), "*");
 
     if (this.props.stateManager) {
       this.props.stateManager.socket.on( "taskStackPollResponse", this.receiveTaskStackPoll );

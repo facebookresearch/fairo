@@ -329,7 +329,6 @@ class Question extends Component {
   }
 
   componentDidMount() {
-    window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
     let command_and_lf = { command: this.props.chats[this.props.failidx].msg + "|" + JSON.stringify(this.state.action_dict) };
     // Parsed: data.msg.command = "command|logical_form"
     window.parent.postMessage(JSON.stringify({ msg: command_and_lf }), "*");

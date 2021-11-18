@@ -24,17 +24,29 @@ class Message extends Component {
   }
 
   renderChatHistory() {
-    //render the HTML for the chatHistory with a unique key value
-    return this.props.chats.map((value, idx) =>
+    // Pull in user chats and agent replies from props, filter out any empty ones
+    let chats = this.props.chats.filter(chat => chat.msg !== "");
+    let replies = this.props.agent_replies.filter(reply => reply.msg !== "");
+    chats = chats.filter(chat => chat.msg)
+    replies = replies.filter(reply => reply.msg)
+    // Label each chat based on where it came from
+    chats.forEach(chat => chat['sender'] = 'message user');
+    replies.forEach(reply => reply['sender'] = 'message agent');
+    // Strip out the 'Agent: ' prefix if it's there
+    replies.forEach(function(reply) {
+      if (reply['msg'].includes("Agent: ")) {
+        reply['msg'] = reply['msg'].substring(7);
+      }
+    });
+    // Zip it into one list, sort by timestamp, and send it off to be rendered
+    let chat_history = chats.concat(replies);
+    chat_history.sort(function (a, b) { return a.timestamp - b.timestamp; });
+
+    return chat_history.map((chat) =>
       React.cloneElement(
-        <ListItem alignItems="flex-start">
-          <div className="chatItem">
-            {value.msg !== "" ? <ListItemText primary={value.msg} /> : null}
-          </div>
-        </ListItem>,
-        {
-          key: idx.toString(),
-        }
+        <li className={chat.sender}>
+          {chat.msg}
+        </li>
       )
     );
   }
@@ -54,7 +66,6 @@ class Message extends Component {
   componentDidMount() {
     this.props.stateManager.connect(this);
     document.addEventListener("keypress", this.bindKeyPress);
-    window.parent.postMessage(JSON.stringify({ msg: "goToMessaage" }), "*");
     this.setState({ connected: this.props.stateManager.connected });
   }
 
@@ -103,14 +114,9 @@ class Message extends Component {
                 <span style={{color: 'red'}}>not connected</span>
               )}
             </div>
-            <div className="messages" id="chat">
-              <ul className="messagelist">
-                <li className="message user">
-                  Hey, man! What's up, Mr Stark? 👋
-                </li>
-                <li className="message agent">
-                  Kid, where'd you come from? 
-                </li>
+            <div className="messages">
+              <ul className="messagelist" id="chat">
+                {this.renderChatHistory()}
               </ul>
             </div>
             <div className="input">
