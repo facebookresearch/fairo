@@ -25,30 +25,6 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
     )
     print("I have $" + mturk.get_account_balance()["AvailableBalance"] + " in my Sandbox account")
 
-    # Delete HITs - For use in dev only
-    # NOTE: remove if not needed
-    # NOTE(Yuxuan): I don't think we should delete all hits while creating new ones
-    # if use_sandbox:
-    #     for item in mturk.list_hits()["HITs"]:
-    #         hit_id = item["HITId"]
-    #         print("HITId:", hit_id)
-
-    #         # Get HIT status
-    #         status = mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
-    #         print("HITStatus:", status)
-
-    #         # If HIT is active then set it to expire immediately
-    #         if status == "Assignable" or status == "Reviewable":
-    #             response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
-
-    #         # Delete the HIT
-    #         try:
-    #             mturk.delete_hit(HITId=hit_id)
-    #         except:
-    #             print("Not deleted")
-    #         else:
-    #             print("Deleted")
-
     # XML file containing ExternalQuestion object.
     # See MTurk API docs for constraints.
     with open(xml_file_path, "r") as fd:

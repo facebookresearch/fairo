@@ -29,12 +29,6 @@ dev_flag = "--dev" if args.dev else ""
 default_write_dir = args.default_write_dir
 timeout = args.timeout
 
-# dev_flag = ""
-# # Parse flags passed into script run
-# if len(sys.argv) > 1:
-#     # flag to toggle dev mode is --dev
-#     dev_flag = sys.argv[1]
-
 # CSV input
 rc = subprocess.call(
     [
@@ -45,17 +39,6 @@ rc = subprocess.call(
 if rc != 0:
     print("Error preprocessing. Exiting.")
     sys.exit()
-
-# # Load input commands and create a separate HIT for each row
-# rc = subprocess.call(
-#     [
-#         f"python3 create_jobs.py --xml_file fetch_question_B.xml --tool_num 2 --input_csv {default_write_dir}/B/turk_input.csv --job_spec_csv {default_write_dir}/B/turk_job_specs.csv {dev_flag}"
-#     ],
-#     shell=True,
-# )
-# if rc != 0:
-#     print("Error creating HIT jobs. Exiting.")
-#     sys.exit()
 
 hit_id = create_turk_job("fetch_question_B.xml", 2, f"{default_write_dir}/B/turk_input.csv", f"{default_write_dir}/B/turk_job_specs.csv", dev_flag)
 
@@ -82,17 +65,6 @@ mturk = boto3.client(
 
 get_hit_result(mturk, hit_id, f"{default_write_dir}/B/turk_output.csv", True if dev_flag else False, timeout)
 
-# # Check if results are ready
-# rc = subprocess.call(
-#     [
-#         f"python3 get_results.py --output_csv {default_write_dir}/B/turk_output.csv {dev_flag}"
-#     ],
-#     shell=True,
-# )
-# if rc != 0:
-#     print("Error fetching HIT results. Exiting.")
-#     sys.exit()
-
 # Collate datasets
 print("*"*50)
 print("*** Collating turk outputs and input job specs ***")
@@ -108,5 +80,4 @@ print("*** Postprocessing results ***")
 rc = subprocess.call([f"python3 parse_tool_B_outputs.py --folder_name {default_write_dir}/B/"], shell=True)
 if rc != 0:
     print("Error postprocessing tool B. Exiting.")
-    sys.exit()
 print("*"*50)

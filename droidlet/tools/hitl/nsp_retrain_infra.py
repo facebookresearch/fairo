@@ -368,7 +368,7 @@ class NSPNewDataListener(JobListener):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--droidlet_dir", type=str, help="Absolute location of droidlet root")
-    parser.add_argument("--full_data_dir", default="agents/craftassist/datasets/full_data/", type=str, help="Relative location for data storage")
+    parser.add_argument("--full_data_dir", default="droidlet/artifacts/datasets/full_data/", type=str, help="Relative location for data storage")
     parser.add_argument("--sweep_runner_dir", type=str, help="Absolute location of sweep_runner script")
     parser.add_argument("--sweep_config_folder", type=str, help="Absolute location of sweep configs")
     parser.add_argument("--sweep_scripts_output_dir", type=str, help="Absolute location for sweep shell scripts")

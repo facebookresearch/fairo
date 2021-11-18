@@ -13,8 +13,8 @@ from agents.droidlet_agent import DroidletAgent
 from agents.craftassist.tests.base_craftassist_test_case import BaseCraftassistTestCase
 from droidlet.shared_data_structs import MockOpt
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models/semantic_parser/")
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../datasets/annotated_data/")
+TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../../../droidlet/artifacts/models/nlu/")
+TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../droidlet/artifacts/datasets/annotated_data/")
 
 
 class PutMemoryTestCase(BaseCraftassistTestCase):
@@ -35,6 +35,7 @@ class PutMemoryTestCase(BaseCraftassistTestCase):
         self.add_incoming_chat(chat, self.speaker)
         # run the semantic parsing model (and other chat munging):
         nlu_perceive_output = self.agent.perception_modules["language_understanding"].perceive()
+        print(nlu_perceive_output)
         force, received_chats_flag, speaker, chat, preprocessed_chat, chat_parse = (
             nlu_perceive_output
         )

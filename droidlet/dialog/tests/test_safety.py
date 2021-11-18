@@ -7,7 +7,7 @@ import os
 from droidlet.shared_data_structs import MockOpt
 from droidlet.dialog.map_to_dialogue_object import DialogueObjectMapper
 
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../agents/craftassist/datasets/ground_truth/")
+GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../../droidlet/artifacts/datasets/ground_truth/")
 
 """This class tests safety checks using a preset list of blacklisted words.
 """

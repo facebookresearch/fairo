@@ -23,7 +23,7 @@ parser.add_argument("--dev", default=False, action="store_true")
 args = parser.parse_args()
 dev_flag = "--dev" if args.dev else ""
 default_write_dir = args.default_write_dir
-timeout = 300#args.timeout
+timeout = 300
 
 # # Default to directory of script being run for writing inputs and outputs
 # default_write_dir = os.path.dirname(os.path.abspath(__file__))

@@ -52,7 +52,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # Default is assuming script is run from template tool backend
     parser.add_argument(
-        "--annotations_dir_path", default="../../../../craftassist/agent/datasets/full_data/"
+        "--annotations_dir_path", default="../../droidlet/artifacts/datasets/full_data/"
     )
     parser.add_argument("--commands_path", default="commands.txt")
     parser.add_argument("--json_out_path", default="../frontend/src/command_dict_pairs.json")

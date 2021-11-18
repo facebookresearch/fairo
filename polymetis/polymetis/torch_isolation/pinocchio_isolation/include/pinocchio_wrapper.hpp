@@ -15,8 +15,8 @@ namespace pinocchio_wrapper {
 
 struct State;
 
-C_TORCH_EXPORT struct State *initialize(const std::string &ee_link_name,
-                                        const std::string &xml_buffer);
+C_TORCH_EXPORT struct State *initialize(const char *ee_link_name,
+                                        const char *xml_buffer);
 
 C_TORCH_EXPORT void destroy(State *state);
 

@@ -98,6 +98,8 @@ message RobotClientMetadata {
   int32 ee_link_idx = 8;
   repeated float rest_pose = 9;
   string polymetis_version = 10;
+  repeated float default_Kx = 11;
+  repeated float default_Kxd = 12;
 }
 
 message RobotState {

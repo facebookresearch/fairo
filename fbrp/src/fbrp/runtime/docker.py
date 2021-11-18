@@ -1,3 +1,4 @@
+from fbrp import life_cycle
 from fbrp import util
 from fbrp.runtime.base import BaseLauncher, BaseRuntime
 from fbrp.process import ProcDef
@@ -33,14 +34,20 @@ class Launcher(BaseLauncher):
         self.kwargs = kwargs
 
     async def run(self):
-        self.set_state(BaseLauncher.State.STARTING)
+        life_cycle.set_state(self.name, life_cycle.State.STARTING)
         docker = aiodocker.Docker()
 
         container = f"fbrp_{self.name}"
 
         # Environmental variables.
         env = util.common_env(self.proc_def)
-        env.update(self.kwargs.pop("Env", {}))
+        for kv in self.kwargs.pop("Env", []):
+            if "=" in kv:
+                k, v = kv.split("=", 1)
+                env[k] = v
+            else:
+                del env[kv]
+        env.update(self.proc_def.env)
 
         # Docker labels.
         labels = {
@@ -86,10 +93,10 @@ class Launcher(BaseLauncher):
 
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()
-        self.set_state(BaseLauncher.State.STARTED)
 
         proc_info = await self.proc.show()
         self.proc_pid = proc_info["State"]["Pid"]
+        life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
         async def log_pipe(logger, pipe):
             async for line in pipe:
@@ -100,35 +107,37 @@ class Launcher(BaseLauncher):
             log_pipe(util.stderr_logger(), self.proc.log(stderr=True, follow=True)),
             self.log_psutil(),
             self.death_handler(),
-            self.command_handler(),
+            self.down_watcher(self.handle_down),
         )
+        await docker.close()
 
     def get_pid(self):
         return self.proc_pid
 
     async def death_handler(self):
-        await self.proc.wait()
-        self.set_state(BaseLauncher.State.STOPPED)
+        result = await self.proc.wait()
+        life_cycle.set_state(
+            self.name, life_cycle.State.STOPPED, return_code=result["StatusCode"]
+        )
         # TODO(lshamis): Restart policy goes here.
 
     async def handle_down(self):
-        self.set_state(BaseLauncher.State.STOPPING)
+        life_cycle.set_state(self.name, life_cycle.State.STOPPING)
         await self.proc.stop()
         with contextlib.suppress(asyncio.TimeoutError):
             await self.proc.wait(timeout=3.0)
         await self.proc.delete(force=True)
-        self.set_state(BaseLauncher.State.STOPPED)
-        sys.exit(0)
 
 
 class Docker(BaseRuntime):
-    def __init__(self, image=None, dockerfile=None, mount=[], **kwargs):
+    def __init__(self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}):
         if bool(image) == bool(dockerfile):
             util.fail("Docker process must define exactly one of image or dockerfile")
         self.image = image
         self.dockerfile = dockerfile
         self.mount = mount
-        self.kwargs = kwargs
+        self.build_kwargs = build_kwargs
+        self.run_kwargs = run_kwargs
 
     def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         docker_api = docker.from_env()
@@ -147,7 +156,7 @@ class Docker(BaseRuntime):
                 "dockerfile": dockerfile_path,
                 "rm": True,
             }
-            build_kwargs.update(self.kwargs)
+            build_kwargs.update(self.build_kwargs)
 
             for line in docker_api.lowlevel.build(**build_kwargs):
                 lineinfo = json.loads(line.decode())
@@ -236,4 +245,4 @@ class Docker(BaseRuntime):
             ]
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
-        return Launcher(self.image, self.mount, name, proc_def, args, **self.kwargs)
+        return Launcher(self.image, self.mount, name, proc_def, args, **self.run_kwargs)

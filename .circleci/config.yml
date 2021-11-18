@@ -67,7 +67,7 @@ commands:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            conda mambabuild -c fair-robotics -c aihabitat -c conda-forge -c conda-forge/label/old_feature_broken polymetis/polymetis/conda/conda_recipe
+            conda mambabuild -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis/polymetis/conda/conda_recipe
       - store_artifacts:
           path: /opt/conda/conda-bld/linux-64/
           destination: conda_pkg
@@ -83,7 +83,7 @@ commands:
           command: |
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-env
-            mamba install --override-channels -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c fair-robotics -c aihabitat -c conda-forge polymetis -y
+            mamba install --override-channels -c file://$(eval pwd)/polymetis/polymetis/conda/channel -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis -y
       - run:
           name: Install Xvfb
           command: apt install -y xvfb
