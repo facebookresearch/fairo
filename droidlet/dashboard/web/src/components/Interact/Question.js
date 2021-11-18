@@ -48,8 +48,10 @@ class Question extends Component {
       // adtt_text: this.state.adtt_text,
     };
 
-    // Emit socket.io event to save data to error logs
+    // Emit socket.io event to save data to error logs and Mephisto
     this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
+    // Parsed: data.msg.data = data
+    window.parent.postMessage(JSON.stringify({ msg: data }), "*");
 
     // go back to message page after writing to database
     this.props.goToMessage();
