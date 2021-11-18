@@ -95,8 +95,6 @@ class HelloRobotMover(MoverInterface):
             target (list): object coordinates as saved in memory.
             turn_base: if False, will try to look at point only by moving camera and not base
         """
-        old_pan = self.get_pan()
-        old_tilt = self.get_tilt()
         pos = self.get_base_pos_in_canonical_coords()
         cam_transform = self.bot.get_camera_transform().value
         cam_pos = cam_transform[0:3, 3]

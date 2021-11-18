@@ -14,6 +14,14 @@ from .load_datasets import get_greetings, get_safety_words
 spacy_model = spacy.load("en_core_web_sm")
 
 
+###############################################
+# FIXME !!! EXPLORE HACK!!
+###############################################
+
+PREFIX = "_ _ examine"
+
+
+
 class GreetingType(Enum):
     """Types of bot greetings."""
 
@@ -38,6 +46,37 @@ class DialogueObjectMapper(object):
     ):
         """Returns DialogueObject (or ingredients for a DialogueTask) 
         for a given chat and logical form"""
+
+
+        ###############################################
+        # FIXME !!! EXPLORE HACK!!
+        ###############################################
+        if not chat_status:
+            return None
+       
+        if PREFIX in chat:
+            print(chat)
+            w = chat.split(":")
+            print(w)
+            target = (int(w[1]))
+            print(target)
+            # get the eid from memory objects
+            # 
+            from droidlet.memory.robot.loco_memory import DetectedObjectNode
+            memory = self.dialogue_manager.memory
+            objs = DetectedObjectNode.get_all(memory)
+            target_obj = None
+            for obj in objs:
+                if int(obj['eid']) == target:
+                    target_obj = obj
+
+            if target_obj is None:
+                raise RuntimeError("target obj not found")
+            self.dialogue_manager.memory.untag(chat_memid, "uninterpreted")
+            
+            return {"forced_examine": target_obj}
+
+
 
         # 1. If we are waiting on a response from the user (e.g.: an answer
         # to a clarification question asked), return None.

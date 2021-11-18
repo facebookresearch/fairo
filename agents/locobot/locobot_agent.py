@@ -13,6 +13,11 @@ from multiprocessing import set_start_method
 import shutil
 
 from droidlet import dashboard
+from droidlet.interpreter.robot.tasks import ExamineDetection
+
+#FIXME EXAMINE HACK
+from droidlet.interpreter import InterpreterBase
+
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -119,13 +124,13 @@ class LocobotAgent(DroidletAgent):
                     movement[2] -= movement_values["yaw"]
                     print("action: RIGHT")
                 elif command == "PAN_LEFT":
-                    self.mover.bot.set_pan(self.mover.bot.get_pan() + 0.08)
+                    self.mover.bot.set_pan(self.mover.bot.get_pan().value + 0.08)
                 elif command == "PAN_RIGHT":
-                    self.mover.bot.set_pan(self.mover.bot.get_pan() - 0.08)
+                    self.mover.bot.set_pan(self.mover.bot.get_pan().value - 0.08)
                 elif command == "TILT_UP":
-                    self.mover.bot.set_tilt(self.mover.bot.get_tilt() - 0.08)
+                    self.mover.bot.set_tilt(self.mover.bot.get_tilt().value - 0.08)
                 elif command == "TILT_DOWN":
-                    self.mover.bot.set_tilt(self.mover.bot.get_tilt() + 0.08)
+                    self.mover.bot.set_tilt(self.mover.bot.get_tilt().value + 0.08)
             self.mover.move_relative([movement])
 
         @sio.on("shutdown")
@@ -312,6 +317,45 @@ class LocobotAgent(DroidletAgent):
 
     def task_step(self, sleep_time=0.0):
         super().task_step(sleep_time=sleep_time)
+
+    # REMOVE THIS ENTIRE THING ITS A HACK FOR EXPLORE
+    def controller_step(self):
+        """Process incoming chats and modify task stack"""
+        obj = self.dialogue_manager.step()
+        if not obj:
+            # Maybe add default task
+            if not self.no_default_behavior:
+                self.maybe_run_slow_defaults()
+            self.dialogue_manager.step()
+        elif type(obj) is dict:
+            ###############################################
+            # FIXME !!! EXPLORE HACK!!
+            ###############################################
+            if obj.get("forced_examine"):
+                ExamineDetection(self, {"target": {"xyz": obj["forced_examine"]}})
+                return
+            # this is a dialogue Task, set it to run:
+            obj["task"](self, task_data=obj["data"])
+        elif isinstance(obj, InterpreterBase):
+            # this object is an Interpreter, step it and check if its finished
+            obj.step(self)
+            if obj.finished:
+                self.memory.get_mem_by_id(obj.memid).finish()
+        else:
+            raise Exception(
+                "strange obj (not Interpreter or DialogueTask) returned from dialogue manager {}".format(
+                    obj
+                )
+            )
+
+        # check to see if some Tasks were put in memory that need to be
+        # hatched using agent object (self):
+        query = "SELECT MEMORY FROM Task WHERE prio==-3"
+        _, task_mems = self.memory.basic_search(query)
+        for task_mem in task_mems:
+            task_mem.task["class"](
+                self, task_data=task_mem.task["task_data"], memid=task_mem.memid
+            )
 
     def shutdown(self):
         self._shutdown = True

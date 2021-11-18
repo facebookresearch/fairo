@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import time
+import math
 import logging
 import numpy as np
 
@@ -352,3 +353,73 @@ class Explore(Task):
             self.agent.mover.explore()
         else:
             self.finished = self.agent.mover.bot_step()
+
+from droidlet.lowlevel.robot_mover_utils import (
+    get_camera_angles,
+    transform_base_to_global,
+    transform_global_to_base,
+    base_canonical_coords_to_pyrobot_coords
+)
+
+class ExamineDetection(Task):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        self.target = task_data['target']['xyz']
+        self.object_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.last_base_pos = None
+        self.command_sent = False
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        self.interrupted = False
+        self.finished = False
+        mover = self.agent.mover
+        
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords() # [x, z, yaw]
+        base_pos_pyrobot = mover.bot.get_base_state().value
+        target = self.object_center # [x, y, z]
+
+        bx, bz, byaw = base_pos
+        tx, ty, tz = target
+
+        # pick a target point that is about 100cm off the target's center
+        # https://math.stackexchange.com/a/85582
+        off_center = 1.0 # 100cm
+        consequent = math.sqrt( (tz - bz)**2 + (tx - bx)**2) - off_center
+        ttx = (off_center * bx + consequent * tx) / (off_center + consequent)
+        ttz = (off_center * bz + consequent * tz) / (off_center + consequent)
+        
+        print("[EXAMINE] old target points:", target)
+        print("[EXAMINE] new target points:", ttx, ttz)
+
+        global_coords = base_canonical_coords_to_pyrobot_coords([ttx,ttz, 0.0])
+        base_coords = transform_global_to_base(global_coords, base_pos_pyrobot)
+        base_yaw = np.arctan2(base_coords[1], base_coords[0])
+        base_coords[2] = base_yaw
+        global_target = transform_base_to_global(base_coords, base_pos_pyrobot)
+        yaw = global_target[2]
+        
+        move_target = [ttx, ttz, yaw]
+        print("[EXAMINE] command_sent:", self.command_sent, "memid", self.memid)
+        if not self.command_sent:
+            mover.move_absolute(move_target, blocking=False)
+            print("[EXAMINE] Moving to ", move_target)
+            self.command_sent = True
+            time.sleep(1)
+            mover.log_data_start(45) # by default, assume that examining will take no more than 45 seconds
+
+        print("[EXAMINE] re-looking at target", target)
+        mover.look_at(target)
+
+        dist = np.linalg.norm(np.asarray([bx, bz]) - np.asarray([ttx, ttz]))
+        print("[EXAMINE] distance to destination: ", dist)
+        if dist < 0.1:
+            print("[EXAMINE] FINSIHED TASK", self.memid)
+            mover.log_data_stop()
+            self.finished = True
+        
+    def __repr__(self):
+        return "<ExamineDetection {}>".format(self.target['label'])
