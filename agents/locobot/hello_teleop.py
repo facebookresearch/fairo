@@ -110,7 +110,6 @@ mover = None
 @sio.on("sendCommandToAgent")
 def get_command(sid, command):
     command, value = command.split()
-    value = float(value)
     print(command)
     print(value)
     test_command(sid, [command], value=value)
@@ -130,14 +129,14 @@ def unstop_robot(sid):
 
 def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3}, value=None):
     print(commands, data, value)
-    move = float(data['move'])
+    move_dist = float(data['move'])
     yaw = float(data['yaw'])
     velocity = float(data['velocity'])
     global mover
     if mover == None:
         return
     if value is not None:
-        move = value
+        move_dist = value
 
     def sync():
         time.sleep(10)
@@ -147,11 +146,11 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
     movement = [0.0, 0.0, 0.0]
     for command in commands:
         if command == "MOVE_FORWARD":
-            movement[0] += move
+            movement[0] += float(move_dist)
             print("action: FORWARD", movement)
             mover.move_relative([movement], blocking=False)
         elif command == "MOVE_BACKWARD":
-            movement[0] -= move
+            movement[0] -= float(move_dist)
             print("action: BACKWARD", movement)
             mover.move_relative([movement], blocking=False)
         elif command == "MOVE_LEFT":
@@ -188,6 +187,20 @@ def test_command(sid, commands, data={"yaw": 0.1, "velocity": 0.1, "move": 0.3},
             print("action: SET_TILT", float(value))
             mover.bot.set_tilt(float(value))
             sync()
+        elif command == "MOVE_ABSOLUTE":
+            xyyaw_s = value.split(',')
+            xyyaw_f = [float(v) for v in xyyaw_s]
+            print("action: MOVE_ABSOLUTE", xyyaw_f)
+            mover.move_absolute(xyyaw_f, blocking=False)
+            sync()
+        elif command == "LOOK_AT":
+            xyz = value.split(',')
+            xyz = [float(p) for p in xyz]
+            print("action: LOOK_AT", xyz)
+            mover.look_at(xyz, turn_base=False)
+        elif command == "RESET":
+            mover.bot.set_tilt(0.)
+            mover.bot.set_pan(0.)
 
         print(command, movement)
 
@@ -230,15 +243,14 @@ if __name__ == "__main__":
             start_time = time.time_ns()
 
         base_state = mover.get_base_pos_in_canonical_coords()
-        # if float(iter_time) / 1e9 > fps_freq :
-        #     print("base_state: ", base_state)
+
         sio.emit("image_settings", log_settings)
         resolution = log_settings["image_resolution"]
         quality = log_settings["image_quality"]
 
         # this goes from 21ms to 120ms
         rgb_depth = mover.get_rgb_depth()
-        
+
         # this takes about 1.5 to 2 fps
         serialized_image = rgb_depth.to_struct(resolution, quality)
 
