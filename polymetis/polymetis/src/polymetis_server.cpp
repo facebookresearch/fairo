@@ -127,6 +127,8 @@ Status
 PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
                                              const RobotState *robot_state,
                                              TorqueCommand *torque_command) {
+  auto start = std::chrono::high_resolution_clock::now();
+
   // Check if last update is stale
   if (!validRobotContext()) {
     std::cout
@@ -193,6 +195,14 @@ PolymetisControllerServerImpl::ControlUpdate(ServerContext *context,
     robot_state_copy.add_joint_torques_computed(
         torque_command->joint_torques(i));
   }
+
+  // Record loop time
+  auto end = std::chrono::high_resolution_clock::now();
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  robot_state_copy.set_control_loop_ms(double(duration.count()) / 1000.0);
+
+  // Append robot state
   robot_state_buffer_.append(robot_state_copy);
 
   // Update timestep & check termination

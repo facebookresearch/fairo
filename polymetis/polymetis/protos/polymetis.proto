@@ -114,6 +114,7 @@ message RobotState {
   repeated float prev_joint_torques_computed_safened = 6; //Torques after adding safety mechanisms in the previous timestep
   repeated float motor_torques_measured = 7;              //Measured torque signals from the robot motors
   repeated float motor_torques_external = 8;              //Measured external torques exerted on the robot motors
+  float control_loop_ms = 9;
 }
 
 message TorqueCommand {
