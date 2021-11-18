@@ -4,7 +4,6 @@
 # LICENSE file in the root directory of this source tree.
 import threading
 import queue
-import time
 
 import grpc
 
