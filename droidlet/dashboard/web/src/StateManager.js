@@ -112,6 +112,10 @@ class StateManager {
     this.setTurkExperimentId(turkExperimentId);
     this.setMephistoAgentId(mephistoAgentId);
     this.setTurkWorkerId(turkWorkerId);
+    console.log(turkExperimentId);
+    if (turkExperimentId != null) {
+      this.enableFrontendValidation();
+    }
 
     // set default url to actual ip:port
     this.default_url = window.location.host;
@@ -192,6 +196,20 @@ class StateManager {
 
   getTurkWorkerId() {
     return localStorage.getItem("turk_worker_id");
+  }
+
+  enableFrontendValidation() {
+    this.frontend_validation_enabled = true;
+  }
+
+  isFrontendValidationEnabled() {
+    if (
+      this.frontend_validation_enabled &&
+      this.frontend_validation_enabled == true
+    ) {
+      return true;
+    }
+    return false;
   }
 
   restart(url) {
