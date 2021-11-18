@@ -89,7 +89,7 @@ class Launcher(BaseLauncher):
                 "GroupAdd": [str(i) for i in os.getgroups()],
             },
         }
-        run_kwargs.update(self.kwargs)
+        util.nested_dict_update(run_kwargs, self.kwargs)
 
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()

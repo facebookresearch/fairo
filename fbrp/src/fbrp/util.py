@@ -7,6 +7,7 @@ import subprocess
 import sys
 import string
 import random
+import collections.abc
 
 
 def fail(msg):
@@ -79,3 +80,13 @@ def nfs_root(path):
 
 def random_string(alphabet=string.ascii_lowercase, length=16):
     return "".join(random.choices(alphabet, k=length))
+
+
+# https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+def nested_dict_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = nested_dict_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
