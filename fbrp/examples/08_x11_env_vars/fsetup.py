@@ -14,7 +14,7 @@ fbrp.process(
 )
 
 fbrp.process(
-    name="docker_proc",
+    name="docker_x11_proc",
     runtime=fbrp.Docker(
         dockerfile="./Dockerfile",
         mount=["/tmp/.X11-unix:/tmp/.X11-unix"],
@@ -26,6 +26,20 @@ fbrp.process(
         "my_docker_path" : "/tmp/",
         "my_docker_time_out" : "2",
     },
+)
+
+fbrp.process(
+    name="docker_opengl_proc",
+    runtime=fbrp.Docker(
+        dockerfile="./Dockerfile.opengl",
+        mount=["/tmp/.X11-unix:/tmp/.X11-unix"],
+        run_kwargs = {
+            "Env": [f"DISPLAY={os.getenv('DISPLAY')}"],
+            "HostConfig": {
+                "Runtime": "nvidia" #  default "runc"
+            }
+        }
+    )
 )
 
 fbrp.main()
