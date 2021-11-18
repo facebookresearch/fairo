@@ -831,7 +831,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
-      this.updateObjects = [true, false]; // Change objects on frame after this one
+      this.updateObjects = [true, true]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
