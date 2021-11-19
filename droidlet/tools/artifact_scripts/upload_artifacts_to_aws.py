@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-"""This script creates a tar and hash of the artifacts directory.
+"""This script creates a tar and hash of the artifacts directory and uploads it to S3.
 If uploading files to S3 through console UI, go to the web interface at:
 https://s3.console.aws.amazon.com/s3/buckets/craftassist?region=us-west-2&prefix=pubr/&showversions=false
 and upload the tar.gz file.
@@ -23,7 +23,7 @@ def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
     checksum_name = 'checksum.txt'
     artifact_path_name = artifact_name + "/"
     artifact_path = os.path.join(ROOTDIR, "droidlet/artifacts/", artifact_name)
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/artifact_scripts/checksum_fn.sh')
     print("Artifact path: %r" % artifact_path)
     if artifact_name == "models":
         if not model_name:

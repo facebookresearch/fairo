@@ -13,7 +13,7 @@ from droidlet.perception.craftassist import heuristic_perception
 
 from droidlet.lowlevel.minecraft.shapes import SPECIAL_SHAPE_FNS
 import droidlet.dashboard as dashboard
-from droidlet.tools.data_scripts.try_download import try_download_artifacts
+from droidlet.tools.artifact_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions

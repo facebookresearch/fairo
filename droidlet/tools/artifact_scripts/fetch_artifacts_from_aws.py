@@ -74,7 +74,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
     if not checksum_val:
         # if not from command line, read from given file.
         checksum_file_path = os.path.join(ROOTDIR,
-                                          'droidlet/tools/data_scripts/default_checksums/' + checksum_file_name)
+                                          'droidlet/tools/artifact_scripts/tracked_checksums/' + checksum_file_name)
         print("Downloading datasets folder with default checksum from file: %r" % checksum_file_path)
         with open(checksum_file_path) as f:
             checksum_val = f.read().strip()
