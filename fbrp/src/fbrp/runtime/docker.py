@@ -244,10 +244,10 @@ class Docker(BaseRuntime):
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
 
-            self.mount = [
-                f"{host_path}:{container_path}:{options}"
-                for host_path, (container_path, options) in mount_map.items()
-            ]
+        self.mount = [
+            f"{host_path}:{container_path}:{options}"
+            for host_path, (container_path, options) in mount_map.items()
+        ]
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         return Launcher(self.image, self.mount, name, proc_def, args, **self.run_kwargs)
