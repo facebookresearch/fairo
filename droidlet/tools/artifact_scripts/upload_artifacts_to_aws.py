@@ -1,6 +1,6 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 
-"""This script creates a tar and hash of the artifacts directory.
+"""This script creates a tar and hash of the artifacts directory and uploads it to S3.
 If uploading files to S3 through console UI, go to the web interface at:
 https://s3.console.aws.amazon.com/s3/buckets/craftassist?region=us-west-2&prefix=pubr/&showversions=false
 and upload the tar.gz file.

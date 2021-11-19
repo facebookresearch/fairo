@@ -137,6 +137,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--test_mode",
+        help="Is this is given, download locobot test assets",
         action="store_true"
     )
     args = parser.parse_args()
