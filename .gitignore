@@ -33,7 +33,7 @@ droidlet/artifacts/datasets/*
 *.gz
 *.vscode
 external_push
-data_scripts/upload*
+artifact_scripts/upload*
 .mypy_cache
 tools/annotation_tools/locobot_webcontrol/node_modules/*
 tools/annotation_tools/locobot_webcontrol/package-lock.json

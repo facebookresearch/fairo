@@ -23,7 +23,7 @@ def compute_checksum_tar_and_upload(agent, artifact_name, model_name=None):
     checksum_name = 'checksum.txt'
     artifact_path_name = artifact_name + "/"
     artifact_path = os.path.join(ROOTDIR, "droidlet/artifacts/", artifact_name)
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/artifact_scripts/checksum_fn.sh')
     print("Artifact path: %r" % artifact_path)
     if artifact_name == "models":
         if not model_name:
