@@ -170,10 +170,15 @@ class Docker(BaseRuntime):
         mount_map = {}
         for mnt in self.mount:
             parts = mnt.split(":")
-            mount_map[parts[0]] = parts[1:]
+            if len(parts) == 3:
+                mount_map[parts[0]] = (parts[1], parts[2])
+            elif len(parts) == 2:
+                mount_map[parts[0]] = (parts[1], "")
+            else:
+                util.fail(f"Invalid mount: {mnt}")
 
         nfs_mounts = []
-        for host, container in mount_map.items():
+        for host, (container, _) in mount_map.items():
             try:
                 os.makedirs(host)
             except FileExistsError:
@@ -240,8 +245,8 @@ class Docker(BaseRuntime):
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
 
             self.mount = [
-                f"{host_path}:{container_path}:{perm}"
-                for host_path, (container_path, perm) in mount_map.items()
+                f"{host_path}:{container_path}:{options}"
+                for host_path, (container_path, options) in mount_map.items()
             ]
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
