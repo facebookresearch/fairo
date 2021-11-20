@@ -5,9 +5,6 @@
  */
 
 import React, { Component } from "react";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-
 import "./Message.css";
 
 class Message extends Component {
@@ -83,6 +80,8 @@ class Message extends Component {
       this.props.setInteractState({ msg: chatmsg, timestamp: Date.now() });
       //log message to flask
       this.props.stateManager.logInteractiondata("text command", chatmsg);
+      //send message to TurkInfo
+      this.props.stateManager.sendCommandToTurkInfo(chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
       //update StateManager command state

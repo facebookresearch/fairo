@@ -121,6 +121,10 @@ class AgentThinking extends Component {
       Date.now() - this.state.now > 50000
     ) {
       console.log("Safety check failed, exiting to Message pane.");
+      this.props.stateManager.socket.off( "taskStackPollResponse", this.receiveTaskStackPoll );
+      this.props.stateManager.disconnect(this);
+      clearInterval(this.state.ellipsisInterval);
+      clearInterval(this.state.GPInterval);
       this.props.goToMessage();
     }
   }

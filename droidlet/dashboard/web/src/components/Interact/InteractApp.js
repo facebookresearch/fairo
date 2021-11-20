@@ -31,7 +31,6 @@ class InteractApp extends Component {
     var new_chats = [...this.state.chats];
     new_chats.push(chat);
     this.setState({ chats: new_chats });
-    console.log(this.state.chats)
   }
 
   componentWillUnmount() {

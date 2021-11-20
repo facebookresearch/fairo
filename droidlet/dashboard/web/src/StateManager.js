@@ -21,6 +21,7 @@ import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
 import AgentThinking from "./components/Interact/AgentThinking";
 import Message from "./components/Interact/Message";
+import TurkInfo from "./components/Turk/TurkInfo";
 
 /**
  * The main state manager for the dashboard.
@@ -505,6 +506,15 @@ class StateManager {
     interactionData[key] = value;
     this.socket.emit("interaction data", interactionData);
   }
+
+  sendCommandToTurkInfo(cmd) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof TurkInfo) {
+        ref.calcCreativity(cmd);
+      }
+    });
+  }
+
 
   onObjectAnnotationSave(res) {
     // Process annotations
