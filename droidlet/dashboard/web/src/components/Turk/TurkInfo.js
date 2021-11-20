@@ -123,7 +123,7 @@ class TurkInfo extends Component {
     return (
       <ThemeProvider theme={muiTheme}>
         <div className="App">
-          <div className="content">
+          <div className="infoContent">
             <div className="stoplight">
               <h4>HIT Performance Indicator:</h4>
               {this.state.performanceIndicator[0] ? <status-indicator positive pulse></status-indicator> : <status-indicator positive ></status-indicator>}

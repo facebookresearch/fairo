@@ -18,7 +18,7 @@ class InteractApp extends Component {
       status: "",
       chats: [{msg: "", timestamp: Date.now()}],
       failidx: -1,
-      agent_replies: [],
+      agent_replies: [{msg: "Click the 'Start' button to begin!", timestamp: Date.now()}],
       last_reply: "",
     };
     this.state = this.initialState;

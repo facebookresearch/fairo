@@ -77,7 +77,7 @@ function showHideInstructions() {
 }
 
 var page = 1;
-const numPages = 5;
+const numPages = 6;
 
 function incrementPage(val) {
   page += val;
