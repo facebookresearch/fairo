@@ -8,11 +8,10 @@ from fbrp.runtime.conda import CondaEnv, Launcher
 
 from unittest import IsolatedAsyncioTestCase
 from unittest import mock
-from unittest.mock import call, patch, mock_open
+from unittest.mock import AsyncMock, call, patch, mock_open
 
 
 class TestCondaEnv(unittest.TestCase):
-
     def test_merge_and_fix_pip_1(self):
         a = CondaEnv(channels=["conda-forge", "robostack", "pytorch"], dependencies=["ros-noetic-genpy"])
         b = CondaEnv(channels=["pytorch", "nvidia"], dependencies=["pytorch", "numpy", "dataclasses"])
@@ -24,7 +23,6 @@ class TestCondaEnv(unittest.TestCase):
         self.assertFalse("pip" in c.dependencies)
         c.fix_pip()
         self.assertFalse("pip" in c.dependencies)
-
 
     def test_merge_and_fix_pip_2(self):
         a = CondaEnv(channels=["conda-forge", "robostack", "pytorch"], 
@@ -48,7 +46,6 @@ class TestCondaEnv(unittest.TestCase):
 
 
 class TestLauncher(IsolatedAsyncioTestCase):
-
     @patch("builtins.open", new_callable=mock_open, read_data="env_var=data" + "\0")
     @patch("argparse.Namespace")
     async def test_activate_conda_env(self, mock_namespace, mock_file):
@@ -61,22 +58,33 @@ class TestLauncher(IsolatedAsyncioTestCase):
         self.assertTrue(len(conda_env) == 1)
         self.assertDictEqual(conda_env, {"env_var" : "data"})
         os_env_patch.stop()
-        
 
     @patch("fbrp.life_cycle.set_state")
-    @patch("fbrp.runtime.conda.Launcher.conda_gather")
-    @patch("fbrp.runtime.conda.Launcher.conda_run")
+    @patch("fbrp.runtime.conda.Launcher.gather_cmd_outputs")
+    @patch("fbrp.runtime.conda.Launcher.run_cmd_in_env")
     @patch("fbrp.runtime.conda.Launcher.activate_conda_env")
     @patch("argparse.Namespace")
-    async def test_run(self, mock_namespace, mock_activate_conda_env, mock_conda_run, mock_conda_gather, mock_set_state):
+    async def test_run(self, mock_namespace, mock_activate_conda_env, mock_run_cmd_in_env, mock_gather_cmd_outputs, mock_set_state):
         proc_def = ProcDef(name="test_conda", root=None, rule_file=None, runtime="BaseRuntime", cfg={}, deps=[], env={})
         launcher = Launcher(name="test_conda", run_command=["python3", "alice.py"], proc_def=proc_def, args=mock_namespace)
-        conda_env = await launcher.run()
+        await launcher.run()
         mock_activate_conda_env.assert_called_once()
-        mock_conda_run.assert_called_once()
-        mock_conda_gather.assert_called_once()
+        mock_run_cmd_in_env.assert_called_once()
+        mock_gather_cmd_outputs.assert_called_once()
         self.assertTrue(mock_set_state.call_count == 2)
         mock_set_state.assert_has_calls([call("test_conda", State.STARTING), call("test_conda", State.STARTED)])
+
+    
+    @patch("fbrp.life_cycle.set_state")
+    @patch("fbrp.runtime.conda.Launcher.exit_cmd_in_env")
+    @patch("argparse.Namespace")
+    async def test_death_handler(self, mock_namespace, mock_exit_cmd_in_env, mock_set_state):
+        mock_exit_cmd_in_env.return_value = 0
+        proc_def = ProcDef(name="test_conda", root=None, rule_file=None, runtime="BaseRuntime", cfg={}, deps=[], env={})
+        launcher = Launcher(name="test_conda", run_command=["python3", "alice.py"], proc_def=proc_def, args=mock_namespace)  
+        await launcher.death_handler()
+        mock_exit_cmd_in_env.assert_called_once()
+        mock_set_state.assert_called_once_with("test_conda", State.STOPPED, return_code=0)
 
 
 if __name__ == '__main__':

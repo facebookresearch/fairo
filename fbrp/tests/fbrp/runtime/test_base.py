@@ -25,7 +25,6 @@ def async_return(result):
 
 
 class TestBaseLauncher(IsolatedAsyncioTestCase):
-
     @patch("argparse.Namespace")
     async def test_run(self, mock_namespace):
         mock_proc_def = Mock(spec=ProcDef(None, None, None, None, None, None, None))
@@ -33,12 +32,10 @@ class TestBaseLauncher(IsolatedAsyncioTestCase):
         with self.assertRaises(NotImplementedError):
             await base_launcher.run('', mock_proc_def, mock_namespace)
 
-
     def test_get_pid(self):
         base_launcher = BaseLauncher()
         with self.assertRaises(NotImplementedError):
             base_launcher.get_pid()
-
 
     @patch("fbrp.life_cycle.aio_proc_info_watcher")
     async def test_down_watcher_1(self, mock_proc_info_watcher):

@@ -76,7 +76,7 @@ class Launcher(BaseLauncher):
         self.proc_def = proc_def
         self.args = args
 
-    async def activate_conda_env(self):
+    async def activate_conda_env(self) -> dict:
         # We grab the conda env variables separate from executing the run
         # command to simplify detecting pid and removing some race conditions.
         subprocess_env = os.environ.copy()
@@ -98,8 +98,7 @@ class Launcher(BaseLauncher):
         conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
         return conda_env
 
-
-    async def conda_run(self, conda_env):
+    async def run_cmd_in_env(self, conda_env):
         cmd = self.run_command
         if type(self.run_command) == list:
             cmd = shlex.join(self.run_command)
@@ -113,8 +112,7 @@ class Launcher(BaseLauncher):
             env=conda_env,
         )
 
-
-    async def conda_gather(self):
+    async def gather_cmd_outputs(self):
         async def log_pipe(logger, pipe):
             while True:
                 line = await pipe.readline()
@@ -131,22 +129,25 @@ class Launcher(BaseLauncher):
             self.down_watcher(self.handle_down),
         )
 
-
     async def run(self):
         life_cycle.set_state(self.name, life_cycle.State.STARTING)
         conda_env = await self.activate_conda_env()
-        await self.conda_run(conda_env)
+        await self.run_cmd_in_env(conda_env)
         life_cycle.set_state(self.name, life_cycle.State.STARTED)
-        await self.conda_gather()
-
+        await self.gather_cmd_outputs()
 
     def get_pid(self):
         return self.proc.pid
 
-    async def death_handler(self):
+    async def exit_cmd_in_env(self) -> int:
         await self.proc.wait()
+        return self.proc.returncode
+
+
+    async def death_handler(self):
+        ret_code = await self.exit_cmd_in_env()
         life_cycle.set_state(
-            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
+            self.name, life_cycle.State.STOPPED, return_code=ret_code
         )
         # TODO(lshamis): Restart policy goes here.
 
