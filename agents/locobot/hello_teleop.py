@@ -275,6 +275,15 @@ if __name__ == "__main__":
         opcd = o3d.geometry.PointCloud()
         opcd.points = o3d.utility.Vector3dVector(all_points)
         opcd.colors = o3d.utility.Vector3dVector(all_colors)
+        opcd.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.04 * 2, max_nn=30))
+
+        from utils import pcd_ground_seg_pca as seg_pca
+        from utils import pcd_ground_seg_open3d as seg_o3d
+        
+
+        # ground, rest = seg_pca(opcd)
+        ground, rest = seg_o3d(opcd, distance_threshold=0.01, ransac_n=5)
+
         opcd = opcd.voxel_down_sample(0.05)
 
         # # remove the rooftop / ceiling points in the point-cloud to make it easier to see the robot in the visualization
@@ -299,6 +308,8 @@ if __name__ == "__main__":
             cmd = 'replace'
             
         o3dviz.put('pointcloud', cmd, opcd)
+        o3dviz.put('ground', cmd, ground)
+        # o3dviz.put('rest', cmd, rest)
 
         # Plot the robot
         x, y, yaw = base_state.tolist()
