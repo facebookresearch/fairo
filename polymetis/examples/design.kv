@@ -1,0 +1,49 @@
+<RobotControlScreen>:
+
+    GridLayout:
+        cols: 1
+        GridLayout:
+            cols: 1
+            Label:
+                id: ui_status
+                text:
+                
+        GridLayout:
+            cols:4
+            padding: 15,15
+            spacing: 20, 20
+            size_hint: 0.5, 0.5
+            Button:
+                text:"Connect"
+                on_press: root.connect()
+            Button:
+                text: "Go Home"
+                on_press: root.go_home()
+            Button:
+                text: "Move Joint"
+                on_press: root.move()
+            GridLayout:
+                cols: 2
+                Button:
+                    text: "Get EE Pos"
+                    on_press: root.get_ee_pos() 
+                Label:
+                    id: status_ee_pos
+                    text: 
+                    text_size: self.width, None 
+                    height: self.texture_size[1] 
+                Button:
+                    text: "Go to EE Pos"
+                    on_press: root.go_to_ee_pos(root.ids.eePos.text)      
+                TextInput:
+                    id: eePos
+                    hint_text: "Position in X, Y, Z"
+                    
+        GridLayout:
+            cols: 1
+            Label:
+                id: robot_status
+                text: 
+<RootWidget>:
+    RobotControlScreen:
+        name: "robot_control_screen"            
