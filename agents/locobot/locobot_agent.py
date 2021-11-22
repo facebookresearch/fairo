@@ -199,7 +199,6 @@ class LocobotAgent(DroidletAgent):
                 print("Error switching model:", os.path.join(model_path, things_file), "not found")
                 return
 
-            print("switching to", model_path)
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
     def init_memory(self):

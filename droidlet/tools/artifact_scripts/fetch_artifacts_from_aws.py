@@ -35,7 +35,7 @@ def fetch_test_assets_from_aws(agent=None):
         print("Overwriting the directory: %r" % test_artifact_path)
         shutil.rmtree(test_artifact_path, ignore_errors=True)  # force delete if directory has content in it
     mode = 0o777
-    os.mkdir(test_artifact_path, mode)
+    os.makedirs(test_artifact_path, mode, exist_ok=True)
 
     print("Writing to : %r" % test_artifact_path)
     process = Popen(
@@ -88,9 +88,8 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
             print("Model type not specified, defaulting to NLU model.")
         artifact_path = artifact_path + "/" + model_name
         artifact_name = artifact_name + '_' + model_name
-        if not os.path.isdir(artifact_path):
-            mode = 0o777
-            os.mkdir(artifact_path, mode)
+        mode = 0o777
+        os.makedirs(artifact_path, mode, exist_ok=True)
         if model_name != "nlu":
             artifact_path = artifact_path + "/" + agent
             artifact_name = artifact_name + "_" + agent
@@ -120,7 +119,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
         print("Overwriting the directory: %r" % artifact_path)
         shutil.rmtree(artifact_path, ignore_errors=True)  # force delete if directory has content in it
     mode = 0o777
-    os.mkdir(artifact_path, mode)
+    os.makedirs(artifact_path, mode, exist_ok=True)
 
 
     print("Writing to : %r" % write_path)
