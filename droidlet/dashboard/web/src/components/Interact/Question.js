@@ -209,6 +209,7 @@ class Question extends Component {
         if (dialogue_type === "HUMAN_GIVE_COMMAND") {
           // handle composite action
 
+          let cmd = this.props.chats[this.props.failidx].msg.split(' ');
           // get the action type
           var action_dict = this.state.action_dict.action_sequence[0];
           var action_type = action_dict.action_type.toLowerCase();
@@ -219,12 +220,28 @@ class Question extends Component {
               if ("text_span" in action_dict.schematic) {
                 question_word = question_word + "'" + action_dict.schematic.text_span + "'";
               }
+              // If we don't have a convenient text_span, find the words referenced by index
+              else if ("where_clause" in action_dict.schematic.filters) {
+                let qty = "";
+                if ("selector" in action_dict.schematic.filters){
+                  qty = cmd.slice(action_dict.schematic.filters.selector.ordinal[1][0], action_dict.schematic.filters.selector.ordinal[1][1]);
+                }
+                let antecedent = [qty, "", "", "", ""];  // qty then size then colour then block type then name. Ignore everything else.
+                action_dict.schematic.filters.where_clause.AND.forEach((clause) => {
+                  let words = cmd.slice(clause.obj_text[1][0], clause.obj_text[1][1]);
+                  if (clause.pred_text === "has_size") antecedent[1] = words;
+                  else if (clause.pred_text === "has_colour") antecedent[2] = words;
+                  else if (clause.pred_text === "has_block_type") antecedent[3] = words;
+                  else if (clause.pred_text === "has_name") antecedent[4] = words;
+                });
+                question_word = question_word + "'" + antecedent.join(' ').replace(/  +/g, ' ') + "'";
+              }
             }
             if ("location" in action_dict) {
               if ("text_span" in action_dict.location) {
                 question_word = question_word + " at location '" + action_dict.location.text_span + "'";
               } else {
-                question_word = question_word + " like this"
+                question_word = question_word + " at this location "  // Not worth it to handle all of the potential references?
               }
             }
             question_word = question_word + " ?";
@@ -233,12 +250,24 @@ class Question extends Component {
               if ("text_span" in action_dict.reference_object) {
                 question_word = question_word + "'" + action_dict.reference_object.text_span + "'";
               }
+              // If we don't have a convenient text_span, find the words referenced by index
+              else if ("where_clause" in action_dict.reference_object.filters) {
+                let qty = "";
+                if ("selector" in action_dict.reference_object.filters){
+                  qty = cmd.slice(action_dict.reference_object.filters.selector.ordinal[1][0], action_dict.reference_object.filters.selector.ordinal[1][1]);
+                }
+                let antecedent = [qty, ""];  // qty then name. Ignore everything else.
+                action_dict.reference_object.filters.where_clause.AND.forEach((clause) => {
+                  if (clause.pred_text === "has_name") antecedent[4] = cmd.slice(clause.obj_text[1][0], clause.obj_text[1][1]);
+                });
+                question_word = question_word + "'" + antecedent.join(' ').replace(/  +/g, ' ') + "'";
+              }
             }
             if ("location" in action_dict) {
               if ("text_span" in action_dict.location) {
                 question_word = question_word + " at location '" + action_dict.location.text_span + "'";
               } else {
-                question_word = question_word + " like this"
+                question_word = question_word + " at this location "
               }
             }
             question_word = question_word + " ?";
