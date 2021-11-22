@@ -143,12 +143,9 @@ class Launcher(BaseLauncher):
         await self.proc.wait()
         return self.proc.returncode
 
-
     async def death_handler(self):
         ret_code = await self.exit_cmd_in_env()
-        life_cycle.set_state(
-            self.name, life_cycle.State.STOPPED, return_code=ret_code
-        )
+        life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=ret_code)
         # TODO(lshamis): Restart policy goes here.
 
     async def handle_down(self):
@@ -220,8 +217,14 @@ class Conda(BaseRuntime):
         print(f"creating conda env for {name}. This will take a minute...")
 
         update_bin = "mamba" if self.use_mamba else "conda"
+        # https://github.com/conda/conda/issues/7279
+        # Updating an existing environment does not remove old packages, even with --prune.
+        subprocess.run(
+            [update_bin, "env", "remove", "-n", env_name],
+            capture_output=not args.verbose,
+        )
         result = subprocess.run(
-            [update_bin, "env", "update", "-f", env_path],
+            [update_bin, "env", "update", "--prune", "-f", env_path],
             capture_output=not args.verbose,
         )
         if result.returncode:
