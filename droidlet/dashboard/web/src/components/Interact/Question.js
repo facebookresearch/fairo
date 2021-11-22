@@ -224,17 +224,16 @@ class Question extends Component {
               else if ("where_clause" in action_dict.schematic.filters) {
                 let qty = "";
                 if ("selector" in action_dict.schematic.filters){
-                  qty = cmd.slice(action_dict.schematic.filters.selector.ordinal[1][0], action_dict.schematic.filters.selector.ordinal[1][1]);
+                  qty = action_dict.schematic.filters.selector.ordinal;
                 }
                 let antecedent = [qty, "", "", "", ""];  // qty then size then colour then block type then name. Ignore everything else.
                 action_dict.schematic.filters.where_clause.AND.forEach((clause) => {
-                  let words = cmd.slice(clause.obj_text[1][0], clause.obj_text[1][1]);
-                  if (clause.pred_text === "has_size") antecedent[1] = words;
-                  else if (clause.pred_text === "has_colour") antecedent[2] = words;
-                  else if (clause.pred_text === "has_block_type") antecedent[3] = words;
-                  else if (clause.pred_text === "has_name") antecedent[4] = words;
+                  if (clause.pred_text === "has_size") antecedent[1] = clause.obj_text;
+                  else if (clause.pred_text === "has_colour") antecedent[2] = clause.obj_text;
+                  else if (clause.pred_text === "has_block_type") antecedent[3] = clause.obj_text;
+                  else if (clause.pred_text === "has_name") antecedent[4] = clause.obj_text;
                 });
-                question_word = question_word + "'" + antecedent.join(' ').replace(/  +/g, ' ') + "'";
+                question_word = question_word + "'" + antecedent.join(' ').replace(/  +/g, ' ').trim() + "'";
               }
             }
             if ("location" in action_dict) {
@@ -254,13 +253,16 @@ class Question extends Component {
               else if ("where_clause" in action_dict.reference_object.filters) {
                 let qty = "";
                 if ("selector" in action_dict.reference_object.filters){
-                  qty = cmd.slice(action_dict.reference_object.filters.selector.ordinal[1][0], action_dict.reference_object.filters.selector.ordinal[1][1]);
+                  qty = action_dict.reference_object.filters.selector.ordinal;
                 }
-                let antecedent = [qty, ""];  // qty then name. Ignore everything else.
+                let antecedent = [qty, "", "", "", ""];  // qty then size then colour then block type then name. Ignore everything else.
                 action_dict.reference_object.filters.where_clause.AND.forEach((clause) => {
-                  if (clause.pred_text === "has_name") antecedent[4] = cmd.slice(clause.obj_text[1][0], clause.obj_text[1][1]);
+                  if (clause.pred_text === "has_size") antecedent[1] = clause.obj_text;
+                  else if (clause.pred_text === "has_colour") antecedent[2] = clause.obj_text;
+                  else if (clause.pred_text === "has_block_type") antecedent[3] = clause.obj_text;
+                  else if (clause.pred_text === "has_name") antecedent[4] = clause.obj_text;
                 });
-                question_word = question_word + "'" + antecedent.join(' ').replace(/  +/g, ' ') + "'";
+                question_word = question_word + "'" + antecedent.join(' ').replace(/  +/g, ' ').trim() + "'";
               }
             }
             if ("location" in action_dict) {
