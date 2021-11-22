@@ -12,8 +12,9 @@ from polymetis import RobotInterface
 Builder.load_file('design.kv')
 
 class RobotControlScreen(Screen):
-
+    
     robot = RobotInterface ( ip_address = "localhost")
+    current_joint = torch.Tensor([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     def connect(self):
         self.ids.robot_status.text = "Connecting"
@@ -32,7 +33,9 @@ class RobotControlScreen(Screen):
         self.ids.robot_status.text = "Moving"
         # Get joint positions
         joint_pos = self.robot.get_joint_angles()
-        delta_joint_pos_desired = torch.Tensor([0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
+        # Move with a constant value
+        const_val = 0.3
+        delta_joint_pos_desired = torch.mul(const_val,self.current_joint)
         joint_pos_desired = joint_pos + delta_joint_pos_desired
         state_log = self.robot.set_joint_positions(joint_pos_desired, time_to_go=2.0)  
         # Get updated joint positions
@@ -44,18 +47,22 @@ class RobotControlScreen(Screen):
         ee_pos, ee_quat = self.robot.pose_ee()
         self.ids.status_ee_pos.text = f"Current ee position: {ee_pos}"
 
-    def go_to_ee_pos(self, pos):
-
-        # Command robot to ee pose (move ee downwards)
-        # note: can also be done with robot.move_ee_xyz
-        ee_pos, ee_quat = self.robot.pose_ee()
-        axis =torch.Tensor([0.0, 0.0, -1])
-        const = float(pos)
-        #print (const)
-        delta_ee_pos_desired = torch.mul(const,axis)
-        #print(delta_ee_pos_desired)
-        ee_pos_desired = ee_pos + delta_ee_pos_desired
-        self.robot.set_ee_pose( position=ee_pos_desired, orientation=None, time_to_go=2.0)
+    def spinner_clicked(self,value):
+        if value == "Joint #1":
+            self.current_joint = torch.Tensor([1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        elif value == "Joint #2":
+            self.current_joint = torch.Tensor([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        elif value == "Joint #3":
+            self.current_joint = torch.Tensor([0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0])                    
+        elif value == "Joint #4":
+            self.current_joint = torch.Tensor([0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0])
+        elif value == "Joint #5":
+            self.current_joint = torch.Tensor([0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0])   
+        elif value == "Joint #6":
+            self.current_joint = torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0])
+        else:
+            #no joint selected, do not move any joint 
+            current_joint = torch.Tensor([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])   
 
 class RootWidget(ScreenManager):
     pass

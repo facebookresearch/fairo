@@ -9,7 +9,7 @@
                 text:
                 
         GridLayout:
-            cols:4
+            cols:6
             padding: 15,15
             spacing: 20, 20
             size_hint: 0.5, 0.5
@@ -19,9 +19,15 @@
             Button:
                 text: "Go Home"
                 on_press: root.go_home()
+
             Button:
                 text: "Move Joint"
                 on_press: root.move()
+            Spinner: 
+                id: spinner_id
+                text: "Clict to select joint"
+                values: ["Joint #1","Joint #2","Joint #3","Joint #4","Joint #5","Joint #6"]
+                on_text: root.spinner_clicked(spinner_id.text)                
             GridLayout:
                 cols: 2
                 Button:
@@ -32,12 +38,6 @@
                     text: 
                     text_size: self.width, None 
                     height: self.texture_size[1] 
-                Button:
-                    text: "Go to EE Pos"
-                    on_press: root.go_to_ee_pos(root.ids.eePos.text)      
-                TextInput:
-                    id: eePos
-                    hint_text: "Position in X, Y, Z"
                     
         GridLayout:
             cols: 1
