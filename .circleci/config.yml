@@ -327,6 +327,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install PyTest
+          command: pip install pytest
+      - run:
           name: Install FBRP
           command: python3 -m pip install ./fbrp
       - run:
