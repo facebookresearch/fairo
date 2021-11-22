@@ -31,7 +31,7 @@ if os.getenv("LOCOBOT_IP"):
 
 PERCEPTION_MODELS_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "../../../../agents/locobot/models/perception",
+    "../../../../droidlet/artifacts/models/perception/locobot",
 )
 
 OFFICE_IMG_PATH = os.path.join(

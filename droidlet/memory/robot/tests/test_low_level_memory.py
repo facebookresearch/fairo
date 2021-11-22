@@ -8,7 +8,7 @@ from droidlet.base_util import Pos, Look, Player
 
 
 class DO:
-    def __init__(self, eid, label, properties, color, xyz, bounds, feature_repr=None):
+    def __init__(self, eid, label, properties, color, xyz, bounds, bbox, mask, feature_repr=None):
         self.eid = eid
         self.label = label
         self.properties = properties
@@ -16,6 +16,8 @@ class DO:
         self.xyz = xyz
         self.bounds = bounds
         self.feature_repr = feature_repr
+        self.bbox = bbox
+        self.mask = mask
 
     def get_bounds(self):
         return self.bounds
@@ -44,7 +46,9 @@ class BasicTest(unittest.TestCase):
                   properties=["red_golden", "dragon", "lonely_mountain"],
                   color="mauve",
                   xyz=[-0.4, -0.08, 0.0],
-                  bounds=[0, 0, 0, 0, 0, 0]
+                  bounds=[0, 0, 0, 0, 0, 0],
+                  bbox=[0.1, 0.1, 1.0, 1.0], # not a real bbox, just mocked
+                  mask=[1, 2, 3, 4, 5], # not a real mask, just mocked
             )
 
         detected_object_mem_id = DetectedObjectNode.create(self.memory, d)

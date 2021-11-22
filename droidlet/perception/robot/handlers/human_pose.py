@@ -90,7 +90,7 @@ class HumanKeypoints:
         cfg = get_cfg()
         yaml_path = os.path.abspath(os.path.join(file_root, "..", keypoints_yaml))
         cfg.merge_from_file(yaml_path)
-        weights = os.path.join("agents/locobot/models/perception", keypoints_weights) if default else \
+        weights = os.path.join("droidlet/artifacts/models/perception/locobot", keypoints_weights) if default else \
             os.path.join(model_data_dir, keypoints_weights)
         cfg.MODEL.WEIGHTS = weights
         cfg.freeze()

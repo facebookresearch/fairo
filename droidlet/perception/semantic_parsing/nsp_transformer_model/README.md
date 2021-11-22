@@ -46,7 +46,7 @@ We are now ready to train the model with:
 ```
 $ cd ~/droidlet
 $ python train_model.py \
---data_dir craftassist/agent/models/ttad_bert_updated/annotated_data/ \
+--data_dir droidlet/artifacts/models/nlu/ttad_bert_updated/annotated_data/ \
 --dtype_samples '[["templated", 0.35], ["templated_modify", 0.05], ["annotated", 0.6]]' \
 --tree_voc_file craftassist/agent/models/ttad_bert_updated/models/caip_test_model_tree.json \
 --output_dir $CHECKPOINT_PATH
@@ -54,7 +54,7 @@ $ python train_model.py \
 
 Feel free to experiment with the model parameters. The models and tree vocabulary files are saved under $CHECKPOINT_PATH, along with a log that contains training and validation accuracies after every epoch. Once you're done, you can choose which epoch you want the parameters for, and use that model.
 ```
-$ cp $PATH_TO_BEST_CHECKPOINT_MODEL craftassist/agent/models/caip_test_model.pth
+$ cp $PATH_TO_BEST_CHECKPOINT_MODEL droidlet/artifacts/models/nlu/caip_test_model.pth
 ```
 
 You can now use that model to run the agent.

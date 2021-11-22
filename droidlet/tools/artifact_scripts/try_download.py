@@ -1,13 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """
 This script checks if models and datasets are up to date, and downloads default
-assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
+assets (specified in `tool/artifact_scripts/tracked_checksums`) if they are stale.
 """
 import os
 import glob
 import subprocess
-from droidlet.tools.data_scripts.fetch_internal_resources import fetch_safety_words_file
-from droidlet.tools.data_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, \
+from droidlet.tools.artifact_scripts.fetch_internal_resources import fetch_safety_words_file
+from droidlet.tools.artifact_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, \
     fetch_datasets_from_aws, fetch_test_assets_from_aws
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
@@ -26,49 +26,50 @@ def try_download_artifacts(agent=None, test_mode=False):
         print("Agent name not specified, defaulting to craftassist")
         agent = "craftassist"
 
-    agent_path = os.path.join(ROOTDIR, 'agents/'+agent)
-    print("Agent path: %r" % (agent_path))
-
+    artifact_path_original = os.path.join(ROOTDIR, 'droidlet/artifacts')
+    artifact_path = artifact_path_original
     # in case directories don't exist, create them
-    os.makedirs(os.path.join(agent_path, 'datasets'), exist_ok=True)
-    os.makedirs(os.path.join(agent_path, 'models'), exist_ok=True)
-    os.makedirs(os.path.join(agent_path, 'models/nlu'), exist_ok=True)
-    os.makedirs(os.path.join(agent_path, 'models/perception'), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, 'datasets'), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, 'models'), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, 'models/nlu'), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, 'models/perception'), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, 'models/perception', agent), exist_ok=True)
     if test_mode:
         # Download test artifacts for Locobot tests
         os.makedirs(os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/'), exist_ok=True)
 
     # Remove existing checksum files so that they can be re-calculated
-    fileList = [os.path.join(agent_path, 'models/nlu/nlu_checksum.txt'),
-                os.path.join(agent_path, 'models/perception/perception_checksum.txt'),
-                os.path.join(agent_path, 'datasets/checksum.txt')
+    fileList = [os.path.join(artifact_path, 'models/nlu/nlu_checksum.txt'),
+                os.path.join(artifact_path, 'models/perception', agent, 'perception_checksum.txt'),
+                os.path.join(artifact_path, 'datasets/checksum.txt')
                 ]
     for file in fileList:
         if glob.glob(file):
             print("deleting previous checksum file :%r" % file)
             os.remove(file)
 
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/artifact_scripts/checksum_fn.sh')
 
     # Compute local checksum for nlu directory and try download if different from remote.
-    artifact_path = os.path.join(agent_path, 'models/nlu')
-    checksum_write_path = os.path.join(agent_path, 'models/nlu/nlu_checksum.txt')
+
+    artifact_path = os.path.join(artifact_path_original, 'models/nlu')
+    checksum_write_path = os.path.join(artifact_path, 'nlu_checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "nlu")
 
     # Compute and attempt download for perception model
-    artifact_path = os.path.join(agent_path, 'models/perception')
-    checksum_write_path = os.path.join(agent_path, 'models/perception/perception_checksum.txt')
+    artifact_path = os.path.join(artifact_path_original, 'models/perception', agent)
+    checksum_write_path = os.path.join(artifact_path, 'perception_checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
     compare_checksum_try_download(agent, checksum_write_path, "perception")
 
     # Compute and attempt download for datasets
-    artifact_path = os.path.join(agent_path, 'datasets')
-    checksum_write_path = os.path.join(agent_path, 'datasets/checksum.txt')
+    artifact_path = os.path.join(artifact_path_original, 'datasets')
+    checksum_write_path = os.path.join(artifact_path, 'checksum.txt')
     result = subprocess.check_output([compute_shasum_script_path, artifact_path, checksum_write_path],
                                      text=True)
     print(result)
@@ -99,7 +100,7 @@ def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact
         artifact_name_file = agent + "_" + artifact_name
 
     latest_checksum_file = os.path.join(ROOTDIR,
-                                        'droidlet/tools/data_scripts/default_checksums/' + artifact_name_file + '.txt')
+                                        'droidlet/tools/artifact_scripts/tracked_checksums/' + artifact_name_file + '.txt')
     with open(latest_checksum_file) as f:
         latest_checksum = f.read().strip()
 
@@ -136,6 +137,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--test_mode",
+        help="Is this is given, download locobot test assets",
         action="store_true"
     )
     args = parser.parse_args()

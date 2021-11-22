@@ -40,7 +40,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw_data_path", type=str, default="generated_dialogues.txt")
     parser.add_argument(
-        "--output_path", type=str, default="craftassist/agent/datasets/full_data/templated.txt"
+        "--output_path", type=str, default="droidlet/artifacts/datasets/full_data/templated.txt"
     )
     args = parser.parse_args()
     preprocess(args.raw_data_path, args.output_path)

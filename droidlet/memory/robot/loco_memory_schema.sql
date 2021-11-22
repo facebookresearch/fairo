@@ -12,6 +12,8 @@ CREATE TABLE DetectedObjectFeatures(
     maxx        FLOAT,
     maxy        FLOAT,
     maxz        FLOAT,
+    bbox     BLOB,
+    mask     BLOB,
     FOREIGN KEY(uuid) REFERENCES Memories(uuid) ON DELETE CASCADE
 );
 

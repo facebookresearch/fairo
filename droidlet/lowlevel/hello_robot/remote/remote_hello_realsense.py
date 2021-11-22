@@ -18,7 +18,6 @@ from slam_pkg.utils import depth_util as du
 
 
 # Configure depth and color streams
-CAMERA_HEIGHT = 1.5
 CH = 480
 CW = 640
 FREQ = 30
@@ -62,25 +61,27 @@ class RemoteHelloRobot(object):
         profile = pipeline.get_active_profile()
         depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
         i = depth_profile.get_intrinsics()
-        # camera on the robot is oriented vertically, so x and y axes are swapped
-        self.intrinsic_mat = np.array([[i.fy, 0,    i.ppy],
-                                       [0,    i.fx, i.ppx],
+        self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
+                                       [0,    i.fy, i.ppy],
                                        [0,    0,    1]])
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
 
     def get_intrinsics(self):
-        return self.intrinsic_mat.tolist()
+        return self.intrinsic_mat
 
-    def get_img_resolution(self):
-        return (CH, CW)
+    def get_img_resolution(self, rotate=True):
+        if rotate:
+            return (CW, CH)
+        else:
+            return (CH, CW)
 
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
         return "Connected!"  # should print on client terminal
 
-    def get_rgb_depth(self):
+    def get_rgb_depth(self, rotate=True):
         tm = time.time()
         frames = None
         while not frames:
@@ -98,15 +99,16 @@ class RemoteHelloRobot(object):
             depth_image = np.asanyarray(aligned_depth_frame.get_data()) / 1000 # convert to meters
             color_image = np.asanyarray(color_frame.get_data())
 
-            # rotate 
-            depth_image = np.rot90(depth_image, k=1, axes=(1,0))
-            color_image = np.rot90(color_image, k=1, axes=(1,0))
+            # rotate
+            if rotate:
+                depth_image = np.rot90(depth_image, k=1, axes=(1,0))
+                color_image = np.rot90(color_image, k=1, axes=(1,0))
 
         return color_image, depth_image
 
-    def get_pcd_data(self):
+    def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
-        rgb, depth = self.get_rgb_depth()
+        rgb, depth = self.get_rgb_depth(rotate=rotate)
         depth *= 1000  # convert to mm
         # cap anything more than np.power(2,16)~ 65 meter
         depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
@@ -116,27 +118,7 @@ class RemoteHelloRobot(object):
         trans = T[:3, 3]
         base2cam_trans = np.array(trans).reshape(-1, 1)
         base2cam_rot = np.array(rot)
-        return rgb, depth, base2cam_rot.tolist(), base2cam_trans.tolist()
-
-    def get_current_pcd(self):
-        rgb, depth, rot, trans = self.get_pcd_data()
-        rgb = np.asarray(rgb).astype(np.uint8)
-        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
-        depth = np.asarray(depth)
-        rot = np.asarray(rot)
-        trans = np.asarray(trans)
-        depth = depth.astype(np.float32)
-        d = copy.deepcopy(depth)
-        depth /= 1000.0
-        depth = depth.reshape(-1)
-        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
-        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
-        pts = pts_in_cam[:3, :].T
-        pts = np.dot(pts, rot.T)
-        pts = pts + trans.reshape(-1)
-        pts = du.transform_pose(pts, self.bot.get_base_state())
-        return pts
-
+        return rgb, depth, base2cam_rot, base2cam_trans
 
 if __name__ == "__main__":
     import argparse

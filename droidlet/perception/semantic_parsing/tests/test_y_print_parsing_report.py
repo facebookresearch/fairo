@@ -1165,13 +1165,13 @@ GROUND_TRUTH_PARSES = {
 common_functional_commands.update(GROUND_TRUTH_PARSES)
 
 TTAD_MODEL_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/models/nlu/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/models/nlu/"
 )
 TTAD_BERT_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/annotated_data/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/annotated_data/"
 )
 GROUND_TRUTH_DATA_DIR = os.path.join(
-    os.path.dirname(__file__), "../../../../agents/craftassist/datasets/ground_truth/"
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/ground_truth/"
 )
 
 

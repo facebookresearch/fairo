@@ -55,6 +55,7 @@ public:
               Empty *) override {
     std::cout << "Moving to width " << gripper_command->width()
               << " at speed=" << gripper_command->speed() << std::endl;
+
     is_moving_ = true;
     gripper_->move(gripper_command->width(), gripper_command->speed());
     is_moving_ = false;
@@ -64,6 +65,9 @@ public:
 
   Status Grasp(ServerContext *context, const GripperCommand *gripper_command,
                Empty *) override {
+    std::cout << "Grasping at width " << gripper_command->width()
+              << " at speed=" << gripper_command->speed() << std::endl;
+
     is_moving_ = true;
     gripper_->grasp(gripper_command->width(), gripper_command->speed(),
                     gripper_command->force(), EPSILON_INNER, EPSILON_OUTER);

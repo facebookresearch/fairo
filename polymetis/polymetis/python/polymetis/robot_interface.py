@@ -17,6 +17,8 @@ from polymetis_pb2 import LogInterval, RobotState, ControllerChunk, Empty
 from polymetis_pb2_grpc import PolymetisControllerServerStub
 
 import torchcontrol as toco
+from torchcontrol.transform import Rotation as R
+from torchcontrol.transform import Transformation as T
 
 
 # Maximum bytes we send per message to server (so as not to overload it).
@@ -282,6 +284,8 @@ class RobotInterface(BaseRobotInterface):
 
         self.Kq_default = torch.Tensor(self.metadata.default_Kq)
         self.Kqd_default = torch.Tensor(self.metadata.default_Kqd)
+        self.Kx_default = torch.Tensor(self.metadata.default_Kx)
+        self.Kxd_default = torch.Tensor(self.metadata.default_Kxd)
         self.hz = self.metadata.hz
 
         self.time_to_go_default = time_to_go_default
@@ -364,6 +368,7 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
+        # Parse parameters
         if time_to_go is None:
             time_to_go = self.time_to_go_default
         if Kq is None:
@@ -371,17 +376,25 @@ class RobotInterface(BaseRobotInterface):
         if Kqd is None:
             Kqd = self.Kqd_default
 
+        # Plan trajectory
         joint_pos_current = self.get_joint_angles()
-        torch_policy = toco.policies.JointSpaceMoveTo(
-            joint_pos_current=joint_pos_current,
-            joint_pos_desired=desired_positions,
+        waypoints = toco.planning.generate_joint_space_min_jerk(
+            start=joint_pos_current,
+            goal=desired_positions,
             time_to_go=time_to_go,
+            hz=self.hz,
+        )
+
+        # Create & execute policy
+        torch_policy = toco.policies.JointTrajectoryExecutor(
+            joint_pos_trajectory=[waypoint["position"] for waypoint in waypoints],
+            joint_vel_trajectory=[waypoint["velocity"] for waypoint in waypoints],
             Kp=Kq,
             Kd=Kqd,
             robot_model=self.robot_model,
-            hz=self.hz,
             ignore_gravity=self.use_grav_comp,
         )
+
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
     def move_joint_positions(
@@ -414,25 +427,42 @@ class RobotInterface(BaseRobotInterface):
             self.robot_model is not None
         ), "Robot model not assigned! Call 'set_robot_model(<path_to_urdf>, <ee_link_name>)' to enable use of dynamics controllers"
 
+        ee_pos_current, ee_quat_current = self.pose_ee()
+
+        # Parse parameters
         if time_to_go is None:
             time_to_go = self.time_to_go_default
         if Kx is None:
             Kx = self.Kx_default
         if Kxd is None:
             Kxd = self.Kxd_default
+        if orientation is None:
+            orientation = ee_quat_current
 
-        joint_pos_current = self.get_joint_angles()
-        torch_policy = toco.policies.CartesianSpaceMoveTo(
-            joint_pos_current=joint_pos_current,
-            ee_pos_desired=position,
-            ee_quat_desired=orientation,
+        # Plan trajectory
+        ee_pose_current = T.from_rot_xyz(
+            rotation=R.from_quat(ee_quat_current), translation=ee_pos_current
+        )
+        ee_pose_desired = T.from_rot_xyz(
+            rotation=R.from_quat(orientation), translation=position
+        )
+        waypoints = toco.planning.generate_cartesian_space_min_jerk(
+            start=ee_pose_current,
+            goal=ee_pose_desired,
             time_to_go=time_to_go,
+            hz=self.hz,
+        )
+
+        # Create & execute policy
+        torch_policy = toco.policies.EndEffectorTrajectoryExecutor(
+            ee_pose_trajectory=[waypoint["pose"] for waypoint in waypoints],
+            ee_twist_trajectory=[waypoint["twist"] for waypoint in waypoints],
             Kp=Kx,
             Kd=Kxd,
             robot_model=self.robot_model,
-            hz=self.hz,
             ignore_gravity=self.use_grav_comp,
         )
+
         return self.send_torch_policy(torch_policy=torch_policy, **kwargs)
 
     def move_ee_xyz(

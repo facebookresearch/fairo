@@ -41,7 +41,13 @@ class Launcher(BaseLauncher):
 
         # Environmental variables.
         env = util.common_env(self.proc_def)
-        env.update(self.kwargs.pop("Env", {}))
+        for kv in self.kwargs.pop("Env", []):
+            if "=" in kv:
+                k, v = kv.split("=", 1)
+                env[k] = v
+            else:
+                del env[kv]
+        env.update(self.proc_def.env)
 
         # Docker labels.
         labels = {
@@ -83,7 +89,7 @@ class Launcher(BaseLauncher):
                 "GroupAdd": [str(i) for i in os.getgroups()],
             },
         }
-        run_kwargs.update(self.kwargs)
+        util.nested_dict_update(run_kwargs, self.kwargs)
 
         self.proc = await docker.containers.create_or_replace(container, run_kwargs)
         await self.proc.start()
@@ -124,13 +130,14 @@ class Launcher(BaseLauncher):
 
 
 class Docker(BaseRuntime):
-    def __init__(self, image=None, dockerfile=None, mount=[], **kwargs):
+    def __init__(self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}):
         if bool(image) == bool(dockerfile):
             util.fail("Docker process must define exactly one of image or dockerfile")
         self.image = image
         self.dockerfile = dockerfile
         self.mount = mount
-        self.kwargs = kwargs
+        self.build_kwargs = build_kwargs
+        self.run_kwargs = run_kwargs
 
     def _build(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
         docker_api = docker.from_env()
@@ -149,7 +156,7 @@ class Docker(BaseRuntime):
                 "dockerfile": dockerfile_path,
                 "rm": True,
             }
-            build_kwargs.update(self.kwargs)
+            build_kwargs.update(self.build_kwargs)
 
             for line in docker_api.lowlevel.build(**build_kwargs):
                 lineinfo = json.loads(line.decode())
@@ -163,10 +170,15 @@ class Docker(BaseRuntime):
         mount_map = {}
         for mnt in self.mount:
             parts = mnt.split(":")
-            mount_map[parts[0]] = parts[1:]
+            if len(parts) == 3:
+                mount_map[parts[0]] = (parts[1], parts[2])
+            elif len(parts) == 2:
+                mount_map[parts[0]] = (parts[1], "")
+            else:
+                util.fail(f"Invalid mount: {mnt}")
 
         nfs_mounts = []
-        for host, container in mount_map.items():
+        for host, (container, _) in mount_map.items():
             try:
                 os.makedirs(host)
             except FileExistsError:
@@ -232,10 +244,10 @@ class Docker(BaseRuntime):
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
 
-            self.mount = [
-                f"{host_path}:{container_path}:{perm}"
-                for host_path, (container_path, perm) in mount_map.items()
-            ]
+        self.mount = [
+            f"{host_path}:{container_path}:{options}"
+            for host_path, (container_path, options) in mount_map.items()
+        ]
 
     def _launcher(self, name: str, proc_def: ProcDef, args: argparse.Namespace):
-        return Launcher(self.image, self.mount, name, proc_def, args, **self.kwargs)
+        return Launcher(self.image, self.mount, name, proc_def, args, **self.run_kwargs)

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 import cv2
+
 def transform_global_to_base(XYT, current_pose):
     """
     Transforms the point cloud into geocentric frame to account for
@@ -14,12 +15,34 @@ def transform_global_to_base(XYT, current_pose):
     XYT = np.asarray(XYT)
     new_T = XYT[2] - current_pose[2]
     R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
-    print(R)
     XYT[0] = XYT[0] - current_pose[0]
     XYT[1] = XYT[1] - current_pose[1]
     out_XYT = np.matmul(XYT.reshape(-1, 3), R).reshape((-1, 3))
     out_XYT = out_XYT.ravel()
     return [out_XYT[0], out_XYT[1], new_T]
+
+def transform_base_to_global(out_XYT, current_pose):
+    """
+    Transforms the point cloud from base frame into geocentric frame
+    Input:
+        XYZ                     : ...x3
+        current_pose            : base position (x, y, theta (radians))
+    Output:
+        XYZ : ...x3
+    """
+    R = Rotation.from_euler("Z", current_pose[2]).as_matrix()
+    Rinv = np.linalg.inv(R)
+
+    XYT = np.matmul(R, out_XYT)    
+
+    XYT[0] = XYT[0] + current_pose[0]
+    XYT[1] = XYT[1] + current_pose[1]
+
+    XYT[2] =  out_XYT[2] + current_pose[2]
+   
+    XYT = np.asarray(XYT)
+    
+    return XYT
 
 
 from math import *
@@ -94,8 +117,11 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         y = xyt_position[1]    # in meters
         rot = xyt_position[2]  # in radians
 
+        print("goto: ", xyt_position)
+
         if sqrt(x * x + y * y) < translation_threshold:
-            print("translation distance ", sqrt(x * x + y * y))
+            print("translation distance too little,"
+                  " rotating and exiting", sqrt(x * x + y * y))
             print(f'rotate by {xyt_position[2], rot}')
             if not dryrun:
                 robot.base.rotate_by(rot)
@@ -103,35 +129,64 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
                 time.sleep(0.05)
             return True
 
+        # robot is at (0, 0) because we're using base-frame
+        # Now, calculate the angle between (x, y) and (0, 0)
+        # so, atan2(y - 0, x - 0)
         theta_1 = atan2(y, x)
+
+        # distance between (x, y) and (0, 0)
         dist = sqrt(x ** 2 + y ** 2)
 
+        # atan2(y, x) is the angle between the positive x axis and the ray to the point (x, y)
+        # so, it will be:
+        #  0    <= angle <= pi/2   :  if +x, +y
+        # +pi/2 <= angle <= pi     :  if -x, +y
+        # -pi   <= angle <= -pi/2  :  if -x, -y
+        # -pi/2 <= angle <= 0      :  if +x, -y
+
+        # if theta_1 is between 0 and pi / 2, then you will turn left by a bit and move forward
+        # if theta_1 is between -pi/2 and 0, then you will turn right by a bit and move forward
+
         if theta_1 > pi / 2:
+            # the point is behind the robot to it's left
+            # so, instead of rotating by a lot, moving forward, and rotating back, it is
+            # more efficient to simply rotate a bit to the right, and then move backward
             theta_1 = theta_1 - pi
             dist = -dist
+            print("taking short-cut, as the point is behind the robot to it's left")
 
         if theta_1 < -pi / 2:
+            # the point is behind the robot to it's right
+            # so, instead of rotating by a lot, moving forward, and rotating back, it is
+            # more efficient to simply rotate a bit to the left, and then move backward
             theta_1 = theta_1 + pi
             dist = -dist
+            print("taking short-cut, as the point is behind the robot to it's right")
 
+        # since we rotated by theta_1, first unrotate by theta_1, and then go to the final angle: rot
         theta_2 = -theta_1 + rot
 
         # first rotate by theta1
+
+        # normalizes the rotation (ex. 6.3 will only rotate 0.016)
         theta_1 = np.sign(theta_1) * (abs(theta_1) % radians(360))
+        if abs(theta_1) > radians(180):
+            # moving right by more than 180 degrees will instead just move left by the equivalent amount
+            theta_1 = -1 * np.sign(theta_1) * (2*pi - abs(theta_1))
+            print("moving right by more than 2pi, so instead moving left by equivalent amount")
         print("rotate by theta_1", theta_1)
         if not dryrun:
             robot.base.rotate_by(theta_1)
             robot.push_command()
+            robot.pull_status()
             time.sleep(0.1)
             is_moving = True
             while is_moving:
-                print(is_moving)
-                time.sleep(0.05)
-                print(robot.base.left_wheel.status)
-                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered']
-                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered']
+                time.sleep(0.1)
+                robot.pull_status()
+                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered'] or robot.base.left_wheel.status['is_moving']
+                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered'] or robot.base.right_wheel.status['is_moving']
                 is_moving = left_wheel_moving or right_wheel_moving
-                print(is_moving)
 
         # move the distance
         print("translate by ", dist)
@@ -144,28 +199,33 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
             robot.base.translate_by(dist, v_m=0.1)
             robot.push_command()
             time.sleep(2)
+            robot.pull_status()
             is_moving = True
             while is_moving:
-                print(is_moving)
-                time.sleep(0.05)
-                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered']
-                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered']
+                time.sleep(0.1)
+                robot.pull_status()
+                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered'] or robot.base.left_wheel.status['is_moving']
+                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered'] or robot.base.right_wheel.status['is_moving']
                 is_moving = left_wheel_moving or right_wheel_moving
-                print(is_moving)
+
+
         # second rotate by theta2
-        
         theta_2 = np.sign(theta_2) * (abs(theta_2) % radians(360))
+        if abs(theta_2) > radians(180):
+            theta_2 = -1 * np.sign(theta_2) * (2*pi - abs(theta_2))
+            print("moving right by more than 2pi, so instead moving left by equivalent amount")
+
         print("rotate by theta_2", theta_2)
         if not dryrun:
             robot.base.rotate_by(theta_2)
             robot.push_command()
             time.sleep(0.1)
+            robot.pull_status()
             is_moving = True
             while is_moving:
-                print(is_moving)
-                time.sleep(0.05)
-                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered']
-                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered']
+                time.sleep(0.1)
+                robot.pull_status()
+                left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered'] or robot.base.left_wheel.status['is_moving']
+                right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered'] or robot.base.right_wheel.status['is_moving']
                 is_moving = left_wheel_moving or right_wheel_moving
-                print(is_moving)
         return True
