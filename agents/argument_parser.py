@@ -105,7 +105,7 @@ class ArgumentParser:
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",
-            default="droidlet/artifacts/models/perception/locobot",
+            default="../../droidlet/artifacts/models/perception/locobot",
             help="path to perception model data dir",
         )
         loco_parser.add_argument(
