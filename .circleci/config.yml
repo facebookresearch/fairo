@@ -326,12 +326,15 @@ jobs:
     resource_class: medium+
     steps:
       - checkout
-      - install_mamba
       - run:
-          name: Run pytest
-          command: |
-            cd fbrp
-            pytest
+          name: Install Dependencies
+          command: sudo apt update && sudo apt install -y python3-pip
+      - run:
+          name: Install FBRP
+          command: python3 -m pip install ./fbrp
+      - run:
+          name: Run PyTest
+          command: pytest ./fbrp
 
 workflows:
   build:
