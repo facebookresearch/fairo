@@ -195,15 +195,6 @@ class NSPRetrainingJob(DataGenerator):
         elif opts.retrain_data_splits[2] == 1: test_mask = new_test_mask
         else: test_mask = [True if old_test_mask[i] or new_test_mask[i] else False for i in range(total_rows)]
 
-        # Debug logging info
-        logging.info(f"Total data rows: {total_rows}")
-        logging.info(f"Old data rows: {total_rows - new_data_rows}")
-        logging.info(f"Length of old train mask: {len(old_train_mask)}")
-        logging.info(f"Length of new train mask: {len(new_train_mask)}")
-        logging.info(f"Old data train points: {sum(1 for i in old_train_mask if i)}")
-        logging.info(f"Old data valid points: {sum(1 for i in old_valid_mask if i)}")
-        logging.info(f"Old data test points: {sum(1 for i in old_test_mask if i)}")
-
         perc_new = (new_data_rows / total_rows)*100
         perc_train = sum(1 for i in train_mask if i)*100 / total_rows
         perc_valid = sum(1 for i in valid_mask if i)*100 / total_rows
