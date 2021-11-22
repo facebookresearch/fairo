@@ -48,11 +48,14 @@ def get_proc_names(proc_names, include_deps):
 
 def down_existing(args: argparse.Namespace, names: typing.List[str]):
     def find_active_proc(system_state):
-        for name in names:
-            if system_state.procs[name].state != life_cycle.State.STOPPED:
-                yield name
+        return [
+            name
+            for name in names
+            if name in system_state.procs
+            and system_state.procs[name].state != life_cycle.State.STOPPED
+        ]
 
-    active_proc = list(find_active_proc(life_cycle.system_state()))
+    active_proc = find_active_proc(life_cycle.system_state())
     if not active_proc:
         return
 
@@ -67,7 +70,7 @@ def down_existing(args: argparse.Namespace, names: typing.List[str]):
     ns.sat = False
 
     def callback(system_state):
-        if not list(find_active_proc(system_state)):
+        if not find_active_proc(system_state):
             with ns.cv:
                 ns.sat = True
                 ns.cv.notify()
