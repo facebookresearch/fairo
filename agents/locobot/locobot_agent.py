@@ -9,6 +9,8 @@ import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+if __name__ == "__main__":
+    set_start_method("spawn", force=True)
 import shutil
 
 from droidlet import dashboard
@@ -345,7 +347,6 @@ if __name__ == "__main__":
     if not opts.dev:
         try_download_artifacts(agent="locobot")
 
-    set_start_method("spawn", force=True)
 
     sa = LocobotAgent(opts)
     sa.start()

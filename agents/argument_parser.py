@@ -123,7 +123,7 @@ class ArgumentParser:
         for optname, optval in od.items():
             if "path" in optname or "dir" in optname:
                 if optval:
-                    od[optname] = os.path.join(base_path, optval)
+                    od[optname] = os.path.join(os.path.abspath(base_path), optval)
         return opts
 
     def parse(self):

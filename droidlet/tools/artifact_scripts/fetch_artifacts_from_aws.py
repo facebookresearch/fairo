@@ -3,31 +3,33 @@
 import os
 from subprocess import Popen, PIPE
 import shutil
+import urllib.request
+from tqdm import tqdm
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
 print("Rootdir : %r" % ROOTDIR)
 
+# downloader with progress-bar
+# CC-by-SA: https://stackoverflow.com/a/53877507
+class DownloadProgressBar(tqdm):
+    def update_to(self, b=1, bsize=1, tsize=None):
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)
+
+def download_url(url, output_path):
+    with DownloadProgressBar(unit='B', unit_scale=True,
+                             miniters=1, desc=url.split('/')[-1]) as t:
+        urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
 def fetch_test_assets_from_aws(agent=None):
     assert agent == "locobot"
     file_name = 'locobot_perception_test_assets.tar.gz'
     aws_asset_file = 'https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz'
-    os.chdir(ROOTDIR)
-    print("====== Downloading " + aws_asset_file + " to " + ROOTDIR + file_name + " ======")
+    final_path = os.path.join(ROOTDIR, file_name)
+    print("====== Downloading " + aws_asset_file + " to " + final_path + " ======")
 
-    process = Popen(
-        [
-            'curl',
-            'https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz',
-            '-o',
-            file_name
-        ],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
+    download_url("https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz", final_path)
 
     test_artifact_path = os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/')
     """Now update the local directory and with untar'd file contents"""
@@ -96,23 +98,11 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
 
     file_name = artifact_name + "_" + checksum_val + ".tar.gz"
     """Get tar file from s3 using : agent name, artifact name and checksum combination as unique identifier"""
-    os.chdir(ROOTDIR)
+    final_path = os.path.join(ROOTDIR, file_name)
     print("====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/" + file_name + " to " \
-          + ROOTDIR + file_name + " ======")
+          + final_path + " ======")
 
-    process = Popen(
-        [
-            'curl',
-            'http://craftassist.s3-us-west-2.amazonaws.com/pubr/' + file_name,
-            '-o',
-            file_name
-        ],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
+    download_url('http://craftassist.s3-us-west-2.amazonaws.com/pubr/' + file_name, final_path)
 
     """Now update the local directory and with untar'd file contents"""
     if os.path.isdir(artifact_path):
