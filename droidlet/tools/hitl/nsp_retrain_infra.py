@@ -15,9 +15,9 @@ import random
 
 from typing import List
 
-from utils.data_generator import DataGenerator
-from utils.job_listener import JobListener
-from utils.task_runner import TaskRunner
+from droidlet.tools.hitl.data_generator import DataGenerator
+from droidlet.tools.hitl.job_listener import JobListener
+from droidlet.tools.hitl.task_runner import TaskRunner
 
 
 log_formatter = logging.Formatter(
@@ -161,28 +161,48 @@ class NSPRetrainingJob(DataGenerator):
         # Create train, valid, and test masks based on user input
         total_rows = sum(1 for line in open(data_filepath))
         logging.info(f"Model training data masks are being generated:")
-        if  not opts.resample:
-            logging.info(f"Model will be trained with old+new training data, valid/test are static old data (not resampled)")
 
-            # Lengthen valid and test masks to be the length of all data
-            old_mask_filepath = os.path.join(opts.sweep_config_folder, 'split_masks.pth')
-            old_masks = torch.load(old_mask_filepath)['annotated']
-            valid_mask = [x for x in old_masks['valid']]
-            valid_mask.extend([False] * (total_rows - len(valid_mask)))
-            test_mask = [x for x in old_masks['test']]
-            test_mask.extend([False] * (total_rows - len(test_mask)))
-            train_mask = [False if valid_mask[i] or test_mask[i] else True for i in range(total_rows)]  # Rest of the data are train
-        else:
-            logging.info(f"Model train/valid/test data will be resampled from combined old+new dataset in 80/10/10 split")
+        # Old masks are static, just extend to be the length of the new dataset
+        old_mask_filepath = os.path.join(opts.sweep_config_folder, 'split_masks.pth')
+        old_masks = torch.load(old_mask_filepath)['annotated']
+        old_train_mask = [x for x in old_masks['train']]
+        old_train_mask.extend([False] * (total_rows - len(old_train_mask)))
+        old_valid_mask = [x for x in old_masks['valid']]
+        old_valid_mask.extend([False] * (total_rows - len(old_valid_mask)))
+        old_test_mask = [x for x in old_masks['test']]
+        old_test_mask.extend([False] * (total_rows - len(old_test_mask)))
 
-            # Generate random splits and populate masks
-            mask_designation = ['test'] * int(total_rows * 0.1)
-            mask_designation.extend(['valid'] * int(total_rows * 0.1))
-            mask_designation.extend(['train'] * (total_rows - len(mask_designation)))
-            random.shuffle(mask_designation)
-            train_mask = [True if x == 'train' else False for x in mask_designation]
-            valid_mask = [True if x == 'valid' else False for x in mask_designation]
-            test_mask = [True if x == 'test' else False for x in mask_designation]
+        # Set random seed for reproducability and generate masks for new data
+        random.seed(batch_id)
+        new_mask_designation = ['test'] * int(new_data_rows * 0.1)
+        new_mask_designation.extend(['valid'] * int(new_data_rows * 0.1))
+        new_mask_designation.extend(['train'] * (new_data_rows - len(new_mask_designation)))
+        random.shuffle(new_mask_designation)
+        new_masks = [False] * (total_rows - new_data_rows)  # Prepend False for old data
+        new_masks.extend(new_mask_designation)
+        new_train_mask = [True if x == 'train' else False for x in new_masks]
+        new_valid_mask = [True if x == 'valid' else False for x in new_masks]
+        new_test_mask = [True if x == 'test' else False for x in new_masks]
+
+        # Mix and match old and new data based on user input
+        if opts.retrain_data_splits[0] == 0: train_mask = old_train_mask
+        elif opts.retrain_data_splits[0] == 1: train_mask = new_train_mask
+        else: train_mask = [True if old_train_mask[i] or new_train_mask[i] else False for i in range(total_rows)]
+        if opts.retrain_data_splits[1] == 0: valid_mask = old_valid_mask
+        elif opts.retrain_data_splits[1] == 1: valid_mask = new_valid_mask
+        else: valid_mask = [True if old_valid_mask[i] or new_valid_mask[i] else False for i in range(total_rows)]
+        if opts.retrain_data_splits[2] == 0: test_mask = old_test_mask
+        elif opts.retrain_data_splits[2] == 1: test_mask = new_test_mask
+        else: test_mask = [True if old_test_mask[i] or new_test_mask[i] else False for i in range(total_rows)]
+
+        # Debug logging info
+        logging.info(f"Total data rows: {total_rows}")
+        logging.info(f"Old data rows: {total_rows - new_data_rows}")
+        logging.info(f"Length of old train mask: {len(old_train_mask)}")
+        logging.info(f"Length of new train mask: {len(new_train_mask)}")
+        logging.info(f"Old data train points: {sum(1 for i in old_train_mask if i)}")
+        logging.info(f"Old data valid points: {sum(1 for i in old_valid_mask if i)}")
+        logging.info(f"Old data test points: {sum(1 for i in old_test_mask if i)}")
 
         perc_new = (new_data_rows / total_rows)*100
         perc_train = sum(1 for i in train_mask if i)*100 / total_rows
@@ -244,6 +264,8 @@ class NSPRetrainingJob(DataGenerator):
             raise FileNotFoundError("checkpoint_dir not found or arg not pathlike")
         if (opts.new_data_training_threshold < 0):
             raise ValueError("new_data_training_threshold must be >= 0")
+        if (len(opts.retrain_data_splits) != 3):
+            raise TypeError("retrain_data_splits takes exactly three arguments")
 
         batch_id = str(self.batch_id)
         download_dir, config_dir = self.download_data(opts, batch_id)
@@ -255,7 +277,7 @@ class NSPRetrainingJob(DataGenerator):
 
         # Setup sweep_runner args
         full_data_dir = download_dir[len(opts.droidlet_dir):]  # Need to slice off the base droidlet filepath b/c sweep_runner adds it back
-        sweep_name = batch_id + '_resampled' if opts.resample else batch_id + "_notresampled"
+        sweep_name = batch_id + '_mask_opts_' + str(opts.retrain_data_splits[0]) + '_' + str(opts.retrain_data_splits[1]) + '_' + str(opts.retrain_data_splits[2])
         sweep_args = "python3 " + \
             os.path.join(opts.sweep_runner_dir, "sweep_runner.py") + \
             " --sweep_config_folder " + config_dir + \
@@ -374,7 +396,7 @@ if __name__ == "__main__":
     parser.add_argument("--sweep_scripts_output_dir", type=str, help="Absolute location for sweep shell scripts")
     parser.add_argument("--output_dir", type=str, help="Absolute location for sweep job outputs")
     parser.add_argument("--checkpoint_dir", type=str, help="Absolute location of NSP checkpoint folder")
-    parser.add_argument("--resample", default=False, action="store_true", help="Include to resample entire dataset into new train/valid/test splits, abstain to retrain against old valid/test")
+    parser.add_argument("--retrain_data_splits", type=int, nargs='+', choices=[0,1,2], help="Three int args in the order 'train valid test' where 0=old data only, 1=new data only, 2=all data. Eg. '--retrain_data_splits 2 1 1'")
     parser.add_argument("--new_data_training_threshold", default=100, type=int, help="Number of new data samples below which no training occurs")
     opts = parser.parse_args()
     
