@@ -320,6 +320,18 @@ jobs:
             pip install clang-format
             export PATH=$PATH
             ./scripts/format_cpp.sh check all
+  fbrp:
+    docker:
+      - image: ubuntu:focal
+    resource_class: medium+
+    steps:
+      - checkout
+      - install_mamba
+      - run:
+          name: Run pytest
+          command: |
+            cd fbrp
+            pytest
 
 workflows:
   build:
