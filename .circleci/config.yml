@@ -322,13 +322,10 @@ jobs:
             ./scripts/format_cpp.sh check all
   fbrp:
     docker:
-      - image: ubuntu:focal
+      - image: python:3.7
     resource_class: medium+
     steps:
       - checkout
-      - run:
-          name: Install Dependencies
-          command: sudo apt update && sudo apt install -y python3-pip
       - run:
           name: Install FBRP
           command: python3 -m pip install ./fbrp
