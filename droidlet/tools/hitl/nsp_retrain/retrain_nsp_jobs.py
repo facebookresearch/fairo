@@ -33,7 +33,7 @@ HITL_TMP_DIR = (
 )
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
-NSP_OUTPUT_FNAME = "nsp_outputs"
+NSP_OUTPUT_FNAME = "error_details"
 ANNOTATED_COMMANDS_FNAME = "nsp_data.txt"
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
@@ -70,18 +70,20 @@ class InteractionJob(DataGenerator):
 
     """
 
-    def __init__(self, instance_num: int, timeout: float = -1) -> None:
+    def __init__(self, instance_num: int, image_tag: str, task_name: str, timeout: float = -1) -> None:
         super(InteractionJob, self).__init__(timeout)
         self._instance_num = instance_num
+        self._image_tag = image_tag
+        self._task_name = task_name
         self.instance_ids = None
-        self._batch_id = generate_batch_id()
+        self._batch_id = 20211115024843#generate_batch_id()
 
     def run(self) -> None:
         batch_id = self._batch_id
 
         # allocate AWS ECS instances and register DNS records
         logging.info(f"Allocate AWS ECS instances and register DNS records...")
-        _, instance_ids = allocate_instances(self._instance_num, batch_id, ECS_INSTANCE_TIMEOUT)
+        _, instance_ids = allocate_instances(self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT)
         self.instance_ids = instance_ids
 
         # run Mephisto to spin up & monitor turk jobs
@@ -237,14 +239,31 @@ class InteractionLogListener(JobListener):
         except:
             logging.info(f"No previous annotated commands found...")
 
-        # Appending commands of this run to the central list
-        idx = len(prev_annotated_pairs_with_idx)
-        idx_list = []
-        annotated_pairs_with_idx = copy.deepcopy(prev_annotated_pairs_with_idx)
-        for annotated_pair in annotated_pairs:
-            annotated_pairs_with_idx.append([str(idx), annotated_pair[0], annotated_pair[1]])
-            idx_list.append(str(idx))
-            idx += 1
+        def collate_datasets(prev_annotated_pairs_with_idx, annotated_pairs):
+            cmd_set = set()
+
+            for prev_annotated_pair_with_idx in prev_annotated_pairs_with_idx:
+                # [cmd, lf] or [idx, cmd, lf]
+                cmd = prev_annotated_pair_with_idx[0] if len(prev_annotated_pair_with_idx) == 2 else prev_annotated_pair_with_idx[1]
+                cmd = cmd.lower().strip()
+                cmd_set.add(cmd)
+
+            # Appending commands of this run to the central list
+            idx = len(prev_annotated_pairs_with_idx)
+            idx_list = []
+            annotated_pairs_with_idx = copy.deepcopy(prev_annotated_pairs_with_idx)
+            for annotated_pair in annotated_pairs:
+                cmd = annotated_pair[0].lower().strip()
+                if cmd in cmd_set:
+                    logging.info(f"Annotated command '{cmd}' is already in the dataset, so discard it.")
+                    continue
+                annotated_pairs_with_idx.append([str(idx), annotated_pair[0], annotated_pair[1]])
+                idx_list.append(str(idx))
+                idx += 1
+            return annotated_pairs_with_idx, idx_list
+
+        annotated_pairs_with_idx, idx_list = collate_datasets(prev_annotated_pairs_with_idx, annotated_pairs)
+        logging.info(f"Original dataset size: {len(prev_annotated_pairs_with_idx)} | Added commands / Annotated commands: {len(idx_list)} / {len(annotated_pairs)}")
 
         # Finally, upload updated data and meta file to S3
         lines = ["|".join(triple) for triple in annotated_pairs_with_idx]

@@ -17,7 +17,7 @@ HITL_TMP_DIR = (
     os.environ["HITL_TMP_DIR"] if os.getenv("HITL_TMP_DIR") else f"{os.path.expanduser('~')}/.hitl"
 )
 ANNOTATION_JOB_POLL_TIME = 30
-ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 120
+ANNOTATION_PROCESS_TIMEOUT_DEFAULT = 360
 S3_BUCKET_NAME = "droidlet-hitl"
 S3_ROOT = "s3://droidlet-hitl"
 
