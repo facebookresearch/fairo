@@ -21,8 +21,6 @@ import boto3
 
 from tools.servermgr import ping_cuberite
 
-from hitl_utils import generate_batch_id
-
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 AWS_DEFAULT_REGION = os.environ["AWS_DEFAULT_REGION"]
@@ -38,11 +36,73 @@ logging.getLogger().setLevel(logging.INFO)
 SUBNET_IDS = ["subnet-bee9d9d9"]
 SECURITY_GROUP_IDS = ["sg-04ec8fa6e1d91d460"]
 
-with open("run.withagent.sh", "rb") as f:
+with open("../utils/run.withagent.sh", "rb") as f:
     txt = f.read()
     txt_flat = txt.replace(b"diverse_world", b"flat_world")
     run_sh_gz_b64 = b64encode(gzip.compress(txt)).decode("utf-8")
     run_flat_sh_gz_b64 = b64encode(gzip.compress(txt_flat)).decode("utf-8")
+
+
+def register_task_definition(image_tag, task_name):
+    image = f"492338101900.dkr.ecr.us-west-1.amazonaws.com/craftassist:{image_tag}"
+    task_definition = ecs.register_task_definition(
+        family=task_name,
+        executionRoleArn="arn:aws:iam::492338101900:role/ecsTaskExecutionRole",
+        networkMode='awsvpc',
+        memory="8192",
+        cpu="4096",
+        containerDefinitions=[
+            {
+                "name": task_name,
+                "image": image,
+                "logConfiguration": {
+                    "logDriver": "awslogs",
+                    "options": {
+                    "awslogs-group": f"/ecs/craftassist",
+                    "awslogs-region": "us-west-1",
+                    "awslogs-stream-prefix": "ecs"
+                    }
+                },
+                "portMappings": [
+                    {
+                    "hostPort": 25565,
+                    "protocol": "tcp",
+                    "containerPort": 25565
+                    },
+                    {
+                    "hostPort": 2556,
+                    "protocol": "tcp",
+                    "containerPort": 2556
+                    },
+                    {
+                    "hostPort": 2557,
+                    "protocol": "tcp",
+                    "containerPort": 2557
+                    },
+                    {
+                    "hostPort": 3000,
+                    "protocol": "tcp",
+                    "containerPort": 3000
+                    },
+                    {
+                    "hostPort": 5000,
+                    "protocol": "tcp",
+                    "containerPort": 5000
+                    },
+                    {
+                    "hostPort": 9000,
+                    "protocol": "tcp",
+                    "containerPort": 9000
+                    }
+                ],
+            }
+        ],
+        requiresCompatibilities=[
+            "EC2",
+            "FARGATE"
+        ]
+    )
+    print(f"Registered task definition: {task_definition}")
 
 
 def launch_instance(task="craftassist", config="random", debug=False):
@@ -76,7 +136,7 @@ def launch_instance(task="craftassist", config="random", debug=False):
         overrides={
             "containerOverrides": [
                 {
-                    "name": "craftassist",
+                    "name": task,
                     "environment": [
                         {"name": "RUN_SH_GZ_B64", "value": run_sh},
                         {"name": "AWS_ACCESS_KEY_ID", "value": AWS_ACCESS_KEY_ID},
@@ -134,7 +194,8 @@ def get_instance_ip(instance_id):
     return ip
 
 
-def request_instance(instance_num, timeout=-1):
+def request_instance(instance_num, image_tag, task_name, timeout=-1):
+    register_task_definition(image_tag, task_name)
     NUM_RETRIES = 100
     start_time = time.time()
     logging.info(f"[ECS] Requesting {instance_num} instances from AWS, timeout: {timeout}")
@@ -142,8 +203,9 @@ def request_instance(instance_num, timeout=-1):
     instances_ids = []
     while cnt < instance_num and NUM_RETRIES > 0:
         try:
-            instance_id, timestamp = launch_instance(task="craftassist", config="flat_world", debug=False)
-        except:
+            instance_id, timestamp = launch_instance(task=task_name, config="flat_world", debug=False)
+        except Exception as e:
+            print(e)
             NUM_RETRIES -= 1
             logging.info(f"[ECS] Err on launching one ecs instance, discard this one. Remaining num retries: {NUM_RETRIES}")
             continue
@@ -201,8 +263,8 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
         raise e
 
 
-def allocate_instances(instance_num, batch_id, timeout=-1, cf_email="rebeccaqian@fb.com"):
-    instance_ips, instance_ids = request_instance(instance_num, timeout)
+def allocate_instances(instance_num, batch_id, image_tag, task_name, timeout=-1, cf_email="rebeccaqian@fb.com"):
+    instance_ips, instance_ids = request_instance(instance_num, image_tag, task_name, timeout)
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
         logging.info("registering subdomains on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
@@ -251,8 +313,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--user", type=str, default="rebeccaqian@fb.com", help="Email of the CloudFlare account"
     )
+    parser.add_argument(
+        "--image_tag", type=str, help="The tag of docker image that will be used to spin up ecs instance"
+    )
+    parser.add_argument(
+        "--task_name", type=str, help="Task name of the ecs instance to be requested"
+    )
     args = parser.parse_args()
-    instance_ips, instance_ids = request_instance(args.instance_num)
+    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name)
     batch_id = args.batch_id
     # register subdomain to proxy instance IP
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
