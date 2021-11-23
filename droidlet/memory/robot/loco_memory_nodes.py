@@ -47,8 +47,8 @@ class DetectedObjectNode(ReferenceObjectNode):
             cls.NODE_TYPE,
         )
         memory.db_write(
-            "INSERT INTO DetectedObjectFeatures(uuid, featureBlob, minx, miny, minz, maxx, maxy, maxz) \
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO DetectedObjectFeatures(uuid, featureBlob, minx, miny, minz, maxx, maxy, maxz, bbox, mask) \
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             memid,
             pickle.dumps(detected_obj.feature_repr),
             bounds[0],
@@ -57,6 +57,8 @@ class DetectedObjectNode(ReferenceObjectNode):
             bounds[3],
             bounds[4],
             bounds[5],
+            pickle.dumps(detected_obj.bbox),
+            pickle.dumps(detected_obj.mask)
         )
 
         cls.safe_tag(detected_obj, memory, memid, "has_name", "label")
@@ -90,6 +92,8 @@ class DetectedObjectNode(ReferenceObjectNode):
             detected_obj.get_xyz()["z"],
             memid,
         )
+
+        # TODO: should we update mask, bbox and bounds too?
         memory.db_write(
             "UPDATE DetectedObjectFeatures SET featureBlob=? where uuid=?",
             pickle.dumps(detected_obj.feature_repr),
@@ -129,11 +133,13 @@ class DetectedObjectNode(ReferenceObjectNode):
         properties = get_value(node[0], "has_properties")
 
         # Get DetectedObjectFeatures
-        feature_blob, minx, miny, minz, maxx, maxy, maxz = memory._db_read(
-            "SELECT featureBlob, minx, miny, minz, maxx, maxy, maxz \
+        feature_blob, minx, miny, minz, maxx, maxy, maxz, bbox, mask = memory._db_read(
+            "SELECT featureBlob, minx, miny, minz, maxx, maxy, maxz, bbox, mask \
                 FROM DetectedObjectFeatures WHERE uuid=?", node[0]
         )[0]
         feature_repr = pickle.loads(feature_blob)
+        bbox = pickle.loads(bbox)
+        mask = pickle.loads(mask)
 
         return {
             "eid": node[1],
@@ -142,7 +148,9 @@ class DetectedObjectNode(ReferenceObjectNode):
             "color": color,
             "properties": properties,
             "feature_repr": feature_repr,
-            "bounds": (minx, miny, minz, maxx, maxy, maxz)
+            "bounds": (minx, miny, minz, maxx, maxy, maxz),
+            "bbox": bbox,
+            "mask": mask
         }
 
     def get_pos(self) -> XYZ:

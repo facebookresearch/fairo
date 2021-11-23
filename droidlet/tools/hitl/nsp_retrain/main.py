@@ -27,6 +27,12 @@ NDL_TIMEOUT = IL_TIMEOUT + 20
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--interaction_job_num", type=int, default=2, help="number of dashboard sessions to spin up")
+    parser.add_argument(
+        "--image_tag", type=str, required=True, help="The tag of docker image that will be used to spin up ecs instance"
+    )
+    parser.add_argument(
+        "--task_name", type=str, required=True, help="Task name of the ecs instance to be requested"
+    )
     opts = parser.parse_args()
 
     # TODO: parameterize this

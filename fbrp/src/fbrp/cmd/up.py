@@ -5,9 +5,12 @@ from fbrp.cmd.base import BaseCommand
 import a0
 import argparse
 import asyncio
+import json
 import os
 import sys
-import json
+import threading
+import types
+import typing
 
 
 def transitive_closure(proc_names):
@@ -43,6 +46,44 @@ def get_proc_names(proc_names, include_deps):
     return proc_names
 
 
+def down_existing(args: argparse.Namespace, names: typing.List[str]):
+    def find_active_proc(system_state):
+        return [
+            name
+            for name in names
+            if name in system_state.procs
+            and system_state.procs[name].state != life_cycle.State.STOPPED
+        ]
+
+    active_proc = find_active_proc(life_cycle.system_state())
+    if not active_proc:
+        return
+
+    if not args.force:
+        util.fail(f"Conflicting processes already running: {', '.join(active_proc)}")
+
+    for name in active_proc:
+        life_cycle.set_ask(name, life_cycle.Ask.DOWN)
+
+    ns = types.SimpleNamespace()
+    ns.cv = threading.Condition()
+    ns.sat = False
+
+    def callback(system_state):
+        if not find_active_proc(system_state):
+            with ns.cv:
+                ns.sat = True
+                ns.cv.notify()
+
+    watcher = life_cycle.system_state_watcher(callback)
+
+    with ns.cv:
+        success = ns.cv.wait_for(lambda: ns.sat, timeout=3.0)
+
+    if not success:
+        util.fail(f"Existing processes did not down in a timely manner.")
+
+
 @registrar.register_command("up")
 class up_cmd(BaseCommand):
     @classmethod
@@ -62,6 +103,8 @@ class up_cmd(BaseCommand):
         names = [name for name in names if registrar.defined_processes[name].runtime]
         if not names:
             util.fail(f"No processes found")
+
+        down_existing(args, names)
 
         if args.build:
             for name in names:

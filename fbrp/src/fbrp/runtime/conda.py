@@ -76,9 +76,7 @@ class Launcher(BaseLauncher):
         self.proc_def = proc_def
         self.args = args
 
-    async def run(self):
-        life_cycle.set_state(self.name, life_cycle.State.STARTING)
-
+    async def activate_conda_env(self) -> dict:
         # We grab the conda env variables separate from executing the run
         # command to simplify detecting pid and removing some race conditions.
         subprocess_env = os.environ.copy()
@@ -98,7 +96,9 @@ class Launcher(BaseLauncher):
         await envinfo.wait()
         lines = open(f"/tmp/fbrp_conda_{self.name}.env").read().split("\0")
         conda_env = dict(line.split("=", 1) for line in lines if "=" in line)
+        return conda_env
 
+    async def run_cmd_in_env(self, conda_env):
         cmd = self.run_command
         if type(self.run_command) == list:
             cmd = shlex.join(self.run_command)
@@ -111,8 +111,8 @@ class Launcher(BaseLauncher):
             cwd=self.proc_def.root,
             env=conda_env,
         )
-        life_cycle.set_state(self.name, life_cycle.State.STARTED)
 
+    async def gather_cmd_outputs(self):
         async def log_pipe(logger, pipe):
             while True:
                 line = await pipe.readline()
@@ -129,14 +129,23 @@ class Launcher(BaseLauncher):
             self.down_watcher(self.handle_down),
         )
 
+    async def run(self):
+        life_cycle.set_state(self.name, life_cycle.State.STARTING)
+        conda_env = await self.activate_conda_env()
+        await self.run_cmd_in_env(conda_env)
+        life_cycle.set_state(self.name, life_cycle.State.STARTED)
+        await self.gather_cmd_outputs()
+
     def get_pid(self):
         return self.proc.pid
 
-    async def death_handler(self):
+    async def exit_cmd_in_env(self) -> int:
         await self.proc.wait()
-        life_cycle.set_state(
-            self.name, life_cycle.State.STOPPED, return_code=self.proc.returncode
-        )
+        return self.proc.returncode
+
+    async def death_handler(self):
+        ret_code = await self.exit_cmd_in_env()
+        life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=ret_code)
         # TODO(lshamis): Restart policy goes here.
 
     async def handle_down(self):
@@ -208,8 +217,14 @@ class Conda(BaseRuntime):
         print(f"creating conda env for {name}. This will take a minute...")
 
         update_bin = "mamba" if self.use_mamba else "conda"
+        # https://github.com/conda/conda/issues/7279
+        # Updating an existing environment does not remove old packages, even with --prune.
+        subprocess.run(
+            [update_bin, "env", "remove", "-n", env_name],
+            capture_output=not args.verbose,
+        )
         result = subprocess.run(
-            [update_bin, "env", "update", "-f", env_path],
+            [update_bin, "env", "update", "--prune", "-f", env_path],
             capture_output=not args.verbose,
         )
         if result.returncode:

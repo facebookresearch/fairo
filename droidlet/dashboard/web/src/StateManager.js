@@ -880,7 +880,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
-      this.updateObjects = [true, false]; // Change objects on frame after this one
+      this.updateObjects = [true, true]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
@@ -964,6 +964,9 @@ class StateManager {
           ref.setState({
             objects: res.objects,
             rgb: rgb,
+            height: res.height,
+            width: res.width,
+            scale: res.scale,
           });
         } else if (ref instanceof MobileMainPane) {
           // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
@@ -995,6 +998,9 @@ class StateManager {
           isLoaded: true,
           humans: res.humans,
           rgb: rgb,
+          height: res.height,
+          width: res.width,
+          scale: res.scale,
         });
       }
     });

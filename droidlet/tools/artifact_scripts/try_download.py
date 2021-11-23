@@ -1,13 +1,13 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 """
 This script checks if models and datasets are up to date, and downloads default
-assets (specified in `tool/data_scripts/default_checksums`) if they are stale.
+assets (specified in `tool/artifact_scripts/tracked_checksums`) if they are stale.
 """
 import os
 import glob
 import subprocess
-from droidlet.tools.data_scripts.fetch_internal_resources import fetch_safety_words_file
-from droidlet.tools.data_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, \
+from droidlet.tools.artifact_scripts.fetch_internal_resources import fetch_safety_words_file
+from droidlet.tools.artifact_scripts.fetch_artifacts_from_aws import fetch_models_from_aws, \
     fetch_datasets_from_aws, fetch_test_assets_from_aws
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
@@ -48,7 +48,7 @@ def try_download_artifacts(agent=None, test_mode=False):
             print("deleting previous checksum file :%r" % file)
             os.remove(file)
 
-    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/data_scripts/checksum_fn.sh')
+    compute_shasum_script_path = os.path.join(ROOTDIR, 'droidlet/tools/artifact_scripts/checksum_fn.sh')
 
     # Compute local checksum for nlu directory and try download if different from remote.
 
@@ -100,7 +100,7 @@ def compare_checksum_try_download(agent=None, local_checksum_file=None, artifact
         artifact_name_file = agent + "_" + artifact_name
 
     latest_checksum_file = os.path.join(ROOTDIR,
-                                        'droidlet/tools/data_scripts/default_checksums/' + artifact_name_file + '.txt')
+                                        'droidlet/tools/artifact_scripts/tracked_checksums/' + artifact_name_file + '.txt')
     with open(latest_checksum_file) as f:
         latest_checksum = f.read().strip()
 
@@ -137,6 +137,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--test_mode",
+        help="Is this is given, download locobot test assets",
         action="store_true"
     )
     args = parser.parse_args()

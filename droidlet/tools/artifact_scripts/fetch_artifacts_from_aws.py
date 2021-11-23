@@ -3,31 +3,33 @@
 import os
 from subprocess import Popen, PIPE
 import shutil
+import urllib.request
+from tqdm import tqdm
 
 ROOTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
 print("Rootdir : %r" % ROOTDIR)
 
+# downloader with progress-bar
+# CC-by-SA: https://stackoverflow.com/a/53877507
+class DownloadProgressBar(tqdm):
+    def update_to(self, b=1, bsize=1, tsize=None):
+        if tsize is not None:
+            self.total = tsize
+        self.update(b * bsize - self.n)
+
+def download_url(url, output_path):
+    with DownloadProgressBar(unit='B', unit_scale=True,
+                             miniters=1, desc=url.split('/')[-1]) as t:
+        urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
 def fetch_test_assets_from_aws(agent=None):
     assert agent == "locobot"
     file_name = 'locobot_perception_test_assets.tar.gz'
     aws_asset_file = 'https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz'
-    os.chdir(ROOTDIR)
-    print("====== Downloading " + aws_asset_file + " to " + ROOTDIR + file_name + " ======")
+    final_path = os.path.join(ROOTDIR, file_name)
+    print("====== Downloading " + aws_asset_file + " to " + final_path + " ======")
 
-    process = Popen(
-        [
-            'curl',
-            'https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz',
-            '-o',
-            file_name
-        ],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
+    download_url("https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz", final_path)
 
     test_artifact_path = os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/')
     """Now update the local directory and with untar'd file contents"""
@@ -35,7 +37,7 @@ def fetch_test_assets_from_aws(agent=None):
         print("Overwriting the directory: %r" % test_artifact_path)
         shutil.rmtree(test_artifact_path, ignore_errors=True)  # force delete if directory has content in it
     mode = 0o777
-    os.mkdir(test_artifact_path, mode)
+    os.makedirs(test_artifact_path, mode, exist_ok=True)
 
     print("Writing to : %r" % test_artifact_path)
     process = Popen(
@@ -74,7 +76,7 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
     if not checksum_val:
         # if not from command line, read from given file.
         checksum_file_path = os.path.join(ROOTDIR,
-                                          'droidlet/tools/data_scripts/default_checksums/' + checksum_file_name)
+                                          'droidlet/tools/artifact_scripts/tracked_checksums/' + checksum_file_name)
         print("Downloading datasets folder with default checksum from file: %r" % checksum_file_path)
         with open(checksum_file_path) as f:
             checksum_val = f.read().strip()
@@ -88,39 +90,26 @@ def fetch_artifact_from_aws(agent, artifact_name, model_name, checksum_file_name
             print("Model type not specified, defaulting to NLU model.")
         artifact_path = artifact_path + "/" + model_name
         artifact_name = artifact_name + '_' + model_name
-        if not os.path.isdir(artifact_path):
-            mode = 0o777
-            os.mkdir(artifact_path, mode)
+        mode = 0o777
+        os.makedirs(artifact_path, mode, exist_ok=True)
         if model_name != "nlu":
             artifact_path = artifact_path + "/" + agent
             artifact_name = artifact_name + "_" + agent
 
     file_name = artifact_name + "_" + checksum_val + ".tar.gz"
     """Get tar file from s3 using : agent name, artifact name and checksum combination as unique identifier"""
-    os.chdir(ROOTDIR)
+    final_path = os.path.join(ROOTDIR, file_name)
     print("====== Downloading  http://craftassist.s3-us-west-2.amazonaws.com/pubr/" + file_name + " to " \
-          + ROOTDIR + file_name + " ======")
+          + final_path + " ======")
 
-    process = Popen(
-        [
-            'curl',
-            'http://craftassist.s3-us-west-2.amazonaws.com/pubr/' + file_name,
-            '-o',
-            file_name
-        ],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    stdout, stderr = process.communicate()
-    print(stdout.decode("utf-8"))
-    print(stderr.decode("utf-8"))
+    download_url('http://craftassist.s3-us-west-2.amazonaws.com/pubr/' + file_name, final_path)
 
     """Now update the local directory and with untar'd file contents"""
     if os.path.isdir(artifact_path):
         print("Overwriting the directory: %r" % artifact_path)
         shutil.rmtree(artifact_path, ignore_errors=True)  # force delete if directory has content in it
     mode = 0o777
-    os.mkdir(artifact_path, mode)
+    os.makedirs(artifact_path, mode, exist_ok=True)
 
 
     print("Writing to : %r" % write_path)
