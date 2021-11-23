@@ -47,9 +47,15 @@ class FakeAgent(DroidletAgent):
         )
 
 
-TTAD_MODEL_DIR = os.path.join(os.path.dirname(__file__), "../models/semantic_parser/")
-TTAD_BERT_DATA_DIR = os.path.join(os.path.dirname(__file__), "../datasets/annotated_data/")
-GROUND_TRUTH_DATA_DIR = os.path.join(os.path.dirname(__file__), "../datasets/ground_truth/")
+TTAD_MODEL_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/models/nlu/"
+)
+TTAD_BERT_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/annotated_data/"
+)
+GROUND_TRUTH_DATA_DIR = os.path.join(
+    os.path.dirname(__file__), "../../../../droidlet/artifacts/datasets/ground_truth/"
+)
 
 
 class TestDialogueManager(unittest.TestCase):

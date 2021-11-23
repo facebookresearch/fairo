@@ -89,12 +89,12 @@ This defines either:
 
 
 ### COMPARATOR ###
-Comparator compares two values on the left and right based on the comparison type.
+Comparator compares two values.
 - `comparison_type` represents the kind of comparison (>, <, >=, != , =)
-- `input_left` is the candidate on left of the comparison,`input_right` is the candidate on right of the comparison,
-- `input_left` or `input_right` can be either a \<FILTER\>, a span, or an \<ATTRIBUTE\>.   \<ATTRIBUTE\> is used when the comparator is part of a \<FILTER\>; and the \<ATTRIBUTE\> applied to a list of memories is used for making a decision on their inclusion.
+- `input_left` can be either a \<FILTER\>, a span, or an \<ATTRIBUTE\>; `input_right` can be either a \<FILTER\> or a span (but not an \<ATTRIBUTE\>).   
 - `comparison_measure` is the unit (seconds, minutes, blocks etc).
 - `set_comparison` specifies the behavior when the input_right or input_left return a list (e.g. from \<FILTERS\>).  Default is `"ANY"`; which means that if any of the comparisons are True, the comparator returns True.
+- \<ATTRIBUTE\> in `input_left` is used when the comparator is a WHERE clause; and the \<ATTRIBUTE\> applied to a record is compared against the `input_right` to decide if the record is accepted by the clause.  When the comparator is used in a \<CONDITION\>, both `input_left` and `input_right` are "fixed" ( \<FILTER\> or a span)
 		
 ```
 {

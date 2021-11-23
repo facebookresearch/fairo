@@ -43,8 +43,9 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
     ee_link_name_ = ee_link_name;
 
     std::ifstream stream(urdf_filename);
-    xml_buffer_ = std::string((std::istreambuf_iterator<char>(stream)),
-                              std::istreambuf_iterator<char>());
+    std::stringstream buffer;
+    buffer << stream.rdbuf();
+    xml_buffer_ = buffer.str();
 
     initialize();
   }
@@ -58,8 +59,8 @@ struct RobotModelPinocchio : torch::CustomClassHolder {
   ~RobotModelPinocchio() { pinocchio_wrapper::destroy(pinocchio_state_); }
 
   void initialize() {
-    pinocchio_state_ =
-        pinocchio_wrapper::initialize(ee_link_name_, xml_buffer_);
+    pinocchio_state_ = pinocchio_wrapper::initialize(ee_link_name_.c_str(),
+                                                     xml_buffer_.c_str());
   }
 
   c10::List<torch::Tensor> get_joint_angle_limits(void) {

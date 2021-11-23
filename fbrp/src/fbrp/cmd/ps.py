@@ -1,4 +1,4 @@
-from fbrp import util
+from fbrp import life_cycle
 from fbrp import registrar
 import a0
 import argparse
@@ -13,23 +13,15 @@ class ps_cmd:
 
     @staticmethod
     def exec(args: argparse.Namespace):
-        try:
-            info_json = a0.Cfg("fbrp/state").read().payload
-        except:
+        state = life_cycle.system_state()
+        if not state.procs:
             print("No processes found.")
             return
 
-        procs_info = json.loads(info_json)
-        if all(info["state"] == "STOPPED" for info in procs_info.values()):
-            print("No processes found.")
-            return
+        name_col_width = max(len(name) for name in state.procs)
 
-        suffix_map = {
-            "STARTED": "",
-            "STARTING": " (starting)",
-            "STOPPING": " (stopping)",
-        }
-
-        for proc, info in sorted(procs_info.items()):
-            if info["state"] in suffix_map:
-                print(f"{info['timestamp']}  {proc}{suffix_map[info['state']]}")
+        for name, info in state.procs.items():
+            suffix = ""
+            if info.state == life_cycle.State.STOPPED:
+                suffix = f"(stopped code={info.return_code})"
+            print(name, " " * (name_col_width - len(name)), suffix)

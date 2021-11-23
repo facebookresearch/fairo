@@ -21,13 +21,16 @@ from ..robot_mover import MoverInterface
 from ..robot_mover_utils import (
     get_camera_angles,
     angle_diff,
-    MAX_PAN_RAD,
-    CAMERA_HEIGHT,
-    ARM_HEIGHT,
     transform_pose,
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
 )
+from ..rotation import (
+    rotation_matrix_x,
+    rotation_matrix_y,
+    rotation_matrix_z,
+)
+
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 Pyro4.config.SERIALIZER = "pickle"
@@ -56,6 +59,8 @@ class HelloRobotMover(MoverInterface):
         self.bot = Pyro4.Proxy("PYRONAME:hello_robot@" + ip)
         self.bot._pyroAsync()
         self.is_moving = self.bot.is_moving()
+        self.camera_transform = self.bot.get_camera_transform().value
+        self.camera_height = self.camera_transform[2, 3]
         self.cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + ip)
 
         self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
@@ -63,23 +68,68 @@ class HelloRobotMover(MoverInterface):
         _ = safe_call(self.data_logger.ready)
         self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
-        intrinsic_mat = np.asarray(safe_call(self.cam.get_intrinsics))
+        intrinsic_mat = safe_call(self.cam.get_intrinsics)
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-        img_resolution = safe_call(self.cam.get_img_resolution)
-        img_pixs = np.mgrid[0 : img_resolution[1] : 1, 0 : img_resolution[0] : 1]
+        img_resolution = safe_call(self.cam.get_img_resolution, rotate=False)
+        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
         img_pixs = img_pixs.reshape(2, -1)
         img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
         uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
-    def log_data(self, seconds):
+    def log_data_start(self, seconds):
         self.data_logger.save_batch(seconds)
 
-    def bot_step(self):
-        pass
+    def log_data_stop(self):
+        self.data_logger.stop()
 
-    def look_at(self):
-        pass
+    def bot_step(self):
+        f = not self.bot.is_moving().value
+        return f
+
+    def look_at(self, target, turn_base=True):
+        """
+        Executes "look at" by setting the pan, tilt of the camera
+        or turning the base if required.
+        Uses both the base state and object coordinates in 
+        canonical world coordinates to calculate expected yaw and pitch.
+
+        Args:
+            target (list): object coordinates as saved in memory.
+            turn_base: if False, will try to look at point only by moving camera and not base
+        """
+        old_pan = self.get_pan()
+        old_tilt = self.get_tilt()
+        pos = self.get_base_pos_in_canonical_coords()
+        cam_transform = self.bot.get_camera_transform().value
+        cam_pos = cam_transform[0:3, 3]
+        # convert cam_pos to canonical co-ordinates
+        cam_pos = [pos[0], cam_pos[2], pos[1]]
+
+        logging.info(f"Current base state (x, z, yaw): {pos}, camera state (x, y, z): {cam_pos}")
+        logging.info(f"looking at x,y,z: {target}")
+        
+        pan_rad, tilt_rad = get_camera_angles(cam_pos, target)
+        # For the Hello camera, negative tilt seems to be up, and positive tilt is down
+        # For the locobot camera, it is the opposite
+        # TODO: debug this further, and make things across robots consistent
+        tilt_rad = -tilt_rad
+        logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
+
+        head_res = angle_diff(pos[2], pan_rad)
+
+        # TODO: fix the turning logic to be correct
+        MAX_PAN_RAD = 1.7763497523715726
+        if np.abs(head_res) > MAX_PAN_RAD and turn_base:
+            dyaw = np.sign(head_res) * (np.abs(head_res) - MAX_PAN_RAD)
+            self.turn(dyaw)
+            pan_rad = np.sign(head_res) * MAX_PAN_RAD
+        else:
+            pan_rad = head_res
+        logging.info(f"Camera new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
+        self.bot.set_pan_tilt(pan_rad, tilt_rad)
+
+        return "finished"
 
     def stop(self):
         """immediately stop the robot."""
@@ -166,33 +216,86 @@ class HelloRobotMover(MoverInterface):
         Returns:
             an RGBDepth object
         """
-        # this takes 93ms
-        rgb, depth, rot, trans = self.cam.get_pcd_data()
+        rgb, depth, rot, trans = self.cam.get_pcd_data(rotate=False)
 
-        # 93ms
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
-        # 93ms
-        depth = np.asarray(depth)
-        rot = np.asarray(rot)
-        trans = np.asarray(trans)
         depth = depth.astype(np.float32)
 
-        # 93ms
-        d = copy.deepcopy(depth)
-        depth /= 1000.0
-        depth = depth.reshape(-1)
+        # the realsense pointcloud seems to produce some spurious points
+        # really far away. So, limit the depth to 8 metres
+        thres = 8000
+        depth[depth > thres] = thres
 
-        # 100ms
+        depth_copy = np.copy(depth)
+
+        # get_pcd_data multiplies depth by 1000 to convert to mm, so reverse that
+        depth /= 1000.0
+        depth = depth.reshape(rgb.shape[0] * rgb.shape[1])
+
+        # normalize by the camera's intrinsic matrix
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
-        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
-        pts = pts_in_cam[:3, :].T
+        pts = pts_in_cam.T
+
+        # Now, the points are in camera frame.
+        # In camera frame
+        # z is positive into the camera
+        # (larger the z, more into the camera)
+        # x is positive to the right
+        # (larger the x, more right of the origin)
+        # y is positive to the bottom
+        # (larger the y, more to the bottom of the origin)
+        #                                 /
+        #                                /
+        #                               / z-axis
+        #                              /
+        #                             /_____________ x-axis (640)
+        #                             |
+        #                             |
+        #                             | y-axis (480)
+        #                             |
+        #                             |
+
+
+        # We now need to transform this to pyrobot frame, where
+        # x is into the camera, y is positive to the left,
+        # z is positive upwards
+        # https://pyrobot.org/docs/navigation
+        #                            |    /
+        #                 z-axis     |   /
+        #                            |  / x-axis
+        #                            | /
+        #  y-axis        ____________|/
+        #
+        # If you hold the first configuration in your right hand, and
+        # visualize the transformations needed to get to the second
+        # configuration, you'll see that
+        # you have to rotate 90 degrees anti-clockwise around the y axis, and then
+        # 90 degrees clockwise around the x axis.
+        # This results in the final configuration
+        rotyt = rotation_matrix_y(90)
+        pts = np.dot(pts, rotyt.T)
+
+        rotxt = rotation_matrix_x(-90)
+        pts = np.dot(pts, rotxt.T)
+
+        # next, rotate and translate pts by
+        # the robot pose and location
         pts = np.dot(pts, rot.T)
         pts = pts + trans.reshape(-1)
         pts = transform_pose(pts, self.bot.get_base_state().value)
 
-        return RGBDepth(rgb, d, pts)
+        # now rewrite the ordering of pts so that the colors (rgb_rotated)
+        # match the indices of pts
+        pts = pts.reshape((rgb.shape[0], rgb.shape[1], 3))
+        pts = np.rot90(pts, k=1, axes=(1, 0))
+        pts = pts.reshape(rgb.shape[0] * rgb.shape[1], 3)
+
+        depth_rotated = np.rot90(depth_copy, k=1, axes=(1,0))
+        rgb_rotated = np.rot90(rgb, k=1, axes=(1,0))
+
+        return RGBDepth(rgb_rotated, depth_rotated, pts)
 
     def turn(self, yaw):
         """turns the bot by the yaw specified.

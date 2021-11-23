@@ -182,7 +182,6 @@ class Question extends Component {
     No -> mark as aprsing error.
     */
 
-    // this.state.action_dict = chatResponses[chatMsg];
     if (this.state.action_dict) {
       if ("dialogue_type" in this.state.action_dict) {
         var dialogue_type = this.state.action_dict.dialogue_type;
@@ -262,6 +261,20 @@ class Question extends Component {
         // NOTE: This should never happen ...
         question_word = "did you want me to do nothing ?";
       }
+    } else {
+      //end screen, user can put any additional feedback
+      return (
+        <div>
+          <h3> Thanks for marking this error! </h3>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => this.props.goToMessage()}
+          >
+            Done
+          </Button>
+        </div>
+      );
     }
     return (
       <div className="question">
@@ -298,9 +311,9 @@ class Question extends Component {
   }
 
   componentDidMount() {
-    var chatResponses = this.props.stateManager.memory.chatResponse;
+    var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
     var chatMsg = this.props.chats[this.props.failidx].msg;
-    this.setState({ action_dict: chatResponses[chatMsg] });
+    this.setState({ action_dict: lastChatActionDict });
   }
 
   render() {

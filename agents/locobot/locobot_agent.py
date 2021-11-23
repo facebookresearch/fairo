@@ -3,16 +3,18 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import os
-import subprocess
 import time
 import signal
 import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+if __name__ == "__main__":
+    set_start_method("spawn", force=True)
 import shutil
 
 from droidlet import dashboard
+from droidlet.tools.artifact_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -199,7 +201,6 @@ class LocobotAgent(DroidletAgent):
                 print("Error switching model:", os.path.join(model_path, things_file), "not found")
                 return
 
-            print("switching to", model_path)
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
     def init_memory(self):
@@ -344,9 +345,8 @@ if __name__ == "__main__":
 
     # Check that models and datasets are up to date
     if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "locobot"])
+        try_download_artifacts(agent="locobot")
 
-    set_start_method("spawn", force=True)
 
     sa = LocobotAgent(opts)
     sa.start()

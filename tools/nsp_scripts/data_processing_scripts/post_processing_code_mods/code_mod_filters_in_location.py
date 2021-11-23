@@ -119,7 +119,7 @@ if __name__ == "__main__":
         type=str,
         help="The folder containing all files that need to be updated",
         # Assuming run from ~/droidlet
-        default="craftassist/agent/datasets/full_data/",
+        default="droidlet/artifacts/datasets/full_data/",
     )
     args = parser.parse_args()
     update_data(args.input_folder)

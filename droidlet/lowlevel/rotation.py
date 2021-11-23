@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
+import math
 import numpy as np
 from numpy import sin, cos
 
@@ -87,6 +88,34 @@ def look_vec(yaw, pitch):
     y = sin(pitch)
     z = cos(pitch) * cos(yaw)
     return np.array([x, y, z])
+
+def rotation_matrix_x(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([
+        [1, 0, 0],
+        [0, cos(ar), -sin(ar)],
+        [0, sin(ar), cos(ar)]
+    ])
+
+def rotation_matrix_y(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([[cos(ar), 0, sin(ar)],
+                     [0, 1, 0],
+                     [-sin(ar), 0, cos(ar)]])
+
+def rotation_matrix_z(a):
+    ar = float(a) * math.pi / 180.
+    cos = math.cos
+    sin = math.sin
+    return np.array([
+        [cos(ar), -sin(ar), 0],
+        [sin(ar), cos(ar), 0],
+        [0, 0, 1],
+    ])
 
 
 if __name__ == "__main__":

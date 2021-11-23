@@ -56,7 +56,7 @@ if __name__ == "__main__":
     print("=== RobotInterface.set_ee_pose ===")
     ee_pos_desired = ee_pos + torch.Tensor([0.1, -0.1, 0.2])
     ee_quat_desired = torch.Tensor(
-        [0.7071, 0, 0, -0.7071]
+        [0.7071, 0, 0, 0.7071]
     )  # rotate by 90 degrees around x axis
     time_to_go = 6.0
 

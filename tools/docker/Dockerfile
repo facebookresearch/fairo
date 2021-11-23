@@ -11,7 +11,6 @@ WORKDIR fairo
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
-RUN tools/data_scripts/try_download.sh craftassist
 
 # use the much faster lld linker
 RUN rm -f /usr/bin/ld && ln -s /usr/bin/ld.lld /usr/bin/ld

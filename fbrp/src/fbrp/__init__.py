@@ -11,6 +11,7 @@ def main():
     import fbrp.cmd.logs
     import fbrp.cmd.ps
     import fbrp.cmd.up
+    import fbrp.cmd.wait
 
     parser = argparse.ArgumentParser(prog="fbrp")
     parser.add_argument("-v", "--verbose", default=False, action="store_true")

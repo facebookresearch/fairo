@@ -15,6 +15,7 @@ class ProcDef:
     runtime: "BaseRuntime"
     cfg: dict
     deps: typing.List[str]
+    env: dict
 
 
 def process(
@@ -23,6 +24,7 @@ def process(
     runtime: "BaseRuntime" = None,
     cfg: dict = {},
     deps: typing.List[str] = [],
+    env: dict = {},
 ):
     if name in registrar.defined_processes:
         raise ValueError(f"fbrp.process({name=}) defined multiple times.")
@@ -42,4 +44,5 @@ def process(
         cfg=cfg,
         deps=deps,
         rule_file=rule_file,
+        env=env,
     )
