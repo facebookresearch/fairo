@@ -8,8 +8,7 @@ pip install -r agents/locobot/requirements.txt
 python setup.py develop
 
 echo "Downloading datasets, models ..."
-yes | python droidlet/tools/artifact_scripts/try_download.py --agent_name locobot --test_mode &
-wait
+yes | python droidlet/tools/artifact_scripts/try_download.py --agent_name locobot --test_mode
 echo "Done!"
 
 
@@ -58,3 +57,4 @@ conda activate habitat_env
 droidlet/lowlevel/locobot/remote/launch_pyro_habitat.sh
 conda activate droidlet_env
 ./agents/locobot/tests/test_agent.sh
+droidlet/lowlevel/locobot/remote/kill_pyro_habitat.sh
