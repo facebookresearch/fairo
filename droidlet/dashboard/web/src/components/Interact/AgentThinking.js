@@ -20,13 +20,12 @@ class AgentThinking extends Component {
   ];
   constructor(props) {
     super(props);
-    this.initialState = {
+    this.state = {
       ellipsis: "",
       ellipsisInterval: null,
-      commandState: "sent",
+      commandState: "idle",
       now: null,
     };
-    this.state = this.initialState;
 
     this.sendTaskStackPoll = this.sendTaskStackPoll.bind(this);
     this.receiveTaskStackPoll = this.receiveTaskStackPoll.bind(this);
@@ -73,29 +72,33 @@ class AgentThinking extends Component {
     }
 
     // Ellipsis animation and update command status
-    const intervalId = setInterval(() => {
-      const commandState = this.props.stateManager.memory.commandState;
-      console.log("Command State: " + commandState);
+    let intervalId = setInterval(() => {
+      let commandState = null;
+      if (this.props.stateManager){
+        commandState = this.props.stateManager.memory.commandState;
+        console.log("Command State from agent thinking: " + commandState);
+      }
       
-      this.safetyCheck(); // Check that we're in an allowed state and haven't timed out
-
-      this.setState((prevState) => {
-        if (prevState.commandState !== commandState) {
-          // Log changes in command state to mephisto for analytics
-          window.parent.postMessage(JSON.stringify({ msg: commandState }), "*");
-        }
-        if (prevState.ellipsis.length > 6) {
-          return {
-            ellipsis: "",
-            commandState: commandState,
-           };
-        } else {
-          return {
-            ellipsis: prevState.ellipsis + ".",
-            commandState: commandState,
-          };
-        }
-      });
+      // Check that we're in an allowed state and haven't timed out
+      if (this.safetyCheck()) {
+        this.setState((prevState) => {
+          if (prevState.commandState !== commandState) {
+            // Log changes in command state to mephisto for analytics
+            window.parent.postMessage(JSON.stringify({ msg: commandState }), "*");
+          }
+          if (prevState.ellipsis.length > 6) {
+            return {
+              ellipsis: "",
+              commandState: commandState,
+             };
+          } else {
+            return {
+              ellipsis: prevState.ellipsis + ".",
+              commandState: commandState,
+            };
+          }
+        });
+      } 
     }, this.props.stateManager.memory.commandPollTime);
 
     this.setState({
@@ -107,7 +110,6 @@ class AgentThinking extends Component {
 
   componentWillUnmount() {
     clearInterval(this.state.ellipsisInterval);
-    clearInterval(this.state.GPInterval);
     if (this.props.stateManager) {
       this.props.stateManager.disconnect(this);
       this.props.stateManager.socket.off("taskStackPollResponse", this.receiveTaskStackPoll);
@@ -118,15 +120,12 @@ class AgentThinking extends Component {
     // If we've gotten here during idle somehow, or timed out, escape to safety
     if (
       !this.allowedStates.includes(this.state.commandState) ||
-      Date.now() - this.state.now > 50000
+      (Date.now() - this.state.now) > 50000
     ) {
       console.log("Safety check failed, exiting to Message pane.");
-      this.props.stateManager.socket.off( "taskStackPollResponse", this.receiveTaskStackPoll );
-      this.props.stateManager.disconnect(this);
-      clearInterval(this.state.ellipsisInterval);
-      clearInterval(this.state.GPInterval);
       this.props.goToMessage();
     }
+    else return true;
   }
 
   issueStopCommand() {

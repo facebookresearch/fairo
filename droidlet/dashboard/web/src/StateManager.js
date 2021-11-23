@@ -88,7 +88,7 @@ class StateManager {
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
     this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
-    this.memory = this.initialMemoryState;
+    this.memory = JSON.parse(JSON.stringify(this.initialMemoryState));  // We want a clone
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processRGBDepth = this.processRGBDepth.bind(this);
