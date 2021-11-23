@@ -1,13 +1,14 @@
 import a0
+import collections.abc
 import contextlib
 import glob
 import os
 import pwd
+import random
+import shlex
+import string
 import subprocess
 import sys
-import string
-import random
-import collections.abc
 
 
 def fail(msg):
@@ -90,3 +91,15 @@ def nested_dict_update(d, u):
         else:
             d[k] = v
     return d
+
+
+class NoEscape:
+    def __init__(self, val):
+        self.value = val
+
+
+def shell_join(items):
+    """Modified version of shlex.join that allows for non-escaped segments."""
+    return " ".join(
+        item.value if type(item) == NoEscape else shlex.quote(item) for item in items
+    )
