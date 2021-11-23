@@ -17,9 +17,9 @@ import boto3
 import botocore
 
 from annotation_jobs import AnnotationJob
-from allocate_instances import allocate_instances, free_ecs_instances
-from hitl_utils import generate_batch_id, deregister_dashboard_subdomain, dedup_commands
-from process_s3_logs import read_s3_bucket, read_turk_logs
+from droidlet.tools.hitl.utils.allocate_instances import allocate_instances, free_ecs_instances
+from droidlet.tools.hitl.utils.hitl_utils import generate_batch_id, deregister_dashboard_subdomain, dedup_commands
+from droidlet.tools.hitl.utils.process_s3_logs import read_s3_bucket, read_turk_logs
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
