@@ -37,8 +37,10 @@ if __name__ == "__main__":
 
     # TODO: parameterize this
     instance_num = opts.interaction_job_num
+    image_tag = opts.image_tag
+    task_name = opts.task_name
     
-    ij = InteractionJob(instance_num, timeout=IJ_TIMEOUT)
+    ij = InteractionJob(instance_num, image_tag, task_name, timeout=IJ_TIMEOUT)
     #batch_id = ij.get_batch_id()
     #listener = InteractionLogListener(batch_id, IL_TIMEOUT)
 

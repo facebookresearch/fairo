@@ -168,7 +168,7 @@ class TurkInfo extends Component {
               <p>Feedback: {this.state.feedback}</p>
             </div>
             {this.state.isSessionEnd ? (
-              <p style={{ fontSize: 40 }}>
+              <p style={{ fontSize: 40, lineHeight: "40px" }}>
                 Thanks for interacting with the bot. You may leave the page now.
               </p>
             ) : (
