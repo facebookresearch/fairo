@@ -70,9 +70,11 @@ class InteractionJob(DataGenerator):
 
     """
 
-    def __init__(self, instance_num: int, timeout: float = -1) -> None:
+    def __init__(self, instance_num: int, image_tag: str, task_name: str, timeout: float = -1) -> None:
         super(InteractionJob, self).__init__(timeout)
         self._instance_num = instance_num
+        self._image_tag = image_tag
+        self._task_name = task_name
         self.instance_ids = None
         self._batch_id = generate_batch_id()
 
@@ -81,7 +83,7 @@ class InteractionJob(DataGenerator):
 
         # allocate AWS ECS instances and register DNS records
         logging.info(f"Allocate AWS ECS instances and register DNS records...")
-        _, instance_ids = allocate_instances(self._instance_num, batch_id, ECS_INSTANCE_TIMEOUT)
+        _, instance_ids = allocate_instances(self._instance_num, batch_id, self._image_tag, self._task_name, ECS_INSTANCE_TIMEOUT)
         self.instance_ids = instance_ids
 
         # run Mephisto to spin up & monitor turk jobs

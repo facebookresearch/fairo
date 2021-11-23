@@ -265,8 +265,8 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
         raise e
 
 
-def allocate_instances(instance_num, batch_id, timeout=-1, cf_email="rebeccaqian@fb.com"):
-    instance_ips, instance_ids = request_instance(instance_num, timeout)
+def allocate_instances(instance_num, batch_id, image_tag, task_name, timeout=-1, cf_email="rebeccaqian@fb.com"):
+    instance_ips, instance_ids = request_instance(instance_num, image_tag, task_name, timeout)
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
         logging.info("registering subdomains on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
