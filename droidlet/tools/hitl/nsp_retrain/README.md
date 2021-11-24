@@ -45,7 +45,7 @@ python main.py --interaction_job_num 2 --image_tag <TAG_NAME> --task_name <TASK_
 ```
 
 Note that we are providing the following parameters:
-- `interaction_job_num` specifies how many interaction job we would like to spin up, i.e. how many dashboard sessions we are creating for turk workers.
+- `interaction_job_num` specifies how many interaction jobs we would like to spin up, i.e. how many dashboard sessions we are creating for turk workers.
 - `image_tag` you should provide <TAG_NAME> mentioned in step 2. It will specify which dashboard version (i.e. which commit) is used.
 - `task_name` you can provide any name here. The ECS instances will be named after this.
 - `resample` it specifies where or not we are retraining the model on resampling mode. The default mode is non-resampling, meaning that the model will be retrained using old+new data and evaluated only on old valid/test data. Resampling mode means all the old and new data will be combined and randomly splited into train/valid/test dataset.
