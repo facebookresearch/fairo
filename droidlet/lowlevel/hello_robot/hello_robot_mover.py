@@ -22,10 +22,14 @@ from ..robot_mover_utils import (
     get_camera_angles,
     angle_diff,
     transform_pose,
-    base_canonical_coords_to_pyrobot_coords,
-    xyz_pyrobot_to_canonical_coords,
 )
-from ..rotation import (
+
+from droidlet.lowlevel.robot_coordinate_utils import (
+    xyz_pyrobot_to_canonical_coords,
+    base_canonical_coords_to_pyrobot_coords
+)
+
+from .rotation import (
     rotation_matrix_x,
     rotation_matrix_y,
     rotation_matrix_z,
@@ -36,6 +40,10 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION=2
+
+MAX_PAN_RAD = math.pi/4
+
+# TODO/FIXME: state machines.  state machines everywhere
 
 def safe_call(f, *args, **kwargs):
     try:
@@ -87,12 +95,61 @@ class HelloRobotMover(MoverInterface):
         f = not self.bot.is_moving().value
         return f
 
-    def look_at(self, target, turn_base=True):
+    def relative_pan_tilt(self, dpan, dtilt, turn_base=True):
+        """ 
+        move the head so its new tilt is current_tilt + dtilt 
+        and pan is current_pan + dpan 
+        
+        Args: 
+            dpan (float): angle in radians to turn head left-right.  
+                positive is right
+            dtilt (float): angle in radians to turn head up-down.  
+                positive is up
+        """
+        # FIXME handle out-of-range values properly
+        new_tilt = self.get_tilt() + dtilt
+        
+        # FIXME: make a safe_base_turn method
+        if np.abs(dpan) > MAX_PAN_RAD and turn_base:
+            dyaw = np.sign(dpan) * (np.abs(dpan) - MAX_PAN_RAD)
+            self.turn(dyaw * 180 / math.pi)
+            pan_rad = np.sign(dpan) * MAX_PAN_RAD
+        else:
+            pan_rad = dpan
+        new_pan = self.get_pan() + pan_rad
+        self.bot.set_pan_tilt(new_pan, new_tilt)
+        return "finished"
+        
+
+    def set_look(self, pan_rad, tilt_rad, turn_base=True, world=False):
+        """
+        Sets the agent to look at a specified absolute pan and tilt.
+        These are  "absolute" w.r.t. robot current base, if world==False
+        and absolute w.r.t. world coords if world=True
+
+        Args: 
+            pan_rad (float): angle in radians to turn head left-right.  
+                positive is right
+            tilt_rad (float): angle in radians to to turn head up-down.
+                positive is down. 
+        """
+        # TODO handle out-of-range properly
+        dtilt = angle_diff(self.get_tilt(), tilt_rad)
+        if not world:
+            dpan = angle_diff(self.get_pan(), pan_rad)
+        else:
+            base_pan = self.get_base_pos_in_canonical_coords()[2]
+            dpan = angle_diff(base_pan + self.get_pan(), pan_rad)
+        return self.relative_pan_tilt(dpan, dtilt, turn_base=turn_base)
+
+    
+    def look_at(self, target, turn_base=True, face=False):
         """
         Executes "look at" by setting the pan, tilt of the camera
         or turning the base if required.
         Uses both the base state and object coordinates in 
         canonical world coordinates to calculate expected yaw and pitch.
+        if face == True will move body so head yaw is 0 
 
         Args:
             target (list): object coordinates as saved in memory.
@@ -110,26 +167,20 @@ class HelloRobotMover(MoverInterface):
         logging.info(f"looking at x,y,z: {target}")
         
         pan_rad, tilt_rad = get_camera_angles(cam_pos, target)
+#        pan_res = angle_diff(pos[2], pan_rad)
         # For the Hello camera, negative tilt seems to be up, and positive tilt is down
         # For the locobot camera, it is the opposite
         # TODO: debug this further, and make things across robots consistent
-        tilt_rad = -tilt_rad
+        #tilt_rad = -tilt_rad
         logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
-
-        head_res = angle_diff(pos[2], pan_rad)
-
-        # TODO: fix the turning logic to be correct
-        MAX_PAN_RAD = 1.7763497523715726
-        if np.abs(head_res) > MAX_PAN_RAD and turn_base:
-            dyaw = np.sign(head_res) * (np.abs(head_res) - MAX_PAN_RAD)
-            self.turn(dyaw)
-            pan_rad = np.sign(head_res) * MAX_PAN_RAD
+        if face:
+            # TODO less blocking, make me into state machine
+            dpan = angle_diff(self.get_base_pos_in_canonical_coords()[2], pan_rad)
+            self.turn(dpan * 180 / math.pi)
+            return self.set_look(0, tilt_rad)
         else:
-            pan_rad = head_res
-        logging.info(f"Camera new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
-        self.bot.set_pan_tilt(pan_rad, tilt_rad)
+            self.set_look(pan_rad, tilt_rad, turn_base=True, world=True)
 
-        return "finished"
 
     def stop(self):
         """immediately stop the robot."""

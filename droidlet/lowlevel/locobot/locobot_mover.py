@@ -22,9 +22,12 @@ from ..robot_mover_utils import (
     MAX_PAN_RAD,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
-    transform_pose,
-    base_canonical_coords_to_pyrobot_coords,
+    transform_pose
+)
+
+from droidlet.lowlevel.robot_coordinate_utils import (
     xyz_pyrobot_to_canonical_coords,
+    base_canonical_coords_to_pyrobot_coords
 )
 
 Pyro4.config.SERIALIZER = "pickle"

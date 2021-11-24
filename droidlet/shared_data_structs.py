@@ -1,7 +1,8 @@
 import heapq
 import numpy as np
 import time
-from droidlet.lowlevel.robot_mover_utils import xyz_pyrobot_to_canonical_coords
+#rename for now, FIXME!
+from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 
 
 class Time:
@@ -31,7 +32,7 @@ class ErrorWithResponse(Exception):
 class NextDialogueStep(Exception):
     pass
 
-
+#FIXME!  why is this here?
 class RGBDepth:
     """Class for the current RGB, depth and point cloud fetched from the robot.
 
