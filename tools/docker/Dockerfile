@@ -31,6 +31,11 @@ RUN ((curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/client_ccache.tar.
     ccache -s && \
     rm -rf client_ccache.tar.gz /cache/.ccache /client_ccache.tar.gz
 
+RUN cd /fairo && \
+    python setup.py develop && \
+    yes | python3 droidlet/tools/artifact_scripts/try_download.py --agent_name craftassist
+
+
 RUN npm install -g yarn
 RUN cd /fairo/droidlet/dashboard/web && yarn install
 
