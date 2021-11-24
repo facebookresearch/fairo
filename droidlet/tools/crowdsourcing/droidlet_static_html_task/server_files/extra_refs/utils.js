@@ -12,6 +12,7 @@ var ratingComplete = false;
 var selfRatingComplete = false;
 var clickedElements = new Array();
 
+// recordClick logs user actions as well as messages from the dashboard to the Mephisto form
 function recordClick(ele) {
   if (ele === "timerOFF") {  // Check to allow submission if all qualifications are met
     timerStopped = true;
@@ -19,11 +20,11 @@ function recordClick(ele) {
   }
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
-  console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
-document.getElementsByClassName("btn-default")[0].classList.add("hidden");
+document.getElementsByClassName("btn-default")[0].classList.add("hidden");  // Hide the submit button to start
 function checkSubmitDisplay() {
   //Only display the submit button if the worker has interacted with the dashboard and completed the survey
   if (ratingComplete && selfRatingComplete && timerStopped) {
@@ -44,6 +45,7 @@ function selfRated() {
   checkSubmitDisplay();
 }
 
+// Log data from postMessage, and record it if it seems to come from the dashboard
 var data;
 if (window.addEventListener) {
   window.addEventListener("message", (event) => {

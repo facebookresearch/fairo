@@ -76,4 +76,5 @@ if (navigator.appVersion.indexOf("Linux")!=-1) OSName="Linux";
 agent.browser.os = OSName;
 agent.mobile = (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
 
+// Send the data to the correct Mephisto form field
 document.getElementById("userAgent").value = JSON.stringify(agent);
