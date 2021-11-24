@@ -30,13 +30,15 @@ def try_download_artifacts(agent=None, test_mode=False):
     artifact_path = artifact_path_original
     # in case directories don't exist, create them
     os.makedirs(os.path.join(artifact_path, 'datasets'), exist_ok=True)
+    os.makedirs(os.path.join(artifact_path, 'datasets/robot'), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, 'models'), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, 'models/nlu'), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, 'models/perception'), exist_ok=True)
     os.makedirs(os.path.join(artifact_path, 'models/perception', agent), exist_ok=True)
     if test_mode:
         # Download test artifacts for Locobot tests
-        os.makedirs(os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/'), exist_ok=True)
+        os.makedirs(os.path.join(artifact_path, 'datasets/robot/perception_test_assets'), exist_ok=True)
+        # os.makedirs(os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/'), exist_ok=True)
 
     # Remove existing checksum files so that they can be re-calculated
     fileList = [os.path.join(artifact_path, 'models/nlu/nlu_checksum.txt'),
@@ -76,7 +78,7 @@ def try_download_artifacts(agent=None, test_mode=False):
     compare_checksum_try_download(agent, checksum_write_path, "datasets")
 
     if test_mode:
-        print("Now downloading test assets...")
+        print("Now downloading perception test assets for robots ...")
         fetch_test_assets_from_aws(agent=agent)
 
 
@@ -137,7 +139,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--test_mode",
-        help="Is this is given, download locobot test assets",
+        help="Is this is given, download robot test assets",
         action="store_true"
     )
     args = parser.parse_args()

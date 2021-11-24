@@ -31,8 +31,8 @@ def fetch_test_assets_from_aws(agent=None):
 
     download_url("https://locobot-bucket.s3-us-west-2.amazonaws.com/perception_test_assets.tar.gz", final_path)
 
-    test_artifact_path = os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/')
-    """Now update the local directory and with untar'd file contents"""
+    test_artifact_path = os.path.join(ROOTDIR, 'droidlet/artifacts/datasets/robot/perception_test_assets/')
+    """Now update the local directory with untar'd file contents"""
     if os.path.isdir(test_artifact_path):
         print("Overwriting the directory: %r" % test_artifact_path)
         shutil.rmtree(test_artifact_path, ignore_errors=True)  # force delete if directory has content in it
