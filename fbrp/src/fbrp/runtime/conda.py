@@ -99,12 +99,8 @@ class Launcher(BaseLauncher):
         return conda_env
 
     async def run_cmd_in_env(self, conda_env):
-        cmd = self.run_command
-        if type(self.run_command) == list:
-            cmd = shlex.join(self.run_command)
-
         self.proc = await asyncio.create_subprocess_shell(
-            cmd,
+            util.shell_join(self.run_command),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             executable="/bin/bash",
@@ -232,7 +228,9 @@ class Conda(BaseRuntime):
 
         if self.setup_commands:
             print(f"setting up conda env for {name}")
-            setup_command = "\n".join([shlex.join(cmd) for cmd in self.setup_commands])
+            setup_command = "\n".join(
+                [util.shell_join(cmd) for cmd in self.setup_commands]
+            )
             result = subprocess.run(
                 f"""
                     eval "$(conda shell.bash hook)"
