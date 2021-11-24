@@ -38,7 +38,6 @@ def try_download_artifacts(agent=None, test_mode=False):
     if test_mode:
         # Download test artifacts for Locobot tests
         os.makedirs(os.path.join(artifact_path, 'datasets/robot/perception_test_assets'), exist_ok=True)
-        # os.makedirs(os.path.join(ROOTDIR, 'droidlet/perception/robot/tests/test_assets/'), exist_ok=True)
 
     # Remove existing checksum files so that they can be re-calculated
     fileList = [os.path.join(artifact_path, 'models/nlu/nlu_checksum.txt'),
