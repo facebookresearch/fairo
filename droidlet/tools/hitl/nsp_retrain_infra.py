@@ -210,8 +210,13 @@ class NSPRetrainingJob(DataGenerator):
         test_mask = torch.Tensor(test_mask).bool()
         mask_dict = {'annotated': {'train': train_mask, 'valid': valid_mask, 'test': test_mask}}
         logging.info(f"Mask dictionary: {mask_dict}")
-        mask_filepath = batch_config_dir + '/split_masks.pth'
+        mask_filename = f"split_masks_opts-{opts.retrain_data_splits[0]}-{opts.retrain_data_splits[1]}-{opts.retrain_data_splits[2]}.pth"
+        mask_filepath = os.path.join(batch_config_dir, mask_filename)
         torch.save(mask_dict, mask_filepath)
+
+        upload_key = batch_id + "/split_masks/" + mask_filename 
+        response = s3.upload_file(mask_filepath, 'droidlet-hitl', upload_key)
+        logging.info(response)
 
         return batch_config_dir
 
