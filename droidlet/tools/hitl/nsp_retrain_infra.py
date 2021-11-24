@@ -7,13 +7,11 @@ import logging
 import os
 import shutil
 import time
-from subprocess import Popen, PIPE, TimeoutExpired
+from subprocess import Popen, PIPE
 import boto3
 from datetime import datetime
 import torch
 import random
-
-from typing import List
 
 from droidlet.tools.hitl.data_generator import DataGenerator
 from droidlet.tools.hitl.job_listener import JobListener
@@ -161,62 +159,49 @@ class NSPRetrainingJob(DataGenerator):
         # Create train, valid, and test masks based on user input
         total_rows = sum(1 for line in open(data_filepath))
         logging.info(f"Model training data masks are being generated:")
-
-        # Old masks are static, just extend to be the length of the new dataset
         old_mask_filepath = os.path.join(opts.sweep_config_folder, 'split_masks.pth')
-        old_masks = torch.load(old_mask_filepath)['annotated']
-        old_train_mask = [x for x in old_masks['train']]
-        old_train_mask.extend([False] * (total_rows - len(old_train_mask)))
-        old_valid_mask = [x for x in old_masks['valid']]
-        old_valid_mask.extend([False] * (total_rows - len(old_valid_mask)))
-        old_test_mask = [x for x in old_masks['test']]
-        old_test_mask.extend([False] * (total_rows - len(old_test_mask)))
+        old_masks_tensor = torch.load(old_mask_filepath)['annotated']
+        old_masks = {'train': old_masks_tensor['train'].tolist(), 'valid': old_masks_tensor['valid'].tolist(), 'test': old_masks_tensor['test'].tolist()}
 
-        # Set random seed for reproducability and generate masks for new data
+        # Set random seed for reproducability and shuffle new mask splits
+        # Splits are hard coded as 80% training, 10% validation, 10% test for consistency
         random.seed(batch_id)
-        new_mask_designation = ['test'] * int(new_data_rows * 0.1)
-        new_mask_designation.extend(['valid'] * int(new_data_rows * 0.1))
-        new_mask_designation.extend(['train'] * (new_data_rows - len(new_mask_designation)))
-        random.shuffle(new_mask_designation)
-        new_masks = [False] * (total_rows - new_data_rows)  # Prepend False for old data
-        new_masks.extend(new_mask_designation)
-        new_train_mask = [True if x == 'train' else False for x in new_masks]
-        new_valid_mask = [True if x == 'valid' else False for x in new_masks]
-        new_test_mask = [True if x == 'test' else False for x in new_masks]
+        new_masks = (['test'] * int(new_data_rows * 0.1)) + (['valid'] * int(new_data_rows * 0.1))
+        new_masks.extend(['train'] * (new_data_rows - len(new_masks)))
+        random.shuffle(new_masks)
+        # Prepend False for old data
+        new_masks[:0] = [False] * (total_rows - new_data_rows)
 
-        # Mix and match old and new data based on user input
-        if opts.retrain_data_splits[0] == 0: train_mask = old_train_mask
-        elif opts.retrain_data_splits[0] == 1: train_mask = new_train_mask
-        else: train_mask = [True if old_train_mask[i] or new_train_mask[i] else False for i in range(total_rows)]
-        if opts.retrain_data_splits[1] == 0: valid_mask = old_valid_mask
-        elif opts.retrain_data_splits[1] == 1: valid_mask = new_valid_mask
-        else: valid_mask = [True if old_valid_mask[i] or new_valid_mask[i] else False for i in range(total_rows)]
-        if opts.retrain_data_splits[2] == 0: test_mask = old_test_mask
-        elif opts.retrain_data_splits[2] == 1: test_mask = new_test_mask
-        else: test_mask = [True if old_test_mask[i] or new_test_mask[i] else False for i in range(total_rows)]
+        all_masks = {'old_masks': old_masks, 'new_masks': {}, 'both_masks': {}}
+        split_keys = ['train', 'valid', 'test']
+        for mask_type in split_keys:
+            # Old masks are static, just extend to be the length of the total dataset
+            all_masks['old_masks'][mask_type].extend([False] * (total_rows - len(old_masks[mask_type])))
+            # Split the shuffled new splits into three boolean masks
+            all_masks['new_masks'][mask_type] = [True if x == mask_type else False for x in new_masks]
+            # Combine old and new masks for each split and store
+            all_masks['both_masks'][mask_type] = [True if all_masks['old_masks'][mask_type][i] or all_masks['new_masks'][mask_type][i] else False for i in range(len(new_masks))]
 
-        perc_new = (new_data_rows / total_rows)*100
-        perc_train = sum(1 for i in train_mask if i)*100 / total_rows
-        perc_valid = sum(1 for i in valid_mask if i)*100 / total_rows
-        perc_test = sum(1 for i in test_mask if i)*100 / total_rows
-        logging.info(f"Percent of data that is new: {perc_new:.2f}%")
-        logging.info(f"Percent of data used for training: {perc_train:.2f}%")
-        logging.info(f"Percent of data used for validation: {perc_valid:.2f}%")
-        logging.info(f"Percent of data used for testing: {perc_test:.2f}%")
 
-        #reformat as dict with the appropriate keys and save
-        train_mask = torch.Tensor(train_mask).bool()
-        valid_mask = torch.Tensor(valid_mask).bool()
-        test_mask = torch.Tensor(test_mask).bool()
-        mask_dict = {'annotated': {'train': train_mask, 'valid': valid_mask, 'test': test_mask}}
-        logging.info(f"Mask dictionary: {mask_dict}")
-        mask_filename = f"split_masks_opts-{opts.retrain_data_splits[0]}-{opts.retrain_data_splits[1]}-{opts.retrain_data_splits[2]}.pth"
-        mask_filepath = os.path.join(batch_config_dir, mask_filename)
-        torch.save(mask_dict, mask_filepath)
+        # Mix and match old and new data based on user input and convert to a tensor
+        final_masks = {}
+        mask_config_keys = ['old_masks', 'new_masks', 'both_masks']
+        for i in range(len(opts.retrain_data_splits)):
+            final_masks[split_keys[i]] = torch.Tensor(all_masks[mask_config_keys[opts.retrain_data_splits[i]]][split_keys[i]]).bool()
 
-        upload_key = batch_id + "/split_masks/" + mask_filename 
+        # Report summary stats
+        logging.info(f"Percent of data that is new: {((new_data_rows / total_rows)*100):.2f}%")
+        logging.info(f"Percent of data used for training: {(sum(1 for i in final_masks['train'] if i)*100 / total_rows):.2f}%")
+        logging.info(f"Percent of data used for validation: {(sum(1 for i in final_masks['valid'] if i)*100 / total_rows):.2f}%")
+        logging.info(f"Percent of data used for testing: {(sum(1 for i in final_masks['test'] if i)*100 / total_rows):.2f}%")
+
+        # Save locally and upload to S3
+        mask_filepath = os.path.join(batch_config_dir, "split_masks.pth")
+        torch.save({'annotated': final_masks}, mask_filepath)
+
+        upload_key = batch_id + f"/split_masks/{opts.retrain_data_splits[0]}_{opts.retrain_data_splits[1]}_{opts.retrain_data_splits[2]}/split_masks.pth" 
         response = s3.upload_file(mask_filepath, 'droidlet-hitl', upload_key)
-        logging.info(response)
+        if response: logging.info("S3 response: " + response)
 
         return batch_config_dir
 
