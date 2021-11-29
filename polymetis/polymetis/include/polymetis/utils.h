@@ -48,45 +48,6 @@ public:
 };
 
 /*
-A preallocated chunk of memory, required to convert a char array to an istream.
-*/
-class membuf : public std::basic_streambuf<char> {
-public:
-  membuf(const char *p, size_t l) {
-    // std::cout << "size of vec: " << vec.size() << std::endl;
-    this->setg((char *)p, (char *)p, (char *)p + l);
-  }
-
-  pos_type seekoff(off_type off, std::ios_base::seekdir dir,
-                   std::ios_base::openmode which = std::ios_base::in) override {
-    if (dir == std::ios_base::cur)
-      gbump(off);
-    else if (dir == std::ios_base::end)
-      setg(eback(), egptr() + off, egptr());
-    else if (dir == std::ios_base::beg)
-      setg(eback(), eback() + off, egptr());
-    return gptr() - eback();
-  }
-
-  pos_type seekpos(pos_type sp, std::ios_base::openmode which) override {
-    return seekoff(sp - pos_type(off_type(0)), std::ios_base::beg, which);
-  }
-};
-
-/**
-TODO
-*/
-class memstream : public std::istream {
-public:
-  memstream(const char *p, size_t l) : std::istream(&_buffer), _buffer(p, l) {
-    rdbuf(&_buffer);
-  }
-
-private:
-  membuf _buffer;
-};
-
-/*
 Time utilities
 */
 

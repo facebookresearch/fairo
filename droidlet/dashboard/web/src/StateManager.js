@@ -54,7 +54,7 @@ class StateManager {
   initialMemoryState = {
     objects: new Map(),
     humans: new Map(),
-    chatResponse: {},
+    lastChatActionDict: null,
     chats: [
       { msg: "", failed: false },
       { msg: "", failed: false },
@@ -75,6 +75,7 @@ class StateManager {
   constructor() {
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
+    this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
@@ -247,6 +248,7 @@ class StateManager {
     });
 
     socket.on("setChatResponse", this.setChatResponse);
+    socket.on("setLastChatActionDict", this.setLastChatActionDict);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
     socket.on("updateAgentType", this.updateAgentType);
@@ -307,7 +309,9 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-    this.memory.chatResponse[res.chat] = res.chatResponse;
+
+    // once confirm that this chat has been sent, clear last chat action dict
+    this.memory.lastChatActionDict = null;
 
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -319,6 +323,10 @@ class StateManager {
         ref.forceUpdate();
       }
     });
+  }
+
+  setLastChatActionDict(res) {
+    this.memory.lastChatActionDict = res.action_dict;
   }
 
   updateVoxelWorld(res) {
@@ -823,7 +831,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
-      this.updateObjects = [true, false]; // Change objects on frame after this one
+      this.updateObjects = [true, true]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
@@ -907,6 +915,9 @@ class StateManager {
           ref.setState({
             objects: res.objects,
             rgb: rgb,
+            height: res.height,
+            width: res.width,
+            scale: res.scale,
           });
         } else if (ref instanceof MobileMainPane) {
           // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
@@ -938,6 +949,9 @@ class StateManager {
           isLoaded: true,
           humans: res.humans,
           rgb: rgb,
+          height: res.height,
+          width: res.width,
+          scale: res.scale,
         });
       }
     });

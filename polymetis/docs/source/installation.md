@@ -1,5 +1,7 @@
 # Installation
 
+> We recommend [mamba](https://github.com/mamba-org/mamba) as a faster drop-in replacement for conda. After installing `mamba` (`conda install mamba -n base -c conda-forge`), simply substitute `mamba` for `conda` in all of the following instructions.
+
 ## Simple
 
 ### From Anaconda
@@ -15,7 +17,7 @@
 
 1. Install polymetis using conda. This should pull the latest successful build from `main` branch.
     ```bash
-    conda install -c fair-robotics -c aihabitat -c conda-forge polymetis
+    conda install -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis
     ```
 
 ## For advanced users & developers
@@ -44,9 +46,9 @@
         ```bash
         ./scripts/build_libfranka.sh
         ```
-    - Optionally, install the CUDA-enabled version of our PyTorch build (by default, only the CPU version is enabled):
+    - Optionally, install the CUDA-enabled version of PyTorch (by default, only the CPU version is enabled):
         ```bash
-        conda install -c fair-robotics pytorch
+        conda install -c pytorch pytorch
         ```
     - Build Polymetis from source:
         ```bash
@@ -57,7 +59,7 @@
         make -j
         ```
 
-5. Start developing! Remember to rebuild if modifying C++ source code.
+5. Start developing! Remember to rebuild if modifying C++ source code. When updating, you may need to do a `mamba env update --file ./polymetis/environment.yml --prune` to update dependencies.
 
 ### From a local conda package
 
@@ -87,6 +89,7 @@ We rebuild a new conda package during CI on every pushed commit, and store it as
     - Install polymetis from the local channel:
         ```bash
         conda install -c file://$(eval pwd)/conda/channel \
+            -c pytorch \
             -c fair-robotics \
             -c aihabitat \
             -c conda-forge \

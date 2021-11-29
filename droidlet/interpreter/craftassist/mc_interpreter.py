@@ -16,7 +16,6 @@ from droidlet.interpreter import (
     Interpreter,
     SPEAKERLOOK,
     interpret_relative_direction,
-    get_repeat_num,
     filter_by_sublocation,
     interpret_dance_filter,
 )
@@ -187,6 +186,44 @@ class MCInterpreter(Interpreter):
             tasks.append(self.task_objects["spawn"](agent, task_data))
         return maybe_task_list_to_control_block(tasks, agent), None, None
 
+    def get_block_task_data(self, speaker, schematic_info, d):
+        """ 
+        takes schematic_info returned e.g. from interpret_schematic
+        and the location logical form
+        and returns task data for a list of build or dig tasks
+        
+        """
+        # Get the locations to build
+        location_d = d.get("location", SPEAKERLOOK)
+        mems = self.subinterpret["reference_locations"](self, speaker, location_d)
+        steps, reldir = interpret_relative_direction(self, location_d)
+        origin, offsets = self.subinterpret["specify_locations"](
+            self,
+            speaker,
+            mems,
+            steps,
+            reldir,
+            repeat_dir=get_repeat_dir(location_d),
+            objects=schematic_info,
+        )
+        schematic_info_with_offsets = [
+            (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(schematic_info, offsets)
+        ]
+
+        tasks_data = []
+        for schematic, schematic_memid, tags, offset in schematic_info_with_offsets:
+            og = np.array(origin) + offset
+            task_data = {
+                "blocks_list": schematic,
+                "origin": og,
+                "schematic_memid": schematic_memid,
+                "schematic_tags": tags,
+                "action_dict": d,
+            }
+            tasks_data.append(task_data)
+
+        return tasks_data
+
     def handle_build(self, agent, speaker, d) -> Tuple[Any, Optional[str], Any]:
         """This function reads the dictionary, resolves the missing details using memory
         and perception and handles a 'build' command by either pushing a dialogue object
@@ -226,36 +263,7 @@ class MCInterpreter(Interpreter):
                 self.special_shape_functions,
             )
 
-        # Get the locations to build
-        location_d = d.get("location", SPEAKERLOOK)
-        mems = self.subinterpret["reference_locations"](self, speaker, location_d)
-        steps, reldir = interpret_relative_direction(self, location_d)
-        origin, offsets = self.subinterpret["specify_locations"](
-            self,
-            speaker,
-            mems,
-            steps,
-            reldir,
-            repeat_dir=get_repeat_dir(location_d),
-            objects=interprets,
-        )
-        interprets_with_offsets = [
-            (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
-        ]
-
-        tasks_data = []
-        for schematic, schematic_memid, tags, offset in interprets_with_offsets:
-            og = np.array(origin) + offset
-            task_data = {
-                "blocks_list": schematic,
-                "origin": og,
-                "schematic_memid": schematic_memid,
-                "schematic_tags": tags,
-                "action_dict": d,
-            }
-
-            tasks_data.append(task_data)
-
+        tasks_data = self.get_block_task_data(speaker, interprets, d)
         tasks = []
         for td in tasks_data:
             t = self.task_objects["build"](agent, td)
@@ -289,8 +297,10 @@ class MCInterpreter(Interpreter):
         ask the agent to do it when needed.
         """
         # Get nearby holes
-        perception_holes = self.get_all_holes_fn(agent, location, self.block_data, agent.low_level_data["fill_idmeta"])
-        perception_output  = CraftAssistPerceptionData(holes=perception_holes)
+        perception_holes = self.get_all_holes_fn(
+            agent, location, self.block_data, agent.low_level_data["fill_idmeta"]
+        )
+        perception_output = CraftAssistPerceptionData(holes=perception_holes)
         output = self.memory.update(perception_output=perception_output)
         holes = output.get("holes", [])
         # Choose the best ones to fill
@@ -381,53 +391,32 @@ class MCInterpreter(Interpreter):
             speaker: speaker_id or name.
             d: the complete action dictionary
         """
+        # FIXME assuming an "AND" here...
+        # replace "has_name": "hole" to "has_name": "rectanguloid" for default
+        schematic_where = (
+            d.get("schematic", {}).get("filters", {}).get("where_clause", {}).get("AND", [])
+        )
+        for c in schematic_where:
+            if c.get("pred_text") is not None and c.get("obj_text") == "hole":
+                c["obj_text"] = "rectanguloid"
+
+        interprets = interpret_schematic(
+            self,
+            speaker,
+            d.get("schematic", {}),
+            self.block_data,
+            self.color_bid_map,
+            self.special_shape_functions,
+        )
+
+        tasks_data = self.get_block_task_data(speaker, interprets, d)
 
         def new_tasks():
-            attrs = {}
-            default_where = {"AND": [{"pred_text": "has_size", "obj_text": "2"}]}
-            schematic_where = (
-                d.get("schematic", {}).get("filters", {}).get("where_clause", default_where)
-            )
-            if not schematic_where.get("AND"):
-                raise ErrorWithResponse("I can't interpret complicated Dig commands like that yet")
-            schematic_d = {}
-            # FIXME!  TORCH this whole thing, put in interpret_schematic
-            for t in schematic_where["AND"]:
-                if t.get("pred_text"):
-                    schematic_d[t["pred_text"]] = t["obj_text"]
-
-            for dim, default in [("depth", 1), ("length", 1), ("width", 1)]:
-                key = "has_{}".format(dim)
-                if key in schematic_d:
-                    attrs[dim] = word_to_num(schematic_d[key])
-                elif "has_size" in schematic_d:
-                    attrs[dim] = interpret_size(self, schematic_d["has_size"])
-                else:
-                    attrs[dim] = default
-
-            padding = (attrs["depth"] + 4, attrs["length"] + 4, attrs["width"] + 4)
-            location_d = d.get("location", SPEAKERLOOK)
-            repeat_num = get_repeat_num(d)
-            repeat_dir = get_repeat_dir(d)
-            mems = self.subinterpret["reference_locations"](self, speaker, location_d)
-            steps, reldir = interpret_relative_direction(self, location_d)
-            origin, offsets = self.subinterpret["specify_locations"](
-                self,
-                speaker,
-                mems,
-                steps,
-                reldir,
-                repeat_num=repeat_num,
-                repeat_dir=repeat_dir,
-                padding=padding,
-            )
-            # add dig tasks in a loop
-            tasks_todo = []
-            for offset in offsets:
-                og = np.array(origin) + offset
-                t = self.task_objects["dig"](agent, {"origin": og, "action_dict": d, **attrs})
-                tasks_todo.append(t)
-            return maybe_task_list_to_control_block(tasks_todo, agent)
+            tasks = []
+            for td in tasks_data:
+                t = self.task_objects["dig"](agent, td)
+                tasks.append(t)
+            return maybe_task_list_to_control_block(tasks, agent)
 
         if "remove_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])
@@ -447,8 +436,6 @@ class MCInterpreter(Interpreter):
         """
 
         def new_tasks():
-            repeat = get_repeat_num(d)
-            tasks_to_do = []
             # only go around the x has "around"; FIXME allow other kinds of dances
             location_d = d.get("location")
             if location_d is not None:
@@ -465,29 +452,23 @@ class MCInterpreter(Interpreter):
                         if len(objmems) == 0:
                             raise ErrorWithResponse("I don't understand where you want me to go.")
                         ref_obj = objmems[0]
-                    for i in range(repeat):
-                        refmove = dance.RefObjMovement(
-                            agent,
-                            ref_object=ref_obj,
-                            relative_direction=location_d["relative_direction"],
-                        )
-                        t = self.task_objects["dance"](agent, {"movement": refmove})
-                        tasks_to_do.append(t)
-                    return maybe_task_list_to_control_block(tasks_to_do, agent)
+                    refmove = dance.RefObjMovement(
+                        agent,
+                        ref_object=ref_obj,
+                        relative_direction=location_d["relative_direction"],
+                    )
+                    t = self.task_objects["dance"](agent, {"movement": refmove})
+                    return t
 
             dance_type = d.get("dance_type", {})
             if dance_type.get("point"):
                 target = self.subinterpret["point_target"](self, speaker, dance_type["point"])
-                for i in range(repeat):
-                    t = self.task_objects["point"](agent, {"target": target})
-                    tasks_to_do.append(t)
+                t = self.task_objects["point"](agent, {"target": target})
             # MC bot does not control body turn separate from head
             elif dance_type.get("look_turn") or dance_type.get("body_turn"):
                 lt = dance_type.get("look_turn") or dance_type.get("body_turn")
                 f = self.subinterpret["facing"](self, speaker, lt)
-                for i in range(repeat):
-                    t = self.task_objects["dancemove"](agent, f)
-                    tasks_to_do.append(t)
+                t = self.task_objects["dancemove"](agent, f)
             else:
                 if location_d is None:
                     dance_location = None
@@ -505,16 +486,14 @@ class MCInterpreter(Interpreter):
                 if dance_memids:
                     dance_memid = random.choice(dance_memids)
                     dance_mem = self.memory.get_mem_by_id(dance_memid)
-                    for i in range(repeat):
-                        dance_obj = dance.Movement(
-                            agent=agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
-                        )
-                        t = self.task_objects["dance"](agent, {"movement": dance_obj})
-                        tasks_to_do.append(t)
+                    dance_obj = dance.Movement(
+                        agent=agent, move_fn=dance_mem.dance_fn, dance_location=dance_location
+                    )
+                    t = self.task_objects["dance"](agent, {"movement": dance_obj})
                 else:
                     # dance out of scope
                     raise ErrorWithResponse("I don't know how to do that movement yet.")
-            return maybe_task_list_to_control_block(tasks_to_do, agent)
+            return t
 
         if "remove_condition" in d:
             condition = self.subinterpret["condition"](self, speaker, d["remove_condition"])

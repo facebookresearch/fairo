@@ -3,16 +3,18 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import os
-import subprocess
 import time
 import signal
 import random
 import logging
 import faulthandler
 from multiprocessing import set_start_method
+if __name__ == "__main__":
+    set_start_method("spawn", force=True)
 import shutil
 
 from droidlet import dashboard
+from droidlet.tools.artifact_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -132,6 +134,10 @@ class LocobotAgent(DroidletAgent):
         def _shutdown(sid, data):
             self.shutdown()
 
+        @sio.on("get_count")
+        def _return_count(sid, data):
+            sio.emit("currentCount", self.count)
+
         @sio.on("get_memory_objects")
         def objects_in_memory(sid):
             objects = DetectedObjectNode.get_all(self.memory)
@@ -199,7 +205,6 @@ class LocobotAgent(DroidletAgent):
                 print("Error switching model:", os.path.join(model_path, things_file), "not found")
                 return
 
-            print("switching to", model_path)
             self.perception_modules["vision"] = Perception(model_path, default_keypoints_path=True)
 
     def init_memory(self):
@@ -315,16 +320,8 @@ class LocobotAgent(DroidletAgent):
 
     def shutdown(self):
         self._shutdown = True
-        try:
-            self.perception_modules["vision"].vprocess_shutdown.set()
-        except:
-            """
-            the try/except is there in the event that
-            self.perception_modules["vision"] has either:
-            1. not been fully started yet
-            2. already crashed / shutdown due to other effects
-            """
-            pass
+        time.sleep(5)  # let current step to finish
+        self.perception_modules["vision"].vprocess.stop()
         time.sleep(5)  # let the other threads die
         os._exit(0)  # TODO: remove and figure out why multiprocess sometimes hangs on exit
 
@@ -344,9 +341,8 @@ if __name__ == "__main__":
 
     # Check that models and datasets are up to date
     if not opts.dev:
-        rc = subprocess.call([opts.verify_hash_script_path, "locobot"])
+        try_download_artifacts(agent="locobot")
 
-    set_start_method("spawn", force=True)
 
     sa = LocobotAgent(opts)
     sa.start()

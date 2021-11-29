@@ -211,7 +211,14 @@ def disk(radius=5, size=None, bid=DEFAULT_IDM, orient="xy", thickness=1, labelme
 
 
 def rectanguloid(
-    size=None, depth=None, height=None, width=None, bid=DEFAULT_IDM, labelme=False, **kwargs
+    size=None,
+    length=None,
+    depth=None,
+    height=None,
+    width=None,
+    bid=DEFAULT_IDM,
+    labelme=False,
+    **kwargs,
 ):
     """Construct a solid rectanguloid"""
     if type(size) is int:
@@ -225,8 +232,8 @@ def rectanguloid(
         size[0] = width
     if height is not None:
         size[1] = height
-    if depth is not None:
-        size[2] = depth
+    if depth is not None or length is not None:
+        size[2] = depth or length
     assert size[0] > 0
     assert size[1] > 0
     assert size[2] > 0

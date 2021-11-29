@@ -46,10 +46,10 @@ def write_data_split(output_path, split, filename, data_chunk):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--raw_data_path", type=str, default="craftassist/agent/datasets/full_data/"
+        "--raw_data_path", type=str, default="droidlet/artifacts/datasets/full_data/"
     )
     parser.add_argument(
-        "--output_path", type=str, default="craftassist/agent/datasets/annotated_data/"
+        "--output_path", type=str, default="droidlet/artifacts/datasets/annotated_data/"
     )
     parser.add_argument("--filename", type=str, default="annotated.txt")
     parser.add_argument(
