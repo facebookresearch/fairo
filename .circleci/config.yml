@@ -58,15 +58,15 @@ commands:
       - run:
           name: Upload documentation if on main branch
           command: |
-            # if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
-            #   then
+            if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
+              then
                 git clone git@github.com:polymetis-docs/polymetis-docs.github.io.git ~/polymetis-docs.github.io
-                cp ./polymetis/docs/_build/html/* ~/polymetis-docs.github.io/
+                cp -r ./polymetis/docs/_build/html/* ~/polymetis-docs.github.io/
                 cd ~/polymetis-docs.github.io/
                 git add -A
                 git commit -m "Automatic documentation update"
-                git push --force
-            # fi
+                git push origin main --force
+            fi
   polymetis_build_conda_pkg:
     steps:
       - run:
