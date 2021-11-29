@@ -52,6 +52,21 @@ commands:
       - store_artifacts:
           path: ./polymetis/docs/html.tar
           destination: autogen_docs
+      - add_ssh_keys:
+          fingerprints:
+            - "05:58:c3:0a:cc:07:69:b1:c2:be:41:7b:df:18:a5:b6"
+      - run:
+          name: Upload documentation if on main branch
+          command: |
+            # if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
+            #   then
+                git clone git@github.com:polymetis-docs/polymetis-docs.github.io.git ~/polymetis-docs.github.io
+                cp ./polymetis/docs/_build/html/* ~/polymetis-docs.github.io/
+                cd ~/polymetis-docs.github.io/
+                git add -A
+                git commit -m "Automatic documentation update"
+                git push --force
+            # fi
   polymetis_build_conda_pkg:
     steps:
       - run:
