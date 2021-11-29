@@ -188,6 +188,15 @@ class DroidletAgent(BaseAgent):
                     json.dump(job_metadata, f)
             os._exit(0)
 
+        @sio.on("taskStackPoll")
+        def poll_task_stack(sid):
+            logging.info("Poll to see if task stack is empty")
+            task = True if self.memory.task_stack_peek() else False
+            res = {
+                "task": task,
+            }
+            sio.emit("taskStackPollResponse", res)
+
     def init_physical_interfaces(self):
         """
         should define or otherwise set up
