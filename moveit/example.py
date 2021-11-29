@@ -54,9 +54,9 @@ def main():
     # Create plan policy
     print("\n===== Policy =====")
     print("Creating plan policy...")
-    torch_policy = toco.policies.JointTrajectoryExecutor(
-        joint_pos_trajectory=[waypoint["position"] for waypoint in trajectory],
-        joint_vel_trajectory=[waypoint["velocity"] for waypoint in trajectory],
+    policy = toco.policies.JointTrajectoryExecutor(
+        joint_pos_trajectory=[waypoint["joint_positions"] for waypoint in trajectory],
+        joint_vel_trajectory=[waypoint["joint_velocities"] for waypoint in trajectory],
         Kp=robot.metadata.default_Kq,
         Kd=robot.metadata.default_Kqd,
         robot_model=robot.robot_model,
