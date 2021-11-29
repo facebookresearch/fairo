@@ -12,18 +12,6 @@ ORI_NOISE = torch.Tensor([0.25, 0.25, 0.25])
 TIME_TO_GO = 3
 
 
-class JointPlan(toco.ControlModule):
-    def __init__(self, trajectory):
-        super().__init__()
-
-        self.pos_arr = torch.stack([point["joint_positions"] for point in trajectory])
-        self.vel_arr = torch.stack([point["joint_velocities"] for point in trajectory])
-        self.acc_arr = torch.stack([point["joint_accelerations"] for point in trajectory])
-
-    def forward(self, i: int):
-        return self.pos_arr[i, :], self.vel_arr[i, :], self.acc_arr[i, :]
-
-
 def main():
     # Initialize interfaces
     moveit = MoveitInterface()
@@ -66,13 +54,13 @@ def main():
     # Create plan policy
     print("\n===== Policy =====")
     print("Creating plan policy...")
-    plan = JointPlan(trajectory)
-    policy = toco.policies.JointPlanExecutor(
-        plan=plan,
-        robot_model=robot.robot_model,
-        steps=len(trajectory),
+    torch_policy = toco.policies.JointTrajectoryExecutor(
+        joint_pos_trajectory=[waypoint["position"] for waypoint in trajectory],
+        joint_vel_trajectory=[waypoint["velocity"] for waypoint in trajectory],
         Kp=robot.metadata.default_Kq,
         Kd=robot.metadata.default_Kqd,
+        robot_model=robot.robot_model,
+        ignore_gravity=robot.use_grav_comp,
     )
 
     # Execute plan & evaluate result
