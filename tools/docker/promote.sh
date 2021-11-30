@@ -6,18 +6,18 @@ set -e
 
 
 if [ $# == 2 ]; then
-    IMAGE_SHA=$1
+    COMMIT_SHA=$1
     IMAGE_TAG=$2
 
 else
-    echo "Usage: $0 <img sha1> <tag>"
+    echo "Usage: $0 <commit sha1> <tag>"
     exit 1
 fi
 
 MANIFEST=$(aws ecr batch-get-image \
     --repository-name craftassist \
     --region us-west-1 \
-    --image-ids imageDigest=$IMAGE_SHA \
+    --image-ids imageTag=$COMMIT_SHA \
     --query "images[].imageManifest" \
     --output text)
 
@@ -31,4 +31,4 @@ aws ecr put-image \
 
 echo
 echo Success!
-echo "Tagged Image <$IMAGE_SHA> as <$IMAGE_TAG>"
+echo "Tagged Image <$COMMIT_SHA> as <$IMAGE_TAG>"

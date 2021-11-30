@@ -29,18 +29,18 @@
 1. Verify that the commit passed CI successfully. If all is green, you should see under the "Push versioned docker containers" step a line like
 
 ```
-<Commit SHA1>: digest: <DIGEST>: size: xxxx
+docker push ECR_image_URI:TAG
 ```
 
-Notice that tag is the SHA1 of the latest master commit
+Notice that TAG is the SHA1 of the latest commit
 
 2. Run [tools/docker/promote.sh](https://github.com/facebookresearch/fairo/blob/main/tools/docker/promote.sh) using the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY credentials like this:
 
 ```
-AWS_ACCESS_KEY_ID="key id here" AWS_SECRET_ACCESS_KEY="secret access key here" ./tools/docker/promote.sh <DIGEST from above>
+AWS_ACCESS_KEY_ID="key id here" AWS_SECRET_ACCESS_KEY="secret access key here" ./tools/docker/promote.sh <TAG from above>
 ```
 
-Replacing the <DIGEST from above> with whatever digest you'd like to promote
+Replacing the <TAG from above> with whatever TAG you'd like to promote from step 1.
 
 
 ## How to deploy a new servermgr
