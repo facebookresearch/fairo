@@ -35,3 +35,12 @@ launch_robot.py robot_client=franka_sim gui=false use_real_time=false
 ```
 python example.py
 ```
+
+## Documentation
+Moveit planning interface methods accessible through `MoveitInterface`:
+- `add_mesh(name, mesh_pos, mesh_quat, filename)`
+- `attach_mesh(link, name, mesh_pos, mesh_quat, filename)`
+- `remove_attached_object(link, name)`
+- `remove_world_object(name)`
+
+Documentation for the methods can be found [here](https://github.com/ros-planning/moveit/blob/master/moveit_commander/src/moveit_commander/planning_scene_interface.py).

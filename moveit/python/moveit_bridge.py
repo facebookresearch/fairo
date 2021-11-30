@@ -44,6 +44,41 @@ class MoveitInterface:
         return copy.deepcopy(self.result_buffer)
 
     @staticmethod
+    def _convert_pose(pos, quat):
+        return {
+            "position": {
+                "x": float(pos[0]),
+                "y": float(pos[1]),
+                "z": float(pos[2]),
+            },
+            "orientation": {
+                "x": float(quat[0]),
+                "y": float(quat[1]),
+                "z": float(quat[2]),
+                "w": float(quat[3]),
+            },
+        }
+
+    @staticmethod
+    def _generate_tmpfile(filename):
+        # Adapt filename
+        abs_filename = os.path.abspath(filename)
+
+        basename = os.path.basename(abs_filename)
+        basename_ext = f".{basename.split('.')[-1]}"
+        basename_name = basename.strip(basename_ext)
+
+        dirname = os.path.dirname(abs_filename)
+        dirname_encoding = base64.b64encode(bytes(dirname, "utf-8")).decode()
+
+        filename_target = f"/tmp/mesh/{basename_name}_{dirname_encoding}{basename_ext}"
+
+        # Copy file
+        shutil.copyfile(filename, filename_target)
+
+        return filename_target
+
+    @staticmethod
     def interpolate_trajectory(trajectory, hz):
         new_trajectory = []
 
@@ -75,42 +110,26 @@ class MoveitInterface:
 
         return new_trajectory
 
-    @staticmethod
-    def _convert_pose(pos, quat):
-        return {
-            "position": {
-                "x": float(pos[0]),
-                "y": float(pos[1]),
-                "z": float(pos[2]),
-            },
-            "orientation": {
-                "x": float(quat[0]),
-                "y": float(quat[1]),
-                "z": float(quat[2]),
-                "w": float(quat[3]),
-            },
-        }
+    # Obstacle setup
+    def add_mesh(self, name, pos, quat, filename):
+        filename_tmp = self._generate_tmpfile(filename)
+        pose = self._convert_pose(pos, quat)
 
-    def add_mesh(self, name, mesh_pos, mesh_quat, filename):
-        # Create tmpfile
-        abs_filename = os.path.abspath(filename)
+        self._query_moveit(f"scene.add_mesh('{name}', {pose}, '{filename_tmp}')")
 
-        basename = os.path.basename(abs_filename)
-        basename_ext = f".{basename.split('.')[-1]}"
-        basename_name = basename.strip(basename_ext)
+    def attach_mesh(self, link, name, pos, quat, filename):
+        filename_tmp = self._generate_tmpfile(filename)
+        pose = self._convert_pose(pos, quat)
 
-        dirname = os.path.dirname(abs_filename)
-        dirname_encoding = base64.b64encode(bytes(dirname, "utf-8")).decode()
+        self._query_moveit(f"scene.attach_mesh('{link}', '{name}', {pose}, '{filename_tmp}')")
 
-        filename_target = f"/tmp/mesh/{basename_name}_{dirname_encoding}{basename_ext}"
-        shutil.copyfile(filename, filename_target)
+    def remove_world_object(self, name):
+        self._query_moveit(f"scene.remove_world_object('{name}')")
 
-        # Convert pose
-        mesh_pose = self._convert_pose(mesh_pos, mesh_quat)
+    def remove_attached_object(self, link, name):
+        self._query_moveit(f"scene.remove_attached_object('{link}', '{name}')")
 
-        # Send request
-        self._query_moveit(f"scene.add_mesh('{name}', {mesh_pose}, '{filename_target}')")
-
+    # Plan
     def plan(self, current_joint_pos, target_pos, target_quat, ee_link, time_to_go, hz=None):
         # Set current state
         state = self._query_moveit(f"move_group.get_current_state()")

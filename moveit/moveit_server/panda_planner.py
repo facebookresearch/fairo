@@ -7,7 +7,8 @@ import json
 import rospy
 import signal
 import subprocess
-import typing
+from typing import List, Dict, Tuple, Optional
+
 from rospy_message_converter import message_converter
 
 os.environ["PYTHONUNBUFFERED"] = "1"
@@ -67,7 +68,7 @@ class PandaMoveGroup:
         return self._move_group.allow_replanning(value)
 
     def attach_object(
-        self, object_name: str, link_name: str = "", touch_links: typing.List[str] = []
+        self, object_name: str, link_name: str = "", touch_links: List[str] = []
     ) -> bool:
         return self._move_group.attach_object(object_name, link_name, touch_links)
 
@@ -85,7 +86,7 @@ class PandaMoveGroup:
 
     def compute_cartesian_path(
         self,
-        waypoints: typing.List["ros2dict[geometry_msgs.Pose]"],
+        waypoints: List["ros2dict[geometry_msgs.Pose]"],
         eef_step: float,
         jump_threshold: float,
         avoid_collisions: bool = True,
@@ -107,16 +108,16 @@ class PandaMoveGroup:
     def forget_joint_values(self, name: str) -> None:
         return self._move_group.forget_joint_values(name)
 
-    def get_active_joints(self) -> typing.List[str]:
+    def get_active_joints(self) -> List[str]:
         return self._move_group.get_active_joints()
 
-    def get_current_joint_values(self) -> typing.List[float]:
+    def get_current_joint_values(self) -> List[float]:
         return self._move_group.get_current_joint_values()
 
     def get_current_pose(self, end_effector_link: str = "") -> "ros2dict[geometry_msgs.Pose]":
         return ros2dict(self._move_group.get_current_pose(end_effector_link))["pose"]
 
-    def get_current_rpy(self, end_effector_link: str = "") -> typing.List[float]:
+    def get_current_rpy(self, end_effector_link: str = "") -> List[float]:
         return self._move_group.get_current_rpy(end_effector_link)
 
     def get_current_state(self) -> "ros2dict[moveit_msgs.RobotState]":
@@ -125,7 +126,7 @@ class PandaMoveGroup:
     def get_end_effector_link(self) -> str:
         return self._move_group.get_end_effector_link()
 
-    def get_goal_tolerance(self) -> typing.List[float]:
+    def get_goal_tolerance(self) -> List[float]:
         return self._move_group.get_goal_tolerance()
 
     def get_goal_joint_tolerance(self) -> float:
@@ -140,22 +141,22 @@ class PandaMoveGroup:
     def get_interface_description(self) -> "ros2dict[moveit_msgs.PlannerInterfaceDescription]":
         return ros2dict(self._move_group.get_interface_description())
 
-    def get_joint_value_target(self) -> typing.List[float]:
+    def get_joint_value_target(self) -> List[float]:
         return self._move_group.get_joint_value_target()
 
-    def get_joints(self) -> typing.List[str]:
+    def get_joints(self) -> List[str]:
         return self._move_group.get_joints()
 
-    def get_known_constraints(self) -> typing.List[str]:
+    def get_known_constraints(self) -> List[str]:
         return self._move_group.get_known_constraints()
 
     def get_name(self) -> str:
         return self._move_group.get_name()
 
-    def get_named_target_values(self, target: str) -> typing.Dict[str, float]:
+    def get_named_target_values(self, target: str) -> Dict[str, float]:
         return self._move_group.get_named_target_values(target)
 
-    def get_named_targets(self) -> typing.List[str]:
+    def get_named_targets(self) -> List[str]:
         return self._move_group.get_named_targets()
 
     def get_path_constraints(self) -> "ros2dict[moveit_msgs.Constraints]":
@@ -173,13 +174,13 @@ class PandaMoveGroup:
     def get_pose_reference_frame(self) -> str:
         return self._move_group.get_pose_reference_frame()
 
-    def get_random_joint_values(self) -> typing.List[float]:
+    def get_random_joint_values(self) -> List[float]:
         return self._move_group.get_random_joint_values()
 
     def get_random_pose(self, end_effector_link: str = "") -> "ros2dict[geometry_msgs.Pose]":
         return ros2dict(self._move_group.get_random_pose(end_effector_link))["pose"]
 
-    def get_remembered_joint_values(self) -> typing.Dict[str, typing.List[float]]:
+    def get_remembered_joint_values(self) -> Dict[str, List[float]]:
         return self._move_group.get_remembered_joint_values()
 
     def get_trajectory_constraints(self) -> "ros2dict[moveit_msgs.TrajectoryConstraints]":
@@ -197,7 +198,7 @@ class PandaMoveGroup:
     def pick(
         self,
         object_name: str,
-        grasps: typing.List["ros2dict[moveit_msgs.Grasp]"] = [],
+        grasps: List["ros2dict[moveit_msgs.Grasp]"] = [],
         plan_only: bool = False,
     ) -> int:
         grasps = [dict2ros("moveit_msgs/Grasp", grasp) for grasp in grasps]
@@ -206,7 +207,7 @@ class PandaMoveGroup:
     def place(
         self,
         object_name: str,
-        locations: typing.List["ros2dict[moveit_msgs.PlaceLocation]"] = [],
+        locations: List["ros2dict[moveit_msgs.PlaceLocation]"] = [],
         plan_only: bool = False,
     ) -> int:
         locations = [dict2ros("moveit_msgs/PlaceLocation", location) for location in locations]
@@ -214,7 +215,7 @@ class PandaMoveGroup:
 
     def plan(
         self,
-    ) -> typing.Tuple[
+    ) -> Tuple[
         bool,
         "ros2dict[moveit_msgs.TrajectoryConstraints]",
         float,
@@ -225,7 +226,7 @@ class PandaMoveGroup:
         error_code = ros2dict(error_code)
         return success, trajectory_msg, planning_time, error_code
 
-    def remember_joint_values(self, name: str, values: typing.List[float] = None) -> None:
+    def remember_joint_values(self, name: str, values: List[float] = None) -> None:
         return self._move_group.remember_joint_values(name, values)
 
     def set_end_effector_link(self, link_name: str) -> bool:
@@ -280,13 +281,11 @@ class PandaMoveGroup:
         return self._move_group.set_pose_targets(poses, end_effector_link)
 
     def set_position_target(
-        self, xyz: typing.Tuple[float, float, float], end_effector_link: str = ""
+        self, xyz: Tuple[float, float, float], end_effector_link: str = ""
     ) -> bool:
         return self._move_group.set_position_target(xyz, end_effector_link)
 
-    def set_rpy_target(
-        self, rpy: typing.Tuple[float, float, float], end_effector_link: str = ""
-    ) -> bool:
+    def set_rpy_target(self, rpy: Tuple[float, float, float], end_effector_link: str = "") -> bool:
         return self._move_group.set_rpy_target(rpy, end_effector_link)
 
     def set_random_target(self) -> None:
@@ -320,7 +319,7 @@ class PlanningScene:
         self,
         name: str,
         pose: "ros2dict[geometry_msgs.Pose]",
-        size: typing.Tuple[float, float, float] = (1, 1, 1),
+        size: Tuple[float, float, float] = (1, 1, 1),
     ) -> None:
         pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
         return self._scene.add_box(name, pose_stamped, size)
@@ -336,7 +335,7 @@ class PlanningScene:
         name: str,
         pose: "ros2dict[geometry_msgs.Pose]",
         filename: str,
-        size: typing.Tuple[float, float, float] = (1, 1, 1),
+        size: Tuple[float, float, float] = (1, 1, 1),
     ):
         pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
         return self._scene.add_mesh(name, pose_stamped, filename, size)
@@ -347,7 +346,7 @@ class PlanningScene:
         self,
         name: str,
         pose: "ros2dict[geometry_msgs.Pose]",
-        normal: typing.Tuple[float, float, float] = (0, 0, 1),
+        normal: Tuple[float, float, float] = (0, 0, 1),
         offset: float = 0,
     ) -> None:
         pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
@@ -366,12 +365,22 @@ class PlanningScene:
         link: str,
         name: str,
         pose: "ros2dict[geometry_msgs.Pose]" = None,
-        size: typing.Tuple[float, float, float] = (1, 1, 1),
+        size: Tuple[float, float, float] = (1, 1, 1),
     ):
         pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
         return self._scene.attach_box(link, name, pose_stamped, size)
 
-    # def attach_mesh()
+    def attach_mesh(
+        self,
+        link: str,
+        name: str,
+        pose: "ros2dict[geometry_msgs.Pose]",
+        filename: str,
+        size: Tuple[float, float, float] = (1, 1, 1),
+    ):
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        return self._scene.attach_mesh(link, name, pose_stamped, filename, size)
+
     # def attach_object()
 
     def clear(self) -> None:
@@ -382,8 +391,12 @@ class PlanningScene:
     # def get_known_object_names_in_roi()
     # def get_object_poses()
     # def get_objects()
-    # def remove_attached_object()
-    # def remove_world_object()
+
+    def remove_attached_object(self, link: Optional[str] = None, name: Optional[str] = None):
+        return self._scene.remove_attached_object(link, name)
+
+    def remove_world_object(self, name: Optional[str] = None):
+        return self._scene.remove_world_object(name)
 
 
 move_group = PandaMoveGroup()

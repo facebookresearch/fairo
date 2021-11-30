@@ -12,7 +12,8 @@ ORI_NOISE = torch.Tensor([0.25, 0.25, 0.25])
 TIME_TO_GO = 3
 
 
-MESH_DIR = "../polymetis/polymetis/data/kuka_iiwa/meshes/robotiq-2f/collision/base.stl"
+OBS_MESH_DIR = "../polymetis/polymetis/data/kuka_iiwa/meshes/iiwa7/collision/link_0.stl"
+OBJ_MESH_DIR = "../polymetis/polymetis/data/kuka_iiwa/meshes/robotiq-2f/collision/base.stl"
 
 
 def main():
@@ -35,7 +36,8 @@ def main():
 
     # Add mesh
     print("Adding obstacle...")
-    moveit.add_mesh("tmp_obstacle", [0.2, 0, 0.4], [1, 0, 0, 0], MESH_DIR)
+    moveit.add_mesh("obstacle1", [0.2, 0, 0.4], [1, 0, 0, 0], OBS_MESH_DIR)
+    moveit.attach_mesh("panda_link8", "object1", [0.0, 0, 0.0], [1, 0, 0, 0], OBJ_MESH_DIR)
 
     # Plan
     print("\n===== Plan =====")
@@ -77,6 +79,13 @@ def main():
 
     ee_pos_final, ee_quat_final = robot.pose_ee()
     print(f"Final pose: pos={ee_pos_final}, quat={ee_quat_final}")
+
+    # Remove objects from scene
+    print("Removing objects...")
+    moveit.remove_attached_object("panda_link8", "object1")
+    moveit.remove_world_object("object1")
+    moveit.remove_world_object("obstacle1")
+    print("Done.")
 
 
 if __name__ == "__main__":
