@@ -22,6 +22,7 @@ class InteractApp extends Component {
     };
     this.state = this.initialState;
     this.setAssistantReply = this.setAssistantReply.bind(this);
+    this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
     this.MessageRef = React.createRef();
   }
 
@@ -109,18 +110,18 @@ class InteractApp extends Component {
       "setLastChatActionDict",
       this.goToQuestionWindow
     );
-    const replies_len = this.props.stateManager.memory.agent_replies.length;
-    const chats_len = this.state.chats.length;
+
     this.setState({
+      agent_reply: this.props.stateManager.memory.agent_reply,
       currentView: 2,
       chats: this.state.chats,
-      failidx: chats_len - 1,
+      failidx: 0,
     });
   }
 
   render() {
     return (
-      <div className="App">
+      <div className="App" style={{ padding: 0 }}>
         <div className="content">
           {this.state.currentView === 1 ? (
             <Message
@@ -129,6 +130,7 @@ class InteractApp extends Component {
               isMobile={this.props.isMobile}
               ref={this.MessageRef}
               chats={this.state.chats}
+              enableVoice={false}
               agent_reply={this.state.agent_reply}
               goToQuestion={this.goToQuestion.bind(this)}
               goToAgentThinking={this.goToAgentThinking.bind(this)}
