@@ -78,6 +78,7 @@ def main(cfg):
     time.sleep(1.0)
     log.info(f"Starting robot client...")
     client = hydra.utils.instantiate(cfg.robot_client)
+    print(client)
     client.run()
 
 

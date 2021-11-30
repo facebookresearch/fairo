@@ -15,7 +15,7 @@ import numpy as np
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
-
+"""
 from ..robot_mover_utils import (
     get_camera_angles,
     angle_diff,
@@ -26,7 +26,7 @@ from ..robot_mover_utils import (
     base_canonical_coords_to_pyrobot_coords,
     xyz_pyrobot_to_canonical_coords,
 )
-
+"""
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
@@ -53,25 +53,31 @@ class LoCoBotMover:
         backend (string): backend where the Locobot lives, either "habitat" or "locobot"
     """
     def __init__(self, ip=None, backend="habitat"):
-        self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
-        self.slam = Pyro4.Proxy("PYRONAME:slam@" + ip)
-        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
+    	#ip = "192.168.89.166"
+        #self.bot = Pyro4.Proxy("PYRONAME:remotelocobot@" + ip)
+        self.bot = Pyro4.core.Proxy('PYRO:remotefranka@' + ip + ':9090')
+        #self.bot.test_print()
+        
+        #self.slam = Pyro4.Proxy("PYRONAME:slam@" + ip)
+        
+        #self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
+        print("AFTER NAV")
         # spin once synchronously
-        self.nav.is_busy()
+        #self.nav.is_busy()
         # put in async mode
-        self.nav._pyroAsync()
-        self.nav_result = self.nav.is_busy()
-        self.close_loop = False if backend == "habitat" else True
-        self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
+        #self.nav._pyroAsync()
+        #self.nav_result = self.nav.is_busy()
+        #self.close_loop = False if backend == "habitat" else True
+        #self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
-        intrinsic_mat = safe_call(self.bot.get_intrinsics)
-        intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-        img_resolution = safe_call(self.bot.get_img_resolution)
-        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
-        img_pixs = img_pixs.reshape(2, -1)
-        img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
-        uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
-        self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        #intrinsic_mat = safe_call(self.bot.get_intrinsics)
+        #intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+        #img_resolution = safe_call(self.bot.get_img_resolution)
+        #img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+        #img_pixs = img_pixs.reshape(2, -1)
+        #img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+        #uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+        #self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
 
     def check(self):
@@ -413,5 +419,5 @@ if __name__ == "__main__":
     parser = ArgumentParser("Locobot", base_path)
     opts = parser.parse()
     mover = LoCoBotMover(ip=opts.ip, backend=opts.backend)
-    if opts.check_controller:
-        mover.check()
+    #if opts.check_controller:
+    #mover.check()

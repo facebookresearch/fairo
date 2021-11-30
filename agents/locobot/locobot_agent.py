@@ -12,7 +12,7 @@ from multiprocessing import set_start_method
 import shutil
 
 from droidlet import dashboard
-from droidlet.tools.artifact_scripts.try_download import try_download_artifacts
+#from droidlet.tools.data_scripts.try_download import try_download_artifacts
 
 if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
@@ -25,9 +25,9 @@ from droidlet.memory.memory_nodes import PlayerNode
 from droidlet.perception.semantic_parsing.nsp_querier import NSPQuerier
 from agents.droidlet_agent import DroidletAgent
 from agents.argument_parser import ArgumentParser
-import agents.locobot.label_prop as LP
+#import agents.locobot.label_prop as LP
 from droidlet.memory.robot.loco_memory import LocoAgentMemory, DetectedObjectNode
-from droidlet.perception.robot import Perception
+#from droidlet.perception.robot import Perception
 from droidlet.perception.semantic_parsing.utils.interaction_logger import InteractionLogger
 from self_perception import SelfPerception
 from droidlet.interpreter.robot import (
@@ -224,51 +224,56 @@ class LocobotAgent(DroidletAgent):
         """
         if not hasattr(self, "perception_modules"):
             self.perception_modules = {}
-        self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
-        self.perception_modules["self"] = SelfPerception(self)
-        self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
+        #self.perception_modules["language_understanding"] = NSPQuerier(self.opts, self)
+        #self.perception_modules["self"] = SelfPerception(self)
+        #self.perception_modules["vision"] = Perception(self.opts.perception_model_dir)
+	
 
+	
     def perceive(self, force=False):
         # 1. perceive from NLU parser
+        print("PERCIEVE_DEBUG")
         super().perceive(force=force)
         # 2. perceive from robot perception modules
-        self.perception_modules["self"].perceive(force=force)
-        rgb_depth = self.mover.get_rgb_depth()
-        xyz = self.mover.get_base_pos_in_canonical_coords()
-        x, y, yaw = xyz
-        if self.backend == 'habitat':
-            sio.emit(
-                "map",
-                {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
-            )
+        #self.perception_modules["self"].perceive(force=force)
+        #rgb_depth = self.mover.get_rgb_depth()
+        #xyz = self.mover.get_base_pos_in_canonical_coords()
+        #x, y, yaw = xyz
+        #if self.backend == 'habitat':
+        #    sio.emit(
+        #        "map",
+        #        {"x": x, "y": y, "yaw": yaw, "map": self.mover.get_obstacles_in_canonical_coords()},
+        #    )
 
-        previous_objects = DetectedObjectNode.get_all(self.memory)
+        #previous_objects = DetectedObjectNode.get_all(self.memory)
         # perception_output is a namedtuple of : new_detections, updated_detections, humans
-        perception_output = self.perception_modules["vision"].perceive(rgb_depth,
-                                                               xyz,
-                                                               previous_objects,
-                                                               force=force)
-        self.memory.update(perception_output)
+        #perception_output = self.perception_modules["vision"].perceive(rgb_depth,
+        #                                                       xyz,
+        #                                                       previous_objects,
+        #                                                       force=force)
+        #self.memory.update(perception_output)
 
 
     def init_controller(self):
         """Instantiates controllers - the components that convert a text chat to task(s)."""
         dialogue_object_classes = {}
+        print("CONTROLLER_DEBUG")
         dialogue_object_classes["bot_capabilities"] = {"task": LocoBotCapabilities, "data": {}}
-        dialogue_object_classes["interpreter"] = LocoInterpreter
-        dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
-        dialogue_object_classes["put_memory"] = PutMemoryHandler
-        self.dialogue_manager = DialogueManager(
-            memory=self.memory,
-            dialogue_object_classes=dialogue_object_classes,
-            dialogue_object_mapper=DialogueObjectMapper,
-            opts=self.opts,
-        )
+        #dialogue_object_classes["interpreter"] = LocoInterpreter
+        #dialogue_object_classes["get_memory"] = LocoGetMemoryHandler
+        #dialogue_object_classes["put_memory"] = PutMemoryHandler
+        #self.dialogue_manager = DialogueManager(
+        #    memory=self.memory,
+        #    dialogue_object_classes=dialogue_object_classes,
+        #    dialogue_object_mapper=DialogueObjectMapper,
+        #    opts=self.opts,
+        #)
 
     def init_physical_interfaces(self):
         """Instantiates the interface to physically move the robot."""
         if self.backend == 'habitat':
             from droidlet.lowlevel.locobot.locobot_mover import LoCoBotMover
+            print(f"IP::: PHYSICAL INTERFACE {self.opts.ip}")
             self.mover = LoCoBotMover(ip=self.opts.ip, backend=self.opts.backend)
         else:
             from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
@@ -307,7 +312,7 @@ class LocobotAgent(DroidletAgent):
         # return self._cpp_send_chat(chat)
 
     def step(self):
-        super().step()
+        #super().step()
         time.sleep(0)
 
     def task_step(self, sleep_time=0.0):
@@ -333,6 +338,8 @@ if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Locobot", base_path)
     opts = parser.parse()
+    opts.ip = "192.168.89.166"
+    print(f"IP::: LOCOBOT AGENT {opts.ip}")
 
     logging.basicConfig(level=opts.log_level.upper())
     # set up stdout logging
@@ -343,10 +350,10 @@ if __name__ == "__main__":
     logging.info("LOG LEVEL: {}".format(logger.level))
 
     # Check that models and datasets are up to date
-    if not opts.dev:
-        try_download_artifacts(agent="locobot")
+    #if not opts.dev:
+     #   try_download_artifacts(agent="locobot")
 
-    set_start_method("spawn", force=True)
+    #set_start_method("spawn", force=True)
 
     sa = LocobotAgent(opts)
     sa.start()
