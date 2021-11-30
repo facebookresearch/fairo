@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
+# FIXME! this should go in ReferenceLocationInterpreter
+from droidlet.interpreter.interpret_location import interpret_relative_direction
 from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num
 
@@ -88,7 +90,13 @@ class FacingInterpreter:
             loc_mems = interpreter.subinterpret["reference_locations"](
                 interpreter, speaker, d["location"]
             )
-            loc = loc_mems[0].get_pos()
+            steps, reldir = interpret_relative_direction(interpreter, d["location"])
+            loc, _ = interpreter.subinterpret["specify_locations"](interpreter, speaker, loc_mems, steps, reldir)
+            # FIXME:  do this right!
+            # this is a hack for robot bc agent position is base position,
+            # and head is on mast; so if loc is based on self, add 1m to height
+            if d["location"].get("reference_object",{}).get("special_reference") == "AGENT":
+                loc = (loc[0], loc[1] + 1.0, loc[2])
             return {"target": loc}
         else:
             raise ErrorWithResponse("I am not sure where you want me to turn")
