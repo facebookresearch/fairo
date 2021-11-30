@@ -58,8 +58,8 @@ commands:
       - run:
           name: Upload documentation if on main branch
           command: |
-            # if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
-            #   then
+            if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
+              then
                 git config --global user.email "yixinlin@fb.com"
                 git config --global user.name "Yixin Lin (automated build)"
 
@@ -70,7 +70,7 @@ commands:
                 git add -A
                 git commit -m "Automatic documentation update" || echo "No changes to commit"
                 git push origin main --force
-            # fi
+            fi
   polymetis_build_conda_pkg:
     steps:
       - run:
