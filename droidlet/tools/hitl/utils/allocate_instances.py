@@ -105,7 +105,7 @@ def register_task_definition(image_tag, task_name):
     print(f"Registered task definition: {task_definition}")
 
 
-def launch_instance(task="craftassist", config="random", debug=False):
+def launch_instance(task="craftassist", config="random", debug=False, batch_id=None):
     """Returns instance id (specifically, ECS task ARN) of a newly launched instance.
 
     Instance is not yet ready, and may not even have an ip address assigned!
@@ -121,6 +121,21 @@ def launch_instance(task="craftassist", config="random", debug=False):
         raise ValueError("Bad config={}".format(config))
 
     timestamp = datetime.now(timezone.utc).isoformat()
+    env_var = [
+        {"name": "RUN_SH_GZ_B64", "value": run_sh},
+        {"name": "AWS_ACCESS_KEY_ID", "value": AWS_ACCESS_KEY_ID},
+        {"name": "AWS_SECRET_ACCESS_KEY", "value": AWS_SECRET_ACCESS_KEY},
+        {"name": "TIMESTAMP", "value": timestamp},
+        {
+            "name": "SENTRY_DSN",
+            "value": os.environ.get("CRAFTASSIST_SENTRY_DSN", ""),
+        },
+        {"name": "CLOUDFLARE_TOKEN", "value": os.getenv("CLOUDFLARE_TOKEN")},
+        {"name": "CLOUDFLARE_ZONE_ID", "value": os.getenv("CLOUDFLARE_ZONE_ID")},
+    ]
+    if batch_id:
+        env_var.append({"name": "TURK_EXPERIMENT_ID", "value": str(batch_id)})
+
     r = ecs.run_task(
         cluster="craftassist",
         taskDefinition=task,
@@ -137,18 +152,7 @@ def launch_instance(task="craftassist", config="random", debug=False):
             "containerOverrides": [
                 {
                     "name": task,
-                    "environment": [
-                        {"name": "RUN_SH_GZ_B64", "value": run_sh},
-                        {"name": "AWS_ACCESS_KEY_ID", "value": AWS_ACCESS_KEY_ID},
-                        {"name": "AWS_SECRET_ACCESS_KEY", "value": AWS_SECRET_ACCESS_KEY},
-                        {"name": "TIMESTAMP", "value": timestamp},
-                        {
-                            "name": "SENTRY_DSN",
-                            "value": os.environ.get("CRAFTASSIST_SENTRY_DSN", ""),
-                        },
-                        {"name": "CLOUDFLARE_TOKEN", "value": os.getenv("CLOUDFLARE_TOKEN")},
-                        {"name": "CLOUDFLARE_ZONE_ID", "value": os.getenv("CLOUDFLARE_ZONE_ID")},
-                    ],
+                    "environment": env_var,
                 }
             ]
         },
@@ -194,7 +198,7 @@ def get_instance_ip(instance_id):
     return ip
 
 
-def request_instance(instance_num, image_tag, task_name, timeout=-1):
+def request_instance(instance_num, image_tag, task_name, timeout=-1, batch_id=None):
     register_task_definition(image_tag, task_name)
     NUM_RETRIES = 100
     start_time = time.time()
@@ -203,7 +207,7 @@ def request_instance(instance_num, image_tag, task_name, timeout=-1):
     instances_ids = []
     while cnt < instance_num and NUM_RETRIES > 0:
         try:
-            instance_id, timestamp = launch_instance(task=task_name, config="flat_world", debug=False)
+            instance_id, timestamp = launch_instance(task=task_name, config="flat_world", debug=False, batch_id=batch_id)
         except Exception as e:
             print(e)
             NUM_RETRIES -= 1
@@ -264,7 +268,7 @@ def register_dashboard_subdomain(cf, zone_id, ip, subdomain):
 
 
 def allocate_instances(instance_num, batch_id, image_tag, task_name, timeout=-1, cf_email="rebeccaqian@fb.com"):
-    instance_ips, instance_ids = request_instance(instance_num, image_tag, task_name, timeout)
+    instance_ips, instance_ids = request_instance(instance_num, image_tag, task_name, timeout, batch_id)
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
         logging.info("registering subdomains on craftassist.io")
         cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
@@ -320,26 +324,30 @@ if __name__ == "__main__":
         "--task_name", type=str, help="Task name of the ecs instance to be requested"
     )
     args = parser.parse_args()
-    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name)
-    batch_id = args.batch_id
-    # register subdomain to proxy instance IP
-    if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
-        logging.info("registering subdomains on craftassist.io")
-        cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
-        zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
-        cf = CloudFlare.CloudFlare(email=args.user, token=cloudflare_token)
-        dns_records = cf.zones.dns_records.get(zone_id)
+    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name, batch_id=11300246)
+    print(f'instance ips: {instance_ips}')
+    import time
+    time.sleep(120)
+    free_ecs_instances(instance_ids)
+    # batch_id = args.batch_id
+    # # register subdomain to proxy instance IP
+    # if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
+    #     logging.info("registering subdomains on craftassist.io")
+    #     cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
+    #     zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
+    #     cf = CloudFlare.CloudFlare(email=args.user, token=cloudflare_token)
+    #     dns_records = cf.zones.dns_records.get(zone_id)
 
-        # Write the subdomains and batch IDs to input CSV for Mephisto
-        # CSV file headers
-        headers = ["subdomain", "batch"]
-        with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
-            csv_writer = csv.writer(fd, delimiter=",")
-            csv_writer.writerow(headers)
-            for x in range(len(instance_ips)):
-                ip = instance_ips[x]
-                subdomain = "dashboard-{}-{}".format(batch_id, x)
-                register_dashboard_subdomain(cf, zone_id, ip, subdomain)
-                # Write record to Mephisto task input CSV
-                csv_writer.writerow([subdomain, batch_id])
+    #     # Write the subdomains and batch IDs to input CSV for Mephisto
+    #     # CSV file headers
+    #     headers = ["subdomain", "batch"]
+    #     with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
+    #         csv_writer = csv.writer(fd, delimiter=",")
+    #         csv_writer.writerow(headers)
+    #         for x in range(len(instance_ips)):
+    #             ip = instance_ips[x]
+    #             subdomain = "dashboard-{}-{}".format(batch_id, x)
+    #             register_dashboard_subdomain(cf, zone_id, ip, subdomain)
+    #             # Write record to Mephisto task input CSV
+    #             csv_writer.writerow([subdomain, batch_id])
 
