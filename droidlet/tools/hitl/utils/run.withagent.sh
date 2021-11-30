@@ -3,6 +3,8 @@
 
 S3_DEST=s3://droidlet-hitl
 
+echo "CHILD PID $$"
+
 function background_agent() (
     echo "Running craftassist agent"
     python3 /fairo/droidlet/lowlevel/minecraft/craftassist_cuberite_utils/wait_for_cuberite.py --host localhost --port 25565
