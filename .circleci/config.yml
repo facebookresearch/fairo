@@ -60,11 +60,15 @@ commands:
           command: |
             if [[ $(git symbolic-ref -q --short HEAD) = "main" ]]
               then
+                git config --global user.email "yixinlin@fb.com"
+                git config --global user.name "Yixin Lin (automated build)"
+
                 git clone git@github.com:polymetis-docs/polymetis-docs.github.io.git ~/polymetis-docs.github.io
                 cp -r ./polymetis/docs/_build/html/* ~/polymetis-docs.github.io/
+
                 cd ~/polymetis-docs.github.io/
                 git add -A
-                git commit -m "Automatic documentation update"
+                git commit -m "Automatic documentation update" || echo "No changes to commit"
                 git push origin main --force
             fi
   polymetis_build_conda_pkg:
