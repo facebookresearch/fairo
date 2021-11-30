@@ -1,8 +1,11 @@
+import os
 import sys
 import threading
 import json
 import copy
 import time
+import shutil
+import base64
 
 import a0
 import torch
@@ -72,8 +75,41 @@ class MoveitInterface:
 
         return new_trajectory
 
-    def sync_env(self, client_id, robot_id):
-        pass
+    @staticmethod
+    def _convert_pose(pos, quat):
+        return {
+            "position": {
+                "x": float(pos[0]),
+                "y": float(pos[1]),
+                "z": float(pos[2]),
+            },
+            "orientation": {
+                "x": float(quat[0]),
+                "y": float(quat[1]),
+                "z": float(quat[2]),
+                "w": float(quat[3]),
+            },
+        }
+
+    def add_mesh(self, name, mesh_pos, mesh_quat, filename):
+        # Create tmpfile
+        abs_filename = os.path.abspath(filename)
+
+        basename = os.path.basename(abs_filename)
+        basename_ext = f".{basename.split('.')[-1]}"
+        basename_name = basename.strip(basename_ext)
+
+        dirname = os.path.dirname(abs_filename)
+        dirname_encoding = base64.b64encode(bytes(dirname, "utf-8")).decode()
+
+        filename_target = f"/tmp/mesh/{basename_name}_{dirname_encoding}{basename_ext}"
+        shutil.copyfile(filename, filename_target)
+
+        # Convert pose
+        mesh_pose = self._convert_pose(mesh_pos, mesh_quat)
+
+        # Send request
+        self._query_moveit(f"scene.add_mesh('{name}', {mesh_pose}, '{filename_target}')")
 
     def plan(self, current_joint_pos, target_pos, target_quat, ee_link, time_to_go, hz=None):
         # Set current state
@@ -84,15 +120,8 @@ class MoveitInterface:
         time.sleep(1)
 
         # Set target
-        pose = self._query_moveit(f"move_group.get_current_pose()")
-        pose["position"]["x"] = float(target_pos[0])
-        pose["position"]["y"] = float(target_pos[1])
-        pose["position"]["z"] = float(target_pos[2])
-        pose["orientation"]["x"] = float(target_quat[0])
-        pose["orientation"]["y"] = float(target_quat[1])
-        pose["orientation"]["z"] = float(target_quat[2])
-        pose["orientation"]["w"] = float(target_quat[3])
-        self._query_moveit(f"move_group.set_pose_target({pose})")
+        target_pose = self._convert_pose(target_pos, target_quat)
+        self._query_moveit(f"move_group.set_pose_target({target_pose})")
 
         # Print planning parameters
         """

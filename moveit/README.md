@@ -4,13 +4,15 @@ Simple API that exposes planning functionalities of [MoveIt](https://moveit.ros.
 
 ## Functionalities
 - [x] Querying MoveIt for a joint trajectory plan given current joint state and desired end-effector pose
-- [ ] Updating MoveIt scene with obstacles from pybullet to plan for obstacle avoidance
+- [x] Updating MoveIt scene with obstacles from pybullet to plan for obstacle avoidance
 
 ## Requirements
 
 - docker
 - torch
 - [Polymetis](https://polymetis-docs.github.io/)
+
+(Note: Ensure user account is part of the `docker` group after the installation of Docker.)
 
 ## Installation
 ```
@@ -21,7 +23,7 @@ pip install -e .
 1. Run the MoveIt planning server:
 ```
 cd moveit_server
-sudo ./run.sh
+./run.sh
 ```
 
 2. In a separate terminal, run the Polymetis server (this example uses the simulation robot client)

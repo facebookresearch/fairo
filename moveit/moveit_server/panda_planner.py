@@ -331,7 +331,16 @@ class PlanningScene:
         pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
         return self._scene.add_cylinder(name, pose_stamped, height, radius)
 
-    # def add_mesh()
+    def add_mesh(
+        self,
+        name: str,
+        pose: "ros2dict[geometry_msgs.Pose]",
+        filename: str,
+        size: typing.Tuple[float, float, float] = (1, 1, 1),
+    ):
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        return self._scene.add_mesh(name, pose_stamped, filename, size)
+
     # def add_object()
 
     def add_plane(

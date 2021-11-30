@@ -12,6 +12,9 @@ ORI_NOISE = torch.Tensor([0.25, 0.25, 0.25])
 TIME_TO_GO = 3
 
 
+MESH_DIR = "../polymetis/polymetis/data/kuka_iiwa/meshes/robotiq-2f/collision/base.stl"
+
+
 def main():
     # Initialize interfaces
     moveit = MoveitInterface()
@@ -29,6 +32,10 @@ def main():
         R.from_quat(ee_quat_current) * R.from_rotvec(ORI_NOISE * torch.randn(3))
     ).as_quat()
     print(f"Target pose: pos={ee_pos_desired}, quat={ee_quat_desired}")
+
+    # Add mesh
+    print("Adding obstacle...")
+    moveit.add_mesh("tmp_obstacle", [0.2, 0, 0.4], [1, 0, 0, 0], MESH_DIR)
 
     # Plan
     print("\n===== Plan =====")
