@@ -69,7 +69,7 @@ class MoveitInterface:
         basename_name = basename.strip(basename_ext)
 
         dirname = os.path.dirname(abs_filename)
-        dirname_encoding = hashlib.shake_128(bytes(dirname, "utf-8")).hexdigest(3)
+        dirname_encoding = hashlib.md5(bytes(dirname, "utf-8")).hexdigest()[:6]
 
         filename_target = f"/tmp/mesh/{basename_name}_{dirname_encoding}{basename_ext}"
 
