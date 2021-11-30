@@ -5,7 +5,7 @@ import json
 import copy
 import time
 import shutil
-import base64
+import hashlib
 
 import a0
 import torch
@@ -69,7 +69,7 @@ class MoveitInterface:
         basename_name = basename.strip(basename_ext)
 
         dirname = os.path.dirname(abs_filename)
-        dirname_encoding = base64.b64encode(bytes(dirname, "utf-8")).decode()
+        dirname_encoding = hashlib.md5(bytes(dirname, "utf-8")).hexdigest()
 
         filename_target = f"/tmp/mesh/{basename_name}_{dirname_encoding}{basename_ext}"
 
