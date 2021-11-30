@@ -72,6 +72,7 @@ class StateManager {
     agentType: "locobot",
     commandState: "idle",
     commandPollTime: 500,
+    isTurk: false,
   };
   session_id = null;
 
@@ -81,6 +82,7 @@ class StateManager {
     this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
+    this.checkIsTurk = this.checkIsTurk.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
@@ -290,6 +292,20 @@ class StateManager {
     this.refs.forEach((ref) => {
       if (ref instanceof MainPane) {
         ref.setState({ agentType: this.memory.agentType });
+      }
+      if (ref instanceof InteractApp) {
+        ref.setState({ agentType: this.memory.agentType });
+      }
+    });
+  }
+
+  checkIsTurk(status) {
+    // If TurkInfo successfully mounts, this is a HIT
+    // Used to turn on forced error labeling
+    this.memory.isTurk = status;
+    this.refs.forEach((ref) => {
+      if (ref instanceof InteractApp) {
+        ref.setState({ isTurk: this.memory.isTurk });
       }
     });
   }

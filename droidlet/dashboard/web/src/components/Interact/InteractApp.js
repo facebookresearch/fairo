@@ -19,6 +19,8 @@ class InteractApp extends Component {
       chats: [{ msg: "", failed: false }],
       failidx: -1,
       agent_reply: "",
+      agentType: null,
+      isTurk: false,
     };
     this.state = this.initialState;
     this.setAssistantReply = this.setAssistantReply.bind(this);
@@ -130,6 +132,7 @@ class InteractApp extends Component {
               isMobile={this.props.isMobile}
               ref={this.MessageRef}
               chats={this.state.chats}
+              agentType={this.state.agentType}
               enableVoice={false}
               agent_reply={this.state.agent_reply}
               goToQuestion={this.goToQuestion.bind(this)}
@@ -151,6 +154,7 @@ class InteractApp extends Component {
             <AgentThinking
               stateManager={this.props.stateManager}
               chats={this.state.chats}
+              isTurk={this.state.isTurk}
               goToMessage={this.goToMessage.bind(this)}
               goToQuestion={this.goToQuestion.bind(this)}
               setInteractState={this.setInteractState.bind(this)}

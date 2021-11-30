@@ -51,8 +51,13 @@ class AgentThinking extends Component {
       });
       if (!res.task) {
         console.log("no task on stack");
-        // If there's no task, leave this pane and go to error labeling
-        this.props.goToQuestion(this.props.chats.length - 1);
+        // If there's no task, leave this pane
+        // If it's a HIT go to error labeling, else back to Message
+        if (this.props.isTurk) {
+          this.props.goToQuestion(this.props.chats.length - 1);
+        } else {
+          this.props.goToMessage();
+        }
       } else {
         // Otherwise send out a new task stack poll after a delay
         setTimeout(() => {
