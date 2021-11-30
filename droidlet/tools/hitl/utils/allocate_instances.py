@@ -324,30 +324,26 @@ if __name__ == "__main__":
         "--task_name", type=str, help="Task name of the ecs instance to be requested"
     )
     args = parser.parse_args()
-    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name, batch_id=11300246)
-    print(f'instance ips: {instance_ips}')
-    import time
-    time.sleep(120)
-    free_ecs_instances(instance_ids)
-    # batch_id = args.batch_id
-    # # register subdomain to proxy instance IP
-    # if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
-    #     logging.info("registering subdomains on craftassist.io")
-    #     cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
-    #     zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
-    #     cf = CloudFlare.CloudFlare(email=args.user, token=cloudflare_token)
-    #     dns_records = cf.zones.dns_records.get(zone_id)
+    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name, batch_id="0643")
+    batch_id = args.batch_id
+    # register subdomain to proxy instance IP
+    if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
+        logging.info("registering subdomains on craftassist.io")
+        cloudflare_token = os.getenv("CLOUDFLARE_TOKEN")
+        zone_id = os.getenv("CLOUDFLARE_ZONE_ID")
+        cf = CloudFlare.CloudFlare(email=args.user, token=cloudflare_token)
+        dns_records = cf.zones.dns_records.get(zone_id)
 
-    #     # Write the subdomains and batch IDs to input CSV for Mephisto
-    #     # CSV file headers
-    #     headers = ["subdomain", "batch"]
-    #     with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
-    #         csv_writer = csv.writer(fd, delimiter=",")
-    #         csv_writer.writerow(headers)
-    #         for x in range(len(instance_ips)):
-    #             ip = instance_ips[x]
-    #             subdomain = "dashboard-{}-{}".format(batch_id, x)
-    #             register_dashboard_subdomain(cf, zone_id, ip, subdomain)
-    #             # Write record to Mephisto task input CSV
-    #             csv_writer.writerow([subdomain, batch_id])
+        # Write the subdomains and batch IDs to input CSV for Mephisto
+        # CSV file headers
+        headers = ["subdomain", "batch"]
+        with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
+            csv_writer = csv.writer(fd, delimiter=",")
+            csv_writer.writerow(headers)
+            for x in range(len(instance_ips)):
+                ip = instance_ips[x]
+                subdomain = "dashboard-{}-{}".format(batch_id, x)
+                register_dashboard_subdomain(cf, zone_id, ip, subdomain)
+                # Write record to Mephisto task input CSV
+                csv_writer.writerow([subdomain, batch_id])
 
