@@ -288,10 +288,12 @@ def timing_charts(run_id: int) -> None:
             except:
                 pass
     
-    #workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
-    #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+    print(workers)
+    print(workers_read_instructions)
+    workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
+    compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
     #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211130080909')
-
+    '''
     # promoters = len([i for i in usability if i > 5])
     # detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
@@ -366,7 +368,7 @@ def timing_charts(run_id: int) -> None:
         keys = range(len(command_timing[status]))
         command_dict = dict(zip(keys, command_timing[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
-
+    '''
 
 #%%
 def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
@@ -390,22 +392,24 @@ def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs
     from collections import Counter
     all_lists = [total, read_instructions, timer_off, submit_command, logs]
     list_names = ["'Full List'", "'Read Instructions'", "'Turned Timer Off'", "'Submitted a command'", "'Recorded S3 Logs'"]
-    print(f"Total number of workers: {len(total)}")
+    print(f"Total number of units: {len(total)}")
     print(f"Worker HIT count: {Counter(total)}")
-    print(f"Number of workers who read instructions: {len(read_instructions)}")
-    print(f"Number of workers who turned the timer off: {len(timer_off)}")
-    print(f"Number of workers who submitted a command (recorded by Mephisto): {len(submit_command)}")
-    print(f"Number of workers who submitted logs to S3: {len(logs)}")
-    print(f"Number of Workers who submitted a job but did not read instructions: {len([x for x in total if x not in read_instructions])}")
-    print(f"Number of Workers who submitted a job but did not turn the timer off: {len([x for x in total if x not in timer_off])}")
-    print(f"Number of Workers who submitted a job but did not submit a command: {len([x for x in total if x not in submit_command])}")
-    print(f"Number of Workers who submitted a job but did not log to S3: {len([x for x in total if x not in logs])}")
-    print(f"Number of Workers who read instructions but did not turn the timer off: {len([x for x in read_instructions if x not in timer_off])}")
-    print(f"Number of Workers who read instructions but did not dubmit a command: {len([x for x in read_instructions if x not in submit_command])}")
-    print(f"Number of Workers who turned the timer off but did not submit a command: {len([x for x in timer_off if x not in submit_command])}")
-    print(f"Number of Workers who turned the timer off but did not log to S3: {len([x for x in timer_off if x not in logs])}")
-    print(f"Number of Workers who submitted a command but did not log to S3: {len([x for x in submit_command if x not in logs])}")
-    print(f"Number of Workers who submitted a log to S3 but did not submit a command: {len([x for x in logs if x not in submit_command])}")
+    print(f"Number of unique workers: {len(np.unique(total))}")
+    print(f"Median # HITs per worker: {np.median(list(Counter(total).values()))}")
+    print(f"Number of units who read instructions: {len(read_instructions)}")
+    print(f"Number of units who turned the timer off: {len(timer_off)}")
+    print(f"Number of units who submitted a command (recorded by Mephisto): {len(submit_command)}")
+    print(f"Number of units who submitted logs to S3: {len(logs)}")
+    print(f"Number of workers who submitted a job but did not read instructions: {len([x for x in total if x not in read_instructions])}")
+    print(f"Number of workers who submitted a job but did not turn the timer off: {len([x for x in total if x not in timer_off])}")
+    print(f"Number of workers who submitted a job but did not submit a command: {len([x for x in total if x not in submit_command])}")
+    print(f"Number of workers who submitted a job but did not log to S3: {len([x for x in total if x not in logs])}")
+    print(f"Number of workers who read instructions but did not turn the timer off: {len([x for x in read_instructions if x not in timer_off])}")
+    print(f"Number of workers who read instructions but did not submit a command: {len([x for x in read_instructions if x not in submit_command])}")
+    print(f"Number of workers who turned the timer off but did not submit a command: {len([x for x in timer_off if x not in submit_command])}")
+    print(f"Number of workers who turned the timer off but did not log to S3: {len([x for x in timer_off if x not in logs])}")
+    print(f"Number of workers who submitted a command but did not log to S3: {len([x for x in submit_command if x not in logs])}")
+    print(f"Number of workers who submitted a log to S3 but did not submit a command: {len([x for x in logs if x not in submit_command])}")
 
     for i,l in enumerate(all_lists):
         d1 = Counter(l)
