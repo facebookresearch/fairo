@@ -64,6 +64,8 @@ commands:
                 cp -r ./polymetis/docs/_build/html/* ~/polymetis-docs.github.io/
                 cd ~/polymetis-docs.github.io/
                 git add -A
+                git config --global user.email "yixinlin@fb.com"
+                git config --global user.name "Yixin Lin (automated build)"
                 git commit -m "Automatic documentation update"
                 git push origin main --force
             fi
