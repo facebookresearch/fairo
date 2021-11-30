@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 
 import boto3
 
-from droidlet.tools.hitl.nsp_retrain import ping_cuberite
+from droidlet.tools.crowdsourcing.servermgr import ping_cuberite
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]

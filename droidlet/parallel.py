@@ -37,20 +37,32 @@ class Process(multiprocessing.Process):
         return self._exception
 
 def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue):
-    init_fn = cloudpickle.loads(_init_fn)
-    process_fn = cloudpickle.loads(_process_fn)
-    initial_state = init_fn(*init_args)
+    try:
+        init_fn = cloudpickle.loads(_init_fn)
+        process_fn = cloudpickle.loads(_process_fn)
+        initial_state = init_fn(*init_args)
 
-    while not shutdown_event.is_set():
-        try:
-            process_args = input_queue.get(block=True, timeout=0.1)
-            process_args_aug = (initial_state, *process_args)
-            print(process_args)
-            print(process_args_aug)
-            process_return = process_fn(*process_args_aug)
-            output_queue.put(process_return)
-        except queue.Empty:
-            pass
+        while not shutdown_event.is_set():
+            try:
+                process_args = input_queue.get(block=True, timeout=0.1)
+                process_args_aug = (initial_state, *process_args)
+                print(process_args)
+                print(process_args_aug)
+                process_return = process_fn(*process_args_aug)
+                output_queue.put(process_return)
+            except queue.Empty:
+                pass
+    except:
+        # if the queues are not empty, then the multiprocessing
+        # finalizers don't exit cleanly and result in a hang,
+        # because you are stuck in joining the process
+        # Reference: https://docs.python.org/2/library/multiprocessing.html#multiprocessing-programming
+        #            See: "Joining processes that use queues"
+        while not input_queue.empty():
+            input_queue.get()
+        while not output_queue.empty():
+            output_queue.get()
+        raise
 
 
 class BackgroundTask:
