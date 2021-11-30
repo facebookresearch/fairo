@@ -21,6 +21,10 @@ class TurkInfo extends Component {
       timeElapsed: 0,
       creativityScores: [null],
       diversityScores: [null],
+      avgDiversity: null,
+      avgCreativity: null,
+      quantityScore: null,
+      stoplightScore: null,
       commandList: [],
       performanceIndicator: [false, false, false],
       feedback: "",
@@ -32,6 +36,14 @@ class TurkInfo extends Component {
   handleClick = () => {
     if (this.state.isTimerOn) {
       window.parent.postMessage(JSON.stringify({ msg: "timerOFF" }), "*");
+      window.parent.postMessage(JSON.stringify({ msg: {
+        interactionScores: {
+          creativity: this.state.avgCreativity,
+          diversity: this.state.avgDiversity,
+          quantity: this.state.quantityScore,
+          stoplight: this.state.stoplightScore
+        }
+      }}), "*");
       this.setState({
         isTimerOn: false,
         isSessionEnd: true,
@@ -146,6 +158,10 @@ class TurkInfo extends Component {
     this.setState({
       creativityScores: newCreativityScores,
       diversityScores: newDiversityScores,
+      avgCreativity: avgCreativity,
+      avgDiversity: avgDiversity,
+      quantityScore: quantityScore,
+      stoplightScore: stoplightScore,
       commandList: newCommandList,
       feedback: feedback,
       performanceIndicator: performance,

@@ -80,6 +80,8 @@ class Message extends Component {
       this.props.setInteractState({ msg: chatmsg, timestamp: Date.now() });
       //log message to flask
       this.props.stateManager.logInteractiondata("text command", chatmsg);
+      //log message to Mephisto
+      window.parent.postMessage(JSON.stringify({ msg: {command: chatmsg} }), "*");
       //send message to TurkInfo
       this.props.stateManager.sendCommandToTurkInfo(chatmsg);
       //socket connection

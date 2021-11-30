@@ -91,16 +91,56 @@ def check_run_status(run_id: int) -> None:
         pass
 
 #%%
-def timing_charts(run_id: int) -> None:
+def retrieve_units(run_id: int) -> list:
     db = LocalMephistoDB()
     units = db.find_units(task_run_id=run_id)
-    completed_num = 0
     completed_units = []
     for unit in units:
         if unit.db_status == "completed":
-            completed_num += 1
-            completed_units .append(unit)
+            completed_units.append(unit)
+    return completed_units
 
+#%%
+def increment_dict(dict, key):
+    temp_dict = dict
+    if key not in temp_dict:
+        temp_dict[key] = 1
+    else:
+        temp_dict[key] += 1
+    return temp_dict
+
+#%%
+def plot_OS_browser(run_id: int) -> None:
+    completed_units = retrieve_units(run_id)
+    db = LocalMephistoDB()
+    data_browser = DataBrowser(db=db)
+    browsers = {}
+    browser_versions = {}
+    OSs = {}
+    mobile = {"yes": 0, "no": 0}
+    for unit in completed_units:
+        data = data_browser.get_data_from_unit(unit)
+        user_agent = json.loads(data["data"]["outputs"]["userAgent"])
+        browser = user_agent["browser"]["name"]
+        browsers = increment_dict(browsers, browser)
+        browser_version = browser + str(user_agent["browser"]["v"])
+        browser_versions = increment_dict(browser_versions, browser_version)
+        OSs = increment_dict(OSs, user_agent["browser"]["os"])
+        if user_agent["mobile"]:
+            mobile["yes"] += 1
+        else:
+            mobile["no"] += 1
+    
+    plot_hist(browsers, xlabel="Browsers", ylabel=None)
+    plot_hist(browser_versions, xlabel="Browser Versions", ylabel=None)
+    plot_hist(OSs, xlabel="OS's", ylabel=None)
+    plot_hist(mobile, xlabel="On Mobile", ylabel=None)
+    return
+
+#%%
+def timing_charts(run_id: int) -> None:
+    completed_units = retrieve_units(run_id)
+    db = LocalMephistoDB()
     data_browser = DataBrowser(db=db)
     workers = []
     workers_read_instructions = []
@@ -117,12 +157,14 @@ def timing_charts(run_id: int) -> None:
     post_last_command_time = []
     rating_time = []
     command_num = []
+    command_list = []
     command_timing  = { 'send': [], 'NSP': [], 'plan': [], 'execute': [], 'total': [] }
     command_timing_by_hit = { 'start': [], 'end': [] }
     starttime = math.inf
     endtime = -math.inf
     HITtime = []
     unit_num = 1
+    command_count_v2 = 0
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -182,6 +224,11 @@ def timing_charts(run_id: int) -> None:
                 interact_time.append(round((interaction_end_time - interaction_start_time)/1000))
                 workers_timer_off.append(worker)
             
+            # Count and collect commands
+            if "command" in click["id"]:
+                #command_count += 1
+                command_list.append(click["id"]["command"].split('|')[0])
+
             # Command timing metrics:
             if click["id"] == 'goToAgentThinking':
                 command_count += 1
@@ -241,24 +288,26 @@ def timing_charts(run_id: int) -> None:
             except:
                 pass
     
-    workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211112115924", "nsp_outputs")
+    #workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
     #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
-    get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211112115924')
+    #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211130080909')
 
-    '''
-    promoters = len([i for i in usability if i > 5])
-    detractors = len([i for i in usability if i < 5 and i > 0])
+    # promoters = len([i for i in usability if i > 5])
+    # detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
 
     print(f"Units logged: {unit_num-1}")
     print(f"Start time: {datetime.fromtimestamp(starttime)}")
     print(f"End time: {datetime.fromtimestamp(endtime)}")
-    print(f"Avg Number of commands: {sum(command_num)/len(command_num):.1f}")
-    print(f"Units w/ no commands: {command_num.count(0)}")
+    print(f"Length of Mephisto command list: {len(command_list)}")
+    print(f"Total Command count: {sum(command_num)}")
+    #print(f"Command count (alternate method): {command_count_v2}")
+    print(f"Avg Number of commands in Mephisto: {sum(command_num)/len(command_num):.1f}")
+    print(f"Units w/ no commands in Mephisto: {command_num.count(0)}")
     print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
     print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
-    print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
+    # print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
     print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
     
     calc_percentiles(read_time, "Total Read Time")
@@ -317,7 +366,7 @@ def timing_charts(run_id: int) -> None:
         keys = range(len(command_timing[status]))
         command_dict = dict(zip(keys, command_timing[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
-    '''
+
 
 #%%
 def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
@@ -446,6 +495,7 @@ def get_stats(command_list):
         total_len += len(c.split())
     avg_len = total_len / len_dedup
 
+    print(f"Stats from S3 command logs:")
     print(f'num_ori {len_ori}')
     print(f'num_dedup {len_dedup}')
     print(f'dup_rate {((len_ori - len_dedup) / len_ori * 100):.1f}%')
@@ -587,11 +637,11 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211112115924/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211112115924")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211130080909/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211130080909")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211112115924", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211112115924", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211130080909", "error_details")
 
 #%%
 if __name__ == "__main__":

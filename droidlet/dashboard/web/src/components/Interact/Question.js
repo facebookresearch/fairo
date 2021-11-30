@@ -368,9 +368,6 @@ class Question extends Component {
       action_dict: lastChatActionDict,
       agent_reply: this.props.agent_reply, // In case the agent chat updates while this pane is displayed
     });
-    let command_and_lf = { command: this.props.chats[this.props.failidx].msg + "|" + JSON.stringify(this.state.action_dict) };
-    // Parsed: data.msg.command = "command|logical_form"
-    window.parent.postMessage(JSON.stringify({ msg: command_and_lf }), "*");
   }
 
   render() {
