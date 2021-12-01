@@ -288,12 +288,10 @@ def timing_charts(run_id: int) -> None:
             except:
                 pass
     
-    print(workers)
-    print(workers_read_instructions)
     workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
     compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
     #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211130080909')
-    '''
+    
     # promoters = len([i for i in usability if i > 5])
     # detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
@@ -368,7 +366,7 @@ def timing_charts(run_id: int) -> None:
         keys = range(len(command_timing[status]))
         command_dict = dict(zip(keys, command_timing[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
-    '''
+    
 
 #%%
 def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):

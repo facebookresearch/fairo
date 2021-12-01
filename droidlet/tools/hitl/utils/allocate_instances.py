@@ -275,7 +275,7 @@ def allocate_instances(instance_num, batch_id, image_tag, task_name, timeout=-1,
         # Write the subdomains and batch IDs to input CSV for Mephisto
         # CSV file headers
         headers = ["subdomain", "batch"]
-        with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
+        with open("../../crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
             csv_writer = csv.writer(fd, delimiter=",")
             csv_writer.writerow(headers)
             for x in range(len(instance_ips)):
@@ -333,7 +333,7 @@ if __name__ == "__main__":
         # Write the subdomains and batch IDs to input CSV for Mephisto
         # CSV file headers
         headers = ["subdomain", "batch"]
-        with open("../../../../tools/crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
+        with open("../../crowdsourcing/droidlet_static_html_task/data.csv", "w") as fd:
             csv_writer = csv.writer(fd, delimiter=",")
             csv_writer.writerow(headers)
             for x in range(len(instance_ips)):
