@@ -10,9 +10,6 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
 import ListItemText from "@material-ui/core/ListItemText";
-import FailIcon from "@material-ui/icons/Cancel";
-
-import IconButton from "@material-ui/core/IconButton";
 import KeyboardVoiceIcon from "@material-ui/icons/KeyboardVoice";
 
 import "./Message.css";
@@ -25,6 +22,7 @@ class Message extends Component {
     super(props);
     this.state = {
       recognizing: false,
+      enableVoice: this.props.enableVoice,
     };
 
     this.toggleListen = this.toggleListen.bind(this);
@@ -78,6 +76,7 @@ class Message extends Component {
 
   componentDidMount() {
     document.addEventListener("keypress", this.bindKeyPress);
+    window.parent.postMessage(JSON.stringify({ msg: "goToMessage" }), "*");
   }
 
   componentWillUnmount() {
@@ -125,8 +124,16 @@ class Message extends Component {
       this.props.stateManager.logInteractiondata("text command", chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+      //update StateManager command state
+      this.props.stateManager.memory.commandState = "sent";
       //clear the textbox
       document.getElementById("msg").innerHTML = "";
+      //clear the agent reply that will be shown in the question pane
+      this.props.stateManager.memory.agent_reply = "";
+      //change to the AgentThinking view pane if it makes sense
+      if (this.props.agentType === "craftassist") {
+        this.props.goToAgentThinking();
+      }
     }
   }
 
@@ -136,33 +143,41 @@ class Message extends Component {
         {/* FIXME Save for dashboard in turk */}
         {/* <p>Press spacebar to start/stop recording.</p> */}
         {/* <p>Enter the command to the bot in the input box below</p>
-        <List>{this.renderChatHistory()}</List>
-        <div
-          contentEditable="true"
-          className="Msg single-line"
-          id="msg"
-          suppressContentEditableWarning={true}
-        >
-          {" "}
-        </div> */}
-        <p>
-          Enter the command to the bot in the input box below, or click the mic
-          button to start/stop voice input.
-        </p>
-        <p>
-          Click the x next to the message if the outcome wasn't as expected.
-        </p>
-        <KeyboardVoiceIcon
-          className="ASRButton"
-          variant="contained"
-          color={this.state.recognizing ? "default" : "secondary"}
-          fontSize="large"
-          onClick={this.toggleListen.bind(this)}
-        ></KeyboardVoiceIcon>
+           <List>{this.renderChatHistory()}</List>
+           <div
+             contentEditable="true"
+             className="Msg single-line"
+             id="msg"
+             suppressContentEditableWarning={true}
+           >
+             {" "}
+           </div> */}
+        {this.state.enableVoice ? (
+          <div>
+            <p>
+              Enter the command to the assistant in the input box below, or
+              click the mic button to start/stop voice input.
+            </p>
+            <p>
+              Click "Mark Error" next to the message if the outcome wasn't as
+              expected.
+            </p>
+            <KeyboardVoiceIcon
+              className="ASRButton"
+              variant="contained"
+              color={this.state.recognizing ? "default" : "secondary"}
+              fontSize="large"
+              onClick={this.toggleListen.bind(this)}
+            ></KeyboardVoiceIcon>
+            <p> {this.state.recognizing ? "Listening..." : ""} </p>
+          </div>
+        ) : (
+          <div>
+            <p>Enter the command to the assistant in the input box below.</p>
+          </div>
+        )}
 
-        <p> {this.state.recognizing ? "Listening..." : ""} </p>
-
-        <List>{this.renderChatHistory(this.props.status)}</List>
+        {/*<List>{this.renderChatHistory(this.props.status)}</List>*/}
         {this.props.isMobile === true ? (
           <div
             style={{ outline: " solid 1px black" }}
@@ -195,9 +210,9 @@ class Message extends Component {
 
         {/* FIXME save for dashboard in turk */}
         {/* <p id="callbackMsg">{this.props.status}</p>
-        <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
-        <br />
-        <br /> */}
+           <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
+           <br />
+           <br /> */}
         <p id="assistantReply">{this.props.agent_reply} </p>
       </div>
     );

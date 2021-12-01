@@ -18,6 +18,10 @@ class TurkInfo extends Component {
     };
   }
 
+  componentDidMount() {
+    this.props.stateManager.forceErrorLabeling(true);
+  }
+
   handleClick = () => {
     if (this.state.isTimerOn) {
       this.setState({

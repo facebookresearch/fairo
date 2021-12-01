@@ -6,7 +6,7 @@ S3_DEST=s3://craftassist/turk_interactions_with_agent
 function background_agent() (
     echo "Running craftassist agent"
     python3 /fairo/droidlet/lowlevel/minecraft/craftassist_cuberite_utils/wait_for_cuberite.py --host localhost --port 25565
-    python3 /fairo/agents/craftassist/craftassist_agent.py --no_default_behavior --agent_debug_mode --log_level debug --dev 1>agent.log 2>agent.log
+    python3 /fairo/agents/craftassist/craftassist_agent.py --no_default_behavior --agent_debug_mode --enable_timeline --log_level debug --dev 1>agent.log 2>agent.log
 )
 
 echo "Installing Droidlet as a module"
