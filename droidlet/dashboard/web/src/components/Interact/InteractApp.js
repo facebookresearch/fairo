@@ -16,9 +16,12 @@ class InteractApp extends Component {
       currentView: 1,
       lastChatActionDict: "",
       status: "",
-      chats: [{ msg: "", failed: false }],
+      chats: [{ msg: "", timestamp: Date.now() }],
       failidx: -1,
-      agent_reply: "",
+      agent_replies: [
+        { msg: "Click the 'Start' button to begin!", timestamp: Date.now() },
+      ],
+      last_reply: "",
       agentType: null,
       isTurk: false,
     };
@@ -36,20 +39,9 @@ class InteractApp extends Component {
     this.setState({ chats: new_chats });
   }
 
-  setAssistantReply(res) {
-    // show assistant's reply in the Message component
-    this.setState({
-      agent_reply: res.agent_reply,
-    });
-  }
-
   componentDidMount() {
     if (this.props.stateManager) {
       this.props.stateManager.connect(this);
-      this.props.stateManager.socket.on(
-        "showAssistantReply",
-        this.setAssistantReply
-      );
       this.setState({ isTurk: this.props.stateManager.memory.isTurk });
     }
   }
@@ -67,15 +59,8 @@ class InteractApp extends Component {
     // Send a message to the parent iframe for analytics logging
     window.parent.postMessage(JSON.stringify({ msg: "goToMessage" }), "*");
 
-    //change the state to switch the view to show Message and save the user input necessary for socket connection
-    var newchats = this.state.chats;
-    if (this.state.failidx !== -1) {
-      newchats[this.state.failidx].failed = true;
-    }
-    this.setState({
-      currentView: 1,
-      chats: newchats,
-    });
+    //change the state to switch the view to show Message
+    this.setState({ currentView: 1 });
   }
 
   goToAgentThinking() {
@@ -114,11 +99,16 @@ class InteractApp extends Component {
       this.goToQuestionWindow
     );
 
+    const replies_len = this.props.stateManager.memory.agent_replies.length;
+    const chats_len = this.state.chats.length;
+
     this.setState({
-      agent_reply: this.props.stateManager.memory.agent_reply,
+      agent_replies: this.props.stateManager.memory.agent_replies,
+      last_reply:
+        this.props.stateManager.memory.agent_replies[replies_len - 1].msg,
       currentView: 2,
       chats: this.state.chats,
-      failidx: 0,
+      failidx: chats_len - 1,
     });
   }
 
@@ -135,7 +125,7 @@ class InteractApp extends Component {
               chats={this.state.chats}
               agentType={this.state.agentType}
               enableVoice={false}
-              agent_reply={this.state.agent_reply}
+              agent_replies={this.state.agent_replies}
               goToQuestion={this.goToQuestion.bind(this)}
               goToAgentThinking={this.goToAgentThinking.bind(this)}
               setInteractState={this.setInteractState.bind(this)}

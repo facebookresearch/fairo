@@ -1,8 +1,10 @@
 /* Copyright (c) Facebook, Inc. and its affiliates. */
 
 .App {
+  margin: 0;
   text-align: center;
-  margin-top: 0px 0;
+  height: 100%;
+  width: 100%;
 }
 
 .App-title {
@@ -11,9 +13,25 @@
   font-size: 60;
 }
 
-.content {
+.infoContent {
+  margin: 0;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   text-align: center;
-  margin-top: 10px;
+  height: 100%;
+  width: 100%;
+}
+
+.stoplight {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 2%;
+  width: 85%;
 }
 
 .below-nav {
@@ -23,4 +41,8 @@
 
 .MuiInputBase-input {
   text-align: left !important;
+}
+
+:root {
+  --status-indicator-size: 25px;
 }

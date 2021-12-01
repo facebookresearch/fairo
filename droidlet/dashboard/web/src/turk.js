@@ -43,18 +43,8 @@ var config = {
                 },
               ],
             },
-            {
-              type: "stack",
-              content: [
-                {
-                  title: "Chat History",
-                  type: "react-component",
-                  component: "History",
-                  props: { stateManager: stateManager },
-                },
-              ],
-            },
           ],
+          width: 35,
         },
         {
           type: "column",

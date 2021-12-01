@@ -1,7 +1,7 @@
 /*
    Copyright (c) Facebook, Inc. and its affiliates.
 
- * Question.js handles the template for the question and answers
+ * Question.js handles the template for the question and answers in NSP error labeling
  */
 
 import React, { Component } from "react";
@@ -23,10 +23,6 @@ class Question extends Component {
       task_error: false,
       action_dict: {},
       feedback: "",
-      // asr: false,
-      // adtt: false,
-      // adtt_text: "",
-      // new_action_dict: {},
     };
   }
 
@@ -42,17 +38,12 @@ class Question extends Component {
       task_error: this.state.task_error,
       msg: this.props.chats[this.props.failidx].msg,
       feedback: this.state.feedback,
-      // new_action_dict: this.state.new_action_dict,
-      // asr: this.state.asr,
-      // adtt: this.state.adtt,
-      // adtt_text: this.state.adtt_text,
     };
 
     // Emit socket.io event to save data to error logs and Mephisto
     this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
     // Parsed: data.msg.data = data
     window.parent.postMessage(JSON.stringify({ msg: data }), "*");
-
     // go back to message page after writing to database
     this.props.goToMessage();
   }
@@ -154,50 +145,6 @@ class Question extends Component {
       </div>
     );
   }
-
-  // renderASRQuestion() {
-  //   //check if ASR model output was correct
-  //   return (
-  //     <div className="question" >
-  //       <h5>Is "{this.props.failmsg}" what you said to the bot?</h5>
-  //       <List className="answers" component='nav'>
-  //         <ListItem button onClick={() => this.answerASR(0)}><ListItemText primary="Yes" /></ListItem>
-  //         <ListItem button onClick={() => this.answerASR(1)}><ListItemText primary="No" /></ListItem>
-  //       </List>
-  //     </div>
-  //   );
-  // }
-
-  // answerASR(index) {
-  //   //handles after the user submits the answer (y/n) to if asr errored or not
-  //   if (index === 1) { //if no
-  //     this.setState({ asr: true, view: 3 });
-  //   } else {
-  //     if (this.state.adtt_text === "") {
-  //       if (Object.keys(this.state.action_dict).length === 0) {
-  //         this.setState({ view: 3 });
-  //       } else {
-  //         //action dict not empty so show labeling page
-  //         this.setState({ view: 2 })
-  //       }
-  //     } else {
-  //       this.setState({ view: 1 })
-  //     }
-  //   }
-  // }
-
-  // renderADTTQuestion() {
-  //   //check if ADTT output was correct
-  //   return (
-  //     <div className="question" >
-  //       <h5>Is "{this.state.adtt_text}" what you wanted the bot to do?</h5>
-  //       <List className="answers" component='nav'>
-  //         <ListItem button onClick={() => this.answerParsing(0)}><ListItemText primary="Yes" /></ListItem>
-  //         <ListItem button onClick={() => this.answerParsing(1)}><ListItemText primary="No" /></ListItem>
-  //       </List>
-  //     </div>
-  //   );
-  // }
 
   renderSemanticParserErrorQuestion() {
     /* check if the parser was right.*/
@@ -421,14 +368,6 @@ class Question extends Component {
       action_dict: lastChatActionDict,
       agent_reply: this.props.agent_reply, // In case the agent chat updates while this pane is displayed
     });
-    let command_and_lf = {
-      command:
-        this.props.chats[this.props.failidx].msg +
-        "|" +
-        JSON.stringify(this.state.action_dict),
-    };
-    // Parsed: data.msg.command = "command|logical_form"
-    window.parent.postMessage(JSON.stringify({ msg: command_and_lf }), "*");
   }
 
   render() {
@@ -442,15 +381,12 @@ class Question extends Component {
           The assistant responded:<br></br>
           <strong>{this.state.agent_reply}</strong>
         </div>
-        {/* {this.state.view === 0 ?  this.renderASRQuestion() : null} */}
         {this.state.view === 0
           ? this.renderSemanticParserErrorQuestion()
           : null}
         {this.state.view === 1 ? this.renderParsingFail() : null}
         {this.state.view === 2 ? this.renderParsingSuccess() : null}
         {this.state.view === 3 ? this.renderActionFail() : null}
-        {/* {this.state.view === 1 ? this.renderADTTQuestion() : null} */}
-        {/* {this.state.view === 2 ? <Labeling action_dict={this.state.action_dict} message={(this.props.chats[this.props.failidx]).msg} goToEnd={this.goToEnd.bind(this)} /> : null} */}
         {this.state.view === 4 ? this.renderEnd() : null}
       </div>
     );
