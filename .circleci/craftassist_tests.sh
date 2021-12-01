@@ -4,11 +4,6 @@ set -ex
 script_dir=$(dirname $0)
 SHARED_PATH=/shared
 
-echo "Downloading datasets, models ..."
-yes | python3 droidlet/tools/artifact_scripts/try_download.py --agent_name craftassist &
-wait
-echo "Done!"
-
 pushd $script_dir/../
 
 pytest --cov-report=xml:$SHARED_PATH/test_full_craftassist_agent.xml --cov=agents --cov=droidlet agents/craftassist/tests/ --disable-pytest-warnings

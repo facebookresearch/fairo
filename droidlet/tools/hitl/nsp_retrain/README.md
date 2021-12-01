@@ -29,8 +29,8 @@ For Interaction Job, we are serving a specific version of dashboard on ECS insta
 
 Here, you should:
 
-1. First find the DIGEST of that commit (it should look like 'sha256:9db893....')
-2. Tag that digest with a spcific TAG_NAME by running: `./tools/docker/promote.sh <DIGEST> <TAG_NAME>`
+1. First find the SHA1 of that commit (in CI you should see something like: docker push ECR_image_URI:<COMMIT SHA1>)
+2. Tag that digest with a spcific TAG_NAME by running: `./tools/docker/promote.sh <COMMIT SHA1> <TAG_NAME>`
 
 
 ### Step 3: run the pipeline with one click
