@@ -19,7 +19,7 @@ class TurkInfo extends Component {
   }
 
   componentDidMount() {
-    this.props.stateManager.checkIsTurk(true);
+    this.props.stateManager.forceErrorLabeling(true);
   }
 
   handleClick = () => {

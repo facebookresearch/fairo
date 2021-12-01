@@ -76,7 +76,7 @@ class Message extends Component {
 
   componentDidMount() {
     document.addEventListener("keypress", this.bindKeyPress);
-    window.parent.postMessage(JSON.stringify({ msg: "goToMessaage" }), "*");
+    window.parent.postMessage(JSON.stringify({ msg: "goToMessage" }), "*");
   }
 
   componentWillUnmount() {

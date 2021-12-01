@@ -82,7 +82,7 @@ class StateManager {
     this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
-    this.checkIsTurk = this.checkIsTurk.bind(this);
+    this.forceErrorLabeling = this.forceErrorLabeling.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
@@ -299,9 +299,8 @@ class StateManager {
     });
   }
 
-  checkIsTurk(status) {
-    // If TurkInfo successfully mounts, this is a HIT
-    // Used to turn on forced error labeling
+  forceErrorLabeling(status) {
+    // If TurkInfo successfully mounts, this is a HIT and forced labeling should be on
     this.memory.isTurk = status;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -360,7 +359,6 @@ class StateManager {
   updateVoxelWorld(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        //console.log("update Voxel World with " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,

@@ -50,6 +50,7 @@ class InteractApp extends Component {
         "showAssistantReply",
         this.setAssistantReply
       );
+      this.setState({ isTurk: this.props.stateManager.memory.isTurk });
     }
   }
 
@@ -64,7 +65,7 @@ class InteractApp extends Component {
 
   goToMessage() {
     // Send a message to the parent iframe for analytics logging
-    window.parent.postMessage(JSON.stringify({ msg: "goToMessaage" }), "*");
+    window.parent.postMessage(JSON.stringify({ msg: "goToMessage" }), "*");
 
     //change the state to switch the view to show Message and save the user input necessary for socket connection
     var newchats = this.state.chats;
