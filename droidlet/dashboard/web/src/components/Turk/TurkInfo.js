@@ -69,7 +69,7 @@ class TurkInfo extends Component {
 
   componentDidMount() {
     this.props.stateManager.connect(this);
-    // Download data from S3 and parse into commands
+    // Download existing command corpus from S3 and parse into commands
     fetch("https://craftassist.s3.us-west-2.amazonaws.com/pubr/nsp_data.txt")
       .then(response => response.blob())
       .then(blob => blob.text())
@@ -82,6 +82,9 @@ class TurkInfo extends Component {
         this.setState({
           commandCorpus: corpusArray,
         });
+      })
+      .catch((error) => {
+        console.error('Error:', error);
       });
   }
 
