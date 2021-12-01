@@ -100,9 +100,10 @@ class TurkInfo extends Component {
     let creativityScore = 0;
     this.state.commandCorpus.forEach((cmd) => {
       let comparisonCommandArray = removeStopwords(cmd.split(' '));
-      let lengthNorm = (commandLength > comparisonCommandArray.length) ? commandLength : comparisonCommandArray.length;
       // Normalize so that the final score is nominally 0-10 where higher is better
-      creativityScore += minimumEditDistance.diff(commandArray, comparisonCommandArray).distance / (lengthNorm * corpus_size * 0.1);
+      let lengthNorm = (commandLength > comparisonCommandArray.length) ? commandLength : comparisonCommandArray.length;
+      let dist = minimumEditDistance.diff(commandArray, comparisonCommandArray).distance / (lengthNorm * corpus_size * 0.1);
+      if (!isNaN(dist)) creativityScore += dist;
     });
     // Most commands will have little overlap, so we need to amplify the signal
     creativityScore = (creativityScore - 9.4) * 16.667
@@ -122,7 +123,8 @@ class TurkInfo extends Component {
     if (newCommandList.length > 0) {
       newCommandList.forEach((cmd) => {
         let lengthNorm = (commandLength > cmd.length) ? commandLength : cmd.length;
-        diversityScore += minimumEditDistance.diff(commandArray, cmd).distance / (lengthNorm * newCommandList.length * 0.1);
+        let dist = minimumEditDistance.diff(commandArray, cmd).distance / (lengthNorm * newCommandList.length * 0.1);
+        if (!isNaN(dist)) diversityScore += dist;
       });
     }
     diversityScore = (diversityScore - 6.667) * 3  // Again this is a low bar, need to amplify the signal
@@ -145,7 +147,7 @@ class TurkInfo extends Component {
     console.log("Stoplight Score: " + stoplightScore + "/10");
     
     let performance;
-    if (stoplightScore < 4.5) performance = [false, false, true];
+    if (stoplightScore < 5) performance = [false, false, true];
     else if (stoplightScore < 6.5) performance = [false, true, false];
     else performance = [true, false, false];
 
