@@ -20,6 +20,8 @@ import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
 import AgentThinking from "./components/Interact/AgentThinking";
+import Message from "./components/Interact/Message";
+import TurkInfo from "./components/Turk/TurkInfo";
 
 /**
  * The main state manager for the dashboard.
@@ -73,6 +75,7 @@ class StateManager {
     commandState: "idle",
     commandPollTime: 500,
     isTurk: false,
+    agent_replies: [{}],
   };
   session_id = null;
 
@@ -87,7 +90,7 @@ class StateManager {
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
     this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
-    this.memory = this.initialMemoryState;
+    this.memory = JSON.parse(JSON.stringify(this.initialMemoryState)); // We want a clone
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processRGBDepth = this.processRGBDepth.bind(this);
@@ -314,9 +317,12 @@ class StateManager {
     this.refs.forEach((ref) => {
       // this has a potential race condition
       // (i.e. ref is not registered by the time socketio connects)
-      // hence, in Settings' componentDidMount, we also
+      // hence, in ref componentDidMount, we also
       // check set connected state
       if (ref instanceof Settings) {
+        ref.setState({ connected: status });
+      }
+      if (ref instanceof Message) {
         ref.setState({ connected: status });
       }
     });
@@ -380,11 +386,28 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    this.memory.agent_replies.push({
+      msg: res.agent_reply,
+      timestamp: Date.now(),
+    });
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
-          agent_reply: res.agent_reply,
+          agent_replies: this.memory.agent_replies,
         });
+      }
+      if (ref instanceof Message) {
+        ref.setState({
+          agent_replies: this.memory.agent_replies,
+        });
+      }
+    });
+  }
+
+  sendCommandToTurkInfo(cmd) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof TurkInfo) {
+        ref.calcCreativity(cmd);
       }
     });
   }
@@ -932,7 +955,7 @@ class StateManager {
         }
         j++;
       }
-      if (res.objects[i].mask.length == 0) {
+      if (res.objects[i].mask.length === 0) {
         res.objects.splice(i, 1);
         continue;
       }
