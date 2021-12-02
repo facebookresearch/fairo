@@ -97,10 +97,6 @@ class Message extends Component {
     }
   }
 
-  componentDidUpdate() {
-    return
-  }
-
   render() {
     return (
       <div>

@@ -172,11 +172,11 @@ def timing_charts(run_id: int) -> None:
         content = data["data"]
         HIT_start_time = content["times"]["task_start"]
         HIT_end_time = content["times"]["task_end"]
+        HITtime.append(HIT_end_time - HIT_start_time)
         if (HIT_start_time < starttime):
             starttime = HIT_start_time
         if (HIT_start_time > endtime):
             endtime = HIT_end_time
-        HITtime.append(HIT_end_time - HIT_start_time)
         outputs = content["outputs"]
         try:
             usability.append(int(outputs["usability-rating"]))
@@ -288,9 +288,9 @@ def timing_charts(run_id: int) -> None:
             except:
                 pass
     
-    workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
-    compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
-    #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211130080909')
+    #workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211201131224", "nsp_outputs")
+    #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+    #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211201131224')
     
     # promoters = len([i for i in usability if i > 5])
     # detractors = len([i for i in usability if i < 5 and i > 0])
@@ -300,7 +300,8 @@ def timing_charts(run_id: int) -> None:
     print(f"Units logged: {unit_num-1}")
     print(f"Start time: {datetime.fromtimestamp(starttime)}")
     print(f"End time: {datetime.fromtimestamp(endtime)}")
-    print(f"Length of Mephisto command list: {len(command_list)}")
+    print(f"Mephisto command list stats:")
+    get_stats(command_list)
     print(f"Total Command count: {sum(command_num)}")
     #print(f"Command count (alternate method): {command_count_v2}")
     print(f"Avg Number of commands in Mephisto: {sum(command_num)/len(command_num):.1f}")
@@ -312,6 +313,7 @@ def timing_charts(run_id: int) -> None:
     
     calc_percentiles(read_time, "Total Read Time")
     for page in inst_timing.keys():
+        if page == 0: continue
         calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
     calc_percentiles(pre_interact, "Pre-Interaction Time")
     calc_percentiles(interact_time, "Interaction Time")
@@ -331,6 +333,11 @@ def timing_charts(run_id: int) -> None:
     keys = range(len(self_rating))
     s_dict = dict(zip(keys, self_rating))
     plot_hist(s_dict, xlabel="", ylabel="Self Rated Performance Score", ymax=5)
+    HITtime = [900 if x>900 else x for x in HITtime]
+    HITtime.sort()
+    keys = range(len(HITtime))
+    hit_dict = dict(zip(keys, HITtime))
+    plot_hist(hit_dict, target_val=480, xlabel="", ylabel="Total HIT Time (sec)")
     read_time = [360 if x>360 else x for x in read_time]
     read_time.sort()
     keys = range(len(read_time))
@@ -639,11 +646,11 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211130080909/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211130080909")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211201131224/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211201131224")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211130080909", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211201131224", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211130080909", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211201131224", "error_details")
 
 #%%
 if __name__ == "__main__":
