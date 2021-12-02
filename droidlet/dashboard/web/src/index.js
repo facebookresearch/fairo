@@ -9,6 +9,7 @@ import "golden-layout/src/css/goldenlayout-base.css";
 import "golden-layout/src/css/goldenlayout-dark-theme.css";
 
 import MainPane from "./MainPane";
+import InteractApp from "./components/Interact/InteractApp";
 import Console from "./components/Console";
 import Settings from "./components/Settings";
 import Navigator from "./components/Navigator";
@@ -49,10 +50,22 @@ var config = {
       type: "row",
       content: [
         {
-          title: "Live Viewer",
-          type: "react-component",
-          component: "MainPane",
-          props: { stateManager: stateManager },
+          type: "column",
+          content: [
+            {
+              title: "Interact",
+              type: "react-component",
+              component: "InteractApp",
+              props: { stateManager: stateManager },
+            },
+            {
+              title: "Live Viewer",
+              type: "react-component",
+              component: "MainPane",
+              props: { stateManager: stateManager },
+            },
+          ],
+          width: 40,
         },
         {
           type: "column",
@@ -174,6 +187,7 @@ var config = {
 
 var dashboardLayout = new GoldenLayout(config);
 dashboardLayout.registerComponent("MainPane", MainPane);
+dashboardLayout.registerComponent("InteractApp", InteractApp);
 dashboardLayout.registerComponent("Console", Console);
 dashboardLayout.registerComponent("Settings", Settings);
 dashboardLayout.registerComponent("Navigator", Navigator);

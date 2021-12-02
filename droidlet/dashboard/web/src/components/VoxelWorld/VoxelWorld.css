@@ -22,3 +22,7 @@
   font-family: Arial, Helvetica, sans-serif;
   pointer-events: none;
 }
+
+p {
+  margin: 5px;
+}

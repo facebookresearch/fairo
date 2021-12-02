@@ -26,7 +26,6 @@ class InteractApp extends Component {
       isTurk: false,
     };
     this.state = this.initialState;
-    this.setAssistantReply = this.setAssistantReply.bind(this);
     this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
     this.MessageRef = React.createRef();
   }

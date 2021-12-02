@@ -33,15 +33,10 @@ var config = {
           type: "column",
           content: [
             {
-              type: "stack",
-              content: [
-                {
-                  title: "Interact",
-                  type: "react-component",
-                  component: "InteractApp",
-                  props: { stateManager: stateManager },
-                },
-              ],
+              title: "Interact",
+              type: "react-component",
+              component: "InteractApp",
+              props: { stateManager: stateManager },
             },
           ],
           width: 35,
@@ -59,7 +54,7 @@ var config = {
                   props: { stateManager: stateManager },
                 },
               ],
-              height: 60,
+              height: 64,
             },
             {
               type: "stack",

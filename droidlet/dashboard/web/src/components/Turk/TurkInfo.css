@@ -26,6 +26,7 @@
 }
 
 .stoplight {
+  --status-indicator-size: 25px;
   position: static;
   display: flex;
   flex-direction: column;
@@ -41,8 +42,4 @@
 
 .MuiInputBase-input {
   text-align: left !important;
-}
-
-:root {
-  --status-indicator-size: 25px;
 }
