@@ -97,8 +97,10 @@ class Message extends Component {
       document.getElementById("msg").value = "";
       //clear the agent reply that will be shown in the question pane
       this.props.stateManager.memory.agent_reply = "";
-      //change to the AgentThinking view pane
-      this.props.goToAgentThinking();
+      //change to the AgentThinking view pane if it makes sense
+      if (this.props.agentType === "craftassist") {
+        this.props.goToAgentThinking();
+      }
     }
   }
 

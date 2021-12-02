@@ -18,9 +18,7 @@ class InteractApp extends Component {
       status: "",
       chats: [{ msg: "", timestamp: Date.now() }],
       failidx: -1,
-      agent_replies: [
-        { msg: "Click the 'Start' button to begin!", timestamp: Date.now() },
-      ],
+      agent_replies: [{}],
       last_reply: "",
       agentType: null,
       isTurk: false,
@@ -41,7 +39,10 @@ class InteractApp extends Component {
   componentDidMount() {
     if (this.props.stateManager) {
       this.props.stateManager.connect(this);
-      this.setState({ isTurk: this.props.stateManager.memory.isTurk });
+      this.setState({
+        isTurk: this.props.stateManager.memory.isTurk,
+        agent_replies: this.props.stateManager.memory.agent_replies,
+      });
     }
   }
 

@@ -53,10 +53,16 @@ var config = {
           type: "column",
           content: [
             {
-              title: "Interact",
-              type: "react-component",
-              component: "InteractApp",
-              props: { stateManager: stateManager },
+              type: "stack",
+              content: [
+                {
+                  title: "Interact",
+                  type: "react-component",
+                  component: "InteractApp",
+                  props: { stateManager: stateManager },
+                },
+              ],
+              height: 40,
             },
             {
               title: "Live Viewer",

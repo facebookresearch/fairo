@@ -303,11 +303,23 @@ class StateManager {
   }
 
   forceErrorLabeling(status) {
-    // If TurkInfo successfully mounts, this is a HIT and forced labeling should be on
+    // If TurkInfo successfully mounts, this is a HIT
+    // Forced error labeling and start button prompt should be on
     this.memory.isTurk = status;
+    this.memory.agent_replies = [
+      { msg: "Click the 'Start' button to begin!", timestamp: Date.now() },
+    ];
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
-        ref.setState({ isTurk: this.memory.isTurk });
+        ref.setState({
+          isTurk: this.memory.isTurk,
+          agent_replies: this.memory.agent_replies,
+        });
+      }
+      if (ref instanceof Message) {
+        ref.setState({
+          agent_replies: this.memory.agent_replies,
+        });
       }
     });
   }
