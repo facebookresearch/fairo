@@ -61,7 +61,7 @@ python3 /fairo/droidlet/lowlevel/minecraft/cuberite_process.py \
 echo "Waiting for cuberite"
 python3 /fairo/droidlet/lowlevel/minecraft/craftassist_cuberite_utils/wait_for_cuberite.py --host localhost --port 25565
 echo "Running craftassist agent"
-python3 /fairo/agents/craftassist/craftassist_agent.py --no_default_behavior --agent_debug_mode --log_level debug --dev 1>agent.log 2>agent.log &
+python3 /fairo/agents/craftassist/craftassist_agent.py --no_default_behavior --agent_debug_mode --enable_timeline --log_level debug --dev 1>agent.log 2>agent.log &
 PID=$!
 echo "Craftassist agent process PID: $PID"
 wait "$PID"

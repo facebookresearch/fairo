@@ -19,6 +19,7 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
+import AgentThinking from "./components/Interact/AgentThinking";
 
 /**
  * The main state manager for the dashboard.
@@ -69,6 +70,9 @@ class StateManager {
     timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
     timelineSearchPattern: "",
     agentType: "locobot",
+    commandState: "idle",
+    commandPollTime: 500,
+    isTurk: false,
   };
   session_id = null;
 
@@ -78,6 +82,7 @@ class StateManager {
     this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
+    this.forceErrorLabeling = this.forceErrorLabeling.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
@@ -288,6 +293,19 @@ class StateManager {
       if (ref instanceof MainPane) {
         ref.setState({ agentType: this.memory.agentType });
       }
+      if (ref instanceof InteractApp) {
+        ref.setState({ agentType: this.memory.agentType });
+      }
+    });
+  }
+
+  forceErrorLabeling(status) {
+    // If TurkInfo successfully mounts, this is a HIT and forced labeling should be on
+    this.memory.isTurk = status;
+    this.refs.forEach((ref) => {
+      if (ref instanceof InteractApp) {
+        ref.setState({ isTurk: this.memory.isTurk });
+      }
     });
   }
 
@@ -310,7 +328,16 @@ class StateManager {
     }
     this.memory.chats = res.allChats;
 
-    // once confirm that this chat has been sent, clear last chat action dict
+    // Set the commandState to display 'received' for one poll cycle and then switch
+    this.memory.commandState = "received";
+    setTimeout(() => {
+      if (this.memory.commandState === "received") {
+        // May have moved on already, in which case leave it
+        this.memory.commandState = "thinking";
+      }
+    }, this.memory.commandPollTime - 1); // avoid race condition
+
+    // once confirm that this chat has been sent, clear last action dict
     this.memory.lastChatActionDict = null;
 
     this.refs.forEach((ref) => {
@@ -332,7 +359,6 @@ class StateManager {
   updateVoxelWorld(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        console.log("update Voxel World with " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,
@@ -375,6 +401,22 @@ class StateManager {
     this.memory.timelineEventHistory.push(res);
     this.memory.timelineEvent = res;
     this.updateTimeline();
+
+    // If the agent has finished processing the command
+    // notify the user to look for an empty task stack
+    if (JSON.parse(res).name === "perceive") {
+      this.memory.commandState = "done_thinking";
+      this.refs.forEach((ref) => {
+        if (ref instanceof AgentThinking) {
+          ref.sendTaskStackPoll(); // Do this once from here
+        }
+      });
+    }
+    // If there's an action to take in the world,
+    // notify the user that it's executing
+    if (JSON.parse(res).name === "interpreter") {
+      this.memory.commandState = "executing";
+    }
   }
 
   updateTimelineResults() {
