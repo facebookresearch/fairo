@@ -40,7 +40,7 @@ from droidlet.interpreter.robot import (
     LocoInterpreter,
 )
 from droidlet.dialog.robot import LocoBotCapabilities
-import droidlet.lowlevel.rotation as rotation
+import droidlet.lowlevel.hello_robot.rotation as rotation
 from droidlet.event import sio
 
 faulthandler.register(signal.SIGUSR1)

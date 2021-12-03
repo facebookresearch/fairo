@@ -12,8 +12,8 @@ DIRECTIONS = {
     "AWAY": np.array([1, 0, 0]),
     "FRONT": np.array([1, 0, 0]),
     "BACK": np.array([-1, 0, 0]),
-    "LEFT": np.array([0, 0, -1]),
-    "RIGHT": np.array([0, 0, 1]),
+    "LEFT": np.array([0, 0, 1]),
+    "RIGHT": np.array([0, 0, -1]),
     "DOWN": np.array([0, -1, 0]),
     "UP": np.array([0, 1, 0]),
 }
@@ -27,7 +27,7 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
     direction where direction is specified if you were facing yaw, pitch.
 
     conversely, inverted=False takes a direction in canonical
-    coordinates and converts to coordinates where FRONT (z+) is yaw=0
+    coordinates and converts to coordinates where FRONT (x+) is yaw=0
     and pitch=0 yaw is assumed to be in the range [-pi, pi], and
     increasing yaw moves *counterclockwise* pitch is assumed to be in
     the range [-pi/2, pi/2].  pi/2 is down, -pi/2 is up.
@@ -45,22 +45,22 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
     #                 z-
 
     # fmt: off
-    ryaw = np.array([[cos(yaw), 0,   -sin(yaw)],
+    ryaw = np.array([[cos(yaw), 0,    sin(yaw)],
                    [0,          1,    0       ],
-                   [sin(yaw),   0,    cos(yaw)]])
+                   [-sin(yaw),  0,    cos(yaw)]])
 
-    rpitch = np.array([[1,   0,             0          ],
-                       [0,   cos(-pitch),   sin(-pitch)],
-                       [0,   -sin(-pitch),  cos(-pitch)]])
+    rpitch = np.array([[cos(-pitch),-sin(-pitch), 0],
+                       [sin(-pitch), cos(-pitch), 0],
+                       [0,           0,           1]])
 
     # fmt: on
 
     # canonical world coords:
     #         ^ y+
-    #         |     x+
+    #         |     z+
     #         |   /
     #         | /
-    #         0 -----> z+
+    #         0 -----> x+
     if not inverted:
         trans_mat = rpitch @ ryaw
     else:
