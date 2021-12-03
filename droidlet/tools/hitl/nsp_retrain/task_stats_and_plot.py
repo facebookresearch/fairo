@@ -167,6 +167,10 @@ def timing_charts(run_id: int) -> None:
     unit_num = 1
     timeout_commands = []
     singleton_commands = []
+    parsing_errors = []
+    parsing_error_counts = []
+    task_errors = []
+    task_error_counts = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -198,6 +202,8 @@ def timing_charts(run_id: int) -> None:
         command_start_times = []
         command_end_times = []
         first_command = True
+        parsing_error_count = 0
+        task_error_count = 0
         for click in clicks:
             # They might not read all of the instructions pages...
             if click["id"] == 'start':
@@ -228,8 +234,16 @@ def timing_charts(run_id: int) -> None:
             
             # Count and collect commands
             if "command" in click["id"]:
-                #command_count += 1
                 command_list.append(click["id"]["command"].split('|')[0])
+
+            # Count and collect parsing errors
+            if "parsing_error" in click["id"]:
+                if click["id"]["parsing_error"]:
+                    parsing_error_count += 1
+                    parsing_errors.append(click["id"]["msg"] + "|" + json.dumps(click["id"]["action_dict"]))
+                elif click["id"]["task_error"]:
+                    task_error_count += 1
+                    task_errors.append(click["id"]["msg"] + "|" + json.dumps(click["id"]["action_dict"]))
 
             # Command timing metrics:
             if click["id"] == 'goToAgentThinking':
@@ -279,9 +293,12 @@ def timing_charts(run_id: int) -> None:
         if len(pre_interact) < unit_num: pre_interact.append(0)
         if len(interact_time) < unit_num: interact_time.append(0)
 
+        # End of unit bookkeeping
         command_num.append(command_count)
         if command_count == 1:
             singleton_commands.append(command_list[-1])
+        parsing_error_counts.append(parsing_error_count)
+        task_error_counts.append(task_error_count)
         command_timing_by_hit["start"].append(command_start_times)
         command_timing_by_hit["end"].append(command_end_times)
         unit_num += 1
@@ -303,6 +320,8 @@ def timing_charts(run_id: int) -> None:
     # See the S3 logs that don't contain commands:
     #print(logs_with_no_commands("/private/home/ethancarlson/.hitl/parsed/20211201131224"))
 
+    save_commands_to_file(command_list, parsing_errors, task_errors, "/private/home/ethancarlson/.hitl/parsed/20211202170632")
+
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
 
@@ -313,6 +332,8 @@ def timing_charts(run_id: int) -> None:
     get_stats(command_list)
     print(f"Total Command count: {sum(command_num)}")
     print(f"Avg Number of commands in Mephisto: {sum(command_num)/len(command_num):.1f}")
+    print(f"Total parsing error count: {sum(parsing_error_counts)}")
+    print(f"Total task error count: {sum(task_error_counts)}")
     print(f"Units w/ no commands in Mephisto: {command_num.count(0)}")
     print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
     print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
@@ -343,7 +364,6 @@ def timing_charts(run_id: int) -> None:
     # calc_percentiles(command_timing['total'], "Avg Command Time")
     # for order in command_times_by_order.keys():
     #     calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
-
     
     usability.sort()
     keys = range(len(usability))
@@ -376,6 +396,14 @@ def timing_charts(run_id: int) -> None:
     keys = range(len(command_num))
     c_dict = dict(zip(keys, command_num))
     plot_hist(c_dict, target_val=5, xlabel="", ylabel="Number of commands per HIT")
+    parsing_error_counts.sort()
+    keys = range(len(parsing_error_counts))
+    error_dict = dict(zip(keys, parsing_error_counts))
+    plot_hist(error_dict, xlabel="", ylabel="Number of parsing errors labeled per HIT")
+    task_error_counts.sort()
+    keys = range(len(task_error_counts))
+    error_dict = dict(zip(keys, task_error_counts))
+    plot_hist(error_dict, xlabel="", ylabel="Number of task errors labeled per HIT")
 
     inst_timing[5] = inst_timing[5][-100:]  # This is a hack until I can find the bug
 
@@ -394,7 +422,17 @@ def timing_charts(run_id: int) -> None:
         command_dict = dict(zip(keys, command_timing[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
     
-
+#%%
+def save_commands_to_file(commands, parsing_errors, task_errors, turk_output_directory):
+    os.chdir(turk_output_directory)
+    with open("mephisto_commands.txt", "w") as comm_file:
+        comm_file.write(str(commands))
+    with open("mephisto_parsing_errors.txt", "w") as err_file:
+        err_file.write(str(parsing_errors))
+    with open("mephisto_task_errors.txt", "w") as err_file:
+        err_file.write(str(task_errors))
+    return
+    
 #%%
 def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
     workers = []
@@ -533,7 +571,6 @@ def get_stats(command_list):
         total_len += len(c.split())
     avg_len = total_len / len_dedup
 
-    print(f"Stats from S3 command logs:")
     print(f'num_ori {len_ori}')
     print(f'num_dedup {len_dedup}')
     print(f'dup_rate {((len_ori - len_dedup) / len_ori * 100):.1f}%')
@@ -680,7 +717,7 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
 
     # Drop duplicates
     all_turk_interactions.drop_duplicates()
-
+    print(f"Stats from S3 command logs:")
     get_stats(list(all_turk_interactions["command"]))
     # return all commands as a list
     return list(set(all_turk_interactions["command"]))
