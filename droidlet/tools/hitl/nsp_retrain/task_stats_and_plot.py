@@ -22,6 +22,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
+from collections import Counter
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
@@ -164,7 +165,8 @@ def timing_charts(run_id: int) -> None:
     endtime = -math.inf
     HITtime = []
     unit_num = 1
-    command_count_v2 = 0
+    timeout_commands = []
+    singleton_commands = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -251,9 +253,13 @@ def timing_charts(run_id: int) -> None:
             if click["id"] == 'goToMessaage':
                 command_timing['execute'].append((click["timestamp"] - last_status_time)/1000)
                 command_timing['total'].append((click["timestamp"] - command_start_time)/1000)
+                # if the command took a long time, remember it
+                if command_timing['total'][-1] > 48:
+                    timeout_commands.append(command_list[-1])
                 command_end_times.append(click["timestamp"])
                 # Reset and set up for next command:
                 last_status_time = click["timestamp"]
+                # Append 0x to any steps that were skipped
                 num_commands = max([len(value) for value in command_timing.values()])
                 for status in command_timing.keys():
                     if len(command_timing[status]) < num_commands:
@@ -274,6 +280,8 @@ def timing_charts(run_id: int) -> None:
         if len(interact_time) < unit_num: interact_time.append(0)
 
         command_num.append(command_count)
+        if command_count == 1:
+            singleton_commands.append(command_list[-1])
         command_timing_by_hit["start"].append(command_start_times)
         command_timing_by_hit["end"].append(command_end_times)
         unit_num += 1
@@ -292,8 +300,6 @@ def timing_charts(run_id: int) -> None:
     #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
     #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211201131224')
     
-    # promoters = len([i for i in usability if i > 5])
-    # detractors = len([i for i in usability if i < 5 and i > 0])
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
 
@@ -303,26 +309,37 @@ def timing_charts(run_id: int) -> None:
     print(f"Mephisto command list stats:")
     get_stats(command_list)
     print(f"Total Command count: {sum(command_num)}")
-    #print(f"Command count (alternate method): {command_count_v2}")
     print(f"Avg Number of commands in Mephisto: {sum(command_num)/len(command_num):.1f}")
     print(f"Units w/ no commands in Mephisto: {command_num.count(0)}")
     print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
     print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
-    # print(f"Usability NPS: {(((promoters - detractors)*100)/len(actual_usability)):.0f}")
     print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
     
-    calc_percentiles(read_time, "Total Read Time")
-    for page in inst_timing.keys():
-        if page == 0: continue
-        calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
-    calc_percentiles(pre_interact, "Pre-Interaction Time")
-    calc_percentiles(interact_time, "Interaction Time")
-    calc_percentiles(pre_first_command_time, "Time After Start Before First Command")
-    calc_percentiles(post_last_command_time, "Time After Last Command Before End")
-    calc_percentiles(rating_time, "Time After Interaction End")
-    calc_percentiles(command_timing['total'], "Avg Command Time")
-    for order in command_times_by_order.keys():
-        calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
+    # Report problematic commands
+    print(f"Commands from HITs that only issued one command: {singleton_commands}")
+    print(f"Commands that triggered the timeout: {timeout_commands}")
+
+    # Compare command list against
+    plot_scatter(xs=command_num, ys=HITtime, xlabel="# of Commands", ylabel="HIT Length")
+    plot_data_count = Counter(zip(command_num, usability))
+    bubble_size = [plot_data_count[(command_num[i],usability[i])]*30 for i in range(len(command_num))]
+    plot_scatter(xs=command_num, ys=usability, s=bubble_size, xlabel="# of Commands", ylabel="Usability Score")
+    plot_data_count = Counter(zip(command_num, self_rating))
+    bubble_size = [plot_data_count[(command_num[i],self_rating[i])]*30 for i in range(len(command_num))]
+    plot_scatter(xs=command_num, ys=self_rating, s=bubble_size, xlabel="# of Commands", ylabel="Self Rating")
+
+    # calc_percentiles(read_time, "Total Read Time")
+    # for page in inst_timing.keys():
+    #     if page == 0: continue
+    #     calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
+    # calc_percentiles(pre_interact, "Pre-Interaction Time")
+    # calc_percentiles(interact_time, "Interaction Time")
+    # calc_percentiles(pre_first_command_time, "Time After Start Before First Command")
+    # calc_percentiles(post_last_command_time, "Time After Last Command Before End")
+    # calc_percentiles(rating_time, "Time After Interaction End")
+    # calc_percentiles(command_timing['total'], "Avg Command Time")
+    # for order in command_times_by_order.keys():
+    #     calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
 
     
     usability.sort()
@@ -394,7 +411,6 @@ def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadat
 
 #%%
 def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs):
-    from collections import Counter
     all_lists = [total, read_instructions, timer_off, submit_command, logs]
     list_names = ["'Full List'", "'Read Instructions'", "'Turned Timer Off'", "'Submitted a command'", "'Recorded S3 Logs'"]
     print(f"Total number of units: {len(total)}")
@@ -519,7 +535,18 @@ def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None
     if target_val:
         line = [target_val] * len(dictionary)
         plt.plot(dictionary.keys(), line, color='r')
-    #plt.xticks(np.arange(len(list(dictionary.keys()))), list(dictionary.keys()), rotation='vertical')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    if ymax:
+        plt.ylim(0, ymax)
+    plt.show()
+
+#%%
+def plot_scatter(xs, ys, ylabel, s=None, target_val=None, xlabel="Turker Id", ymax=None):
+    plt.scatter(xs, ys, s, color='g')
+    if target_val:
+        line = [target_val] * len(xs)
+        plt.plot(xs, line, color='r')
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     if ymax:
