@@ -76,6 +76,7 @@ class StateManager {
     commandPollTime: 500,
     isTurk: false,
     agent_replies: [{}],
+    last_reply: "",
   };
   session_id = null;
 
@@ -402,6 +403,7 @@ class StateManager {
       msg: res.agent_reply,
       timestamp: Date.now(),
     });
+    this.memory.last_reply = res.agent_reply;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({

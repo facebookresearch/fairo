@@ -19,7 +19,6 @@ class InteractApp extends Component {
       chats: [{ msg: "", timestamp: Date.now() }],
       failidx: -1,
       agent_replies: [{}],
-      last_reply: "",
       agentType: null,
       isTurk: false,
     };
@@ -104,8 +103,6 @@ class InteractApp extends Component {
 
     this.setState({
       agent_replies: this.props.stateManager.memory.agent_replies,
-      last_reply:
-        this.props.stateManager.memory.agent_replies[replies_len - 1].msg,
       currentView: 2,
       chats: this.state.chats,
       failidx: chats_len - 1,
@@ -138,7 +135,6 @@ class InteractApp extends Component {
               failidx={this.state.failidx}
               goToMessage={this.goToMessage.bind(this)}
               failmsg={this.state.chats[this.state.failidx].msg}
-              agent_reply={this.state.last_reply}
             />
           ) : null}
           {this.state.currentView === 3 ? (

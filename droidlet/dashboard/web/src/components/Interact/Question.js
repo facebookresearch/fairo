@@ -366,7 +366,7 @@ class Question extends Component {
     var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
     this.setState({
       action_dict: lastChatActionDict,
-      agent_reply: this.props.agent_reply, // In case the agent chat updates while this pane is displayed
+      agent_reply: this.props.stateManager.memory.last_reply,
     });
   }
 
