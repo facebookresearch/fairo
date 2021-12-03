@@ -355,7 +355,6 @@ class LoCoBotMover:
             pts = ros_to_habitat_frame.T @ pts.T
             pts = pts.T
         pts = transform_pose(pts, self.bot.get_base_state("odom"))
-        logging.info("Fetched all camera sensor input.")
         return RGBDepth(rgb, d, pts)
 
     def get_current_pcd(self, in_cam=False, in_global=False):

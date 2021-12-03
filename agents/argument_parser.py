@@ -62,7 +62,9 @@ class ArgumentParser:
             help="path to semantic parsing models",
         )
         nsp_parser.add_argument(
-            "--nsp_data_dir", default="../../droidlet/artifacts/datasets/annotated_data/", help="path to annotated data"
+            "--nsp_data_dir", 
+            default="../../droidlet/artifacts/datasets/annotated_data/", 
+            help="path to annotated data"
         )
         nsp_parser.add_argument(
             "--ground_truth_data_dir",

@@ -134,6 +134,10 @@ class LocobotAgent(DroidletAgent):
         def _shutdown(sid, data):
             self.shutdown()
 
+        @sio.on("get_count")
+        def _return_count(sid, data):
+            sio.emit("currentCount", self.count)
+
         @sio.on("get_memory_objects")
         def objects_in_memory(sid):
             objects = DetectedObjectNode.get_all(self.memory)
@@ -316,16 +320,8 @@ class LocobotAgent(DroidletAgent):
 
     def shutdown(self):
         self._shutdown = True
-        try:
-            self.perception_modules["vision"].vprocess_shutdown.set()
-        except:
-            """
-            the try/except is there in the event that
-            self.perception_modules["vision"] has either:
-            1. not been fully started yet
-            2. already crashed / shutdown due to other effects
-            """
-            pass
+        time.sleep(5)  # let current step to finish
+        self.perception_modules["vision"].vprocess.stop()
         time.sleep(5)  # let the other threads die
         os._exit(0)  # TODO: remove and figure out why multiprocess sometimes hangs on exit
 

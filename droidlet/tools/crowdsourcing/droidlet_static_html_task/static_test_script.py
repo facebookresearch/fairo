@@ -20,6 +20,7 @@ from typing import List, Any
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
+    "_self_",
     {"mephisto/blueprint": BLUEPRINT_TYPE},
     {"mephisto/architect": "local"},
     {"mephisto/provider": "mock"},
