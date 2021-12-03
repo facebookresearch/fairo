@@ -300,6 +300,9 @@ def timing_charts(run_id: int) -> None:
     #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
     #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211201131224')
     
+    # See the S3 logs that don't contain commands:
+    #print(logs_with_no_commands("/private/home/ethancarlson/.hitl/parsed/20211201131224"))
+
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
 
@@ -316,8 +319,8 @@ def timing_charts(run_id: int) -> None:
     print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
     
     # Report problematic commands
-    print(f"Commands from HITs that only issued one command: {singleton_commands}")
-    print(f"Commands that triggered the timeout: {timeout_commands}")
+    #print(f"Commands from HITs that only issued one command: {singleton_commands}")
+    #print(f"Commands that triggered the timeout: {timeout_commands}")
 
     # Compare command list against
     plot_scatter(xs=command_num, ys=HITtime, xlabel="# of Commands", ylabel="HIT Length")
@@ -408,6 +411,16 @@ def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadat
         else:
             pass
     return workers
+
+#%%
+def logs_with_no_commands(turk_output_directory, meta_fname="job_metadata.json"):
+    nsp_output_folders = glob.glob(
+        "{turk_logs_dir}/**/nsp_outputs.csv".format(turk_logs_dir=turk_output_directory))
+    # Only S3 logs that successfully recorded interaction data have a metadata file
+    logs_with_no_commands = [csv_path for csv_path in nsp_output_folders if not os.path.exists(os.path.join(os.path.dirname(csv_path), meta_fname))]
+    
+    return [os.path.basename(os.path.dirname(path)) for path in logs_with_no_commands]
+
 
 #%%
 def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs):
