@@ -24,11 +24,6 @@ from ..robot_mover_utils import (
     transform_pose,
 )
 
-from droidlet.lowlevel.robot_coordinate_utils import (
-    xyz_pyrobot_to_canonical_coords,
-    base_canonical_coords_to_pyrobot_coords
-)
-
 from .rotation import (
     rotation_matrix_x,
     rotation_matrix_y,
@@ -233,9 +228,8 @@ class HelloRobotMover(MoverInterface):
             xyt_positions = [xyt_positions]
         for xyt in xyt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xyt))
-            global_coords = base_canonical_coords_to_pyrobot_coords(xyt)
             self.is_moving.wait()
-            self.is_moving = self.bot.go_to_absolute(global_coords)
+            self.is_moving = self.bot.go_to_absolute(xyt)
             if blocking:
                 self.is_moving.wait()
         return "finished"
@@ -356,14 +350,6 @@ class HelloRobotMover(MoverInterface):
         """
         turn_rad = yaw * math.pi / 180
         self.bot.rotate_by(turn_rad)
-
-    def get_obstacles_in_canonical_coords(self):
-        cordinates_in_robot_frame = self.bot.get_map()
-        cordinates_in_standard_frame = [
-            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
-        ]
-        cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
-        return cordinates_in_standard_frame
 
     def explore(self):
         return self.bot.explore()
