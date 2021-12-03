@@ -156,7 +156,6 @@ class Question extends Component {
         if (dialogue_type === "HUMAN_GIVE_COMMAND") {
           // handle composite action
 
-          let cmd = this.props.chats[this.props.failidx].msg.split(" ");
           // get the action type
           var action_dict = this.state.action_dict.action_sequence[0];
           var action_type = action_dict.action_type.toLowerCase();

@@ -30,7 +30,6 @@ class InteractApp extends Component {
   setInteractState(chat) {
     // make a shallow copy of chats
     var new_chats = [...this.state.chats];
-    new_chats.shift();
     new_chats.push(chat);
     this.setState({ chats: new_chats });
   }
@@ -98,7 +97,6 @@ class InteractApp extends Component {
       this.goToQuestionWindow
     );
 
-    const replies_len = this.props.stateManager.memory.agent_replies.length;
     const chats_len = this.state.chats.length;
 
     this.setState({
