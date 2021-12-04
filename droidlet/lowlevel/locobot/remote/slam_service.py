@@ -25,6 +25,7 @@ class SLAM(object):
         self.robot = robot
         self.robot_rad = robot_rad
         self.map_resolution = resolution
+        self.map_size = map_size
         self.map_builder = mb(
             map_size_cm=map_size,
             resolution=resolution,
@@ -111,6 +112,9 @@ class SLAM(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
+
+    def reset_map(self):
+        self.map_builder.reset_map(self.map_size)
 
 
 robot_ip = os.getenv('LOCOBOT_IP')

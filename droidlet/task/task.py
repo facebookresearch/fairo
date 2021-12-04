@@ -283,6 +283,33 @@ class BaseMovementTask(Task):
     def target_to_memory(self, target):
         raise NotImplementedError
 
+class BaseSaverTask(Task):
+    """a Task that changes the location of the agent
+
+    Args:
+        agent: the agent who will perform this task
+        task_data (dict): a dictionary stores all task related data
+            task_data should have a key "target" with a target location
+
+    Attributes:
+        target_to_memory:  method that converts the task_data target into a location to record in memory
+
+    """
+
+    # TODO FIXME!  PoseNode instead of LocationNode
+    # TODO put ref object info here?
+    def __init__(self, agent, task_data):
+        super().__init__(agent)
+        assert task_data.get("target") is not None
+        loc = self.target_to_memory(task_data["target"])
+        loc_memid = LocationNode.create(agent.memory, loc)
+        TripleNode.create(
+            agent.memory, subj=self.memid, pred_text="task_reference_object", obj=loc_memid
+        )
+
+    def target_to_memory(self, target):
+        raise NotImplementedError
+
 
 def maybe_task_list_to_control_block(maybe_task_list, agent):
     """

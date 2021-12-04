@@ -11,8 +11,7 @@ echo "Kill matching processes..."
 ./kill_pyro_habitat.sh
 
 echo "Launching environment ..."
-
-default_ip=$(hostname -I | cut -f1 -d" ")
+default_ip=$1 #$(hostname -I | cut -f1 -d" ")
 ip=${LOCOBOT_IP:-$default_ip}
 export LOCAL_IP=$ip
 export LOCOBOT_IP=$ip
@@ -24,7 +23,7 @@ sleep 4
 
 echo $ip
 
-python remote_locobot.py --ip $ip $@ &
+python remote_locobot.py --ip $ip &
 # blocking wait for server to start
 timeout 1m bash -c "until python check_connected.py remotelocobot; do sleep 1; done;" || true
 ./launch_navigation.sh

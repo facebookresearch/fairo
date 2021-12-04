@@ -3,8 +3,14 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import logging
+import math
+import os
+import shutil
+import cv2
+import json
+from copy import deepcopy as copy
 from scipy.spatial.transform import Rotation
-
+from pathlib import Path
 from .rotation import yaw_pitch
 
 MAX_PAN_RAD = np.pi / 4
@@ -89,6 +95,35 @@ def get_move_target_for_point(base_pos, target, eps=0.5):
 
     return [targetx, targetz, yaw]
 
+def get_step_target_for_move(base_pos, target, step_size=0.1):
+    """
+    Heuristic to get step target of step_size for going to from base_pos to target. 
+    Args:
+        base_pos ([x,z,yaw]): robot base in canonical coords
+        target ([x,y,z]): point target in canonical coords
+    
+    Returns:
+        move_target ([x,z,yaw]): robot base move target in canonical coords 
+    """
+
+    dx = target[0] - base_pos[0]
+    dz = target[2] - base_pos[1]
+
+    if dx == 0: # vertical line 
+        theta = math.radians(90)
+    else:
+        theta = math.atan(abs(dz/dx))
+    
+    signx = 1 if dx >= 0 else -1
+    signz = 1 if dz >= 0 else -1
+    
+    targetx = base_pos[0] + signx * step_size * math.cos(theta)
+    targetz = base_pos[1] + signz * step_size * math.sin(theta)
+
+    yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+    
+    return [targetx, targetz, yaw] 
+
 
 """
 Co-ordinate transform utils. Read more at https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD
@@ -110,3 +145,139 @@ def xyz_pyrobot_to_canonical_coords(xyz):
 def xyz_canonical_coords_to_pyrobot_coords(xyz):
     """converts 3D coords from canonical to pyrobot coords."""
     return xyz @ np.linalg.inv(pyrobot_to_canonical_frame)
+
+class ExaminedMap:
+    """A helper static class to maintain the state representations needed to track active exploration.
+    droidlet.interpreter.robot.tasks.CuriousExplore uses this to decide which objects to explore next.
+    The core of this class is the ExaminedMap.can_examine method. This is a heuristic.
+    Long term, this information should live in memory (#FIXME @anuragprat1k). 
+    
+    It works as follows -
+    1. for each new candidate coordinate, it fetches the closest examined coordinate.
+    2. if this closest coordinate is within a certain threshold (1 meter) of the current coordinate, 
+    or if that region has been explored upto a certain number of times (2, for redundancy),
+    it is not explored, since a 'close-enough' region in space has already been explored. 
+    """
+    examined = {}
+    examined_id = set()
+    last = None
+
+    @classmethod
+    def l1(cls, xyz, k):
+        """ returns the l1 distance between two standard coordinates"""
+        return np.linalg.norm(np.asarray([xyz[0], xyz[2]]) - np.asarray([k[0], k[2]]), ord=1)
+
+    @classmethod
+    def get_closest(cls, xyz):
+        """returns closest examined point to xyz"""
+        c = None
+        dist = 1.5
+        for k, v in cls.examined.items():
+            if cls.l1(k, xyz) < dist:
+                dist = cls.l1(k, xyz)
+                c = k
+        if c is None:
+            cls.examined[xyz] = 0
+            return xyz
+        return c
+
+    @classmethod
+    def update(cls, target):
+        """called each time a region is examined. Updates relevant states."""
+        cls.last = cls.get_closest(target['xyz'])
+        cls.examined_id.add(target['eid'])
+        cls.examined[cls.last] += 1
+
+    @classmethod
+    def clear(cls):
+        cls.examined = {}
+        cls.examined_id = set()
+        cls.last = None
+
+    @classmethod
+    def can_examine(cls, x):
+        """decides whether to examine x or not."""
+        loc = x['xyz']
+        k = cls.get_closest(x['xyz'])
+        val = True
+        if cls.last is not None and cls.l1(cls.last, k) < 1:
+            val = False
+        val = cls.examined[k] < 2
+        print(f"can_examine {x['eid'], x['label'], x['xyz'][:2]}, closest {k[:2]}, can_examine {val}")
+        print(f"examined[k] = {cls.examined[k]}")
+        return val
+
+
+class LabelPropSaver:
+    def __init__(self, root):
+        print(f'LabelPropSaver saving to {root}')
+        self.save_folder = root
+        self.img_folder = os.path.join(self.save_folder, "rgb")
+        self.img_folder_dbg = os.path.join(self.save_folder, "rgb_dbg")
+        self.depth_folder = os.path.join(self.save_folder, "depth")
+        self.seg_folder = os.path.join(self.save_folder, "seg")
+        self.trav_folder = os.path.join(self.save_folder, "trav")
+
+        if os.path.exists(self.save_folder):
+            print(f'rmtree {self.save_folder}')
+            shutil.rmtree(self.save_folder)
+
+        print(f'trying to create {self.save_folder}')
+        Path(self.save_folder).mkdir(parents=True, exist_ok=True)
+
+        for x in [self.img_folder, self.img_folder_dbg, self.depth_folder, self.seg_folder, self.trav_folder]:
+            self.create(x)
+
+        self.pose_dict = {}
+        self.save_vis_skip_frames = 0
+        self.img_count = 0
+        self.dbg_str = "None"
+
+    def create(self, d):
+        if not os.path.isdir(d):
+            os.makedirs(d)
+
+    def set_dbg_str(self, x):
+        self.dbg_str = x
+    
+    def get_total_frames(self):
+        return self.img_count
+
+    def save(self, rgb, depth, seg, pos):
+        self.save_vis_skip_frames += 1
+        print(f'self.save_vis_skip_frames {self.save_vis_skip_frames}')
+        # if self.save_vis_skip_frames % 10 == 0:
+        print(f'saving {rgb.shape, depth.shape, seg.shape}')
+        # store the images and depth
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(
+            self.img_folder + "/{:05d}.jpg".format(self.img_count),
+            rgb,
+        )
+
+        cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+        # robot_dbg_str = 'robot_pose ' + str(np.round(self.get_robot_global_state(), 3))
+        # cv2.putText(rgb, robot_dbg_str, (40,60), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+        cv2.imwrite(
+            self.img_folder_dbg + "/{:05d}.jpg".format(self.img_count),
+            rgb,
+        )
+
+        # store depth in mm
+        depth *= 1e3
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+        # store seg
+        np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+
+        # store pos
+        self.pose_dict[self.img_count] = copy(pos)
+        self.img_count += 1
+        
+        # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
+        with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
+            json.dump(self.pose_dict, fp)

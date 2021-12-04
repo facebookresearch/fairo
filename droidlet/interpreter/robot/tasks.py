@@ -5,16 +5,24 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import time
 import logging
 import numpy as np
+import math
+import os
 
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
+from droidlet.memory.robot.loco_memory import DetectedObjectNode
 
 from droidlet.interpreter.robot.objects import DanceMovement
 
 from droidlet.lowlevel.robot_mover_utils import (
     get_move_target_for_point,
+    get_step_target_for_move,
+    CAMERA_HEIGHT,
     ARM_HEIGHT,
     get_camera_angles,
+    ExaminedMap,
+    base_canonical_coords_to_pyrobot_coords,
+    LabelPropSaver,
 )
 
 # FIXME store dances, etc.
@@ -277,6 +285,172 @@ class Get(Task):
     def __repr__(self):
         return "<get {}>".format(self.get_target)
 
+class TrajectorySaverTask(Task):
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.save_data = task_data.get('save_data', False)
+        self.task_path = task_data.get('data_path', 'default')
+        self.dbg_str = 'None'
+        if self.save_data:
+            self.data_saver = LabelPropSaver(os.path.join(agent.opts.data_store_path, self.task_path))
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def save_rgb_depth_seg(self):
+        rgbd = self.agent.mover.get_rgb_depth()
+        pos = self.agent.mover.get_base_pos()
+        self.data_saver.set_dbg_str(self.dbg_str)
+        self.data_saver.save(rgbd.rgb, rgbd.depth, np.zeros_like(rgbd.rgb), pos)
+    
+    @Task.step_wrapper
+    def step(self):
+        if self.save_data:
+            self.save_rgb_depth_seg()
+
+    def __repr__(self):
+        return "<Move {}>".format(self.target)
+
+class CuriousExplore(TrajectorySaverTask):
+    """use slam to explore environemt, but also examine detections"""
+
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.steps = ["not_started"] * 2
+        self.task_data = task_data
+        self.goal = task_data.get("goal", (19,19,0))
+        self.init_curious_logger()
+        self.agent = agent
+        self.objects_examined = 0
+        self.save_data = task_data.get('save_data')
+        print(f'CuriousExplore task_data {task_data}')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def init_curious_logger(self):
+        self.logger = logging.getLogger('curious')
+        self.logger.setLevel(logging.INFO)
+        fh = logging.FileHandler(f"curious_explore_{'_'.join([str(x) for x in self.goal])}.log", 'w')
+        fh.setLevel(logging.INFO)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+        self.logger.addHandler(ch)
+        self.logger.info(f'CuriousExplore task_data {self.task_data}')
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        
+        if self.steps[0] == "not_started":
+            if self.agent.mover.clear_memory():
+                # clear memory
+                objects = DetectedObjectNode.get_all(self.agent.memory)
+                # self.logger.info(f'Beginning to clear {len(objects)} memids ...')
+                # self.agent.memory.clear(objects)
+                ExaminedMap.clear()
+                # reset object id counter
+                # self.agent.perception_modules["vision"].vision.deduplicate.object_id_counter = 1
+                objects = DetectedObjectNode.get_all(self.agent.memory)
+                # self.logger.info(f'{len(objects)} present now.')   
+            print(f'exploring goal {self.goal}')           
+            self.agent.mover.explore(self.goal)
+            self.dbg_str = "Explore"
+            self.steps[0] = "finished"
+            return
+        
+        # execute a examine maneuver
+        if self.steps[0] == "finished" and self.steps[1] == "not_started":
+            # Get a list of current detections
+            objects = DetectedObjectNode.get_all(self.agent.memory)
+            pos = self.agent.mover.get_base_pos_in_canonical_coords()
+            # pick all from unexamined, in-sight object
+            def pick_random_in_sight(objects, base_pos):
+                for x in objects:
+                    if ExaminedMap.can_examine(x):
+                        # check for line of sight and if within a certain distance
+                        yaw_rad, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], x['xyz'])
+                        # self.logger.info(f"{x['label']}, yaw_rad {yaw_rad}, base_pos {base_pos}")
+                        dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
+                        if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 3:
+                            self.logger.info(f"Exploring eid {x['eid']}, {x['label']} next, dist {dist}")
+                            return x
+                return None
+            target = pick_random_in_sight(objects, pos)
+            if target is not None:
+                self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
+                ExaminedMap.update(target)
+                self.dbg_str = f"Examine {str(target['eid']) + '_' + str(target['label'])} xyz {str(np.round(target['xyz'],3))}"
+                self.add_child_task(ExamineDetection(
+                    self.agent, {
+                        "target": target, 
+                        "save_data": self.save_data,
+                        "data_path": f"examine/{'_'.join([str(x) for x in self.goal])}/"+str(self.objects_examined),
+                        "dbg_str": self.dbg_str,
+                        }
+                    )
+                )
+                self.objects_examined += 1
+            self.steps[1] = "finished"
+            return
+        
+        else:
+            self.finished = self.agent.mover.nav.is_done_exploring().value
+            if not self.finished:
+                self.steps = ["not_started"] * 2
+            else:
+                self.logger.info(f"Exploration finished!")
+            print(f'explore fin {self.finished}')
+    
+    def __repr__(self):
+        return "<CuriousExplore>"
+
+
+class ExamineDetection(TrajectorySaverTask):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.last_base_pos = None
+        self.dbg_str = task_data.get('dbg_str')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        logger = logging.getLogger('curious')
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        logger.info(f"Deciding examination, dist = {dist}")
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            # logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and dist > 1 and d > 0:
+            tloc = get_step_target_for_move(base_pos, self.frontier_center)
+            logger.debug(f"get_step_target_for_straight_move \
+                \nx, z, yaw = {base_pos},\
+                \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
+                \nx_move, z_move, yaw_move = {tloc}")
+            logging.info(f"Current Pos {base_pos}")
+            logging.info(f"Move Target for Examining {tloc}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
+            self.add_child_task(Move(self.agent, {
+                "target": tloc, 
+                "label":str(self.target['eid']) + ':' + self.target['label'] + ' ' + str(np.round(self.target['xyz'],3)) + 'dist ' + str(np.round(dist,3))}))
+            self.last_base_pos = base_pos
+            return
+        else:
+            logger.info(f"Finished Examination")
+            self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetection {}>".format(self.target['label'])
 
 class AutoGrasp(Task):
     """thin wrapper for Dhiraj' grasping routine."""
@@ -334,21 +508,23 @@ class Drop(Task):
                         agent.memory.untag(mmid, "_in_inventory")
 
 
-class Explore(Task):
+class Explore(TrajectorySaverTask):
     """use slam to explore environemt"""
 
     def __init__(self, agent, task_data):
-        super().__init__(agent)
+        super().__init__(agent, task_data)
         self.command_sent = False
         self.agent = agent
+        self.goal = task_data.get("goal", (19,19,0))
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
+        super().step()
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            self.agent.mover.explore()
+            self.agent.mover.explore(self.goal)
         else:
             self.finished = self.agent.mover.bot_step()

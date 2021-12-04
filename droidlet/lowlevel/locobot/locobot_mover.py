@@ -378,9 +378,9 @@ class LoCoBotMover:
         """
         return self.bot.grasp(bounding_box)
 
-    def explore(self):
+    def explore(self, goal):
         if self.nav_result.ready:
-            self.nav_result = safe_call(self.nav.explore)
+            self.nav_result = safe_call(self.nav.explore, goal)
         else:
             print("navigator executing another call right now")
         return self.nav_result
@@ -405,6 +405,9 @@ class LoCoBotMover:
         ]
         cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
         return cordinates_in_standard_frame
+
+    def clear_memory(self):
+        return self.nav.clear_memory()
 
 
 if __name__ == "__main__":

@@ -55,6 +55,7 @@ class Navigation(object):
         self.robot = robot
         self.trackback = Trackback(planner)
         self._busy = False
+        self._done_exploring = False
 
     def go_to_relative(self, goal):
         robot_loc = self.robot.get_base_state()
@@ -113,12 +114,11 @@ class Navigation(object):
         self._busy = False
         return return_code
 
-    def explore(self):
+    def explore(self, far_away_goal):
         if not hasattr(self, '_done_exploring'):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            far_away_goal = (19, 19, 0)
             success = self.go_to_absolute(far_away_goal, steps=1)       
             if success == False:
                 # couldn't reach far_away_goal
@@ -126,9 +126,18 @@ class Navigation(object):
                 # paths to attempt to get there
                 self._done_exploring = True
                 print("exploration done")
+    
+    def clear_memory(self):
+        return self._done_exploring
+    
+    def is_done_exploring(self):
+        return self._done_exploring
 
     def is_busy(self):
         return self._busy
+
+    def reset_explore(self):
+        self._done_exploring = False
 
 robot_ip = os.getenv('LOCOBOT_IP')
 ip = os.getenv('LOCAL_IP')
