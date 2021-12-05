@@ -124,6 +124,27 @@ def get_step_target_for_move(base_pos, target, step_size=0.1):
     
     return [targetx, targetz, yaw] 
 
+def get_circle(r, n=10):
+    return [[math.cos(2*math.pi/n*x)*r,math.sin(2*math.pi/n*x)*r] for x in range(0,n+1)]
+
+def get_circular_path(target, robot_pos, radius, num_points):
+    """
+    get a circular path with num_points of radius from x
+    xyz 
+    """
+    pts = get_circle(radius, num_points) # these are the x,z
+    def get_xyyaw(p, target):
+        targetx = p[0] + target[0]
+        targetz = p[1] + target[2]
+        yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+        return [targetx, targetz, yaw]
+        
+    pts = [get_xyyaw(p, target) for p in pts]
+
+    # sort by proximity to current robot pose
+    pts.sort(key=lambda x: np.linalg.norm(np.asarray(x[:2])-np.asarray(robot_pos[:2])))
+    
+    return pts
 
 """
 Co-ordinate transform utils. Read more at https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD

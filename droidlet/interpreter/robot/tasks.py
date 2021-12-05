@@ -16,6 +16,7 @@ from droidlet.interpreter.robot.objects import DanceMovement
 
 from droidlet.lowlevel.robot_mover_utils import (
     get_move_target_for_point,
+    get_circular_path,
     get_step_target_for_move,
     CAMERA_HEIGHT,
     ARM_HEIGHT,
@@ -382,11 +383,11 @@ class CuriousExplore(TrajectorySaverTask):
                 self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
                 ExaminedMap.update(target)
                 self.dbg_str = f"Examine {str(target['eid']) + '_' + str(target['label'])} xyz {str(np.round(target['xyz'],3))}"
-                self.add_child_task(ExamineDetection(
+                self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
                         "target": target, 
                         "save_data": self.save_data,
-                        "data_path": f"examine/{'_'.join([str(x) for x in self.goal])}/"+str(self.objects_examined),
+                        "data_path": f"examine_circle/{'_'.join([str(x) for x in self.goal])}/"+str(self.objects_examined),
                         "dbg_str": self.dbg_str,
                         }
                     )
@@ -407,7 +408,7 @@ class CuriousExplore(TrajectorySaverTask):
         return "<CuriousExplore>"
 
 
-class ExamineDetection(TrajectorySaverTask):
+class ExamineDetectionStraightline(TrajectorySaverTask):
     """Examine a detection"""
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
@@ -450,7 +451,54 @@ class ExamineDetection(TrajectorySaverTask):
             self.finished = self.agent.mover.bot_step()
         
     def __repr__(self):
-        return "<ExamineDetection {}>".format(self.target['label'])
+        return "<ExamineDetectionStraightline {}>".format(self.target['label'])
+
+class ExamineDetectionCircle(TrajectorySaverTask):
+    """Examine a detection"""
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.target = task_data['target']
+        self.frontier_center = np.asarray(self.target['xyz'])
+        self.agent = agent
+        self.steps = 0
+        self.last_base_pos = None
+        self.dbg_str = task_data.get('dbg_str')
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    @Task.step_wrapper
+    def step(self):
+        super().step()
+        self.interrupted = False
+        self.finished = False
+        logger = logging.getLogger('curious')
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        pts = get_circular_path(self.frontier_center, base_pos, radius=2, num_points=20)
+
+        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
+        logger.info(f"Deciding examination, dist = {dist}")
+        d = 1
+        if self.last_base_pos is not None:
+            d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
+            # logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and dist > 1 and d > 0 and self.steps < len(pts):
+            tloc = pts[self.steps]
+            self.steps += 1
+            logger.debug(f"get_step_target_for_straight_move \
+                \nx, z, yaw = {base_pos},\
+                \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
+                \nx_move, z_move, yaw_move = {tloc}")
+            logging.info(f"Current Pos {base_pos}")
+            logging.info(f"Move Target for Examining {tloc}")
+            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
+            self.add_child_task(Move(self.agent, {"target": tloc}))
+            self.last_base_pos = base_pos
+            return
+        else:
+            logger.info(f"Finished Examination")
+            self.finished = self.agent.mover.bot_step()
+        
+    def __repr__(self):
+        return "<ExamineDetectionCircle {}>".format(self.target['label'])
 
 class AutoGrasp(Task):
     """thin wrapper for Dhiraj' grasping routine."""
