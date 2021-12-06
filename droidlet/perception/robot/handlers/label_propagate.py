@@ -120,7 +120,8 @@ class LabelPropagate(AbstractHandler):
             )
 
             # only consider depth matching for these points
-            # filter out point based on projected depth value wold frame, this helps us get rid of pixels for which view to the object is blocked by any other object, as in that was projected 3D point in wolrd frmae for the current pix won't match with 3D point in the gt provide label
+            # filter out point based on projected depth value wold frame, this helps us get rid of pixels for which view to the object 
+            # is blocked by any other object, as in that was projected 3D point in wolrd frame for the current pix won't match with 3D point in the gt provide label
             dist_thr = 5e-2  # this is in meter
             for pixel_index in range(len(filtered_img_indx)):
                 if filtered_img_indx[pixel_index]:
