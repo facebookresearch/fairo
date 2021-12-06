@@ -42,7 +42,7 @@ class DroidletAgent(BaseAgent):
         self.perceive_on_chat = False
         self.agent_type = None
         self.scheduler = EmptyScheduler()
-        
+
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -148,7 +148,9 @@ class DroidletAgent(BaseAgent):
             logging.debug(f"Looking for action dict for command [{chat}] in memory")
             logical_form = None
             try:
-                chat_memids, _ = self.memory.basic_search(f"SELECT MEMORY FROM Chat WHERE chat={chat}")
+                chat_memids, _ = self.memory.basic_search(
+                    f"SELECT MEMORY FROM Chat WHERE chat={chat}"
+                )
                 logical_form_triples = self.memory.get_triples(
                     subj=chat_memids[0], pred_text="has_logical_form"
                 )
@@ -157,13 +159,13 @@ class DroidletAgent(BaseAgent):
                         logical_form_triples[0][2]
                     ).logical_form
                 if logical_form:
-                    logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(speaker="dashboard", chat=chat, logical_form=logical_form)
+                    logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+                        speaker="dashboard", chat=chat, logical_form=logical_form
+                    )
             except Exception as e:
                 logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
-            
-            payload = {
-                "action_dict": logical_form
-            }
+
+            payload = {"action_dict": logical_form}
             sio.emit("setLastChatActionDict", payload)
 
         @sio.on("terminateAgent")
@@ -192,9 +194,7 @@ class DroidletAgent(BaseAgent):
         def poll_task_stack(sid):
             logging.info("Poll to see if task stack is empty")
             task = True if self.memory.task_stack_peek() else False
-            res = {
-                "task": task,
-            }
+            res = {"task": task}
             sio.emit("taskStackPollResponse", res)
 
     def init_physical_interfaces(self):
@@ -248,12 +248,19 @@ class DroidletAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
+        # clear all tasks and Interpreters:
+        self.memory.task_stack_clear()
+        _, interpreter_mems = self.memory.basic_search(
+            "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+        )
+        for i in interpreter_mems:
+            i.finish()
+
         # we check if the exception raised is in one of our whitelisted exceptions
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
         if isinstance(e, ErrorWithResponse):
             self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
-            self.memory.task_stack_clear()
             self.uncaught_error_count += 1
             if self.uncaught_error_count >= 100:
                 raise e
@@ -261,11 +268,6 @@ class DroidletAgent(BaseAgent):
             # if it's not a whitelisted exception, immediatelly raise upwards,
             # unless you are in some kind of a debug mode
             if self.opts.agent_debug_mode:
-                _, interpreter_mems = self.memory.basic_search(
-                    "SELECT MEMORY FROM Interpreter WHERE finished = 0"
-                )
-                for i in interpreter_mems:
-                    i.finish()
                 return
             else:
                 raise e
