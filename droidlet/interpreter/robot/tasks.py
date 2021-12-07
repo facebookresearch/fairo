@@ -7,6 +7,7 @@ import logging
 import numpy as np
 import math
 import os
+import matplotlib.pyplot as plt 
 
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
@@ -23,6 +24,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     get_camera_angles,
     ExaminedMap,
     base_canonical_coords_to_pyrobot_coords,
+    xyz_canonical_coords_to_pyrobot_coords,
     LabelPropSaver,
 )
 
@@ -310,6 +312,35 @@ class TrajectorySaverTask(Task):
     def __repr__(self):
         return "<Move {}>".format(self.target)
 
+
+
+vis_count = 0
+def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map):
+    global vis_count
+    # plt.figure()
+    plt.title("Examine Visual")
+    
+    # visualize obstacle map
+    if len(obstacle_map) > 0:
+        obstacle_map = np.asarray([list(x) for x in obstacle_map])
+        plt.plot(obstacle_map[:,1], obstacle_map[:,0], 'b+')
+    
+    # visualize object 
+    if object_xyz is not None:
+        plt.plot(object_xyz[0], object_xyz[2], 'y*')
+        plt.text(object_xyz[0], object_xyz[2], label)
+    
+    # visualize robot pose
+    robot_state = robot_poses[-1]
+
+    robot_poses = np.asarray(robot_poses)
+    plt.plot(robot_poses[:,0], robot_poses[:,1], 'r--')
+    
+    # TODO: visualize robot heading 
+    
+    plt.savefig("{:04d}.jpg".format(vis_count))
+    vis_count += 1
+
 class CuriousExplore(TrajectorySaverTask):
     """use slam to explore environemt, but also examine detections"""
 
@@ -345,16 +376,16 @@ class CuriousExplore(TrajectorySaverTask):
         self.finished = False
         
         if self.steps[0] == "not_started":
-            if self.agent.mover.clear_memory():
+            if self.agent.mover.nav.is_done_exploring():
                 # clear memory
                 objects = DetectedObjectNode.get_all(self.agent.memory)
-                # self.logger.info(f'Beginning to clear {len(objects)} memids ...')
-                # self.agent.memory.clear(objects)
+                self.logger.info(f'Beginning to clear {len(objects)} memids ...')
+                self.agent.memory.clear(objects)
                 ExaminedMap.clear()
                 # reset object id counter
-                # self.agent.perception_modules["vision"].vision.deduplicate.object_id_counter = 1
+                self.agent.perception_modules["vision"].vision.deduplicate.object_id_counter = 1
                 objects = DetectedObjectNode.get_all(self.agent.memory)
-                # self.logger.info(f'{len(objects)} present now.')   
+                self.logger.info(f'{len(objects)} present now.')   
             print(f'exploring goal {self.goal}')           
             self.agent.mover.explore(self.goal)
             self.dbg_str = "Explore"
@@ -383,7 +414,7 @@ class CuriousExplore(TrajectorySaverTask):
                 self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
                 ExaminedMap.update(target)
                 self.dbg_str = f"Examine {str(target['eid']) + '_' + str(target['label'])} xyz {str(np.round(target['xyz'],3))}"
-                self.add_child_task(ExamineDetectionCircle(
+                self.add_child_task(ExamineDetectionStraightline(
                     self.agent, {
                         "target": target, 
                         "save_data": self.save_data,
@@ -416,6 +447,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
         self.frontier_center = np.asarray(self.target['xyz'])
         self.agent = agent
         self.last_base_pos = None
+        self.robot_poses = []
         self.dbg_str = task_data.get('dbg_str')
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
@@ -426,6 +458,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
         self.finished = False
         logger = logging.getLogger('curious')
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.robot_poses.append(base_pos)
         dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
         logger.info(f"Deciding examination, dist = {dist}")
         d = 1
@@ -441,9 +474,18 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
             logging.info(f"Current Pos {base_pos}")
             logging.info(f"Move Target for Examining {tloc}")
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
-            self.add_child_task(Move(self.agent, {
-                "target": tloc, 
-                "label":str(self.target['eid']) + ':' + self.target['label'] + ' ' + str(np.round(self.target['xyz'],3)) + 'dist ' + str(np.round(dist,3))}))
+            self.add_child_task(Move(self.agent, {"target": tloc}))
+
+            # visualize tloc, frontier_center, obstacle_map  
+            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+                visualize_examine(
+                    self.agent, 
+                    self.robot_poses, 
+                    self.frontier_center, 
+                    self.target['label'],
+                    self.agent.mover.get_obstacles_in_canonical_coords(),
+                )   
+
             self.last_base_pos = base_pos
             return
         else:
