@@ -150,7 +150,8 @@ class DetectedObjectNode(ReferenceObjectNode):
             "feature_repr": feature_repr,
             "bounds": (minx, miny, minz, maxx, maxy, maxz),
             "bbox": bbox,
-            "mask": mask
+            "mask": mask,
+            "memid": node[0],
         }
 
     def get_pos(self) -> XYZ:
