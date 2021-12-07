@@ -360,22 +360,24 @@ class TrajectorySaverTask(Task):
         return "<TrajectorySaverTask {}>".format(self.target)
 
 
-class Explore(Task):
+class Explore(TrajectorySaverTask):
     """use slam to explore environemt"""
 
     def __init__(self, agent, task_data):
-        super().__init__(agent)
+        super().__init__(agent, task_data)
         self.command_sent = False
         self.agent = agent
+        self.goal = task_data.get("goal", (19,19,0))
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
+        super().step()
         self.interrupted = False
         self.finished = False
         if not self.command_sent:
             self.command_sent = True
-            self.agent.mover.explore()
+            self.agent.mover.explore(self.goal)
         else:
             self.finished = self.agent.mover.bot_step()
 
