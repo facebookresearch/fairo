@@ -35,8 +35,7 @@ def start_explore(agent, goal):
 
         if os.getenv('HEURISTIC') == 'straightline':
             logging.info('Default behavior: Curious Exploration')
-            # do curious exploration
-            # agent.memory.task_stack_push(tasks.CuriousExplore(agent, task_data))
+            agent.memory.task_stack_push(tasks.CuriousExplore(agent, task_data))
         else:
             logging.info('Default behavior: Default Exploration')
             agent.memory.task_stack_push(tasks.Explore(agent, task_data))

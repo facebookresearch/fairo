@@ -94,3 +94,8 @@ class LocoAgentMemory(AgentMemory):
     def add_dance(self, dance_fn, name=None, tags=[]):
         # a dance is movement determined as a sequence of steps, rather than by its destination
         return DanceNode.create(self, dance_fn, name=name, tags=tags)
+
+    def clear(self, objects):
+        for o in objects:
+            if o['memid'] != self.self_memid:
+                self.forget(o['memid'])
