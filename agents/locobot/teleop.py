@@ -253,46 +253,13 @@ if __name__ == "__main__":
         all_points = np.asarray(opcd.points)
         all_colors = np.asarray(opcd.colors)
         
-        if first:
-            cmd = 'add'
-            first = False
-        else:
-            cmd = 'replace'
-            
-        o3dviz.put('pointcloud', cmd, opcd)
+        o3dviz.put('pointcloud', opcd)
 
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        robot_orientation = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.05,
-                                                       cone_radius=.075,
-                                                       cylinder_height = .50,
-                                                       cone_height = .4,
-                                                       resolution=20)
-        robot_orientation.compute_vertex_normals()
-        robot_orientation.paint_uniform_color([1.0, 0.5, 0.1])
-        
-        robot_orientation.translate([y, -x, 0.], relative=False)
-        # make the cylinder representing the robot to be parallel to the floor
-        robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
-        # rotate the cylinder by the robot orientation
-        if yaw != 0:
-            robot_orientation.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))
-
-        o3dviz.put('bot_orientation', cmd, robot_orientation)
-
-        robot_base = o3d.geometry.TriangleMesh.create_cylinder(radius=.1,
-                                                          height=1,)
-        robot_base.translate([y, -x, 0.1], relative=False)
-        robot_base.compute_vertex_normals()
-        robot_base.paint_uniform_color([1.0, 1.0, 0.1])
-
-        o3dviz.put('bot_base', cmd, robot_base)
-
-        # red = x, green = y, blue = z
-        axis = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1.0, origin=np.array([0., 0., 0.]))        
-        axis.compute_vertex_normals()
-        o3dviz.put('axis', cmd, axis)
+        o3dviz.add_robot(base_state)
+        o3dviz.add_axis()
 
         # start the SLAM
         if backend == 'habitat':
@@ -309,7 +276,7 @@ if __name__ == "__main__":
                 cone.translate([goal_x, goal_y, 0.4], relative=False)
                 cone.compute_vertex_normals()
                 cone.paint_uniform_color([0.0, 1.0, 1.0])
-                o3dviz.put('goal_cone', cmd, cone)
+                o3dviz.put('goal_cone', cone)
 
             # plot the short term goal in yellow and the path in green
             if stg is not None:
@@ -319,7 +286,7 @@ if __name__ == "__main__":
                 cone.translate([stg_x, stg_y, 1.4], relative=False)
                 cone.compute_vertex_normals()
                 cone.paint_uniform_color([1.0, 1.0, 0.0])
-                o3dviz.put('stg', cmd, cone)
+                o3dviz.put('stg', cone)
 
                 if prev_stg is None:
                     prev_stg = [y, -x]
@@ -337,7 +304,7 @@ if __name__ == "__main__":
                     path.translate([prev_stg[0], prev_stg[1], 0.2], relative=False)
                     path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
                     path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
-                    o3dviz.put('short_term_goal_path_{}'.format(path_count), 'add', path)
+                    o3dviz.put('short_term_goal_path_{}'.format(path_count), path)
                     path_count = path_count + 1
                 prev_stg = cur_stg
 
@@ -349,6 +316,6 @@ if __name__ == "__main__":
             # obspcd.points = o3d.utility.Vector3dVector(obstacles)
             # obspcd.paint_uniform_color([1.0, 0., 0.])
             # obsvox = o3d.geometry.VoxelGrid.create_from_point_cloud(obspcd, 0.03)
-            # o3dviz.put('obstacles', cmd, obsvox)
+            # o3dviz.put('obstacles', obsvox)
         
         time.sleep(0.001)
