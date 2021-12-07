@@ -96,6 +96,35 @@ def get_move_target_for_point(base_pos, target, eps=0.5):
 
     return [targetx, targetz, yaw]
 
+def get_step_target_for_straightline_move(base_pos, target, step_size=0.1):
+    """
+    Heuristic to get step target of step_size for going to from base_pos to target
+    in a straight line. 
+    Args:
+        base_pos ([x,z,yaw]): robot base in canonical coords
+        target ([x,y,z]): point target in canonical coords
+    
+    Returns:
+        move_target ([x,z,yaw]): robot base move target in canonical coords 
+    """
+
+    dx = target[0] - base_pos[0]
+    dz = target[2] - base_pos[1]
+
+    if dx == 0: # vertical line 
+        theta = math.radians(90)
+    else:
+        theta = math.atan(abs(dz/dx))
+    
+    signx = 1 if dx >= 0 else -1
+    signz = 1 if dz >= 0 else -1
+    
+    targetx = base_pos[0] + signx * step_size * math.cos(theta)
+    targetz = base_pos[1] + signz * step_size * math.sin(theta)
+
+    yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
+    
+    return [targetx, targetz, yaw]
 
 """
 Co-ordinate transform utils. Read more at https://github.com/facebookresearch/fairo/blob/main/locobot/coordinates.MD
