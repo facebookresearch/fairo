@@ -55,6 +55,7 @@ class Navigation(object):
         self.robot = robot
         self.trackback = Trackback(planner)
         self._busy = False
+        self._done_exploring = False
 
     def go_to_relative(self, goal):
         robot_loc = self.robot.get_base_state()
@@ -128,6 +129,12 @@ class Navigation(object):
 
     def is_busy(self):
         return self._busy
+
+    def is_done_exploring(self):
+        return self._done_exploring
+
+    def reset_explore(self):
+        self._done_exploring = False
 
 robot_ip = os.getenv('LOCOBOT_IP')
 ip = os.getenv('LOCAL_IP')
