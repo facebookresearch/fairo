@@ -11,6 +11,7 @@ import cv2
 import json
 from copy import deepcopy as copy
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 from .rotation import yaw_pitch
 
@@ -217,3 +218,34 @@ class TrajectoryDataSaver:
         # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
         with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
             json.dump(self.pose_dict, fp)
+
+
+vis_count = 0
+def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, pts):
+    global vis_count
+    # plt.figure()
+    plt.title("Examine Visual")
+    
+    # visualize obstacle map
+    if len(obstacle_map) > 0:
+        obstacle_map = np.asarray([list(x) for x in obstacle_map])
+        plt.plot(obstacle_map[:,1], obstacle_map[:,0], 'b+')
+    
+    # visualize object 
+    if object_xyz is not None:
+        plt.plot(object_xyz[0], object_xyz[2], 'y*')
+        plt.text(object_xyz[0], object_xyz[2], label)
+    
+    # visualize robot pose
+    robot_state = robot_poses[-1]
+
+    robot_poses = np.asarray(robot_poses)
+    plt.plot(robot_poses[:,0], robot_poses[:,1], 'r--')
+
+    pts = np.asarray(pts)
+    plt.plot(pts[:,0], pts[:,1], 'y--')
+    
+    # TODO: visualize robot heading 
+    
+    plt.savefig("{:04d}.jpg".format(vis_count))
+    vis_count += 1
