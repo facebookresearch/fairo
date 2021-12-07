@@ -375,7 +375,7 @@ class CuriousExplore(TrajectorySaverTask):
         self.finished = False
         
         if self.steps[0] == "not_started":
-            if self.agent.mover.nav.is_done_exploring():
+            if self.agent.mover.nav.is_done_exploring().value:
                 # clear memory
                 objects = DetectedObjectNode.get_all(self.agent.memory)
                 self.logger.info(f'Beginning to clear {len(objects)} memids ...')
