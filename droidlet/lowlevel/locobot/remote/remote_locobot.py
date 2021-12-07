@@ -426,7 +426,7 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=str,
-        default='/scratch/apratik/replica/apartment_0/habitat/mesh_semantic.ply',
+        default='/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply',
     )
     parser.add_argument(
          "--noisy",
