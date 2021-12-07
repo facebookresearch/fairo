@@ -113,12 +113,11 @@ class Navigation(object):
         self._busy = False
         return return_code
 
-    def explore(self):
+    def explore(self, far_away_goal):
         if not hasattr(self, '_done_exploring'):
             self._done_exploring = False
         if not self._done_exploring:
             print("exploring 1 step")
-            far_away_goal = (19, 19, 0)
             success = self.go_to_absolute(far_away_goal, steps=1)       
             if success == False:
                 # couldn't reach far_away_goal
