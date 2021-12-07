@@ -4,6 +4,13 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import numpy as np
 import logging
 from scipy.spatial.transform import Rotation
+import math
+import os
+import shutil
+import cv2
+import json
+from copy import deepcopy as copy
+from pathlib import Path
 
 from .rotation import yaw_pitch
 
@@ -110,3 +117,74 @@ def xyz_pyrobot_to_canonical_coords(xyz):
 def xyz_canonical_coords_to_pyrobot_coords(xyz):
     """converts 3D coords from canonical to pyrobot coords."""
     return xyz @ np.linalg.inv(pyrobot_to_canonical_frame)
+
+
+class TrajectoryDataSaver:
+    def __init__(self, root):
+        print(f'TrajectoryDataSaver saving to {root}')
+        self.save_folder = root
+        self.img_folder = os.path.join(self.save_folder, "rgb")
+        self.img_folder_dbg = os.path.join(self.save_folder, "rgb_dbg")
+        self.depth_folder = os.path.join(self.save_folder, "depth")
+        self.seg_folder = os.path.join(self.save_folder, "seg")
+        self.trav_folder = os.path.join(self.save_folder, "trav")
+
+        if os.path.exists(self.save_folder):
+            print(f'rmtree {self.save_folder}')
+            shutil.rmtree(self.save_folder)
+
+        print(f'trying to create {self.save_folder}')
+        Path(self.save_folder).mkdir(parents=True, exist_ok=True)
+
+        for x in [self.img_folder, self.img_folder_dbg, self.depth_folder, self.seg_folder, self.trav_folder]:
+            self.create(x)
+
+        self.pose_dict = {}
+        self.img_count = 0
+        self.dbg_str = "None"
+
+    def create(self, d):
+        if not os.path.isdir(d):
+            os.makedirs(d)
+
+    def set_dbg_str(self, x):
+        self.dbg_str = x
+    
+    def get_total_frames(self):
+        return self.img_count
+
+    def save(self, rgb, depth, seg, pos):
+        print(f'saving {rgb.shape, depth.shape, seg.shape}')
+        # store the images and depth
+        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
+        cv2.imwrite(
+            self.img_folder + "/{:05d}.jpg".format(self.img_count),
+            rgb,
+        )
+
+        cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+        # robot_dbg_str = 'robot_pose ' + str(np.round(self.get_robot_global_state(), 3))
+        # cv2.putText(rgb, robot_dbg_str, (40,60), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+
+        cv2.imwrite(
+            self.img_folder_dbg + "/{:05d}.jpg".format(self.img_count),
+            rgb,
+        )
+
+        # store depth in mm
+        depth *= 1e3
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
+
+        # store seg
+        np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
+
+        # store pos
+        self.pose_dict[self.img_count] = copy(pos)
+        self.img_count += 1
+        
+        # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
+        with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
+            json.dump(self.pose_dict, fp)

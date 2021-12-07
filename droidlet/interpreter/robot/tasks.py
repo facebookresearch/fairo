@@ -15,6 +15,7 @@ from droidlet.lowlevel.robot_mover_utils import (
     get_move_target_for_point,
     ARM_HEIGHT,
     get_camera_angles,
+    TrajectoryDataSaver,
 )
 
 # FIXME store dances, etc.
@@ -334,6 +335,31 @@ class Drop(Task):
                         agent.memory.untag(mmid, "_in_inventory")
 
 
+class TrajectorySaverTask(Task):
+    def __init__(self, agent, task_data):
+        super().__init__(agent, task_data)
+        self.save_data = task_data.get('save_data', False)
+        self.task_path = task_data.get('data_path', 'default')
+        self.dbg_str = 'None'
+        if self.save_data:
+            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path, self.task_path))
+        TaskNode(agent.memory, self.memid).update_task(task=self)
+
+    def save_rgb_depth_seg(self):
+        rgbd = self.agent.mover.get_rgb_depth()
+        pos = self.agent.mover.get_base_pos()
+        self.data_saver.set_dbg_str(self.dbg_str)
+        self.data_saver.save(rgbd.rgb, rgbd.depth, np.zeros_like(rgbd.rgb), pos)
+    
+    @Task.step_wrapper
+    def step(self):
+        if self.save_data:
+            self.save_rgb_depth_seg()
+
+    def __repr__(self):
+        return "<TrajectorySaverTask {}>".format(self.target)
+
+
 class Explore(Task):
     """use slam to explore environemt"""
 
@@ -352,3 +378,4 @@ class Explore(Task):
             self.agent.mover.explore()
         else:
             self.finished = self.agent.mover.bot_step()
+
