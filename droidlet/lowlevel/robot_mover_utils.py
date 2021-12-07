@@ -229,7 +229,6 @@ class LabelPropSaver:
             self.create(x)
 
         self.pose_dict = {}
-        self.save_vis_skip_frames = 0
         self.img_count = 0
         self.dbg_str = "None"
 
@@ -244,9 +243,6 @@ class LabelPropSaver:
         return self.img_count
 
     def save(self, rgb, depth, seg, pos):
-        self.save_vis_skip_frames += 1
-        print(f'self.save_vis_skip_frames {self.save_vis_skip_frames}')
-        # if self.save_vis_skip_frames % 10 == 0:
         print(f'saving {rgb.shape, depth.shape, seg.shape}')
         # store the images and depth
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)

@@ -127,9 +127,6 @@ class Navigation(object):
                 self._done_exploring = True
                 print("exploration done")
     
-    def clear_memory(self):
-        return self._done_exploring
-    
     def is_done_exploring(self):
         return self._done_exploring
 

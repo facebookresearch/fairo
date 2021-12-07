@@ -406,10 +406,6 @@ class LoCoBotMover:
         cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
         return cordinates_in_standard_frame
 
-    def clear_memory(self):
-        return self.nav.clear_memory()
-
-
 if __name__ == "__main__":
     base_path = os.path.dirname(__file__)
     parser = ArgumentParser("Locobot", base_path)
