@@ -279,12 +279,11 @@ def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, gt_pt
         plt.text(object_xyz[0], object_xyz[2], label)
     
     # visualize robot pose
-    robot_state = robot_poses[-1]
+    if len(robot_poses) > 0:
+        robot_poses = np.asarray(robot_poses)
+        plt.plot(robot_poses[:,0], robot_poses[:,1], 'r--')
 
-    robot_poses = np.asarray(robot_poses)
-    plt.plot(robot_poses[:,0], robot_poses[:,1], 'r--')
-
-    if gt_pts:
+    if len(gt_pts) > 0:
         pts = np.asarray(gt_pts)
         plt.plot(pts[:,0], pts[:,1], 'y--')
     

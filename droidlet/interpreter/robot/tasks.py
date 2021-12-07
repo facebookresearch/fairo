@@ -541,7 +541,8 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.finished = False
         logger = logging.getLogger('curious')
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        self.robot_poses.append(base_pos)
+        if self.steps > 0: # without any steps, the robot isn't on the circle of inspection
+            self.robot_poses.append(base_pos)
         pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=20)
         dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
         logger.info(f"Deciding examination, dist = {dist}")
