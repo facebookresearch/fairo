@@ -171,6 +171,11 @@ def timing_charts(run_id: int) -> None:
     parsing_error_counts = []
     task_errors = []
     task_error_counts = []
+    no_error_dict_list = []
+    no_error_count = 0
+    creativity_scores = []
+    diversity_scores = []
+    stoplight_scores = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -192,7 +197,8 @@ def timing_charts(run_id: int) -> None:
             self_rating.append(int(outputs["self-rating"]))
         except:
             self_rating.append(0)
-        clicks = json.loads(outputs["clickedElements"])
+        clean_click_string = outputs["clickedElements"].replace("'", "")
+        clicks = json.loads(clean_click_string)
         command_count = 0
         last_status_time = 0
         last_pg_read_time = 0
@@ -244,6 +250,15 @@ def timing_charts(run_id: int) -> None:
                 elif click["id"]["task_error"]:
                     task_error_count += 1
                     task_errors.append(click["id"]["msg"] + "|" + json.dumps(click["id"]["action_dict"]))
+                else:
+                    no_error_count += 1
+                    no_error_dict_list.append(click["id"])
+
+            # Collect stoplight scores
+            if "interactionScores" in click["id"]:
+                if click["id"]["interactionScores"]["creativity"]: creativity_scores.append(click["id"]["interactionScores"]["creativity"])
+                if click["id"]["interactionScores"]["diversity"]: diversity_scores.append(click["id"]["interactionScores"]["diversity"])
+                if click["id"]["interactionScores"]["stoplight"]: stoplight_scores.append(click["id"]["interactionScores"]["stoplight"])
 
             # Command timing metrics:
             if click["id"] == 'goToAgentThinking':
@@ -285,13 +300,16 @@ def timing_charts(run_id: int) -> None:
                 post_last_command_time.append((interaction_end_time - last_status_time)/1000)
         pre_first_command_time = [x for x in pre_first_command_time if x<1000000]
 
-        # Set timing logs to 0 for logs that don't exist
+        # Set logs to 0 for logs that don't exist
         for page in inst_timing.keys():
             if len(inst_timing[page]) < unit_num:
                 inst_timing[page].append(0)
         if len(read_time) < unit_num: read_time.append(0)
         if len(pre_interact) < unit_num: pre_interact.append(0)
         if len(interact_time) < unit_num: interact_time.append(0)
+        if len(creativity_scores) < unit_num: creativity_scores.append(0)
+        if len(diversity_scores) < unit_num: diversity_scores.append(0)
+        if len(stoplight_scores) < unit_num: stoplight_scores.append(0)
 
         # End of unit bookkeeping
         command_num.append(command_count)
@@ -334,23 +352,45 @@ def timing_charts(run_id: int) -> None:
     print(f"Avg Number of commands in Mephisto: {sum(command_num)/len(command_num):.1f}")
     print(f"Total parsing error count: {sum(parsing_error_counts)}")
     print(f"Total task error count: {sum(task_error_counts)}")
+    print(f"Total commands with no error, as determined by error dict: {no_error_count}")
     print(f"Units w/ no commands in Mephisto: {command_num.count(0)}")
     print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
     print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
     print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
+    print(f"Average creativity score: {(sum(creativity_scores)/len(creativity_scores)):.1f}")
+    print(f"Average diversity score: {(sum(diversity_scores)/len(diversity_scores)):.1f}")
+    print(f"Average stoplight score: {(sum(stoplight_scores)/len(stoplight_scores)):.1f}")
     
+    #Compare Mephisto and S3 error lists
+    S3_errors = read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211201131224", "error_details")
+    meph_errors = [x.split('|')[0] for x in parsing_errors] + [x.split('|')[0] for x in task_errors]
+    S3_not_meph = [x for x in S3_errors if x not in meph_errors]
+    meph_not_S3 = [x for x in meph_errors if x not in S3_errors]
+    print(f"Number of errors in S3 but not Mephisto: {len(S3_not_meph)}")
+    print(f"Errors in S3 but not Mephisto: {S3_not_meph}")
+    print(f"Errors in Mephisto but not S3: {meph_not_S3}")
+    maybe_bad_error_dicts = []
+    for err in S3_not_meph:
+        for d in no_error_dict_list:
+            if d["msg"] == err:
+                maybe_bad_error_dicts.append(d)
+    print(f"Num S3/Mephisto discrepancies found in no_error list: {len(maybe_bad_error_dicts)}")
+    print(f"Maybe bad error dicts: {maybe_bad_error_dicts}")
+
+
     # Report problematic commands
     #print(f"Commands from HITs that only issued one command: {singleton_commands}")
     #print(f"Commands that triggered the timeout: {timeout_commands}")
 
     # Compare command list against
-    plot_scatter(xs=command_num, ys=HITtime, xlabel="# of Commands", ylabel="HIT Length")
-    plot_data_count = Counter(zip(command_num, usability))
-    bubble_size = [plot_data_count[(command_num[i],usability[i])]*30 for i in range(len(command_num))]
-    plot_scatter(xs=command_num, ys=usability, s=bubble_size, xlabel="# of Commands", ylabel="Usability Score")
-    plot_data_count = Counter(zip(command_num, self_rating))
-    bubble_size = [plot_data_count[(command_num[i],self_rating[i])]*30 for i in range(len(command_num))]
-    plot_scatter(xs=command_num, ys=self_rating, s=bubble_size, xlabel="# of Commands", ylabel="Self Rating")
+    # plot_scatter(xs=command_num, ys=HITtime, xlabel="# of Commands", ylabel="HIT Length")
+    # plot_data_count = Counter(zip(command_num, usability))
+    # bubble_size = [plot_data_count[(command_num[i],usability[i])]*30 for i in range(len(command_num))]
+    # plot_scatter(xs=command_num, ys=usability, s=bubble_size, xlabel="# of Commands", ylabel="Usability Score")
+    # plot_data_count = Counter(zip(command_num, self_rating))
+    # bubble_size = [plot_data_count[(command_num[i],self_rating[i])]*30 for i in range(len(command_num))]
+    # plot_scatter(xs=command_num, ys=self_rating, s=bubble_size, xlabel="# of Commands", ylabel="Self Rating")
+    plot_scatter(xs=command_num, ys=stoplight_scores, xlabel="# of Commands", ylabel="Stoplight Score")
 
     # calc_percentiles(read_time, "Total Read Time")
     # for page in inst_timing.keys():
@@ -404,16 +444,28 @@ def timing_charts(run_id: int) -> None:
     keys = range(len(task_error_counts))
     error_dict = dict(zip(keys, task_error_counts))
     plot_hist(error_dict, xlabel="", ylabel="Number of task errors labeled per HIT")
+    creativity_scores.sort()
+    keys = range(len(creativity_scores))
+    score_dict = dict(zip(keys, creativity_scores))
+    plot_hist(score_dict, xlabel="", ylabel="Creativity Scores")
+    diversity_scores.sort()
+    keys = range(len(diversity_scores))
+    score_dict = dict(zip(keys, diversity_scores))
+    plot_hist(score_dict, xlabel="", ylabel="Diversity Scores")
+    stoplight_scores.sort()
+    keys = range(len(stoplight_scores))
+    score_dict = dict(zip(keys, stoplight_scores))
+    plot_hist(score_dict, target_val=6.5, xlabel="", ylabel="Stoplight Scores")
 
-    inst_timing[5] = inst_timing[5][-100:]  # This is a hack until I can find the bug
+    #inst_timing[5] = inst_timing[5][-100:]  # This is a hack until I can find the bug
 
-    for page in inst_timing.keys():
-        inst_timing[page] = [0 if x<0 else x for x in inst_timing[page]]
-        inst_timing[page] = [90 if x>90 else x for x in inst_timing[page]]
-        inst_timing[page].sort()
-        keys = range(len(inst_timing[page]))
-        page_dict = dict(zip(keys, inst_timing[page]))
-        plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
+    # for page in inst_timing.keys():
+    #     inst_timing[page] = [0 if x<0 else x for x in inst_timing[page]]
+    #     inst_timing[page] = [90 if x>90 else x for x in inst_timing[page]]
+    #     inst_timing[page].sort()
+    #     keys = range(len(inst_timing[page]))
+    #     page_dict = dict(zip(keys, inst_timing[page]))
+    #     plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
     for status in command_timing.keys():
         command_timing[status] = [0 if x<0 else x for x in command_timing[status]]
         command_timing[status] = [50 if x>50 else x for x in command_timing[status]]
