@@ -16,14 +16,13 @@ class InteractApp extends Component {
       currentView: 1,
       lastChatActionDict: "",
       status: "",
-      chats: [{ msg: "", failed: false }],
+      chats: [{ msg: "", timestamp: Date.now() }],
       failidx: -1,
-      agent_reply: "",
+      agent_replies: [{}],
       agentType: null,
       isTurk: false,
     };
     this.state = this.initialState;
-    this.setAssistantReply = this.setAssistantReply.bind(this);
     this.goToQuestionWindow = this.goToQuestionWindow.bind(this);
     this.MessageRef = React.createRef();
   }
@@ -31,26 +30,17 @@ class InteractApp extends Component {
   setInteractState(chat) {
     // make a shallow copy of chats
     var new_chats = [...this.state.chats];
-    new_chats.shift();
     new_chats.push(chat);
     this.setState({ chats: new_chats });
-  }
-
-  setAssistantReply(res) {
-    // show assistant's reply in the Message component
-    this.setState({
-      agent_reply: res.agent_reply,
-    });
   }
 
   componentDidMount() {
     if (this.props.stateManager) {
       this.props.stateManager.connect(this);
-      this.props.stateManager.socket.on(
-        "showAssistantReply",
-        this.setAssistantReply
-      );
-      this.setState({ isTurk: this.props.stateManager.memory.isTurk });
+      this.setState({
+        isTurk: this.props.stateManager.memory.isTurk,
+        agent_replies: this.props.stateManager.memory.agent_replies,
+      });
     }
   }
 
@@ -67,15 +57,8 @@ class InteractApp extends Component {
     // Send a message to the parent iframe for analytics logging
     window.parent.postMessage(JSON.stringify({ msg: "goToMessage" }), "*");
 
-    //change the state to switch the view to show Message and save the user input necessary for socket connection
-    var newchats = this.state.chats;
-    if (this.state.failidx !== -1) {
-      newchats[this.state.failidx].failed = true;
-    }
-    this.setState({
-      currentView: 1,
-      chats: newchats,
-    });
+    //change the state to switch the view to show Message
+    this.setState({ currentView: 1 });
   }
 
   goToAgentThinking() {
@@ -114,11 +97,13 @@ class InteractApp extends Component {
       this.goToQuestionWindow
     );
 
+    const chats_len = this.state.chats.length;
+
     this.setState({
-      agent_reply: this.props.stateManager.memory.agent_reply,
+      agent_replies: this.props.stateManager.memory.agent_replies,
       currentView: 2,
       chats: this.state.chats,
-      failidx: 0,
+      failidx: chats_len - 1,
     });
   }
 
@@ -135,7 +120,7 @@ class InteractApp extends Component {
               chats={this.state.chats}
               agentType={this.state.agentType}
               enableVoice={false}
-              agent_reply={this.state.agent_reply}
+              agent_replies={this.state.agent_replies}
               goToQuestion={this.goToQuestion.bind(this)}
               goToAgentThinking={this.goToAgentThinking.bind(this)}
               setInteractState={this.setInteractState.bind(this)}
@@ -148,7 +133,6 @@ class InteractApp extends Component {
               failidx={this.state.failidx}
               goToMessage={this.goToMessage.bind(this)}
               failmsg={this.state.chats[this.state.failidx].msg}
-              agent_reply={this.state.last_reply}
             />
           ) : null}
           {this.state.currentView === 3 ? (
