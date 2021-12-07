@@ -124,6 +124,15 @@ def get_step_target_for_move(base_pos, target, step_size=0.1):
     
     return [targetx, targetz, yaw] 
 
+def get_straightline_path_to(target, robot_pos):
+    pts = []
+    cur_pos = robot_pos
+    while np.linalg.norm(target[:2]-cur_pos[:2]) > 0.5:
+        t = get_step_target_for_move(cur_pos, [target[0], CAMERA_HEIGHT, target[1]], step_size=0.5)
+        pts.append(t)
+        cur_pos = t
+    return np.asarray(pts)
+
 def get_circle(r, n=10):
     return [[math.cos(2*math.pi/n*x)*r,math.sin(2*math.pi/n*x)*r] for x in range(0,n+1)]
 
@@ -139,11 +148,22 @@ def get_circular_path(target, robot_pos, radius, num_points):
         yaw, _ = get_camera_angles([targetx, CAMERA_HEIGHT, targetz], target)
         return [targetx, targetz, yaw]
         
-    pts = [get_xyyaw(p, target) for p in pts]
+    pts = np.asarray([get_xyyaw(p, target) for p in pts])
 
-    # sort by proximity to current robot pose
-    pts.sort(key=lambda x: np.linalg.norm(np.asarray(x[:2])-np.asarray(robot_pos[:2])))
-    
+    # find nearest pt to robot_pos as starting point
+    def find_nearest_indx(pts, robot_pos):
+        idx = np.asarray([np.linalg.norm(np.asarray(p[:2]) - np.asarray(robot_pos[:2])) for p in pts]).argmin()
+        return idx
+
+    idx = find_nearest_indx(pts, robot_pos)
+    # rotate the pts to begin at idx
+    pts = np.concatenate((pts[idx:,:], pts[:idx,:]), axis=0)
+
+    # TODO: get step-wise move targets to nearest point? or capture move data?
+    # spath = get_straightline_path_to(pts[0], robot_pos)
+    # if spath.size > 0:
+    #     pts = np.concatenate((spath, pts), axis = 0)
+
     return pts
 
 """

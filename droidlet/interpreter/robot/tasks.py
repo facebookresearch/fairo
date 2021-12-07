@@ -315,7 +315,7 @@ class TrajectorySaverTask(Task):
 
 
 vis_count = 0
-def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map):
+def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, pts):
     global vis_count
     # plt.figure()
     plt.title("Examine Visual")
@@ -335,6 +335,9 @@ def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map):
 
     robot_poses = np.asarray(robot_poses)
     plt.plot(robot_poses[:,0], robot_poses[:,1], 'r--')
+
+    pts = np.asarray(pts)
+    plt.plot(pts[:,0], pts[:,1], 'y--')
     
     # TODO: visualize robot heading 
     
@@ -376,7 +379,7 @@ class CuriousExplore(TrajectorySaverTask):
         self.finished = False
         
         if self.steps[0] == "not_started":
-            if self.agent.mover.nav.is_done_exploring():
+            if self.agent.mover.nav.is_done_exploring().value:
                 # clear memory
                 objects = DetectedObjectNode.get_all(self.agent.memory)
                 self.logger.info(f'Beginning to clear {len(objects)} memids ...')
@@ -414,7 +417,7 @@ class CuriousExplore(TrajectorySaverTask):
                 self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
                 ExaminedMap.update(target)
                 self.dbg_str = f"Examine {str(target['eid']) + '_' + str(target['label'])} xyz {str(np.round(target['xyz'],3))}"
-                self.add_child_task(ExamineDetectionStraightline(
+                self.add_child_task(ExamineDetectionCircle(
                     self.agent, {
                         "target": target, 
                         "save_data": self.save_data,
@@ -465,7 +468,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
             # logger.info(f"Distance moved {d}")
-        if (base_pos != self.last_base_pos).any() and dist > 1 and d > 0:
+        if (base_pos != self.last_base_pos).any() and dist > 0 and d > 0:
             tloc = get_step_target_for_move(base_pos, self.frontier_center)
             logger.debug(f"get_step_target_for_straight_move \
                 \nx, z, yaw = {base_pos},\
@@ -503,6 +506,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.frontier_center = np.asarray(self.target['xyz'])
         self.agent = agent
         self.steps = 0
+        self.robot_poses = []
         self.last_base_pos = None
         self.dbg_str = task_data.get('dbg_str')
         TaskNode(agent.memory, self.memid).update_task(task=self)
@@ -514,15 +518,16 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.finished = False
         logger = logging.getLogger('curious')
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
-        pts = get_circular_path(self.frontier_center, base_pos, radius=2, num_points=20)
-
+        self.robot_poses.append(base_pos)
+        pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=20)
         dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
         logger.info(f"Deciding examination, dist = {dist}")
+        logger.info(f"{len(pts)} available points on the circle")
         d = 1
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
-            # logger.info(f"Distance moved {d}")
-        if (base_pos != self.last_base_pos).any() and dist > 1 and d > 0 and self.steps < len(pts):
+            logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and self.steps < len(pts):
             tloc = pts[self.steps]
             self.steps += 1
             logger.debug(f"get_step_target_for_straight_move \
@@ -534,6 +539,18 @@ class ExamineDetectionCircle(TrajectorySaverTask):
             logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
             self.add_child_task(Move(self.agent, {"target": tloc}))
             self.last_base_pos = base_pos
+
+            # visualize tloc, frontier_center, obstacle_map  
+            if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
+                visualize_examine(
+                    self.agent, 
+                    self.robot_poses, 
+                    self.frontier_center, 
+                    self.target['label'],
+                    self.agent.mover.get_obstacles_in_canonical_coords(),
+                    pts,
+                )   
+
             return
         else:
             logger.info(f"Finished Examination")
