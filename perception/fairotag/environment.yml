@@ -1,0 +1,17 @@
+name: artags_utils
+channels:
+  - fair-robotics
+  - conda-forge
+  - defaults
+dependencies:
+  - gtsam
+  - pip=20.2.2=py38_0
+  - pybind11=2.6.2
+  - python=3.8.5
+  - pip:
+    - numpy==1.19.2
+    - matplotlib==3.4.2
+    - opencv-contrib-python==4.4.0.42
+    - pytest==6.2.2
+    - scipy==1.7.0
+    - sophuspy==0.0.8
