@@ -12,7 +12,13 @@ Simple API that exposes planning functionalities of [MoveIt](https://moveit.ros.
 - torch
 - [Polymetis](https://polymetis-docs.github.io/)
 
-(Note: Ensure user account is part of the `docker` group after the installation of Docker.)
+### Note: Docker setup
+Ensure user account is part of the `docker` group after the installation of Docker by:
+```
+sudo groupadd -f docker
+sudo usermod -aG docker $USER
+```
+then logging out and back in.
 
 ## Installation
 ```
