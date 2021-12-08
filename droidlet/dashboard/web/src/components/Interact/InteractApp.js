@@ -75,6 +75,9 @@ class InteractApp extends Component {
   }
 
   goToQuestion(idx) {
+    // Send a message to the parent iframe for analytics logging
+    window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
+
     // Wait for the logical form of last chat and show the Fail page
     this.props.stateManager.socket.on(
       "setLastChatActionDict",
@@ -90,7 +93,8 @@ class InteractApp extends Component {
 
   goToQuestionWindow() {
     // Send a message to the parent iframe for analytics logging
-    window.parent.postMessage(JSON.stringify({ msg: "goToQuestion" }), "*");
+    window.parent.postMessage(JSON.stringify({ msg: "goToQuestionWindow" }), "*");
+
     // Don't proliferate sio listeners
     this.props.stateManager.socket.off(
       "setLastChatActionDict",

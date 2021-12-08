@@ -176,6 +176,7 @@ def timing_charts(run_id: int) -> None:
     creativity_scores = []
     diversity_scores = []
     stoplight_scores = []
+    unit_start_times_with_timeouts = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -279,12 +280,13 @@ def timing_charts(run_id: int) -> None:
             if click["id"] == 'executing':
                 command_timing['plan'].append((click["timestamp"] - last_status_time)/1000)
                 last_status_time = click["timestamp"]
-            if click["id"] == 'goToMessaage':
+            if click["id"] == 'goToMessage':
                 command_timing['execute'].append((click["timestamp"] - last_status_time)/1000)
                 command_timing['total'].append((click["timestamp"] - command_start_time)/1000)
                 # if the command took a long time, remember it
-                if command_timing['total'][-1] > 48:
+                if command_timing['total'][-1] > 49:
                     timeout_commands.append(command_list[-1])
+                    unit_start_times_with_timeouts.append(datetime.fromtimestamp(HIT_start_time))
                 command_end_times.append(click["timestamp"])
                 # Reset and set up for next command:
                 last_status_time = click["timestamp"]
@@ -338,7 +340,7 @@ def timing_charts(run_id: int) -> None:
     # See the S3 logs that don't contain commands:
     #print(logs_with_no_commands("/private/home/ethancarlson/.hitl/parsed/20211201131224"))
 
-    save_commands_to_file(command_list, parsing_errors, task_errors, "/private/home/ethancarlson/.hitl/parsed/20211202170632")
+    #save_commands_to_file(command_list, parsing_errors, task_errors, "/private/home/ethancarlson/.hitl/parsed/20211202170632")
 
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
@@ -380,7 +382,8 @@ def timing_charts(run_id: int) -> None:
 
     # Report problematic commands
     #print(f"Commands from HITs that only issued one command: {singleton_commands}")
-    #print(f"Commands that triggered the timeout: {timeout_commands}")
+    print(f"Commands that triggered the timeout: {timeout_commands}")
+    print(f"HIT starttimes for commands that timed out: {unit_start_times_with_timeouts}")
 
     # Compare command list against
     # plot_scatter(xs=command_num, ys=HITtime, xlabel="# of Commands", ylabel="HIT Length")
