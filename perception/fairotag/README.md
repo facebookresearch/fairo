@@ -20,8 +20,7 @@ Install dependencies
 ```
 conda install -c fair-robotics -c conda-forge cmake pybind11 gtsam
 ```
-(Note 1: Cmake and Pybind11 are required to build wheel for sophuspy)
-(Note 2: Cmake and Pybind11 are required to build wheel for sophuspy)
+(Note: Cmake and Pybind11 are required to build wheel for sophuspy)
 
 Install from source
 ```
