@@ -77,7 +77,7 @@ class Question extends Component {
       <div>
         <h3>
           {" "}
-          Okay, it seems like I understood your command. Did I successfully do
+          Okay, it seems like I understood your command. Did I do (or am I doing)
           the task you asked me to complete?{" "}
         </h3>
         <List className="answers" component="nav">

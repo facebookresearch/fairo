@@ -7,18 +7,28 @@
 // Remove the stylesheet inherited from Mephisto by default
 $('link[rel=stylesheet][href~="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]').remove();
 
+var timerStarted = false;
 var timerStopped = false;
 var ratingComplete = false;
 var selfRatingComplete = false;
+var feedbackComplete = false;
+var instructionsClosed = false;
+var commandIssued = false;
 var clickedElements = new Array();
 
 // recordClick logs user actions as well as messages from the dashboard to the Mephisto form
 function recordClick(ele) {
-  if (ele === "timerOFF") {  // Check to allow submission if all qualifications are met
-    timerStopped = true;
-    checkSubmitDisplay();
+  if (ele === "timerON") {  // Don't allow these to get pushed more than once 
+    if (!timerStarted) {clickedElements.push({id: ele, timestamp: Date.now()});}
+    timerStarted = true;
   }
-  clickedElements.push({id: ele, timestamp: Date.now()});
+  if (ele === "timerOFF") {  
+    if (!timerStopped) {clickedElements.push({id: ele, timestamp: Date.now()});}
+    timerStopped = true;
+    checkSubmitDisplay();  // Check to allow submission if all qualifications are met
+  }
+  else { clickedElements.push({id: ele, timestamp: Date.now()}); }
+  
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
   //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
@@ -26,11 +36,22 @@ recordClick("start");
 
 document.getElementsByClassName("btn-default")[0].classList.add("hidden");  // Hide the submit button to start
 function checkSubmitDisplay() {
+  // Let them submit if they sent at least one command
+  clickedElements.forEach(function(click){
+    if (click.id === "goToAgentThinking") {commandIssued = true}
+  })
+
   //Only display the submit button if the worker has interacted with the dashboard and completed the survey
-  if (ratingComplete && selfRatingComplete && timerStopped) {
+  if (ratingComplete && selfRatingComplete && feedbackComplete && commandIssued && timerStopped) {
     document.getElementsByClassName("btn-default")[0].classList.remove("hidden");
     window.scrollTo(0,document.body.scrollHeight);
   }
+}
+
+//We should only record the instructions being closed once, even if they manage to get a few clicks in
+function closeInstructions() {
+  if (!instructionsClosed) {recordClick('instructions-popup-close')}
+  instructionsClosed = true
 }
 
 function usabilityRated() {
@@ -42,6 +63,12 @@ function usabilityRated() {
 function selfRated() {
   selfRatingComplete = true;
   recordClick("self-rated");
+  checkSubmitDisplay();
+}
+
+function feedback() {
+  feedbackComplete = true;
+  recordClick("feedack-given");
   checkSubmitDisplay();
 }
 

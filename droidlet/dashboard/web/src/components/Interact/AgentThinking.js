@@ -135,7 +135,11 @@ class AgentThinking extends Component {
       Date.now() - this.state.now > 50000
     ) {
       console.log("Safety check failed, exiting to Message pane.");
-      this.props.goToMessage();
+      window.parent.postMessage(
+        JSON.stringify({ msg: "safetyCheckFailed" }),
+        "*"
+      );
+      this.props.goToQuestion();
     } else return true;
   }
 

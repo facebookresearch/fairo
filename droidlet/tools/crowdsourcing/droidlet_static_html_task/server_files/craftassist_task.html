@@ -49,7 +49,7 @@
       </div>	
       <div class="modal-body" id="modal"></div>	
       <div class="modal-footer">	
-        <button class="btn btn-primary" id="close-instructions-btn" onclick="recordClick('instructions-popup-close')" data-dismiss="modal" type="button" style="display:none">Close</button>	
+        <button class="btn btn-primary" id="close-instructions-btn" onclick="closeInstructions()" data-dismiss="modal" type="button" style="display:none">Close</button>	
       </div>	
     </div>	
   </div>	
@@ -89,13 +89,14 @@
               IMPORTANT - Please note that you will only get paid if you:	
               <ol>	
                 <li>Click "Start" in the bottom right to begin session.</li>	
-                <li>Interact with the assistant for the <i>full 5 minutes.</i></li>	
+                <li>Interact with the assistant for the <i>full 5 minutes</i> and send commands</li>	
                 <li>Click on "End" in the bottom right.</li>	
-                <li>Rate the clarity and usability of the HIT.</li>	
+                <li>Rate and give feedback on the clarity and usability of the HIT.</li>	
                 <li>Click on "Submit" button at the bottom.</li>	
               </ol>	
               Please read these instructions carefully!  You should spend 3 minutes reading and understanding.	
-            </b></p>	
+            </b></p>
+            <h4 style="color: red;">This HIT includes bonus payment incentives for good performance.  More details are on page 5.</h4>
           </div>	
           <div class="collapse" id="instructions-page-2">	
             <h3>Example Task Interface</h3>	
@@ -160,6 +161,10 @@
               Near the bottom of the screen you will see a stoplight that will give you feedback on the quality of your interaction throughout the HIT.
               You may also see some feedback that will guide you to improve your interaction with the assistant.
             </p>	
+            <h4 style="color:red;">	
+              You will receive a bonus payment of up to <b>$3</b> in addition to the base payment based on the quality of your interaction.
+              Your current bonus is displayed below the stoplight.
+            </h4>	
           </div>	
           <div class="collapse" id="instructions-page-6">	
             <h3>Tips</h3>	
@@ -252,6 +257,8 @@
         <option value="2">2 - Poor</option>
         <option value="1">1 - Very Poor</option>
       </select>
+      <h4>Please provide feedback on how we can improve the usability of this HIT</h4>
+      <input type="text" class="form-control" id="feedback" name="feedback" onchange="feedback()">
       <input type="hidden" id="clickedElements" name="clickedElements" value="0">
       <input type="hidden" id="userAgent" name="userAgent" value="0">
     </div>
@@ -263,6 +270,15 @@
     modal_body = $("#modal");
     $("#instructions").clone().appendTo(modal_body);
     $(".modal").modal("show");
+  });
+
+  // Disable enter to submit, must push button after quals have been met
+  $(document).on("keypress", 'form', function (e) {
+    var code = e.keyCode || e.which;
+    if (code == 13) {
+      e.preventDefault();
+      return false;
+    }
   });
 </script>
 <script src="utils.js"></script>	
