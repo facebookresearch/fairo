@@ -14,17 +14,17 @@ import numpy as np
 
 import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
-from agents.argument_parser import ArgumentParser
+#from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
-from ..robot_mover import MoverInterface
-from ..robot_mover_utils import (
+from droidlet.lowlevel.robot_mover import MoverInterface
+from droidlet.lowlevel.robot_mover_utils import (
     get_camera_angles,
     angle_diff,
     transform_pose,
 )
 
-from .rotation import (
+from droidlet.lowlevel.hello_robot.rotation import (
     rotation_matrix_x,
     rotation_matrix_y,
     rotation_matrix_z,
@@ -69,7 +69,6 @@ class HelloRobotMover(MoverInterface):
         self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
         self.data_logger._pyroAsync()
         _ = safe_call(self.data_logger.ready)
-        self.curr_look_dir = np.array([0, 0, 1])  # initial look dir is along the z-axis
 
         intrinsic_mat = safe_call(self.cam.get_intrinsics)
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
@@ -102,6 +101,9 @@ class HelloRobotMover(MoverInterface):
                 positive is up
         """
         # FIXME handle out-of-range values properly
+        dtilt = dtilt or 0
+        dpan = dpan or 0
+        
         new_tilt = self.get_tilt() + dtilt
         
         # FIXME: make a safe_base_turn method
@@ -128,12 +130,15 @@ class HelloRobotMover(MoverInterface):
             tilt_rad (float): angle in radians to to turn head up-down.
                 positive is down. 
         """
+        tilt_rad = tilt_rad or self.get_tilt()
         # TODO handle out-of-range properly
         dtilt = angle_diff(self.get_tilt(), tilt_rad)
         if not world:
+            pan_rad = pan_rad or self.get_pan()
             dpan = angle_diff(self.get_pan(), pan_rad)
         else:
             base_pan = self.get_base_pos_in_canonical_coords()[2]
+            pan_rad = pan_rad or base_pan + self.get_pan()
             dpan = angle_diff(base_pan + self.get_pan(), pan_rad)
         return self.relative_pan_tilt(dpan, dtilt, turn_base=turn_base)
 
@@ -237,18 +242,18 @@ class HelloRobotMover(MoverInterface):
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
        
-        the standard coordinate systems:
-          Camera looks at (0, 0, 1),
-          its right direction is (1, 0, 0) and
-          its up-direction is (0, 1, 0)
+        the standard coordinate systems:                           
+        from the origin, at yaw=0, front is (x, y, z) = (1, 0, 0),
+        its right direction is (x,y,z) = (0, -1, 0) 
+        its up direction is (x,y,z) = (0, 1, 0) 
 
-         return:
-         (x, z, yaw) of the robot base in standard coordinates
+        return:
+        (x, z, yaw) of the robot base in standard coordinates
         """
         future = safe_call(self.bot.get_base_state)
         x_global, y_global, yaw = future.value
-        x_standard = -y_global
-        z_standard = x_global
+        x_standard = x_global
+        z_standard = -y_global
         return np.array([x_standard, z_standard, yaw])
 
     def get_current_pcd(self, in_cam=False, in_global=False):
@@ -355,9 +360,10 @@ class HelloRobotMover(MoverInterface):
         return self.bot.explore()
 
 if __name__ == "__main__":
+    import argparse
+    #    parser = ArgumentParser("HelloRobot", base_path)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip", default="")
+    opts = parser.parse_args()
     base_path = os.path.dirname(__file__)
-    parser = ArgumentParser("HelloRobot", base_path)
-    opts = parser.parse()
-    mover = BotMover(ip=opts.ip)
-    if opts.check_controller:
-        mover.check()
+    mover = HelloRobotMover(ip=opts.ip)
