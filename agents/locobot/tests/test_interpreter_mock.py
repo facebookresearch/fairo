@@ -155,7 +155,7 @@ class TurnTest(BaseFakeAgentTestCase):
         new_yaw = changes[1]["agent"]["base_yaw"]
         assert_turn_degree(old_yaw, new_yaw, 90)
 
-
+@unittest.skip("skipping until fake agent mover has caught up with hello mover")
 class DanceTest(BaseFakeAgentTestCase):
     """Tests for dance."""
 
