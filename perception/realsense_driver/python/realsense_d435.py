@@ -4,7 +4,7 @@ import numpy as np
 import pyrealsense2 as rs
 
 
-class RealSense:
+class RealsenseAPI:
     """ Wrapper that implements boilerplate code for RealSense cameras """
 
     def __init__(self):
