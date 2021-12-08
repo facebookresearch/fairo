@@ -1,13 +1,9 @@
-# ArUcoX
+# FairoTag
 
-[![CircleCI](https://circleci.com/gh/fair-robotics/fair-aruco/tree/master.svg?style=svg&circle-token=f1e087bc2f213a5f47dde7e0d67a91c1e5882294)](https://circleci.com/gh/fair-robotics/fair-aruco/tree/master)
-
-**Note: This documentation is out of date! Newer version coming soon.**
-
-A thin wrapper around [ArUco](https://www.uco.es/investiga/grupos/ava/node/26) that provides a cleaner API and default parameters that work with pre-generated calibration boards and markers.
-Performs detection and pose estimation of ARTag markers.
-
-The source code for the API can be found at [python/arucoX](https://github.com/fair-robotics/fair-aruco/blob/master/python/arucoX)
+A wrapper around [ArUco](https://www.uco.es/investiga/grupos/ava/node/26) and [GTSAM](https://gtsam.org/) that provides minimal API to:
+- Perform detection and pose estimation of ARTag markers.
+- Calibrate camera extrinsics.
+- Pose estimation of multiple cameras and markers within the same scene.
 
 ## Requirements
 - numpy
@@ -30,8 +26,6 @@ pip install .
 ```
 
 ## Usage: Single camera
-
-Example can be found in [examples/single_camera](https://github.com/fair-robotics/fair-aruco/blob/master/examples/single_camera)
 
 ### Creating Markers
 
