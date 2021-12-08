@@ -43,7 +43,8 @@ class ObjectTracking(AbstractHandler):
 
     def __call__(self, rgb_depth, detections):
         """run tracker on the current rgb_depth frame for the detections found"""
-        logging.info("In TrackingHandlerNorfair ... ")
+        if self.verbose > 0:
+            logging.info("In TrackingHandlerNorfair ... ")
         detections = self.to_norfair(detections)
         self.tracked_objects = self.tracker.update(detections, period=4)
         img = rgb_depth.rgb

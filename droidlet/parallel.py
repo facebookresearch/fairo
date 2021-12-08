@@ -46,8 +46,6 @@ def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, outpu
             try:
                 process_args = input_queue.get(block=True, timeout=0.1)
                 process_args_aug = (initial_state, *process_args)
-                print(process_args)
-                print(process_args_aug)
                 process_return = process_fn(*process_args_aug)
                 output_queue.put(process_return)
             except queue.Empty:

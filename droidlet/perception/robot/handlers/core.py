@@ -17,12 +17,15 @@ import cv2
 from droidlet.perception.robot.perception_util import get_color_tag
 from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 
+#FIXME: do this through args, allow multiple verbosity levels
+VERBOSE = 1
+
 class AbstractHandler:
     """Interface for implementing perception handlers.
 
     Each handler must implement the handle and an optional _debug_draw method.
     """
-
+    verbose = VERBOSE   
     @abstractmethod
     def __call__(self, *input):
         """Implement this method to hold the core execution logic."""

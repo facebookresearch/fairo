@@ -43,7 +43,7 @@ class ObjectDetection(AbstractHandler):
     """
 
     def __init__(self, model_data_dir):
-        self.detector = DetectorBase(model_data_dir)
+        self.detector = DetectorBase(model_data_dir, verbose=self.verbose)
 
     def __call__(self, rgb_depth):
         """the inference logic for the handler lives here.
@@ -54,12 +54,14 @@ class ObjectDetection(AbstractHandler):
         Returns:
             detections (list[Detections]): list of detections found
         """
-        logging.info("In DetectionHandler ... ")
+        if self.verbose > 0:
+            logging.info("In DetectionHandler ... ")
         rgb = rgb_depth.rgb
         p_list, predictions = self.detector(rgb)
         detections = []
         for x in p_list:
-            logging.info("Detected {} objects".format(len(p_list)))
+            if self.verbose > 0:
+                logging.info("Detected {} objects".format(len(p_list)))
             # create a detection object for each instance
             detections.append(
                 Detection(
@@ -82,7 +84,8 @@ class ObjectDetection(AbstractHandler):
 class DetectorBase:
     """Class that encapsulates low_level logic for the detector, like loading the model and parsing inference outputs."""
 
-    def __init__(self, model_data_dir):
+    def __init__(self, model_data_dir, verbose=1):
+        self.verbose = verbose
         files = os.listdir(model_data_dir)
         props_file = os.path.join(model_data_dir, props_filename) \
             if props_filename in files \
@@ -93,10 +96,12 @@ class DetectorBase:
 
         with open(props_file, "r") as h:
             self.properties = json.load(h)["items"]
-            logging.info("{} properties".format(len(self.properties)))
+            if self.verbose > 0:
+                logging.info("{} properties".format(len(self.properties)))
         with open(things_file, "r") as h:
             self.things = json.load(h)["items"]
-            logging.info("{} things".format(len(self.things)))
+            if self.verbose > 0:
+                logging.info("{} things".format(len(self.things)))
 
         weights = os.path.join(model_data_dir, detector_weights)
         self.dataset_name = "dummy_dataset"
@@ -112,7 +117,8 @@ class DetectorBase:
         ].get_centers()  # N*2 https://detectron2.readthedocs.io/_modules/detectron2/structures/boxes.html
         p_list = []
         num_instances = len(oi["pred_classes"])
-        logging.info("{} instances detected.".format(num_instances))
+        if self.verbose > 0:
+            logging.info("{} instances detected.".format(num_instances))
         for x in range(num_instances):
             p = {}
             # class label
@@ -216,5 +222,5 @@ class Detection(WorldObject):
         mask = np.zeros((h, w), np.uint8)
         cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1, 4)
         im = cv2.bitwise_and(rgb, rgb, mask=mask)
-        logging.debug("Calculating feature repr for {}".format(self.label))
+        #logging.debug("Calculating feature repr for {}".format(self.label))
         return im

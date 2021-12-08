@@ -24,10 +24,11 @@ class HumanPose(AbstractHandler):
     """
 
     def __init__(self, model_data_dir, default=False):
-        self.detector = HumanKeypoints(model_data_dir, default)
+        self.detector = HumanKeypoints(model_data_dir, default, verbose=self.verbose)
 
     def __call__(self, rgb_depth):
-        logging.info("In HumanPoseHandler ... ")
+        if self.verbose > 0:
+            logging.info("In HumanPoseHandler ... ")
         rgb = rgb_depth.rgb
         keypoints = self.detector(rgb)
         humans = []
@@ -86,7 +87,8 @@ class HumanKeypoints:
         ("right_shoulder", "left_shoulder"),
     ]
 
-    def __init__(self, model_data_dir, default):
+    def __init__(self, model_data_dir, default, verbose=1):
+        self.verbose = verbose
         cfg = get_cfg()
         yaml_path = os.path.abspath(os.path.join(file_root, "..", keypoints_yaml))
         cfg.merge_from_file(yaml_path)
@@ -110,8 +112,8 @@ class HumanKeypoints:
                 for point, name in zip(points_indices[i], COCO_PERSON_KEYPOINT_ORDERING):
                     p_i[name] = point.int().tolist()
                 points.append(HumanKeypointsOrdering(**p_i))
-
-        logging.info("{} humans detected.".format(len(points)))
+        if self.verbose > 0:
+            logging.info("{} humans detected.".format(len(points)))
         return points
 
     def draw(self, bgr, keypoints):

@@ -82,17 +82,19 @@ class ObjectDeduplicator(AbstractHandler):
                 dist = np.linalg.norm(
                     np.asarray(current_object.xyz[:2]) - np.asarray(previous_object.xyz[:2])
                 )
-                logging.debug(
-                    "Similarity {}.{} = {}, {}".format(
-                        current_object.label, previous_object.label, score.item(), dist
-                    )
+                if self.verbose > 0:
+                    logging.debug(
+                        "Similarity {}.{} = {}, {}".format(
+                            current_object.label, previous_object.label, score.item(), dist
+                        )
                 )
                 # FIXME pick best match?
                 if self.is_match(score.item(), dist):
                     is_novel = False
                     current_object.eid = previous_object.eid
                     break
-        logging.info("world object {}, is_novel {}".format(current_object.label, is_novel))
+        if self.verbose > 0:
+            logging.info("world object {}, is_novel {}".format(current_object.label, is_novel))
         return is_novel
 
     def __call__(self, current_objects, previous_objects):
@@ -104,7 +106,9 @@ class ObjectDeduplicator(AbstractHandler):
             current_objects (list[WorldObject]): a list of all WorldObjects detected in the current frame
             previous_objects (list[WorldObject]): a list of all previous WorldObjects ever detected
         """
-        logging.info("In ObjectDeduplicationHandler ... ")
+
+        if self.verbose > 0:
+            logging.info("In ObjectDeduplicationHandler ... ")
         self.object_id_counter = self.object_id_counter + 1
         new_objects = []
         updated_objects = []
@@ -113,12 +117,12 @@ class ObjectDeduplicator(AbstractHandler):
                 current_object.eid = self.object_id_counter
                 self.object_id_counter = self.object_id_counter + 1
                 new_objects.append(current_object)
-
-                logging.info(
-                    f"Instance ({current_object.label}) {current_object.eid} is at location: "
-                    f"({np.around(np.array(current_object.xyz), 2)}),"
-                    f" Center:({current_object.center})"
-                )
+                if self.verbose > 0:
+                    logging.info(
+                        f"Instance ({current_object.label}) {current_object.eid} is at location: "
+                        f"({np.around(np.array(current_object.xyz), 2)}),"
+                        f" Center:({current_object.center})"
+                    )
             else:
                 exists = False
                 for u in updated_objects:
