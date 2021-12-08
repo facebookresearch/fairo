@@ -1,5 +1,5 @@
 REMOTE=492338101900.dkr.ecr.us-west-1.amazonaws.com
-COMMIT_SHA:=$(shell git show --name-only origin/main | head -1 | cut -d' ' -f2)
+COMMIT_SHA:=$(shell git show --name-only origin/${CURRENT_BRANCH} | head -1 | cut -d' ' -f2)
 ARGS=${DOCKER_BUILD_ARGS}
 
 all: build

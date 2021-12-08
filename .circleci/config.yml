@@ -163,6 +163,7 @@ jobs:
           name: Get branch env variable
           command: |
             echo 'export DOCKER_BUILD_ARGS="--build-arg current_branch=${CIRCLE_BRANCH} --build-arg AWS_ACCESS_KEY_ID=${AWS_S3_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_S3_SECRET_ACCESS_KEY}"' >> $BASH_ENV
+            echo 'export CURRENT_BRANCH="${CIRCLE_BRANCH}"' >> $BASH_ENV
 
       - run:
           name: Build docker containers
