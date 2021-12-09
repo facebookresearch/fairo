@@ -10,7 +10,7 @@ DEFAULT_HUBER_C = 1.345
 USE_ANALYTICAL_JACOBIANS = False
 
 
-# Factor graph obj
+# Factor graph object
 class FactorGraph:
     """Wrapper around gtsam.NonlinearFactorGraph that provides functionalities:
     - API that uses Sophus for pose inputs/outputs
@@ -63,44 +63,44 @@ class FactorGraph:
         # Add to edges
         self.factor_edges[name] = []
 
-    def add_prior(self, obj_name, transform, noise=None):
+    def add_prior(self, var_name, transform, noise=None):
         """ Prior factor """
         noise_gt = self._process_noise(noise)
         transform_gt = sophus2gtsam(transform)
 
-        obj = self.vars[obj_name]
+        var = self.vars[var_name]
 
-        factor = gtsam.PriorFactorPose3(obj, transform_gt, noise_gt)
+        factor = gtsam.PriorFactorPose3(var, transform_gt, noise_gt)
         self.gtsam_graph.push_back(factor)
 
-    def add_observation(self, obj1_name, obj2_name, transform, noise=None):
+    def add_observation(self, var1_name, var2_name, transform, noise=None):
         """ Between factor """
         noise_gt = self._process_noise(noise)
         transform_gt = sophus2gtsam(transform)
 
-        obj1 = self.vars[obj1_name]
-        obj2 = self.vars[obj2_name]
+        var1 = self.vars[var1_name]
+        var2 = self.vars[var2_name]
 
-        factor = gtsam.BetweenFactorPose3(obj1, obj2, transform_gt, noise_gt)
+        factor = gtsam.BetweenFactorPose3(var1, var2, transform_gt, noise_gt)
         self.gtsam_graph.push_back(factor)
 
         # Add edge information
-        self.factor_edges[obj1].append((obj2, transform_gt))
-        self.factor_edges[obj2].append((obj1, transform_gt.inverse()))
+        self.factor_edges[var1].append((var2, transform_gt))
+        self.factor_edges[var2].append((var1, transform_gt.inverse()))
 
-    def add_fixed_transform(self, obj1_name, obj2_name, transform_name, noise=None):
+    def add_fixed_transform(self, var1_name, var2_name, transform_name, noise=None):
         """ Custom factor for constant transforms """
         noise_gt = self._process_noise(noise)
 
-        obj1 = self.vars[obj1_name]
-        obj2 = self.vars[obj2_name]
+        var1 = self.vars[var1_name]
+        var2 = self.vars[var2_name]
         transform = self.vars[transform_name]
 
-        factor = gtsam.CustomFactor(noise_gt, [obj1, obj2, transform], frame_error_func)
+        factor = gtsam.CustomFactor(noise_gt, [var1, var2, transform], frame_error_func)
         self.gtsam_graph.push_back(factor)
 
-    def bfs_initialization(self, root_obj_name):
-        var0 = self.vars[root_obj_name]
+    def bfs_initialization(self, root_var_name):
+        var0 = self.vars[root_var_name]
 
         queue = [(var0, self.values.atPose3(var0))]
         visited = set([var0])
