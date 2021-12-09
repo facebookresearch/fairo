@@ -175,13 +175,11 @@ class Scene:
 
     def _init_frame(self, graph, frame, prefix, lock_frames=True, cost_multiplier=1.0):
         f = self._frames[frame]
-        f.is_visible = True
         f_node = f"f_{prefix}_{frame}"
         graph.init_variable(f_node, f.pose)
 
         for object_name in f.objects:
             o = self._objects[object_name]
-            o.is_visible = True
             o_node = f"o_{prefix}_{o.name}"
 
             graph.init_variable(o_node, o.pose)
@@ -234,6 +232,17 @@ class Scene:
                 # Add observations
                 graph.add_observation(c_node, m_node, marker_obs.pose, self._camera_noise)
 
+    def _add_frame_transforms(self, graph, frame_transforms, lock_frames):
+        for frame1_name, frame2_name, transform, noise in frame_transforms:
+            f1 = self._frames[frame1_name]
+            f2 = self._frames[frame2_name]
+            f1_node = f"f_{prefix}_{frame1_name}"
+            f2_node = f"f_{prefix}_{frame2_name}"
+
+        self._init_frame(graph, frame1_name, prefix=prefix, lock_frames=lock_frames)
+        self._init_frame(graph, frame2_name, prefix=prefix, lock_frames=lock_frames)
+        graph.add_observation(f1_node, f2_node, transform, noise)
+
     def _optimize_and_update(self, graph, verbosity=0):
         # Optimize graph
         results = graph.optimize(verbosity=verbosity)
@@ -243,6 +252,7 @@ class Scene:
             f_node = f"f__{frame_name}"
             if f_node in results:
                 frame.pose = results[f_node]
+                frame.is_visible = True
 
         for obj_name, obj in self._objects.items():
             t_node = f"t_{obj_name}"
@@ -255,9 +265,20 @@ class Scene:
             o_node = f"o__{obj_name}"
             if o_node in results:
                 obj.pose = results[o_node]
+                obj.is_visible = True
 
-    def update_pose_estimations(self, detected_markers: Dict[str, List[MarkerInfo]]):
-        """ Estimate relative poses between frames """
+    def update_pose_estimations(
+        self,
+        detected_markers: Dict[str, List[MarkerInfo]],
+        frame_transforms: Optional[List[Tuple[str, str, sp.SE3, np.ndarray]]] = None,
+        verbosity=0,
+    ):
+        """Estimate relative poses between frames
+
+        Auxilliary observations between frames:
+            frame_transform => (frame1_name, frame2_name, transform, noise)
+            frame_transforms => List[frame_transform] - all frame transforms in snapshot
+        """
         graph = FactorGraph()
 
         # Reset visibility
@@ -266,14 +287,25 @@ class Scene:
         # Add factors
         self._add_world_prior(graph, lock_frames=True)
         self._add_detected_markers(graph, detected_markers, prefix="", lock_frames=True)
+        if frame_transforms is not None:
+            self._add_frame_transforms(graph, frame_transforms, prefix="", lock_frames=True)
 
         # Optimize graph & update data
-        self._optimize_and_update(graph)
+        self._optimize_and_update(graph, verbosity=verbosity)
 
     def calibrate_extrinsics(
-        self, detected_markers_ls: List[Dict[str, List[MarkerInfo]]], verbosity=0
-    ):  # TODO: Add aux info for frames
-        """ Calibrate extrinsics between cameras & markers in each frame """
+        self,
+        detected_markers_ls: List[Dict[str, List[MarkerInfo]]],
+        frame_transforms_ls: Optional[List[List[Tuple[str, str, sp.SE3, np.ndarray]]]] = None,
+        verbosity=0,
+    ):
+        """Calibrate extrinsics between cameras & markers in each frame
+
+        Auxilliary observations between frames:
+            frame_transform => (frame1_name, frame2_name, transform, noise)
+            frame_transforms => List[frame_transform] - all frame transforms in one snapshot
+            frame_transforms_ls => List[frame_transforms] - all snapshots (same length as detected_markers_ls)
+        """
         graph = FactorGraph()
 
         # Reset visibility
@@ -283,8 +315,12 @@ class Scene:
         n_samples = len(detected_markers_ls)
         self._add_world_prior(graph, lock_frames=False, cost_multiplier=n_samples)
 
-        for i, detected_markers in enumerate(detected_markers_ls):
-            self._add_detected_markers(graph, detected_markers, prefix=i, lock_frames=False)
+        for i in range(len(detected_markers_ls)):
+            self._add_detected_markers(graph, detected_markers_ls[i], prefix=i, lock_frames=False)
+            if frame_transforms_ls is not None:
+                self._add_frame_transforms(
+                    graph, frame_transforms_ls[i], prefix=i, lock_frames=False
+                )
 
         # Initialize variables using BFS
         prior_node = "f__world"
