@@ -37,11 +37,6 @@ def convert_depth_to_pcd(depth, pose, uv_one_in_cam, rot, trans):
     pts_in_world = transform_pose(pts_in_base, pose)
     return pts_in_world
 
-# def get_row_col(x, h, w):
-#     r = int(x/w)
-#     c = int(x - r*w)
-#     return r, c
-
 @njit
 def get_annot(height, width, pts_in_cur_img, src_label):
     annot_img = np.zeros((height, width))
