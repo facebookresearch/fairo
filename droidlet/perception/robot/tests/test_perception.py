@@ -52,12 +52,16 @@ FACES_IDS_DIR = os.path.join(
     os.path.dirname(__file__),
     "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/faces")
 
+LABEL_PROP_TEST_ASSETS_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/label_prop_test_assets")
+
 logging.getLogger().setLevel(logging.INFO)
 
 class LabelPropTest(unittest.TestCase):
     def setUp(self):
         self.lp = LabelPropagate()
-        self.test_assets = 'label_prop_test_assets'
+        self.test_assets = LABEL_PROP_TEST_ASSETS_DIR
 
     def read_test_asset_idx(self, root, img_indx):
         src_img = cv2.imread(os.path.join(root, "rgb_{:05d}.jpg".format(img_indx)))
