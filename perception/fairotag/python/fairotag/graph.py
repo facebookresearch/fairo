@@ -61,7 +61,7 @@ class FactorGraph:
         self.values.insert(var, pose_gt)
 
         # Add to edges
-        self.factor_edges[name] = []
+        self.factor_edges[var] = []
 
     def add_prior(self, var_name, transform, noise=None):
         """ Prior factor """

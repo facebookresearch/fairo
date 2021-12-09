@@ -20,7 +20,7 @@ class SceneViz:
         for s, e in zip(starts, ends):
             self._update_limits(s)
             self._update_limits(e)
-            self.frt.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color)
+            self.ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color)
 
     def draw_axes(self, pose, length=DEFAULT_AXIS_LENGTH):
         o_0 = length * np.array([0, 0, 0])
@@ -78,15 +78,15 @@ class SceneViz:
         # Draw marker ID
         if show_id:
             pos = pose.translation()
-            self.frt.text(pos[0], pos[1], pos[2], id, color="b")
+            self.ax.text(pos[0], pos[1], pos[2], id, color="b")
 
     def show(self):
         # Set limits
         mid = (self.max + self.min) / 2.0
         r = max(np.max(self.max - mid), np.max(mid - self.min))
-        self.frt.set_xlim(mid[0] - r, mid[0] + r)
-        self.frt.set_ylim(mid[1] - r, mid[1] + r)
-        self.frt.set_zlim(mid[2] - r, mid[2] + r)
+        self.ax.set_xlim(mid[0] - r, mid[0] + r)
+        self.ax.set_ylim(mid[1] - r, mid[1] + r)
+        self.ax.set_zlim(mid[2] - r, mid[2] + r)
 
         # Show
         plt.show()
