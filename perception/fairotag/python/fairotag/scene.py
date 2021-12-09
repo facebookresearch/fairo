@@ -323,18 +323,7 @@ class Scene:
                 )
 
         # Initialize variables using BFS
-        prior_node = "f__world"
-        queue = [(prior_node, sp.SE3())]
-        visited = set([prior_node])
-
-        while queue:
-            curr_node, pose = queue.pop(0)
-            graph.init_variable(curr_node, pose)
-
-            for next_node, transform in graph.factor_edges[curr_node]:
-                if next_node not in visited:
-                    queue.append((next_node, pose * transform))
-                    visited.add(curr_node)
+        graph.bfs_initialization("f__world")
 
         # Optimize graph & update data
         self._optimize_and_update(graph, verbosity)

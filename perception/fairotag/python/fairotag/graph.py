@@ -85,8 +85,8 @@ class FactorGraph:
         self.gtsam_graph.push_back(factor)
 
         # Add edge information
-        self.factor_edges[obj1_name].append((obj2_name, transform))
-        self.factor_edges[obj2_name].append((obj1_name, transform.inverse()))
+        self.factor_edges[obj1].append((obj2, transform_gt))
+        self.factor_edges[obj2].append((obj1, transform_gt.inverse()))
 
     def add_fixed_transform(self, obj1_name, obj2_name, transform_name, noise=None):
         """ Custom factor for constant transforms """
@@ -98,6 +98,21 @@ class FactorGraph:
 
         factor = gtsam.CustomFactor(noise_gt, [obj1, obj2, transform], frame_error_func)
         self.gtsam_graph.push_back(factor)
+
+    def bfs_initialization(self, root_obj_name):
+        var0 = self.vars[root_obj_name]
+
+        queue = [(var0, self.values.atPose3(var0))]
+        visited = set([var0])
+
+        while queue:
+            curr_var, pose = queue.pop(0)
+            self.values.update(curr_var, pose)
+
+            for next_var, transform in self.factor_edges[curr_var]:
+                if next_var not in visited:
+                    queue.append((next_var, pose * transform))
+                    visited.add(curr_var)
 
     def optimize(self, verbosity=0):
         params = gtsam.LevenbergMarquardtParams()
