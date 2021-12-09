@@ -324,7 +324,7 @@ if __name__ == "__main__":
         "--task_name", type=str, help="Task name of the ecs instance to be requested"
     )
     args = parser.parse_args()
-    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name, batch_id="0643")
+    instance_ips, instance_ids = request_instance(args.instance_num, args.image_tag, args.task_name, batch_id=args.batch_id)
     batch_id = args.batch_id
     # register subdomain to proxy instance IP
     if os.getenv("CLOUDFLARE_TOKEN") and os.getenv("CLOUDFLARE_ZONE_ID"):
