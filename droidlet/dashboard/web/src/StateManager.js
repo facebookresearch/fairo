@@ -252,6 +252,9 @@ class StateManager {
           ref.setState(ref.initialState);
           ref.forceUpdate();
         }
+        if (ref instanceof TurkInfo) {
+          this.forceErrorLabeling(true);
+        }
       });
       console.log("disconnected");
     });

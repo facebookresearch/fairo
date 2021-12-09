@@ -66,7 +66,7 @@ function selfRated() {
   checkSubmitDisplay();
 }
 
-function feedback() {
+function giveFeedback() {
   feedbackComplete = true;
   recordClick("feedack-given");
   checkSubmitDisplay();
