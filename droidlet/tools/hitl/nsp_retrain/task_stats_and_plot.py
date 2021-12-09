@@ -139,233 +139,114 @@ def plot_OS_browser(run_id: int) -> None:
     return
 
 #%%
-def timing_charts(run_id: int) -> None:
+def timing_charts(run_id: int, s3_bucket: int) -> None:
     completed_units = retrieve_units(run_id)
-    db = LocalMephistoDB()
+    db=LocalMephistoDB()
     data_browser = DataBrowser(db=db)
-    workers = []
-    workers_read_instructions = []
-    workers_timer_on = []
-    workers_timer_off = []
-    workers_sent_command = []
-    usability = []
-    self_rating = []
+    workers = {"total": [], "read_instructions": [], "timer_on": [], "timer_off": [], "sent_command": []}
+    ratings = {"usability": [], "self": []}
     inst_timing = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [] }
-    read_time = []
-    pre_interact = []
-    interact_time = []
-    pre_first_command_time = []
-    post_last_command_time = []
-    rating_time = []
-    command_num = []
-    command_list = []
-    command_timing  = { 'send': [], 'NSP': [], 'plan': [], 'execute': [], 'total': [] }
+    unit_timing = {"total": [],"read": [], "pre_interact": [], "interact": [], "pre_first_command": [], "post_last_command": [], "rating": [], "end": []}
+    command_count_lists = {"total": [], "parsing_error": [], "task_error": [], "no_error": []}
+    command_processing_times  = { 'send': [], 'NSP': [], 'plan': [], 'execute': [], 'total': [] }
     command_timing_by_hit = { 'start': [], 'end': [] }
+    command_lists = {"total": [], "timeout": [], "singleton": [], "parsing_errors": [], "task_errors": []}
+    scores = {"creativity": [], "diversity": [], "stoplight": []}
     starttime = math.inf
     endtime = -math.inf
-    HITtime = []
     unit_num = 1
-    timeout_commands = []
-    singleton_commands = []
-    parsing_errors = []
-    parsing_error_counts = []
-    task_errors = []
-    task_error_counts = []
     no_error_dict_list = []
-    no_error_count = 0
-    creativity_scores = []
-    diversity_scores = []
-    stoplight_scores = []
-    unit_start_times_with_timeouts = []
+    bonus_list = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
-        workers.append(worker)
-        content = data["data"]
-        HIT_start_time = content["times"]["task_start"]
-        HIT_end_time = content["times"]["task_end"]
-        HITtime.append(HIT_end_time - HIT_start_time)
-        if (HIT_start_time < starttime):
-            starttime = HIT_start_time
-        if (HIT_start_time > endtime):
-            endtime = HIT_end_time
-        outputs = content["outputs"]
-        try:
-            usability.append(int(outputs["usability-rating"]))
-        except:
-            usability.append(0)
-        try:
-            self_rating.append(int(outputs["self-rating"]))
-        except:
-            self_rating.append(0)
+        workers["total"].append(worker)
+        starttime, endtime, unit_timing = hit_timing(data["data"], starttime, endtime, unit_timing)
+        
+        outputs = data["data"]["outputs"]
+        if outputs["usability-rating"]: ratings["usability"].append(int(outputs["usability-rating"]))
+        if outputs["self-rating"]: ratings["self"].append(int(outputs["self-rating"]))
+
         clean_click_string = outputs["clickedElements"].replace("'", "")
         clicks = json.loads(clean_click_string)
-        command_count = 0
-        last_status_time = 0
-        last_pg_read_time = 0
-        interaction_start_time = 0
-        interaction_end_time = None
+        command_counts = {"total": 0, "parsing_error": 0, "task_error": 0, "no_error": 0}
+        benchmarks = {"last_status": 0, "last_pg_read": 0, "interaction_start": 0, "interaction_end": None, "command_start": 0, "first_command": True}
+        command_timing = {"start": [], "end": []}
         prev_page = 1
-        command_start_times = []
-        command_end_times = []
-        first_command = True
-        parsing_error_count = 0
-        task_error_count = 0
         for click in clicks:
-            # They might not read all of the instructions pages...
-            if click["id"] == 'start':
-                inst_timing[0].append(click["timestamp"])
-                last_pg_read_time = click["timestamp"]
-            try:
-                if 'page-' in click["id"]:
-                    inst_timing[prev_page].append((click["timestamp"] - last_pg_read_time)/1000)
-                    last_pg_read_time = click["timestamp"]
-                    prev_page = int(click["id"][-1])
-            except:
-                pass
-            if click["id"] == 'instructions-popup-close':
-                inst_timing[5].append((click["timestamp"] - last_pg_read_time)/1000)
-                read_time.append(round((click["timestamp"] - inst_timing[0][-1])/1000))
-                last_pg_read_time = click["timestamp"]
-                workers_read_instructions.append(worker)
-
+            # Instruction timing metrics
+            if 'start' in click["id"] or 'page' in click["id"] or 'instructions' in click["id"]:
+                inst_timing, benchmarks, prev_page, unit_timing, workers = instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, workers, worker)
             # Interaction timing metrics
-            if click["id"] == 'timerON':
-                interaction_start_time = click["timestamp"]
-                pre_interact.append(round((interaction_start_time - last_pg_read_time)/1000))
-                workers_timer_on.append(worker)
-            if click["id"] == 'timerOFF':
-                interaction_end_time = click["timestamp"]
-                interact_time.append(round((interaction_end_time - interaction_start_time)/1000))
-                workers_timer_off.append(worker)
-            
-            # Count and collect commands
-            if "command" in click["id"]:
-                command_list.append(click["id"]["command"].split('|')[0])
-
-            # Count and collect parsing errors
-            if "parsing_error" in click["id"]:
-                if click["id"]["parsing_error"]:
-                    parsing_error_count += 1
-                    parsing_errors.append(click["id"]["msg"] + "|" + json.dumps(click["id"]["action_dict"]))
-                elif click["id"]["task_error"]:
-                    task_error_count += 1
-                    task_errors.append(click["id"]["msg"] + "|" + json.dumps(click["id"]["action_dict"]))
-                else:
-                    no_error_count += 1
-                    no_error_dict_list.append(click["id"])
-
+            if click["id"] == 'timerON' or click["id"] == 'timerOFF':
+                benchmarks, unit_timing, workers = interaction_timing(click, benchmarks, unit_timing, workers, worker)
+            # Count and collect commands and errors
+            if "command" in click["id"] or "parsing_error" in click["id"]:
+                command_lists, command_counts, no_error_dict_list = commands_and_errors(click["id"], command_lists, command_counts, no_error_dict_list)
             # Collect stoplight scores
             if "interactionScores" in click["id"]:
-                if click["id"]["interactionScores"]["creativity"]: creativity_scores.append(click["id"]["interactionScores"]["creativity"])
-                if click["id"]["interactionScores"]["diversity"]: diversity_scores.append(click["id"]["interactionScores"]["diversity"])
-                if click["id"]["interactionScores"]["stoplight"]: stoplight_scores.append(click["id"]["interactionScores"]["stoplight"])
-
+                scores, bonus_list = interaction_scores(click["id"]["interactionScores"], scores, bonus_list, worker)
             # Command timing metrics:
-            if click["id"] == 'goToAgentThinking':
-                command_count += 1
-                command_start_time = click["timestamp"]
-                command_start_times.append(command_start_time)
-                last_status_time = click["timestamp"]
-                if first_command:
-                    workers_sent_command.append(worker)
-                    pre_first_command_time.append(round((command_start_time - interaction_start_time)/1000))
-                    first_command = False
-            if click["id"] == 'received':
-                command_timing['send'].append((click["timestamp"] - last_status_time)/1000)
-                last_status_time = click["timestamp"]
-            if click["id"] == 'done_thinking':
-                command_timing['NSP'].append((click["timestamp"] - last_status_time)/1000)
-                last_status_time = click["timestamp"]
-            if click["id"] == 'executing':
-                command_timing['plan'].append((click["timestamp"] - last_status_time)/1000)
-                last_status_time = click["timestamp"]
-            if click["id"] == 'goToMessage':
-                command_timing['execute'].append((click["timestamp"] - last_status_time)/1000)
-                command_timing['total'].append((click["timestamp"] - command_start_time)/1000)
-                # if the command took a long time, remember it
-                if command_timing['total'][-1] > 49:
-                    timeout_commands.append(command_list[-1])
-                    unit_start_times_with_timeouts.append(datetime.fromtimestamp(HIT_start_time))
-                command_end_times.append(click["timestamp"])
-                # Reset and set up for next command:
-                last_status_time = click["timestamp"]
-                # Append 0x to any steps that were skipped
-                num_commands = max([len(value) for value in command_timing.values()])
-                for status in command_timing.keys():
-                    if len(command_timing[status]) < num_commands:
-                        command_timing[status].append(0)
+            command_processing_msgs = ['goToAgentThinking', 'received', 'done_thinking', 'executing', 'goToMessage']
+            if click["id"] in command_processing_msgs:
+                benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers = command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker)
 
-        if interaction_end_time:
-            rating_time.append(HIT_end_time - round((interaction_end_time/1000)))
-            if last_status_time:
-                post_last_command_time.append((interaction_end_time - last_status_time)/1000)
-        pre_first_command_time = [x for x in pre_first_command_time if x<1000000]
+        # Record end-of-unit timing meterics
+        if benchmarks["interaction_end"]:
+            unit_timing["rating"].append(unit_timing["end"][-1] - round((benchmarks["interaction_end"]/1000)))
+            if benchmarks["last_status"]:
+                unit_timing["post_last_command"].append((benchmarks["interaction_end"] - benchmarks["last_status"])/1000)
+        unit_timing["pre_first_command"] = [x for x in unit_timing["pre_first_command"] if x<1000000]
 
         # Set logs to 0 for logs that don't exist
-        for page in inst_timing.keys():
-            if len(inst_timing[page]) < unit_num:
-                inst_timing[page].append(0)
-        if len(read_time) < unit_num: read_time.append(0)
-        if len(pre_interact) < unit_num: pre_interact.append(0)
-        if len(interact_time) < unit_num: interact_time.append(0)
-        if len(creativity_scores) < unit_num: creativity_scores.append(0)
-        if len(diversity_scores) < unit_num: diversity_scores.append(0)
-        if len(stoplight_scores) < unit_num: stoplight_scores.append(0)
+        ratings = match_length(ratings, unit_num)
+        inst_timing = match_length(inst_timing, unit_num)
+        unit_timing = match_length(unit_timing, unit_num)
+        scores = match_length(scores, unit_num)
 
         # End of unit bookkeeping
-        command_num.append(command_count)
-        if command_count == 1:
-            singleton_commands.append(command_list[-1])
-        parsing_error_counts.append(parsing_error_count)
-        task_error_counts.append(task_error_count)
-        command_timing_by_hit["start"].append(command_start_times)
-        command_timing_by_hit["end"].append(command_end_times)
+        for key in command_count_lists.keys():
+            command_count_lists[key].append(command_counts[key])
+        for key in command_timing_by_hit.keys():
+            command_timing_by_hit[key].append(command_timing[key])
+        if command_counts["total"] == 1:
+            command_lists["singleton"].append(command_lists["total"][-1])
         unit_num += 1
 
-    command_times_by_order = { 1: [], 2: [], 3: [], 4: [], 5: [] }
-    for j in range(5):
-        for i in range(unit_num-1):
-            try:
-                start = command_timing_by_hit["start"][i][j]
-                end = command_timing_by_hit["end"][i][j]
-                command_times_by_order[(j+1)].append((end - start)/1000)
-            except:
-                pass
+        ### END OF JOB ANALYTICS LOOP ###
+
+    parsed_path = os.path.join("/private/home/ethancarlson/.hitl/parsed/", str(s3_bucket))
     
-    #workers_logs = retrieve_turker_ids("/private/home/ethancarlson/.hitl/parsed/20211201131224", "nsp_outputs")
+    # Create a file containing the bonus payouts for turkers who receive performance incentives
+    create_bonus_payment_file(s3_bucket, bonus_list)
+
+    #workers_logs = retrieve_turker_ids(parsed_path, "nsp_outputs")
     #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
-    #get_commands_from_turk_id('A4D99Y82KOLC8', '/private/home/ethancarlson/.hitl/parsed/20211201131224')
+    #get_commands_from_turk_id('A4D99Y82KOLC8', parsed_path)
     
     # See the S3 logs that don't contain commands:
-    #print(logs_with_no_commands("/private/home/ethancarlson/.hitl/parsed/20211201131224"))
+    # print(logs_with_no_commands(parsed_path))
 
-    #save_commands_to_file(command_list, parsing_errors, task_errors, "/private/home/ethancarlson/.hitl/parsed/20211202170632")
+    #save_commands_to_file(command_lists["total"], command_lists["parsing_errors"], command_lists["task_errors"], parsed_path)
 
-    actual_usability = [i for i in usability if i > 0]
-    actual_self_rating = [i for i in self_rating if i > 0]
-
-    print(f"Units logged: {unit_num-1}")
-    print(f"Start time: {datetime.fromtimestamp(starttime)}")
-    print(f"End time: {datetime.fromtimestamp(endtime)}")
-    print(f"Mephisto command list stats:")
-    get_stats(command_list)
-    print(f"Total Command count: {sum(command_num)}")
-    print(f"Avg Number of commands in Mephisto: {sum(command_num)/len(command_num):.1f}")
-    print(f"Total parsing error count: {sum(parsing_error_counts)}")
-    print(f"Total task error count: {sum(task_error_counts)}")
-    print(f"Total commands with no error, as determined by error dict: {no_error_count}")
-    print(f"Units w/ no commands in Mephisto: {command_num.count(0)}")
-    print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
-    print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
-    print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
-    print(f"Average creativity score: {(sum(creativity_scores)/len(creativity_scores)):.1f}")
-    print(f"Average diversity score: {(sum(diversity_scores)/len(diversity_scores)):.1f}")
-    print(f"Average stoplight score: {(sum(stoplight_scores)/len(stoplight_scores)):.1f}")
+    print_stats_from_mephisto(unit_num, starttime, endtime, command_lists["total"], command_count_lists, unit_timing["total"], ratings["usability"], ratings["self"], scores)
     
-    #Compare Mephisto and S3 error lists
-    S3_errors = read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211201131224", "error_details")
-    meph_errors = [x.split('|')[0] for x in parsing_errors] + [x.split('|')[0] for x in task_errors]
+    #Compare Mephisto and S3 error lists for discrepanicies
+    #compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list)
+
+    # Report problematic commands
+    # print(f"Commands from HITs that only issued one command: {singleton_commands}")
+    # print(f"Commands that triggered the timeout: {command_lists['timeout']}")
+
+    # See the median, 10th and 90th percentile HIT timing anatomy
+    #hit_timing_anatomy(unit_timing, inst_timing, command_processing_times, command_timing_by_hit, unit_num)
+    
+    produce_plots(ratings, unit_timing, command_count_lists, scores, inst_timing, command_processing_times)
+
+#%%
+def compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list):
+    S3_errors = read_turk_logs(parsed_path, "error_details")
+    meph_errors = [x.split('|')[0] for x in command_lists["parsing_errors"]] + [x.split('|')[0] for x in command_lists["task_errors"]]
     S3_not_meph = [x for x in S3_errors if x not in meph_errors]
     meph_not_S3 = [x for x in meph_errors if x not in S3_errors]
     print(f"Number of errors in S3 but not Mephisto: {len(S3_not_meph)}")
@@ -379,115 +260,244 @@ def timing_charts(run_id: int) -> None:
     print(f"Num S3/Mephisto discrepancies found in no_error list: {len(maybe_bad_error_dicts)}")
     print(f"Maybe bad error dicts: {maybe_bad_error_dicts}")
 
+#%%
+def create_bonus_payment_file(s3_bucket, bonus_list):
+    bonus_path = os.path.join("/private/home/ethancarlson/.hitl/bonus/", str(s3_bucket))
+    os.makedirs(bonus_path, exist_ok=True)
+    bonus_file = os.path.join(bonus_path, "performance_bonuses.txt")
+    with open(bonus_file, "w+") as f:
+        for bonus in bonus_list:
+            f.write(bonus)
 
-    # Report problematic commands
-    #print(f"Commands from HITs that only issued one command: {singleton_commands}")
-    print(f"Commands that triggered the timeout: {timeout_commands}")
-    print(f"HIT starttimes for commands that timed out: {unit_start_times_with_timeouts}")
+#%%
+def command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker):
+    if click["id"] == 'goToAgentThinking':
+        command_start_time = click["timestamp"]
+        command_timing["start"].append(command_start_time)
+        benchmarks["last_status"] = click["timestamp"]
+        if benchmarks["first_command"]:
+            workers["sent_command"].append(worker)
+            unit_timing["pre_first_command"].append(round((command_start_time - benchmarks["interaction_start"])/1000))
+            benchmarks["first_command"] = False
+    if click["id"] == 'received':
+        command_processing_times['send'].append((click["timestamp"] - benchmarks["last_status"])/1000)
+        benchmarks["last_status"] = click["timestamp"]
+    if click["id"] == 'done_thinking':
+        command_processing_times['NSP'].append((click["timestamp"] - benchmarks["last_status"])/1000)
+        benchmarks["last_status"] = click["timestamp"]
+    if click["id"] == 'executing':
+        command_processing_times['plan'].append((click["timestamp"] - benchmarks["last_status"])/1000)
+        benchmarks["last_status"] = click["timestamp"]
+    if click["id"] == 'goToMessage':
+        command_processing_times['execute'].append((click["timestamp"] - benchmarks["last_status"])/1000)
+        command_processing_times['total'].append((click["timestamp"] - command_start_time)/1000)
+        # if the command took a long time, remember it
+        if command_processing_times['total'][-1] > 49:
+            command_lists["timeout"].append(command_lists["total"][-1])
+        command_timing["end"].append(click["timestamp"])
+        # Reset and set up for next command:
+        benchmarks["last_status"] = click["timestamp"]
+        # Append 0s to any steps that were skipped
+        num_commands = max([len(value) for value in command_processing_times.values()])
+        for status in command_processing_times.keys():
+            if len(command_processing_times[status]) < num_commands:
+                command_processing_times[status].append(0)
 
-    # Compare command list against
-    # plot_scatter(xs=command_num, ys=HITtime, xlabel="# of Commands", ylabel="HIT Length")
-    # plot_data_count = Counter(zip(command_num, usability))
-    # bubble_size = [plot_data_count[(command_num[i],usability[i])]*30 for i in range(len(command_num))]
-    # plot_scatter(xs=command_num, ys=usability, s=bubble_size, xlabel="# of Commands", ylabel="Usability Score")
-    # plot_data_count = Counter(zip(command_num, self_rating))
-    # bubble_size = [plot_data_count[(command_num[i],self_rating[i])]*30 for i in range(len(command_num))]
-    # plot_scatter(xs=command_num, ys=self_rating, s=bubble_size, xlabel="# of Commands", ylabel="Self Rating")
-    plot_scatter(xs=command_num, ys=stoplight_scores, xlabel="# of Commands", ylabel="Stoplight Score")
+    return benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers
 
-    # calc_percentiles(read_time, "Total Read Time")
-    # for page in inst_timing.keys():
-    #     if page == 0: continue
-    #     calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
-    # calc_percentiles(pre_interact, "Pre-Interaction Time")
-    # calc_percentiles(interact_time, "Interaction Time")
-    # calc_percentiles(pre_first_command_time, "Time After Start Before First Command")
-    # calc_percentiles(post_last_command_time, "Time After Last Command Before End")
-    # calc_percentiles(rating_time, "Time After Interaction End")
-    # calc_percentiles(command_timing['total'], "Avg Command Time")
-    # for order in command_times_by_order.keys():
-    #     calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
+#%%
+def produce_plots(ratings, unit_timing, command_count_lists, scores, inst_timing, command_processing_times):
+    #Turker ratings plots
+    plot_hist_sorted(ratings["usability"], xlabel="", ylabel="Usability Score", ymax=7)
+    plot_hist_sorted(ratings["self"], xlabel="", ylabel="Self Rated Performance Score", ymax=5)
+
+    # Command count and error plots
+    plot_hist_sorted(command_count_lists['total'], target_val=5, xlabel="", ylabel="Number of commands per HIT")
+    plot_hist_sorted(command_count_lists['parsing_error'], xlabel="", ylabel="Number of parsing errors labeled per HIT")
+    plot_hist_sorted(command_count_lists['task_error'], xlabel="", ylabel="Number of task errors labeled per HIT")
+
+    # HIT timing breakdown plots
+    plot_hist_sorted(unit_timing["total"], cutoff=900, target_val=480, xlabel="", ylabel="Total HIT Time (sec)")
+    plot_hist_sorted(unit_timing["read"], cutoff=360, target_val=180, xlabel="", ylabel="Instructions Read Time (sec)")
+    plot_hist_sorted(unit_timing["pre_interact"], cutoff=100, target_val=30, xlabel="", ylabel="Time between instructions and interaction start (sec)")
+    plot_hist_sorted(unit_timing["interact"], cutoff=750, target_val=300, xlabel="", ylabel="Interaction time (sec)")
     
-    usability.sort()
-    keys = range(len(usability))
-    u_dict = dict(zip(keys, usability))
-    plot_hist(u_dict, xlabel="", ylabel="Usability Score", ymax=7)
-    self_rating.sort()
-    keys = range(len(self_rating))
-    s_dict = dict(zip(keys, self_rating))
-    plot_hist(s_dict, xlabel="", ylabel="Self Rated Performance Score", ymax=5)
-    HITtime = [900 if x>900 else x for x in HITtime]
-    HITtime.sort()
-    keys = range(len(HITtime))
-    hit_dict = dict(zip(keys, HITtime))
-    plot_hist(hit_dict, target_val=480, xlabel="", ylabel="Total HIT Time (sec)")
-    read_time = [360 if x>360 else x for x in read_time]
-    read_time.sort()
-    keys = range(len(read_time))
-    r_dict = dict(zip(keys, read_time))
-    plot_hist(r_dict, target_val=180, xlabel="", ylabel="Instructions Read Time (sec)")
-    pre_interact = [100 if x>100 else x for x in pre_interact]
-    pre_interact.sort()
-    keys = range(len(pre_interact))
-    p_dict = dict(zip(keys, pre_interact))
-    plot_hist(p_dict, target_val=30, xlabel="", ylabel="Time between instructions and interaction start (sec)")
-    interact_time.sort()
-    keys = range(len(interact_time))
-    i_dict = dict(zip(keys, interact_time))
-    plot_hist(i_dict, target_val=300, xlabel="", ylabel="Interaction time (sec)")
-    command_num.sort()
-    keys = range(len(command_num))
-    c_dict = dict(zip(keys, command_num))
-    plot_hist(c_dict, target_val=5, xlabel="", ylabel="Number of commands per HIT")
-    parsing_error_counts.sort()
-    keys = range(len(parsing_error_counts))
-    error_dict = dict(zip(keys, parsing_error_counts))
-    plot_hist(error_dict, xlabel="", ylabel="Number of parsing errors labeled per HIT")
-    task_error_counts.sort()
-    keys = range(len(task_error_counts))
-    error_dict = dict(zip(keys, task_error_counts))
-    plot_hist(error_dict, xlabel="", ylabel="Number of task errors labeled per HIT")
-    creativity_scores.sort()
-    keys = range(len(creativity_scores))
-    score_dict = dict(zip(keys, creativity_scores))
-    plot_hist(score_dict, xlabel="", ylabel="Creativity Scores")
-    diversity_scores.sort()
-    keys = range(len(diversity_scores))
-    score_dict = dict(zip(keys, diversity_scores))
-    plot_hist(score_dict, xlabel="", ylabel="Diversity Scores")
-    stoplight_scores.sort()
-    keys = range(len(stoplight_scores))
-    score_dict = dict(zip(keys, stoplight_scores))
-    plot_hist(score_dict, target_val=6.5, xlabel="", ylabel="Stoplight Scores")
+    # Interaction quality scores
+    plot_hist_sorted(scores["creativity"], xlabel="", ylabel="Creativity Scores")
+    plot_hist_sorted(scores["diversity"], xlabel="", ylabel="Diversity Scores")
+    plot_hist_sorted(scores["stoplight"], target_val=6.5, xlabel="", ylabel="Stoplight Scores")
 
-    #inst_timing[5] = inst_timing[5][-100:]  # This is a hack until I can find the bug
+    # Timing breakdowns for each instruction page
+    # plot_instruction_page_timing(inst_timing)
 
-    # for page in inst_timing.keys():
-    #     inst_timing[page] = [0 if x<0 else x for x in inst_timing[page]]
-    #     inst_timing[page] = [90 if x>90 else x for x in inst_timing[page]]
-    #     inst_timing[page].sort()
-    #     keys = range(len(inst_timing[page]))
-    #     page_dict = dict(zip(keys, inst_timing[page]))
-    #     plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
-    for status in command_timing.keys():
-        command_timing[status] = [0 if x<0 else x for x in command_timing[status]]
-        command_timing[status] = [50 if x>50 else x for x in command_timing[status]]
-        command_timing[status].sort()
-        keys = range(len(command_timing[status]))
-        command_dict = dict(zip(keys, command_timing[status]))
+    # Timing breakdowns for each stage of command processing
+    plot_command_stage_timing(command_processing_times)
+
+    # Comparison scatter plots
+    # plot_scatter(xs=command_count_lists['total'], ys=unit_timing["total"], xlabel="# of Commands", ylabel="HIT Length")
+    # plot_data_count = Counter(zip(command_count_lists['total'], ratings["usability"]))
+    # bubble_size = [plot_data_count[(command_count_lists['total'][i],ratings["usability"][i])]*30 for i in range(len(command_count_lists['total']))]
+    # plot_scatter(xs=command_count_lists['total'], ys=ratings["usability"], s=bubble_size, xlabel="# of Commands", ylabel="Usability Score")
+    # plot_data_count = Counter(zip(command_count_lists['total'], ratings["self"]))
+    # bubble_size = [plot_data_count[(command_count_lists['total'][i],ratings["self"][i])]*30 for i in range(len(command_count_lists['total']))]
+    # plot_scatter(xs=command_count_lists['total'], ys=ratings["self"], s=bubble_size, xlabel="# of Commands", ylabel="Self Rating")
+    # plot_scatter(xs=command_count_lists['total'], ys=scores["stoplight"], xlabel="# of Commands", ylabel="Stoplight Score")
+
+#%%
+def interaction_timing(click, benchmarks, unit_timing, workers, worker):
+    if click["id"] == 'timerON':
+        benchmarks["interaction_start"] = click["timestamp"]
+        unit_timing["pre_interact"].append(round((benchmarks["interaction_start"] - benchmarks["last_pg_read"])/1000))
+        workers["timer_on"].append(worker)
+    if click["id"] == 'timerOFF':
+        benchmarks["interaction_end"] = click["timestamp"]
+        unit_timing["interact"].append(round((benchmarks["interaction_end"] - benchmarks["interaction_start"])/1000))
+        workers["timer_off"].append(worker)
+    return benchmarks, unit_timing, workers
+
+#%%
+def hit_timing_anatomy(unit_timing, inst_timing, command_processing_times, command_timing_by_hit, unit_num):
+
+    command_times_by_order = { 1: [], 2: [], 3: [], 4: [], 5: [] }
+    for j in range(5):
+        for i in range(unit_num-1):
+            try:
+                start = command_timing_by_hit["start"][i][j]
+                end = command_timing_by_hit["end"][i][j]
+                command_times_by_order[(j+1)].append((end - start)/1000)
+            except:
+                pass
+
+    calc_percentiles(unit_timing["read"], "Total Read Time")
+    for page in inst_timing.keys():
+        if page == 0: continue
+        calc_percentiles(inst_timing[page], f"Page #{page} Read Time")
+    calc_percentiles(unit_timing["pre_interact"], "Pre-Interaction Time")
+    calc_percentiles(unit_timing["interact"], "Interaction Time")
+    calc_percentiles(unit_timing["pre_first_command"], "Time After Start Before First Command")
+    calc_percentiles(unit_timing["post_last_command"], "Time After Last Command Before End")
+    calc_percentiles(unit_timing["rating"], "Time After Interaction End")
+    calc_percentiles(command_processing_times['total'], "Avg Command Time")
+    for order in command_times_by_order.keys():
+        calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
+
+#%%
+def plot_command_stage_timing(command_processing_times):
+    for status in command_processing_times.keys():
+        command_processing_times[status] = [0 if x<0 else x for x in command_processing_times[status]]
+        command_processing_times[status] = [50 if x>50 else x for x in command_processing_times[status]]
+        command_processing_times[status].sort()
+        keys = range(len(command_processing_times[status]))
+        command_dict = dict(zip(keys, command_processing_times[status]))
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
-    
+
+#%%
+def plot_instruction_page_timing(inst_timing):
+    for page in inst_timing.keys():
+        inst_timing[page] = [0 if x<0 else x for x in inst_timing[page]]
+        inst_timing[page] = [90 if x>90 else x for x in inst_timing[page]]
+        inst_timing[page].sort()
+        keys = range(len(inst_timing[page]))
+        page_dict = dict(zip(keys, inst_timing[page]))
+        plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
+
+#%%
+def commands_and_errors(click_id, command_lists, command_counts, no_error_dict_list):
+    if "command" in click_id:
+        command_counts["total"] += 1
+        command_lists["total"].append(click_id["command"].split('|')[0])
+
+    if "parsing_error" in click_id:
+        if click_id["parsing_error"]:
+            command_counts["parsing_error"] += 1
+            command_lists["parsing_errors"].append(click_id["msg"] + "|" + json.dumps(click_id["action_dict"]))
+        elif click_id["task_error"]:
+            command_counts["task_error"] += 1
+            command_lists["task_errors"].append(click_id["msg"] + "|" + json.dumps(click_id["action_dict"]))
+        else:
+            command_counts["no_error"] += 1
+            no_error_dict_list.append(click_id)
+    return command_lists, command_counts, no_error_dict_list
+#%%
+def hit_timing(content, starttime, endtime, unit_timing):
+    HIT_start_time = content["times"]["task_start"]
+    HIT_end_time = content["times"]["task_end"]
+    unit_timing["total"].append(HIT_end_time - HIT_start_time)
+    unit_timing["end"].append(HIT_end_time)
+    if (HIT_start_time < starttime):
+        starttime = HIT_start_time
+    if (HIT_start_time > endtime):
+        endtime = HIT_end_time
+    return starttime, endtime, unit_timing
+
+#%%
+def instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, workers, worker):
+    # They might not read all pages...
+    if click["id"] == 'start':
+        inst_timing[0].append(click["timestamp"])
+        benchmarks["last_pg_read"] = click["timestamp"]
+    try:
+        if 'page-' in click["id"]:
+            inst_timing[prev_page].append((click["timestamp"] - benchmarks["last_pg_read"])/1000)
+            benchmarks["last_pg_read"] = click["timestamp"]
+            prev_page = int(click["id"][-1])
+    except:
+        pass
+    if click["id"] == 'instructions-popup-close':
+        inst_timing[5].append((click["timestamp"] - benchmarks["last_pg_read"])/1000)
+        unit_timing["read"].append(round((click["timestamp"] - inst_timing[0][-1])/1000))
+        benchmarks["last_pg_read"] = click["timestamp"]
+        workers["read_instructions"].append(worker)
+
+    return inst_timing, benchmarks, prev_page, unit_timing, workers 
+#%%
+def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, command_count_lists, HITtime, usability, self_rating, scores):
+    actual_usability = [i for i in usability if i > 0]
+    actual_self_rating = [i for i in self_rating if i > 0]
+    print(f"Units logged: {unit_num-1}")
+    print(f"Start time: {datetime.fromtimestamp(starttime)}")
+    print(f"End time: {datetime.fromtimestamp(endtime)}")
+    print(f"Mephisto command list stats:")
+    get_stats(command_list)
+    print(f"Total Command count: {sum(command_count_lists['total'])}")
+    print(f"Avg Number of commands in Mephisto: {sum(command_count_lists['total'])/len(command_count_lists['total']):.1f}")
+    print(f"Total parsing error count: {sum(command_count_lists['parsing_error'])}")
+    print(f"Total task error count: {sum(command_count_lists['task_error'])}")
+    print(f"Total commands with no error, as determined by error dict: {sum(command_count_lists['no_error'])}")
+    print(f"Units w/ no commands in Mephisto: {command_count_lists['total'].count(0)}")
+    print(f"Average HIT length (mins): {sum(HITtime)/(60*len(HITtime)):.1f}")
+    print(f"Average usability %: {((sum(actual_usability)*100)/(7*len(actual_usability))):.1f}")
+    print(f"Average self assessment %: {((sum(actual_self_rating)*100)/(5*len(actual_self_rating))):.1f}")
+    print(f"Average creativity score: {(sum(scores['creativity'])/len(scores['creativity'])):.1f}")
+    print(f"Average diversity score: {(sum(scores['diversity'])/len(scores['diversity'])):.1f}")
+    print(f"Average stoplight score: {(sum(scores['stoplight'])/len(scores['stoplight'])):.1f}")
+
+#%%
+def match_length(data: dict, length: int):
+    for key in data.keys():
+            if len(data[key]) < length:
+                data[key].append(0)
+    return data
+
 #%%
 def save_commands_to_file(commands, parsing_errors, task_errors, turk_output_directory):
     os.chdir(turk_output_directory)
-    with open("mephisto_commands.txt", "w") as comm_file:
+    with open("mephisto_commands.txt", "w+") as comm_file:
         comm_file.write(str(commands))
-    with open("mephisto_parsing_errors.txt", "w") as err_file:
+    with open("mephisto_parsing_errors.txt", "w+") as err_file:
         err_file.write(str(parsing_errors))
-    with open("mephisto_task_errors.txt", "w") as err_file:
+    with open("mephisto_task_errors.txt", "w+") as err_file:
         err_file.write(str(task_errors))
     return
     
+#%%
+def interaction_scores(scores, output_dict, bonus_list, worker):
+    if scores["creativity"]: output_dict["creativity"].append(scores["creativity"])
+    if scores["diversity"]: output_dict["diversity"].append(scores["diversity"])
+    if scores["stoplight"]:
+        output_dict["stoplight"].append(scores["stoplight"])
+        bonus_list.append(str(worker) + " " + f"{(scores['stoplight'] * 0.30):.2f}" + "\n")
+    return output_dict, bonus_list
 #%%
 def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
     workers = []
@@ -647,6 +657,14 @@ def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None
     plt.show()
 
 #%%
+def plot_hist_sorted(values, ylabel, cutoff=None, target_val=None, xlabel=None, ymax=None):
+    if cutoff: values = [cutoff if x>cutoff else x for x in values]
+    values.sort()
+    keys = range(len(values))
+    vals_dict = dict(zip(keys, values))
+    plot_hist(vals_dict, target_val=target_val, xlabel=xlabel, ylabel=ylabel, ymax=ymax)
+
+#%%
 def plot_scatter(xs, ys, ylabel, s=None, target_val=None, xlabel="Turker Id", ymax=None):
     plt.scatter(xs, ys, s, color='g')
     if target_val:
@@ -789,20 +807,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     # User needs to provide file I/O paths
     parser.add_argument(
-        "--turk_logs_directory",
-        default="/private/home/ethancarlson/.hitl/20211025173851/turk_logs",
-        help="where to read s3 logs from eg. ~/turk_interactions_with_agent",
+        "--s3_bucket", required=True,
+        help="where to read s3 logs from eg. '20211025173851'",
     )
     parser.add_argument(
-        "--parsed_output_directory",
-        default="/private/home/ethancarlson/.hitl/parsed/20211025173851",
-        help="where to write the collated NSP outputs eg. ~/parsed_turk_logs",
-    )
-    parser.add_argument(
-        "--filename",
-        default="nsp_outputs",
-        help="name of the CSV file we want to read, eg. nsp_outputs",
+        "--run_id", required=True,
+        help="The Mephisto run ID, eg.'218'",
     )
     args = parser.parse_args()
-    read_s3_bucket(args.turk_logs_directory, args.parsed_output_directory)
-    read_turk_logs(args.parsed_output_directory, args.filename)
+
+    

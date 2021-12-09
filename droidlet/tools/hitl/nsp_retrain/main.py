@@ -20,7 +20,7 @@ logger.addHandler(sh)
 
 # TODO: Parameterize those
 # This specifies how long jobs should be running before we manually kill them
-IJ_TIMEOUT = 10
+IJ_TIMEOUT = 300
 IL_TIMEOUT = IJ_TIMEOUT + 10
 NDL_TIMEOUT = IL_TIMEOUT + 20
 
@@ -39,9 +39,9 @@ if __name__ == "__main__":
     instance_num = opts.interaction_job_num
     ij = InteractionJob(instance_num, opts.image_tag, opts.task_name, timeout=IJ_TIMEOUT)
     batch_id = ij.get_batch_id()
-    listener = InteractionLogListener(batch_id, IL_TIMEOUT)
+    #listener = InteractionLogListener(batch_id, IL_TIMEOUT)
 
     runner = TaskRunner()
     runner.register_data_generators([ij])
-    runner.register_job_listeners([listener])
+    #runner.register_job_listeners([listener])
     runner.run()
