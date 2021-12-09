@@ -1,4 +1,5 @@
 import a0
+import std_msgs
 import geometry_msgs
 import moveit_commander
 import moveit_msgs
@@ -314,6 +315,7 @@ class PandaMoveGroup:
 class PlanningScene:
     def __init__(self):
         self._scene = moveit_commander.PlanningSceneInterface()
+        self._header = std_msgs.msg.Header()
 
     def add_box(
         self,
@@ -321,13 +323,13 @@ class PlanningScene:
         pose: "ros2dict[geometry_msgs.Pose]",
         size: Tuple[float, float, float] = (1, 1, 1),
     ) -> None:
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.add_box(name, pose_stamped, size)
 
     def add_cylinder(
         self, name: str, pose: "ros2dict[geometry_msgs.Pose]", height: float, radius: float
     ) -> None:
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.add_cylinder(name, pose_stamped, height, radius)
 
     def add_mesh(
@@ -337,7 +339,7 @@ class PlanningScene:
         filename: str,
         size: Tuple[float, float, float] = (1, 1, 1),
     ):
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.add_mesh(name, pose_stamped, filename, size)
 
     # def add_object()
@@ -349,13 +351,13 @@ class PlanningScene:
         normal: Tuple[float, float, float] = (0, 0, 1),
         offset: float = 0,
     ) -> None:
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.add_plane(name, pose_stamped, normal, offset)
 
     def add_sphere(
         self, name: str, pose: "ros2dict[geometry_msgs.Pose]", radius: float = 1
     ) -> None:
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.add_sphere(name, pose_stamped, radius)
 
     # def apply_planning_scene()
@@ -367,7 +369,7 @@ class PlanningScene:
         pose: "ros2dict[geometry_msgs.Pose]" = None,
         size: Tuple[float, float, float] = (1, 1, 1),
     ):
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.attach_box(link, name, pose_stamped, size)
 
     def attach_mesh(
@@ -378,7 +380,7 @@ class PlanningScene:
         filename: str,
         size: Tuple[float, float, float] = (1, 1, 1),
     ):
-        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose))
+        pose_stamped = geometry_msgs.msg.PoseStamped(pose=dict2ros("geometry_msgs/Pose", pose), header=self._header)
         return self._scene.attach_mesh(link, name, pose_stamped, filename, size)
 
     # def attach_object()
@@ -402,6 +404,9 @@ class PlanningScene:
 move_group = PandaMoveGroup()
 scene = PlanningScene()
 
+frame = move_group.get_planning_frame()
+scene._header = std_msgs.msg.Header(frame_id=frame)
+
 
 def onrequest(req):
     pkt = req.pkt
@@ -412,7 +417,6 @@ def onrequest(req):
     except Exception as e:
         req.reply(json.dumps({"err": "failed", "result": str(e)}))
         print("Failed.")
-
 
 server = a0.RpcServer("panda_planner", onrequest, None)
 signal.pause()

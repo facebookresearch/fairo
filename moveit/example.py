@@ -7,13 +7,13 @@ from polymetis import RobotInterface
 from moveit_bridge import MoveitInterface
 
 # Hyperparams
-POS_NOISE = torch.Tensor([0.1, 0.1, 0.1])
-ORI_NOISE = torch.Tensor([0.25, 0.25, 0.25])
 TIME_TO_GO = 3
 
-
-OBS_MESH_DIR = "../polymetis/polymetis/data/kuka_iiwa/meshes/iiwa7/collision/link_0.stl"
+OBS_MESH_DIR = "../polymetis/polymetis/data/franka_panda/meshes/collision/link0.stl"
 OBJ_MESH_DIR = "../polymetis/polymetis/data/kuka_iiwa/meshes/robotiq-2f/collision/base.stl"
+
+START_EE_POS = torch.Tensor([0.6, 0.3, 0.2])
+TARGET_EE_POS = torch.Tensor([0.6, -0.3, 0.2])
 
 
 def main():
@@ -21,23 +21,20 @@ def main():
     moveit = MoveitInterface()
     robot = RobotInterface()
 
-    robot.go_home()
+    robot.set_ee_pose(position=START_EE_POS)
 
     # Sample desired position
-    print("\n===== Setup =====")
     ee_pos_current, ee_quat_current = robot.pose_ee()
+    ee_pos_desired, ee_quat_desired = TARGET_EE_POS, ee_quat_current
+    
+    print("\n===== Setup =====")
     print(f"Current pose: pos={ee_pos_current}, quat={ee_quat_current}")
-
-    ee_pos_desired = ee_pos_current + POS_NOISE * torch.randn(3)
-    ee_quat_desired = (
-        R.from_quat(ee_quat_current) * R.from_rotvec(ORI_NOISE * torch.randn(3))
-    ).as_quat()
     print(f"Target pose: pos={ee_pos_desired}, quat={ee_quat_desired}")
 
     # Add mesh
     print("Adding obstacle...")
-    moveit.add_mesh("obstacle1", [0.2, 0, 0.4], [1, 0, 0, 0], OBS_MESH_DIR)
-    moveit.attach_mesh("panda_link8", "object1", [0.0, 0, 0.0], [1, 0, 0, 0], OBJ_MESH_DIR)
+    moveit.add_mesh("obstacle1", [0.7, 0, 0.1], [0, 0, 0, 1], OBS_MESH_DIR)
+    moveit.attach_mesh("panda_link8", "object1", [0, 0, 0], [0, 0, 0, 1], OBJ_MESH_DIR)
 
     # Plan
     print("\n===== Plan =====")
