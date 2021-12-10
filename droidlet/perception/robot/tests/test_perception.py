@@ -97,8 +97,8 @@ class LabelPropTest(unittest.TestCase):
                 ids = f.readlines()
                 ids = [int(x.strip()) for x in ids]
                             
-            src_img, src_label, src_depth, src_pose, cam_transform = read_test_asset_idx(dd, ids[0])
-            cur_img, cur_label, cur_depth, cur_pose, cam_transform = read_test_asset_idx(dd, ids[1])
+            src_img, src_label, src_depth, src_pose, cam_transform = self.read_test_asset_idx(dd, ids[0])
+            cur_img, cur_label, cur_depth, cur_pose, cam_transform = self.read_test_asset_idx(dd, ids[1])
             
             start = time.time()
             prop_label = self.lp(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
