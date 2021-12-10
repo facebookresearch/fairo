@@ -11,6 +11,7 @@ from droidlet.lowlevel.robot_mover_utils import transform_pose
 from numba import njit
 from math import ceil, floor
 
+ # TODO: Consolidate camera intrinsics and their associated utils across locobot and habitat.
 def compute_uvone(height, width):
     intrinsic_mat = np.array([[256, 0, 256], [0, 256, 256], [0, 0, 1]])
     rot = np.array([[0.0, 0.0, 1.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0]])
@@ -39,13 +40,17 @@ def convert_depth_to_pcd(depth, pose, uv_one_in_cam, rot, trans):
 
 @njit
 def get_annot(height, width, pts_in_cur_img, src_label):
+    """
+    This creates the new semantic labels of the projected points in the current image frame. Each new semantic label is the 
+    semantic label corresponding to pts_in_cur_img in src_label. 
+    """
     annot_img = np.zeros((height, width))
-    for x in range(len(pts_in_cur_img)):
-        r = int(x/width)
-        c = int(x - r*width)
-        x, y, _ = pts_in_cur_img[x]
+    for indx in range(len(pts_in_cur_img)):
+        r = int(indx/width)
+        c = int(indx - r*width)
+        x, y, _ = pts_in_cur_img[indx]
         
-        # Take ceil and floor combination to fix quantization errors
+        # We take ceil and floor combinations to fix quantization errors
         if floor(x) >= 0 and ceil(x) < height and floor(y) >=0 and ceil(y) < width:
             annot_img[ceil(y)][ceil(x)] = src_label[r][c]
             annot_img[floor(y)][floor(x)] = src_label[r][c]
@@ -63,7 +68,11 @@ class LabelPropagate(AbstractHandler):
         base_pose,
         cur_depth,
     ):
-        """Gets point cloud -> Transpose the point cloud based on robot location -> Project the point cloud back the images
+        """
+        1. Gets point cloud for the source image 
+        2. Transpose the point cloud based on robot location (base_pose) 
+        3. Project the point cloud back into the image frame. The corresponding semantic label for each point from the src_label becomes
+        the new semantic label in the current frame.
         Args:
             src_img (np.ndarray): source image to propagte from
             src_depth (np.ndarray): source depth to propagte from
