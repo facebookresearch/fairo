@@ -1,0 +1,47 @@
+{% set name = "librealsense" %}
+{% set version = "2.50.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  - url: https://github.com/IntelRealSense/librealsense/archive/v{{ version }}.tar.gz
+    sha256: cafeb2ed1efe5f42c4bd874296ce2860c7eebd15a9ce771f94580e0d0622098d
+
+build:
+  number: 0
+  string: py{{ PY_VER }} 
+  run_exports:
+    - pyrealsense2
+  # run_exports:
+  #   # See https://github.com/IntelRealSense/librealsense/pull/3449
+  #   - {{ pin_subpackage(name, max_pin='x.x') }}
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - cmake
+    - ninja
+    - {{ cdt('libudev') }}  # [linux]
+    - python
+    - libusb
+    - openssl
+  run:
+    - libusb
+    - python {{ python }}
+
+
+test:
+  imports:
+    - pyrealsense2
+
+about:
+  home: https://github.com/IntelRealSense/librealsense
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Cross-platform library for Intel® RealSense™ depth and tracking cameras.
+
+extra:
+  recipe-maintainers:
+    - tingfan
