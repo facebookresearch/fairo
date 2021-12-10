@@ -13,10 +13,16 @@ import atexit
 import sys
 import time
 import signal
+from threading import Thread
 
 import hydra
 
+
 from polymetis.utils.data_dir import PKG_ROOT_DIR, which
+
+
+import Pyro4
+
 
 
 log = logging.getLogger(__name__)
@@ -24,6 +30,11 @@ log = logging.getLogger(__name__)
 
 @hydra.main(config_name="launch_robot")
 def main(cfg):
+    Pyro4.config.SERIALIZERS_ACCEPTED.add("serpent")
+    Pyro4.config.ITER_STREAMING = True
+    Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
+    Pyro4.config.SERVERTYPE = "multiplex"
+
     build_dir = os.path.abspath(os.path.join(PKG_ROOT_DIR, "..", "..", "build"))
     log.info(f"Adding {build_dir} to $PATH")
     os.environ["PATH"] = build_dir + os.pathsep + os.environ["PATH"]
@@ -76,10 +87,30 @@ def main(cfg):
 
     # Start client
     time.sleep(1.0)
-    log.info(f"Starting robot client...")
+    log.info(f"STARTING ROBOT CLIENT...")
     client = hydra.utils.instantiate(cfg.robot_client)
-    print(client)
+    #print(client)
+    env = client
+    daemon = Pyro4.Daemon()
+    uri = daemon.register(env)
+    print(uri)
+    #daemon.requestLoop()
+    Thread(target=daemon.requestLoop).start()
+
+    """
+    ip = "172.23.42.48"
+    with Pyro4.locateNS() as ns:
+        with Pyro4.Daemon(ip, port=9000) as daemon:
+            # register server for remote access
+            uri = daemon.register(client, "remoteClient")
+            ns.remove("remoteClient")
+            ns.register("remoteClient", uri)
+            print(f"registered with nameserver (URI {uri}")
+            daemon.requestLoop() 
+    """
+    
     client.run()
+    print("AFTER CLIENT RUN")
 
 
 if __name__ == "__main__":

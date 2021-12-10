@@ -23,6 +23,10 @@ from polysim.envs import AbstractControlledEnv
 
 import logging
 
+
+import Pyro4
+
+
 log = logging.getLogger(__name__)
 
 
@@ -56,7 +60,7 @@ class Spinner:
             self.t_spin_target += -t_sleep  # prevent accumulating errors
         self.t_spin_target += self.dt
 
-
+@Pyro4.expose
 class GrpcSimulationClient(AbstractRobotClient):
     """A RobotClient which wraps a PyBullet simulation.
 
@@ -77,7 +81,6 @@ class GrpcSimulationClient(AbstractRobotClient):
                   send a debug message warning.
 
     """
-
     def __init__(
         self,
         metadata_cfg: DictConfig = None,
@@ -107,6 +110,7 @@ class GrpcSimulationClient(AbstractRobotClient):
             )
         self.env.reset()
 
+
         # GRPC connection
         self.channel = grpc.insecure_channel(f"{ip}:{port}")
         self.connection = polymetis_pb2_grpc.PolymetisControllerServerStub(self.channel)
@@ -122,9 +126,25 @@ class GrpcSimulationClient(AbstractRobotClient):
         self.i = 0
         self.interval_log = []
 
+        self.current_pos_image = None
+        ###self.sio = socketio.Client()
+        ###self.sio.connect('http://172.23.42.96:5000')
+        #self.client = "socket.socket()"
+        #client.connect((TCP_IP, TCP_PORT))
+
     def __del__(self):
         """Close connection in destructor"""
-        self.channel.close()
+        self.channel.close() 
+
+    @Pyro4.expose
+    def get_image(self):
+        arr = self.env.get_current_pos_image()
+        return arr
+
+    @Pyro4.expose
+    def get_sim_state(self):
+        arr = 1
+        return arr
 
     def run(self, time_horizon=float("inf")):
         """Start running the simulation and querying the server.
@@ -136,12 +156,24 @@ class GrpcSimulationClient(AbstractRobotClient):
         msg = self.connection.InitRobotClient(self.metadata.get_proto())
 
         robot_state = polymetis_pb2.RobotState()
+
         # Main loop
         t = 0
         spinner = Spinner(self.hz)
         while t < time_horizon:
+            if (t% 20) == 0:
+                ### working code uncomment later
+                self.current_pos_image = self.env.get_current_pos_image()
+                if self.current_pos_image is not None:
+                    img = self.current_pos_image
+                    ###img_b64 = base64.b64encode(img)
+                ###self.sio.emit('data', img_b64) 
+
             # Get robot state from env
             joint_pos, joint_vel = self.env.get_current_joint_pos_vel()
+            
+            #img = self.env.get_current_pos_image()
+            
             robot_state.joint_positions[:] = joint_pos
             robot_state.joint_velocities[:] = joint_vel
 

@@ -18,7 +18,9 @@ from polymetis.utils.data_dir import get_full_path_to_urdf
 
 log = logging.getLogger(__name__)
 
+import Pyro4
 
+@Pyro4.expose
 class BulletManipulatorEnv(AbstractControlledEnv):
     """A manipulator environment using PyBullet.
 
@@ -97,6 +99,11 @@ class BulletManipulatorEnv(AbstractControlledEnv):
         self.prev_torques_applied = np.zeros(self.n_dofs)
         self.prev_torques_measured = np.zeros(self.n_dofs)
         self.prev_torques_external = np.zeros(self.n_dofs)
+
+        self.viewMatrix = self.sim.computeViewMatrix(cameraEyePosition=[0, 0, 2.5],cameraTargetPosition=[0, 0, 0],cameraUpVector=[1, 1, 1])
+        
+        #self.viewMatrix = self.sim.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=[0,0,0],yaw=0,pitch=0,roll=0,upAxisIndex=2)
+        self.projectionMatrix = self.sim.computeProjectionMatrixFOV(fov=45.0, aspect=1.0, nearVal=0.1,farVal=3.1)
 
     @staticmethod
     def load_robot_description_from_urdf(abs_urdf_path: str, sim: BulletClient):
@@ -273,3 +280,17 @@ class BulletManipulatorEnv(AbstractControlledEnv):
             self.robot_id, list(joint_pos), list(joint_vel), list(joint_acc)
         )
         return np.asarray(torques)
+    @Pyro4.expose   
+    def get_current_pos_image(self):
+
+        width, height, rgbImg, depthImg, segImg = self.sim.getCameraImage(width=256, height=256, viewMatrix=self.viewMatrix, projectionMatrix=self.projectionMatrix)
+        imgArray = np.array(rgbImg)
+        #return imgArray.tolist()  # for Pyro, return arrayList
+        #im = Image.fromarray(rgbImg)
+        #if im.mode in ("RGBA", "P"):
+            #im = im.convert("RGB")
+        #byteIO = io.BytesIO()
+        #im.save(byteIO, format='PNG')
+        #byteArr = byteIO.getvalue()
+        #return imgArray #for socket
+        return imgArray.tolist()
