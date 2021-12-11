@@ -1,8 +1,8 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 echo "Killing navigation, planning, slam, remote and naming processes"
 
 kill_pattern () {
-    ps -elf|grep "$1" | grep -v grep | tr -s " " | cut -f 4 -d" " | xargs kill -9 >/dev/null 2>&1 || true 
+    ps -ef|grep "$1" | grep -v grep | tr -s " " | cut -f 3 -d" " | xargs kill -9 >/dev/null 2>&1 || true 
 }
 
 kill_pattern navigation_service.py
