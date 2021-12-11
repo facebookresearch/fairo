@@ -24,6 +24,7 @@ def delete_hits(mturk):
         # Get HIT status
         mturk.delete_hit(HITId=hit_id)
 
+
 def get_hit_list_status(mturk):
     # Check if there are outstanding assignable or reviewable HITs
     all_hits = mturk.list_hits()["HITs"]
@@ -43,8 +44,13 @@ def get_hit_list_status(mturk):
     print("HITStatus: {}".format(hit_status))
     return hit_status
 
+
 def get_hit_status(mturk, hit_id):
     return mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
+
+
+def get_hits_status(mturk, hits_ids):
+    return [get_hit_status(mturk, hit_id) for hit_id in hits_ids]
 
 
 def delete_hit(mturk, hit_id):
@@ -61,74 +67,78 @@ def delete_hit(mturk, hit_id):
         logging.info(f"Delete HIT {hit_id} succeeded")
 
 
-def get_hit_result(mturk, hit_id, output_csv: str, use_sandbox: bool, timeout: int):
+def delete_hits(mturk, hits_ids):
+    for hit_id in hits_ids:
+        delete_hit(mturk, hit_id)
+
+
+def get_hits_result(mturk, hits_ids, output_csv: str, use_sandbox: bool, timeout: int):
     if os.path.exists(output_csv):
         res = pd.read_csv(output_csv)
     else:
         res = pd.DataFrame()
 
     start_time = time.time()
-    status = ""
-    while status != "Reviewable":
+    hits_status = [""]
+    while any(status != "Reviewable" for status in hits_status):
         if time.time() - start_time > timeout * 60:
-            logging.info(f"HIT {hit_id} is timeout")
-            delete_hit(mturk, hit_id)
+            logging.info(f"HIT {hits_ids} is timeout")
+            delete_hits(mturk, hits_ids)
             return
-        status = get_hit_status(mturk, hit_id)
-        logging.info(f"HIT {hit_id} is not reviewable yet, currently is {status}...")
+        hits_status = get_hits_status(mturk, hits_ids)
+        logging.info(f"Not all HITs in [{hits_ids}] are reviewable yet, current status are: [{hits_status}]...")
         time.sleep(HIT_POLL_TIME)
     
-    new_row = {"HITId": hit_id}
-    worker_results = mturk.list_assignments_for_hit(
-        HITId=hit_id, AssignmentStatuses=["Submitted"]
-    )
-    while worker_results["NumResults"] <= 0:
-        logging.info(f"HIT {hit_id} is reviewable, but not results can be retrieved yet...")
-        if time.time() - start_time > timeout * 60:
-            logging.info(f"HIT {hit_id} is timeout")
-            delete_hit(mturk, hit_id)
-            return
+    for hit_id in hits_ids:
+        new_row = {"HITId": hit_id}
         worker_results = mturk.list_assignments_for_hit(
             HITId=hit_id, AssignmentStatuses=["Submitted"]
         )
-        time.sleep(HIT_POLL_TIME)
+        while worker_results["NumResults"] <= 0:
+            logging.info(f"HIT {hit_id} is reviewable, but not results can be retrieved yet...")
+            if time.time() - start_time > timeout * 60:
+                logging.info(f"HIT {hit_id} is timeout")
+                delete_hit(mturk, hit_id)
+                return
+            worker_results = mturk.list_assignments_for_hit(
+                HITId=hit_id, AssignmentStatuses=["Submitted"]
+            )
+            time.sleep(HIT_POLL_TIME)
 
-    if worker_results["NumResults"] > 0:
-        for assignment in worker_results["Assignments"]:
-            new_row["WorkerId"] = assignment["WorkerId"]
-            xml_doc = xmltodict.parse(assignment["Answer"])
+        if worker_results["NumResults"] > 0:
+            for assignment in worker_results["Assignments"]:
+                new_row["WorkerId"] = assignment["WorkerId"]
+                xml_doc = xmltodict.parse(assignment["Answer"])
 
-            logging.info("Worker's answer was:")
-            if type(xml_doc["QuestionFormAnswers"]["Answer"]) is list:
-                # Multiple fields in HIT layout
-                for answer_field in xml_doc["QuestionFormAnswers"]["Answer"]:
-                    input_field = answer_field["QuestionIdentifier"]
-                    answer = answer_field["FreeText"]
+                logging.info("Worker's answer was:")
+                if type(xml_doc["QuestionFormAnswers"]["Answer"]) is list:
+                    # Multiple fields in HIT layout
+                    for answer_field in xml_doc["QuestionFormAnswers"]["Answer"]:
+                        input_field = answer_field["QuestionIdentifier"]
+                        answer = answer_field["FreeText"]
+                        logging.info("For input field: " + input_field)
+                        logging.info("Submitted answer: " + answer)
+                        new_row["Answer.{}".format(input_field)] = answer
+
+                    res = res.append(new_row, ignore_index=True)
+                    res.to_csv(output_csv, index=False)
+                else:
+                    # One field found in HIT layout
+                    answer = xml_doc["QuestionFormAnswers"]["Answer"]["FreeText"]
+                    input_field = xml_doc["QuestionFormAnswers"]["Answer"]["QuestionIdentifier"]
                     logging.info("For input field: " + input_field)
                     logging.info("Submitted answer: " + answer)
                     new_row["Answer.{}".format(input_field)] = answer
+                    res = res.append(new_row, ignore_index=True)
+                    res.to_csv(output_csv, index=False)
 
-                res = res.append(new_row, ignore_index=True)
-                res.to_csv(output_csv, index=False)
-            else:
-                # One field found in HIT layout
-                answer = xml_doc["QuestionFormAnswers"]["Answer"]["FreeText"]
-                input_field = xml_doc["QuestionFormAnswers"]["Answer"]["QuestionIdentifier"]
-                logging.info("For input field: " + input_field)
-                logging.info("Submitted answer: " + answer)
-                new_row["Answer.{}".format(input_field)] = answer
-                res = res.append(new_row, ignore_index=True)
-                res.to_csv(output_csv, index=False)
-
-            mturk.approve_assignment(AssignmentId=assignment["AssignmentId"])
+                mturk.approve_assignment(AssignmentId=assignment["AssignmentId"])
+                mturk.delete_hit(HITId=hit_id)
+        else:
+            logging.info("No results ready yet")
+            # if returned assignment is empty,reject
             mturk.delete_hit(HITId=hit_id)
-    else:
-        logging.info("No results ready yet")
-        # if returned assignment is empty,reject
-        mturk.delete_hit(HITId=hit_id)
-    
-
-
+        
 
 def get_results(mturk, output_csv: str, use_sandbox: bool):
     # This will contain the answers
