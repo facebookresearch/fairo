@@ -2,6 +2,7 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 # python -m Pyro4.naming -n <MYIP>
+import copy
 import Pyro4
 from pyrobot import Robot
 from pyrobot.locobot.camera import DepthImgProcessor
@@ -11,9 +12,15 @@ import logging
 import os
 import skfmm
 import skimage
+import open3d as o3d
 from pyrobot.locobot.camera import DepthImgProcessor
 from pyrobot.locobot.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
+from obstacle_utils import is_obstacle
+from droidlet.lowlevel.robot_mover_utils import (
+    transform_pose,
+)
+
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -49,6 +56,14 @@ class RemoteLocobot(object):
 
         # check skfmm, skimage in installed, its necessary for slam
         self._done = True
+        intrinsic_mat = self.get_intrinsics()
+        intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+        img_resolution = self.get_img_resolution()
+        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
+        img_pixs = img_pixs.reshape(2, -1)
+        img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+        uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+        self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
 
     def restart_habitat(self):
         if hasattr(self, "_robot"):
@@ -90,6 +105,40 @@ class RemoteLocobot(object):
         cur_rotation = self._robot.camera._rot_matrix(cur_sensor_state.rotation)
         cur_rotation = rot_init_rotation.T @ cur_rotation
         return rgb, depth, cur_rotation, -relative_position
+
+    def get_current_pcd(self):
+        rgb, depth, rot, trans = self.get_pcd_data()
+        depth = depth.astype(np.float32)
+        d = copy.deepcopy(depth)
+        depth /= 1000.0
+        depth = depth.reshape(-1)
+        
+        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
+        pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
+        pts = pts_in_cam[:3, :].T
+        pts = np.dot(pts, rot.T)
+        pts = pts + trans.reshape(-1)
+        ros_to_habitat_frame = np.array([[0.0, -1.0, 0.0], [0.0, 0.0, -1.0], [1.0, 0.0, 0.0]])
+        pts = ros_to_habitat_frame.T @ pts.T
+        pts = pts.T
+        pts = transform_pose(pts, self.get_base_state("odom"))
+        
+        return pts, rgb
+
+    def get_open3d_pcd(self):
+        pts, rgb = self.get_current_pcd()
+        points, colors = pts.reshape(-1, 3), rgb.reshape(-1, 3)
+        colors = colors / 255.
+
+        opcd = o3d.geometry.PointCloud()
+        opcd.points = o3d.utility.Vector3dVector(points)
+        opcd.colors = o3d.utility.Vector3dVector(colors)
+        return opcd
+
+    def is_obstacle_in_front(self):
+        base_state = self.get_base_state()
+        pcd = self.get_open3d_pcd()
+        return is_obstacle(pcd, base_state)    
 
     def go_to_absolute(
         self,
@@ -226,7 +275,7 @@ class RemoteLocobot(object):
             return rgb
         return None
 
-    def get_current_pcd(self, in_cam=False, in_global=False):
+    def get_current_pcd2(self, in_cam=False, in_global=False):
         """Return the point cloud at current time step.
 
         :param in_cam: return points in camera frame,

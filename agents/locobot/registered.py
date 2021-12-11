@@ -11,7 +11,6 @@ registration = o3d.pipelines.registration
 from droidlet import dashboard
 from droidlet.dashboard.o3dviz import o3dviz
 from droidlet.lowlevel.hello_robot.hello_robot_mover import HelloRobotMover
-from droidlet.lowlevel.hello_robot.remote.obstacle_utils import get_points_in_front, is_obstacle
 
 if __name__ == "__main__":
     o3dviz.start()
@@ -34,6 +33,26 @@ def compute_uvone(height, width):
 uv_one_in_cam, pintrinsic = compute_uvone(height, width)
 
 
+# distance_threshold = 2cm
+def pcd_ground_seg_open3d(scan, distance_threshold=0.06, ransac_n=3, num_iterations=100):
+  """ Open3D also supports segmententation of geometric primitives from point clouds using RANSAC.
+  """
+  pcd = copy.deepcopy(scan)
+
+  ground_model, ground_indexes = scan.segment_plane(distance_threshold=distance_threshold,
+                                                    ransac_n=ransac_n,
+                                                    num_iterations=num_iterations)
+  ground_indexes = np.array(ground_indexes)
+
+  ground = pcd.select_by_index(ground_indexes)
+  rest = pcd.select_by_index(ground_indexes, invert=True)
+
+  ground.paint_uniform_color([1.0, 0.0, 0.0])
+  # rest.paint_uniform_color([0.0, 0.0, 1.0])
+
+  return ground, rest
+
+
 def icp_register_and_add(pcd1, pcd2, extrinsic):
     threshold = 0.02
     pcd2_copy = copy.deepcopy(pcd2)
@@ -50,9 +69,9 @@ def icp_register_and_add(pcd1, pcd2, extrinsic):
 
 def load_data(idx):
     # root = "/home/soumith/appended/baseline/"
-    root = "/home/soumith/collision/hello_data_log_1637169407.7004237/17"
+    # root = "/home/soumith/collision/hello_data_log_1637169407.7004237/24"
     # root = "/home/soumith/collision/hello_data_log_1638331896.0773966/1"
-    # root = "/home/soumith/collision/hello_data_log_1638338130.298805/2"
+    root = "/home/soumith/collision/hello_data_log_1638338130.298805/2"
 
     rgb_path = os.path.join(root, "rgb", str(idx) + ".jpg")
     depth_path = os.path.join(root, "depth", str(idx) + ".npy")
@@ -64,8 +83,6 @@ def load_data(idx):
     odometry = data[str(idx)]
     base_state = np.array(odometry["base_xyt"])
     cam_transform = np.array(odometry["cam_transform"])
-    cam_pan_tilt = np.array(odometry["cam_pan_tilt"])
-    print("cam pan_tilt", cam_pan_tilt)
 
     rgb = cv2.imread(rgb_path)
     depth = np.load(depth_path)
@@ -106,8 +123,7 @@ def load_data(idx):
 
 opcd = o3d.geometry.PointCloud()
 
-for i in range(0, 1, 1):
-# for i in range(0, 51, 10):
+for i in range(0, 51, 10):
 # for i in range(1900, 2100, 10):
     rgb_depth, cpcd, base_state, cam_transform, extrinsic = load_data(i)
     print(i)
@@ -119,14 +135,9 @@ for i in range(0, 1, 1):
     print(evaluation)
     # icp_register_and_add(opcd, cpcd, extrinsic)
     opcd += cpcd
-    # opcd = opcd.voxel_down_sample(0.05)
-    cropped_pcd, bbox = get_points_in_front(opcd, base_state)
-    cropped_pcd.paint_uniform_color([0, 0.651, 0.929])
+    # opcd = opcd.voxel_down_sample(0.03)
 
-    print("obstacle: ", is_obstacle(cpcd, base_state))
-    o3dviz.put('bbox', bbox)
     o3dviz.put('pointcloud', opcd)
-    o3dviz.put('pointcloud2', cropped_pcd)
 
     R = extrinsic[:3, :3]
     t = extrinsic[:3, 3]
@@ -135,8 +146,6 @@ for i in range(0, 1, 1):
     front = -extrinsic[2, :3]  # Z camera axis in world frame
     center = eye - front       # any point on the ray through the camera center
     o3dviz.set_camera(look_at=center, position=eye, y_axis=up)
-
-    
 
 
     # ground, rest = pcd_ground_seg_open3d(opcd)
@@ -152,7 +161,7 @@ for i in range(0, 1, 1):
 
     # o3dviz.put('pointcloud', opcd)
 
-    o3dviz.add_robot(base_state, canonical=False, base=True)
+    # o3dviz.add_robot(base_state, canonical=False, base=False)
 
     x, y, yaw = base_state.tolist()
     # o3dviz.set_camera(look_at=rgb_depth.ptcloud[320, 240], position=[x, y, 0.5], y_axis=[0, 0, 1])

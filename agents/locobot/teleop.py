@@ -15,6 +15,7 @@ from droidlet.dashboard.o3dviz import o3dviz
 import numpy as np
 from scipy.spatial import distance
 import open3d as o3d
+from droidlet.lowlevel.hello_robot.remote.obstacle_utils import get_points_in_front, is_obstacle, get_o3d_pointcloud, get_ground_plane
 
 import time
 import math
@@ -194,6 +195,7 @@ if __name__ == "__main__":
     start_time = time.time_ns()
     fps_freq = 1 # displays the frame rate every 1 second
     counter = 0
+    mover.bot.set_tilt(-1.5)
     
     while True:
         counter += 1
@@ -238,27 +240,30 @@ if __name__ == "__main__":
         opcd.colors = o3d.utility.Vector3dVector(all_colors)
         opcd = opcd.voxel_down_sample(0.05)
 
-        # # remove the rooftop / ceiling points in the point-cloud to make it easier to see the robot in the visualization
-        # crop_bounds = o3d.utility.Vector3dVector([
-        #     [-1000., -20., -1000.],
-        #     [1000., 20., 1000.0],
-        #     ])
-        # opcd = opcd.crop(
-        #     o3d.geometry.AxisAlignedBoundingBox.create_from_points(
-        #         crop_bounds,
-        #     )
-        # )
-        
-        
         all_points = np.asarray(opcd.points)
         all_colors = np.asarray(opcd.colors)
         
         o3dviz.put('pointcloud', opcd)
+        cpcd = get_o3d_pointcloud(rgb_depth.ptcloud, rgb_depth.rgb)
+        # cpcd = get_o3d_pointcloud(*mover.bot.get_current_pcd())
+        crop, bbox = get_points_in_front(cpcd, mover.get_base_pos())
+        print(bbox)
+        crop.paint_uniform_color([0.0, 1.0, 1.0])
+        # cpcd.paint_uniform_color([0.0, 1.0, 1.0])
+        o3dviz.put("cpcd", cpcd)
+        o3dviz.put("bbox", bbox)
+        o3dviz.put("crop", crop)
+        rest = get_ground_plane(crop, return_ground=False)
+        rest.paint_uniform_color([1.0, 0.0, 0.0])
+        o3dviz.put("rest", rest)
+        
+        print(is_obstacle(cpcd, mover.get_base_pos()))
+        # print(mover.bot.is_obstacle_in_front())
 
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        o3dviz.add_robot(base_state)
+        o3dviz.add_robot(base_state, height=0.63)
         o3dviz.add_axis()
 
         # start the SLAM

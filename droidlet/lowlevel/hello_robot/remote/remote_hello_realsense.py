@@ -13,6 +13,7 @@ import pyrealsense2 as rs
 import Pyro4
 import numpy as np
 import cv2
+import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from slam_pkg.utils import depth_util as du
 
@@ -64,6 +65,8 @@ class RemoteHelloRobot(object):
         self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
                                        [0,    i.fy, i.ppy],
                                        [0,    0,    1]])
+        self.intrinsic_o3d = o3d.camera.PinholeCameraIntrinsic(CW, CH, i.fx, i.fy, i.ppx, i.ppy)
+        
         align_to = rs.stream.color
         self.align = rs.align(align_to)
         print("connected to realsense")
@@ -105,6 +108,49 @@ class RemoteHelloRobot(object):
                 color_image = np.rot90(color_image, k=1, axes=(1,0))
 
         return color_image, depth_image
+
+    def get_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
+        # get data
+        if rgb_depth is None:
+            rgb, depth = self.get_rgb_depth(rotate=False)
+        else:
+            rgb, depth = rgb_depth
+
+        if cam_transform is None:
+            cam_transform = self.get_camera_transform()
+        if base_state is None:
+            base_state = self.bot.get_base_state()
+        intrinsic = self.intrinsic_o3d
+
+        # convert to open3d RGBDImage
+        rgb_u8 = np.ascontiguousarray(rgb[:, :, [2, 1, 0]], dtype=np.uint8)
+        depth_u16 = np.ascontiguousarray(depth, dtype=np.float32)
+        orgb = o3d.geometry.Image(rgb_u8)
+        odepth = o3d.geometry.Image(depth_u16)
+        orgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(orgb, odepth, depth_trunc=10.0, convert_rgb_to_intensity=False)
+
+        # create transform matrix
+        roty90 = o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi / 2, 0])
+        rotxn90 = o3d.geometry.get_rotation_matrix_from_axis_angle([-math.pi / 2, 0, 0])
+        rotz = o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, base_state[2]])
+        rot_cam = cam_transform[:3, :3]
+        trans_cam = cam_transform[:3, 3]
+        final_rotation = rotz @ rot_cam @ rotxn90 @ roty90
+        final_translation = [trans_cam[0] + base_state[0], trans_cam[1] + base_state[1], trans_cam[2] + 0]
+        final_transform = cam_transform.copy()
+        final_transform[:3, :3] = final_rotation
+        final_transform[:3, 3] = final_translation
+        extrinsic = np.linalg.inv(final_transform)
+        # create point cloud
+
+        opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd, intrinsic, extrinsic)
+        return opcd
+
+    def is_obstacle_in_front(self):
+        base_state = self.bot.get_base_state()
+        pcd = self.get_pcd(base_state=base_state)
+        from .obstacle_utils import is_obstacle
+        return is_obstacle(pcd, base_state)
 
     def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""

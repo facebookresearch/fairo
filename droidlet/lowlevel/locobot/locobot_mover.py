@@ -74,6 +74,10 @@ class LoCoBotMover:
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
 
+    def is_obstacle_in_front(self):
+        safe_call(self.bot.is_obstacle_in_front)
+        
+
     def check(self):
         """
         Sanity checks all the mover interfaces.

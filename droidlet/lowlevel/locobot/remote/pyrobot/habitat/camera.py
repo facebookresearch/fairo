@@ -284,10 +284,12 @@ class LoCoBotCamera(object):
         cur_state = self.agent.get_state()  # Habitat frame
         sensor_position = cur_state.position + sensor_offset
         sensor_quat = cur_state.rotation * quat_base_to_sensor
-        cur_state.sensor_states["rgb"].position = sensor_position
-        cur_state.sensor_states["rgb"].rotation = sensor_quat
 
-        self.agent.set_state(cur_state)
+        for sensor in cur_state.sensor_states:
+            cur_state.sensor_states[sensor].position = sensor_position
+            cur_state.sensor_states[sensor].rotation = sensor_quat
+
+        self.agent.set_state(cur_state, reset_sensors=False, infer_sensor_states=False)
 
     def reset(self):
         """
