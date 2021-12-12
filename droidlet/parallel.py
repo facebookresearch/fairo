@@ -38,8 +38,7 @@ class Process(multiprocessing.Process):
             self._exception = self._parent_conn.recv()
         return self._exception
 
-
-def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue):
+def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, output_queue, exec_empty):
     try:
         init_fn = cloudpickle.loads(_init_fn)
         process_fn = cloudpickle.loads(_process_fn)
@@ -47,12 +46,13 @@ def _runner(_init_fn, init_args, _process_fn, shutdown_event, input_queue, outpu
 
         while not shutdown_event.is_set():
             try:
-                process_args = input_queue.get(block=True, timeout=0.1)
+                process_args = input_queue.get(block=True, timeout=0.033)
                 process_args_aug = (initial_state, *process_args)
                 process_return = process_fn(*process_args_aug)
                 output_queue.put(process_return)
             except queue.Empty:
-                pass
+                if exec_empty:
+                    process_fn(initial_state)
     except:
         # if the queues are not empty, then the multiprocessing
         # finalizers don't exit cleanly and result in a hang,
@@ -75,20 +75,21 @@ class BackgroundTask:
         self._recv_queue = multiprocessing.Queue()
         self._shutdown_event = multiprocessing.Event()
 
-    def start(self):
-        self._process = Process(
-            target=_runner,
-            args=(
-                cloudpickle.dumps(self._init_fn),
-                self._init_args,
-                cloudpickle.dumps(self._process_fn),
-                self._shutdown_event,
-                self._send_queue,
-                self._recv_queue,
-            ),
-        )
+    def start(self, exec_empty = False):
+        self._process = Process(target=_runner,
+                                args=(
+                                    cloudpickle.dumps(self._init_fn),
+                                    self._init_args,
+                                    cloudpickle.dumps(self._process_fn),
+                                    self._shutdown_event,
+                                    self._send_queue, self._recv_queue,
+                                    exec_empty,
+                                ),)
         self._process.daemon = True
         self._process.start()
+
+    def join(self):
+        self._process.join()
 
     def _raise(self):
         if not hasattr(self, "_process"):
