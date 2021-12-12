@@ -86,12 +86,8 @@ class SLAM(object):
         self.map_builder.add_obstacle(location)
 
     def update_map(self):
-        robot_relative_pos = du.get_relative_state(
-            self.robot.get_base_state(),
-            self.init_state)
-        pcd = self.robot.get_current_pcd2(in_cam=False)[0]
-        
-        self.map_builder.update_map(pcd, robot_relative_pos)
+        pcd = self.robot.get_current_pcd()[0]
+        self.map_builder.update_map(pcd)
 
         # explore the map by robot shape
         obstacle = self.map_builder.map[:, :, 1] >= 1.0
