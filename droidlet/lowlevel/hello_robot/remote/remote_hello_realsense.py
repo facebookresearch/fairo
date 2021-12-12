@@ -163,10 +163,8 @@ class RemoteHelloRobot(object):
     def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self.get_rgb_depth(rotate=rotate)
-        depth *= 1000  # convert to mm
-        # cap anything more than np.power(2,16)~ 65 meter
-        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-        depth = depth.astype(np.uint16)
+        # cap anything more than np.power(2,6)~ 64 meter
+        depth[depth > np.power(2, 6) - 1] = np.power(2, 6) - 1
         T = self.get_camera_transform()
         rot = T[:3, :3]
         trans = T[:3, 3]
