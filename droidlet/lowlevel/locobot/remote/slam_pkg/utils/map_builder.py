@@ -36,19 +36,15 @@ class MapBuilder(object):
             dtype=np.float32,
         )
 
-    def update_map(self, pcd, pose):
+    def update_map(self, pcd, pose=None):
         """
-        updated the map based on current observation (point cloud) and current pose of robot
-        :param pcd: point cloud in robot base frame, in meter
-        :param pose: pose of robot, in metric unit
+        updated the map based on current observation (point cloud)
+        :param pcd: point cloud in global frame, in meter
 
         :type pcd: np.ndarray [num_points, 3]
-        :type pose: [x_robot_co-ordinate, y_robot_co-ordinate, robot_orientation]
         :return: map of the environment, values [1-> obstacle, 0->free, unknown space]
         :rtype: np.ndarray
         """
-        # transfer points from base frame to global frame
-        pcd = transform_pose(pcd, pose)
 
         # convert point from m to cm
         pcd = pcd * 100
