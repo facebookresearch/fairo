@@ -297,8 +297,6 @@ class HelloRobotMover(MoverInterface):
 
         depth_copy = np.copy(depth)
 
-        # get_pcd_data multiplies depth by 1000 to convert to mm, so reverse that
-        depth /= 1000.0
         depth = depth.reshape(rgb.shape[0] * rgb.shape[1])
 
         # normalize by the camera's intrinsic matrix
