@@ -366,7 +366,6 @@ class HelloRobotMover(MoverInterface):
 
 if __name__ == "__main__":
     import argparse
-    #    parser = ArgumentParser("HelloRobot", base_path)
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", default="")
     opts = parser.parse_args()
