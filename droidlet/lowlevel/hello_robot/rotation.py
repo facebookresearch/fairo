@@ -6,7 +6,7 @@ import math
 import numpy as np
 from numpy import sin, cos
 
-# CANONICAL WORLD COORDS (as used by interpreter)
+# CANONICAL WORLD COORDS
 # coords are (x, y, z)
 # 0 yaw is x axis
 #                 z+
@@ -25,6 +25,17 @@ from numpy import sin, cos
 #         | /
 #         0 -----> x+
 #
+#             y+  
+#             |
+#             |   -pitch
+#             |   
+#    z-_______|________z+
+#             |   
+#             |   
+#             |   +pitch
+#             |     
+#             y-
+
 
 DIRECTIONS = {
     "AWAY":  np.array([ 0,  0,  1]),
@@ -41,12 +52,17 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
     """Coordinate transforms with respect to current yaw/pitch of the viewer direction
 
     inverted=True finds the vector in canonical coords pointing towards
-    direction where direction is specified if you were facing yaw, pitch.
+    the vector <direction> where <direction> is specified as if you were 
+    facing yaw, pitch. (i.e. viewer-->canonical)
 
-    inverted=False takes a direction in canonical
-    coordinates and converts to coordinates where FRONT (z+) is yaw=0
-    and pitch=0 yaw is assumed to be in the range [-pi, pi], and
-    increasing yaw moves *counterclockwise* pitch is assumed to be in
+    inverted=False takes a <direction> in canonical
+    coordinates and converts to coordinates where FRONT (z+) 
+    is yaw=0 and pitch=0.  (i.e. canonical-->viewer)
+    
+    yaw is assumed to be in the range [-pi, pi], and
+    increasing yaw moves *counterclockwise*.
+    
+    pitch is assumed to be in
     the range [-pi/2, pi/2].  pi/2 is down, -pi/2 is up.
     """
 
@@ -56,8 +72,8 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
                    [-sin(yaw),   0,    cos(yaw) ]])
 
     rpitch = np.array([[1,   0,             0          ],
-                       [0,   cos(-pitch),   sin(-pitch)],
-                       [0,   -sin(-pitch),  cos(-pitch)]])
+                       [0,   cos(pitch),   sin(pitch)],
+                       [0,   -sin(pitch),  cos(pitch)]])
     # fmt: on
 
     if not inverted:
@@ -68,12 +84,17 @@ def transform(direction, yaw, pitch, inverted=False, xz_only=False):
 
 
 def yaw_pitch(look_vec):
+    """
+    returns the yaw and pitch from the input look_vec.
+    the look_vec should be input according to the diagram above
+    the yaw, pitch is returned according to the diagram above
+    """
     xz_dir = np.array([look_vec[0], look_vec[2]])
     xz_dir = xz_dir / np.linalg.norm(xz_dir)
     yaw = np.arctan2(-xz_dir[0], xz_dir[1])
     
     # get the pitch value/tilt angle
-    pitch = -np.arctan2(look_vec[1], np.sqrt(look_vec[0] ** 2 + look_vec[2] ** 2))
+    pitch = np.arctan2(look_vec[1], np.sqrt(look_vec[0] ** 2 + look_vec[2] ** 2))
     
     yaw = yaw % (2 * np.pi)
     if yaw > np.pi:
@@ -82,12 +103,17 @@ def yaw_pitch(look_vec):
     return yaw, pitch
     
     
-# this should invert yaw_pitch (up to norm)
 def look_vec(yaw, pitch):
+    """
+    returns look_vec from input pitch and yaw. 
+    this should invert yaw_pitch (up to norm)
+    the look_vec is returned according to the diagram above
+    the yaw, pitch should be input according to the diagram above
+    """
     #    yaw = deg2rad(yaw)
     #    pitch = deg2rad(pitch)
-    x = -cos(pitch) * sin(yaw)
-    y = sin(pitch)
+    x = cos(pitch) * sin(-yaw)
+    y = -sin(pitch)
     z = cos(pitch) * cos(yaw)
     return np.array([x, y, z])
 

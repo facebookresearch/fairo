@@ -15,7 +15,6 @@ if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
 import cv2
 
 from droidlet.perception.robot.perception_util import get_color_tag
-from droidlet.lowlevel.robot_coordinate_utils import xyz_pyrobot_to_canonical_coords
 
 #FIXME: do this through args, allow multiple verbosity levels
 VERBOSE = 1

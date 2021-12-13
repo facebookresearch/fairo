@@ -175,7 +175,6 @@ class HelloRobotMover(MoverInterface):
         # For the Hello camera, negative tilt seems to be up, and positive tilt is down
         # For the locobot camera, it is the opposite
         # TODO: debug this further, and make things across robots consistent
-        #tilt_rad = -tilt_rad
         logging.info(f"Returned new pan and tilt angles (radians): ({pan_rad}, {tilt_rad})")
         if face:
             # TODO less blocking, make me into state machine
