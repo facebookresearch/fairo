@@ -19,7 +19,11 @@ def main(run_id, performance_dir) -> list:
             bonus_list = f.readlines()
     bonus_dict = {}
     for bonus in bonus_list:
-        bonus_dict[bonus.split(' ')[0]] = bonus.split(' ')[1]
+        turker = bonus.split(' ')[0]
+        amount = float(bonus.split(' ')[1][:-1])
+        if bonus_dict[turker]:
+            bonus_dict[turker].append(amount)
+        else: bonus_dict[turker] = [amount]
     print(bonus_dict)
 
     # Get completed units from the run_id
@@ -36,9 +40,11 @@ def main(run_id, performance_dir) -> list:
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"])
-        bonus_result, _ = worker.bonus_worker(bonus_dict[worker.worker_name], "Noah Turk HIT Performance Bonus", unit)
+        amount = bonus_dict[worker.worker_name].pop(0) # Order doesn't really matter here, but they should be filled and popped the same
+        bonus_result, _ = worker.bonus_worker(amount, "Virtual assistant interaction quality bonus", unit)
         bonus_results.append(bonus_result)
 
+    print(bonus_results)
     return bonus_results
 
 
@@ -48,4 +54,4 @@ if __name__ == "__main__":
     parser.add_argument("--performance_dir", type=str, help="directory containing 'performance_bonuses.txt'", required=True)
     args = parser.parse_args()
 
-    main(args.run_id, args.bonus_rate, args.performance_dir)
+    main(args.run_id, args.performance_dir)

@@ -139,7 +139,7 @@ def plot_OS_browser(run_id: int) -> None:
     return
 
 #%%
-def timing_charts(run_id: int, s3_bucket: int) -> None:
+def timing_charts(run_id: int, s3_bucket: int=None) -> None:
     completed_units = retrieve_units(run_id)
     db=LocalMephistoDB()
     data_browser = DataBrowser(db=db)
@@ -157,6 +157,9 @@ def timing_charts(run_id: int, s3_bucket: int) -> None:
     unit_num = 1
     no_error_dict_list = []
     bonus_list = []
+    command_start_time = 0
+    total_bonus = 0
+    feedback = []
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -166,6 +169,7 @@ def timing_charts(run_id: int, s3_bucket: int) -> None:
         outputs = data["data"]["outputs"]
         if outputs["usability-rating"]: ratings["usability"].append(int(outputs["usability-rating"]))
         if outputs["self-rating"]: ratings["self"].append(int(outputs["self-rating"]))
+        if outputs["feedback"]: feedback.append(outputs["feedback"])
 
         clean_click_string = outputs["clickedElements"].replace("'", "")
         clicks = json.loads(clean_click_string)
@@ -185,11 +189,11 @@ def timing_charts(run_id: int, s3_bucket: int) -> None:
                 command_lists, command_counts, no_error_dict_list = commands_and_errors(click["id"], command_lists, command_counts, no_error_dict_list)
             # Collect stoplight scores
             if "interactionScores" in click["id"]:
-                scores, bonus_list = interaction_scores(click["id"]["interactionScores"], scores, bonus_list, worker)
+                scores, bonus_list, total_bonus = interaction_scores(click["id"]["interactionScores"], scores, bonus_list, total_bonus, worker)
             # Command timing metrics:
             command_processing_msgs = ['goToAgentThinking', 'received', 'done_thinking', 'executing', 'goToMessage']
             if click["id"] in command_processing_msgs:
-                benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers = command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker)
+                benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, command_start_time = command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker, command_start_time)
 
         # Record end-of-unit timing meterics
         if benchmarks["interaction_end"]:
@@ -215,21 +219,22 @@ def timing_charts(run_id: int, s3_bucket: int) -> None:
 
         ### END OF JOB ANALYTICS LOOP ###
 
-    parsed_path = os.path.join("/private/home/ethancarlson/.hitl/parsed/", str(s3_bucket))
+    if s3_bucket:
+        parsed_path = os.path.join("/private/home/ethancarlson/.hitl/parsed/", str(s3_bucket))
     
-    # Create a file containing the bonus payouts for turkers who receive performance incentives
-    create_bonus_payment_file(s3_bucket, bonus_list)
+        # Create a file containing the bonus payouts for turkers who receive performance incentives
+        create_bonus_payment_file(s3_bucket, bonus_list)
 
-    #workers_logs = retrieve_turker_ids(parsed_path, "nsp_outputs")
-    #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
-    #get_commands_from_turk_id('A4D99Y82KOLC8', parsed_path)
+        #workers_logs = retrieve_turker_ids(parsed_path, "nsp_outputs")
+        #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+        #get_commands_from_turk_id('A4D99Y82KOLC8', parsed_path)
     
-    # See the S3 logs that don't contain commands:
-    # print(logs_with_no_commands(parsed_path))
+        # See the S3 logs that don't contain commands:
+        # print(logs_with_no_commands(parsed_path))
 
     #save_commands_to_file(command_lists["total"], command_lists["parsing_errors"], command_lists["task_errors"], parsed_path)
 
-    print_stats_from_mephisto(unit_num, starttime, endtime, command_lists["total"], command_count_lists, unit_timing["total"], ratings["usability"], ratings["self"], scores)
+    print_stats_from_mephisto(unit_num, starttime, endtime, command_lists["total"], command_count_lists, unit_timing["total"], ratings["usability"], ratings["self"], scores, total_bonus, feedback)
     
     #Compare Mephisto and S3 error lists for discrepanicies
     #compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list)
@@ -261,7 +266,7 @@ def compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list):
     print(f"Maybe bad error dicts: {maybe_bad_error_dicts}")
 
 #%%
-def create_bonus_payment_file(s3_bucket, bonus_list):
+def create_bonus_payment_file(s3_bucket: str, bonus_list: list):
     bonus_path = os.path.join("/private/home/ethancarlson/.hitl/bonus/", str(s3_bucket))
     os.makedirs(bonus_path, exist_ok=True)
     bonus_file = os.path.join(bonus_path, "performance_bonuses.txt")
@@ -270,7 +275,7 @@ def create_bonus_payment_file(s3_bucket, bonus_list):
             f.write(bonus)
 
 #%%
-def command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker):
+def command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker, command_start_time):
     if click["id"] == 'goToAgentThinking':
         command_start_time = click["timestamp"]
         command_timing["start"].append(command_start_time)
@@ -303,7 +308,7 @@ def command_timing_metrics(click, benchmarks, unit_timing, command_timing, comma
             if len(command_processing_times[status]) < num_commands:
                 command_processing_times[status].append(0)
 
-    return benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers
+    return benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, command_start_time
 
 #%%
 def produce_plots(ratings, unit_timing, command_count_lists, scores, inst_timing, command_processing_times):
@@ -385,7 +390,7 @@ def hit_timing_anatomy(unit_timing, inst_timing, command_processing_times, comma
 def plot_command_stage_timing(command_processing_times):
     for status in command_processing_times.keys():
         command_processing_times[status] = [0 if x<0 else x for x in command_processing_times[status]]
-        command_processing_times[status] = [50 if x>50 else x for x in command_processing_times[status]]
+        command_processing_times[status] = [100 if x>100 else x for x in command_processing_times[status]]
         command_processing_times[status].sort()
         keys = range(len(command_processing_times[status]))
         command_dict = dict(zip(keys, command_processing_times[status]))
@@ -451,7 +456,7 @@ def instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, w
 
     return inst_timing, benchmarks, prev_page, unit_timing, workers 
 #%%
-def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, command_count_lists, HITtime, usability, self_rating, scores):
+def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, command_count_lists, HITtime, usability, self_rating, scores, total_bonus, feedback):
     actual_usability = [i for i in usability if i > 0]
     actual_self_rating = [i for i in self_rating if i > 0]
     print(f"Units logged: {unit_num-1}")
@@ -459,7 +464,8 @@ def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, comman
     print(f"End time: {datetime.fromtimestamp(endtime)}")
     print(f"Mephisto command list stats:")
     get_stats(command_list)
-    print(f"Total Command count: {sum(command_count_lists['total'])}")
+    print(f"Total command count: {sum(command_count_lists['total'])}")
+    print(f"Total bonus paid: {total_bonus}")
     print(f"Avg Number of commands in Mephisto: {sum(command_count_lists['total'])/len(command_count_lists['total']):.1f}")
     print(f"Total parsing error count: {sum(command_count_lists['parsing_error'])}")
     print(f"Total task error count: {sum(command_count_lists['task_error'])}")
@@ -471,6 +477,7 @@ def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, comman
     print(f"Average creativity score: {(sum(scores['creativity'])/len(scores['creativity'])):.1f}")
     print(f"Average diversity score: {(sum(scores['diversity'])/len(scores['diversity'])):.1f}")
     print(f"Average stoplight score: {(sum(scores['stoplight'])/len(scores['stoplight'])):.1f}")
+    print(f"User feedback: {feedback}")
 
 #%%
 def match_length(data: dict, length: int):
@@ -491,13 +498,16 @@ def save_commands_to_file(commands, parsing_errors, task_errors, turk_output_dir
     return
     
 #%%
-def interaction_scores(scores, output_dict, bonus_list, worker):
+def interaction_scores(scores, output_dict, bonus_list, total_bonus, worker):
     if scores["creativity"]: output_dict["creativity"].append(scores["creativity"])
     if scores["diversity"]: output_dict["diversity"].append(scores["diversity"])
     if scores["stoplight"]:
         output_dict["stoplight"].append(scores["stoplight"])
-        bonus_list.append(str(worker) + " " + f"{(scores['stoplight'] * 0.30):.2f}" + "\n")
-    return output_dict, bonus_list
+        bonus = scores['stoplight'] * 0.30
+        total_bonus += float(bonus)
+        bonus_list.append(str(worker) + " " + f"{(bonus):.2f}" + "\n")
+    return output_dict, bonus_list, total_bonus
+
 #%%
 def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
     workers = []
@@ -514,6 +524,29 @@ def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadat
         else:
             pass
     return workers
+
+#%%
+def logs_from_turk_id(turk_id, turk_output_directory):
+    session_list = []
+    for csv_path in glob.glob(
+        "{turk_logs_dir}/**/{csv_filename}".format(
+            turk_logs_dir=turk_output_directory, csv_filename="nsp_outputs.csv"
+        )
+    ):
+        readfile = False
+        meta_path = os.path.join(os.path.dirname(csv_path), "job_metadata.json")
+        if os.path.exists(meta_path):
+            with open(meta_path, "r+") as f:
+                meta = json.load(f)
+                if meta["turk_worker_id"] == turk_id: readfile = True
+        else:
+            pass
+
+        if readfile:
+            session_list.append(os.path.basename(os.path.dirname(csv_path)))
+
+    return session_list
+
 
 #%%
 def logs_with_no_commands(turk_output_directory, meta_fname="job_metadata.json"):
@@ -796,11 +829,11 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211201131224/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211201131224")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211209154235/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211209154235")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211201131224", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211209154235", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211201131224", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211209154235", "error_details")
 
 #%%
 if __name__ == "__main__":
