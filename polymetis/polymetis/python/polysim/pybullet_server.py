@@ -17,10 +17,6 @@ from .third_party.robotiq_2finger_grippers.robotiq_2f_gripper import (
 
 
 class PolysimServer(polymetis_pb2_grpc.PolymetisControllerServerServicer):
-    """gRPC server that exposes a Robotiq gripper controls to the client
-    Communicates with the gripper through modbus
-    """
-
     def __init__(self, cfg, sim_client):
         # Controller stub
         self.channel = grpc.insecure_channel(
@@ -57,21 +53,10 @@ class PolysimServer(polymetis_pb2_grpc.PolymetisControllerServerServicer):
 
     # Gripper interface
     def GripperGetState(self, request, context):
-        state = polymetis_pb2.GripperState()
-
-        state.timestamp.GetCurrentTime()
-        state.pos = self.gripper.get_pos()
-        state.is_ready = self.gripper.is_ready()
-        state.is_moving = self.gripper.is_moving()
-        state.is_stopped = self.gripper.is_stopped()
-
-        return state
+        pass  # TODO
 
     def GripperGoto(self, request, context):
-        self.gripper.goto(pos=request.pos, vel=request.vel, force=request.force)
-        self.gripper.sendCommand()
-
-        return polymetis_pb2.Empty()
+        pass  # TODO
 
 
 def run_server(ip, port):
