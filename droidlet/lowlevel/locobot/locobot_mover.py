@@ -255,10 +255,9 @@ class LoCoBotMover:
         Returns:
             an RGBDepth object
         """
-        rgb, depth, rot, trans = self.bot.get_pcd_data()
+        rgb, depth, rot, trans, base_state = self.bot.get_pcd_data()
         depth = depth.astype(np.float32)
         d = copy.deepcopy(depth)
-        depth /= 1000.0
         depth = depth.reshape(-1)
         pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
@@ -269,7 +268,7 @@ class LoCoBotMover:
             ros_to_habitat_frame = np.array([[0.0, -1.0, 0.0], [0.0, 0.0, -1.0], [1.0, 0.0, 0.0]])
             pts = ros_to_habitat_frame.T @ pts.T
             pts = pts.T
-        pts = transform_pose(pts, self.bot.get_base_state("odom"))
+        pts = transform_pose(pts, base_state)
         return RGBDepth(rgb, d, pts)
 
     def get_rgb_depth_segm(self):

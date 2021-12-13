@@ -10,8 +10,6 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 import logging
 import os
-import skfmm
-import skimage
 import open3d as o3d
 from pyrobot.locobot.camera import DepthImgProcessor
 from pyrobot.locobot.base_control_utils import LocalActionStatus
@@ -55,7 +53,6 @@ class RemoteLocobot(object):
         # we do it this way to have the ability to restart from the client at arbitrary times
         self.restart_habitat()
 
-        # check skfmm, skimage in installed, its necessary for slam
         self._done = True
         intrinsic_mat = self.get_intrinsics()
         intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
@@ -92,12 +89,12 @@ class RemoteLocobot(object):
     def get_pcd_data(self):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
         rgb, depth = self._robot.camera.get_rgb_depth()
-        depth *= 1000  # convert to mm
-        # cap anything more than np.power(2,16)~ 65 meter
-        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-        depth = depth.astype(np.uint16)
-
         cur_state = self._robot.camera.agent.get_state()
+        base_state = self.get_base_state()
+
+        # cap anything more than np.power(2,6)~ 64 meter
+        depth[depth > np.power(2, 6) - 1] = np.power(2, 6) - 1
+
         cur_sensor_state = cur_state.sensor_states["rgb"]
         initial_rotation = cur_state.rotation
         rot_init_rotation = self._robot.camera._rot_matrix(initial_rotation)
@@ -105,16 +102,21 @@ class RemoteLocobot(object):
         relative_position = rot_init_rotation.T @ relative_position
         cur_rotation = self._robot.camera._rot_matrix(cur_sensor_state.rotation)
         cur_rotation = rot_init_rotation.T @ cur_rotation
-        return rgb, depth, cur_rotation, -relative_position
+        return rgb, depth, cur_rotation, -relative_position, base_state
 
     def get_current_pcd(self):
-        rgb, depth, rot, trans = self.get_pcd_data()
+        rgb, depth, rot, trans, base_state = self.get_pcd_data()
         depth = depth.astype(np.float32)
-        d = copy.deepcopy(depth)
-        depth /= 1000.0
+
+        valid = depth > 0
+        depth = depth[valid]
+        rgb = rgb[valid]
+        uv_one_in_cam = self.uv_one_in_cam[:, valid.reshape(-1)]
+
+
         depth = depth.reshape(-1)
         
-        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
+        pts_in_cam = np.multiply(uv_one_in_cam, depth)
         pts_in_cam = np.concatenate((pts_in_cam, np.ones((1, pts_in_cam.shape[1]))), axis=0)
         pts = pts_in_cam[:3, :].T
         pts = np.dot(pts, rot.T)
@@ -122,7 +124,7 @@ class RemoteLocobot(object):
         ros_to_habitat_frame = np.array([[0.0, -1.0, 0.0], [0.0, 0.0, -1.0], [1.0, 0.0, 0.0]])
         pts = ros_to_habitat_frame.T @ pts.T
         pts = pts.T
-        pts = transform_pose(pts, self.get_base_state("odom"))
+        pts = transform_pose(pts, base_state)
         
         return pts, rgb
 
