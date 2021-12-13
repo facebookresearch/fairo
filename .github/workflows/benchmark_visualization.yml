@@ -6,26 +6,26 @@ on: [push]
     #   - master
 
 jobs:
-  benchmark:
-    name: Benchmarks
+  Benchmark-Polymetis:
+    # name: Benchmarks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Find new benchmark filenames
         run: echo "BENCHMARK_FILENAMES=$(git diff --name-only HEAD~1 --diff-filter=A --cached -- .benchmarks)" >> $GITHUB_ENV
         id: new-benchmarks
-      - name: Download previous benchmark data
-        uses: actions/cache@v1
-        with:
-          path: ./cache
-          key: ${{ runner.os }}-benchmark
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        with:
-          tool: 'pytest'
-          output-file-path: {{ env.BENCHMARK_FILENAMES }}
-          external-data-json-path: ./cache/benchmark-data.json
+      # - name: Download previous benchmark data
+      #   uses: actions/cache@v1
+      #   with:
+      #     path: ./cache
+      #     key: ${{ runner.os }}-benchmark
+      # - name: Store benchmark result
+      #   uses: benchmark-action/github-action-benchmark@v1
+      #   with:
+      #     tool: 'pytest'
+      #     output-file-path: {{ env.BENCHMARK_FILENAMES }}
+      #     external-data-json-path: ./cache/benchmark-data.json
 
-          auto-push: true
-          gh-pages-branch: 1heart/hardware-ci
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      #     auto-push: true
+      #     gh-pages-branch: 1heart/hardware-ci
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
