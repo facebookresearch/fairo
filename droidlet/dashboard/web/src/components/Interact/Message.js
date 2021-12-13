@@ -5,61 +5,48 @@
  */
 
 import React, { Component } from "react";
-import Button from "@material-ui/core/Button";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import ListItemText from "@material-ui/core/ListItemText";
-import FailIcon from "@material-ui/icons/Cancel";
-
-import IconButton from "@material-ui/core/IconButton";
-import KeyboardVoiceIcon from "@material-ui/icons/KeyboardVoice";
-
 import "./Message.css";
-
-const recognition = new window.webkitSpeechRecognition();
-recognition.lang = "en-US";
 
 class Message extends Component {
   constructor(props) {
     super(props);
-    this.state = {
+    this.initialState = {
       recognizing: false,
+      enableVoice: this.props.enableVoice,
+      connected: false,
+      agent_replies: this.props.agent_replies,
     };
-
-    this.toggleListen = this.toggleListen.bind(this);
-    this.listen = this.listen.bind(this);
+    this.state = this.initialState;
     this.elementRef = React.createRef();
     this.bindKeyPress = this.handleKeyPress.bind(this); // this is used in keypressed event handling
   }
 
-  renderChatHistory(status) {
-    //render the HTML for the chatHistory with a unique key value
-    return this.props.chats.map((value, idx) =>
+  renderChatHistory() {
+    // Pull in user chats and agent replies, filter out any empty ones
+    let chats = this.props.chats.filter((chat) => chat.msg !== "");
+    let replies = this.state.agent_replies.filter((reply) => reply.msg !== "");
+    chats = chats.filter((chat) => chat.msg);
+    replies = replies.filter((reply) => reply.msg);
+    // Label each chat based on where it came from
+    chats.forEach((chat) => (chat["sender"] = "message user"));
+    replies.forEach((reply) => (reply["sender"] = "message agent"));
+    // Strip out the 'Agent: ' prefix if it's there
+    replies.forEach(function (reply) {
+      if (reply["msg"].includes("Agent: ")) {
+        reply["msg"] = reply["msg"].substring(7);
+      }
+    });
+    // Zip it into one list, sort by timestamp, and send it off to be rendered
+    let chat_history = chats.concat(replies);
+    chat_history.sort(function (a, b) {
+      return a.timestamp - b.timestamp;
+    });
+
+    return chat_history.map((chat) =>
       React.cloneElement(
-        <ListItem>
-          <ListItemText>
-            {value.msg +
-              (value.msg
-                ? status === "Sent successfully"
-                  ? " ✅"
-                  : " ❌"
-                : "")}
-          </ListItemText>
-          <ListItemSecondaryAction>
-            {value.msg !== "" ? (
-              <Button
-                style={{ backgroundColor: "red", color: "white" }}
-                onClick={() => this.props.goToQuestion(idx)}
-              >
-                Mark Error
-              </Button>
-            ) : null}
-          </ListItemSecondaryAction>
-        </ListItem>,
-        {
-          key: idx.toString(),
-        }
+        <li className={chat.sender} key={chat.timestamp.toString()}>
+          {chat.msg}
+        </li>
       )
     );
   }
@@ -77,128 +64,79 @@ class Message extends Component {
   }
 
   componentDidMount() {
+    this.props.stateManager.connect(this);
     document.addEventListener("keypress", this.bindKeyPress);
+    this.setState({ connected: this.props.stateManager.connected });
   }
 
   componentWillUnmount() {
+    this.props.stateManager.disconnect(this);
     document.removeEventListener("keypress", this.bindKeyPress);
-  }
-
-  toggleListen() {
-    //update the variable and call listen
-    console.log("togglelisten");
-    this.setState({ recognizing: !this.state.recognizing }, this.listen);
-  }
-
-  listen() {
-    //start listening and grab the output form ASR model to display in textbox
-    if (this.state.recognizing) {
-      recognition.start();
-    } else {
-      recognition.stop();
-    }
-    recognition.onresult = function (event) {
-      let msg = "";
-      for (var i = 0; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          msg += event.results[i][0].transcript;
-        }
-      }
-      document.getElementById("msg").innerHTML = msg;
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error === "not-allowed") {
-        alert("Please grant access to microphone");
-        recognition.stop();
-      }
-    };
   }
 
   handleSubmit() {
     //get the message
-    var chatmsg = document.getElementById("msg").innerHTML;
+    var chatmsg = document.getElementById("msg").value;
     if (chatmsg.replace(/\s/g, "") !== "") {
       //add to chat history box of parent
-      this.props.setInteractState({ msg: chatmsg, failed: false });
+      this.props.setInteractState({ msg: chatmsg, timestamp: Date.now() });
       //log message to flask
       this.props.stateManager.logInteractiondata("text command", chatmsg);
+      //log message to Mephisto
+      window.parent.postMessage(
+        JSON.stringify({ msg: { command: chatmsg } }),
+        "*"
+      );
+      //send message to TurkInfo
+      this.props.stateManager.sendCommandToTurkInfo(chatmsg);
       //socket connection
       this.props.stateManager.socket.emit("sendCommandToAgent", chatmsg);
+      //update StateManager command state
+      this.props.stateManager.memory.commandState = "sent";
       //clear the textbox
-      document.getElementById("msg").innerHTML = "";
+      document.getElementById("msg").value = "";
+      //clear the agent reply that will be shown in the question pane
+      this.props.stateManager.memory.last_reply = "";
+      //change to the AgentThinking view pane if it makes sense
+      if (this.props.agentType === "craftassist") {
+        this.props.goToAgentThinking();
+      }
     }
   }
 
   render() {
     return (
-      <div className="Chat">
-        {/* FIXME Save for dashboard in turk */}
-        {/* <p>Press spacebar to start/stop recording.</p> */}
-        {/* <p>Enter the command to the bot in the input box below</p>
-        <List>{this.renderChatHistory()}</List>
-        <div
-          contentEditable="true"
-          className="Msg single-line"
-          id="msg"
-          suppressContentEditableWarning={true}
-        >
-          {" "}
-        </div> */}
-        <p>
-          Enter the command to the bot in the input box below, or click the mic
-          button to start/stop voice input.
-        </p>
-        <p>
-          Click the x next to the message if the outcome wasn't as expected.
-        </p>
-        <KeyboardVoiceIcon
-          className="ASRButton"
-          variant="contained"
-          color={this.state.recognizing ? "default" : "secondary"}
-          fontSize="large"
-          onClick={this.toggleListen.bind(this)}
-        ></KeyboardVoiceIcon>
-
-        <p> {this.state.recognizing ? "Listening..." : ""} </p>
-
-        <List>{this.renderChatHistory(this.props.status)}</List>
-        {this.props.isMobile === true ? (
-          <div
-            style={{ outline: " solid 1px black" }}
-            contentEditable="true"
-            className="Msg single-line"
-            id="msg"
-            suppressContentEditableWarning={true}
-          >
-            {" "}
+      <div>
+        <div>
+          <p>
+            Enter the command to the assistant in the input box below, then
+            press 'Enter'.
+          </p>
+        </div>
+        <div className="center">
+          <div className="chat">
+            <div className="time">
+              Assistant is{" "}
+              {this.state.connected === true ? (
+                <span style={{ color: "green" }}>connected</span>
+              ) : (
+                <span style={{ color: "red" }}>not connected</span>
+              )}
+            </div>
+            <div className="messages">
+              <ul className="messagelist" id="chat">
+                {this.renderChatHistory()}
+              </ul>
+            </div>
+            <div className="input">
+              <input
+                id="msg"
+                placeholder="Type your command here"
+                type="text"
+              />
+            </div>
           </div>
-        ) : (
-          <div
-            contentEditable="true"
-            className="Msg single-line"
-            id="msg"
-            suppressContentEditableWarning={true}
-          >
-            {" "}
-          </div>
-        )}
-        <Button
-          className="MsgButton"
-          variant="contained"
-          color="primary"
-          onClick={this.handleSubmit.bind(this)}
-        >
-          {" "}
-          Submit{" "}
-        </Button>
-
-        {/* FIXME save for dashboard in turk */}
-        {/* <p id="callbackMsg">{this.props.status}</p>
-        <p id="assistantReply">[Reply] {this.props.agent_reply} </p>
-        <br />
-        <br /> */}
-        <p id="assistantReply">{this.props.agent_reply} </p>
+        </div>
       </div>
     );
   }

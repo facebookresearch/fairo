@@ -168,7 +168,6 @@ class DashboardTimeline extends React.Component {
     const filters = this.props.stateManager.memory.timelineFilters;
     // checks if filters have been changed
     if (filters && filters !== this.searchFilters) {
-      console.log(filters);
       this.searchFilters = [...filters];
       let items = timelineEvents.get();
       // loop through all items and check if the filter applies

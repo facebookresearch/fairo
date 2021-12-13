@@ -10,7 +10,6 @@ import torch
 import torchcontrol as toco
 from torchcontrol.transform import Rotation as R
 from torchcontrol.transform import Transformation as T
-from torchcontrol.modules.planning import *
 from torchcontrol.utils.test_utils import record_or_compare, FakeRobotModel
 
 
@@ -33,16 +32,16 @@ def test_joint_planner(num_steps):
     joint_start = torch.rand(N_DOFS)
     joint_goal = torch.rand(N_DOFS)
 
-    planner = JointSpaceMinJerkPlanner(
-        start=joint_start, goal=joint_goal, steps=num_steps, time_to_go=TIME_TO_GO
+    waypoints = toco.planning.generate_joint_space_min_jerk(
+        start=joint_start,
+        goal=joint_goal,
+        time_to_go=TIME_TO_GO,
+        hz=num_steps / TIME_TO_GO,
     )
 
-    q_ls, qd_ls, qdd_ls = [], [], []
-    for i in range(num_steps):
-        q, qd, qdd = planner(i)
-        q_ls.append(q)
-        qd_ls.append(qd)
-        qdd_ls.append(qdd)
+    q_ls = [waypoint["position"] for waypoint in waypoints]
+    qd_ls = [waypoint["velocity"] for waypoint in waypoints]
+    qdd_ls = [waypoint["acceleration"] for waypoint in waypoints]
 
     assert torch.allclose(q_ls[0], joint_start)
     assert torch.allclose(q_ls[-1], joint_goal)
@@ -65,17 +64,17 @@ def test_cartesian_planner(num_steps):
         rotation=R.from_rotvec(torch.rand(3)),
     )
 
-    planner = CartesianSpaceMinJerkPlanner(
-        start=pose_start, goal=pose_goal, steps=num_steps, time_to_go=TIME_TO_GO
+    waypoints = toco.planning.generate_cartesian_space_min_jerk(
+        start=pose_start,
+        goal=pose_goal,
+        time_to_go=TIME_TO_GO,
+        hz=num_steps / TIME_TO_GO,
     )
 
-    qx_ls, qr_ls, qd_ls, qdd_ls = [], [], [], []
-    for i in range(num_steps):
-        q, qd, qdd = planner(i)
-        qx_ls.append(q.translation())
-        qr_ls.append(q.rotation().as_quat())
-        qd_ls.append(qd)
-        qdd_ls.append(qdd)
+    qx_ls = [waypoint["pose"].translation() for waypoint in waypoints]
+    qr_ls = [waypoint["pose"].rotation().as_quat() for waypoint in waypoints]
+    qd_ls = [waypoint["twist"] for waypoint in waypoints]
+    qdd_ls = [waypoint["acceleration"] for waypoint in waypoints]
 
     assert torch.allclose(qx_ls[0], pose_start.translation())
     assert torch.allclose(qr_ls[0], pose_start.rotation().as_quat())
@@ -95,16 +94,13 @@ def test_cartesian_position_planner(num_steps):
     pos_start = torch.rand(3)
     pos_goal = torch.rand(3)
 
-    planner = JointSpaceMinJerkPlanner(
-        start=pos_start, goal=pos_goal, steps=num_steps, time_to_go=TIME_TO_GO
+    waypoints = toco.planning.generate_position_min_jerk(
+        start=pos_start, goal=pos_goal, time_to_go=TIME_TO_GO, hz=num_steps / TIME_TO_GO
     )
 
-    q_ls, qd_ls, qdd_ls = [], [], []
-    for i in range(num_steps):
-        q, qd, qdd = planner(i)
-        q_ls.append(q)
-        qd_ls.append(qd)
-        qdd_ls.append(qdd)
+    q_ls = [waypoint["position"] for waypoint in waypoints]
+    qd_ls = [waypoint["velocity"] for waypoint in waypoints]
+    qdd_ls = [waypoint["acceleration"] for waypoint in waypoints]
 
     assert torch.allclose(q_ls[0], pos_start)
     assert torch.allclose(q_ls[-1], pos_goal)
@@ -125,20 +121,17 @@ def test_cartesian_joint_planner(num_steps):
     )
     robot_model = FakeRobotModel(N_DOFS)
 
-    planner = CartesianSpaceMinJerkJointPlanner(
+    waypoints = toco.planning.generate_cartesian_target_joint_min_jerk(
         joint_pos_start=joint_start,
         ee_pose_goal=pose_goal,
-        steps=num_steps,
         time_to_go=TIME_TO_GO,
+        hz=num_steps / TIME_TO_GO,
         robot_model=robot_model,
     )
 
-    q_ls, qd_ls, qdd_ls = [], [], []
-    for i in range(num_steps):
-        q, qd, qdd = planner(i)
-        q_ls.append(q)
-        qd_ls.append(qd)
-        qdd_ls.append(qdd)
+    q_ls = [waypoint["position"] for waypoint in waypoints]
+    qd_ls = [waypoint["velocity"] for waypoint in waypoints]
+    qdd_ls = [waypoint["acceleration"] for waypoint in waypoints]
 
     assert torch.allclose(q_ls[0], joint_start)
 

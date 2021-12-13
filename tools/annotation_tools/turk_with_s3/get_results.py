@@ -5,6 +5,14 @@ import os
 import sys
 import time
 import argparse
+from datetime import datetime
+
+import logging
+
+logging.basicConfig(level="INFO")
+
+
+HIT_POLL_TIME = 15 # in seconds
 
 
 def delete_hits(mturk):
@@ -15,6 +23,7 @@ def delete_hits(mturk):
     for hit_id in hit_ids:
         # Get HIT status
         mturk.delete_hit(HITId=hit_id)
+
 
 def get_hit_list_status(mturk):
     # Check if there are outstanding assignable or reviewable HITs
@@ -35,6 +44,101 @@ def get_hit_list_status(mturk):
     print("HITStatus: {}".format(hit_status))
     return hit_status
 
+
+def get_hit_status(mturk, hit_id):
+    return mturk.get_hit(HITId=hit_id)["HIT"]["HITStatus"]
+
+
+def get_hits_status(mturk, hits_ids):
+    return [get_hit_status(mturk, hit_id) for hit_id in hits_ids]
+
+
+def delete_hit(mturk, hit_id):
+    status = get_hit_status(mturk, hit_id)
+    if status == "Assignable" or status == "Reviewable":
+        response = mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=datetime(2015, 1, 1))
+
+    # Delete the HIT
+    try:
+        mturk.delete_hit(HITId=hit_id)
+    except:
+        logging.info(f"Delete HIT {hit_id} failed")
+    else:
+        logging.info(f"Delete HIT {hit_id} succeeded")
+
+
+def delete_hits(mturk, hits_ids):
+    for hit_id in hits_ids:
+        delete_hit(mturk, hit_id)
+
+
+def get_hits_result(mturk, hits_ids, output_csv: str, use_sandbox: bool, timeout: int):
+    if os.path.exists(output_csv):
+        res = pd.read_csv(output_csv)
+    else:
+        res = pd.DataFrame()
+
+    start_time = time.time()
+    hits_status = [""]
+    while any(status != "Reviewable" for status in hits_status):
+        if time.time() - start_time > timeout * 60:
+            logging.info(f"HIT {hits_ids} is timeout")
+            delete_hits(mturk, hits_ids)
+            return
+        hits_status = get_hits_status(mturk, hits_ids)
+        logging.info(f"Not all HITs in [{hits_ids}] are reviewable yet, current status are: [{hits_status}]...")
+        time.sleep(HIT_POLL_TIME)
+    
+    for hit_id in hits_ids:
+        new_row = {"HITId": hit_id}
+        worker_results = mturk.list_assignments_for_hit(
+            HITId=hit_id, AssignmentStatuses=["Submitted"]
+        )
+        while worker_results["NumResults"] <= 0:
+            logging.info(f"HIT {hit_id} is reviewable, but not results can be retrieved yet...")
+            if time.time() - start_time > timeout * 60:
+                logging.info(f"HIT {hit_id} is timeout")
+                delete_hit(mturk, hit_id)
+                return
+            worker_results = mturk.list_assignments_for_hit(
+                HITId=hit_id, AssignmentStatuses=["Submitted"]
+            )
+            time.sleep(HIT_POLL_TIME)
+
+        if worker_results["NumResults"] > 0:
+            for assignment in worker_results["Assignments"]:
+                new_row["WorkerId"] = assignment["WorkerId"]
+                xml_doc = xmltodict.parse(assignment["Answer"])
+
+                logging.info("Worker's answer was:")
+                if type(xml_doc["QuestionFormAnswers"]["Answer"]) is list:
+                    # Multiple fields in HIT layout
+                    for answer_field in xml_doc["QuestionFormAnswers"]["Answer"]:
+                        input_field = answer_field["QuestionIdentifier"]
+                        answer = answer_field["FreeText"]
+                        logging.info("For input field: " + input_field)
+                        logging.info("Submitted answer: " + answer)
+                        new_row["Answer.{}".format(input_field)] = answer
+
+                    res = res.append(new_row, ignore_index=True)
+                    res.to_csv(output_csv, index=False)
+                else:
+                    # One field found in HIT layout
+                    answer = xml_doc["QuestionFormAnswers"]["Answer"]["FreeText"]
+                    input_field = xml_doc["QuestionFormAnswers"]["Answer"]["QuestionIdentifier"]
+                    logging.info("For input field: " + input_field)
+                    logging.info("Submitted answer: " + answer)
+                    new_row["Answer.{}".format(input_field)] = answer
+                    res = res.append(new_row, ignore_index=True)
+                    res.to_csv(output_csv, index=False)
+
+                mturk.approve_assignment(AssignmentId=assignment["AssignmentId"])
+                mturk.delete_hit(HITId=hit_id)
+        else:
+            logging.info("No results ready yet")
+            # if returned assignment is empty,reject
+            mturk.delete_hit(HITId=hit_id)
+        
 
 def get_results(mturk, output_csv: str, use_sandbox: bool):
     # This will contain the answers
@@ -68,6 +172,7 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
 
         # Parse responses from each reviewable HIT
         for hit_id in curr_hit_status["reviewable"]:
+            print(f"Ok, find some reviewables")
             new_row = {"HITId": hit_id}
             worker_results = mturk.list_assignments_for_hit(
                 HITId=hit_id, AssignmentStatuses=["Submitted"]
@@ -88,6 +193,7 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
 
                         res = res.append(new_row, ignore_index=True)
                         res.to_csv(output_csv, index=False)
+                        print(f"OK, res: {res}")
                     else:
                         # One field found in HIT layout
                         answer = xml_doc["QuestionFormAnswers"]["Answer"]["FreeText"]
@@ -97,6 +203,7 @@ def get_results(mturk, output_csv: str, use_sandbox: bool):
                         new_row["Answer.{}".format(input_field)] = answer
                         res = res.append(new_row, ignore_index=True)
                         res.to_csv(output_csv, index=False)
+                        print(f"OK, res: {res}")
 
                     mturk.approve_assignment(AssignmentId=assignment["AssignmentId"])
                     mturk.delete_hit(HITId=hit_id)
@@ -114,9 +221,9 @@ if __name__ == "__main__":
     parser.add_argument("--dev", action="store_true")
 
     args = parser.parse_args()
-    access_key = os.getenv("AWS_ACCESS_KEY_ID")
-    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    aws_region = os.getenv("AWS_REGION", default="us-east-1")
+    access_key = os.getenv("MTURK_AWS_ACCESS_KEY_ID")
+    secret_key = os.getenv("MTURK_AWS_SECRET_ACCESS_KEY")
+    aws_region = os.getenv("MTURK_AWS_REGION", default="us-east-1")
 
     if args.dev:
         MTURK_URL = "https://mturk-requester-sandbox.{}.amazonaws.com".format(aws_region)

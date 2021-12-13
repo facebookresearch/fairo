@@ -100,7 +100,7 @@ if __name__ == "__main__":
     updated_dataset = []
     current_time = datetime.now()
     existing_annotations_path = "{}/{}".format(
-        pkg_resources.resource_filename("agents.craftassist", "datasets"),
+        pkg_resources.resource_filename("droidlet.artifacts", "datasets"),
         "full_data/{}".format(args.existing_annotations),
     )
     if args.output_file == "":
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     else:
         filename = args.output_file
     datasets_write_path = "{}/{}".format(pkg_resources.resource_filename(
-        'agents.craftassist', 'datasets'), "full_data/{}".format(filename))
+        'droidlet.artifacts', 'datasets'), "full_data/{}".format(filename))
 
     # Read the file, update
     for annotation_name in dataset:

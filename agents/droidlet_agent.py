@@ -31,6 +31,7 @@ class DroidletAgent(BaseAgent):
         logging.info("Agent.__init__ started")
         self.name = name or default_agent_name()
         self.opts = opts
+        self.dialogue_manager = None
         self.init_physical_interfaces()
         super(DroidletAgent, self).__init__(opts, name=self.name)
         self.uncaught_error_count = 0
@@ -41,6 +42,7 @@ class DroidletAgent(BaseAgent):
         self.perceive_on_chat = False
         self.agent_type = None
         self.scheduler = EmptyScheduler()
+
         self.dashboard_memory_dump_time = time.time()
         self.dashboard_memory = {
             "db": {},
@@ -130,32 +132,41 @@ class DroidletAgent(BaseAgent):
                 "<dashboard> " + command
             )  # the chat is coming from a player called "dashboard"
             self.dashboard_chat = agent_chat
-            logical_form = {}
-            status = ""
-            try:
-                chat_parse = self.perception_modules["language_understanding"].get_logical_form(
-                    chat=command,
-                    parsing_model=self.perception_modules["language_understanding"].parsing_model,
-                )
-                logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                    speaker="dashboard", chat=command, logical_form=chat_parse
-                )
-                logging.debug("logical form is : %r" % (logical_form))
-                status = "Sent successfully"
-            except Exception as e:
-                logging.error("error in sending chat", e)
-                status = "Error in sending chat"
+            status = "Sent successfully"
             # update server memory
-            self.dashboard_memory["chatResponse"][command] = logical_form
             self.dashboard_memory["chats"].pop(0)
             self.dashboard_memory["chats"].append({"msg": command, "failed": False})
             payload = {
                 "status": status,
                 "chat": command,
-                "chatResponse": self.dashboard_memory["chatResponse"][command],
                 "allChats": self.dashboard_memory["chats"],
             }
             sio.emit("setChatResponse", payload)
+
+        @sio.on("getChatActionDict")
+        def get_chat_action_dict(sid, chat):
+            logging.debug(f"Looking for action dict for command [{chat}] in memory")
+            logical_form = None
+            try:
+                chat_memids, _ = self.memory.basic_search(
+                    f"SELECT MEMORY FROM Chat WHERE chat={chat}"
+                )
+                logical_form_triples = self.memory.get_triples(
+                    subj=chat_memids[0], pred_text="has_logical_form"
+                )
+                if logical_form_triples:
+                    logical_form = self.memory.get_logical_form_by_id(
+                        logical_form_triples[0][2]
+                    ).logical_form
+                if logical_form:
+                    logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
+                        speaker="dashboard", chat=chat, logical_form=logical_form
+                    )
+            except Exception as e:
+                logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
+
+            payload = {"action_dict": logical_form}
+            sio.emit("setLastChatActionDict", payload)
 
         @sio.on("terminateAgent")
         def terminate_agent(sid, msg):
@@ -178,6 +189,13 @@ class DroidletAgent(BaseAgent):
                 with open("job_metadata.json", "w+") as f:
                     json.dump(job_metadata, f)
             os._exit(0)
+
+        @sio.on("taskStackPoll")
+        def poll_task_stack(sid):
+            logging.info("Poll to see if task stack is empty")
+            task = True if self.memory.task_stack_peek() else False
+            res = {"task": task}
+            sio.emit("taskStackPollResponse", res)
 
     def init_physical_interfaces(self):
         """
@@ -230,13 +248,19 @@ class DroidletAgent(BaseAgent):
         logging.exception(
             "Default handler caught exception, db_log_idx={}".format(self.memory.get_db_log_idx())
         )
+        # clear all tasks and Interpreters:
+        self.memory.task_stack_clear()
+        _, interpreter_mems = self.memory.basic_search(
+            "SELECT MEMORY FROM Interpreter WHERE finished = 0"
+        )
+        for i in interpreter_mems:
+            i.finish()
+
         # we check if the exception raised is in one of our whitelisted exceptions
         # if so, we raise a reasonable message to the user, and then do some clean
         # up and continue
         if isinstance(e, ErrorWithResponse):
             self.send_chat("Oops! Ran into an exception.\n'{}''".format(e.chat))
-            self.memory.task_stack_clear()
-            self.dialogue_manager.dialogue_stack.clear()
             self.uncaught_error_count += 1
             if self.uncaught_error_count >= 100:
                 raise e

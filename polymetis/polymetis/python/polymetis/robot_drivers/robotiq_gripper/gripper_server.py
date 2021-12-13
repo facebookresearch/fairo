@@ -48,8 +48,9 @@ class RobotiqGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer)
             raise Exception(f"Unable to activate!")
 
     def GripperGetState(self, request, context):
-        state = polymetis_pb2.GripperState()
+        self.gripper.getStatus()
 
+        state = polymetis_pb2.GripperState()
         state.timestamp.GetCurrentTime()
         state.width = self.gripper.get_pos()
         state.max_width = self.gripper.stroke
@@ -64,7 +65,7 @@ class RobotiqGripperServer(polymetis_pb2_grpc.PolymetisControllerServerServicer)
 
         return polymetis_pb2.Empty()
 
-    def Grasp(self, request, context):
+    def GripperGrasp(self, request, context):
         self.gripper.goto(pos=request.width, vel=request.speed, force=request.force)
         self.gripper.sendCommand()
 

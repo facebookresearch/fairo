@@ -22,7 +22,7 @@ class Perception:
     models (for example our object detector) as a separate process.
 
     Args:
-        model_data_dir (string): path for all perception models (default: ~/locobot/agent/models/perception)
+        model_data_dir (string): path for all perception models (default: droidlet/artifacts/models/perception/locobot)
     """
 
     def __init__(self, model_data_dir, default_keypoints_path=False):
@@ -93,14 +93,16 @@ class Perception:
         except queue.Empty:
             old_image, detections, humans, old_xyz = None, None, None, None
 
-        self.log(rgb_depth, detections, humans, old_image)
         new_detections, updated_detections = None, None
+        log_detections = detections
         if detections is not None:
             if previous_objects is not None:
                 new_detections, updated_detections = self.vision.deduplicate(
                     detections, previous_objects
                 )
+                log_detections = new_detections + updated_detections
 
+        self.log(rgb_depth, log_detections, humans, old_image)
         perception_output = RobotPerceptionData(new_detections, updated_detections, humans)
 
         return perception_output
@@ -135,6 +137,11 @@ class Perception:
             serialized_object_image = old_rgb_depth.to_struct(resolution, quality)
         else:
             serialized_object_image = -1
+
+        height, width = rgb_depth.rgb.shape[0], rgb_depth.rgb.shape[1]
+        scale = float(resolution) / height
+        new_height, new_width = resolution, int(resolution * float(width) / height)
+
         serialized_objects = [x.to_struct() for x in detections] if detections is not None else []
         serialized_humans = [x.to_struct() for x in humans] if humans is not None else []
 
@@ -145,11 +152,18 @@ class Perception:
             "depthMin": serialized_image["depth_min"],
         })
 
+
         sio.emit("objects", {
             "image": serialized_object_image,
             "objects": serialized_objects,
+            "height": new_height,
+            "width": new_width,
+            "scale": scale,
             })
         sio.emit("humans", {
             "image": serialized_object_image,
             "humans": serialized_humans,
+            "height": new_height,
+            "width": new_width,
+            "scale": scale,
             })

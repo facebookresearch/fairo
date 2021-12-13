@@ -30,11 +30,6 @@ class ArgumentParser:
             help="do not perform default behaviors when idle",
         )
         self.parser.add_argument(
-            "--verify_hash_script_path",
-            default="../../tools/data_scripts/try_download.sh",
-            help="path to script that checks hash against latest models and tries download",
-        )
-        self.parser.add_argument(
             "--agent_debug_mode",
             action="store_true",
             default=False,
@@ -63,15 +58,17 @@ class ArgumentParser:
         )
         nsp_parser.add_argument(
             "--nsp_models_dir",
-            default="models/semantic_parser/",
+            default="../../droidlet/artifacts/models/nlu/",
             help="path to semantic parsing models",
         )
         nsp_parser.add_argument(
-            "--nsp_data_dir", default="datasets/annotated_data/", help="path to annotated data"
+            "--nsp_data_dir", 
+            default="../../droidlet/artifacts/datasets/annotated_data/", 
+            help="path to annotated data"
         )
         nsp_parser.add_argument(
             "--ground_truth_data_dir",
-            default="datasets/ground_truth/",
+            default="../../droidlet/artifacts/datasets/ground_truth/",
             help="path to folder of common short and templated commands",
         )
         nsp_parser.add_argument(
@@ -110,7 +107,7 @@ class ArgumentParser:
         loco_parser.add_argument("--backend", default="habitat")
         loco_parser.add_argument(
             "--perception_model_dir",
-            default="models/perception/",
+            default="../../droidlet/artifacts/models/perception/locobot",
             help="path to perception model data dir",
         )
         loco_parser.add_argument(
@@ -128,7 +125,7 @@ class ArgumentParser:
         for optname, optval in od.items():
             if "path" in optname or "dir" in optname:
                 if optval:
-                    od[optname] = os.path.join(base_path, optval)
+                    od[optname] = os.path.join(os.path.abspath(base_path), optval)
         return opts
 
     def parse(self):

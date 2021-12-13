@@ -31,22 +31,22 @@ if os.getenv("LOCOBOT_IP"):
 
 PERCEPTION_MODELS_DIR = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "../../../../agents/locobot/models/perception",
+    "../../../../droidlet/artifacts/models/perception/locobot",
 )
 
 OFFICE_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "test_assets",
-    "perception_handlers",
+    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets",
     "office_chair.jpg",
 )
 GROUP_IMG_PATH = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
-    "test_assets",
-    "perception_handlers",
+    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets",
     "obama_trump.jpg",
 )
-FACES_IDS_DIR = os.path.join(os.path.dirname(__file__), "test_assets/perception_handlers/faces")
+FACES_IDS_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/faces")
 
 logging.getLogger().setLevel(logging.INFO)
 

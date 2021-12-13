@@ -1,12 +1,14 @@
 import a0
+import collections.abc
 import contextlib
 import glob
 import os
 import pwd
+import random
+import shlex
+import string
 import subprocess
 import sys
-import string
-import random
 
 
 def fail(msg):
@@ -79,3 +81,25 @@ def nfs_root(path):
 
 def random_string(alphabet=string.ascii_lowercase, length=16):
     return "".join(random.choices(alphabet, k=length))
+
+
+# https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+def nested_dict_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = nested_dict_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
+class NoEscape:
+    def __init__(self, val):
+        self.value = val
+
+
+def shell_join(items):
+    """Modified version of shlex.join that allows for non-escaped segments."""
+    return " ".join(
+        item.value if type(item) == NoEscape else shlex.quote(item) for item in items
+    )

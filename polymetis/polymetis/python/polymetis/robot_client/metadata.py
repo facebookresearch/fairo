@@ -36,6 +36,8 @@ class RobotClientMetadataConfig:
 
     default_Kq: List[float]
     default_Kqd: List[float]
+    default_Kx: List[float]
+    default_Kxd: List[float]
     hz: int
     robot_model: RobotModelConfig
 
@@ -52,7 +54,11 @@ class RobotClientMetadata:
     Args:
         default_Kq: Default position gains for the robot.
 
-        default_Kdq: Default velocity gains for the robot.
+        default_Kqd: Default velocity gains for the robot.
+
+        default_Kx: Default pose positional gains for the robot.
+
+        default_Kxd: Default pose velocity gains for the robot.
 
         hz: Frequency the robot is running at.
 
@@ -65,6 +71,8 @@ class RobotClientMetadata:
         self,
         default_Kq: List[float],
         default_Kqd: List[float],
+        default_Kx: List[float],
+        default_Kxd: List[float],
         hz: int,
         robot_model_cfg: RobotModelConfig,
     ):
@@ -85,6 +93,8 @@ class RobotClientMetadata:
         # Set gains as shared metadata
         robot_client_metadata.default_Kq[:] = default_Kq
         robot_client_metadata.default_Kqd[:] = default_Kqd
+        robot_client_metadata.default_Kx[:] = default_Kx
+        robot_client_metadata.default_Kxd[:] = default_Kxd
         robot_client_metadata.rest_pose[:] = robot_model_cfg.rest_pose
 
         # Set default controller for controller manager server

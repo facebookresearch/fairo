@@ -10,7 +10,7 @@ class MainPane extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      agentType: 'locobot',
+      agentType: "locobot",
     };
   }
 
@@ -22,27 +22,13 @@ class MainPane extends React.Component {
     console.log("MainPane rendering agent type: " + this.state.agentType);
     const stateManager = this.props.stateManager;
 
-    if (this.state.agentType === 'locobot'){
-      return (
-        <div>
-          <InteractApp stateManager={stateManager} />
-          <LocoView stateManager={stateManager} />
-        </div>
-      );
-    }
-    else if (this.state.agentType === 'craftassist'){
-      return (
-        <div>
-          <InteractApp stateManager={stateManager} />
-          <VoxelWorld stateManager={stateManager} />
-        </div>
-      );
-    }
-    else {
+    if (this.state.agentType === "locobot") {
+      return <LocoView stateManager={stateManager} />;
+    } else if (this.state.agentType === "craftassist") {
+      return <VoxelWorld stateManager={stateManager} />;
+    } else {
       console.log("MainPane received invalid agent type");
-      return (
-        <h1>Error: Invalid agent type</h1>
-      );
+      return <h1>Error: Invalid agent type</h1>;
     }
   }
 }

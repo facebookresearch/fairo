@@ -19,6 +19,9 @@ import Retrainer from "./components/Retrainer";
 import Navigator from "./components/Navigator";
 import { isMobile } from "react-device-detect";
 import MainPane from "./MainPane";
+import AgentThinking from "./components/Interact/AgentThinking";
+import Message from "./components/Interact/Message";
+import TurkInfo from "./components/Turk/TurkInfo";
 
 /**
  * The main state manager for the dashboard.
@@ -54,7 +57,7 @@ class StateManager {
   initialMemoryState = {
     objects: new Map(),
     humans: new Map(),
-    chatResponse: {},
+    lastChatActionDict: null,
     chats: [
       { msg: "", failed: false },
       { msg: "", failed: false },
@@ -69,19 +72,26 @@ class StateManager {
     timelineFilters: ["Perceive", "Dialogue", "Interpreter", "Memory"],
     timelineSearchPattern: "",
     agentType: "locobot",
+    commandState: "idle",
+    commandPollTime: 500,
+    isTurk: false,
+    agent_replies: [{}],
+    last_reply: "",
   };
   session_id = null;
 
   constructor() {
     this.processMemoryState = this.processMemoryState.bind(this);
     this.setChatResponse = this.setChatResponse.bind(this);
+    this.setLastChatActionDict = this.setLastChatActionDict.bind(this);
     this.setConnected = this.setConnected.bind(this);
     this.updateAgentType = this.updateAgentType.bind(this);
+    this.forceErrorLabeling = this.forceErrorLabeling.bind(this);
     this.updateStateManagerMemory = this.updateStateManagerMemory.bind(this);
     this.keyHandler = this.keyHandler.bind(this);
     this.updateVoxelWorld = this.updateVoxelWorld.bind(this);
     this.setVoxelWorldInitialState = this.setVoxelWorldInitialState.bind(this);
-    this.memory = this.initialMemoryState;
+    this.memory = JSON.parse(JSON.stringify(this.initialMemoryState)); // We want a clone
     this.processRGB = this.processRGB.bind(this);
     this.processDepth = this.processDepth.bind(this);
     this.processRGBDepth = this.processRGBDepth.bind(this);
@@ -247,6 +257,7 @@ class StateManager {
     });
 
     socket.on("setChatResponse", this.setChatResponse);
+    socket.on("setLastChatActionDict", this.setLastChatActionDict);
     socket.on("memoryState", this.processMemoryState);
     socket.on("updateState", this.updateStateManagerMemory);
     socket.on("updateAgentType", this.updateAgentType);
@@ -286,6 +297,31 @@ class StateManager {
       if (ref instanceof MainPane) {
         ref.setState({ agentType: this.memory.agentType });
       }
+      if (ref instanceof InteractApp) {
+        ref.setState({ agentType: this.memory.agentType });
+      }
+    });
+  }
+
+  forceErrorLabeling(status) {
+    // If TurkInfo successfully mounts, this is a HIT
+    // Forced error labeling and start button prompt should be on
+    this.memory.isTurk = status;
+    this.memory.agent_replies = [
+      { msg: "Click the 'Start' button to begin!", timestamp: Date.now() },
+    ];
+    this.refs.forEach((ref) => {
+      if (ref instanceof InteractApp) {
+        ref.setState({
+          isTurk: this.memory.isTurk,
+          agent_replies: this.memory.agent_replies,
+        });
+      }
+      if (ref instanceof Message) {
+        ref.setState({
+          agent_replies: this.memory.agent_replies,
+        });
+      }
     });
   }
 
@@ -294,9 +330,12 @@ class StateManager {
     this.refs.forEach((ref) => {
       // this has a potential race condition
       // (i.e. ref is not registered by the time socketio connects)
-      // hence, in Settings' componentDidMount, we also
+      // hence, in ref componentDidMount, we also
       // check set connected state
       if (ref instanceof Settings) {
+        ref.setState({ connected: status });
+      }
+      if (ref instanceof Message) {
         ref.setState({ connected: status });
       }
     });
@@ -307,7 +346,18 @@ class StateManager {
       alert("Received text message: " + res.chat);
     }
     this.memory.chats = res.allChats;
-    this.memory.chatResponse[res.chat] = res.chatResponse;
+
+    // Set the commandState to display 'received' for one poll cycle and then switch
+    this.memory.commandState = "received";
+    setTimeout(() => {
+      if (this.memory.commandState === "received") {
+        // May have moved on already, in which case leave it
+        this.memory.commandState = "thinking";
+      }
+    }, this.memory.commandPollTime - 1); // avoid race condition
+
+    // once confirm that this chat has been sent, clear last action dict
+    this.memory.lastChatActionDict = null;
 
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
@@ -321,10 +371,13 @@ class StateManager {
     });
   }
 
+  setLastChatActionDict(res) {
+    this.memory.lastChatActionDict = res.action_dict;
+  }
+
   updateVoxelWorld(res) {
     this.refs.forEach((ref) => {
       if (ref instanceof VoxelWorld) {
-        console.log("update Voxel World with " + res.world_state);
         ref.setState({
           world_state: res.world_state,
           status: res.status,
@@ -346,11 +399,29 @@ class StateManager {
   }
 
   showAssistantReply(res) {
+    this.memory.agent_replies.push({
+      msg: res.agent_reply,
+      timestamp: Date.now(),
+    });
+    this.memory.last_reply = res.agent_reply;
     this.refs.forEach((ref) => {
       if (ref instanceof InteractApp) {
         ref.setState({
-          agent_reply: res.agent_reply,
+          agent_replies: this.memory.agent_replies,
         });
+      }
+      if (ref instanceof Message) {
+        ref.setState({
+          agent_replies: this.memory.agent_replies,
+        });
+      }
+    });
+  }
+
+  sendCommandToTurkInfo(cmd) {
+    this.refs.forEach((ref) => {
+      if (ref instanceof TurkInfo) {
+        ref.calcCreativity(cmd);
       }
     });
   }
@@ -367,6 +438,22 @@ class StateManager {
     this.memory.timelineEventHistory.push(res);
     this.memory.timelineEvent = res;
     this.updateTimeline();
+
+    // If the agent has finished processing the command
+    // notify the user to look for an empty task stack
+    if (JSON.parse(res).name === "perceive") {
+      this.memory.commandState = "done_thinking";
+      this.refs.forEach((ref) => {
+        if (ref instanceof AgentThinking) {
+          ref.sendTaskStackPoll(); // Do this once from here
+        }
+      });
+    }
+    // If there's an action to take in the world,
+    // notify the user that it's executing
+    if (JSON.parse(res).name === "interpreter") {
+      this.memory.commandState = "executing";
+    }
   }
 
   updateTimelineResults() {
@@ -823,7 +910,7 @@ class StateManager {
       this.prevFeedState.rgbImg = this.curFeedState.rgbImg;
       this.curFeedState.rgbImg = res;
       this.stateProcessed.rgbImg = false;
-      this.updateObjects = [true, false]; // Change objects on frame after this one
+      this.updateObjects = [true, true]; // Change objects on frame after this one
     }
     if (this.checkRunLabelProp()) {
       this.startLabelPropagation();
@@ -882,7 +969,7 @@ class StateManager {
         }
         j++;
       }
-      if (res.objects[i].mask.length == 0) {
+      if (res.objects[i].mask.length === 0) {
         res.objects.splice(i, 1);
         continue;
       }
@@ -907,6 +994,9 @@ class StateManager {
           ref.setState({
             objects: res.objects,
             rgb: rgb,
+            height: res.height,
+            width: res.width,
+            scale: res.scale,
           });
         } else if (ref instanceof MobileMainPane) {
           // mobile main pane needs to know object_rgb so it can be passed into annotation image when pane switches to annotation
@@ -938,6 +1028,9 @@ class StateManager {
           isLoaded: true,
           humans: res.humans,
           rgb: rgb,
+          height: res.height,
+          width: res.width,
+          scale: res.scale,
         });
       }
     });

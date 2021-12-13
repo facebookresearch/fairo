@@ -1,4 +1,6 @@
-# [Polymetis](https://polymetis-docs.github.io/): a real-time PyTorch controller manager
+![Polymetis: a real-time PyTorch controller manager](./docs/source/img/polymetis-logo.svg)
+
+## A real-time PyTorch controller manager
 
 [![CircleCI](https://circleci.com/gh/facebookresearch/fairo/tree/main.svg?style=svg&circle-token=7fadbd3989ab8e76003fd5193ad62e26686bc4a6)](https://circleci.com/gh/facebookresearch/fairo/tree/main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -20,7 +22,7 @@
 To get started, you only need one line:
 
 ```
-conda install -c fair-robotics -c aihabitat -c conda-forge polymetis
+conda install -c pytorch -c fair-robotics -c aihabitat -c conda-forge polymetis
 ```
 
 You can immediately start running the [example scripts](https://github.com/facebookresearch/fairo/tree/main/polymetis/examples) in both simulation and hardware. See [installation](https://polymetis-docs.github.io/installation.html) and [usage](https://polymetis-docs.github.io/usage.html) documentation for details.
