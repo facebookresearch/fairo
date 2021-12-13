@@ -63,6 +63,14 @@ class ManipulatorSystem:
         self.arm.send_torch_policy(policy, blocking=False)
 
     def move_to(self, pos, quat, time_to_go=2.0):
+        """
+        Attempts to move to the given position and orientation by
+        planning a Cartesian trajectory (a set of min-jerk waypoints)
+        and updating the current policy's target to that
+        end-effector position & orientation.
+
+        Returns (num successes, num attempts)
+        """
         # Plan trajectory
         pos_curr, quat_curr = self.arm.pose_ee()
         N = int(time_to_go / PLANNER_DT)
@@ -76,6 +84,7 @@ class ManipulatorSystem:
         # Execute trajectory
         t0 = time.time()
         t_target = t0
+        successes = 0
         for i in range(N):
             # Update traj
             ee_pos_desired = waypoints[i]["pose"].translation()
@@ -96,6 +105,8 @@ class ManipulatorSystem:
                 time.sleep(3)
                 self.reset_policy()
                 break
+            else:
+                successes += 1
 
             # Spin once
             t_target += PLANNER_DT
@@ -104,6 +115,8 @@ class ManipulatorSystem:
 
         # Wait for robot to stabilize
         time.sleep(0.2)
+
+        return successes, N
 
     def close_gripper(self):
         self.gripper.grasp(speed=0.1, force=1.0)
@@ -132,30 +145,36 @@ class ManipulatorSystem:
         return pos, quat
 
     def grasp(self, grasp_pose0, grasp_pose1):
+        results = []
+
         # Move to pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, PREGRASP_HEIGHT)
-        self.move_to(pos, quat)
+        results.append(self.move_to(pos, quat))
 
         # Lower (slower than other motions to prevent sudden collisions)
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, GRASP_HEIGHT)
-        self.move_to(pos, quat, time_to_go=4.0)
+        results.append(self.move_to(pos, quat, time_to_go=4.0))
 
         # Grasp
         self.close_gripper()
 
         # Lift to pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose0, PREGRASP_HEIGHT)
-        self.move_to(pos, quat)
+        results.append(self.move_to(pos, quat))
 
         # Move to new pregrasp
         pos, quat = self.grasp_pose_to_pos_quat(grasp_pose1, PREGRASP_HEIGHT)
-        self.move_to(pos, quat)
+        results.append(self.move_to(pos, quat))
 
         # Release
         self.open_gripper()
 
         # Reset
         self.reset()
+        
+        total_successes = sum([r[0] for r in results])
+        total_tries = sum([r[1] for r in results])
+        return total_successes, total_tries
 
 
 def uniform_sample(lower, upper):
@@ -181,6 +200,7 @@ def main(argv):
 
     # Perform grasping
     i = 0
+    total_successes, total_tries = 0, 0
     try:
         while True:
             # Sample grasp
@@ -189,7 +209,9 @@ def main(argv):
 
             # Perform grasp
             print(f"Grasp {i + 1}: grasp={grasp_pose0}, release={grasp_pose1}")
-            robot.grasp(grasp_pose0, grasp_pose1)
+            n_successes, n_tries = robot.grasp(grasp_pose0, grasp_pose1)
+            total_successes += n_successes
+            total_tries += n_tries
 
             # Loop termination
             i += 1
@@ -198,6 +220,9 @@ def main(argv):
 
     except KeyboardInterrupt:
         print("Interrupted by user.")
+    
+    # Log results
+
 
 
 if __name__ == "__main__":
