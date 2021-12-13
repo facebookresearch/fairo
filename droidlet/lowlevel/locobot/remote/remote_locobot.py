@@ -5,14 +5,12 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import copy
 import Pyro4
 from pyrobot import Robot
-from pyrobot.locobot.camera import DepthImgProcessor
 import numpy as np
 from scipy.spatial.transform import Rotation
 import logging
 import os
 import open3d as o3d
-from pyrobot.locobot.camera import DepthImgProcessor
-from pyrobot.locobot.base_control_utils import LocalActionStatus
+from pyrobot.habitat.base_control_utils import LocalActionStatus
 from slam_pkg.utils import depth_util as du
 from obstacle_utils import is_obstacle
 from droidlet.lowlevel.robot_mover_utils import (
@@ -72,11 +70,6 @@ class RemoteLocobot(object):
         from habitat_utils import reconfigure_scene
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
-        from pyrobot.locobot.camera import DepthImgProcessor
-
-        if hasattr(self, "_dip"):
-            del self._dip
-        self._dip = DepthImgProcessor(cfg_filename="realsense_habitat.yaml")
 
     def test_connection(self):
         print("Connected!!")  # should print on server terminal
@@ -146,64 +139,35 @@ class RemoteLocobot(object):
     def go_to_absolute(
         self,
         xyt_position,
-        use_map=False,
-        close_loop=False,
-        smooth=False,
         wait=True,
     ):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
                              in the world (map) frame.
-        :param use_map: When set to "True", ensures that controller is
-                        using only free space on the map to move the robot.
-        :param close_loop: When set to "True", ensures that controller
-                           is operating in open loop by taking
-                           account of odometry.
-        :param smooth: When set to "True", ensures that the motion
-                       leading to the goal is a smooth one.
 
         :type xyt_position: list or np.ndarray
-        :type use_map: bool
-        :type close_loop: bool
-        :type smooth: bool
         """
         if self._done:
             self._done = False
-            self._robot.base.go_to_absolute(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait)
+            self._robot.base.go_to_absolute(xyt_position, wait=wait)
             self._done = True
 
     def go_to_relative(
         self,
         xyt_position,
-        use_map=False,
-        close_loop=False,
-        smooth=False,
         wait=True,
     ):
         """Moves the robot base to the given goal state relative to its current
         pose.
 
         :param xyt_position: The  relative goal state of the form (x,y,yaw)
-        :param use_map: When set to "True", ensures that controller is
-                        using only free space on the map to move the robot.
-        :param close_loop: When set to "True", ensures that controller is
-                           operating in open loop by taking
-                           account of odometry.
-        :param smooth: When set to "True", ensures that the
-                       motion leading to the goal is a smooth one.
 
         :type xyt_position: list or np.ndarray
-        :type use_map: bool
-        :type close_loop: bool
-        :type smooth: bool
         """
         if self._done:
             self._done = False
-            self._robot.base.go_to_relative(
-                xyt_position, use_map=use_map, close_loop=close_loop, smooth=smooth, wait=wait
-                )
+            self._robot.base.go_to_relative(xyt_position, wait=wait)
             self._done = True
 
     @Pyro4.oneway
@@ -211,18 +175,13 @@ class RemoteLocobot(object):
         """stops robot base movement."""
         self._robot.base.stop()
 
-    def get_base_state(self, state_type="odom"):
-        """Returns the  base pose of the robot in the (x,y, yaw) format as
-        computed either from Wheel encoder readings or Visual-SLAM.
-
-        :param state_type: Requested state type. Ex: Odom, SLAM, etc
-
-        :type state_type: string
+    def get_base_state(self):
+        """Returns the  base pose of the robot in the (x,y, yaw) format
 
         :return: pose of the form [x, y, yaw]
         :rtype: list
         """
-        return self._robot.base.get_state(state_type)
+        return self._robot.base.get_state()
 
     # Common wrapper
     def command_finished(self):
@@ -280,75 +239,6 @@ class RemoteLocobot(object):
 
     def get_rgb_depth_segm(self):
         return self._robot.camera.get_rgb_depth_segm()
-
-    def get_current_pcd2(self, in_cam=False, in_global=False):
-        """Return the point cloud at current time step.
-
-        :param in_cam: return points in camera frame,
-                       otherwise, return points in base frame
-
-        :type in_cam: bool
-
-        :returns: tuple (pts, colors)
-
-                  pts: point coordinates (shape: :math:`[N, 3]`) in metric unit
-
-                  colors: rgb values (shape: :math:`[N, 3]`)
-        :rtype: tuple(list, list)
-        """
-        pts, colors = self._robot.camera.get_current_pcd(in_cam=in_cam)
-
-        if in_global:
-            pts = du.transform_pose(pts, self._robot.base.get_state("odom"))
-        return pts, colors
-
-    def pix_to_3dpt(self, rs, cs, in_cam=False):
-        """Get the 3D points of the pixels in RGB images in metric unit.
-
-        :param rs: rows of interest in the RGB image.
-                   It can be a list or 1D numpy array
-                   which contains the row indices.
-        :param cs: columns of interest in the RGB image.
-                   It can be a list or 1D numpy array
-                   which contains the column indices.
-        :param in_cam: return points in camera frame,
-                       otherwise, return points in base frame
-
-        :type rs: list or np.ndarray
-        :type cs: list or np.ndarray
-        :type in_cam: bool
-
-        :returns: tuple (pts, colors)
-
-                  pts: point coordinates in metric unit
-                  (shape: :math:`[N, 3]`)
-
-                  colors: rgb values
-                  (shape: :math:`[N, 3]`)
-
-        :rtype: tuple(list, list)
-        """
-        pts, colors = self._robot.camera.pix_to_3dpt(rs, cs, in_cam=in_cam)
-        return pts.tolist(), colors.tolist()
-
-    def dip_pix_to_3dpt(self):
-        """Return the point cloud at current time step in robot base frame.
-
-        :returns: point coordinates (shape: :math:`[N, 3]`) in metric unit
-        :rtype: list
-        """
-        logging.info("dip_pix_to_3dpt")
-        depth = self._robot.camera.get_depth()
-        h = depth.shape[0]
-        w = depth.shape[1]
-
-        xs = np.repeat(np.arange(h), w).ravel()
-        ys = np.repeat(np.arange(w)[None, :], h, axis=0).ravel()
-
-        pts = self.pix_to_3dpt(xs, ys)
-        pts = np.around(pts, decimals=2)
-        logging.info("exiting pix_to_3dpt")
-        return pts
 
     def get_transform(self, src_frame, dst_frame):
         """Return the transform from the src_frame to dest_frame.

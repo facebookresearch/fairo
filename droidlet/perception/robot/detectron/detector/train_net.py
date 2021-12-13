@@ -15,9 +15,6 @@ import random
 import detectron2.utils.comm as comm
 import sys
 
-if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
-    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
-
 import cv2
 import json
 import torch
