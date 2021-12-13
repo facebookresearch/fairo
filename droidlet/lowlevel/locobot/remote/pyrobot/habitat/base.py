@@ -9,7 +9,7 @@ import habitat_sim.errors
 import quaternion
 import threading
 import time
-from ..locobot.base_control_utils import LocalActionStatus, LocalActionServer
+from .base_control_utils import LocalActionStatus, LocalActionServer
 from .transformations import euler_from_quaternion, euler_from_matrix
 
 
@@ -52,9 +52,8 @@ class LoCoBotBase(object):
         quat_list = [habitat_quat.x, habitat_quat.y, habitat_quat.z, habitat_quat.w]
         return prutil.quat_to_rot_mat(quat_list)
 
-    def get_state(self, state_type="odom"):
+    def get_state(self):
         # Returns (x, y, yaw)
-        assert state_type == "odom", "Error: Only Odom state is available"
         cur_state = self.get_full_state()
 
         init_rotation = self._rot_matrix(self.init_state.rotation)
@@ -76,50 +75,20 @@ class LoCoBotBase(object):
     def stop(self):
         raise NotImplementedError("Veclocity control is not supported in Habitat-Sim!!")
 
-    def set_vel(self, fwd_speed, turn_speed, exe_time=1):
-        raise NotImplementedError("Veclocity control is not supported in Habitat-Sim!!")
-
     def go_to_relative(
-        self, xyt_position, use_map=False, close_loop=False, smooth=False, wait=True
+        self, xyt_position, wait=True
     ):
         """
-                Moves the robot to the robot to given
-                goal state relative to its initial pose.
+		Moves the robot to the robot to given
+		goal state relative to its initial pose.
 
-                :param xyt_position: The  relative goal state of the form (x,y,t)
-                :param use_map: When set to "True", ensures that controler is
-                                using only free space on the map to move the robot.
-                :param close_loop: When set to "True", ensures that controler is
-                                   operating in open loop by
-                                   taking account of odometry.
-                :param smooth: When set to "True", ensures that the motion
-                               leading to the goal is a smooth one.
-        :param wait: Makes the process wait at this funciton until the execution is
-                       complete
+		:param xyt_position: The  relative goal state of the form (x,y,t)
 
-                :type xyt_position: list
-                :type use_map: bool
-                :type close_loop: bool
-                :type smooth: bool
+		:type xyt_position: list
 
                 :return: True if successful; False otherwise (timeout, etc.)
                 :rtype: bool
         """
-
-        try:
-            if use_map:
-                raise NotImplementedError("Using map feature is not yet supported for Habitat-Sim")
-            if close_loop:
-                raise NotImplementedError(
-                    "Closed-loop postion control is not supported in Habitat-Sim!"
-                )
-            if smooth:
-                raise NotImplementedError(
-                    "Smooth position control feature is not yet for Habitat-Sim"
-                )
-        except Exception as error:
-            print(error)
-            return False
 
         (cur_x, cur_y, cur_yaw) = self.get_state()
         abs_yaw = cur_yaw + xyt_position[2]
@@ -143,44 +112,19 @@ class LoCoBotBase(object):
             return False
 
     def go_to_absolute(
-        self, xyt_position, use_map=False, close_loop=False, smooth=False, wait=True
+        self, xyt_position, wait=True
     ):
         """
-        Moves the robot to the robot to given goal state in the world frame.
+		Moves the robot to the robot to given goal state in the world frame.
 
-        :param xyt_position: The goal state of the form (x,y,t)
-                             in the world (map) frame.
-        :param use_map: When set to "True", ensures that controler is using
-                        only free space on the map to move the robot.
-        :param close_loop: When set to "True", ensures that controler is
-                           operating in open loop by
-                           taking account of odometry.
-        :param smooth: When set to "True", ensures that the motion
-                       leading to the goal is a smooth one.
+		:param xyt_position: The goal state of the form (x,y,t)
+		                     in the world (map) frame.
 
-        :type xyt_position: list
-        :type use_map: bool
-        :type close_loop: bool
-        :type smooth: bool
+		:type xyt_position: list
 
-        :return: True if successful; False otherwise (timeout, etc.)
-        :rtype: bool
-        """
-
-        try:
-            if use_map:
-                raise NotImplementedError("Using map feature is not yet supported for Habitat-Sim")
-            if close_loop:
-                raise NotImplementedError(
-                    "Closed-loop postion control is not supported in Habitat-Sim!"
-                )
-            if smooth:
-                raise NotImplementedError(
-                    "Smooth position control feature is not yet for Habitat-Sim"
-                )
-        except Exception as error:
-            print(error)
-            return False
+		:return: True if successful; False otherwise (timeout, etc.)
+		:rtype: bool
+		"""
 
         (cur_x, cur_y, cur_yaw) = self.get_state()
         rel_X = xyt_position[0] - cur_x
