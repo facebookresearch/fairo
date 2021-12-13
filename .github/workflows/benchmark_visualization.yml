@@ -12,7 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Find new benchmark filenames
-        run: echo "BENCHMARK_FILENAMES=$(git diff --name-only HEAD~1 --diff-filter=A --cached -- .benchmarks)" >> $GITHUB_ENV
+        run: |
+          echo "$(git status)"
+          echo "$(git diff HEAD)"
+          echo "$(git diff HEAD~1)"
+          echo "BENCHMARK_FILENAMES=$(git diff --name-only HEAD~1 --diff-filter=A --cached -- .benchmarks)" >> $GITHUB_ENV
         id: new-benchmarks
       # - name: Download previous benchmark data
       #   uses: actions/cache@v1
