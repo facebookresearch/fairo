@@ -51,16 +51,24 @@ class RemoteHelloRobot(object):
         return self.bot.get_camera_transform()
 
     def _connect_to_realsense(self):
-        cfg = rs.config()
+        config = rs.config()
         pipeline = rs.pipeline()
-        cfg.enable_stream(rs.stream.color, CW, CH, rs.format.bgr8, 30)
-        cfg.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, 30)
-        pipeline.start(cfg)
+        config.enable_stream(rs.stream.color, CW, CH, rs.format.bgr8, 30)
+        config.enable_stream(rs.stream.depth, CW, CH, rs.format.z16, 30)
+
+        cfg = pipeline.start(config)
+        dev = cfg.get_device()
+
+        depth_sensor = dev.first_depth_sensor()
+        #set high accuracy: https://github.com/IntelRealSense/librealsense/issues/2577#issuecomment-432137634
+        depth_sensor.set_option(rs.option.visual_preset, 3)
         self.realsense = pipeline
 
         profile = pipeline.get_active_profile()
-        depth_profile = rs.video_stream_profile(profile.get_stream(rs.stream.depth))
-        i = depth_profile.get_intrinsics()
+        # because we align the depth frame to the color frame, and only use the aligned depth frame,
+        # we need to use the intrinsics of the color frame
+        color_profile = rs.video_stream_profile(profile.get_stream(rs.stream.color))
+        i = color_profile.get_intrinsics()
         self.intrinsic_mat = np.array([[i.fx, 0,    i.ppx],
                                        [0,    i.fy, i.ppy],
                                        [0,    0,    1]])
