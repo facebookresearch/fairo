@@ -26,6 +26,7 @@ from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detect
 import numpy as np
 import json
 import time
+from droidlet import REPO_ROOT
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -33,28 +34,21 @@ IP = "127.0.0.1"
 if os.getenv("LOCOBOT_IP"):
     IP = os.getenv("LOCOBOT_IP")
 
-PERCEPTION_MODELS_DIR = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)),
-    "../../../../droidlet/artifacts/models/perception/locobot",
-)
-
+PERCEPTION_MODELS_DIR = os.path.join(REPO_ROOT, "droidlet/artifacts/models/perception/locobot")
 OFFICE_IMG_PATH = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)),
-    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets",
+    REPO_ROOT,
+    "droidlet/artifacts/datasets/robot/perception_test_assets",
     "office_chair.jpg",
 )
 GROUP_IMG_PATH = os.path.join(
-    os.path.abspath(os.path.dirname(__file__)),
-    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets",
+    REPO_ROOT,
+    "droidlet/artifacts/datasets/robot/perception_test_assets",
     "obama_trump.jpg",
 )
-FACES_IDS_DIR = os.path.join(
-    os.path.dirname(__file__),
-    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/faces")
-
+FACES_IDS_DIR = os.path.join(REPO_ROOT, "droidlet/artifacts/datasets/robot/perception_test_assets/faces")
 LABEL_PROP_TEST_ASSETS_DIR = os.path.join(
-    os.path.dirname(__file__),
-    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/label_prop_test_assets")
+    REPO_ROOT, "droidlet/artifacts/datasets/robot/perception_test_assets/label_prop_test_assets"
+)
 
 logging.getLogger().setLevel(logging.INFO)
 
