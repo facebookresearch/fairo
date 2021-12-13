@@ -236,7 +236,7 @@ class LoCoBotMover:
          (x, z, yaw) of the Locobot base in standard coordinates
         """
 
-        x_global, y_global, yaw = safe_call(self.bot.get_base_state, "odom")
+        x_global, y_global, yaw = safe_call(self.bot.get_base_state)
         x_standard = -y_global
         z_standard = x_global
         return np.array([x_standard, z_standard, yaw])
@@ -247,7 +247,7 @@ class LoCoBotMover:
         illustrated in the docs:
         https://www.pyrobot.org/docs/navigation
         """
-        return self.bot.get_base_state("odom")
+        return self.bot.get_base_state()
 
     def get_rgb_depth(self):
         """
