@@ -23,4 +23,3 @@ wordcloud
 fuzzywuzzy
 open3d
 numba
-git+https://github.com/maxnoe/python-gitpath

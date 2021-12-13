@@ -26,7 +26,7 @@ from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detect
 import numpy as np
 import json
 import time
-import gitpath
+from droidlet import REPO_ROOT
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -34,7 +34,6 @@ IP = "127.0.0.1"
 if os.getenv("LOCOBOT_IP"):
     IP = os.getenv("LOCOBOT_IP")
 
-REPO_ROOT = gitpath.root()
 PERCEPTION_MODELS_DIR = os.path.join(REPO_ROOT, "droidlet/artifacts/models/perception/locobot")
 OFFICE_IMG_PATH = os.path.join(
     REPO_ROOT,
