@@ -17,6 +17,8 @@ from droidlet.shared_data_structs import ErrorWithResponse
 #from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
 
+from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
+
 from droidlet.lowlevel.robot_mover import MoverInterface
 from droidlet.lowlevel.robot_mover_utils import (
     get_camera_angles,
@@ -161,6 +163,8 @@ class HelloRobotMover(MoverInterface):
         cam_transform = self.bot.get_camera_transform().value
         cam_pos = cam_transform[0:3, 3]
         # convert cam_pos to canonical co-ordinates
+        # FIXME !  do this properly in a util, current functions don't do it bc
+        #          we are mixing base pos already converted and cam height
         cam_pos = [pos[0], cam_pos[2], pos[1]]
 
         logging.info(f"Current base state (x, z, yaw): {pos}, camera state (x, y, z): {cam_pos}")
@@ -206,35 +210,36 @@ class HelloRobotMover(MoverInterface):
         """Command to execute a relative move.
 
         Args:
-            xyt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
+            xzt_positions: a list of relative (x,y,yaw) positions for the bot to execute.
             x,y,yaw are in the pyrobot's coordinates.
         """
         if not isinstance(next(iter(xyt_positions)), Iterable):
             # single xyt position given
-            xyt_positions = [xyt_positions]
+            xzt_positions = [xzt_positions]
         for xyt in xyt_positions:
             self.is_moving.wait()
             self.is_moving = safe_call(self.bot.go_to_relative, xyt)
             if blocking:
                 self.is_moving.wait()
 
-    def move_absolute(self, xyt_positions, blocking=True):
+    def move_absolute(self, xzt_positions, blocking=True):
         """Command to execute a move to an absolute position.
 
         It receives positions in canonical world coordinates and converts them to pyrobot's coordinates
         before calling the bot APIs.
 
         Args:
-            xyt_positions: a list of (x_c,y_c,yaw) positions for the bot to move to.
-            (x_c,y_c,yaw) are in the canonical world coordinates.
+            xzt_positions: a list of (x_c,z_c,yaw) positions for the bot to move to.
+            (x_c,z_c,yaw) are in the canonical world coordinates.
         """
-        if not isinstance(next(iter(xyt_positions)), Iterable):
-            # single xyt position given
-            xyt_positions = [xyt_positions]
-        for xyt in xyt_positions:
-            logging.info("Move absolute in canonical coordinates {}".format(xyt))
+        if not isinstance(next(iter(xzt_positions)), Iterable):
+            # single xzt position given
+            xzt_positions = [xzt_positions]
+        for xzt in xzt_positions:
+            logging.info("Move absolute in canonical coordinates {}".format(xzt))
             self.is_moving.wait()
-            self.is_moving = self.bot.go_to_absolute(xyt)
+            robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
+            self.is_moving = self.bot.go_to_absolute(robot_coords)
             if blocking:
                 self.is_moving.wait()
         return "finished"
@@ -242,19 +247,20 @@ class HelloRobotMover(MoverInterface):
     def get_base_pos_in_canonical_coords(self):
         """get the current robot position in the canonical coordinate system
        
-        the standard coordinate systems:                           
-        from the origin, at yaw=0, front is (x, y, z) = (1, 0, 0),
-        its right direction is (x,y,z) = (0, -1, 0) 
-        its up direction is (x,y,z) = (0, 1, 0) 
+        the canonical coordinate systems:                           
+        from the origin, at yaw=0, front is (x, y, z) = (0, 0, 1),
+        its right direction is (x,y,z) = (1, 0, 0) 
+        its up direction is (x,y,z) = (0, 1, 0)
+        yaw is + counterclockwise
 
         return:
-        (x, z, yaw) of the robot base in standard coordinates
+        (x, z, yaw) of the robot base in canonical coordinates
         """
         future = safe_call(self.bot.get_base_state)
-        x_global, y_global, yaw = future.value
-        x_standard = x_global
-        z_standard = -y_global
-        return np.array([x_standard, z_standard, yaw])
+        x_robot, y_robot, yaw = future.value
+        z_canonical = x_robot
+        x_canonical = -y_robot
+        return np.array([x_canonical, z_canonical, yaw])
 
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
