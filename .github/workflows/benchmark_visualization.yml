@@ -1,8 +1,7 @@
 name: Polymetis benchmark visualization
-on:
-  push:
-    paths:
-      - "polymetis/.benchmarks/"
+on: [push]
+    # paths:
+    #   - "polymetis/.benchmarks/"
     # branches:
     #   - master
 
