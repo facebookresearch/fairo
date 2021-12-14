@@ -16,6 +16,10 @@ def se3_to_xyz_quat(t: sp.SE3) -> Tuple[np.ndarray, np.ndarray]:
     return xyz, quat
 
 
+def xyz_quat_to_se3(pos: np.ndarray, quat: np.ndarray) -> sp.SE3:
+    return sp.SE3(pos, R.from_quat(quat).as_matrix())
+
+
 def sophus2gtsam(pose):
     return gtsam.Pose3(pose.matrix())
 

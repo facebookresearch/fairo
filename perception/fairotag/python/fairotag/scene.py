@@ -329,7 +329,7 @@ class Scene:
         self._optimize_and_update(graph, verbosity)
 
     # Rendering
-    def render_scene(self, show_marker_id=False):
+    def visualize(self, show_marker_id=False):
         viz = SceneViz()
 
         # Draw markers & cameras

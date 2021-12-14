@@ -192,8 +192,13 @@ class CameraModule:
         self, intrinsics=None, matrix=None, dist_coeffs=np.zeros(5), **kwargs
     ) -> None:
         if intrinsics is not None:
-            assert type(intrinsics) is CameraIntrinsics
-            self.intrinsics = intrinsics
+            self.intrinsics = CameraIntrinsics(
+                intrinsics.fx,
+                intrinsics.fy,
+                intrinsics.ppx,
+                intrinsics.ppy,
+                intrinsics.coeffs,
+            )
             return
 
         if matrix is not None:
