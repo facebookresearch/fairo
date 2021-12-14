@@ -5,9 +5,10 @@
 
 class Robot:
     def __init__(
-        self,
-        robot_name,
-        common_config={},
+            self,
+            robot_name,
+            common_config={},
+            parent=None,
     ):
         import pyrobot.cfg.habitat_config as habitat_config
         self.configs = habitat_config.get_cfg()
@@ -18,5 +19,5 @@ class Robot:
         from pyrobot.habitat.camera import LoCoBotCamera
 
         self.simulator = HabitatSim(self.configs, **common_config)
-        self.base = LoCoBotBase(self.configs, simulator=self.simulator)
+        self.base = LoCoBotBase(self.configs, simulator=self.simulator, parent=parent)
         self.camera = LoCoBotCamera(self.configs, simulator=self.simulator)
