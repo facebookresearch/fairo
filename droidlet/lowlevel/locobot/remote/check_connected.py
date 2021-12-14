@@ -7,7 +7,7 @@ f = open(os.devnull, 'w')
 sys.stdout = f
 sys.stderr = f
 
-with Pyro4.Proxy("PYRONAME:" + sys.argv[1] + "@0.0.0.0") as p:
+with Pyro4.Proxy("PYRONAME:" + sys.argv[1] + "@" + sys.argv[2]) as p:
     try:
         p._pyroBind()
         sys.exit(0)
