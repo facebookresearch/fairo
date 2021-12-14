@@ -15,6 +15,8 @@ import numpy as np
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
+from droidlet.lowlevel.pyro_utils import safe_call
+
 
 from ..robot_mover_utils import (
     get_camera_angles,
@@ -33,19 +35,6 @@ from droidlet.lowlevel.robot_coordinate_utils import (
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION = 4
-
-
-def safe_call(f, *args, **kwargs):
-    try:
-        return f(*args, **kwargs)
-    except Pyro4.errors.ConnectionClosedError as e:
-        msg = "{} - {}".format(f._RemoteMethod__name, e)
-        raise ErrorWithResponse(msg)
-    except Exception as e:
-        print("Pyro traceback:")
-        print("".join(Pyro4.util.getPyroTraceback()))
-        raise e
-
 
 class LoCoBotMover:
     """
