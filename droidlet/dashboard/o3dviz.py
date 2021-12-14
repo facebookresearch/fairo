@@ -202,10 +202,11 @@ class O3dViz():
             pass
         w.post_redraw()
 
-def viz_init():
-    os.environ["WEBRTC_IP"] = "0.0.0.0"
-    os.environ["WEBRTC_PORT"] = "8889"
-    # o3d.visualization.webrtc_server.enable_webrtc()
+def viz_init(webrtc_streaming=True):
+    if webrtc_streaming:
+        os.environ["WEBRTC_IP"] = "0.0.0.0"
+        os.environ["WEBRTC_PORT"] = "8889"
+        o3d.visualization.webrtc_server.enable_webrtc()
     o3dviz = O3dViz()
     o3dviz.init()
     return o3dviz
@@ -242,6 +243,8 @@ class O3DVizProcess(BackgroundTask):
     def start(self):
         super().start(exec_empty=True)
 
-O3DViz = functools.partial(O3DVizProcess, init_fn=viz_init,
-                           init_args=[],
-                           process_fn=viz_tick,)
+def O3DViz(webrtc_streaming=True):
+    init_args = [webrtc_streaming]
+    init_fn=viz_init
+    process_fn=viz_tick
+    return O3DVizProcess(init_fn=viz_init, init_args=init_args, process_fn=viz_tick)

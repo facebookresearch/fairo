@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 import time
 import signal
@@ -8,10 +9,8 @@ import faulthandler
 import threading
 import functools
 
-from multiprocessing import set_start_method
-
 from droidlet import dashboard
-from droidlet.dashboard.o3dviz import o3dviz
+from droidlet.dashboard.o3dviz import O3DViz
 import numpy as np
 from scipy.spatial import distance
 import open3d as o3d
@@ -24,6 +23,11 @@ if __name__ == "__main__":
     # this line has to go before any imports that contain @sio.on functions
     # or else, those @sio.on calls become no-ops
     dashboard.start()
+    if sys.platform == "darwin":
+        webrtc_streaming=False
+    else:
+        webrtc_streaming=True
+    o3dviz = O3DViz(webrtc_streaming)
     o3dviz.start()
 
 from droidlet.interpreter.robot import (
