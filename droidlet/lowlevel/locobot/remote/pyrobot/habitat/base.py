@@ -16,8 +16,9 @@ from .transformations import euler_from_quaternion, euler_from_matrix
 class LoCoBotBase(object):
     """docstring for SimpleBase"""
 
-    def __init__(self, configs, simulator):
+    def __init__(self, configs, simulator, parent):
         self.configs = configs
+        self.parent = parent
         self.sim = simulator.sim
         self.agent = self.sim.get_agent(self.configs.COMMON.SIMULATOR.DEFAULT_AGENT_ID)
 
@@ -32,6 +33,11 @@ class LoCoBotBase(object):
     def _rot_matrix(self, habitat_quat):
         quat_list = [habitat_quat.x, habitat_quat.y, habitat_quat.z, habitat_quat.w]
         return prutil.quat_to_rot_mat(quat_list)
+
+    def obstacle_check(self):
+        assert(self.parent is not None)
+        obstacle = self.parent.is_obstacle_in_front()
+        return obstacle
 
     def get_state(self):
         # Returns (x, y, yaw)
@@ -74,9 +80,11 @@ class LoCoBotBase(object):
         if robot_state != LocalActionStatus.ACTIVE:
             self._as.set_active()
             self.collided = False
+            self.obstacle = False
             if wait:
                 return self._go_to_relative_pose(xyt_position[0], xyt_position[1], abs_yaw, wait=True)
             else:
+                # FYI: obstacle checks will fail in threading, because of a macOS/Open3D/GLFW bug (limitation in macOS where GLFW can't run in non-main thread)
                 x = threading.Thread(
                     target=self._go_to_relative_pose, args=(xyt_position[0], xyt_position[1], abs_yaw, wait)
                 )
@@ -112,6 +120,7 @@ class LoCoBotBase(object):
         if robot_state != LocalActionStatus.ACTIVE:
             self._as.set_active()
             self.collided = False
+            self.obstacle = False
             if wait:
                 return self._go_to_relative_pose(rel_x[0], rel_y[0], abs_yaw, wait=True)
             else:
@@ -139,6 +148,10 @@ class LoCoBotBase(object):
                     vel = self.ang_vel
                 else:
                     vel = self.lin_vel
+                if self.obstacle_check():
+                    self.collided = False
+                    self.obstacle = True
+                    break
                 prev_dist_moved = dist_moved
                 dist_moved = min(dist_moved + self.dt * vel, actuation)
                 delta_actuation = dist_moved - prev_dist_moved
@@ -148,6 +161,7 @@ class LoCoBotBase(object):
                 )
                 if did_collide:
                     self.collided = True
+                    self.obstacle = False
                     break
                 time.sleep(self.dt)
             if direct_call:
@@ -157,7 +171,8 @@ class LoCoBotBase(object):
             self.collided = self.agent.controls.action(
                 self.agent.scene_node, action_name, act_spec, apply_filter=True
             )
-        return self.collided
+            self.obstacle = False
+        return self.collided, self.obstacle
 
     def _go_to_relative_pose(self, rel_x, rel_y, abs_yaw, wait=False):
         # clip relative movements beyond 10 micrometer precision
@@ -179,17 +194,25 @@ class LoCoBotBase(object):
             cosine_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
             angle = np.arccos(cosine_angle)
 
-            did_collide = self._act(action_name, math.degrees(angle), cont_action=not(wait))
+            did_collide, is_obstacle = self._act(action_name, math.degrees(angle), cont_action=not(wait))
 
             if did_collide:
                 print("Error: Collision accured while 1st rotating!")
                 self._as.set_preempted()
                 return False
+            if is_obstacle:
+                print("Error: Obstacle detected while 1st rotating!")
+                self._as.set_preempted()
+                return False
 
             # move to (x,y) point
-            did_collide = self._act("move_forward", math.sqrt(rel_x ** 2 + rel_y ** 2), cont_action=not(wait))
+            did_collide, is_obstacle = self._act("move_forward", math.sqrt(rel_x ** 2 + rel_y ** 2), cont_action=True)
             if did_collide:
                 print("Error: Collision accured while moving straight!")
+                self._as.set_preempted()
+                return False
+            if is_obstacle:
+                print("Error: Obstacle detected while moving straight!")
                 self._as.set_preempted()
                 return False
         # rotate to match the final yaw!
@@ -208,10 +231,15 @@ class LoCoBotBase(object):
             action_name = "turn_right"
             rel_yaw *= -1
 
-        did_collide = self._act(action_name, math.degrees(rel_yaw), cont_action=not(wait))
+        did_collide, is_obstacle = self._act(action_name, math.degrees(rel_yaw), cont_action=not(wait))
         if did_collide:
             print("Error: Collision accured while rotating!")
             self._as.set_preempted()
             return False
+        if is_obstacle:
+            print("Error: Obstacle detected while rotating!")
+            self._as.set_preempted()
+            return False
+
         self._as.set_succeeded()
         return True

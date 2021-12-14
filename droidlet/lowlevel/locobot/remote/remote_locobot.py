@@ -66,7 +66,7 @@ class RemoteLocobot(object):
             del self._robot
         backend_config = self.backend_config
 
-        self._robot = Robot("habitat", common_config=backend_config)
+        self._robot = Robot("habitat", common_config=backend_config, parent=self)
         from habitat_utils import reconfigure_scene
         # adds objects to the scene, doing scene-specific configurations
         reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
