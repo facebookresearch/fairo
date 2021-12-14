@@ -16,7 +16,7 @@ from obstacle_utils import is_obstacle
 from droidlet.lowlevel.robot_mover_utils import (
     transform_pose,
 )
-
+from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.ITER_STREAMING = True
@@ -149,10 +149,20 @@ class RemoteLocobot(object):
         opcd.colors = o3d.utility.Vector3dVector(colors)
         return opcd
 
-    def is_obstacle_in_front(self):
+    def is_obstacle_in_front(self, return_viz=False):
         base_state = self.get_base_state()
         pcd = self.get_open3d_pcd()
-        return is_obstacle(pcd, base_state)    
+        ret = is_obstacle(pcd, base_state,
+                          max_dist=0.5, return_viz=return_viz)
+        if return_viz:
+            obstacle, cpcd, crop, bbox = ret
+            cpcd = o3d_pickle(cpcd)
+            crop = o3d_pickle(crop)
+            bbox = o3d_pickle(bbox)
+            return obstacle, cpcd, crop, bbox
+        else:
+            obstacle = ret
+            return obstacle
 
     def go_to_absolute(
         self,
