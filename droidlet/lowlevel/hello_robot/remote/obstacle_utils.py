@@ -26,7 +26,7 @@ def get_points_in_front(pcd, base_position,
                         min_dist=0.3, max_dist=1.0,
                         robot_width=0.4, height=1.0):
     return get_relative_points(pcd, base_position,
-                               [robot_width, max_dist - min_dist, height],
+                               [max_dist - min_dist, robot_width, height],
                                [min_dist, 0.0, 0.0])
 
 
@@ -51,20 +51,30 @@ def get_ground_plane(scan, distance_threshold=0.06, ransac_n=3, num_iterations=1
     else:
         return rest
 
-def is_obstacle(pcd, base_pos, pix_threshold=100, fastmath=False):
-    print("num points", np.asarray(pcd.points).shape)
-    crop, bbox = get_points_in_front(pcd, base_pos)
-    print("num cropped", np.asarray(crop.points).shape)
+def is_obstacle(pcd, base_pos, pix_threshold=100,
+                min_dist=0.3, max_dist=1.0,
+                robot_width=0.4, height=1.0,
+                fastmath=False, return_viz=False):
+    # print("num points", np.asarray(pcd.points).shape)
+    crop, bbox = get_points_in_front(pcd, base_pos,
+                                     min_dist, max_dist,
+                                     robot_width, height)
+    # print("num cropped", np.asarray(crop.points).shape)
+    num_cropped_points = np.asarray(crop.points).shape[0]
+    obstacle = False
+    if num_cropped_points < pix_threshold:
+        raise RuntimeError("not able to see directly in front of robot, tilt the camera further down")
     if fastmath:
-        pass
+        # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
+        raise RuntimeError("Not Implemented")
     else:
-        num_cropped_points = np.asarray(crop.points).shape[0]
-        if num_cropped_points < pix_threshold:
-            raise RuntimeError("not able to see directly in front of robot, tilt the camera further down")
         rest = get_ground_plane(crop, return_ground=False)
         rest = np.asarray(rest.points)
-        print(rest.shape)
-        return rest.shape[0] > 100
+        obstacle = rest.shape[0] > 100
+    if return_viz:
+        return obstacle, pcd, crop, bbox
+    else:
+        return obstacle
 
 def get_o3d_pointcloud(points, colors):
     points, colors = points.reshape(-1, 3), colors.reshape(-1, 3)
@@ -73,4 +83,3 @@ def get_o3d_pointcloud(points, colors):
     opcd.points = o3d.utility.Vector3dVector(points)
     opcd.colors = o3d.utility.Vector3dVector(colors)
     return opcd
-       
