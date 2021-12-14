@@ -3,8 +3,10 @@ import time
 import pickle
 import queue
 import math
+import functools
 
 import numpy as np
+import torch
 import open3d as o3d
 from open3d.visualization import O3DVisualizer, gui
 from droidlet.parallel import BackgroundTask
@@ -24,6 +26,7 @@ attributes = {
         'center': np.ndarray,
         'color': np.ndarray,
         'extent': np.ndarray,
+        'R': np.ndarray,
     },
 }
 
@@ -31,13 +34,14 @@ def serialize(m):
     class_type = type(m)
     class_name = class_type.__name__
     class_attrs = attributes[class_name]
-    d = {} 
+    d = {}    
     for name, typ in class_attrs.items():
         val = getattr(m, name)
         if not typ == type(val):
             raise RuntimeError("for {}.{}, expected {}, but got {}".format(
                 class_name, name, typ, type(val)))
-        d[name] = np.asarray(val)
+        d[name] = torch.from_numpy(np.asarray(val))
+        d[name].share_memory_()
     ser = pickle.dumps([class_name, d])
     return ser
     
@@ -47,6 +51,7 @@ def deserialize(obj):
     m = getattr(o3d.geometry, class_name)()
     for name, typ in class_attrs.items():
         attr = ser[name]
+        attr = attr.numpy()
         if typ == np.ndarray:
             typed_attr = attr
         else:
@@ -63,6 +68,7 @@ class O3dViz():
         self.y_axis = [0, 0, 1]   # y axis is z-inward
         self.keys = set()
         self._init = False
+        self.counter = 0
 
     def put(self, name, obj):
         cmd = 'add'
@@ -71,6 +77,11 @@ class O3dViz():
         else:
             self.keys.add(name)
         self.q.put([name, cmd, obj])
+
+    def remove(self, name):
+        cmd = 'remove'
+        self.keys.discard(name)
+        self.q.put([name, cmd, None])
 
     def set_camera(self, look_at, position, y_axis):
         self.look_at = look_at
@@ -112,11 +123,13 @@ class O3dViz():
             self.put('bot_base', robot_base)
 
     def init(self):
+        if self._init:
+            return
         app = gui.Application.instance
         self.app = app
 
         app.initialize()
-        w = O3DVisualizer("o3dviz", 1024, 768)
+        w = O3DVisualizer("o3dviz", 800, 600)
         self.w = w
         w.set_background((1.0, 1.0, 1.0, 1.0), None)
         w.ground_plane = o3d.visualization.rendering.Scene.GroundPlane(1) # XY is the ground plane
@@ -127,6 +140,11 @@ class O3dViz():
         app.add_window(w)
         self.reset_camera = False
         self.first_object_added = False
+        while not self.q.empty():
+            self.q.get()
+        self._init = True
+        self.start_time = time.time_ns()
+
         
 
     def run(self):
@@ -134,14 +152,23 @@ class O3dViz():
             self.run_tick(threaded=True)
 
     def run_tick(self, threaded=False):
-        if self._init == False:
-            self.init()
-            self._init = True
+        self.init()
+
         app, w = self.app, self.w
-            
+
         app.run_one_tick()
+        
         if threaded:
             time.sleep(0.001)
+
+        self.counter += 1
+        iter_time = time.time_ns() - self.start_time
+        if float(iter_time) / 1e9 > 1:
+            print("Drawing FPS: ", round(self.counter / (float(iter_time) / 1e9), 1), "  ", int(iter_time / 1e6 / self.counter), "ms")
+            self.counter = 0
+            self.start_time = time.time_ns()
+
+        
 
         try:
             name, command, geometry = self.q.get_nowait()
@@ -171,15 +198,16 @@ class O3dViz():
                 #                        [0, 0, -1],
                 #                        [0, -1, 0])
                 self.reset_camera = False            
-            w.post_redraw()
         except queue.Empty:
             pass
+        w.post_redraw()
 
 def viz_init():
     os.environ["WEBRTC_IP"] = "0.0.0.0"
     os.environ["WEBRTC_PORT"] = "8889"
     # o3d.visualization.webrtc_server.enable_webrtc()
     o3dviz = O3dViz()
+    o3dviz.init()
     return o3dviz
 
 def viz_tick(o3dviz, command=None):
@@ -187,10 +215,12 @@ def viz_tick(o3dviz, command=None):
         name, ser = command
         if name == 'add_robot':
             o3dviz.add_robot(*ser)
+        elif name == 'remove':
+            o3dviz.remove(ser)
         else:
             geometry = deserialize(ser)
             o3dviz.put(name, geometry)
-    o3dviz.run_tick(threaded=True)
+    o3dviz.run_tick(threaded=False)
 
 
 class O3DVizProcess(BackgroundTask):
@@ -203,12 +233,15 @@ class O3DVizProcess(BackgroundTask):
         ser = serialize(geometry)
         super().put([name, ser])
 
+    def remove(self, name):
+        super().put(["remove", name])
+
     def add_robot(self, base_state, base=True, canonical=True, height=1.41):
         super().put(["add_robot", [base_state, base, canonical, height]])
 
     def start(self):
         super().start(exec_empty=True)
-        
-o3dviz = O3DVizProcess(init_fn=viz_init,
-                       init_args=[],
-                       process_fn=viz_tick,)
+
+O3DViz = functools.partial(O3DVizProcess, init_fn=viz_init,
+                           init_args=[],
+                           process_fn=viz_tick,)
