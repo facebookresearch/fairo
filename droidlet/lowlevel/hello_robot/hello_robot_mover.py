@@ -341,17 +341,19 @@ class HelloRobotMover(MoverInterface):
         # you have to rotate 90 degrees anti-clockwise around the y axis, and then
         # 90 degrees clockwise around the x axis.
         # This results in the final configuration
-        rotyt = rotation_matrix_y(90)
-        pts = np.dot(pts, rotyt.T)
-
-        rotxt = rotation_matrix_x(-90)
-        pts = np.dot(pts, rotxt.T)
-
+        roty90 = rotation_matrix_y(90)
+        rotxn90 = rotation_matrix_x(-90)
         # next, rotate and translate pts by
         # the robot pose and location
-        pts = np.dot(pts, rot.T)
-        pts = pts + trans.reshape(-1)
-        pts = transform_pose(pts, self.bot.get_base_state().value)
+        rot_base = rotation_matrix_z(math.degrees(base_state[2]))
+
+        rotation_matrix = rot_base @ rot_cam @ rotxn90 @ roty90
+        translation_vector = np.array([trans_cam[0] + base_state[0],
+                                trans_cam[1] + base_state[1],
+                                trans_cam[2] + 0]).reshape(-1)
+
+        pts = np.dot(pts, rotation_matrix.T)
+        pts = pts + translation_vector
 
         # now rewrite the ordering of pts so that the colors (rgb_rotated)
         # match the indices of pts
