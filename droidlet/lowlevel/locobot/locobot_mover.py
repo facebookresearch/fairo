@@ -15,6 +15,7 @@ import numpy as np
 from droidlet.shared_data_structs import ErrorWithResponse
 from agents.argument_parser import ArgumentParser
 from droidlet.shared_data_structs import RGBDepth
+from droidlet.dashboard.o3dviz import deserialize as o3d_unpickle
 from droidlet.lowlevel.pyro_utils import safe_call
 
 
@@ -66,8 +67,18 @@ class LoCoBotMover:
         self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
         self.backend = backend
 
-    def is_obstacle_in_front(self):
-        safe_call(self.bot.is_obstacle_in_front)
+    def is_obstacle_in_front(self, return_viz=False):
+        ret = safe_call(self.bot.is_obstacle_in_front, return_viz)
+        if return_viz:
+            obstacle, cpcd, crop, bbox = ret
+
+            cpcd = o3d_unpickle(cpcd)
+            crop = o3d_unpickle(crop)
+            bbox = o3d_unpickle(bbox)
+            return obstacle, cpcd, crop, bbox
+        else:
+            obstacle = ret
+            return obstacle
 
     # TODO/FIXME!  instead of just True/False, return diagnostic messages
     # so e.g. if a grip attempt fails, the task is finished, but the status is a failure
