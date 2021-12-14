@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import math
 import pyrobot.utils.util as prutil
@@ -73,7 +74,10 @@ class LoCoBotBase(object):
 	:return: True if successful; False otherwise (timeout, etc.)
 	:rtype: bool
 	"""
-
+        if sys.platform == "darwin":
+            # FYI: obstacle checks will fail in threading because, because of a macOS/Open3D/GLFW
+            # bug (limitation in macOS where GLFW can't run in non-main thread)            
+            wait = True
         (cur_x, cur_y, cur_yaw) = self.get_state()
         abs_yaw = cur_yaw + xyt_position[2]
         robot_state = self._as.get_state()
@@ -83,8 +87,7 @@ class LoCoBotBase(object):
             self.obstacle = False
             if wait:
                 return self._go_to_relative_pose(xyt_position[0], xyt_position[1], abs_yaw, wait=True)
-            else:
-                # FYI: obstacle checks will fail in threading, because of a macOS/Open3D/GLFW bug (limitation in macOS where GLFW can't run in non-main thread)
+            else:                
                 x = threading.Thread(
                     target=self._go_to_relative_pose, args=(xyt_position[0], xyt_position[1], abs_yaw, wait)
                 )
@@ -108,6 +111,10 @@ class LoCoBotBase(object):
         :return: True if successful; False otherwise (timeout, etc.)
         :rtype: bool
 		"""
+        if sys.platform == "darwin":
+            # FYI: obstacle checks will fail in threading because, because of a macOS/Open3D/GLFW
+            # bug (limitation in macOS where GLFW can't run in non-main thread)
+            wait = True
 
         (cur_x, cur_y, cur_yaw) = self.get_state()
         rel_X = xyt_position[0] - cur_x
