@@ -297,21 +297,3 @@ class LoCoBotBase(object):
             return False
         self._as.set_succeeded()
         return True
-
-    def track_trajectory(self, states, controls, close_loop):
-        """
-		State trajectory that the robot should track.
-
-		:param states: sequence of (x,y,t) states that the robot should track.
-		:param controls: optionally specify control sequence as well.
-		:param close_loop: whether to close loop on the
-		                   computed control sequence or not.
-
-		:type states: list
-		:type controls: list
-		:type close_loop: bool
-
-		:return: True if successful; False otherwise (timeout, etc.)
-		:rtype: bool
-		"""
-        raise NotImplementedError
