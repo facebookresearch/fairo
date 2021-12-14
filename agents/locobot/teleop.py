@@ -242,7 +242,7 @@ if __name__ == "__main__":
         opcd = o3d.geometry.PointCloud()
         opcd.points = o3d.utility.Vector3dVector(all_points)
         opcd.colors = o3d.utility.Vector3dVector(all_colors)
-        opcd = opcd.voxel_down_sample(0.05)
+        opcd = opcd.voxel_down_sample(0.03)
 
         all_points = np.asarray(opcd.points)
         all_colors = np.asarray(opcd.colors)
@@ -263,63 +263,15 @@ if __name__ == "__main__":
         x, y, yaw = base_state.tolist()
 
         o3dviz.add_robot(base_state, height=0.63)
-        o3dviz.add_axis()
 
         # start the SLAM
         if backend == 'habitat':
             mover.explore((19,19,0))
         
-            # get the SLAM goals
-            goal_loc, stg = None, None # mover.bot.get_slam_goal()    
+            sio.emit(
+                "map",
+                {"x": x, "y": y, "yaw": yaw, "map": mover.get_obstacles_in_canonical_coords()},
+            )
 
-            # plot the final goal
-            if goal_loc is not None:
-                goal_x, goal_y, goal_z = goal_loc
-                cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
-                                                                 height=3.,)
-                cone.translate([goal_x, goal_y, 0.4], relative=False)
-                cone.compute_vertex_normals()
-                cone.paint_uniform_color([0.0, 1.0, 1.0])
-                o3dviz.put('goal_cone', cone)
-
-            # plot the short term goal in yellow and the path in green
-            if stg is not None:
-                stg_x, stg_y = stg
-                cone = o3d.geometry.TriangleMesh.create_cylinder(radius=.2,
-                                                                 height=3.,)
-                cone.translate([stg_x, stg_y, 1.4], relative=False)
-                cone.compute_vertex_normals()
-                cone.paint_uniform_color([1.0, 1.0, 0.0])
-                o3dviz.put('stg', cone)
-
-                if prev_stg is None:
-                    prev_stg = [y, -x]
-                cur_stg = [stg_x, stg_y]
-
-                arrow_length = distance.euclidean(cur_stg, prev_stg)
-                if arrow_length > 0.0001:                
-                    path = o3d.geometry.TriangleMesh.create_arrow(cylinder_radius=.03,
-                                                                  cone_radius=.04,
-                                                                  cylinder_height = arrow_length / 2,
-                                                                  cone_height = arrow_length / 2,)
-                    path.compute_vertex_normals()
-                    path.paint_uniform_color([0.0, 1.0, 0.0])
-
-                    path.translate([prev_stg[0], prev_stg[1], 0.2], relative=False)
-                    path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, math.pi/2, 0]))
-                    path.rotate(o3d.geometry.get_rotation_matrix_from_axis_angle([0, 0, yaw]))        
-                    o3dviz.put('short_term_goal_path_{}'.format(path_count), path)
-                    path_count = path_count + 1
-                prev_stg = cur_stg
-
-            # # get the obstacle map and plot it
-            # obstacles = mover.bot.get_map()
-            # obstacles = np.asarray(obstacles)
-            # obstacles = np.concatenate((-obstacles[:, [1]], -obstacles[:, [0]], np.zeros((obstacles.shape[0], 1))), axis=1)
-            # obspcd = o3d.geometry.PointCloud()
-            # obspcd.points = o3d.utility.Vector3dVector(obstacles)
-            # obspcd.paint_uniform_color([1.0, 0., 0.])
-            # obsvox = o3d.geometry.VoxelGrid.create_from_point_cloud(obspcd, 0.03)
-            # o3dviz.put('obstacles', obsvox)
-        
+        # s = input('...')
         time.sleep(0.001)
