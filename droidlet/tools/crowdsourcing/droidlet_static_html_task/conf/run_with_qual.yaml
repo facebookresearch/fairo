@@ -12,13 +12,13 @@ mephisto:
     task_reward: 1.5
     allowed_concurrent: 1
     maximum_units_per_worker: 5
-    assignment_duration_in_seconds: 900
+    #assignment_duration_in_seconds: 900
     task_tags: "assistant, game, interact"
-    task_name: "uiux-exp3-12-13-21-100"
+    task_name: "uiux-exp3-12-14-21-100"
   architect:
     heroku_config_args:
       AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
       AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: uiux-exp3-12-13-21-100
+    heroku_app_name: uiux-exp3-12-14-21-100
     

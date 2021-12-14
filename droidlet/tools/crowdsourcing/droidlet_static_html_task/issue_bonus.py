@@ -21,7 +21,7 @@ def main(run_id, performance_dir) -> list:
     for bonus in bonus_list:
         turker = bonus.split(' ')[0]
         amount = float(bonus.split(' ')[1][:-1])
-        if bonus_dict[turker]:
+        if turker in bonus_dict:
             bonus_dict[turker].append(amount)
         else: bonus_dict[turker] = [amount]
     print(bonus_dict)

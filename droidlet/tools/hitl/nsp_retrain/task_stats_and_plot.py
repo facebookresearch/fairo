@@ -23,6 +23,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 from collections import Counter
+from typing import Tuple
 
 from mephisto.abstractions.databases.local_database import LocalMephistoDB
 from mephisto.tools.data_browser import DataBrowser
@@ -102,7 +103,7 @@ def retrieve_units(run_id: int) -> list:
     return completed_units
 
 #%%
-def increment_dict(dict, key):
+def increment_dict(dict: dict, key: str) -> dict:
     temp_dict = dict
     if key not in temp_dict:
         temp_dict[key] = 1
@@ -226,7 +227,7 @@ def timing_charts(run_id: int, s3_bucket: int=None) -> None:
         create_bonus_payment_file(s3_bucket, bonus_list)
 
         #workers_logs = retrieve_turker_ids(parsed_path, "nsp_outputs")
-        #compare_worker_ids(workers, workers_read_instructions, workers_timer_off, workers_sent_command, workers_logs)
+        #compare_worker_ids(workers, workers_logs)
         #get_commands_from_turk_id('A4D99Y82KOLC8', parsed_path)
     
         # See the S3 logs that don't contain commands:
@@ -234,8 +235,9 @@ def timing_charts(run_id: int, s3_bucket: int=None) -> None:
 
     #save_commands_to_file(command_lists["total"], command_lists["parsing_errors"], command_lists["task_errors"], parsed_path)
 
-    print_stats_from_mephisto(unit_num, starttime, endtime, command_lists["total"], command_count_lists, unit_timing["total"], ratings["usability"], ratings["self"], scores, total_bonus, feedback)
-    
+    print_stats_from_mephisto(unit_num, starttime, endtime, command_lists["total"], command_count_lists, unit_timing["total"], ratings, scores, total_bonus, feedback)
+    calc_percentiles(unit_timing['total'], "HIT Completion Time")
+
     #Compare Mephisto and S3 error lists for discrepanicies
     #compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list)
 
@@ -249,7 +251,7 @@ def timing_charts(run_id: int, s3_bucket: int=None) -> None:
     produce_plots(ratings, unit_timing, command_count_lists, scores, inst_timing, command_processing_times)
 
 #%%
-def compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list):
+def compare_s3_and_meph_errors(parsed_path: str, command_lists: dict, no_error_dict_list: list) -> None:
     S3_errors = read_turk_logs(parsed_path, "error_details")
     meph_errors = [x.split('|')[0] for x in command_lists["parsing_errors"]] + [x.split('|')[0] for x in command_lists["task_errors"]]
     S3_not_meph = [x for x in S3_errors if x not in meph_errors]
@@ -266,7 +268,7 @@ def compare_s3_and_meph_errors(parsed_path, command_lists, no_error_dict_list):
     print(f"Maybe bad error dicts: {maybe_bad_error_dicts}")
 
 #%%
-def create_bonus_payment_file(s3_bucket: str, bonus_list: list):
+def create_bonus_payment_file(s3_bucket: str, bonus_list: list) -> None:
     bonus_path = os.path.join("/private/home/ethancarlson/.hitl/bonus/", str(s3_bucket))
     os.makedirs(bonus_path, exist_ok=True)
     bonus_file = os.path.join(bonus_path, "performance_bonuses.txt")
@@ -275,7 +277,7 @@ def create_bonus_payment_file(s3_bucket: str, bonus_list: list):
             f.write(bonus)
 
 #%%
-def command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker, command_start_time):
+def command_timing_metrics(click: dict, benchmarks: dict, unit_timing: dict, command_timing: dict, command_processing_times: dict, command_lists: dict, workers: dict, worker: str, command_start_time: int) -> Tuple[dict, dict, dict, dict, dict, dict, int]:
     if click["id"] == 'goToAgentThinking':
         command_start_time = click["timestamp"]
         command_timing["start"].append(command_start_time)
@@ -311,7 +313,7 @@ def command_timing_metrics(click, benchmarks, unit_timing, command_timing, comma
     return benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, command_start_time
 
 #%%
-def produce_plots(ratings, unit_timing, command_count_lists, scores, inst_timing, command_processing_times):
+def produce_plots(ratings: dict, unit_timing: dict, command_count_lists: dict, scores: dict, inst_timing: dict, command_processing_times: dict) -> None:
     #Turker ratings plots
     plot_hist_sorted(ratings["usability"], xlabel="", ylabel="Usability Score", ymax=7)
     plot_hist_sorted(ratings["self"], xlabel="", ylabel="Self Rated Performance Score", ymax=5)
@@ -349,7 +351,7 @@ def produce_plots(ratings, unit_timing, command_count_lists, scores, inst_timing
     # plot_scatter(xs=command_count_lists['total'], ys=scores["stoplight"], xlabel="# of Commands", ylabel="Stoplight Score")
 
 #%%
-def interaction_timing(click, benchmarks, unit_timing, workers, worker):
+def interaction_timing(click: dict, benchmarks: dict, unit_timing: dict, workers: dict, worker: str) -> Tuple[dict, dict, dict]:
     if click["id"] == 'timerON':
         benchmarks["interaction_start"] = click["timestamp"]
         unit_timing["pre_interact"].append(round((benchmarks["interaction_start"] - benchmarks["last_pg_read"])/1000))
@@ -361,7 +363,7 @@ def interaction_timing(click, benchmarks, unit_timing, workers, worker):
     return benchmarks, unit_timing, workers
 
 #%%
-def hit_timing_anatomy(unit_timing, inst_timing, command_processing_times, command_timing_by_hit, unit_num):
+def hit_timing_anatomy(unit_timing: dict, inst_timing: dict, command_processing_times: dict, command_timing_by_hit: dict, unit_num: int) -> None:
 
     command_times_by_order = { 1: [], 2: [], 3: [], 4: [], 5: [] }
     for j in range(5):
@@ -387,7 +389,7 @@ def hit_timing_anatomy(unit_timing, inst_timing, command_processing_times, comma
         calc_percentiles(command_times_by_order[order], f"Command #{order} Time")
 
 #%%
-def plot_command_stage_timing(command_processing_times):
+def plot_command_stage_timing(command_processing_times: dict) -> None:
     for status in command_processing_times.keys():
         command_processing_times[status] = [0 if x<0 else x for x in command_processing_times[status]]
         command_processing_times[status] = [100 if x>100 else x for x in command_processing_times[status]]
@@ -397,7 +399,7 @@ def plot_command_stage_timing(command_processing_times):
         plot_hist(command_dict, xlabel="", ylabel=f"Command {status} time (sec)")
 
 #%%
-def plot_instruction_page_timing(inst_timing):
+def plot_instruction_page_timing(inst_timing: dict) -> None:
     for page in inst_timing.keys():
         inst_timing[page] = [0 if x<0 else x for x in inst_timing[page]]
         inst_timing[page] = [90 if x>90 else x for x in inst_timing[page]]
@@ -407,7 +409,7 @@ def plot_instruction_page_timing(inst_timing):
         plot_hist(page_dict, xlabel="", ylabel=f"Page {page} read time (sec)")
 
 #%%
-def commands_and_errors(click_id, command_lists, command_counts, no_error_dict_list):
+def commands_and_errors(click_id: dict, command_lists: dict, command_counts: dict, no_error_dict_list: list) -> Tuple[dict, dict, list]:
     if "command" in click_id:
         command_counts["total"] += 1
         command_lists["total"].append(click_id["command"].split('|')[0])
@@ -424,7 +426,7 @@ def commands_and_errors(click_id, command_lists, command_counts, no_error_dict_l
             no_error_dict_list.append(click_id)
     return command_lists, command_counts, no_error_dict_list
 #%%
-def hit_timing(content, starttime, endtime, unit_timing):
+def hit_timing(content: dict, starttime: int, endtime: int, unit_timing: dict) -> Tuple[int, int, dict]:
     HIT_start_time = content["times"]["task_start"]
     HIT_end_time = content["times"]["task_end"]
     unit_timing["total"].append(HIT_end_time - HIT_start_time)
@@ -436,7 +438,7 @@ def hit_timing(content, starttime, endtime, unit_timing):
     return starttime, endtime, unit_timing
 
 #%%
-def instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, workers, worker):
+def instruction_timing(click: dict, inst_timing: dict, benchmarks: dict, prev_page: int, unit_timing: dict, workers: dict, worker: str) -> Tuple[dict, dict, int, dict, dict]:
     # They might not read all pages...
     if click["id"] == 'start':
         inst_timing[0].append(click["timestamp"])
@@ -456,9 +458,9 @@ def instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, w
 
     return inst_timing, benchmarks, prev_page, unit_timing, workers 
 #%%
-def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, command_count_lists, HITtime, usability, self_rating, scores, total_bonus, feedback):
-    actual_usability = [i for i in usability if i > 0]
-    actual_self_rating = [i for i in self_rating if i > 0]
+def print_stats_from_mephisto(unit_num: int, starttime: int, endtime: int, command_list: list, command_count_lists: dict, HITtime: list, ratings: dict, scores: dict, total_bonus: float, feedback: list) -> None:
+    actual_usability = [i for i in ratings['usability'] if i > 0]
+    actual_self_rating = [i for i in ratings['self'] if i > 0]
     print(f"Units logged: {unit_num-1}")
     print(f"Start time: {datetime.fromtimestamp(starttime)}")
     print(f"End time: {datetime.fromtimestamp(endtime)}")
@@ -480,14 +482,14 @@ def print_stats_from_mephisto(unit_num, starttime, endtime, command_list, comman
     print(f"User feedback: {feedback}")
 
 #%%
-def match_length(data: dict, length: int):
+def match_length(data: dict, length: int) -> dict:
     for key in data.keys():
             if len(data[key]) < length:
                 data[key].append(0)
     return data
 
 #%%
-def save_commands_to_file(commands, parsing_errors, task_errors, turk_output_directory):
+def save_commands_to_file(commands: list, parsing_errors: list, task_errors: list, turk_output_directory: str) -> None:
     os.chdir(turk_output_directory)
     with open("mephisto_commands.txt", "w+") as comm_file:
         comm_file.write(str(commands))
@@ -498,25 +500,25 @@ def save_commands_to_file(commands, parsing_errors, task_errors, turk_output_dir
     return
     
 #%%
-def interaction_scores(scores, output_dict, bonus_list, total_bonus, worker):
+def interaction_scores(scores: dict, output_dict: dict, bonus_list: list, total_bonus: float, worker: str) -> Tuple[dict, list, float]:
     if scores["creativity"]: output_dict["creativity"].append(scores["creativity"])
     if scores["diversity"]: output_dict["diversity"].append(scores["diversity"])
     if scores["stoplight"]:
         output_dict["stoplight"].append(scores["stoplight"])
         bonus = scores['stoplight'] * 0.30
         total_bonus += float(bonus)
-        bonus_list.append(str(worker) + " " + f"{(bonus):.2f}" + "\n")
+        bonus_list.append(worker + " " + f"{(bonus):.2f}" + "\n")
     return output_dict, bonus_list, total_bonus
 
 #%%
-def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadata.json"):
+def retrieve_turker_ids(turk_output_directory: str, filename: str) -> list:
     workers = []
     for csv_path in glob.glob(
         "{turk_logs_dir}/**/{csv_filename}".format(
             turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv"
         )
     ):     
-        meta_path = os.path.join(os.path.dirname(csv_path), meta_fname)
+        meta_path = os.path.join(os.path.dirname(csv_path), "job_metadata.json")
         if os.path.exists(meta_path):
             with open(meta_path, "r+") as f:
                 meta = json.load(f)
@@ -526,7 +528,7 @@ def retrieve_turker_ids(turk_output_directory, filename, meta_fname="job_metadat
     return workers
 
 #%%
-def logs_from_turk_id(turk_id, turk_output_directory):
+def logs_from_turk_id(turk_id: str, turk_output_directory: str) -> list:
     session_list = []
     for csv_path in glob.glob(
         "{turk_logs_dir}/**/{csv_filename}".format(
@@ -549,51 +551,51 @@ def logs_from_turk_id(turk_id, turk_output_directory):
 
 
 #%%
-def logs_with_no_commands(turk_output_directory, meta_fname="job_metadata.json"):
+def logs_with_no_commands(turk_output_directory: str) -> list:
     nsp_output_folders = glob.glob(
         "{turk_logs_dir}/**/nsp_outputs.csv".format(turk_logs_dir=turk_output_directory))
     # Only S3 logs that successfully recorded interaction data have a metadata file
-    logs_with_no_commands = [csv_path for csv_path in nsp_output_folders if not os.path.exists(os.path.join(os.path.dirname(csv_path), meta_fname))]
+    logs_with_no_commands = [csv_path for csv_path in nsp_output_folders if not os.path.exists(os.path.join(os.path.dirname(csv_path), "job_metadata.json"))]
     
     return [os.path.basename(os.path.dirname(path)) for path in logs_with_no_commands]
 
 
 #%%
-def compare_worker_ids(total, read_instructions, timer_off, submit_command, logs):
-    all_lists = [total, read_instructions, timer_off, submit_command, logs]
+def compare_worker_ids(workers: dict, logs: list) -> None:
+    workers = {"total": [], "read_instructions": [], "timer_on": [], "timer_off": [], "sent_command": []}
     list_names = ["'Full List'", "'Read Instructions'", "'Turned Timer Off'", "'Submitted a command'", "'Recorded S3 Logs'"]
-    print(f"Total number of units: {len(total)}")
-    print(f"Worker HIT count: {Counter(total)}")
-    print(f"Number of unique workers: {len(np.unique(total))}")
-    print(f"Median # HITs per worker: {np.median(list(Counter(total).values()))}")
-    print(f"Number of units who read instructions: {len(read_instructions)}")
-    print(f"Number of units who turned the timer off: {len(timer_off)}")
-    print(f"Number of units who submitted a command (recorded by Mephisto): {len(submit_command)}")
+    print(f"Total number of units: {len(workers['total'])}")
+    print(f"Worker HIT count: {Counter(workers['total'])}")
+    print(f"Number of unique workers: {len(np.unique(workers['total']))}")
+    print(f"Median # HITs per worker: {np.median(list(Counter(workers['total']).values()))}")
+    print(f"Number of units who read instructions: {len(workers['read_instructions'])}")
+    print(f"Number of units who turned the timer off: {len(workers['timer_off'])}")
+    print(f"Number of units who submitted a command (recorded by Mephisto): {len(workers['sent_command'])}")
     print(f"Number of units who submitted logs to S3: {len(logs)}")
-    print(f"Number of workers who submitted a job but did not read instructions: {len([x for x in total if x not in read_instructions])}")
-    print(f"Number of workers who submitted a job but did not turn the timer off: {len([x for x in total if x not in timer_off])}")
-    print(f"Number of workers who submitted a job but did not submit a command: {len([x for x in total if x not in submit_command])}")
-    print(f"Number of workers who submitted a job but did not log to S3: {len([x for x in total if x not in logs])}")
-    print(f"Number of workers who read instructions but did not turn the timer off: {len([x for x in read_instructions if x not in timer_off])}")
-    print(f"Number of workers who read instructions but did not submit a command: {len([x for x in read_instructions if x not in submit_command])}")
-    print(f"Number of workers who turned the timer off but did not submit a command: {len([x for x in timer_off if x not in submit_command])}")
-    print(f"Number of workers who turned the timer off but did not log to S3: {len([x for x in timer_off if x not in logs])}")
-    print(f"Number of workers who submitted a command but did not log to S3: {len([x for x in submit_command if x not in logs])}")
-    print(f"Number of workers who submitted a log to S3 but did not submit a command: {len([x for x in logs if x not in submit_command])}")
+    print(f"Number of workers who submitted a job but did not read instructions: {len([x for x in workers['total'] if x not in workers['read_instructions']])}")
+    print(f"Number of workers who submitted a job but did not turn the timer off: {len([x for x in workers['total'] if x not in workers['timer_off']])}")
+    print(f"Number of workers who submitted a job but did not submit a command: {len([x for x in workers['total'] if x not in workers['sent_command']])}")
+    print(f"Number of workers who submitted a job but did not log to S3: {len([x for x in workers['total'] if x not in logs])}")
+    print(f"Number of workers who read instructions but did not turn the timer off: {len([x for x in workers['read_instructions'] if x not in workers['timer_off']])}")
+    print(f"Number of workers who read instructions but did not submit a command: {len([x for x in workers['read_instructions'] if x not in workers['sent_command']])}")
+    print(f"Number of workers who turned the timer off but did not submit a command: {len([x for x in workers['timer_off'] if x not in workers['sent_command']])}")
+    print(f"Number of workers who turned the timer off but did not log to S3: {len([x for x in workers['timer_off'] if x not in logs])}")
+    print(f"Number of workers who submitted a command but did not log to S3: {len([x for x in workers['sent_command'] if x not in logs])}")
+    print(f"Number of workers who submitted a log to S3 but did not submit a command: {len([x for x in logs if x not in workers['sent_command']])}")
 
-    for i,l in enumerate(all_lists):
-        d1 = Counter(l)
-        for j,k in enumerate(all_lists):
-            d2 = Counter(k)
+    for list1 in workers.keys():
+        d1 = Counter(workers[list1])
+        for list2 in workers.keys():
+            d2 = Counter(workers[list2])
             for key in d1.keys():
                 try:
                     if d1[key] > d2[key]:
-                        print(f"{key} appears in {list_names[i]} {d1[key] - d2[key]} times more than in {list_names[j]}")
+                        print(f"{key} appears in {list1} {d1[key] - d2[key]} times more than in {list2}")
                 except:
-                    print(f"{key} appears in {list_names[i]} but not {list_names[j]}")
+                    print(f"{key} appears in {list1} but not {list2}")
 
 #%%
-def get_commands_from_turk_id(turk_id, turk_output_directory):
+def get_commands_from_turk_id(turk_id: str, turk_output_directory: str) -> None:
     
     commands = []
     for csv_path in glob.glob(
@@ -620,7 +622,7 @@ def get_commands_from_turk_id(turk_id, turk_output_directory):
     print(f"Worker {turk_id} command #: {len(commands)}")
 
 #%%
-def calc_percentiles(data, label):
+def calc_percentiles(data: list, label: str) -> None:
     real_data = [x for x in data if x > 0]
     tenth = np.percentile(real_data, 10)
     median = np.median(real_data)
@@ -630,7 +632,7 @@ def calc_percentiles(data, label):
     print(f"{label} nintieth percentile: {nintieth:.1f}")
 
 #%%
-def read_s3_bucket(s3_logs_dir, output_dir):
+def read_s3_bucket(s3_logs_dir: str, output_dir: str) -> None:
     print(
         "{s3_logs_dir}/**/{csv_filename}".format(
             s3_logs_dir=s3_logs_dir, csv_filename="logs.tar.gz"
@@ -650,7 +652,7 @@ def read_s3_bucket(s3_logs_dir, output_dir):
         tf.extractall(path="{}/{}/".format(output_dir, timestamp))
 
 #%%
-def get_stats(command_list):
+def get_stats(command_list: list) -> None:
     """
     Print some stats of a list of commands
     """
@@ -678,7 +680,7 @@ def get_stats(command_list):
 
 
 #%%
-def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None):
+def plot_hist(dictionary: dict, ylabel: str, target_val: float=None, xlabel: str="Turker Id", ymax: float=None) -> None:
     plt.bar(list(dictionary.keys()), dictionary.values(), color='g')
     if target_val:
         line = [target_val] * len(dictionary)
@@ -690,7 +692,7 @@ def plot_hist(dictionary, ylabel, target_val=None, xlabel="Turker Id", ymax=None
     plt.show()
 
 #%%
-def plot_hist_sorted(values, ylabel, cutoff=None, target_val=None, xlabel=None, ymax=None):
+def plot_hist_sorted(values: list, ylabel: str, cutoff: float=None, target_val: float=None, xlabel: str=None, ymax: float=None) -> None:
     if cutoff: values = [cutoff if x>cutoff else x for x in values]
     values.sort()
     keys = range(len(values))
@@ -698,7 +700,7 @@ def plot_hist_sorted(values, ylabel, cutoff=None, target_val=None, xlabel=None, 
     plot_hist(vals_dict, target_val=target_val, xlabel=xlabel, ylabel=ylabel, ymax=ymax)
 
 #%%
-def plot_scatter(xs, ys, ylabel, s=None, target_val=None, xlabel="Turker Id", ymax=None):
+def plot_scatter(xs: list, ys: list, ylabel: str, s: list=None, target_val: float=None, xlabel: str="Turker Id", ymax: float=None) -> None:
     plt.scatter(xs, ys, s, color='g')
     if target_val:
         line = [target_val] * len(xs)
@@ -710,7 +712,7 @@ def plot_scatter(xs, ys, ylabel, s=None, target_val=None, xlabel="Turker Id", ym
     plt.show()
 
 #%%
-def plot_dual_hist(x, y1, y2, ylabel_1="Num of commands with 0 execution time", ylabel_2="Num of HITs completed"):
+def plot_dual_hist(x:list, y1:list, y2:list, ylabel_1: str="Num of commands with 0 execution time", ylabel_2: str="Num of HITs completed") -> None:
     x_locs = np.arange(len(x))
     plt.bar(x_locs, y1, 0.3, color='g')
     plt.bar(x_locs + 0.3, y2 , 0.3, color='r')
@@ -722,7 +724,7 @@ def plot_dual_hist(x, y1, y2, ylabel_1="Num of commands with 0 execution time", 
     plt.show()
 
 #%%
-def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.json"):
+def read_turk_logs(turk_output_directory: str, filename: str) -> list:
     # Crawl turk logs directory
     all_turk_interactions = None
     len_dist = {}
@@ -738,7 +740,7 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
             turk_logs_dir=turk_output_directory, csv_filename=filename + ".csv"
         )
     ):     
-        meta_path = os.path.join(os.path.dirname(csv_path), meta_fname)
+        meta_path = os.path.join(os.path.dirname(csv_path), "job_metadata.json")
         if os.path.exists(meta_path):
             with open(meta_path, "r+") as f:
                 meta = json.load(f)
@@ -829,11 +831,11 @@ def read_turk_logs(turk_output_directory, filename, meta_fname="job_metadata.jso
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211209154235/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211209154235")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211213134540/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211213134540")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211209154235", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211213134540", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211209154235", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211213134540", "error_details")
 
 #%%
 if __name__ == "__main__":
