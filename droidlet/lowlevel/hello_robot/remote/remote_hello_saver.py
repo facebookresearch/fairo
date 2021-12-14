@@ -5,21 +5,11 @@ import json
 import cv2
 import numpy as np
 import Pyro4
+from droidlet.lowlevel.pyro_utils import safe_call
 
 Pyro4.config.SERIALIZER = "pickle"
 Pyro4.config.SERIALIZERS_ACCEPTED.add("pickle")
 Pyro4.config.PICKLE_PROTOCOL_VERSION=2
-
-def safe_call(f, *args, **kwargs):
-    try:
-        return f(*args, **kwargs)
-    except Pyro4.errors.ConnectionClosedError as e:
-        msg = "{} - {}".format(f._RemoteMethod__name, e)
-        raise ErrorWithResponse(msg)
-    except Exception as e:
-        print("Pyro traceback:")
-        print("".join(Pyro4.util.getPyroTraceback()))
-        raise e
 
 @Pyro4.expose
 class LabelPropSaver:
