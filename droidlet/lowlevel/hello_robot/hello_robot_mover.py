@@ -76,13 +76,8 @@ class HelloRobotMover(MoverInterface):
         _ = safe_call(self.data_logger.ready)
 
         intrinsic_mat = safe_call(self.cam.get_intrinsics)
-        intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
-        img_resolution = safe_call(self.cam.get_img_resolution, rotate=False)
-        img_pixs = np.mgrid[0 : img_resolution[0] : 1, 0 : img_resolution[1] : 1]
-        img_pixs = img_pixs.reshape(2, -1)
-        img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
-        uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
-        self.uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        height, width = safe_call(self.cam.get_img_resolution, rotate=False)
+        self.uv_one_in_cam = HelloRobotMover.compute_uvone(intrinsic_mat, height, width)
 
     def log_data_start(self, seconds):
         self.data_logger.save_batch(seconds)
@@ -272,7 +267,24 @@ class HelloRobotMover(MoverInterface):
             an RGBDepth object
         """
         rgb, depth, rot, trans = self.cam.get_pcd_data(rotate=False)
+        base_state = self.bot.get_base_state().value
+        uv_one_in_cam = self.uv_one_in_cam
 
+        return HelloRobotMover.compute_pcd(rgb, depth, rot, trans, base_state, uv_one_in_cam)
+
+    @staticmethod
+    def compute_uvone(intrinsic_mat, height, width):
+        intrinsic_mat_inv = np.linalg.inv(intrinsic_mat)
+        img_pixs = np.mgrid[0 : height : 1, 0 : width : 1]
+        img_pixs = img_pixs.reshape(2, -1)
+        img_pixs[[0, 1], :] = img_pixs[[1, 0], :]
+        uv_one = np.concatenate((img_pixs, np.ones((1, img_pixs.shape[1]))))
+        uv_one_in_cam = np.dot(intrinsic_mat_inv, uv_one)
+        return uv_one_in_cam
+        
+
+    @staticmethod
+    def compute_pcd(rgb, depth, rot_cam, trans_cam, base_state, uv_one_in_cam):
         rgb = np.asarray(rgb).astype(np.uint8)
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
 
@@ -290,7 +302,7 @@ class HelloRobotMover(MoverInterface):
         depth = depth.reshape(rgb.shape[0] * rgb.shape[1])
 
         # normalize by the camera's intrinsic matrix
-        pts_in_cam = np.multiply(self.uv_one_in_cam, depth)
+        pts_in_cam = np.multiply(uv_one_in_cam, depth)
         pts = pts_in_cam.T
 
         # Now, the points are in camera frame.
