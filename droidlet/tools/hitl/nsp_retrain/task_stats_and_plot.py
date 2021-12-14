@@ -178,23 +178,24 @@ def timing_charts(run_id: int, s3_bucket: int=None) -> None:
         benchmarks = {"last_status": 0, "last_pg_read": 0, "interaction_start": 0, "interaction_end": None, "command_start": 0, "first_command": True}
         command_timing = {"start": [], "end": []}
         prev_page = 1
-        for click in clicks:
-            # Instruction timing metrics
-            if 'start' in click["id"] or 'page' in click["id"] or 'instructions' in click["id"]:
-                inst_timing, benchmarks, prev_page, unit_timing, workers = instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, workers, worker)
-            # Interaction timing metrics
-            if click["id"] == 'timerON' or click["id"] == 'timerOFF':
-                benchmarks, unit_timing, workers = interaction_timing(click, benchmarks, unit_timing, workers, worker)
-            # Count and collect commands and errors
-            if "command" in click["id"] or "parsing_error" in click["id"]:
-                command_lists, command_counts, no_error_dict_list = commands_and_errors(click["id"], command_lists, command_counts, no_error_dict_list)
-            # Collect stoplight scores
-            if "interactionScores" in click["id"]:
-                scores, bonus_list, total_bonus = interaction_scores(click["id"]["interactionScores"], scores, bonus_list, total_bonus, worker)
-            # Command timing metrics:
-            command_processing_msgs = ['goToAgentThinking', 'received', 'done_thinking', 'executing', 'goToMessage']
-            if click["id"] in command_processing_msgs:
-                benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, command_start_time = command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker, command_start_time)
+        if clicks:
+            for click in clicks:
+                # Instruction timing metrics
+                if 'start' in click["id"] or 'page' in click["id"] or 'instructions' in click["id"]:
+                    inst_timing, benchmarks, prev_page, unit_timing, workers = instruction_timing(click, inst_timing, benchmarks, prev_page, unit_timing, workers, worker)
+                # Interaction timing metrics
+                if click["id"] == 'timerON' or click["id"] == 'timerOFF':
+                    benchmarks, unit_timing, workers = interaction_timing(click, benchmarks, unit_timing, workers, worker)
+                # Count and collect commands and errors
+                if "command" in click["id"] or "parsing_error" in click["id"]:
+                    command_lists, command_counts, no_error_dict_list = commands_and_errors(click["id"], command_lists, command_counts, no_error_dict_list)
+                # Collect stoplight scores
+                if "interactionScores" in click["id"]:
+                    scores, bonus_list, total_bonus = interaction_scores(click["id"]["interactionScores"], scores, bonus_list, total_bonus, worker)
+                # Command timing metrics:
+                command_processing_msgs = ['goToAgentThinking', 'received', 'done_thinking', 'executing', 'goToMessage']
+                if click["id"] in command_processing_msgs:
+                    benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, command_start_time = command_timing_metrics(click, benchmarks, unit_timing, command_timing, command_processing_times, command_lists, workers, worker, command_start_time)
 
         # Record end-of-unit timing meterics
         if benchmarks["interaction_end"]:
@@ -425,6 +426,7 @@ def commands_and_errors(click_id: dict, command_lists: dict, command_counts: dic
             command_counts["no_error"] += 1
             no_error_dict_list.append(click_id)
     return command_lists, command_counts, no_error_dict_list
+    
 #%%
 def hit_timing(content: dict, starttime: int, endtime: int, unit_timing: dict) -> Tuple[int, int, dict]:
     HIT_start_time = content["times"]["task_start"]
@@ -831,11 +833,11 @@ def read_turk_logs(turk_output_directory: str, filename: str) -> list:
     return list(set(all_turk_interactions["command"]))
 
 #%%
-read_s3_bucket("/private/home/ethancarlson/.hitl/20211213134540/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211213134540")
+read_s3_bucket("/private/home/ethancarlson/.hitl/20211214092429/turk_logs", "/private/home/ethancarlson/.hitl/parsed/20211214092429")
 print("\nNSP Outputs: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211213134540", "nsp_outputs")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211214092429", "nsp_outputs")
 print("\nError Details: ")
-read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211213134540", "error_details")
+read_turk_logs("/private/home/ethancarlson/.hitl/parsed/20211214092429", "error_details")
 
 #%%
 if __name__ == "__main__":

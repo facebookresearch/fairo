@@ -40,9 +40,10 @@ def main(run_id, performance_dir) -> list:
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"])
-        amount = bonus_dict[worker.worker_name].pop(0) # Order doesn't really matter here, but they should be filled and popped the same
-        bonus_result, _ = worker.bonus_worker(amount, "Virtual assistant interaction quality bonus", unit)
-        bonus_results.append(bonus_result)
+        if worker.worker_name in bonus_dict:  #Edge case that a worker completed a HIT with no score reported
+            amount = bonus_dict[worker.worker_name].pop(0) # Order doesn't really matter here, but they should be filled and popped the same
+            bonus_result, _ = worker.bonus_worker(amount, "Virtual assistant interaction quality bonus", unit)
+            bonus_results.append(bonus_result)
 
     print(bonus_results)
     return bonus_results
