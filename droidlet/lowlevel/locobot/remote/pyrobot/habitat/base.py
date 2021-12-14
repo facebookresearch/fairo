@@ -22,31 +22,12 @@ class LoCoBotBase(object):
         self.agent = self.sim.get_agent(self.configs.COMMON.SIMULATOR.DEFAULT_AGENT_ID)
 
         self.transform = None
-        self.init_state = self.get_full_state()
+        self.init_state = self.agent.get_state()
         self.lin_vel = self.configs.BASE.FWD_SPEED  # m/s
         self.ang_vel = self.configs.BASE.TURN_SPEED  # deg/s
         self.dt = self.configs.BASE.SIM_DT  # sec
         self.collided = False
         self._as = LocalActionServer()
-
-    def execute_action(self, action_name, actuation):
-        # actions = "turn_right" or "turn_left" or "move_forward"
-        # returns a bool showing if collided or not
-        status = self._as.get_state()
-        if not status != LocalActionStatus.ACTIVE:
-            self._as.set_active()
-            self.collided = False
-            x = threading.Thread(target=self._act, args=(action_name, actuation, True))
-            x.start()
-            return True
-        else:
-            print("Robot is still moving, can't take another move commend")
-            return False
-        return
-
-    def get_full_state(self):
-        # Returns habitat_sim.agent.AgentState
-        return self.agent.get_state()
 
     def _rot_matrix(self, habitat_quat):
         quat_list = [habitat_quat.x, habitat_quat.y, habitat_quat.z, habitat_quat.w]
@@ -54,7 +35,7 @@ class LoCoBotBase(object):
 
     def get_state(self):
         # Returns (x, y, yaw)
-        cur_state = self.get_full_state()
+        cur_state = self.agent.get_state()
 
         init_rotation = self._rot_matrix(self.init_state.rotation)
 
@@ -72,23 +53,20 @@ class LoCoBotBase(object):
         # Here ROS_X = -1 * habitat_z and ROS_Y = -1*habitat_x
         return (-1 * true_position[2], -1 * true_position[0], yaw)
 
-    def stop(self):
-        raise NotImplementedError("Veclocity control is not supported in Habitat-Sim!!")
-
     def go_to_relative(
         self, xyt_position, wait=True
     ):
         """
-		Moves the robot to the robot to given
-		goal state relative to its initial pose.
+	Moves the robot to the robot to given
+	goal state relative to its initial pose.
 
-		:param xyt_position: The  relative goal state of the form (x,y,t)
+	:param xyt_position: The  relative goal state of the form (x,y,t)
 
-		:type xyt_position: list
+	:type xyt_position: list
 
-                :return: True if successful; False otherwise (timeout, etc.)
-                :rtype: bool
-        """
+	:return: True if successful; False otherwise (timeout, etc.)
+	:rtype: bool
+	"""
 
         (cur_x, cur_y, cur_yaw) = self.get_state()
         abs_yaw = cur_yaw + xyt_position[2]
@@ -115,15 +93,15 @@ class LoCoBotBase(object):
         self, xyt_position, wait=True
     ):
         """
-		Moves the robot to the robot to given goal state in the world frame.
+	Moves the robot to the robot to given goal state in the world frame.
 
-		:param xyt_position: The goal state of the form (x,y,t)
-		                     in the world (map) frame.
+        :param xyt_position: The goal state of the form (x,y,t)
+                             in the world (map) frame.
 
-		:type xyt_position: list
+        :type xyt_position: list
 
-		:return: True if successful; False otherwise (timeout, etc.)
-		:rtype: bool
+        :return: True if successful; False otherwise (timeout, etc.)
+        :rtype: bool
 		"""
 
         (cur_x, cur_y, cur_yaw) = self.get_state()
@@ -152,10 +130,10 @@ class LoCoBotBase(object):
     def _act(self, action_name, actuation, cont_action=True, direct_call=False):
         """Take the action specified by action_id
 
-        :param action_id: ID of the action. Retreives the action from
+	:param action_id: ID of the action. Retreives the action from
             `agent_config.action_space <AgentConfiguration.action_space>`
         :return: Whether or not the action taken resulted in a collision
-        """
+		"""
         did_collide = False
         if cont_action:
             dist_moved = 0
