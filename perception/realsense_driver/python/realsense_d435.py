@@ -44,15 +44,7 @@ class RealsenseAPI:
             stream = profile.get_streams()[1]
             intrinsics = stream.as_video_stream_profile().get_intrinsics()
 
-            camera_matrix = np.eye(3)
-            camera_matrix[0, 0] = intrinsics.fx
-            camera_matrix[1, 1] = intrinsics.fy
-            camera_matrix[0, 2] = intrinsics.ppx
-            camera_matrix[1, 2] = intrinsics.ppy
-
-            dist_coeffs = np.array(intrinsics.coeffs)
-
-            intrinsics_ls.append((camera_matrix, dist_coeffs))
+            intrinsics_ls.append(intrinsics)
 
         return intrinsics_ls
 
