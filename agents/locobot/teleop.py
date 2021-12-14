@@ -244,20 +244,15 @@ if __name__ == "__main__":
         all_colors = np.asarray(opcd.colors)
         
         o3dviz.put('pointcloud', opcd)
-        cpcd = get_o3d_pointcloud(rgb_depth.ptcloud, rgb_depth.rgb)
-        # cpcd = get_o3d_pointcloud(*mover.bot.get_current_pcd())
-        crop, bbox = get_points_in_front(cpcd, mover.get_base_pos())
-        print(bbox)
-        crop.paint_uniform_color([0.0, 1.0, 1.0])
-        # cpcd.paint_uniform_color([0.0, 1.0, 1.0])
+        obstacle, cpcd, crop, bbox = mover.is_obstacle_in_front(return_viz=True)
+        if obstacle:
+            crop.paint_uniform_color([1.0, 0.0, 1.0])
+        else:
+            crop.paint_uniform_color([0.0, 1.0, 0.0])
         o3dviz.put("cpcd", cpcd)
         o3dviz.put("bbox", bbox)
         o3dviz.put("crop", crop)
-        rest = get_ground_plane(crop, return_ground=False)
-        rest.paint_uniform_color([1.0, 0.0, 0.0])
-        o3dviz.put("rest", rest)
         
-        print(is_obstacle(cpcd, mover.get_base_pos()))
         # print(mover.bot.is_obstacle_in_front())
 
         # Plot the robot
