@@ -36,7 +36,7 @@ class O3dViz(threading.Thread):
         self.y_axis = y_axis
         self.reset_camera = True
 
-    def add_robot(self, base_state, base=True, canonical=True):
+    def add_robot(self, base_state, base=True, canonical=True, height=1.41):
         x, y, yaw = base_state.tolist()
         if canonical:
             x_old, y_old = x, y
@@ -60,7 +60,7 @@ class O3dViz(threading.Thread):
         self.put('bot_orientation', robot_orientation)
 
         if base:
-            height = 1.41 # hello-robot stretch is 141 cms high
+            height = height # hello-robot stretch is 141 cms high
             radius = 0.34 / 2 # hello-robot stretch is 34cm x 33 cm footprint
             robot_base = o3d.geometry.TriangleMesh.create_cylinder(radius=radius,
                                                        height=height,)
