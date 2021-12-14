@@ -262,7 +262,11 @@ if __name__ == "__main__":
         # Plot the robot
         x, y, yaw = base_state.tolist()
 
-        o3dviz.add_robot(base_state, height=0.63)
+        if backend == 'locobot':
+            height=0.63
+        else: # hello-robot
+            height=1.41
+        o3dviz.add_robot(base_state, height)
 
         # start the SLAM
         if backend == 'habitat':
