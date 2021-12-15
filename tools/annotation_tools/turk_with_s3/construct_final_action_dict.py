@@ -214,8 +214,11 @@ def clean_dict_1(a_dict):
             new_d[k] = val
     # only for now
     if "dance_type_span" in new_d:
-        new_d["dance_type"] = {}
-        new_d["dance_type"]["dance_type_name"] = new_d["dance_type_span"]
+        new_d["dance_type"] = {"filters": {
+            "where_clause": {"AND": [{
+                "pred_text": "has_tag",
+                "obj_text": new_d["dance_type_span"]}]}}
+        }
         new_d.pop("dance_type_span")
     if "has_block_type" in new_d:
         new_d['schematic'] = {
