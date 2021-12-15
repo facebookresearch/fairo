@@ -62,6 +62,21 @@
         },
         "schematic": {
           "$ref": "#/definitions/schematic"
+        },
+        "dialogue_target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "filters": {
+                  "$ref": "filters.schema.json#/definitions/filters"
+                }
+              }
+            }
+          ]
         }
       },
       "anyOf": [
