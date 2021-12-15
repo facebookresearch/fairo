@@ -9,6 +9,7 @@ import logging.handlers
 import os
 import pickle
 import math
+import sys
 from time import time
 
 from os.path import isfile
@@ -20,7 +21,10 @@ import torch.utils.tensorboard
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.optim import Adam
 
-from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import build_model
+from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_model import (
+    build_model,
+    load_model,
+)
 from droidlet.perception.semantic_parsing.utils.nsp_logger import NSPLogger
 from droidlet.perception.semantic_parsing.nsp_transformer_model.utils_parsing import (
     compute_accuracy,
@@ -167,7 +171,8 @@ class ModelTrainer:
             loc_full_acc = 0.0
             text_span_accuracy = 0.0
             st_time = time()
-            for step, batch in enumerate(epoch_iterator):
+            if False:
+                #            for step, batch in enumerate(epoch_iterator):
                 batch_examples = batch[-1]
                 batch_tensors = [
                     t.to(model.decoder.lm_head.predictions.decoder.weight.device)
@@ -286,11 +291,13 @@ class ModelTrainer:
                     loc_full_acc = 0.0
                     text_span_accuracy = 0.0
                     text_span_loc_loss = 0.0
-            save_model(model, model_identifier, dataset, self.args, full_tree_voc, e)
+            # save_model(model, model_identifier, dataset, self.args, full_tree_voc, e)
             # Evaluating model
             model.eval()
             logging.info("evaluating model")
             for dtype, ratio in self.args.dtype_samples.items():
+                if dtype == "templated" or dtype == "templated_filters":
+                    continue
                 l, a = self.eval_model_on_dataset(e, model, dtype, full_tree_voc, tokenizer)
                 logging.info(
                     "evaluating on {} valid: \t Loss: {:.4f} \t Accuracy: {:.4f} at epoch {}".format(
@@ -456,6 +463,30 @@ def build_grammar(args):
     json.dump((full_tree, tree_i2w), open(args.tree_voc_file, "w"))
 
 
+def fix_dtype_samples_args(args):
+    """ hack to get dtype_samples into a dict"""
+    if type(args.dtype_samples) is dict:
+        return args
+    dtype_samples = {}
+    if args.dtype_samples.find("]") > 0:
+        # Hack for old args format, FIXME, remove!
+        j = json.loads(args.dtype_samples)
+        for d in j:
+            dtype_samples[d[0]] = float(d[1])
+    else:
+        for x in args.dtype_samples.split(";"):
+            y = x.split(":")
+            dtype_samples[y[0]] = float(y[1])
+    args.dtype_samples = dtype_samples
+    # HACK: allows us to give rephrase proba only instead of full dictionary
+    # FIXME this is probably wrong now
+    if args.rephrase_proba > 0:
+        args.dtype_samples = json.dumps(
+            [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
+        )
+    return args
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -591,19 +622,15 @@ if __name__ == "__main__":
         type=float,
         help="Attenuation factor for fixed value loss gradient affecting shared layers for tree structure prediction",
     )
+    # FIXME more care in overriding opts
+    parser.add_argument(
+        "--load_model",
+        default="",
+        help="if not empty, this is a path to a model to warm start from.  will overide opts",
+    )
     args = parser.parse_args()
-    dtype_samples = {}
-    for x in args.dtype_samples.split(";"):
-        y = x.split(":")
-        dtype_samples[y[0]] = float(y[1])
-    args.dtype_samples = dtype_samples
-
+    args = fix_dtype_samples_args(args)
     os.makedirs(args.output_dir, exist_ok=True)
-    # HACK: allows us to give rephrase proba only instead of full dictionary
-    if args.rephrase_proba > 0:
-        args.dtype_samples = json.dumps(
-            [["templated", 1.0 - args.rephrase_proba], ["rephrases", args.rephrase_proba]]
-        )
 
     model_identifier = generate_model_name(args, args.optional_identifier)
 
@@ -616,19 +643,37 @@ if __name__ == "__main__":
     l_root = logging.getLogger()
     l_root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
     l_root.addHandler(l_handler)
+    l_root.addHandler(logging.StreamHandler(sys.stdout))
+    if args.load_model:
+        if args.load_model[-3:] == "pth":
+            logging.info("loading model from {}".format(args.load_model))
+            model_name = os.path.basename(args.load_model)
+            model_dir = os.path.dirname(args.load_model)
+            sd, tree_voc, tree_idxs, args, full_tree_voc = load_model(
+                model_dir, model_name=model_name
+            )
+        else:
+            logging.info("loading model from {}".format(args.load_model + "caip_test_model.pth"))
+            sd, tree_voc, tree_idxs, args, full_tree_voc = load_model(args.load_model)
+        args = fix_dtype_samples_args(args)
+        full_tree, tree_i2w = full_tree_voc
+        dec_with_loss, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
+        encoder_decoder.load_state_dict(sd, strict=True)
+    else:
+        if isfile(args.tree_voc_file):
+            logging.info("====== Loading Grammar ======")
+        else:
+            logging.info("====== Making Grammar ======")
+            build_grammar(args)
+        with open(args.tree_voc_file) as fd:
+            full_tree, tree_i2w = json.load(fd)
+
+        logging.info("====== Setting up Model ======")
+        dec_with_loss, encoder_decoder, tokenizer = build_model(args, tree_i2w)
+
     logging.info("****** Args ******")
     logging.info(vars(args))
     logging.info("model identifier: {}".format(model_identifier))
-    if isfile(args.tree_voc_file):
-        logging.info("====== Loading Grammar ======")
-    else:
-        logging.info("====== Making Grammar ======")
-        build_grammar(args)
-    with open(args.tree_voc_file) as fd:
-        full_tree, tree_i2w = json.load(fd)
-
-    logging.info("====== Setting up Model ======")
-    dec_with_loss, encoder_decoder, tokenizer = build_model(args, tree_i2w)
 
     logging.info("====== Loading Dataset ======")
     train_dataset = CAIPDataset(

@@ -26,7 +26,10 @@ def build_model(args, tree_i2w):
 
 
 def load_model(model_dir, model_name="caip_test_model"):
-    path = os.path.join(model_dir, model_name + ".pth")
+    if model_name[-3:] == "pth":
+        path = os.path.join(model_dir, model_name)
+    else:
+        path = os.path.join(model_dir, model_name + ".pth")
     try:
         M = torch.load(path, map_location="cpu")
         sd = M["state_dict"]
