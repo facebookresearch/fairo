@@ -48,7 +48,7 @@ def compute_location_heuristic(mems, steps, reldir, memory):
         else:  # LEFT, RIGHT, etc...
             reldir_vec = memory.coordinate_transforms.DIRECTIONS[reldir]
             yaw, _ = self_mem.get_yaw_pitch()  # work in agent frame
-            # this should be an inverse transform so we set inverted=True
+            # we are converting a agent-frame reldir to absolute frame so we set inverted=True
             dir_vec = memory.coordinate_transforms.transform(reldir_vec, yaw, 0, inverted=True)
             loc = steps * np.array(dir_vec) + np.array(loc)
     elif steps is not None:

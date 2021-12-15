@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import time
+import math
 import logging
 import numpy as np
 
@@ -40,30 +41,43 @@ class Dance(Task):
         self.finished = True
 
 
+def torad(deg):
+    if deg:
+        return deg * math.pi / 180 
+
 #### TODO, FIXME!:
 #### merge Look, Point, Turn into dancemove; on mc side too
 class Look(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.target = task_data.get("target")
-        self.yaw = task_data.get("yaw")
-        self.pitch = task_data.get("pitch")
-        assert self.yaw or self.pitch or self.target
+        self.task_data = task_data
+        assert(
+            task_data.get("target") or
+            task_data.get("pitch") or
+            task_data.get("yaw") or
+            task_data.get("relative_yaw") or
+            task_data.get("relative_pitch")
+        )
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
     def step(self):
         self.finished = False
-        self.interrupted = False
-        if self.target:
-            logging.info(f"calling bot to look at location {self.target}")
-        if self.pitch:
-            logging.info(f"calling bot to shift pitch {self.pitch}")
-        if self.yaw:
-            logging.info(f"calling bot to shift yaw {self.yaw}")
+        self.interrupted = False 
         if not self.command_sent:
-            status = self.agent.mover.look_at(self.target, self.yaw, self.pitch)
+            if self.task_data.get("target"):
+                status = self.agent.mover.look_at(self.task_data["target"])
+            if self.task_data.get("pitch") or self.task_data.get("yaw"):
+                status = self.agent.mover.set_look(
+                    torad(self.task_data.get("yaw")),
+                    torad(self.task_data.get("pitch"))
+                )
+            if self.task_data.get("relative_pitch") or self.task_data.get("relative_yaw"):
+                status = self.agent.mover.relative_pan_tilt(
+                    torad(self.task_data.get("relative_yaw")),
+                    torad(self.task_data.get("relative_pitch"))
+                ) 
             self.command_sent = True
             if status == "finished":
                 self.finished = True
@@ -71,11 +85,12 @@ class Look(Task):
             self.finished = self.agent.mover.bot_step()
 
     def __repr__(self):
-        if self.target:
-            return "<Look at {} {} {}>".format(self.target[0], self.target[1], self.target[2])
+        if self.task_data.get("target"):
+            target = self.task_data.get["target"]
+            return "<Look at {} {} {}>".format(target[0], target[1], target[2])
         else:
-            return "<Look at {} {}>".format(self.pitch, self.yaw)
-
+            return "<Look: {}".format(self.task_data)
+        
 
 class Point(Task):
     def __init__(self, agent, task_data):
@@ -160,7 +175,7 @@ class Move(BaseMovementTask):
 class Turn(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent)
-        self.yaw = task_data["yaw"]
+        self.yaw = task_data.get("yaw") or task_data.get("relative_yaw") 
         self.command_sent = False
         TaskNode(agent.memory, self.memid).update_task(task=self)
 

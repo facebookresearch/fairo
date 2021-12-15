@@ -123,7 +123,8 @@ class FaceRecognition(AbstractHandler):
 
         unknown_face_encodings = fr.face_encodings(img, self.face_locations)
 
-        logging.debug(f"Detected {len(self.face_locations)} face(s)")
+        if self.verbose > 0:
+            logging.debug(f"Detected {len(self.face_locations)} face(s)")
 
         for face_encoding in unknown_face_encodings:
             name = "Unknown"
@@ -142,7 +143,8 @@ class FaceRecognition(AbstractHandler):
 
     def __call__(self, rgb_depth):
         self.detect_faces(rgb_depth)
-        logging.info("In FaceDetectionHandler ... ")
+        if self.verbose > 0:
+            logging.info("In FaceDetectionHandler ... ")
         detections = []
         for i, face in enumerate(zip(self.face_names, self.face_locations)):
             name, loc = face
