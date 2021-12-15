@@ -120,6 +120,12 @@ class CAIPDataset(Dataset):
             p_text, p_tree = t
         except ValueError as e:
             print(e)
+        try:
+            t = self.data[dtype][idx % len(self.data[dtype])]
+            p_text, p_tree = t
+        except ValueError as e:
+            print(e)
+        print(f"ptext: {p_text}, ptree: {p_tree}")
         text, tree = tokenize_linearize(
             p_text, p_tree, self.tokenizer, self.full_tree, self.word_noise
         )
