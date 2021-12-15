@@ -91,7 +91,13 @@ class Launcher(BaseLauncher):
         }
         util.nested_dict_update(run_kwargs, self.kwargs)
 
-        self.proc = await docker.containers.create_or_replace(container, run_kwargs)
+        try:
+            self.proc = await docker.containers.create_or_replace(container, run_kwargs)
+        except Exception as e:
+            life_cycle.set_state(self.name, life_cycle.State.STOPPED, return_code=-1)
+            await docker.close()
+            util.fail(f"Failed to start docker process: name={self.name} reason={e}")
+
         await self.proc.start()
 
         proc_info = await self.proc.show()
