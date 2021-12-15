@@ -634,6 +634,8 @@ if __name__ == "__main__":
 
     model_identifier = generate_model_name(args, args.optional_identifier)
 
+    eval_data_dir = args.data_dir
+
     # set up logging
     l_handler = logging.handlers.WatchedFileHandler(
         "{}/{}.log".format(args.output_dir, model_identifier)
@@ -684,6 +686,8 @@ if __name__ == "__main__":
         word_noise=args.word_dropout,
         full_tree_voc=(full_tree, tree_i2w),
     )
+
+    args.data_dir = eval_data_dir
 
     logging.info("====== Training Model ======")
     encoder_decoder = encoder_decoder.cuda()
