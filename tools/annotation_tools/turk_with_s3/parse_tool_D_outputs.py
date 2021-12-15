@@ -287,7 +287,7 @@ def handle_components(d):
         if ranking_measure == "argmax":
             polarity = "MAX"
         output["selector"] = {"return_quantity": {}}
-        output["selector"]["return_quantity"]["argval"] = {"polarity": polarity, "quantity": updated_dict["quantity"]}
+        output["selector"]["return_quantity"]["argval"] = {"polarity": polarity, "quantity": {"attribute": updated_dict["quantity"]}}
         # handle argmax and argmin
         if "ordinal" in updated_dict:
             if type(updated_dict["ordinal"]) == str:
