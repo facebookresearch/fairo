@@ -1,7 +1,27 @@
 /*
    Copyright (c) Facebook, Inc. and its affiliates.
 
- * Question.js handles the template for the question and answers in NSP error labeling
+ * Question.js handles the template for the question and answers in error labeling
+ * The error labeling logical tree is as follows:
+                      Outcome As Expected?
+                             /   \
+               No Error <- Yes    No
+                                  |
+                        Did Agent Understand?
+                               /   \
+                             Yes    No -> NSP Error
+                              |
+                    Location Ref Exists?
+                            /   \
+                          Yes    No -> Other Error
+                           |
+             Found Location Ref in Memory?
+                         /   \
+                       Yes    No -> Perception Error
+                        |
+           Is 'This' the Location Ref?
+                     /   \
+    Other Error <- Yes    No -> Perception Error
  */
 
 import React, { Component } from "react";
@@ -20,65 +40,29 @@ class Question extends Component {
     this.state = {
       view: 0,
       parsing_error: false,
+      perception_error: false,
       task_error: false,
       action_dict: {},
       feedback: "",
     };
   }
 
-  finishQuestions() {
-    /*
-     * finished answering the questions
-     * send the data collected to backend to handle storing it
-     * go back to the messages page.
-     */
-    var data = {
-      action_dict: this.state.action_dict,
-      parsing_error: this.state.parsing_error,
-      task_error: this.state.task_error,
-      msg: this.props.chats[this.props.failidx].msg,
-      feedback: this.state.feedback,
-    };
-
-    // Emit socket.io event to save data to error logs and Mephisto
-    this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
-    // Parsed: data.msg.data = data
-    window.parent.postMessage(JSON.stringify({ msg: data }), "*");
-    // go back to message page after writing to database
-    this.props.goToMessage();
+  componentDidMount() {
+    this.props.stateManager.memory.commandState = "idle";
+    var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
+    this.setState({
+      action_dict: lastChatActionDict,
+      agent_reply: this.props.stateManager.memory.last_reply,
+    });
   }
 
-  saveFeedback(event) {
-    //save feedback in state
-    this.setState({ feedback: event.target.value });
-  }
-
-  renderParsingFail() {
+  renderActionQuestion() {
     return (
       <div>
         <h3>
           {" "}
-          Thanks for letting me know that I didn't understand the command right.{" "}
-        </h3>
-        <List className="answers" component="nav">
-          <ListItem button onClick={this.finishQuestions.bind(this)}>
-            <ListItemText className="listButton" primary="Done" />
-          </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 0 })}>
-            <ListItemText className="listButton" primary="Go Back" />
-          </ListItem>
-        </List>
-      </div>
-    );
-  }
-
-  renderParsingSuccess() {
-    return (
-      <div>
-        <h3>
+          Did I successfully do the task you asked me to complete?
           {" "}
-          Okay, it seems like I understood your command. Did I successfully do
-          the task you asked me to complete?{" "}
         </h3>
         <List className="answers" component="nav">
           <ListItem button onClick={() => this.answerAction(1)}>
@@ -87,66 +71,24 @@ class Question extends Component {
           <ListItem button onClick={() => this.answerAction(2)}>
             <ListItemText className="listButton" primary="No" />
           </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 0 })}>
-            <ListItemText className="listButton" primary="Go Back" />
-          </ListItem>
         </List>
       </div>
     );
   }
 
-  renderActionFail() {
-    return (
-      <div>
-        <h3>
-          {" "}
-          Okay, looks like I understood your command but didn't complete it.
-          Please tell me more about what I did wrong:{" "}
-        </h3>
-        <TextField
-          id="outlined-uncontrolled"
-          label=""
-          margin="normal"
-          variant="outlined"
-          onChange={(event) => this.saveFeedback(event)}
-        />
-        <List className="answers" component="nav">
-          <ListItem button onClick={this.finishQuestions.bind(this)}>
-            <ListItemText className="listButton" primary="Done" />
-          </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 2 })}>
-            <ListItemText className="listButton" primary="Go Back" />
-          </ListItem>
-        </List>
-      </div>
-    );
+  answerAction(index) {
+    //answer to question #1
+    //handles after the user submits the answer (y/n) to if the agent task was correct
+    if (index === 1) {
+      // yes, no error, go to end
+      this.setState({ view: 5 });
+    } else if (index === 2) {
+      // no, error exists, go to parser question
+      this.setState({ view: 1 });
+    }
   }
 
-  renderEnd() {
-    //end screen, user can put any additional feedback
-    return (
-      <div>
-        <h3> Thanks! Submit any other feedback here (optional): </h3>
-        <TextField
-          id="outlined-uncontrolled"
-          label=""
-          margin="normal"
-          variant="outlined"
-          onChange={(event) => this.saveFeedback(event)}
-        />
-        <List className="answers" component="nav">
-          <ListItem button onClick={this.finishQuestions.bind(this)}>
-            <ListItemText className="listButton" primary="Done" />
-          </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 2 })}>
-            <ListItemText className="listButton" primary="Go Back" />
-          </ListItem>
-        </List>
-      </div>
-    );
-  }
-
-  renderSemanticParserErrorQuestion() {
+  renderParserQuestion() {
     /* check if the parser was right.*/
 
     if (this.state.action_dict) {
@@ -304,7 +246,7 @@ class Question extends Component {
         question_word = "to do nothing ?";
       }
     } else {
-      //end screen, user can put any additional feedback
+      // shouldn't happen
       return (
         <div>
           <h3> Thanks! Press to continue.</h3>
@@ -328,6 +270,9 @@ class Question extends Component {
           <ListItem button onClick={() => this.answerParsing(2)}>
             <ListItemText className="listButton" primary="No" />
           </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 0 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
         </List>
       </div>
     );
@@ -337,22 +282,186 @@ class Question extends Component {
     //handles after the user submits the answer (y/n) to if NSP errored or not
     if (index === 1) {
       // yes, so not a parsing error
-      this.setState({ parsing_error: false, view: 2 });
+      this.evalCommandPerception();
     } else if (index === 2) {
       // no, so parsing error
-      this.setState({ parsing_error: true, view: 1 });
+      this.setState({ parsing_error: true, view: 2 });
     }
   }
 
-  answerAction(index) {
-    //handles after the user submits the answer (y/n) to if the agent task was correct
-    if (index === 1) {
-      // yes, so not a task error
-      this.setState({ view: 4 });
-    } else if (index === 2) {
-      // no, so yes a task error
-      this.setState({ task_error: true, view: 3 });
+  renderParsingFail() {
+    return (
+      <div>
+        <h3>
+          {" "}
+          Thanks for letting me know that I didn't understand the command right.{" "}
+        </h3>
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 1 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
+      </div>
+    );
+  }
+
+  evalCommandPerception() {
+    //                 Location Ref Exists?
+    //                         /   \
+    //                       Yes    No -> Other Error
+    //                        |
+    //             Found Location in Memory?
+    //                      /   \
+    //                    Yes    No -> Perception Error
+    
+    if (this.state.action_dict) {
+      let locationRef = null;
+      const action_dict = this.state.action_dict.action_sequence[0];
+      // Check for location at top level and extract the reference text
+      if ("location" in action_dict) {
+        if ("text_span" in action_dict.location) {
+          locationRef =
+            "'" +
+            action_dict.location.text_span +
+            "'";
+        }
+        else if ("reference_object" in action_dict.location) {
+          if ("text_span" in action_dict.location.reference_object) {
+            locationRef =
+            "'" +
+            action_dict.location.reference_object.text_span +
+            "'";
+          }
+          // If we don't have a convenient text_span, find the words referenced by index
+          else if ("where_clause" in action_dict.location.reference_object.filters) {
+            let qty = "";
+            if ("selector" in action_dict.location.reference_object.filters) {
+              qty = action_dict.location.reference_object.filters.selector.ordinal;
+            }
+            let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
+            action_dict.location.reference_object.filters.where_clause.AND.forEach(
+              (clause) => {
+                if (clause.pred_text === "has_size")
+                  antecedent[1] = clause.obj_text;
+                else if (clause.pred_text === "has_colour")
+                  antecedent[2] = clause.obj_text;
+                else if (clause.pred_text === "has_block_type")
+                  antecedent[3] = clause.obj_text;
+                else if (clause.pred_text === "has_name")
+                  antecedent[4] = clause.obj_text;
+              }
+            );
+            locationRef = 
+              "'" +
+              antecedent.join(" ").replace(/  +/g, " ").trim() +
+              "'";
+          }
+        }
+      }
+      // If there's no location reference, there can't be a perception error
+      else {
+        this.setState({
+          parsing_error: false,
+          perception_error: false,
+          view: 3,
+        });
+        return
+      }
+    } else {
+      // shouldn't happen
+      return (
+        <div>
+          <h3> Thanks! Press to continue.</h3>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => this.props.goToMessage()}
+          >
+            Done
+          </Button>
+        </div>
+      );
     }
+
+    
+  }
+
+  renderVisionQuestion() {
+    //        Is 'This' the Location Ref?
+    //                  /   \
+    // Other Error <- Yes    No -> Perception Error
+
+    
+    return (
+      <div>
+        <h3>
+          {" "}
+          Okay, looks like I understood your command but didn't complete it.
+          Please tell me more about what I did wrong:{" "}
+        </h3>
+        <TextField
+          id="outlined-uncontrolled"
+          label=""
+          margin="normal"
+          variant="outlined"
+          onChange={(event) => this.saveFeedback(event)}
+        />
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 2 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
+      </div>
+    );
+  }
+
+  answerVision(index) {
+    //handles after the user submits the answer (y/n) to if NSP errored or not
+    if (index === 1) {
+      // yes, so not a parsing error
+      this.setState({ parsing_error: false, view: 2 });
+    } else if (index === 2) {
+      // no, so parsing error
+      this.setState({ parsing_error: true, view: 3 });
+    }
+  }
+
+  renderOtherError() {
+    return (
+      <div>
+        <h3>
+          {" "}
+          Okay, looks like I understood your command but didn't complete it.
+          Please tell me more about what I did wrong:{" "}
+        </h3>
+        <TextField
+          id="outlined-uncontrolled"
+          label=""
+          margin="normal"
+          variant="outlined"
+          onChange={(event) => this.saveFeedback(event)}
+        />
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 1 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
+      </div>
+    );
+  }
+
+  saveFeedback(event) {
+    //save feedback in state
+    this.setState({ feedback: event.target.value });
   }
 
   goToEnd(new_action_dict) {
@@ -360,13 +469,50 @@ class Question extends Component {
     this.setState({ view: 4, new_action_dict: new_action_dict });
   }
 
-  componentDidMount() {
-    this.props.stateManager.memory.commandState = "idle";
-    var lastChatActionDict = this.props.stateManager.memory.lastChatActionDict;
-    this.setState({
-      action_dict: lastChatActionDict,
-      agent_reply: this.props.stateManager.memory.last_reply,
-    });
+  renderEnd() {
+    //end screen, user can put any additional feedback
+    return (
+      <div>
+        <h3> Thanks! Submit any other feedback here (optional): </h3>
+        <TextField
+          id="outlined-uncontrolled"
+          label=""
+          margin="normal"
+          variant="outlined"
+          onChange={(event) => this.saveFeedback(event)}
+        />
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 0 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
+      </div>
+    );
+  }
+
+  finishQuestions() {
+    /*
+     * finished answering the questions
+     * send the data collected to backend to handle storing it
+     * go back to the messages page.
+     */
+    var data = {
+      action_dict: this.state.action_dict,
+      parsing_error: this.state.parsing_error,
+      task_error: this.state.task_error,
+      msg: this.props.chats[this.props.failidx].msg,
+      feedback: this.state.feedback,
+    };
+
+    // Emit socket.io event to save data to error logs and Mephisto
+    this.props.stateManager.socket.emit("saveErrorDetailsToCSV", data);
+    // Parsed: data.msg.data = data
+    window.parent.postMessage(JSON.stringify({ msg: data }), "*");
+    // go back to message page after writing to database
+    this.props.goToMessage();
   }
 
   render() {
@@ -380,13 +526,12 @@ class Question extends Component {
           The assistant responded:<br></br>
           <strong>{this.state.agent_reply}</strong>
         </div>
-        {this.state.view === 0
-          ? this.renderSemanticParserErrorQuestion()
-          : null}
-        {this.state.view === 1 ? this.renderParsingFail() : null}
-        {this.state.view === 2 ? this.renderParsingSuccess() : null}
-        {this.state.view === 3 ? this.renderActionFail() : null}
-        {this.state.view === 4 ? this.renderEnd() : null}
+        {this.state.view === 0 ? this.renderActionQuestion() : null}
+        {this.state.view === 1 ? this.renderParserQuestion() : null}
+        {this.state.view === 2 ? this.renderParsingFail() : null}
+        {this.state.view === 3 ? this.renderVisionQuestion() : null}
+        {this.state.view === 4 ? this.renderVisionFail() : null}
+        {this.state.view === 5 ? this.renderEnd() : null}
       </div>
     );
   }
