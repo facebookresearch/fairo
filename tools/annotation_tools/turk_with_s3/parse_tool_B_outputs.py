@@ -257,47 +257,27 @@ def process_dict(d):
                 r["location"].update(x)
                 dirn = r["location"]["relative_direction"]
                 for k, v in d.items():
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object.has_name.".format(
-                            dirn
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.has_name.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object.location.".format(
-                            dirn
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.location.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object.contains_coreference".format(
-                            dirn
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.contains_coreference")
+                    print(bool(re.match(reg, k)), k, v)
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_1.has_name.".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.has_name.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_1.contains_coreference".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.contains_coreference")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_2.has_name.".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_2.has_name.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_2.contains_coreference".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_2.contains_coreference")
+                    if bool(re.match(reg, k)):
                         d[k] = None
             else:
                 del r["location"]["location_type"]
@@ -308,7 +288,6 @@ def process_dict(d):
             del r["location"]["relative_direction"]
 
     for k, v in d.items():
-
         if (
             k == "location"
             or k in ["COPY"]
@@ -326,18 +305,16 @@ def process_dict(d):
                 r[prefix] = [[idx, idx]]
         elif k == "reference_object" and v == "contains_coreference.yes":
             r["reference_object"] = {"contains_coreference": "yes"}
-
         # handle nested dict
         elif "." in k:
             prefix, rest = k.split(".", 1)
             prefix_snake = snake_case(prefix)
             r[prefix_snake] = r.get(prefix_snake, {})
             r[prefix_snake].update(process_dict(with_prefix(d, prefix + ".")))
-
         # handle const value
         else:
             r[k] = v
-
+    
     return r
 
 
@@ -431,8 +408,6 @@ def handle_components(d, child_name):
                         child_d["location"]["reference_object"]["special_reference"] = {
                             "fixed_value": updated_value
                         }
-
-
                     if "coordinates" in child_d["location"]:
                         del child_d["location"]["coordinates"]
         output.update(child_d)

@@ -211,20 +211,20 @@ def process_dict(d):
                     reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.location.")
                     if bool(re.match(reg, k)):
                         d[k] = None
-                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.contains_coreference.")
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.contains_coreference")
                     if bool(re.match(reg, k)):
                         d[k] = None
                     reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.has_name.")
                     if bool(re.match(reg, k)):
                         d[k] = None
-                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.contains_coreference.")
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.contains_coreference")
                     if bool(re.match(reg, k)):
                         d[k] = None
                     reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_2.has_name.")
                     if bool(re.match(reg, k)):
                         d[k] = None
                     eg = re.compile(
-                        "location.REFERENCE_OBJECT.relative_direction..+reference_object_2.contains_coreference.")
+                        "location.REFERENCE_OBJECT.relative_direction..+reference_object_2.contains_coreference")
                     if bool(re.match(reg, k)):
                         d[k] = None
             else:
