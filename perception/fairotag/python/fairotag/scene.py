@@ -232,8 +232,8 @@ class Scene:
                 # Add observations
                 graph.add_observation(c_node, m_node, marker_obs.pose, self._camera_noise)
 
-    def _add_frame_transforms(self, graph, frame_transforms, lock_frames):
-        for frame1_name, frame2_name, transform, noise in frame_transforms:
+    def _add_frame_transforms(self, graph, frame_transforms, prefix, lock_frames):
+        for frame1_name, frame2_name, transform in frame_transforms:
             f1 = self._frames[frame1_name]
             f2 = self._frames[frame2_name]
             f1_node = f"f_{prefix}_{frame1_name}"
@@ -241,7 +241,7 @@ class Scene:
 
         self._init_frame(graph, frame1_name, prefix=prefix, lock_frames=lock_frames)
         self._init_frame(graph, frame2_name, prefix=prefix, lock_frames=lock_frames)
-        graph.add_observation(f1_node, f2_node, transform, noise)
+        graph.add_observation(f1_node, f2_node, transform, self._calib_noise)
 
     def _optimize_and_update(self, graph, verbosity=0):
         # Optimize graph
