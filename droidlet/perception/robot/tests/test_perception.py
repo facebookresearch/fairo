@@ -12,6 +12,7 @@ from droidlet.perception.robot import (
     ObjectDeduplicator,
     Perception,
     Detection,
+    LabelPropagate,
 )
 from droidlet.interpreter.robot import dance
 from droidlet.memory.robot.loco_memory import LocoAgentMemory
@@ -22,6 +23,9 @@ import cv2
 import torch
 from PIL import Image
 from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
+import numpy as np
+import json
+import time
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -48,8 +52,69 @@ FACES_IDS_DIR = os.path.join(
     os.path.dirname(__file__),
     "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/faces")
 
+LABEL_PROP_TEST_ASSETS_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/label_prop_test_assets")
+
 logging.getLogger().setLevel(logging.INFO)
 
+class LabelPropTest(unittest.TestCase):
+    def setUp(self):
+        self.lp = LabelPropagate()
+        self.test_assets = LABEL_PROP_TEST_ASSETS_DIR
+
+    def read_test_asset_idx(self, root, img_indx):
+        src_img = cv2.imread(os.path.join(root, "rgb_{:05d}.jpg".format(img_indx)))
+        src_depth = np.load(os.path.join(root, "depth_{:05d}.npy".format(img_indx)))
+        src_label = np.load(os.path.join(root, "seg_{:05d}.npy".format(img_indx)))
+        with open(os.path.join(root, "data.json"), "r") as f:
+            base_pose_data = json.load(f)
+        src_pose = base_pose_data["{}".format(img_indx)]
+        
+        # Visualize label
+        return src_img, src_label, src_depth, src_pose, None
+    
+    def calculate_accuracy(self, act, pred):
+        h, w = act.shape
+        assert act.shape == pred.shape
+        
+        correct = np.sum(act[pred != 0] == pred[pred != 0])
+        total = np.sum(pred != 0)
+        
+        return correct/total
+    
+    def _run_test(self, data_dir):
+        """
+        Checks that each label prop call runs in < 0.1 seconds with > 90% accuracy
+        """
+        lp = LabelPropagate()
+        for x in os.listdir(data_dir):
+            dd = os.path.join(data_dir, x)
+            
+            # Each test asset folder has one source id, and one id to label propagate to
+            ids = []
+            with open(os.path.join(dd, 'gtids.txt'), 'r') as f:
+                ids = f.readlines()
+                ids = [int(x.strip()) for x in ids]
+                            
+            src_img, src_label, src_depth, src_pose, cam_transform = self.read_test_asset_idx(dd, ids[0])
+            cur_img, cur_label, cur_depth, cur_pose, cam_transform = self.read_test_asset_idx(dd, ids[1])
+            
+            start = time.time()
+            prop_label = self.lp(src_img, src_depth, src_label, src_pose, cur_pose, cur_depth)
+            time_taken = time.time() - start
+            logging.info(f'time taken {time_taken}')
+            acc = self.calculate_accuracy(cur_label, prop_label)
+            assert acc*100 > 90, f'accuracy {acc} < 90'
+        
+    def test_label_prop_nonoise(self):
+        data_dir = os.path.join(self.test_assets, 'no_noise')
+        self._run_test(data_dir)
+            
+    def test_label_prop_noise(self):
+        data_dir = os.path.join(self.test_assets, 'noise')
+        self._run_test(data_dir)
+    
 
 class PerceiveTimeTest(unittest.TestCase):
     def setUp(self) -> None:
