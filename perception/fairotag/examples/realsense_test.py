@@ -53,9 +53,9 @@ class RealSenseCamera:
             camera_matrix[0, 2] = intrinsics.ppx
             camera_matrix[1, 2] = intrinsics.ppy
 
-            dist_coeffs = np.array(intrinsics.coeffs)
+            coeffs = np.array(intrinsics.coeffs)
 
-            intrinsics_ls.append((camera_matrix, dist_coeffs))
+            intrinsics_ls.append((camera_matrix, coeffs))
 
         return intrinsics_ls
 

@@ -28,7 +28,7 @@ if __name__ == "__main__":
     # Set intrinsics
     intrinsics = {
         "matrix": np.array([[613.0, 0.0, 640.0], [0.0, 613.0, 360.0], [0.0, 0.0, 1.0]]),
-        "dist_coeffs": np.zeros([1, 5]),
+        "coeffs": np.zeros([1, 5]),
     }
     camera1.set_intrinsics(**intrinsics)
     camera2.set_intrinsics(**intrinsics)

@@ -24,11 +24,11 @@ CALIB_SAMPLE_INTERVAL = 0.5
 if __name__ == "__main__":
     # Initialize camera
     camera = RealSenseCamera()
-    matrix, dist_coeffs = camera.get_intrinsics()
+    matrix, coeffs = camera.get_intrinsics()
 
     # Initialize camera module & scene module
     c = frt.CameraModule()
-    c.set_intrinsics(matrix=matrix, dist_coeffs=dist_coeffs)
+    c.set_intrinsics(matrix=matrix, coeffs=coeffs)
     scene = frt.Scene(cameras=[c])
 
     # Register markers

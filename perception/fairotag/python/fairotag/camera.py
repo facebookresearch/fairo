@@ -16,7 +16,7 @@ GRID_MARKER_LENGTH = 0.02625
 
 # Marker info struct
 MarkerInfo = namedtuple("MarkerInfo", "id corner length pose")
-CameraIntrinsics = namedtuple("CameraIntrinsics", "fx, fy, ppx, ppy, dist_coeffs")
+CameraIntrinsics = namedtuple("CameraIntrinsics", "fx, fy, ppx, ppy, coeffs")
 
 
 class CameraModule:
@@ -76,7 +76,7 @@ class CameraModule:
                     corner,
                     length,
                     self._intrinsics2matrix(self.intrinsics),
-                    self.intrinsics.dist_coeffs,
+                    self.intrinsics.coeffs,
                 )
                 r = rvecs[0].squeeze()
                 t = tvecs[0].squeeze()
@@ -129,7 +129,7 @@ class CameraModule:
                 img_rend = cv2.aruco.drawAxis(
                     img_rend,
                     self._intrinsics2matrix(self.intrinsics),
-                    self.intrinsics.dist_coeffs,
+                    self.intrinsics.coeffs,
                     rvec,
                     tvec,
                     length,
@@ -182,22 +182,20 @@ class CameraModule:
         )
 
         self.intrinsics = CameraIntrinsics(
-            fx=mtx[0, 0], fy=mtx[1, 1], ppx=mtx[0, 2], ppy=mtx[1, 2], dist_coeffs=dist.squeeze()
+            fx=mtx[0, 0], fy=mtx[1, 1], ppx=mtx[0, 2], ppy=mtx[1, 2], coeffs=dist.squeeze()
         )
 
     def get_intrinsics(self) -> CameraIntrinsics:
         return self.intrinsics
 
-    def set_intrinsics(
-        self, intrinsics=None, matrix=None, dist_coeffs=np.zeros(5), **kwargs
-    ) -> None:
+    def set_intrinsics(self, intrinsics=None, matrix=None, coeffs=np.zeros(5), **kwargs) -> None:
         if intrinsics is not None:
             self.intrinsics = CameraIntrinsics(
                 intrinsics.fx,
                 intrinsics.fy,
                 intrinsics.ppx,
                 intrinsics.ppy,
-                intrinsics.coeffs,
+                np.array(intrinsics.coeffs),
             )
             return
 
@@ -213,7 +211,7 @@ class CameraModule:
             ppx = kwargs["ppx"]
             ppy = kwargs["ppy"]
 
-        self.intrinsics = CameraIntrinsics(fx, fy, ppx, ppy, dist_coeffs)
+        self.intrinsics = CameraIntrinsics(fx, fy, ppx, ppy, coeffs)
 
     @staticmethod
     def _intrinsics2matrix(intrinsics):

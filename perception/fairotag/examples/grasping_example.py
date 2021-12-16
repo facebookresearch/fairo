@@ -93,9 +93,9 @@ class RealSenseCamera:
         camera_matrix[0, 2] = intrinsics.ppx
         camera_matrix[1, 2] = intrinsics.ppy
 
-        dist_coeffs = np.array(intrinsics.coeffs)
+        coeffs = np.array(intrinsics.coeffs)
 
-        return camera_matrix, dist_coeffs
+        return camera_matrix, coeffs
 
     def get_image(self):
         frame = self.pipe.wait_for_frames()
@@ -111,11 +111,11 @@ if __name__ == "__main__":
 
     # Initialize camera
     camera = RealSenseCamera()
-    matrix, dist_coeffs = camera.get_intrinsics()
+    matrix, coeffs = camera.get_intrinsics()
 
     # Initialize camera module & scene module
     c = frt.CameraModule()
-    c.set_intrinsics(matrix=matrix, dist_coeffs=dist_coeffs)
+    c.set_intrinsics(matrix=matrix, coeffs=coeffs)
     scene = frt.Scene(cameras=[c])
 
     # Register markers
