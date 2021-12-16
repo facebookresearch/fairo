@@ -314,7 +314,7 @@ def process_dict(d):
         # handle const value
         else:
             r[k] = v
-    
+
     return r
 
 
