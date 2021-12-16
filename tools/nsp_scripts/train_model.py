@@ -634,6 +634,11 @@ if __name__ == "__main__":
 
     model_identifier = generate_model_name(args, args.optional_identifier)
 
+    load_model = False
+    if args.load_model:
+        load_model = True
+        eval_data_dir = args.data_dir
+
     # set up logging
     l_handler = logging.handlers.WatchedFileHandler(
         "{}/{}.log".format(args.output_dir, model_identifier)
@@ -670,6 +675,10 @@ if __name__ == "__main__":
 
         logging.info("====== Setting up Model ======")
         dec_with_loss, encoder_decoder, tokenizer = build_model(args, tree_i2w)
+
+    if load_model:
+        args.data_dir = eval_data_dir
+        args.tensorboard_dir = None
 
     logging.info("****** Args ******")
     logging.info(vars(args))
