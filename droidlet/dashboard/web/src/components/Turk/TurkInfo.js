@@ -10,6 +10,7 @@ import minimumEditDistance from "minimum-edit-distance";
 import { removeStopwords } from "stopword";
 import "status-indicator/styles.css";
 import "./TurkInfo.css";
+import { red } from "@material-ui/core/colors";
 
 class TurkInfo extends Component {
   constructor(props) {
@@ -29,6 +30,7 @@ class TurkInfo extends Component {
       performanceIndicator: [false, false, false],
       feedback: "",
       commandCorpus: [],
+      bonus: "$0.00",
     };
     this.calcCreativity = this.calcCreativity.bind(this);
   }
@@ -169,6 +171,7 @@ class TurkInfo extends Component {
         Math.log10(quantityScore)) /
       0.3;
     console.log("Stoplight Score: " + stoplightScore + "/10");
+    let bonus = "$" + (stoplightScore * 0.3).toFixed(2)
 
     let performance;
     if (stoplightScore < 5) performance = [false, false, true];
@@ -198,6 +201,7 @@ class TurkInfo extends Component {
       commandList: newCommandList,
       feedback: feedback,
       performanceIndicator: performance,
+      bonus: bonus,
     });
   }
 
@@ -226,6 +230,7 @@ class TurkInfo extends Component {
               ) : (
                 <status-indicator negative></status-indicator>
               )}
+              <p style={{ color: "#39ff14" }}>Current Bonus: {this.state.bonus}</p>
               <p>Feedback: {this.state.feedback}</p>
             </div>
             {this.state.isSessionEnd ? (
