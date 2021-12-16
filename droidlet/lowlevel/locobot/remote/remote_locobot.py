@@ -226,6 +226,9 @@ class RemoteLocobot(object):
             return rgb
         return None
 
+    def get_rgb_depth_segm(self):
+        return self._robot.camera.get_rgb_depth_segm()
+
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Return the point cloud at current time step.
 
@@ -426,7 +429,7 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=str,
-        default='/scratch/apratik/replica/apartment_0/habitat/mesh_semantic.ply',
+        default='/checkpoint/apratik/replica/apartment_0/habitat/mesh_semantic.ply',
     )
     parser.add_argument(
          "--noisy",

@@ -3,12 +3,16 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from droidlet.interpreter.robot import tasks
+from droidlet.memory.robot.loco_memory import DetectedObjectNode
+from droidlet.lowlevel.robot_mover_utils import ExaminedMap
 import os
 import random
 import numpy as np
+import shutil
 
 random.seed(2021) # fixing a random seed to fix default exploration goal
 first_exploration_done = False
+explore_count = 0
 
 def get_distant_goal(x, y, t, l1_thresh=35):
     # Get a distant goal for the slam exploration
@@ -20,20 +24,58 @@ def get_distant_goal(x, y, t, l1_thresh=35):
         if d > l1_thresh:
             return (xt, yt, 0)
 
+def init_logger():
+    logger = logging.getLogger('default_behavior')
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler('default_behavior.log', 'w')
+    fh.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s %(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
+init_logger()
+
 def start_explore(agent, goal):
     global first_exploration_done
-    goal_str = '_'.join(str(g) for g in goal)
+    global explore_count 
 
     if not first_exploration_done or os.getenv('CONTINUOUS_EXPLORE', 'False') == 'True':
         agent.mover.slam.reset_map()
         agent.mover.nav.reset_explore()
+
+        logger = logging.getLogger('default_behavior')
+        logger.info(
+            f"Starting exploration {explore_count} \
+            first_exploration_done {first_exploration_done} \
+            os.getenv('CONTINUOUS_EXPLORE') {os.getenv('CONTINUOUS_EXPLORE', 'False')}"
+        )
+
+        # Clear memory
+        objects = DetectedObjectNode.get_all(agent.memory)
+        logger.info(f'Clearing {len(objects)} memids in memory')
+        agent.memory.clear(objects)
+        ExaminedMap.clear()
+        # reset object id counter
+        agent.perception_modules["vision"].vision.deduplicate.object_id_counter = 1
+        objects = DetectedObjectNode.get_all(agent.memory)
+        logger.info(f'{len(objects)} memids in memory')
+        
         task_data = { 
             "goal": goal, 
             "save_data": os.getenv('SAVE_EXPLORATION', 'False') == 'True',
-            "data_path": f"{os.getenv('HEURISTIC', 'default')}/goal" + goal_str,
+            "data_path": os.path.join(f"{os.getenv('HEURISTIC', 'default')}", str(explore_count)),
         }
+        logger.info(f'task_data {task_data}')
+        
+        explore_count += 1
 
-        if os.getenv('HEURISTIC') == 'straightline':
+        if os.path.isdir(task_data['data_path']):
+            shutil.rmtree(task_data['data_path'])
+
+        if os.getenv('HEURISTIC') in ('straightline', 'circle'):
             logging.info('Default behavior: Curious Exploration')
             agent.memory.task_stack_push(tasks.CuriousExplore(agent, task_data))
         else:
