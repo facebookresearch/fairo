@@ -24,6 +24,7 @@ dependencies:
     - yaml-cpp
 
     # Run dependencies
+    - asv
     - black
     - boost ==1.72.0
     - boost-cpp ==1.72.0

@@ -31,6 +31,7 @@ requirements:
     - yaml-cpp
 
   run:
+    - asv
     - black
     - boost ==1.72.0
     - boost-cpp ==1.72.0
