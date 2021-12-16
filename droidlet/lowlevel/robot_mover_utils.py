@@ -7,6 +7,7 @@ from scipy.spatial.transform import Rotation
 import math
 import os
 import shutil
+import glob
 import cv2
 import json
 from copy import deepcopy as copy
@@ -214,6 +215,20 @@ class TrajectoryDataSaver:
         self.pose_dict = {}
         self.img_count = 0
         self.dbg_str = "None"
+        self.init_logger()
+    
+    def init_logger(self):
+        self.logger = logging.getLogger('trajectory_saver')
+        self.logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(filename)s:%(lineno)s - %(funcName)s(): %(message)s')
+        # Enable filehandler to debug logs
+        fh = logging.FileHandler(f"trajectory_saver.log", 'a')
+        fh.setLevel(logging.INFO)
+        fh.setFormatter(formatter)
+        self.logger.addHandler(fh)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+        self.logger.addHandler(ch)
 
     def create(self, d):
         if not os.path.isdir(d):
@@ -226,6 +241,8 @@ class TrajectoryDataSaver:
         return self.img_count
 
     def save(self, rgb, depth, seg, pos):
+        self.img_count = len(glob.glob(self.img_folder + '/*.jpg'))
+        self.logger.info(f'Saving to {self.save_folder}, {self.img_count}, {self.dbg_str}')
         print(f'saving {rgb.shape, depth.shape, seg.shape}')
         # store the images and depth
         rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
@@ -234,7 +251,7 @@ class TrajectoryDataSaver:
             rgb,
         )
 
-        cv2.putText(rgb, self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
+        cv2.putText(rgb, str(self.img_count) + ' ' + self.dbg_str, (40,40), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
 
         # robot_dbg_str = 'robot_pose ' + str(np.round(self.get_robot_global_state(), 3))
         # cv2.putText(rgb, robot_dbg_str, (40,60), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,255))
@@ -244,30 +261,32 @@ class TrajectoryDataSaver:
             rgb,
         )
 
-        # store depth in mm
-        depth *= 1e3
-        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
-        depth = depth.astype(np.uint16)
+        # store depth
         np.save(self.depth_folder + "/{:05d}.npy".format(self.img_count), depth)
 
         # store seg
         np.save(self.seg_folder + "/{:05d}.npy".format(self.img_count), seg)
 
         # store pos
+        if os.path.isfile(os.path.join(self.save_folder, "data.json")):
+            with open(os.path.join(self.save_folder, "data.json"), "r") as fp:
+                self.pose_dict = json.load(fp)
+
         self.pose_dict[self.img_count] = copy(pos)
-        self.img_count += 1
         
-        # print(f"img_count {self.img_count}, #active {self.active_count}, self.goal_loc {self.goal_loc}, base_pos {pos}")
         with open(os.path.join(self.save_folder, "data.json"), "w") as fp:
             json.dump(self.pose_dict, fp)
 
 
-vis_count = 0
-def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, gt_pts=None):
-    global vis_count
-    # plt.figure()
+def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, save_path, gt_pts=None):
+    traj_visual_dir = os.path.join(save_path, 'traj_visual')
+    if not os.path.isdir(traj_visual_dir):
+        os.makedirs(traj_visual_dir)
+    vis_count = len(glob.glob(traj_visual_dir + '/*.jpg'))
+    if vis_count == 0:
+        plt.figure()
+
     plt.title("Examine Visual")
-    
     # visualize obstacle map
     if len(obstacle_map) > 0:
         obstacle_map = np.asarray([list(x) for x in obstacle_map])
@@ -283,13 +302,14 @@ def visualize_examine(agent, robot_poses, object_xyz, label, obstacle_map, gt_pt
         robot_poses = np.asarray(robot_poses)
         plt.plot(robot_poses[:,0], robot_poses[:,1], 'r--')
 
-    if len(gt_pts) > 0:
+    if gt_pts is not None:
         pts = np.asarray(gt_pts)
         plt.plot(pts[:,0], pts[:,1], 'y--')
     
     # TODO: visualize robot heading 
     
-    plt.savefig("{:04d}.jpg".format(vis_count))
+
+    plt.savefig("{}/{:04d}.jpg".format(traj_visual_dir, vis_count))
     vis_count += 1
 
 class ExaminedMap:

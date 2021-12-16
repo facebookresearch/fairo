@@ -28,10 +28,11 @@ class RemoteLocobot(object):
         scene_path (str): the path to the scene file to load in habitat
     """
 
-    def __init__(self, scene_path, noisy=False):
+    def __init__(self, scene_path, noisy=False, add_humans=True):
         backend_config = {
             "scene_path": scene_path,
-            "physics_config": "DEFAULT"
+            "physics_config": "DEFAULT",
+            "add_humans": add_humans,
         }
         if backend_config["physics_config"] == "DEFAULT":
             assets_path = os.path.abspath(
@@ -58,7 +59,7 @@ class RemoteLocobot(object):
         self._robot = Robot("habitat", common_config=backend_config)
         from habitat_utils import reconfigure_scene
         # adds objects to the scene, doing scene-specific configurations
-        reconfigure_scene(self, backend_config["scene_path"])
+        reconfigure_scene(self, backend_config["scene_path"], backend_config["add_humans"])
         from pyrobot.locobot.camera import DepthImgProcessor
 
         if hasattr(self, "_dip"):
@@ -225,6 +226,9 @@ class RemoteLocobot(object):
         if rgb is not None:
             return rgb
         return None
+
+    def get_rgb_depth_segm(self):
+        return self._robot.camera.get_rgb_depth_segm()
 
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Return the point cloud at current time step.
@@ -426,13 +430,19 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=str,
-        default='/scratch/apratik/replica/apartment_0/habitat/mesh_semantic.ply',
+        default='/checkpoint/apratik/replica/apartment_0/habitat/mesh_semantic.ply',
     )
     parser.add_argument(
          "--noisy",
         type=bool,
-        default=os.getenv("NOISY_HABITAT", "False").lower() in ("true", "True"),
+        default=os.getenv("NOISY_HABITAT", "False").lower() in ("true"),
         help="Set to True to load habitat with rgb, depth and movement noise models"
+    )
+    parser.add_argument(
+         "--add_humans",
+        type=bool,
+        default=os.getenv("ADD_HUMANS", "True").lower() in ("true"),
+        help="Set to True to load habitat without any humans"
     )
 
     args = parser.parse_args()
@@ -449,6 +459,7 @@ if __name__ == "__main__":
         robot = RemoteLocobot(
             scene_path=args.scene_path,
             noisy=args.noisy,
+            add_humans=args.add_humans,
         )
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
