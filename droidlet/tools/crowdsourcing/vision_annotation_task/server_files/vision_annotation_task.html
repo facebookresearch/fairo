@@ -1,0 +1,40 @@
+<!-- craftassist_task.html -->	
+<!-- Bootstrap v3.0.3 -->	
+<link	
+  rel="stylesheet"	
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+/>	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
+
+<div id="info">
+  <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - voxel painter - webgl<br>
+  <strong>click</strong>: add voxel, <strong>shift + click</strong>: remove voxel
+</div>
+
+<!--
+<iframe style="width:1000px; height:1000px;" id="myiframe" src="voxel_wrapper.html"></iframe>
+-->
+
+<div id="voxel_painter">
+  <script src="bundle.js"></script>
+</div>
+
+
+<section class="container" style="margin-bottom: 20px">
+  <fieldset>
+    <div class="input-group center">
+      <h4>Please rate the clarity and usability of this HIT</h4>
+      <select class="form-control" name="usability-rating" onchange="usabilityRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="7">7 - Perfect</option>
+        <option value="6">6 - Very Good</option>
+        <option value="5">5 - Decent</option>
+        <option value="4">4 - OK</option>
+        <option value="3">3 - Poor</option>
+        <option value="2">2 - Very Poor</option>
+        <option value="1">1 - Unusable</option>
+      </select>
+    </div>
+  </fieldset>
+</section>
