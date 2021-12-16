@@ -634,9 +634,9 @@ if __name__ == "__main__":
 
     model_identifier = generate_model_name(args, args.optional_identifier)
 
-    load_model = False
+    eval_mode = False
     if args.load_model:
-        load_model = True
+        eval_mode = True
         eval_data_dir = args.data_dir
 
     # set up logging
@@ -676,7 +676,7 @@ if __name__ == "__main__":
         logging.info("====== Setting up Model ======")
         dec_with_loss, encoder_decoder, tokenizer = build_model(args, tree_i2w)
 
-    if load_model:
+    if eval_mode:
         args.data_dir = eval_data_dir
         args.tensorboard_dir = None
 
