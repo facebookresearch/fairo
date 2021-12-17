@@ -145,6 +145,13 @@ def combine_tool_cd_make_ab(tool_A_out_file, tool_B_out_file):
             if "location" in clean_dict and "reference_object" in clean_dict["location"]:
                 value = clean_dict["location"]["reference_object"]
                 clean_dict["location"]["reference_object"] = fix_ref_obj(value)
+            if "location" in clean_dict and "reference_object_1" in clean_dict["location"]:
+                value = clean_dict["location"]["reference_object_1"]
+                clean_dict["location"]["reference_object_1"] = fix_ref_obj(value)
+            if "location" in clean_dict and "reference_object_2" in clean_dict["location"]:
+                value = clean_dict["location"]["reference_object_2"]
+                clean_dict["location"]["reference_object_2"] = fix_ref_obj(value)
+
             new_clean_dict = fix_ref_obj(clean_dict)
             if all_yes(a_dict_child):
                 if cmd in toolC_updated_map:
@@ -411,6 +418,12 @@ def update_action_dictionaries(all_combined_path):
                     if (k in v) and ("reference_object" in v[k]):
                         value = v[k]["reference_object"]
                         v[k]["reference_object"] = fix_ref_obj(value)
+                    if (k in v) and ("reference_object_1" in v[k]):
+                        value = v[k]["reference_object_1"]
+                        v[k]["reference_object_1"] = fix_ref_obj(value)
+                    if (k in v) and ("reference_object_2" in v[k]):
+                        value = v[k]["reference_object_2"]
+                        v[k]["reference_object_2"] = fix_ref_obj(value)
                     if k == "tag_val":
                         clean_dict.update(v)
                     elif k == "facing":
