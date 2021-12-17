@@ -38,11 +38,14 @@ class SampleGoodCandidates:
         self.filter_candidates()
     
     def filter_candidates(self):
-        for x in range(len(os.listdir(self.img_dir)) + 1):
-            if self.is_good_candidate(x):
-                self.good_candidates.append(x)
+        for x in os.listdir(self.img_dir):
+            def get_id_from_filename(x):
+                return int(x.split('.')[0])
+            img_id = get_id_from_filename(x)
+            if self.is_good_candidate(img_id):
+                self.good_candidates.append(img_id)
             else:
-                self.bad_candidates.append(x)
+                self.bad_candidates.append(img_id)
                 
         print(f'{len(self.good_candidates)} good candidates found!')
     
