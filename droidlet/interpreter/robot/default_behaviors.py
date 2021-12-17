@@ -79,8 +79,6 @@ def start_explore(agent, goal):
         }
         logger.info(f'task_data {task_data}')
         
-        explore_count += 1
-
         if os.path.isdir(task_data['data_path']):
             shutil.rmtree(task_data['data_path'])
 
@@ -95,7 +93,7 @@ def start_explore(agent, goal):
                 subj=agent.memory.self_memid, pred_text="first_exploration_done", obj_text='False'
             )
         agent.memory.add_triple(
-                subj=agent.memory.self_memid, pred_text="explore_count", obj_text=str(explore_count)
+                subj=agent.memory.self_memid, pred_text="explore_count", obj_text=str(explore_count+1)
             )
 
 def explore(agent):
