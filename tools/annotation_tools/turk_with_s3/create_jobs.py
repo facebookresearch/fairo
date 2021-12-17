@@ -43,6 +43,7 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
         headers = next(turk_inputs, None)
         # Construct the URL query params
         count = 0
+        all_new_hits = []
         for row in turk_inputs:
             count += 1
             query_params = ""
@@ -122,10 +123,15 @@ def create_turk_job(xml_file_path: str, tool_num: int, input_csv: str, job_spec_
                 # to avoid sorting all column names by default
                 turk_jobs_df = pd.DataFrame(columns=all_columns)
             turk_jobs_df = turk_jobs_df.append(job_spec, ignore_index=True)
-            break
+
+            # don't break here, consume all inputs and create HITs for them
+            # break
+            all_new_hits.append(new_hit)
 
     turk_jobs_df.to_csv(job_spec_csv, index=False)
-    return new_hit["HIT"]["HITId"]
+
+    hit_ids = [new_hit["HIT"]["HITId"] for new_hit in all_new_hits]
+    return hit_ids
     # Remember to modify the URL above when publishing
     # HITs to the live marketplace.
     # Use: https://worker.mturk.com/mturk/preview?groupId=

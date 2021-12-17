@@ -2,6 +2,8 @@
 Copyright (c) Facebook, Inc. and its affiliates.
 """
 
+# FIXME! this should go in ReferenceLocationInterpreter
+from droidlet.interpreter.interpret_location import interpret_relative_direction
 from droidlet.shared_data_structs import ErrorWithResponse
 from word2number.w2n import word_to_num
 
@@ -36,7 +38,7 @@ class FacingInterpreter:
         #    current_yaw = interpreter.agent.base_yaw
 
         if d.get("yaw_pitch"):
-            # make everything relative:
+            # this is absolute to agent body, relative to world
             span = d["yaw_pitch"]
             # for now assumed in (yaw, pitch) or yaw, pitch or yaw pitch formats
             yp = span.replace("(", "").replace(")", "").split()
@@ -45,28 +47,33 @@ class FacingInterpreter:
             rel_pitch = current_pitch - float(yp[1])
             return {"yaw": rel_yaw, "pitch": rel_pitch}
         elif d.get("yaw"):
-            # make everything relative:
+            # this is absolute to agent body, relative to world
             # for now assumed span is yaw as word or number
             w = float(word_to_num(d["yaw"].strip(" degrees").strip(" degree")))
             return {"yaw": current_yaw - w}
         elif d.get("pitch"):
-            # make everything relative:
+            # this is absolute to agent body, relative to world
             # for now assumed span is pitch as word or number
             w = float(word_to_num(d["pitch"].strip(" degrees").strip(" degree")))
             return {"yaw": current_pitch - w}
         elif d.get("relative_yaw"):
+            # this is relative even w.r.t. agent body
             if "left" in d["relative_yaw"] or "right" in d["relative_yaw"]:
                 left = "left" in d["relative_yaw"] or "leave" in d["relative_yaw"]  # lemmatizer :)
-                degrees = number_from_span(d["relative_yaw"]) or 90
-                # these are different than mc for no reason...? mc uses relative_yaw, these use yaw
-                if degrees > 0 and left:
-                    return {"yaw": -degrees}
+                # don't allow negative values when a direction is specified, FIXME?
+                degrees = abs(number_from_span(d["relative_yaw"])) or 90
+                # FIXME, make a method in rotation.py?  action at a distance with left +  and right - here
+                # connects to rotation.py
+                if left:
+                    return {"relative_yaw": degrees}
                 else:
-                    return {"yaw": degrees}
+                    return {"relative_yaw": -degrees}
             else:
                 try:
                     deg = int(d["relative_yaw"])
-                    return {"yaw": deg}
+                    # FIXME, make a method in rotation.py?  action at a distance with left +  and right - here
+                    # connects to rotation.py.  grammar does not actually specify whether + is right or left
+                    return {"relative_yaw": deg}
                 except:
                     pass
         elif d.get("relative_pitch"):
@@ -88,7 +95,13 @@ class FacingInterpreter:
             loc_mems = interpreter.subinterpret["reference_locations"](
                 interpreter, speaker, d["location"]
             )
-            loc = loc_mems[0].get_pos()
+            steps, reldir = interpret_relative_direction(interpreter, d["location"])
+            loc, _ = interpreter.subinterpret["specify_locations"](interpreter, speaker, loc_mems, steps, reldir)
+            # FIXME:  do this right!
+            # this is a hack for robot bc agent position is base position,
+            # and head is on mast; so if loc is based on self, add 1m to height
+            if d["location"].get("reference_object",{}).get("special_reference") == "AGENT":
+                loc = (loc[0], loc[1] + 1.0, loc[2])
             return {"target": loc}
         else:
             raise ErrorWithResponse("I am not sure where you want me to turn")

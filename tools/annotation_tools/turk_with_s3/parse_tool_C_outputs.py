@@ -311,9 +311,9 @@ def handle_components(d, child_name):
         x in ["special_reference.SPEAKER", "special_reference.AGENT"] for x in d.values()
     ):
         if "special_reference.SPEAKER" in d.values():
-            output[child_name] = {"special_reference": "SPEAKER"}
+            output[child_name] = {"special_reference": {"fixed_value": "SPEAKER"}}
         elif "special_reference.AGENT" in d.values():
-            output[child_name] = {"special_reference": "AGENT"}
+            output[child_name] = {"special_reference": {"fixed_value":"AGENT"}}
         child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
         output[child_name].update(child_d)
     else:

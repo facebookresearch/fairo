@@ -20,3 +20,10 @@ RUN apt install -y build-essential cmake libtinfo-dev lsb-release libmpfr-dev li
 
 # install nvidia drivers
 RUN DEBIAN_FRONTEND=noninteractive apt install -y nvidia-driver-460-server
+
+# install Xvfb
+
+RUN apt install -y xvfb
+
+# install mamba/boa into conda `base` environment
+RUN . /opt/conda/etc/profile.d/conda.sh && conda install -c conda-forge mamba boa -n base -y
