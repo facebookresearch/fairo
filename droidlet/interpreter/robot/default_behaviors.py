@@ -39,13 +39,13 @@ init_logger()
 def start_explore(agent, goal):
     first_exploration_done = False
     t = agent.memory.get_triples(subj=agent.memory.self_memid, pred_text="first_exploration_done")
-    assert len(t) <= 1, "More than 1 triple for first_exploration_done"
+    assert len(t) <= 1, f"More than 1 ({len(t)}) triple for first_exploration_done"
     if len(t) == 1:
         first_exploration_done = t[0][2] == 'True'  
 
     explore_count = 0
     t = agent.memory.get_triples(subj=agent.memory.self_memid, pred_text="explore_count")
-    assert len(t) <= 1, "More than 1 triple for explore_count"
+    assert len(t) <= 1, f"More than 1 ({len(t)}, {t}) triple for explore_count"
     if len(t) == 1:
         explore_count = int(t[0][2])
    

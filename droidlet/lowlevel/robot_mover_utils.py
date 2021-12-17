@@ -8,6 +8,9 @@ import math
 import os
 import shutil
 import glob
+import sys
+if "/opt/ros/kinetic/lib/python2.7/dist-packages" in sys.path:
+    sys.path.remove("/opt/ros/kinetic/lib/python2.7/dist-packages")
 import cv2
 import json
 from copy import deepcopy as copy

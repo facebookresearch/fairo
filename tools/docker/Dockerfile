@@ -11,6 +11,8 @@ WORKDIR fairo
 
 RUN pip3 install -r requirements.txt
 RUN pip3 install -r agents/craftassist/requirements.txt
+RUN apt-get update
+RUN apt-get install ffmpeg libsm6 libxext6  -y
 
 # use the much faster lld linker
 RUN rm -f /usr/bin/ld && ln -s /usr/bin/ld.lld /usr/bin/ld
