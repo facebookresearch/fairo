@@ -171,6 +171,18 @@ class Docker(BaseRuntime):
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
 
+        try:
+            docker_api.images.get(self.image)
+        except docker.errors.ImageNotFound:
+            try:
+                for line in docker_api.lowlevel.pull(self.image, stream=True):
+                    lineinfo = json.loads(line.decode())
+                    if args.verbose and "status" in lineinfo:
+                        print(lineinfo["status"].strip())
+            except docker.errors.NotFound as e:
+                util.fail(e)
+
+
         uses_ldap = util.is_ldap_user()
 
         mount_map = {}
