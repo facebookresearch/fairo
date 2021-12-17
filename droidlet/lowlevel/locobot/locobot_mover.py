@@ -357,6 +357,11 @@ class LoCoBotMover:
         pts = transform_pose(pts, self.bot.get_base_state("odom"))
         return RGBDepth(rgb, d, pts)
 
+    def get_rgb_depth_segm(self):
+        if self.backend != 'habitat':
+            return None
+        return self.bot.get_rgb_depth_segm()
+
     def get_current_pcd(self, in_cam=False, in_global=False):
         """Gets the current point cloud"""
         return self.bot.get_current_pcd(in_cam=in_cam, in_global=in_global)

@@ -361,17 +361,27 @@ class TrajectorySaverTask(Task):
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
         self.save_data = task_data.get('save_data', False)
-        self.task_path = task_data.get('data_path', 'default')
+        self.data_path = task_data.get('data_path', 'default')
         self.dbg_str = 'None'
         if self.save_data:
-            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path, self.task_path))
+            self.data_saver = TrajectoryDataSaver(os.path.join(agent.opts.data_store_path, self.data_path))
+            self.data_savers = [self.data_saver]
+            parent_data_saver = task_data.get('parent_data_saver', None)
+            if parent_data_saver is not None:
+                self.data_savers.append(parent_data_saver)
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     def save_rgb_depth_seg(self):
-        rgbd = self.agent.mover.get_rgb_depth()
+        rgb, depth, segm = self.agent.mover.get_rgb_depth_segm()
+        # store depth in mm
+        depth *= 1e3
+        depth[depth > np.power(2, 16) - 1] = np.power(2, 16) - 1
+        depth = depth.astype(np.uint16)
+        
         pos = self.agent.mover.get_base_pos()
-        self.data_saver.set_dbg_str(self.dbg_str)
-        self.data_saver.save(rgbd.rgb, rgbd.depth, np.zeros_like(rgbd.rgb), pos)
+        for data_saver in self.data_savers:
+            data_saver.set_dbg_str(self.dbg_str)
+            data_saver.save(rgb, depth, segm, pos)
     
     @Task.step_wrapper
     def step(self):
@@ -443,7 +453,6 @@ class CuriousExplore(TrajectorySaverTask):
                     if ExaminedMap.can_examine(x):
                         # check for line of sight and if within a certain distance
                         yaw_rad, _ = get_camera_angles([base_pos[0], CAMERA_HEIGHT, base_pos[1]], x['xyz'])
-                        # self.logger.info(f"{x['label']}, yaw_rad {yaw_rad}, base_pos {base_pos}")
                         dist = np.linalg.norm(base_pos[:2]-[x['xyz'][0], x['xyz'][2]])
                         if abs(yaw_rad - base_pos[2]) <= math.pi/4 and dist <= 3:
                             self.logger.info(f"Exploring eid {x['eid']}, {x['label']} next, dist {dist}")
@@ -454,12 +463,19 @@ class CuriousExplore(TrajectorySaverTask):
                 self.logger.info(f"CuriousExplore Target {target['eid'], target['label'], target['xyz']}, robot pos {pos}")
                 ExaminedMap.update(target)
                 self.dbg_str = f"Examine {str(target['eid']) + '_' + str(target['label'])} xyz {str(np.round(target['xyz'],3))}"
-                self.add_child_task(ExamineDetectionCircle(
+                if os.getenv('HEURISTIC') == 'straightline':
+                    examine_heuristic = ExamineDetectionStraightline 
+                else:
+                    examine_heuristic = ExamineDetectionCircle
+                self.add_child_task(examine_heuristic(
                     self.agent, {
                         "target": target, 
                         "save_data": self.save_data,
-                        "data_path": f"examine_circle/{'_'.join([str(x) for x in self.goal])}/"+str(self.objects_examined),
+                        "root_data_path": f"{self.task_data['data_path']}",
+                        "data_path": f"{self.task_data['data_path']}/{str(self.objects_examined)}",
                         "dbg_str": self.dbg_str,
+                        "parent_data_saver": self.data_savers[0],
+                        "logger": self.logger,
                         }
                     )
                 )
@@ -473,7 +489,6 @@ class CuriousExplore(TrajectorySaverTask):
                 self.steps = ["not_started"] * 2
             else:
                 self.logger.info(f"Exploration finished!")
-            print(f'explore fin {self.finished}')
     
     def __repr__(self):
         return "<CuriousExplore>"
@@ -483,6 +498,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
     """Examine a detection"""
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
+        self.task_data = task_data
         self.target = task_data['target']
         self.frontier_center = np.asarray(self.target['xyz'])
         self.agent = agent
@@ -524,6 +540,7 @@ class ExamineDetectionStraightline(TrajectorySaverTask):
                     self.frontier_center, 
                     self.target['label'],
                     self.agent.mover.get_obstacles_in_canonical_coords(),
+                    self.task_data['root_data_path'],
                 )   
 
             self.last_base_pos = base_pos
@@ -540,6 +557,7 @@ class ExamineDetectionCircle(TrajectorySaverTask):
     """Examine a detection"""
     def __init__(self, agent, task_data):
         super().__init__(agent, task_data)
+        self.task_data = task_data
         self.target = task_data['target']
         self.frontier_center = np.asarray(self.target['xyz'])
         self.agent = agent
@@ -547,6 +565,10 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         self.robot_poses = []
         self.last_base_pos = None
         self.dbg_str = task_data.get('dbg_str')
+        self.logger = task_data.get('logger')
+        base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
+        self.pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=40)
+        self.logger.info(f'{len(self.pts)} pts on cicle {self.pts}')
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
@@ -554,31 +576,19 @@ class ExamineDetectionCircle(TrajectorySaverTask):
         super().step()
         self.interrupted = False
         self.finished = False
-        logger = logging.getLogger('curious')
         base_pos = self.agent.mover.get_base_pos_in_canonical_coords()
         if self.steps > 0: # without any steps, the robot isn't on the circle of inspection
             self.robot_poses.append(base_pos)
-        pts = get_circular_path(self.frontier_center, base_pos, radius=0.7, num_points=20)
-        dist = np.linalg.norm(base_pos[:2]-np.asarray([self.frontier_center[0], self.frontier_center[2]]))
-        logger.info(f"Deciding examination, dist = {dist}")
-        logger.info(f"{len(pts)} available points on the circle")
         d = 1
         if self.last_base_pos is not None:
             d = np.linalg.norm(base_pos[:2] - self.last_base_pos[:2])
-            logger.info(f"Distance moved {d}")
-        if (base_pos != self.last_base_pos).any() and self.steps < len(pts):
-            tloc = pts[self.steps]
+            self.logger.info(f"Distance moved {d}")
+        if (base_pos != self.last_base_pos).any() and self.steps < len(self.pts):
+            tloc = self.pts[self.steps]
             self.steps += 1
-            logger.debug(f"get_step_target_for_straight_move \
-                \nx, z, yaw = {base_pos},\
-                \nxf, zf = {self.frontier_center[0], self.frontier_center[2]} \
-                \nx_move, z_move, yaw_move = {tloc}")
-            logging.info(f"Current Pos {base_pos}")
-            logging.info(f"Move Target for Examining {tloc}")
-            logging.info(f"Distance being moved {np.linalg.norm(base_pos[:2]-tloc[:2])}")
+            self.logger.info(f'step {self.steps} moving to {tloc} Current Pos {base_pos}')
             self.add_child_task(Move(self.agent, {"target": tloc}))
             self.last_base_pos = base_pos
-
             # visualize tloc, frontier_center, obstacle_map  
             if os.getenv('VISUALIZE_EXAMINE', 'False') == 'True':
                 visualize_examine(
@@ -587,12 +597,13 @@ class ExamineDetectionCircle(TrajectorySaverTask):
                     self.frontier_center, 
                     self.target['label'],
                     self.agent.mover.get_obstacles_in_canonical_coords(),
-                    pts,
+                    self.task_data['root_data_path'],
+                    self.pts,
                 )   
 
             return
         else:
-            logger.info(f"Finished Examination")
+            self.logger.info(f"Finished Examination")
             self.finished = self.agent.mover.bot_step()
         
     def __repr__(self):
