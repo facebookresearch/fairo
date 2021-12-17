@@ -173,17 +173,9 @@ class Docker(BaseRuntime):
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
         else:
-            # If the image is marked ":latest", we always pull.
-            # No tag implies latest.
-            should_pull = self.image.endswith(":latest") or ":" not in self.image
-            # If not latest, we pull if the named image is not pre-downloaded.
-            if not should_pull:
-                try:
-                    docker_api.images.get(self.image)
-                except docker.errors.ImageNotFound:
-                    should_pull = True
-            # Download the image, if needed.
-            if should_pull:
+            try:
+                docker_api.images.get(self.image)
+            except docker.errors.ImageNotFound:
                 try:
                     for line in docker_api.lowlevel.pull(self.image, stream=True):
                         lineinfo = json.loads(line.decode())
