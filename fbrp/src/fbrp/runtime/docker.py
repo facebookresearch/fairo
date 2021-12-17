@@ -136,7 +136,9 @@ class Launcher(BaseLauncher):
 
 
 class Docker(BaseRuntime):
-    def __init__(self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}):
+    def __init__(
+        self, image=None, dockerfile=None, mount=[], build_kwargs={}, run_kwargs={}
+    ):
         if bool(image) == bool(dockerfile):
             util.fail("Docker process must define exactly one of image or dockerfile")
         self.image = image
@@ -170,18 +172,24 @@ class Docker(BaseRuntime):
                     print(lineinfo["stream"].strip())
                 elif "errorDetail" in lineinfo:
                     util.fail(json.dumps(lineinfo["errorDetail"], indent=2))
-
-        try:
-            docker_api.images.get(self.image)
-        except docker.errors.ImageNotFound:
-            try:
-                for line in docker_api.lowlevel.pull(self.image, stream=True):
-                    lineinfo = json.loads(line.decode())
-                    if args.verbose and "status" in lineinfo:
-                        print(lineinfo["status"].strip())
-            except docker.errors.NotFound as e:
-                util.fail(e)
-
+        else:
+            # If the image is marked ":latest", we always pull.
+            should_pull = self.image.endswith(":latest")
+            # If not latest, we pull if the named image is not pre-downloaded.
+            if not should_pull:
+                try:
+                    docker_api.images.get(self.image)
+                except docker.errors.ImageNotFound:
+                    should_pull = True
+            # Download the image, if needed.
+            if should_pull:
+                try:
+                    for line in docker_api.lowlevel.pull(self.image, stream=True):
+                        lineinfo = json.loads(line.decode())
+                        if args.verbose and "status" in lineinfo:
+                            print(lineinfo["status"].strip())
+                except docker.errors.NotFound as e:
+                    util.fail(e)
 
         uses_ldap = util.is_ldap_user()
 
