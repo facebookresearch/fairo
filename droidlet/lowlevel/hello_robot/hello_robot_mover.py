@@ -130,6 +130,19 @@ class HelloRobotMover(MoverInterface):
         return self.relative_pan_tilt(dpan, dtilt, turn_base=turn_base)
 
     
+    def is_obstacle_in_front(self, return_viz=False):
+        ret = safe_call(self.cam.is_obstacle_in_front, return_viz)
+        if return_viz:
+            obstacle, cpcd, crop, bbox = ret
+
+            cpcd = o3d_unpickle(cpcd)
+            crop = o3d_unpickle(crop)
+            bbox = o3d_unpickle(bbox)
+            return obstacle, cpcd, crop, bbox
+        else:
+            obstacle = ret
+            return obstacle
+
     def look_at(self, target, turn_base=True, face=False):
         """
         Executes "look at" by setting the pan, tilt of the camera
