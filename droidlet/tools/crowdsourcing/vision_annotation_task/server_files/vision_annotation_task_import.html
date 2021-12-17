@@ -1,21 +1,37 @@
-//import * as THREE from 'https://cdn.skypack.dev/three'
-//import * as THREE from 'three'
-var THREE = require('three');
+<!-- craftassist_task.html -->	
+<!-- Bootstrap v3.0.3 -->	
+<link	
+  rel="stylesheet"	
+  href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+/>	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>	
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>	
 
-let camera, scene, renderer;
-let plane;
-let pointer, raycaster, isShiftDown = false;
 
-let rollOverMesh, rollOverMaterial;
-let cubeGeo, cubeMaterial;
+<div id="info">
+  <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> - voxel painter - webgl<br>
+  <strong>click</strong>: add voxel, <strong>shift + click</strong>: remove voxel
+</div>
 
-const objects = [];
+<script type="module">
 
-init();
-render();
+  //import * as THREE from 'https://cdn.skypack.dev/three'
+  //import * as THREE from 'three.js-master/build/three.module.js'
+  import * as THREE from 'three'
 
-function init() {
-    console.log("begin1");
+  let camera, scene, renderer;
+  let plane;
+  let pointer, raycaster, isShiftDown = false;
+
+  let rollOverMesh, rollOverMaterial;
+  let cubeGeo, cubeMaterial;
+
+  const objects = [];
+
+  init();
+  render();
+
+  function init() {
 
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
     camera.position.set( 500, 800, 1300 );
@@ -59,83 +75,104 @@ function init() {
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
-
-    console.log("begin");
-    //var frame = document.getElementById('myiframe').contentWindow.document
-    //console.log(frame);
-    //var cont = frame.getElementById("voxel_painter");
-    var cont = document.getElementById("voxel_painter");
-    console.log(cont);
-    console.log(renderer.domElement);
-    cont.appendChild( renderer.domElement );
-    //document.body.appendChild( renderer.domElement );
+    document.body.appendChild( renderer.domElement );
 
     document.addEventListener( 'pointermove', onPointerMove );
     document.addEventListener( 'pointerdown', onPointerDown );
     document.addEventListener( 'keydown', onDocumentKeyDown );
     document.addEventListener( 'keyup', onDocumentKeyUp );
     window.addEventListener( 'resize', onWindowResize );
-}
+  }
 
-function onWindowResize() {
+  function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize( window.innerWidth, window.innerHeight );
     render();
-}
 
-function onPointerMove( event ) {
+  }
+
+  function onPointerMove( event ) {
     pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
     raycaster.setFromCamera( pointer, camera );
     const intersects = raycaster.intersectObjects( objects, false );
 
     if ( intersects.length > 0 ) {
-        const intersect = intersects[ 0 ];
-        rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
-        rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+      const intersect = intersects[ 0 ];
+      rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
+      rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+
     }
     render();
-}
+  }
 
-function onPointerDown( event ) {
+  function onPointerDown( event ) {
     pointer.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
     raycaster.setFromCamera( pointer, camera );
     const intersects = raycaster.intersectObjects( objects, false );
 
     if ( intersects.length > 0 ) {
-        const intersect = intersects[ 0 ];
+      const intersect = intersects[ 0 ];
 
-        // delete cube
-        if ( isShiftDown ) {
+      // delete cube
+      if ( isShiftDown ) {
         if ( intersect.object !== plane ) {
-            scene.remove( intersect.object );
-            objects.splice( objects.indexOf( intersect.object ), 1 );
+          scene.remove( intersect.object );
+          objects.splice( objects.indexOf( intersect.object ), 1 );
         }
 
         // create cube
-        } else {
+      } else {
         const voxel = new THREE.Mesh( cubeGeo, cubeMaterial );
         voxel.position.copy( intersect.point ).add( intersect.face.normal );
         voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
         scene.add( voxel );
         objects.push( voxel );
-        }
-        render();
+      }
+      render();
     }
-}
+  }
 
-function onDocumentKeyDown( event ) {
+  function onDocumentKeyDown( event ) {
     switch ( event.keyCode ) {
-        case 16: isShiftDown = true; break;
+      case 16: isShiftDown = true; break;
     }
-}
+  }
 
-function onDocumentKeyUp( event ) {
+  function onDocumentKeyUp( event ) {
     switch ( event.keyCode ) {
-        case 16: isShiftDown = false; break;
+      case 16: isShiftDown = false; break;
     }
-}
+  }
 
-function render() {
+  function render() {
     renderer.render( scene, camera );
-}
+  }
+</script>
+
+<section class="container" style="margin-bottom: 20px">
+  <fieldset>
+    <div class="input-group center">
+      <h4>Please rate the clarity and usability of this HIT</h4>
+      <select class="form-control" name="usability-rating" onchange="usabilityRated()">
+        <option selected="selected" value="">(select one)</option>
+        <option value="7">7 - Perfect</option>
+        <option value="6">6 - Very Good</option>
+        <option value="5">5 - Decent</option>
+        <option value="4">4 - OK</option>
+        <option value="3">3 - Poor</option>
+        <option value="2">2 - Very Poor</option>
+        <option value="1">1 - Unusable</option>
+      </select>
+    </div>
+  </fieldset>
+</section>
+
+<script>
+  $(function () {
+    modal_body = $("#modal");
+    $("#instructions").clone().appendTo(modal_body);
+    $(".modal").modal("show");
+  });
+</script>
+<link rel="stylesheet" href="three.js-master/files/main.css">
