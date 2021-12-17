@@ -23,6 +23,7 @@ import torch
 from PIL import Image
 from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
+import json
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -233,7 +234,7 @@ class TestCandidateSelection(unittest.TestCase):
         self._run_test(traj_path, good_candidates, bad_candidates, is_annot_validfn)
         
 
-    def test_samplecandidates_for_instance():
+    def test_samplecandidates_for_instance(self):
         """
         Tests candidate selection for the instance setting (we care about instance ids in instance_ids)
         """
