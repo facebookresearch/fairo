@@ -76,7 +76,7 @@ def reconfigure_scene(env, scene_path, add_humans):
             print("id_female: {}".format(id_female))
             sim.set_translation([1.0, 0.84, 0.00], id_female)  # van-gogh-room
 
-        make the objects STATIC so that collisions work
+        # make the objects STATIC so that collisions work
         for obj in [id_male, id_female]:
             sim.set_object_motion_type(habitat_sim.physics.MotionType.STATIC, obj)
     

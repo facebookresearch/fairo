@@ -32,8 +32,8 @@ class RemoteLocobot(object):
         backend_config = {
             "scene_path": scene_path,
             "physics_config": "DEFAULT",
-            "add_humans": add_humans,
         }
+        self.add_humans = add_humans
         if backend_config["physics_config"] == "DEFAULT":
             assets_path = os.path.abspath(
                 os.path.join(os.path.dirname(__file__), "../tests/test_assets")
@@ -59,7 +59,7 @@ class RemoteLocobot(object):
         self._robot = Robot("habitat", common_config=backend_config)
         from habitat_utils import reconfigure_scene
         # adds objects to the scene, doing scene-specific configurations
-        reconfigure_scene(self, backend_config["scene_path"], backend_config["add_humans"])
+        reconfigure_scene(self, backend_config["scene_path"], self.add_humans)
         from pyrobot.locobot.camera import DepthImgProcessor
 
         if hasattr(self, "_dip"):
