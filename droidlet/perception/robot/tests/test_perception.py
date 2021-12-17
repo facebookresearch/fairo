@@ -24,6 +24,7 @@ from PIL import Image
 from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
 from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
 import json
+import numpy as np
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
