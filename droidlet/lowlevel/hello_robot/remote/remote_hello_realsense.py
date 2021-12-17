@@ -122,7 +122,7 @@ class RemoteHelloRobot(object):
 
         return color_image, depth_image
 
-    def get_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
+    def get_open3d_pcd(self, rgb_depth=None, cam_transform=None, base_state=None):
         # get data
         if rgb_depth is None:
             rgb, depth = self.get_rgb_depth(rotate=False)
@@ -159,11 +159,20 @@ class RemoteHelloRobot(object):
         opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd, intrinsic, extrinsic)
         return opcd
 
-    def is_obstacle_in_front(self):
+    def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()
-        pcd = self.get_pcd(base_state=base_state)
-        from .obstacle_utils import is_obstacle
-        return is_obstacle(pcd, base_state)
+        pcd = self.get_open3d_pcd()
+        ret = is_obstacle(pcd, base_state,
+                          max_dist=0.5, return_viz=return_viz)
+        if return_viz:
+            obstacle, cpcd, crop, bbox = ret
+            cpcd = o3d_pickle(cpcd)
+            crop = o3d_pickle(crop)
+            bbox = o3d_pickle(bbox)
+            return obstacle, cpcd, crop, bbox
+        else:
+            obstacle = ret
+            return obstacle
 
     def get_pcd_data(self, rotate=True):
         """Gets all the data to calculate the point cloud for a given rgb, depth frame."""
