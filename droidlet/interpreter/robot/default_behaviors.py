@@ -89,11 +89,11 @@ def start_explore(agent, goal):
             logging.info('Default behavior: Default Exploration')
             agent.memory.task_stack_push(tasks.Explore(agent, task_data))
         
-        agent.memory.add_triple(
-                subj=agent.memory.self_memid, pred_text="first_exploration_done", obj_text='False'
+        agent.memory.add_or_replace(
+                subj_memid=agent.memory.self_memid, pred_text="first_exploration_done", obj_text='False'
             )
-        agent.memory.add_triple(
-                subj=agent.memory.self_memid, pred_text="explore_count", obj_text=str(explore_count+1)
+        agent.memory.add_or_replace(
+                subj_memid=agent.memory.self_memid, pred_text="explore_count", obj_text=str(explore_count+1)
             )
 
 def explore(agent):
