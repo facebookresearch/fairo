@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import logging
 from droidlet.interpreter.robot import tasks
-from droidlet.memory.robot.loco_memory import DetectedObjectNode
+from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.lowlevel.robot_mover_utils import ExaminedMap
 import os
 import random
@@ -11,8 +11,6 @@ import numpy as np
 import shutil
 
 random.seed(2021) # fixing a random seed to fix default exploration goal
-first_exploration_done = False
-explore_count = 0
 
 def get_distant_goal(x, y, t, l1_thresh=35):
     # Get a distant goal for the slam exploration
@@ -39,9 +37,18 @@ def init_logger():
 init_logger()
 
 def start_explore(agent, goal):
-    global first_exploration_done
-    global explore_count 
+    first_exploration_done = False
+    t = agent.memory.get_triples(subj=agent.memory.self_memid, pred_text="first_exploration_done")
+    assert len(t) <= 1, "More than 1 triple for first_exploration_done"
+    if len(t) == 1:
+        first_exploration_done = t[0][2] == 'True'  
 
+    explore_count = 0
+    t = agent.memory.get_triples(subj=agent.memory.self_memid, pred_text="explore_count")
+    assert len(t) <= 1, "More than 1 triple for explore_count"
+    if len(t) == 1:
+        explore_count = int(t[0][2])
+   
     if not first_exploration_done or os.getenv('CONTINUOUS_EXPLORE', 'False') == 'True':
         agent.mover.slam.reset_map()
         agent.mover.nav.reset_explore()
@@ -70,8 +77,6 @@ def start_explore(agent, goal):
         }
         logger.info(f'task_data {task_data}')
         
-        explore_count += 1
-
         if os.path.isdir(task_data['data_path']):
             shutil.rmtree(task_data['data_path'])
 
@@ -82,7 +87,13 @@ def start_explore(agent, goal):
             logging.info('Default behavior: Default Exploration')
             agent.memory.task_stack_push(tasks.Explore(agent, task_data))
         
-        first_exploration_done = True
+        def add_or_replace(agent, pred_text, obj_text):
+            memid = agent.memory.basic_search(f'SELECT uuid FROM Triple WHERE pred_text={pred_text}')
+            agent.memory.forget(memid)
+            agent.memory.add_triple(subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_test)
+
+        add_or_replace(agent, 'first_exploration_done', 'True')
+        add_or_replace(agent, 'explore_count', str(explore_count+1))
 
 def explore(agent):
     x,y,t = agent.mover.get_base_pos()
