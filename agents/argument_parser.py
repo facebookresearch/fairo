@@ -115,6 +115,11 @@ class ArgumentParser:
             action="store_true",
             help="sanity checks the robot's movement, camera, arm.",
         )
+        loco_parser.add_argument(
+            "--data_store_path",
+            default='',
+            help="path for storing data collected by the robot",
+        )
 
     def fix_path(self, opts):
         if opts.model_base_path == "#relative":

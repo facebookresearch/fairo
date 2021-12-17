@@ -31,6 +31,7 @@ class SLAM(object):
             agent_min_z=agent_min_z,
             agent_max_z=agent_max_z,
         )
+        self.map_size = map_size
         # if the map is a previous map loaded from disk, and
         # if the robot looks around and registers itself at a
         # non-origin location in the map just as it is coming up,
@@ -111,6 +112,9 @@ class SLAM(object):
             for indice in zip(indices[0], indices[1])
         ]
         return real_world_locations
+    
+    def reset_map(self):
+        self.map_builder.reset_map(self.map_size)
 
 
 robot_ip = os.getenv('LOCOBOT_IP')
