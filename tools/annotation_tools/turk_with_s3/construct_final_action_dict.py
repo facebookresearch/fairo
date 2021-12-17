@@ -258,7 +258,9 @@ def fix_put_mem(d):
         if new_d["dialogue_target"] == "f1":
             memory_type = "SET"
             if "selector" in new_d["filters"]:
-                new_d["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
+                new_d["filters"]["selector"]["location"] = {
+                    "reference_object": {
+                        "special_reference": {"fixed_value": "SPEAKER_LOOK"}}}
                 new_d["filters"]["selector"]["same"] = "DISALLOWED"
         elif new_d["dialogue_target"] == "SWARM":
             memory_type = "SET"
@@ -271,7 +273,9 @@ def fix_put_mem(d):
         elif new_d["dialogue_target"] == "AGENT":
             new_d["filters"] = {
                 "memory_type": "AGENT",
-                "selector" : {"location" : "SPEAKER_LOOK"}
+                "selector" : {"location": {
+                    "reference_object": {
+                        "special_reference": {"fixed_value": "SPEAKER_LOOK"}}}}
                 }
         del new_d['dialogue_target']
 
@@ -510,7 +514,9 @@ def postprocess_step(combined_path, post_processed_path):
                         if "selector" in action_dict["filters"]:
                             d["dialogue_target"] = {"filters": action_dict["filters"]}
                             del action_dict["filters"]
-                            d["dialogue_target"]["filters"]["selector"]["location"] = {"location_type": "SPEAKER_LOOK"}
+                            d["dialogue_target"]["filters"]["selector"]["location"] = {
+                                "reference_object": {
+                                    "special_reference": {"fixed_value": "SPEAKER_LOOK"}}}
                             d["dialogue_target"]["filters"]["selector"]["same"] = "DISALLOWED"
                         else:
                             # where clause
