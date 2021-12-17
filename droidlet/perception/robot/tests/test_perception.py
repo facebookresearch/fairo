@@ -23,8 +23,9 @@ import cv2
 import torch
 from PIL import Image
 from droidlet.perception.robot.tests.utils import get_fake_rgbd, get_fake_detection, get_fake_humanpose
-import numpy as np
+from droidlet.perception.robot.active_vision.candidate_selection import SampleGoodCandidates
 import json
+import numpy as np
 import time
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -51,6 +52,10 @@ GROUP_IMG_PATH = os.path.join(
 FACES_IDS_DIR = os.path.join(
     os.path.dirname(__file__),
     "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/faces")
+
+CANDIDATE_SELECTION_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "../../../../droidlet/artifacts/datasets/robot/perception_test_assets/candidate_selection_data")
 
 LABEL_PROP_TEST_ASSETS_DIR = os.path.join(
     os.path.dirname(__file__),
@@ -250,6 +255,64 @@ class TestFaceRecognition(unittest.TestCase):
         self.f_rec.detect_faces(rgb_depth_mock)
         self.assertTrue(len(self.f_rec.face_locations) == 0, "detected face in a no-face image!")
 
+
+class TestCandidateSelection(unittest.TestCase):
+    def load_semantic_json(self, scene):
+        habitat_semantic_json = os.path.join(CANDIDATE_SELECTION_DIR, scene, 'habitat', 'info_semantic.json')
+        with open(habitat_semantic_json, "r") as f:
+            hsd = json.load(f)
+        if hsd is None:
+            print("Semantic json not found!")
+        return hsd
+
+    def _run_test(self, traj_path, good_candidates, bad_candidates, is_annot_validfn):
+        s = SampleGoodCandidates(traj_path, is_annot_validfn)
+        
+        # Get good candidates
+        good = s.get_n_candidates(5, good=True)
+        assert np.array_equal(np.asarray(good.sort()), np.asarray(good_candidates.sort()))
+        
+        # Get bad candidates
+        bad = s.get_n_candidates(5, good=False)
+        assert np.array_equal(np.asarray(bad.sort()), np.asarray(bad_candidates.sort()))
+
+    def test_samplecandidates_for_class(self):
+        """
+        Tests candidate selection for the class setting (we care about instances belonging to labels)
+        """
+        traj_path = f'{CANDIDATE_SELECTION_DIR}/class'
+        good_candidates = [474, 953, 255, 10, 9]
+        bad_candidates = [393, 38, 76, 739, 174]
+        
+        def is_annot_validfn(annot):
+            hsd = self.load_semantic_json('apartment_0')
+            labels = ['chair', 'cushion', 'door', 'indoor-plant', 'sofa', 'table']
+            label_id_dict = {}
+            for obj_cls in hsd["classes"]:
+                if obj_cls["name"] in labels:
+                    label_id_dict[obj_cls["id"]] = obj_cls["name"]
+            if hsd["id_to_label"][annot] < 1 or hsd["id_to_label"][annot] not in label_id_dict.keys():
+                return False
+            return True
+        
+        self._run_test(traj_path, good_candidates, bad_candidates, is_annot_validfn)
+        
+
+    def test_samplecandidates_for_instance(self):
+        """
+        Tests candidate selection for the instance setting (we care about instance ids in instance_ids)
+        """
+        traj_path = f'{CANDIDATE_SELECTION_DIR}/instance'
+        instance_ids = [243,404,196,133,166,170,172]
+        good_candidates = [117, 122, 103, 111, 100]
+        bad_candidates = [41, 37, 60, 57, 35]
+        
+        def is_annot_validfn(annot):
+            if annot not in instance_ids:
+                return False
+            return True
+        
+        self._run_test(traj_path, good_candidates, bad_candidates, is_annot_validfn)
 
 if __name__ == "__main__":
     unittest.main()
