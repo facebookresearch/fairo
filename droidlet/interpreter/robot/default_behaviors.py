@@ -88,9 +88,11 @@ def start_explore(agent, goal):
             agent.memory.task_stack_push(tasks.Explore(agent, task_data))
         
         def add_or_replace(agent, pred_text, obj_text):
-            memid = agent.memory.basic_search(f'SELECT uuid FROM Triple WHERE pred_text={pred_text}')
-            agent.memory.forget(memid)
-            agent.memory.add_triple(subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_test)
+            memids, _ = agent.memory.basic_search(f'SELECT uuid FROM Triple WHERE pred_text={pred_text}')
+            assert len(memids) <= 1, f"more than 1 {len(memids)} returned"
+            if len(memids) > 0:
+                agent.memory.forget(memids[0])
+            agent.memory.add_triple(subj=agent.memory.self_memid, pred_text=pred_text, obj_text=obj_text)
 
         add_or_replace(agent, 'first_exploration_done', 'True')
         add_or_replace(agent, 'explore_count', str(explore_count+1))
