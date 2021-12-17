@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import os
 import math
-from droidlet.memory.robot.loco_memory import DetectedObjectNode
+from droidlet.memory.robot.loco_memory_nodes import DetectedObjectNode
 from droidlet.task.task import Task, BaseMovementTask
 from droidlet.memory.memory_nodes import TaskNode
 
@@ -603,7 +603,7 @@ class Explore(TrajectorySaverTask):
         super().__init__(agent, task_data)
         self.command_sent = False
         self.agent = agent
-        self.goal = task_data.get("goal", (19,19,0))
+        self.goal = task_data.get("goal")
         TaskNode(agent.memory, self.memid).update_task(task=self)
 
     @Task.step_wrapper
