@@ -253,7 +253,7 @@ def fix_put_mem(d):
         d = ast.literal_eval(d)
     new_d = copy.deepcopy(d)
     del new_d["action_type"]
-    memory_type = "TRIPLES"
+    memory_type = "TRIPLE"
     if "dialogue_target" in new_d:
         if new_d["dialogue_target"] == "f1":
             memory_type = "SET"
