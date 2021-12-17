@@ -446,6 +446,31 @@ et        """
         if triple_memids:
             self.forget(triple_memids[0][0])
 
+    def add_or_replace(self, subj_memid: str, pred_text: str, obj_text: str):
+        """adds or replaces tag for subject
+
+        Args:
+            subj_memid (string): memid of subject
+            pred_text (string): predicate text
+            obj_text (string): text representation for object
+
+        Examples::
+            >>> subj_memid = '10517cc584844659907ccfa6161e9d32'
+            >>> pred_text = 'has_property'
+            >>> obj_text = 'shiny'
+            >>> add_or_replace(subj_memid, pred_text, obj_text)
+        """
+        # FIXME replace me with a basic filters when _self handled better
+        triple_memids = self._db_read(
+            'SELECT uuid FROM Triples WHERE subj=? AND pred_text=?',
+            subj_memid,
+            pred_text,
+        )
+        if triple_memids:
+            self.forget(triple_memids[0][0])
+
+        self.add_triple(subj=subj_memid, pred_text=pred_text, obj_text=obj_text)
+
     # does not search archived mems for now
     # assumes tag is tag text
     def get_memids_by_tag(self, tag: str) -> List[str]:
