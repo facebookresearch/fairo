@@ -426,17 +426,7 @@ class CuriousExplore(TrajectorySaverTask):
         self.finished = False
         
         if self.steps[0] == "not_started":
-            if self.agent.mover.nav.is_done_exploring().value:
-                # clear memory
-                objects = DetectedObjectNode.get_all(self.agent.memory)
-                self.logger.info(f'Beginning to clear {len(objects)} memids ...')
-                self.agent.memory.clear(objects)
-                ExaminedMap.clear()
-                # reset object id counter
-                self.agent.perception_modules["vision"].vision.deduplicate.object_id_counter = 1
-                objects = DetectedObjectNode.get_all(self.agent.memory)
-                self.logger.info(f'{len(objects)} present now.')   
-            print(f'exploring goal {self.goal}')           
+            self.logger.info(f'exploring goal {self.goal}')           
             self.agent.mover.explore(self.goal)
             self.dbg_str = "Explore"
             self.steps[0] = "finished"
@@ -626,9 +616,7 @@ class Explore(TrajectorySaverTask):
         super().step()
         self.interrupted = False
         self.finished = False
-        if not self.command_sent:
-            self.command_sent = True
+        if not self.finished:
             self.agent.mover.explore(self.goal)
-        else:
-            self.finished = self.agent.mover.bot_step()
+            self.finished = self.agent.mover.nav.is_done_exploring().value
 
