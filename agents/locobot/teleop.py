@@ -296,7 +296,7 @@ if __name__ == "__main__":
 
         # start the SLAM
         if backend == 'habitat':
-            mover.explore()
+            mover.explore((19,19,0))
         
             # get the SLAM goals
             goal_loc, stg = None, None # mover.bot.get_slam_goal()    
