@@ -1,19 +1,11 @@
 import os
 import threading
 from droidlet.parallel import PropagatingThread
-from flask import Flask
-import socketio
-from flask_cors import cross_origin, CORS
-from droidlet import event
 import logging
 import json
 import random
 import ssl
 
-# https://github.com/miguelgrinberg/python-engineio/issues/142
-from engineio.payload import Payload
-
-Payload.max_decode_packets = 5000000
 
 try:
     import html
@@ -30,6 +22,14 @@ _dashboard_app = None
 
 
 def _dashboard_thread(web_root, ip, port, socketio_initialized, quiet=True):
+    from flask import Flask
+    import socketio
+    from flask_cors import cross_origin, CORS
+    # https://github.com/miguelgrinberg/python-engineio/issues/142
+    from engineio.payload import Payload
+    Payload.max_decode_packets = 5000000
+    from droidlet import event
+    
     global _dashboard_app
     root_dir = os.path.abspath(os.path.dirname(__file__))
     static_folder = os.path.join(root_dir, web_root, "build")
