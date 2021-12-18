@@ -2,4 +2,8 @@ Pyro4
 hello-robot-stretch-body
 hello-robot-stretch-body-tools
 pytransform3d
+cloudpickle
+-f https://download.pytorch.org/whl/cpu/torch_stable.html
+torch
+torchvision
 

@@ -7,6 +7,7 @@ import os
 import json
 import time
 import copy
+import math
 from math import *
 
 import pyrealsense2 as rs
@@ -16,6 +17,8 @@ import cv2
 import open3d as o3d
 from droidlet.lowlevel.hello_robot.remote.utils import transform_global_to_base, goto
 from slam_pkg.utils import depth_util as du
+from obstacle_utils import is_obstacle
+from droidlet.dashboard.o3dviz import serialize as o3d_pickle
 
 
 # Configure depth and color streams
