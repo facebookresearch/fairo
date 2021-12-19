@@ -199,7 +199,12 @@ if __name__ == "__main__":
     start_time = time.time_ns()
     fps_freq = 1 # displays the frame rate every 1 second
     counter = 0
-    mover.bot.set_tilt(-1.5)
+    if backend == 'habitat':
+        mover.bot.set_pan(0.0)
+        mover.bot.set_tilt(-1.5)
+    else: # hellorobot
+        mover.bot.set_pan(0.0)
+        mover.bot.set_tilt(-1.05)
     
     while True:
         counter += 1
