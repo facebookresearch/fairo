@@ -140,9 +140,9 @@ class RemoteHelloRobot(object):
 
         # convert to open3d RGBDImage
         rgb_u8 = np.ascontiguousarray(rgb[:, :, [2, 1, 0]], dtype=np.uint8)
-        depth_u16 = np.ascontiguousarray(depth, dtype=np.float32)
+        depth_f32 = np.ascontiguousarray(depth, dtype=np.float32) * 1000
         orgb = o3d.geometry.Image(rgb_u8)
-        odepth = o3d.geometry.Image(depth_u16)
+        odepth = o3d.geometry.Image(depth_f32)
         orgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(orgb, odepth, depth_trunc=10.0, convert_rgb_to_intensity=False)
 
         # create transform matrix
