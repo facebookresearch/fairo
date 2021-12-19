@@ -14,8 +14,7 @@ import numpy as np
 
 import cv2
 from droidlet.shared_data_structs import ErrorWithResponse
-
-# from agents.argument_parser import ArgumentParser
+from droidlet.dashboard.o3dviz import deserialize as o3d_unpickle
 from droidlet.shared_data_structs import RGBDepth
 
 from droidlet.lowlevel.robot_coordinate_utils import base_canonical_coords_to_pyrobot_coords
