@@ -63,11 +63,12 @@ def is_obstacle(pcd, base_pos, pix_threshold=100,
     num_cropped_points = np.asarray(crop.points).shape[0]
     obstacle = False
     if num_cropped_points < pix_threshold:
-        raise RuntimeError("not able to see directly in front of robot, tilt the camera further down")
+        print("not able to see directly in front of robot, tilt the camera further down")
+        # raise RuntimeError("not able to see directly in front of robot, tilt the camera further down")
     if fastmath:
         # TODO: make this based on not detecting ground plane, but directly cropping bounding box in front, at a certain height
         raise RuntimeError("Not Implemented")
-    else:
+    elif num_cropped_points >= pix_threshold:
         rest = get_ground_plane(crop, return_ground=False)
         rest = np.asarray(rest.points)
         obstacle = rest.shape[0] > 100
