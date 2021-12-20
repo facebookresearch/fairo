@@ -117,6 +117,7 @@ def fix_spans_due_to_empty_words(action_dict, words):
 
 
 def process_dict(d):
+
     r = {}
     d = remove_key_prefixes(
         d,
@@ -203,47 +204,28 @@ def process_dict(d):
                 r["location"].update(x)
                 dirn = r["location"]["relative_direction"]
                 for k, v in d.items():
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object.has_name.".format(
-                            dirn
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.has_name.")
+                    # if k.startswith("location.REFERENCE_OBJECT.relative_direction.") and "reference_object.has_name." in k:
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object.location.".format(
-                            dirn
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.location.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object.contains_coreference".format(
-                            dirn
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object.contains_coreference")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_1.has_name.".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.has_name.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_1.contains_coreference".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_1.contains_coreference")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_2.has_name.".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    reg = re.compile("location.REFERENCE_OBJECT.relative_direction..+reference_object_2.has_name.")
+                    if bool(re.match(reg, k)):
                         d[k] = None
-                    if k.startswith(
-                        "location.REFERENCE_OBJECT.relative_direction.{}.reference_object_2.contains_coreference".format(
-                            r["location"]["relative_direction"]
-                        )
-                    ):
+                    eg = re.compile(
+                        "location.REFERENCE_OBJECT.relative_direction..+reference_object_2.contains_coreference")
+                    if bool(re.match(reg, k)):
                         d[k] = None
             else:
                 del r["location"]["location_type"]
@@ -251,10 +233,10 @@ def process_dict(d):
         if ("relative_direction" in r["location"]) and (
             r["location"]["relative_direction"] in ("EXACT", "Other")
         ):
+
             del r["location"]["relative_direction"]
 
     for k, v in d.items():
-
         if (
             k == "location"
             or k in ["COPY"]
@@ -283,7 +265,6 @@ def process_dict(d):
         # handle const value
         else:
             r[k] = v
-
     return r
 
 
@@ -318,7 +299,6 @@ def handle_components(d, child_name):
         output[child_name].update(child_d)
     else:
         child_d = process_dict(with_prefix(d, "{}.".format(child_name)))
-
         if "location" in child_d and "location_type" in child_d["location"]:
             value = child_d["location"]["location_type"]
             child_d["location"].pop("location_type")
@@ -348,7 +328,6 @@ def handle_components(d, child_name):
                                 "fixed_value": updated_value
                             }
                         }
-
                     if "coordinates" in child_d["location"]:
                         del child_d["location"]["coordinates"]
 
@@ -369,7 +348,7 @@ def process_result(full_d):
     d = with_prefix(
         full_d, "Answer.root." + action_name + "!" + child_name + "."
     )  # replace with "Answer.root."
-    d = fix_nums_at_end_of_ref_obj(d, ["reference_object"])
+    # d = fix_nums_at_end_of_ref_obj(d, ["reference_object"])
     receiver_flag = False
     original_child_name = child_name
     if child_name in ["receiver_reference_object", "source_reference_object"]:
@@ -379,6 +358,7 @@ def process_result(full_d):
     if receiver_flag:
         action_dict[original_child_name] = action_dict[child_name]
         action_dict.pop(child_name)
+
     # Fix empty words messing up spans
     #     words = [full_d["Input.word{}".format(x)] for x in range(MAX_WORDS)]
     #     action_dict, words = fix_spans_due_to_empty_words(action_dict, words)
@@ -483,9 +463,8 @@ if __name__ == "__main__":
     )
     opts = parser.parse_args()
     folder_name = opts.folder_name
-    x = {"reference_object.name_check.has_name.span#3": "on", "reference_object2": "name_check"}
-    fix_nums_at_end_of_ref_obj(x, ["reference_object"])
-
+    # x = {"reference_object.name_check.has_name.span#3": "on", "reference_object2": "name_check"}
+    # fix_nums_at_end_of_ref_obj(x, ["reference_object"])
     # convert csv to txt
     result_dict = {}
     f_name = folder_name + "processed_outputs.csv"
@@ -495,7 +474,6 @@ if __name__ == "__main__":
     with open(f_name, "r") as f:
         r = csv.DictReader(f)
         for i, d in enumerate(r):
-
             sentence = d["Input.command"]
             """ the sentence has a span in it"""
             worker_id, action_dict, words, child_name = process_result(d)

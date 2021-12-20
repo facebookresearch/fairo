@@ -287,13 +287,13 @@ def handle_components(d):
         if ranking_measure == "argmax":
             polarity = "MAX"
         output["selector"] = {"return_quantity": {}}
-        output["selector"]["return_quantity"]["argval"] = {"polarity": polarity, "quantity": updated_dict["quantity"]}
+        output["selector"]["return_quantity"]["argval"] = {"polarity": polarity, "quantity": {"attribute": updated_dict["quantity"]}}
         # handle argmax and argmin
         if "ordinal" in updated_dict:
             if type(updated_dict["ordinal"]) == str:
                 output["selector"]["ordinal"] = {"fixed_value" : updated_dict["ordinal"]}
             else: # span
-                output["selector"]["ordinal"] = updated_dict["ordinal"]
+                output["selector"]["ordinal"] = updated_dict["ordinal"]["ordinal_span"]
         # handle greater+_than and less_than
         if "number" in updated_dict:
             output[ranking_measure]["number"] = updated_dict["number"]

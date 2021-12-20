@@ -74,6 +74,21 @@
                 "action_type": {
                     "const": "OTHERACTION"
                 },
+                "dialogue_target": {
+                    "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "filters": {
+                          "$ref": "filters.schema.json#/definitions/filters"
+                        }
+                      }
+                    }
+                  ]
+                },
                 "reference_object": {
                     "$ref": "action_dict_components.schema.json#/definitions/reference_object"
                 },
