@@ -7,13 +7,25 @@
 // Remove the stylesheet inherited from Mephisto by default
 $('link[rel=stylesheet][href~="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]').remove();
 
+var blockMarked = false;
+var annotationFinished = false;
+var ratingComplete = false;
+var feedbackGiven = false;
 var clickedElements = new Array();
 
 // recordClick logs user actions as well as messages from the dashboard to the Mephisto form
 function recordClick(ele) {
+  if (ele === "block_marked") {  // Check to allow submission if all qualifications are met
+    blockMarked = true;
+    checkSubmitDisplay();
+  }
+  if (ele === "annotation_finished") {  // Check to allow submission if all qualifications are met
+    annotationFinished = true;
+    checkSubmitDisplay();
+  }
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
-  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
@@ -51,4 +63,27 @@ function showHideInstructions() {
     }
   }
   recordClick("toggle-instructions");
+}
+
+var submit_btn = document.getElementsByClassName("btn-default")[0];
+submit_btn.classList.add("hidden");  // Hide the submit button to start
+
+function checkSubmitDisplay() {
+  //Only display the submit button if the worker has interacted with the dashboard and completed the survey
+  if (ratingComplete && feedbackGiven && blockMarked && annotationFinished) {
+    submit_btn.classList.remove("hidden");
+    window.scrollTo(0,document.body.scrollHeight);
+  }
+}
+
+function usabilityRated() {
+  ratingComplete = true;
+  recordClick("usability-rated");
+  checkSubmitDisplay();
+}
+
+function giveFeedback() {
+  feedbackGiven = true;
+  recordClick("feedback");
+  checkSubmitDisplay();
 }

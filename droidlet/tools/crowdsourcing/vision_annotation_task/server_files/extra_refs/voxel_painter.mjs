@@ -29,6 +29,9 @@ for (let x=-2; x<2; x++){
 }
 
 let actions_taken = []; // [original_object, new_object, action_type]
+var startedHIT = false;
+
+// TODO download data from S3 based on data.csv?
 
 init1();
 init2();
@@ -79,7 +82,7 @@ function init1() {
 
     renderer1 = new THREE.WebGLRenderer( { antialias: true } );
     renderer1.setPixelRatio( window.devicePixelRatio );
-    renderer1.setSize( (window.innerWidth/2.1), window.innerHeight );
+    renderer1.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
     let cont = document.getElementById("voxel_painter");
     cont.appendChild( renderer1.domElement );
 
@@ -149,7 +152,7 @@ function init2() {
 
     renderer2 = new THREE.WebGLRenderer( { antialias: true } );
     renderer2.setPixelRatio( window.devicePixelRatio );
-    renderer2.setSize( (window.innerWidth/2.1), window.innerHeight );
+    renderer2.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
     let cont = document.getElementById("voxel_painter");
     cont.appendChild( renderer2.domElement );
 
@@ -318,4 +321,9 @@ function onDocumentKeyUp( event ) {
 function render() {
     renderer1.render( scene1, camera1 );
     renderer2.render( scene2, camera2 );
+
+    if ((marked_blocks.length > 0) && (!startedHIT)) {
+        startedHIT = true;
+        window.parent.postMessage(JSON.stringify({ msg: "block_marked" }), "*");
+    }
 }

@@ -5,3 +5,20 @@ iframe {
 .container {
     width: 90%;
 }
+
+.instruction-gifs {
+    display: block;
+    max-width: 200px;
+    max-height: 200px;
+    margin: auto;
+    width: auto;
+    height: auto;
+}
+
+.center {
+    text-align: center;
+}
+
+.row {
+    padding: 10px;
+}

@@ -1,7 +1,14 @@
 <html>
     <body>
         <div id="voxel_painter"></div>
+        <button type="button" class="center" id="finish-annotation">Click Here to Finish Annotation</button>
     </body>
     <script type='module' src='voxel_painter.mjs'></script>
+    <script>
+        document.getElementById("finish-annotation").addEventListener("click", function() {
+            window.parent.postMessage(JSON.stringify({ msg: "annotation_finished" }), "*");
+            // TODO upload data to S3 on complete
+        });
+    </script>
     <link rel="stylesheet" href="voxel_wrapper.css">
 </html>

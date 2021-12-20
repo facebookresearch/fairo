@@ -5,3 +5,9 @@ canvas {
     margin-right: auto;
     display: inline;
 }
+
+.center {
+    display: block;
+    margin: auto;
+    padding: 5px;
+}
