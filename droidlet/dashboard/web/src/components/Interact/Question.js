@@ -410,7 +410,7 @@ class Question extends Component {
           );
         }
       }
-      // If no reference object description found no perception error.
+      // If no reference object description found not a perception error.
     } else {
       console.log("no action dictionary found ..."); // Shouldn't happen....
     }
@@ -445,26 +445,54 @@ class Question extends Component {
       this.setState({ view: 6 });
       return;
     }
-    return (
-      <div className="question">
-        <h3>
-          Okay, looks like I understood your command. I was looking for an
-          object of interest called : {reference_object_description}. Here's
-          what I think it is. Does that look right ?
-        </h3>
-        <List className="answers" component="nav">
-          <ListItem button onClick={() => this.answerVision(1)}>
-            <ListItemText className="listButton" primary="Yes" />
-          </ListItem>
-          <ListItem button onClick={() => this.answerVision(2)}>
-            <ListItemText className="listButton" primary="No" />
-          </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 1 })}>
-            <ListItemText className="listButton" primary="Go Back" />
-          </ListItem>
-        </List>
-      </div>
-    );
+    // Check for this reference object in memory
+    let user_message = null;
+    // NOTE: this should come from the state setter sio event.
+    this.state.memory_entries = null;
+
+    if (this.state.memory_entries) {
+      return (
+        <div className="question">
+          <h3>
+            Okay, I was looking for an object of interest called :
+            {reference_object_description}. Here's what I think it is. Does that
+            look right ?
+          </h3>
+          <List className="answers" component="nav">
+            <ListItem button onClick={() => this.answerVision(1)}>
+              <ListItemText className="listButton" primary="Yes" />
+            </ListItem>
+            <ListItem button onClick={() => this.answerVision(2)}>
+              <ListItemText className="listButton" primary="No" />
+            </ListItem>
+            <ListItem button onClick={() => this.setState({ view: 1 })}>
+              <ListItemText className="listButton" primary="Go Back" />
+            </ListItem>
+          </List>
+        </div>
+      );
+    } else {
+      // No entries found for this reference object in memory
+      return (
+        <div className="question">
+          <h3>
+            I did not find anything called :{reference_object_description} in
+            the world. Does that seem right from your view of the world ?
+          </h3>
+          <List className="answers" component="nav">
+            <ListItem button onClick={() => this.answerVision(1)}>
+              <ListItemText className="listButton" primary="Yes" />
+            </ListItem>
+            <ListItem button onClick={() => this.answerVision(2)}>
+              <ListItemText className="listButton" primary="No" />
+            </ListItem>
+            <ListItem button onClick={() => this.setState({ view: 1 })}>
+              <ListItemText className="listButton" primary="Go Back" />
+            </ListItem>
+          </List>
+        </div>
+      );
+    }
   }
 
   answerVision(index) {
