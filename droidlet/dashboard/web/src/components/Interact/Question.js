@@ -59,11 +59,7 @@ class Question extends Component {
   renderActionQuestion() {
     return (
       <div>
-        <h3>
-          {" "}
-          Did I successfully do the task you asked me to complete?
-          {" "}
-        </h3>
+        <h3> Did I successfully do the task you asked me to complete? </h3>
         <List className="answers" component="nav">
           <ListItem button onClick={() => this.answerAction(1)}>
             <ListItemText className="listButton" primary="Yes" />
@@ -90,7 +86,6 @@ class Question extends Component {
 
   renderParserQuestion() {
     /* check if the parser was right.*/
-
     if (this.state.action_dict) {
       if ("dialogue_type" in this.state.action_dict) {
         var dialogue_type = this.state.action_dict.dialogue_type;
@@ -283,6 +278,7 @@ class Question extends Component {
     if (index === 1) {
       // yes, so not a parsing error
       this.evalCommandPerception();
+      this.setState({ view: 3 });
     } else if (index === 2) {
       // no, so parsing error
       this.setState({ parsing_error: true, view: 2 });
@@ -308,112 +304,162 @@ class Question extends Component {
     );
   }
 
+  renderVisionFail() {
+    return (
+      <div>
+        <h3>
+          {" "}
+          Thanks for letting me know that I didn't detect the object right.{" "}
+        </h3>
+        <List className="answers" component="nav">
+          <ListItem button onClick={this.finishQuestions.bind(this)}>
+            <ListItemText className="listButton" primary="Done" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 3 })}>
+            <ListItemText className="listButton" primary="Go Back" />
+          </ListItem>
+        </List>
+      </div>
+    );
+  }
+
+  check_reference_object_in_action_dict(action) {
+    var action_dict = action;
+    for (var key in action_dict) {
+      if (key == "reference_object") {
+        return true;
+      } else {
+        if (action_dict[key].constructor == Object) {
+          if (this.check_reference_object_in_action_dict(action_dict[key])) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  extractLocationRef(action_dict) {
+    var locationRef = "";
+    if ("reference_object" in action_dict) {
+      if ("text_span" in action_dict.reference_object) {
+        locationRef = "'" + action_dict.reference_object.text_span + "'";
+      }
+      // If we don't have a convenient text_span, find the words referenced by index
+      else if (
+        "filters" in action_dict.reference_object &&
+        "where_clause" in action_dict.reference_object.filters
+      ) {
+        let qty = "";
+        if ("selector" in action_dict.reference_object.filters) {
+          qty = action_dict.reference_object.filters.selector.ordinal;
+        }
+        let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
+        action_dict.reference_object.filters.where_clause.AND.forEach(
+          (clause) => {
+            if (clause.pred_text === "has_size")
+              antecedent[1] = clause.obj_text;
+            else if (clause.pred_text === "has_colour")
+              antecedent[2] = clause.obj_text;
+            else if (clause.pred_text === "has_block_type")
+              antecedent[3] = clause.obj_text;
+            else if (clause.pred_text === "has_name")
+              antecedent[4] = clause.obj_text;
+          }
+        );
+        locationRef =
+          "'" + antecedent.join(" ").replace(/  +/g, " ").trim() + "'";
+      }
+    }
+    return locationRef;
+  }
+
   evalCommandPerception() {
-    //                 Location Ref Exists?
+    //                 Reference Object Exists in dictionary ?
     //                         /   \
     //                       Yes    No -> Other Error
     //                        |
     //             Found Location in Memory?
     //                      /   \
     //                    Yes    No -> Perception Error
-    
+    let ref_object = false;
+    let reference_object_description = null;
+    // Check if reference object exists in the dictionary anywhere
     if (this.state.action_dict) {
-      let locationRef = null;
-      const action_dict = this.state.action_dict.action_sequence[0];
-      // Check for location at top level and extract the reference text
-      if ("location" in action_dict) {
-        if ("text_span" in action_dict.location) {
-          locationRef =
-            "'" +
-            action_dict.location.text_span +
-            "'";
-        }
-        else if ("reference_object" in action_dict.location) {
-          if ("text_span" in action_dict.location.reference_object) {
-            locationRef =
-            "'" +
-            action_dict.location.reference_object.text_span +
-            "'";
-          }
-          // If we don't have a convenient text_span, find the words referenced by index
-          else if ("where_clause" in action_dict.location.reference_object.filters) {
-            let qty = "";
-            if ("selector" in action_dict.location.reference_object.filters) {
-              qty = action_dict.location.reference_object.filters.selector.ordinal;
-            }
-            let antecedent = [qty, "", "", "", ""]; // qty then size then colour then block type then name. Ignore everything else.
-            action_dict.location.reference_object.filters.where_clause.AND.forEach(
-              (clause) => {
-                if (clause.pred_text === "has_size")
-                  antecedent[1] = clause.obj_text;
-                else if (clause.pred_text === "has_colour")
-                  antecedent[2] = clause.obj_text;
-                else if (clause.pred_text === "has_block_type")
-                  antecedent[3] = clause.obj_text;
-                else if (clause.pred_text === "has_name")
-                  antecedent[4] = clause.obj_text;
-              }
-            );
-            locationRef = 
-              "'" +
-              antecedent.join(" ").replace(/  +/g, " ").trim() +
-              "'";
-          }
+      if (this.state.action_dict["dialogue_type"] == "HUMAN_GIVE_COMMAND") {
+        // also implement for get and put memory
+        for (const action of this.state.action_dict.action_sequence) {
+          ref_object = this.check_reference_object_in_action_dict(action);
         }
       }
-      // If there's no location reference, there can't be a perception error
-      else {
-        this.setState({
-          parsing_error: false,
-          perception_error: false,
-          view: 3,
-        });
-        return
-      }
-    } else {
-      // shouldn't happen
-      return (
-        <div>
-          <h3> Thanks! Press to continue.</h3>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => this.props.goToMessage()}
-          >
-            Done
-          </Button>
-        </div>
-      );
-    }
 
-    
+      // If yes, find reference object description.
+      if (ref_object == true) {
+        const action_dict = this.state.action_dict.action_sequence[0];
+        // Check for location at top level and extract the reference text
+        let considered_action_dict = null;
+        if ("location" in action_dict) {
+          considered_action_dict = action_dict.location;
+        } else if ("reference_object" in action_dict) {
+          considered_action_dict = action_dict;
+        }
+
+        if (considered_action_dict) {
+          reference_object_description = this.extractLocationRef(
+            considered_action_dict
+          );
+        }
+      }
+      // If no reference object description found no perception error.
+    } else {
+      console.log("no action dictionary found ..."); // Shouldn't happen....
+    }
+    this.setState({
+      reference_object_description: reference_object_description,
+    });
+
+    // else {
+    //   // shouldn't happen
+    //   return (
+    //     <div>
+    //       <h3> Thanks! Press to continue.</h3>
+    //       <Button
+    //         variant="contained"
+    //         color="primary"
+    //         onClick={() => this.props.goToMessage()}
+    //       >
+    //         Done
+    //       </Button>
+    //     </div>
+    //   );
+    // }
   }
 
   renderVisionQuestion() {
     //        Is 'This' the Location Ref?
     //                  /   \
     // Other Error <- Yes    No -> Perception Error
-
-    
+    let reference_object_description = this.state.reference_object_description;
+    if (!reference_object_description) {
+      // Not perception error.
+      this.setState({ view: 6 });
+      return;
+    }
     return (
-      <div>
+      <div className="question">
         <h3>
-          {" "}
-          Okay, looks like I understood your command but didn't complete it.
-          Please tell me more about what I did wrong:{" "}
+          Okay, looks like I understood your command. I was looking for an
+          object of interest called : {reference_object_description}. Here's
+          what I think it is. Does that look right ?
         </h3>
-        <TextField
-          id="outlined-uncontrolled"
-          label=""
-          margin="normal"
-          variant="outlined"
-          onChange={(event) => this.saveFeedback(event)}
-        />
         <List className="answers" component="nav">
-          <ListItem button onClick={this.finishQuestions.bind(this)}>
-            <ListItemText className="listButton" primary="Done" />
+          <ListItem button onClick={() => this.answerVision(1)}>
+            <ListItemText className="listButton" primary="Yes" />
           </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 2 })}>
+          <ListItem button onClick={() => this.answerVision(2)}>
+            <ListItemText className="listButton" primary="No" />
+          </ListItem>
+          <ListItem button onClick={() => this.setState({ view: 1 })}>
             <ListItemText className="listButton" primary="Go Back" />
           </ListItem>
         </List>
@@ -424,11 +470,11 @@ class Question extends Component {
   answerVision(index) {
     //handles after the user submits the answer (y/n) to if NSP errored or not
     if (index === 1) {
-      // yes, so not a parsing error
-      this.setState({ parsing_error: false, view: 2 });
+      // yes, so not a vision error
+      this.setState({ view: 6 });
     } else if (index === 2) {
-      // no, so parsing error
-      this.setState({ parsing_error: true, view: 3 });
+      // no, so vision error
+      this.setState({ vision_error: true, view: 4 });
     }
   }
 
@@ -451,7 +497,7 @@ class Question extends Component {
           <ListItem button onClick={this.finishQuestions.bind(this)}>
             <ListItemText className="listButton" primary="Done" />
           </ListItem>
-          <ListItem button onClick={() => this.setState({ view: 1 })}>
+          <ListItem button onClick={() => this.setState({ view: 3 })}>
             <ListItemText className="listButton" primary="Go Back" />
           </ListItem>
         </List>
@@ -532,6 +578,7 @@ class Question extends Component {
         {this.state.view === 3 ? this.renderVisionQuestion() : null}
         {this.state.view === 4 ? this.renderVisionFail() : null}
         {this.state.view === 5 ? this.renderEnd() : null}
+        {this.state.view === 6 ? this.renderOtherError() : null}
       </div>
     );
   }
