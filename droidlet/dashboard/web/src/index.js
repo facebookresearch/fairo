@@ -30,6 +30,7 @@ import OfflinePanel from "./components/OfflinePanel";
 import { isMobile } from "react-device-detect";
 
 import "./index.css";
+import FrankaArmMover from "./components/FrankaArmMover";
 
 window.React = React;
 window.ReactDOM = ReactDOM;
@@ -146,6 +147,12 @@ var config = {
                   props: { stateManager: stateManager },
                 },
                 {
+                  title: "Franka Arm Mover",
+                  type: "react-component",
+                  component: "FrankaArmMover",
+                  props: { stateManager: stateManager },
+                },
+                {
                   title: "Object Annotation Fixer",
                   type: "react-component",
                   component: "ObjectFixup",
@@ -177,6 +184,7 @@ dashboardLayout.registerComponent("MainPane", MainPane);
 dashboardLayout.registerComponent("Console", Console);
 dashboardLayout.registerComponent("Settings", Settings);
 dashboardLayout.registerComponent("Navigator", Navigator);
+dashboardLayout.registerComponent("FrankaArmMover", FrankaArmMover);
 dashboardLayout.registerComponent("Memory2D", Memory2D);
 dashboardLayout.registerComponent("MemoryList", MemoryList);
 dashboardLayout.registerComponent("QuerySemanticParser", QuerySemanticParser);
