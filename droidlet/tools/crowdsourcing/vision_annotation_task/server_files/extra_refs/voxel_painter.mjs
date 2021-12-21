@@ -10,13 +10,21 @@ let isSDown = false;
 let isDDown = false;
 
 let rollOverMesh2, rollOverMaterial2;
-let cubeGeo1, cubeMaterial1;
-let cubeGeo2, cubeMaterial2;
-let cubeGeo_mark, cubeMaterial_mark;
+let cubeMaterial_mark;
+const geo = new THREE.BoxGeometry( 50, 50, 50 );
+const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
+const user_material = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 1.0} );
+const agent_material = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 1.0} );
 
 let objects1 = [];
 let objects2  = [];
 let marked_blocks = [];
+
+let actions_taken = []; // [original_object, new_object, action_type]
+var startedHIT = false;
+
+// TODO download data from S3 based on data.csv?
+// In the meantime, here's some dummy data
 
 let starting_cube = [];
 let block_id = 0;
@@ -28,10 +36,10 @@ for (let x=-2; x<2; x++){
     }
 }
 
-let actions_taken = []; // [original_object, new_object, action_type]
-var startedHIT = false;
-
-// TODO download data from S3 based on data.csv?
+let user = [[6,0,6,'u1'], [6,1,6,'u2']];
+let agent = [[6,0,-6,'a1'], [6,1,-6,'a2']];
+const user_look_dir = new THREE.Vector3();
+const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
 
 init1();
 init2();
@@ -43,16 +51,12 @@ canvii[1].style.float = "right";
 
 function init1() {
     // This is the left scene, uneditable
-    camera1 = new THREE.PerspectiveCamera( 45, (window.innerWidth/2) / window.innerHeight, 1, 10000 );
+    camera1 = new THREE.PerspectiveCamera( 45, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
     camera1.position.set( 500, 800, 1300 );
     camera1.lookAt( 0, 0, 0 );
 
     scene1 = new THREE.Scene();
     scene1.background = new THREE.Color( 0xf0f0f0 );
-
-    // cubes
-    cubeGeo1 = new THREE.BoxGeometry( 50, 50, 50 );
-    cubeMaterial1 = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
 
     // grid
     const gridHelper = new THREE.GridHelper( 1000, 20 );
@@ -67,10 +71,31 @@ function init1() {
 
     // starting cube
     starting_cube.forEach((block) => {
-        const voxel = new THREE.Mesh( cubeGeo1, cubeMaterial1 );
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene1.add( voxel );
         objects1.push( voxel );
+    })
+
+    // add user
+    user.forEach((block) => {
+        const user_block = new THREE.Mesh( geo, user_material );
+        user_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+        scene1.add( user_block );
+        objects1.push( user_block );
+    })
+
+    // add look direction
+    user_look_dir.subVectors(scene1.position, head_position).normalize();
+    const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
+    scene1.add( arrowHelper );
+
+    // add agent
+    agent.forEach((block) => {
+        const agent_block = new THREE.Mesh( geo, agent_material );
+        agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+        scene1.add( agent_block );
+        objects1.push( agent_block );
     })
 
     // lights
@@ -101,7 +126,7 @@ function init1() {
 
 function init2() {
     // This is the right scene, uneditable
-    camera2 = new THREE.PerspectiveCamera( 45, (window.innerWidth/2) / window.innerHeight, 1, 10000 );
+    camera2 = new THREE.PerspectiveCamera( 45, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
     camera2.position.set( 500, 800, 1300 );
     camera2.lookAt( 0, 0, 0 );
 
@@ -109,18 +134,12 @@ function init2() {
     scene2.background = new THREE.Color( 0xf0f0f0 );
 
     // roll-over helpers
-    const rollOverGeo = new THREE.BoxGeometry( 50, 50, 50 );
     rollOverMaterial2 = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
-    rollOverMesh2 = new THREE.Mesh( rollOverGeo, rollOverMaterial2 );
+    rollOverMesh2 = new THREE.Mesh( geo, rollOverMaterial2 );
     scene2.add( rollOverMesh2 );
 
-    // marked block params
-    cubeGeo_mark = new THREE.BoxGeometry( 50, 50, 50 );
+    // marked block material
     cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
-
-    // cubes
-    cubeGeo2 = new THREE.BoxGeometry( 50, 50, 50 );
-    cubeMaterial2 = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
 
     // grid
     const gridHelper = new THREE.GridHelper( 1000, 20 );
@@ -137,12 +156,45 @@ function init2() {
 
     // starting cube
     starting_cube.forEach((block) => {
-        const voxel = new THREE.Mesh( cubeGeo2, cubeMaterial2 );
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene2.add( voxel );
         objects2.push( voxel );
     })
 
+    // add user
+    user.forEach((block) => {
+        const user_block = new THREE.Mesh( geo, user_material );
+        user_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+        scene2.add( user_block );
+        objects2.push( user_block );
+    })
+
+    // add look direction
+    user_look_dir.subVectors(scene2.position, head_position).normalize();
+    const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
+    scene2.add( arrowHelper );
+
+    // add agent
+    agent.forEach((block) => {
+        const agent_block = new THREE.Mesh( geo, agent_material );
+        agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+        scene2.add( agent_block );
+        objects2.push( agent_block );
+    })
+
+    const dir = new THREE.Vector3( 1, 2, 0 );
+    /*
+    //normalize the direction vector (convert to vector of length 1)
+    dir.normalize();
+
+    const origin = new THREE.Vector3( 0, 0, 0 );
+    const length = 1;
+    const hex = 0xffff00;
+
+    const arrowHelper2 = new THREE.ArrowHelper( dir, origin, length, hex );
+    scene2.add( arrowHelper2 );
+    */
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
     scene2.add( ambientLight );
@@ -172,17 +224,17 @@ function init2() {
 }
 
 function onWindowResize() {
-    camera1.aspect = (window.innerWidth/2) / window.innerHeight;
+    camera1.aspect = (window.innerWidth/2) / (window.innerHeight - 50);
     camera1.updateProjectionMatrix();
-    renderer1.setSize( (window.innerWidth/2.1), window.innerHeight );
-    camera2.aspect = (window.innerWidth/2) / window.innerHeight;
+    renderer1.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
+    camera2.aspect = (window.innerWidth/2) / (window.innerHeight - 50);
     camera2.updateProjectionMatrix();
-    renderer2.setSize( (window.innerWidth/2.1), window.innerHeight );
+    renderer2.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
     render();
 }
 
 function onPointerMove( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
     raycaster2.setFromCamera( pointer2, camera2 );
     // Select which blocks the raycaster should intersect with
     let objs_to_intersect = objects2;
@@ -204,7 +256,7 @@ function onPointerMove( event ) {
 }
 
 function onPointerDown( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
     raycaster2.setFromCamera( pointer2, camera2 );
     
     // Select which blocks the raycaster should intersect with
@@ -224,7 +276,7 @@ function onPointerDown( event ) {
                 scene2.remove( intersect.object );
                 objects2.splice( objects2.indexOf( intersect.object ), 1 );
                 // Add in a marked block in the same spot
-                const voxel = new THREE.Mesh( cubeGeo_mark, cubeMaterial_mark );
+                const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
                 voxel.position.set(intersect.object.position.x,intersect.object.position.y,intersect.object.position.z);
                 scene2.add( voxel );
                 marked_blocks.push( voxel );
@@ -235,7 +287,7 @@ function onPointerDown( event ) {
         // mark air
         } else if (isSDown) {
             // Create new marked block and place on the surface
-            const voxel = new THREE.Mesh( cubeGeo_mark, cubeMaterial_mark );
+            const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
             voxel.position.copy( intersect.point ).add( intersect.face.normal );
             voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
             scene2.add( voxel );
@@ -258,7 +310,7 @@ function onPointerDown( event ) {
                 });
                 let voxel = null;
                 if (replace_with_block) {
-                    voxel = new THREE.Mesh( cubeGeo2, cubeMaterial2 );
+                    voxel = new THREE.Mesh( geo, cubeMaterial );
                     voxel.position.set(intersect.object.position.x,intersect.object.position.y,intersect.object.position.z);
                     scene2.add( voxel );
                     objects2.push( voxel );
