@@ -90,8 +90,9 @@ class RoboarmAgent(DroidletAgent):
         self.point_targets = []
         self.init_event_handlers()
 
-        uri = "PYRO:obj_3695c59817ec4be3bcb56f93fbb18d5d@localhost:40243"            
-        self.simEnv = Pyro4.Proxy(uri)
+        #uri = "PYRO:obj_599bf1e3a7db4d818cd9b328d6c55b92@localhost:36829"            
+        #self.simEnv = Pyro4.Proxy(uri)
+        self.simEnv = Pyro4.core.Proxy('PYRO:remoteEnv@' + "127.0.1.1" + ':9000')
         self.sim_image = []
         
 
@@ -349,7 +350,7 @@ if __name__ == "__main__":
     
     opts = parser.parse()
     print (opts.ip, opts.backend)
-    opts.ip = "172.23.42.96"
+    #opts.ip = "172.23.42.96"
     print(f"IP::: Roboarm AGENT {opts.ip}")
 
     logging.basicConfig(level=opts.log_level.upper())

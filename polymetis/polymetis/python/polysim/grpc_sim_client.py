@@ -168,6 +168,8 @@ class GrpcSimulationClient(AbstractRobotClient):
                     img = self.current_pos_image
                     ###img_b64 = base64.b64encode(img)
                 ###self.sio.emit('data', img_b64) 
+            
+            #time.sleep(0.01)
 
             # Get robot state from env
             joint_pos, joint_vel = self.env.get_current_joint_pos_vel()

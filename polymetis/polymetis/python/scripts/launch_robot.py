@@ -85,17 +85,21 @@ def main(cfg):
     atexit.register(cleanup)
     signal.signal(signal.SIGTERM, lambda signal_number, stack_frame: cleanup())
 
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    print(local_ip)
+
     # Start client
     time.sleep(1.0)
     log.info(f"STARTING ROBOT CLIENT...")
     client = hydra.utils.instantiate(cfg.robot_client)
     #print(client)
     env = client
-    daemon = Pyro4.Daemon()
-    uri = daemon.register(env)
-    print(uri)
+    #daemon = Pyro4.Daemon()
+    #uri = daemon.register(env)
+    #print(uri)
     #daemon.requestLoop()
-    Thread(target=daemon.requestLoop).start()
+    #Thread(target=daemon.requestLoop).start()
 
     """
     ip = "172.23.42.48"
@@ -109,8 +113,11 @@ def main(cfg):
             daemon.requestLoop() 
     """
     
-    client.run()
+    #client.run()
+    Thread (target=client.run).start()
     print("AFTER CLIENT RUN")
+
+    Pyro4.Daemon.serveSimple({env: 'remoteEnv',}, host="127.0.1.1", port=9000, ns=False)
 
 
 if __name__ == "__main__":
