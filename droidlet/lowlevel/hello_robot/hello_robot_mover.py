@@ -57,6 +57,14 @@ class HelloRobotMover(MoverInterface):
         self.camera_transform = self.bot.get_camera_transform().value
         self.camera_height = self.camera_transform[2, 3]
         self.cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + ip)
+        self.slam = Pyro4.Proxy("PYRONAME:slam@" + ip)
+        self.nav = Pyro4.Proxy("PYRONAME:navigation@" + ip)
+        # spin once synchronously
+        self.nav.is_busy()
+        # put in async mode
+        self.nav._pyroAsync()
+        self.nav_result = self.nav.is_busy()
+        
 
         self.data_logger = Pyro4.Proxy("PYRONAME:hello_data_logger@" + ip)
         self.data_logger._pyroAsync()
@@ -213,10 +221,10 @@ class HelloRobotMover(MoverInterface):
             # single xyt position given
             xzt_positions = [xzt_positions]
         for xyt in xyt_positions:
-            self.is_moving.wait()
-            self.is_moving = safe_call(self.bot.go_to_relative, xyt)
+            self.nav_result.wait()
+            self.nav_result = safe_call(self.nav.go_to_relative, xyt)
             if blocking:
-                self.is_moving.wait()
+                self.nav_result.wait()
 
     def move_absolute(self, xzt_positions, blocking=True):
         """Command to execute a move to an absolute position.
@@ -233,11 +241,11 @@ class HelloRobotMover(MoverInterface):
             xzt_positions = [xzt_positions]
         for xzt in xzt_positions:
             logging.info("Move absolute in canonical coordinates {}".format(xzt))
-            self.is_moving.wait()
+            self.nav_result.wait()
             robot_coords = base_canonical_coords_to_pyrobot_coords(xzt)
-            self.is_moving = self.bot.go_to_absolute(robot_coords)
+            self.nav_result = self.nav.go_to_absolute(robot_coords)
             if blocking:
-                self.is_moving.wait()
+                self.nav_result.wait()
         return "finished"
 
     def get_base_pos_in_canonical_coords(self):
@@ -375,7 +383,32 @@ class HelloRobotMover(MoverInterface):
         self.bot.rotate_by(turn_rad)
 
     def explore(self):
-        return self.bot.explore()
+        if self.nav_result.ready:
+            self.nav_result = safe_call(self.nav.explore)
+        else:
+            print("navigator executing another call right now")
+        return self.nav_result
+
+    def get_obstacles_in_canonical_coords(self):
+        """
+        get the positions of obtacles position in the canonical coordinate system
+        instead of the Locobot's global coordinates as stated in the Locobot
+        documentation: https://www.pyrobot.org/docs/navigation or
+        https://github.com/facebookresearch/pyrobot/blob/master/docs/website/docs/ex_navigation.md
+        the standard coordinate systems:
+        Camera looks at (0, 0, 1),
+        its right direction is (1, 0, 0) and
+        its up-direction is (0, 1, 0)
+
+        return:
+         list[(x, z)] of the obstacle location in standard coordinates
+        """
+        cordinates_in_robot_frame = self.slam.get_map()
+        cordinates_in_standard_frame = [
+            xyz_pyrobot_to_canonical_coords(list(c) + [0.0]) for c in cordinates_in_robot_frame
+        ]
+        cordinates_in_standard_frame = [(c[0], c[2]) for c in cordinates_in_standard_frame]
+        return cordinates_in_standard_frame
 
 
 if __name__ == "__main__":

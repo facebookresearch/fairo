@@ -181,6 +181,8 @@ class RemoteLocobot(object):
             self._done = False
             self._robot.base.go_to_absolute(xyt_position, wait=wait)
             self._done = True
+        status = self.robot.get_base_status()
+        return status
 
     def go_to_relative(
         self,
@@ -198,6 +200,8 @@ class RemoteLocobot(object):
             self._done = False
             self._robot.base.go_to_relative(xyt_position, wait=wait)
             self._done = True
+        status = self.robot.get_base_status()
+        return status
 
     @Pyro4.oneway
     def stop(self):
