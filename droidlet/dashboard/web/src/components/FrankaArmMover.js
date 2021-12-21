@@ -1,15 +1,18 @@
 /*
 Copyright (c) Facebook, Inc. and its affiliates.
 */
-
 import React from "react";
 import stateManager from "../StateManager";
 import "status-indicator/styles.css";
 import Slider from "rc-slider";
+import { Rnd } from "react-rnd";
 import "rc-slider/assets/index.css";
+import { Stage, Layer, Image as KImage } from "react-konva";
 
 let slider_style = { width: 600, margin: 50 };
 const labelStyle = { minWidth: "60px", display: "inline-block" };
+
+
 
 /**
  * Currently just a keybinding wrapper that hooks
@@ -18,16 +21,19 @@ const labelStyle = { minWidth: "60px", display: "inline-block" };
  * the keys pressed, along with their successful receipt by
  * the backend.
  */
-class Navigator extends React.Component {
+class FrankaArmMover extends React.Component {
   constructor(props) {
     super(props);
     this.initialState = {
       move: 1,
       yaw: 0.01,
-      velocity: 0.1,
+      velocity: 1,
       data_logging_time: 30,
       keyboard_enabled: false,
+      ee_pos: [0.53,-0.09,0.43],
+      image:null,
     };
+    this.update = this.update.bind(this);
 
     this.state = this.initialState;
 
@@ -45,6 +51,23 @@ class Navigator extends React.Component {
     this.keyboardToggle = this.keyboardToggle.bind(this);
     this.addKeyListener = this.addKeyListener.bind(this);
     this.removeKeyListener = this.removeKeyListener.bind(this);
+  }
+
+  componentDidMount() {
+    if (stateManager) stateManager.connect(this);
+
+
+
+    setInterval(this.update, 1000 / 60);
+  }
+
+  componentDidUpdate() {
+
+   
+  }
+  update() {
+    //draw time marker
+
   }
 
   keyboardToggle = () => {
@@ -92,10 +115,6 @@ class Navigator extends React.Component {
     clearInterval(this.intervalHandle);
   }
 
-  componentDidMount() {
-    if (stateManager) stateManager.connect(this);
-  }
-
   onDataLoggingTimeChange(value) {
     this.setState({ data_logging_time: value });
   }
@@ -110,117 +129,70 @@ class Navigator extends React.Component {
     this.setState({ velocity: value });
   }
 
+
   handleClick(event) {
     const id = event.target.id;
-    if (id === "key_up") {
-      stateManager.keyHandler({ 38: true });
-    } else if (id === "key_down") {
-      stateManager.keyHandler({ 40: true });
-    } else if (id === "key_left") {
-      stateManager.keyHandler({ 37: true });
-    } else if (id === "key_right") {
-      stateManager.keyHandler({ 39: true });
-    } else if (id === "pan_left") {
-      stateManager.keyHandler({ 49: true });
-    } else if (id === "pan_right") {
-      stateManager.keyHandler({ 50: true });
-    } else if (id === "tilt_up") {
-      stateManager.keyHandler({ 51: true });
-    } else if (id === "tilt_down") {
-      stateManager.keyHandler({ 52: true });
-    } 
+    if (id === "move_joint_1") {
+      stateManager.keyHandler({ 53: true });
+    } else if (id === "move_joint_2") {
+      stateManager.keyHandler({ 54: true });
+    } else if (id === "move_joint_3") {
+      stateManager.keyHandler({ 55: true });
+    } else if (id === "move_joint_4") {
+      stateManager.keyHandler({ 56: true });
+    } else if (id === "move_joint_5") {
+      stateManager.keyHandler({ 57: true });
+    } else if (id === "move_joint_6") {
+      stateManager.keyHandler({ 58: true });
+    } else if (id === "go_home") {
+      stateManager.keyHandler({ 59: true });
+    } else if (id === "get_pos") {
+      stateManager.keyHandler({ 60: true });
+    } else if (id === "get_image") {
+      stateManager.keyHandler({ 61: true });
+    }
   }
 
-  // <button
-  //   id="stop_robot"
-  //   style={{ fontSize: 48 + "px" }}
-  //   onClick={this.stopRobot}
-  // >
-  //   <strike>STOP ROBOT</strike>
-  // </button>
-  // <button id="unstop_robot" onClick={this.unstopRobot}>
-  //   Clear Runstop
-  // </button>
 
   render() {
     return (
       <div ref={this.navRef}>
         <br />
         <br />
+        <br />
         <div>
-          <label> Base </label>
-          <button id="key_up" onClick={this.handleClick}>
-            UP
+          <button id="move_joint_1" onClick={this.handleClick}>
+            Move Joint 1
+          </button>
+          <button id="move_joint_2" onClick={this.handleClick}>
+            Move Joint 2
+          </button>
+          <button id="move_joint_3" onClick={this.handleClick}>
+            Move Joint 3
           </button>
         </div>
+        <br />
         <div>
-          <button id="key_left" onClick={this.handleClick}>
-            LEFT
+          <button id="move_joint_4" onClick={this.handleClick}>
+            Move Joint 4
           </button>
-          <button id="key_down" onClick={this.handleClick}>
-            DOWN
+          <button id="move_joint_5" onClick={this.handleClick}>
+            Move Joint 5
           </button>
-          <button id="key_right" onClick={this.handleClick}>
-            RIGHT
+          <button id="move_joint_6" onClick={this.handleClick}>
+            Move Joint 6
           </button>
         </div>
         <br />
         <br />
-        <div>
-          <label> Camera </label>
-          <button id="tilt_up" onClick={this.handleClick}>
-            Up
-          </button>
-        </div>
-        <div>
-          <button id="pan_left" onClick={this.handleClick}>
-            Left
-          </button>
-          <button id="tilt_down" onClick={this.handleClick}>
-            Down
-          </button>
-          <button id="pan_right" onClick={this.handleClick}>
-            Right
-          </button>
-        </div>
 
-        <br />
-        <input
-          type="checkbox"
-          defaultChecked={this.state.keyboard_enabled}
-          ref={this.keyCheckRef}
-          onChange={this.keyboardToggle}
-        />
-        <label>
-          {" "}
-          Enable Keyboard control (Use the arrow keys to move the robot, keys{" "}
-          {(1, 2)} and {(3, 4)} to move camera){" "}
-        </label>
-        <div style={slider_style}>
-          <label style={labelStyle}>Rotation (radians): &nbsp;</label>
-          <span>{this.state.yaw}</span>
-          <br />
-          <br />
-          <Slider
-            value={this.state.yaw}
-            min={0}
-            max={6.28}
-            step={0.01}
-            onChange={this.onYawChange}
-          />
-          <br />
-          <label style={labelStyle}>Move Distance (metres): &nbsp;</label>
-          <span>{this.state.move}</span>
-          <br />
-          <br />
-          <Slider
-            value={this.state.move}
-            min={0}
-            max={10}
-            step={0.1}
-            onChange={this.onMoveChange}
-          />
+        <div>
+          <button id="go_home" onClick={this.handleClick}>
+            Go Home
+          </button>
         </div>
+        <br />
+        <br />
         <div style={slider_style}>
           <label style={labelStyle}>Velocity: &nbsp;</label>
           <span>{this.state.velocity}</span>
@@ -228,35 +200,49 @@ class Navigator extends React.Component {
           <br />
           <Slider
             value={this.state.velocity}
-            min={0}
-            max={1}
-            step={0.05}
+            min={1}
+            max={3}
+            step={0.5}
             onChange={this.onVelocityChange}
           />
         </div>
-        <div>
-          <div style={slider_style}>
-            <label style={labelStyle}>
-              Data Logging Time (seconds): &nbsp;
-            </label>
-            <span>{this.state.data_logging_time}</span>
-            <br />
-            <br />
-            <Slider
-              value={this.state.data_logging_time}
-              min={0}
-              max={300}
-              step={1}
-              onChange={this.onDataLoggingTimeChange}
-            />
-          </div>
-          <button id="log_data" onClick={this.logData}>
-            Log Data
-          </button>
-        </div>
+        <br />
+        <br />
+          <button id="get_pos" onClick={this.handleClick}> Get End Effector Position</button>
+          <br />
+          <br />
+          <label> X Pos <input type="text" value={this.state.ee_pos[0]}/> </label>
+          <br />
+          <label> Y Pos <input type="text" value={this.state.ee_pos[1]}/> </label>
+          <br />
+          <label> Z Pos <input type="text" value={this.state.ee_pos[2]}/> </label>
+        <br />
+        <br />
+          <Layer>
+            <button id="get_image" onClick={this.handleClick}>
+              GET IMAGE
+            </button>
+            <input type="text" value={this.state.velocity}/>
+          </Layer>
+        <Rnd
+        default={{
+          x: 100,
+          y: 300,
+          width: 200,
+          height: 200,
+        }}
+        lockAspectRatio={true}
+        >
+          <Stage width={256} height={256}>
+            <Layer>
+              <KImage image={this.state.image} width={256} height={256} />
+            </Layer>
+          </Stage>
+        </Rnd>      
       </div>
+      
     );
   }
 }
 
-export default Navigator;
+export default FrankaArmMover;
