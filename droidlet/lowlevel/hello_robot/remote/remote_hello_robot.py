@@ -37,13 +37,15 @@ def val_in_range(val_name, val,vmin, vmax):
 class RemoteHelloRobot(object):
     """Hello Robot interface"""
 
-    def __init__(self):
+    def __init__(self, ip):
+        self._ip = ip
         self._robot = Robot()
         self._robot.startup()
         if not self._robot.is_calibrated():
             self._robot.home()
         self._robot.stow()
         self._done = True
+        self.cam = None
         # Read battery maintenance guide https://docs.hello-robot.com/battery_maintenance_guide/
         self._check_battery()
         self._load_urdf()
@@ -142,20 +144,34 @@ class RemoteHelloRobot(object):
         self._robot.base.rotate_by(x_r)
         self._robot.push_command()
 
+    def initialize_cam(self):
+        if self.cam is None:
+            # wait for realsense service to be up and running
+            time.sleep(2)
+            with Pyro4.Daemon(self._ip) as daemon:
+                cam = Pyro4.Proxy("PYRONAME:hello_realsense@" + self._ip)
+            self.cam = cam
+
+
     def go_to_absolute(self, xyt_position):
         """Moves the robot base to given goal state in the world frame.
 
         :param xyt_position: The goal state of the form (x,y,yaw)
                              in the world (map) frame.
         """
+        status = "SUCCEEDED"
         if self._done:
+            self.initialize_cam()
             self._done = False
             global_xyt = xyt_position
             base_state = self.get_base_state()
             base_xyt = transform_global_to_base(global_xyt, base_state)
-            goto(self._robot, list(base_xyt), dryrun=False)
+            def obstacle_fn():
+                return self.cam.is_obstacle_in_front()
+            status = goto(self._robot, list(base_xyt),
+                          dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
-        return self._done
+        return status
 
     def go_to_relative(self, xyt_position):
         """Moves the robot base to the given goal state relative to its current
@@ -163,10 +179,17 @@ class RemoteHelloRobot(object):
 
         :param xyt_position: The  relative goal state of the form (x,y,yaw)
         """
+        status = "SUCCEEDED"
+        
         if self._done:
+            self.initialize_cam()
             self._done = False
-            goto(self._robot, list(xyt_position), dryrun=False)
+            def obstacle_fn():
+                return self.cam.is_obstacle_in_front()
+            status = goto(self._robot, list(xyt_position),
+                          dryrun=False, obstacle_fn=obstacle_fn)
             self._done = True
+        return status
 
     def is_moving(self):
         return not self._done
@@ -197,7 +220,7 @@ if __name__ == "__main__":
     np.random.seed(123)
 
     with Pyro4.Daemon(args.ip) as daemon:
-        robot = RemoteHelloRobot()
+        robot = RemoteHelloRobot(ip=args.ip)
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
             ns.register("hello_robot", robot_uri)

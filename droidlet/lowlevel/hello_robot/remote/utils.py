@@ -103,7 +103,7 @@ def is_obstacle_ahead(dist, depth_fn):
     return obstacle_dist < dist
 
 
-def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, depth_fn=None):
+def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, depth_fn=None, optimize_distance=False, obstacle_fn=None):
         """
         Moves the robot to the given goal state in
         the relative frame (base frame).
@@ -111,6 +111,7 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
                              (x,y,t) in the relative (base) frame.
         :type xyt_position: list
         """
+        status = "SUCCEEDED"
         if xyt_position is None:
             xyt_position = [0.0, 0.0, 0.0]
         x = xyt_position[0]    # in meters
@@ -147,7 +148,7 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         # if theta_1 is between 0 and pi / 2, then you will turn left by a bit and move forward
         # if theta_1 is between -pi/2 and 0, then you will turn right by a bit and move forward
 
-        if theta_1 > pi / 2:
+        if optimize_distance and theta_1 > pi / 2:
             # the point is behind the robot to it's left
             # so, instead of rotating by a lot, moving forward, and rotating back, it is
             # more efficient to simply rotate a bit to the right, and then move backward
@@ -155,7 +156,7 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
             dist = -dist
             print("taking short-cut, as the point is behind the robot to it's left")
 
-        if theta_1 < -pi / 2:
+        if optimize_distance and theta_1 < -pi / 2:
             # the point is behind the robot to it's right
             # so, instead of rotating by a lot, moving forward, and rotating back, it is
             # more efficient to simply rotate a bit to the left, and then move backward
@@ -193,15 +194,23 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
         if not dryrun:
             print("not a dryrun")
 
-            # # check here if obstacle is within dist, return false.
-            # if is_obstacle_ahead(abs(dist), depth_fn):
-            #     return False
+            if obstacle_fn is not None:
+                is_obstacle = obstacle_fn()
+            if is_obstacle:
+                return "FAILED"
             robot.base.translate_by(dist, v_m=0.1)
             robot.push_command()
             time.sleep(2)
             robot.pull_status()
             is_moving = True
             while is_moving:
+                if obstacle_fn is not None:
+                    is_obstacle = obstacle_fn()
+                if is_obstacle:
+                    # stop motion
+                    robot.base.set_rotational_velocity(v_r=0.0) 
+                    robot.push_command()
+                    return "FAILED"
                 time.sleep(0.1)
                 robot.pull_status()
                 left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered'] or robot.base.left_wheel.status['is_moving']
@@ -228,4 +237,4 @@ def goto(robot, xyt_position=None, translation_threshold=0.1, dryrun=False, dept
                 left_wheel_moving = robot.base.left_wheel.status['is_moving_filtered'] or robot.base.left_wheel.status['is_moving']
                 right_wheel_moving = robot.base.right_wheel.status['is_moving_filtered'] or robot.base.right_wheel.status['is_moving']
                 is_moving = left_wheel_moving or right_wheel_moving
-        return True
+        return status

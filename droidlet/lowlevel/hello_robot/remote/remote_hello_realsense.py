@@ -33,7 +33,7 @@ Pyro4.config.ITER_STREAMING = True
 # #####################################################
 
 @Pyro4.expose
-class RemoteHelloRobot(object):
+class RemoteHelloRealsense(object):
     """Hello Robot interface"""
 
     def __init__(self, bot):
@@ -157,6 +157,12 @@ class RemoteHelloRobot(object):
         opcd = o3d.geometry.PointCloud.create_from_rgbd_image(orgbd, intrinsic, extrinsic)
         return opcd
 
+    def get_current_pcd(self):
+        rgb, depth = self.get_rgb_depth(rotate=False)
+        opcd = self.get_open3d_pcd(rgb_depth=[rgb, depth])
+        pcd = np.asarray(opcd.points)
+        return pcd, rgb        
+
     def is_obstacle_in_front(self, return_viz=False):
         base_state = self.bot.get_base_state()
         pcd = self.get_open3d_pcd()
@@ -202,7 +208,7 @@ if __name__ == "__main__":
 
     with Pyro4.Daemon(args.ip) as daemon:
         bot = Pyro4.Proxy("PYRONAME:hello_robot@" + args.ip)
-        robot = RemoteHelloRobot(bot)
+        robot = RemoteHelloRealsense(bot)
         robot_uri = daemon.register(robot)
         with Pyro4.locateNS() as ns:
             ns.register("hello_realsense", robot_uri)

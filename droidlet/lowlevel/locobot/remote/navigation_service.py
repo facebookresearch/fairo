@@ -1,4 +1,5 @@
 import os
+import sys
 import random
 import math
 import time
@@ -79,11 +80,9 @@ class Navigation(object):
                 print("Could not find a path to the end goal {} from current robot location {}, aborting move".format(goal, robot_loc))
                 return_code = False
                 break
-            self.robot.go_to_absolute(stg, wait=False)
-            while self.robot.get_base_status() == "ACTIVE":
-                time.sleep(0.01)
             robot_loc = self.robot.get_base_state()
-            status = self.robot.get_base_status()
+            status = self.robot.go_to_absolute(stg)
+
             print('go_to_absolute',
                   ' initial location: ', initial_robot_loc,
                   ' goal: ', goal,
@@ -102,7 +101,7 @@ class Navigation(object):
 
                 print(f"Collided at {robot_loc}. Marking point {collision_loc} as obstacle."
                       f"Tracking back to {trackback_loc}")
-                self.robot.go_to_absolute(trackback_loc, wait=True)
+                self.robot.go_to_absolute(trackback_loc)
                 # TODO: if the trackback fails, we're screwed. Handle this robustly.
             steps = steps - 1
 
@@ -134,8 +133,12 @@ class Navigation(object):
 robot_ip = os.getenv('LOCOBOT_IP')
 ip = os.getenv('LOCAL_IP')
 
+robot_name = "remotelocobot"
+if len(sys.argv) > 1:
+    robot_name = sys.argv[1]
+
 with Pyro4.Daemon(ip) as daemon:
-    robot = Pyro4.Proxy("PYRONAME:remotelocobot@" + robot_ip)
+    robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
     planner = Pyro4.Proxy("PYRONAME:planner@" + robot_ip)
     slam = Pyro4.Proxy("PYRONAME:slam@" + robot_ip)
 

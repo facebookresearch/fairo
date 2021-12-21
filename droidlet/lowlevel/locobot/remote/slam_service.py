@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import numpy as np
 import Pyro4
@@ -115,8 +116,11 @@ class SLAM(object):
 
 robot_ip = os.getenv('LOCOBOT_IP')
 ip = os.getenv('LOCAL_IP')
+robot_name = "remotelocobot"
+if len(sys.argv) > 1:
+    robot_name = sys.argv[1]
 with Pyro4.Daemon(ip) as daemon:
-    robot = Pyro4.Proxy("PYRONAME:remotelocobot@" + robot_ip)
+    robot = Pyro4.Proxy("PYRONAME:" + robot_name + "@" + robot_ip)
     obj = SLAM(robot)    
     obj_uri = daemon.register(obj)
     with Pyro4.locateNS(robot_ip) as ns:
