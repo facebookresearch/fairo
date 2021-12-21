@@ -13,18 +13,27 @@ let rollOverMesh2, rollOverMaterial2;
 let cubeMaterial_mark;
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
-const user_material = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 1.0} );
-const agent_material = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 1.0} );
+const userMaterial = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 1.0} );
+const agentMaterial = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 1.0} );
+const groundMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0} );
 
 let objects1 = [];
 let objects2  = [];
 let marked_blocks = [];
 
-let actions_taken = []; // [original_object, new_object, action_type]
+let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
-// TODO download data from S3 based on data.csv?
-// In the meantime, here's some dummy data
+// User position comes from properties.avatarInfo.properties.pos
+let user = [[5,5,5,'u1'], [5,6,5,'u2']];
+// Agent position comes from ???
+let agent = [[5,5,-5,'a1'], [5,6,-5,'a2']];
+// Look direction comes in the file properties.avatarInfo.properties.look as [pitch, yaw] floats
+const look_angles = [0, Math.PI/2]  // [pitch, yaw]
+// Need to verify that this matches the reference direciton and sign from IGLU
+let user_look_dir = new THREE.Vector3(Math.cos(look_angles[1])*Math.cos(look_angles[0]), Math.sin(look_angles[0]), Math.sin(look_angles[1]*Math.cos(look_angles[0])));
+user_look_dir.normalize();
+const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
 
 let starting_cube = [];
 let block_id = 0;
@@ -36,20 +45,26 @@ for (let x=-2; x<2; x++){
     }
 }
 
-let user = [[6,0,6,'u1'], [6,1,6,'u2']];
-let agent = [[6,0,-6,'a1'], [6,1,-6,'a2']];
-const user_look_dir = new THREE.Vector3();
-const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
+// TODO download data from S3 based on data.csv?
+// In the meantime, here's some dummy data
 
-init1();
-init2();
-render();
+fetch('./scene1.json')
+    .then(response => {
+        return response.json();
+    })
+    .then(jsondata => {
+        return jsondata[0];
+    })
+    .then(scene => {
+        init1(scene);
+        init2(scene);
+        render();
+        var canvii = document.getElementsByTagName("canvas");
+        Array.from(canvii).forEach(canv => canv.style.display = "inline");
+        canvii[1].style.float = "right";
+    })
 
-var canvii = document.getElementsByTagName("canvas");
-Array.from(canvii).forEach(canv => canv.style.display = "inline");
-canvii[1].style.float = "right";
-
-function init1() {
+function init1(scene) {
     // This is the left scene, uneditable
     camera1 = new THREE.PerspectiveCamera( 45, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
     camera1.position.set( 500, 800, 1300 );
@@ -59,40 +74,66 @@ function init1() {
     scene1.background = new THREE.Color( 0xf0f0f0 );
 
     // grid
-    const gridHelper = new THREE.GridHelper( 1000, 20 );
-    scene1.add( gridHelper );
+    //const gridHelper = new THREE.GridHelper( scene.length*50 , scene.length );
+    //scene1.add( gridHelper );
+
+    // plane
     const geometry = new THREE.PlaneGeometry( 1000, 1000 );
     geometry.rotateX( - Math.PI / 2 );
-
-    // place
     plane1 = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
     scene1.add( plane1 );
     objects1.push( plane1 );
 
     // starting cube
+    /*
     starting_cube.forEach((block) => {
         const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene1.add( voxel );
         objects1.push( voxel );
     })
+    */
+
+    // load scene
+    let origin_offset = Math.floor(scene.length/2);
+    for (let i=0; i<scene.length; i++) {
+        for (let j=0; j<scene[i].length; j++) {
+            for (let k=0; k<scene[i][j].length; k++) {
+                if (scene[i][j][k][0]) {
+                    let voxel;
+                    if (scene[i][j][k][0] === 35) {  // if it's a shape, not ground
+                        voxel = new THREE.Mesh( geo, cubeMaterial );
+                    } else {  //assume it's ground, base case
+                        voxel = new THREE.Mesh( geo, groundMaterial );
+                        const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
+                        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
+                        line.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
+                        scene1.add( line );
+                    }
+                    voxel.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
+                    scene1.add( voxel );
+                    objects1.push( voxel );
+                }
+            }
+        }
+    }
 
     // add user
     user.forEach((block) => {
-        const user_block = new THREE.Mesh( geo, user_material );
+        const user_block = new THREE.Mesh( geo, userMaterial );
         user_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene1.add( user_block );
         objects1.push( user_block );
     })
 
     // add look direction
-    user_look_dir.subVectors(scene1.position, head_position).normalize();
+    //user_look_dir.subVectors(scene1.position, head_position).normalize();
     const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
     scene1.add( arrowHelper );
 
     // add agent
     agent.forEach((block) => {
-        const agent_block = new THREE.Mesh( geo, agent_material );
+        const agent_block = new THREE.Mesh( geo, agentMaterial );
         agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene1.add( agent_block );
         objects1.push( agent_block );
@@ -124,7 +165,7 @@ function init1() {
     window.addEventListener( 'resize', onWindowResize );
 }
 
-function init2() {
+function init2(scene) {
     // This is the right scene, uneditable
     camera2 = new THREE.PerspectiveCamera( 45, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
     camera2.position.set( 500, 800, 1300 );
@@ -142,8 +183,9 @@ function init2() {
     cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
 
     // grid
-    const gridHelper = new THREE.GridHelper( 1000, 20 );
-    scene2.add( gridHelper );
+    //const gridHelper = new THREE.GridHelper( scene.length*50, scene.length );
+    //scene2.add( gridHelper );
+
     raycaster2 = new THREE.Raycaster();
     pointer2 = new THREE.Vector2();
 
@@ -155,46 +197,60 @@ function init2() {
     objects2.push( plane2 );
 
     // starting cube
+    /*
     starting_cube.forEach((block) => {
         const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene2.add( voxel );
         objects2.push( voxel );
     })
+    */
+
+    // load scene
+    let origin_offset = Math.floor(scene.length/2);
+    for (let i=0; i<scene.length; i++) {
+        for (let j=0; j<scene[i].length; j++) {
+            for (let k=0; k<scene[i][j].length; k++) {
+                if (scene[i][j][k][0]) {
+                    let voxel;
+                    if (scene[i][j][k][0] === 35) {  // if it's a shape, not ground
+                        voxel = new THREE.Mesh( geo, cubeMaterial );
+                    } else {  //assume it's ground, base case
+                        voxel = new THREE.Mesh( geo, groundMaterial );
+                        const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
+                        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
+                        line.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
+                        scene2.add( line );
+                    }
+                    voxel.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
+                    scene2.add( voxel );
+                    objects2.push( voxel );
+                }
+            }
+        }
+    }
 
     // add user
     user.forEach((block) => {
-        const user_block = new THREE.Mesh( geo, user_material );
+        const user_block = new THREE.Mesh( geo, userMaterial );
         user_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene2.add( user_block );
         objects2.push( user_block );
     })
 
     // add look direction
-    user_look_dir.subVectors(scene2.position, head_position).normalize();
+    //user_look_dir.subVectors(scene2.position, head_position).normalize();
     const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
     scene2.add( arrowHelper );
 
     // add agent
     agent.forEach((block) => {
-        const agent_block = new THREE.Mesh( geo, agent_material );
+        const agent_block = new THREE.Mesh( geo, agentMaterial );
         agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene2.add( agent_block );
         objects2.push( agent_block );
     })
 
-    const dir = new THREE.Vector3( 1, 2, 0 );
-    /*
-    //normalize the direction vector (convert to vector of length 1)
-    dir.normalize();
-
-    const origin = new THREE.Vector3( 0, 0, 0 );
-    const length = 1;
-    const hex = 0xffff00;
-
-    const arrowHelper2 = new THREE.ArrowHelper( dir, origin, length, hex );
-    scene2.add( arrowHelper2 );
-    */
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
     scene2.add( ambientLight );
