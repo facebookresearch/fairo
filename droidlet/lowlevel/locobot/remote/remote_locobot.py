@@ -155,11 +155,12 @@ class RemoteLocobot(object):
         ret = is_obstacle(pcd, base_state,
                           max_dist=0.5, return_viz=return_viz)
         if return_viz:
-            obstacle, cpcd, crop, bbox = ret
+            obstacle, cpcd, crop, bbox, rest = ret
             cpcd = o3d_pickle(cpcd)
             crop = o3d_pickle(crop)
             bbox = o3d_pickle(bbox)
-            return obstacle, cpcd, crop, bbox
+            rest = o3d_pickle(rest)
+            return obstacle, cpcd, crop, bbox, rest
         else:
             obstacle = ret
             return obstacle
