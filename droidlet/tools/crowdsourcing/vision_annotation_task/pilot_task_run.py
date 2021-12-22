@@ -26,15 +26,14 @@ from omegaconf import DictConfig
 from dataclasses import dataclass, field
 from typing import List, Any
 
-from pilot_config import PILOT_ALLOWLIST_QUAL_NAME, PILOT_BLOCK_QUAL_NAME, PILOT_QUAL_ANSWERS, KEYWORD_LIST
+from pilot_config import PILOT_ALLOWLIST_QUAL_NAME, PILOT_BLOCK_QUAL_NAME
 
-from droidlet.dialog.load_datasets import get_safety_words
 
 TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 
 defaults = [
     {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": "local"},
+    {"mephisto/architect": "heroku"},
     {"mephisto/provider": "mock"},
     {"conf": "pilot"},
 ]
@@ -43,7 +42,6 @@ from mephisto.operations.hydra_config import RunScriptConfig, register_script_co
 
 db = LocalMephistoDB()
 mephisto_data_browser = MephistoDataBrowser(db=db)
-SAFETY_WORDS = get_safety_words()
 
 @dataclass
 class TestScriptConfig(RunScriptConfig):
@@ -54,37 +52,14 @@ class TestScriptConfig(RunScriptConfig):
 register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
-def validate_answers(answers, gt):
-    freeform_answer = answers["freeform_answer"]
-    commands = freeform_answer.splitlines()
-
-    # filter empty commands
-    filtered_commands = [x for x in commands if x != ""]
-
-    # 1: Check that the number of commands >= 4
-    if len(filtered_commands) < 4:
-        return False
-
-    # 2: Length check: Check that the average number of words in commands >= 2
-    commands_split = [x.lower().split(" ") for x in filtered_commands]
-    avg_words_in_commands = sum(map(len, commands_split)) / len(commands_split)
-    if avg_words_in_commands < 2:
-        return False
-
-    # 3: Keyword matching: Check that at least 2 keywords appear in the commands
-    occurrence = sum([True if keyword in command.lower() else False for command in filtered_commands for keyword in KEYWORD_LIST])
-    if occurrence < 2:
-        return False
-
-    # 4: Safety check
-    if any([len(set(cmd) & SAFETY_WORDS) > 0 for cmd in commands_split]):
-        return False
+def validate_answers(answers):
 
     # Validate multiple choice questions
-    if answers["answer_0"] != gt["answer_0"] or \
-       answers["answer_1"] != gt["answer_1"] or \
-       answers["answer_2"] != gt["answer_2"]:
-       return False
+    if answers["q1Answer"] != "true" or \
+        answers["q2Answer"] != "true" or \
+        answers["q3Answer"] != "true" or \
+        answers["q4Answer"] != "true":
+        return False
 
     return True
 
@@ -118,7 +93,7 @@ def validate_unit(unit):
     else:
         logging.debug(f"{PILOT_ALLOWLIST_QUAL_NAME} qualification not exists, so create one")
 
-    if validate_answers(answers, PILOT_QUAL_ANSWERS):
+    if validate_answers(answers):
         worker.grant_qualification(PILOT_ALLOWLIST_QUAL_NAME, 1)
         logging.info(f"Worker {worker.worker_name} passed the pilot task, put him/her into allowlist")
 
