@@ -70,10 +70,9 @@ def is_obstacle(pcd, base_pos, pix_threshold=100,
         raise RuntimeError("Not Implemented")
     elif num_cropped_points >= pix_threshold:
         rest = get_ground_plane(crop, return_ground=False)
-        rest = np.asarray(rest.points)
-        obstacle = rest.shape[0] > 100
+        obstacle = np.asarray(rest.points).shape[0] > 100
     if return_viz:
-        return obstacle, pcd, crop, bbox
+        return obstacle, pcd, crop, bbox, rest
     else:
         return obstacle
 
