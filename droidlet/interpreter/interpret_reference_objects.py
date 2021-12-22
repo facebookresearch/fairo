@@ -129,6 +129,7 @@ def interpret_reference_object(
     if filters_d.get("contains_coreference", "NULL") != "NULL":
         mem = filters_d["contains_coreference"]
         if isinstance(mem, ReferenceObjectNode):
+            interpreter.memory.update_recent_entities([mem])
             return [mem]
         elif mem == "resolved":
             pass
@@ -161,7 +162,7 @@ def interpret_reference_object(
         #        filters_no_select.pop("location", None)
         candidate_mems = apply_memory_filters(interpreter, speaker, filters_no_select)
         if len(candidate_mems) > 0:
-            return filter_by_sublocation(
+            mems = filter_by_sublocation(
                 interpreter,
                 speaker,
                 candidate_mems,
@@ -169,6 +170,8 @@ def interpret_reference_object(
                 loose=loose_speakerlook,
                 all_proximity=all_proximity,
             )
+            interpreter.memory.update_recent_entities(mems)
+            return mems
 
         elif allow_clarification:
             # no candidates found; ask Clarification
@@ -203,6 +206,7 @@ def interpret_reference_object(
                 self.memid
             )
             _, ref_obj_mems = interpreter.memory.basic_search(query)
+            interpreter.memory.update_recent_entities(ref_obj_mems)
             return ref_obj_mems
         else:
             raise ErrorWithResponse("I don't know what you're referring to")

@@ -155,17 +155,27 @@ class DroidletAgent(BaseAgent):
                     subj=chat_memids[0], pred_text="has_logical_form"
                 )
                 if logical_form_triples:
-                    logical_form = self.memory.get_logical_form_by_id(
-                        logical_form_triples[0][2]
-                    ).logical_form
+                    logical_form_mem = self.memory.get_mem_by_id(logical_form_triples[0][2])
                 if logical_form:
                     logical_form = self.dialogue_manager.dialogue_object_mapper.postprocess_logical_form(
-                        speaker="dashboard", chat=chat, logical_form=logical_form
+                        speaker="dashboard", chat=chat, logical_form=logical_form_mem.logical_form
                     )
+                    # FIXME should be able to get this from the memory node
+                    _, create_times = self.memory.basic_search(
+                        "SELECT create_time FROM ProgramNode WHERE uuid={}".format(
+                            logical_form_mem.memid
+                        )
+                    )
+                    create_time = create_times[0]
+                    query = "SELECT MEMORY FROM ReferenceObject WHERE attended_time>{}".format(
+                        create_time
+                    )
+                    _, refobjs = self.memory.basic_search(query)
+                    point_targets = [r.get_point_target() for r in refobjs]
             except Exception as e:
                 logging.debug(f"Failed to find any action dict for command [{chat}] in memory")
 
-            payload = {"action_dict": logical_form}
+            payload = {"action_dict": logical_form, "recent_refobj_point_targets": point_targets}
             sio.emit("setLastChatActionDict", payload)
 
         @sio.on("terminateAgent")
@@ -276,6 +286,10 @@ class DroidletAgent(BaseAgent):
         if self.count == 0:
             logging.debug("First top-level step()")
         super().step()
+        if self.count > 200:
+            import ipdb
+
+            ipdb.set_trace()
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
