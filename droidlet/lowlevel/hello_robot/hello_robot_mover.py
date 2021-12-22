@@ -133,12 +133,13 @@ class HelloRobotMover(MoverInterface):
     def is_obstacle_in_front(self, return_viz=False):
         ret = safe_call(self.cam.is_obstacle_in_front, return_viz)
         if return_viz:
-            obstacle, cpcd, crop, bbox = ret
+            obstacle, cpcd, crop, bbox, rest = ret
 
             cpcd = o3d_unpickle(cpcd)
             crop = o3d_unpickle(crop)
             bbox = o3d_unpickle(bbox)
-            return obstacle, cpcd, crop, bbox
+            rest = o3d_unpickle(rest)
+            return obstacle, cpcd, crop, bbox, rest
         else:
             obstacle = ret
             return obstacle
