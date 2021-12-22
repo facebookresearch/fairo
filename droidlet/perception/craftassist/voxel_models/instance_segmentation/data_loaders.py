@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
     #    import plot_voxels
 
-    S = InstSegData("/checkpoint/aszlam/minecraft/segmentation_data/training_data.pkl")
+    S = InstSegData("") # NOTE: Path to instance segmentation data as arg
 #    viz = visdom.Visdom(server="http://localhost")
 #    sp = plot_voxels.SchematicPlotter(viz)
 

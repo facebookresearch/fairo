@@ -87,10 +87,13 @@ for i in range(len(all_arglists)):
     # TODO make a env loader...
     body += "module load NCCL/2.2.13-cuda.9.0 \n"
     body += "module load anaconda3/5.0.1 \n"
-    body += "source activate /private/home/kavyasrinet/.conda/envs/minecraft_env\n"
-    body += "cd /private/home/aszlam/fairinternal/minecraft/python/craftassist\n"
+    # TODO: add path to your conda env after "source activate" below
+    body += "source activate \n"
+    # TODO add the exact folder to the line below (after cd )
+    body += "cd \n"
     #######
-    body += "/private/home/kavyasrinet/.conda/envs/minecraft_env/bin/python voxel_models/modify/train_conv_model.py"
+    # TODO add the exact path to python in your env
+    body += "python voxel_models/modify/train_conv_model.py"
     body += all_arglists[i]
     body += " --sbatch --save_model_uid " + job_name + "_" + str(i)
     scriptname = os.path.join(scripts_dir, str(i) + ".sh")
