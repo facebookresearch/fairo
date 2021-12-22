@@ -9,6 +9,8 @@ let isADown = false;
 let isSDown = false;
 let isDDown = false;
 
+let userRaycaster1, userRaycaster2;
+
 let rollOverMesh2, rollOverMaterial2;
 let cubeMaterial_mark;
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
@@ -29,9 +31,15 @@ let user = [[5,5,5,'u1'], [5,6,5,'u2']];
 // Agent position comes from ???
 let agent = [[5,5,-5,'a1'], [5,6,-5,'a2']];
 // Look direction comes in the file properties.avatarInfo.properties.look as [pitch, yaw] floats
-const look_angles = [0, Math.PI/2]  // [pitch, yaw]
-// Need to verify that this matches the reference direciton and sign from IGLU
-let user_look_dir = new THREE.Vector3(Math.cos(look_angles[1])*Math.cos(look_angles[0]), Math.sin(look_angles[0]), Math.sin(look_angles[1]*Math.cos(look_angles[0])));
+// referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
+// Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
+const raw_look_vals = [Math.PI/4, 1.55*Math.PI]  // [pitch, yaw]
+const look_angles = [(-1)*raw_look_vals[0], ((-1)*raw_look_vals[1]) + Math.PI/2]
+// Convert pitch and yaw radian values to a Vector3 look direction
+let user_look_dir = new THREE.Vector3( 
+    Math.cos(look_angles[1]) * Math.cos(look_angles[0]),
+    Math.sin(look_angles[0]),
+    Math.sin(look_angles[1] * Math.cos(look_angles[0])));
 user_look_dir.normalize();
 const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
 
@@ -118,6 +126,20 @@ function init1(scene) {
         }
     }
 
+    // add axes helper
+    //The X axis is red. The Y axis is green. The Z axis is blue.
+    scene1.add( new THREE.AxesHelper( 10000 ) );
+
+    // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
+    scene1.add( new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 ) );
+    userRaycaster1 = new THREE.Raycaster(head_position, user_look_dir);
+    const intersects = userRaycaster1.intersectObjects( objects1, false );
+    if ( intersects.length > 0 ) {
+        console.log("user raycaster hit something");
+        const intersect = intersects[ 0 ];
+        intersect.object.material.color.set( 0xffff00 );
+    }
+
     // add user
     user.forEach((block) => {
         const user_block = new THREE.Mesh( geo, userMaterial );
@@ -126,18 +148,13 @@ function init1(scene) {
         objects1.push( user_block );
     })
 
-    // add look direction
-    //user_look_dir.subVectors(scene1.position, head_position).normalize();
-    const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
-    scene1.add( arrowHelper );
-
     // add agent
     agent.forEach((block) => {
         const agent_block = new THREE.Mesh( geo, agentMaterial );
         agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
         scene1.add( agent_block );
         objects1.push( agent_block );
-    })
+    });
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -231,6 +248,10 @@ function init2(scene) {
             }
         }
     }
+
+    // add axes helper
+    //The X axis is red. The Y axis is green. The Z axis is blue.
+    scene2.add( new THREE.AxesHelper( 10000 ) );
 
     // add user
     user.forEach((block) => {
