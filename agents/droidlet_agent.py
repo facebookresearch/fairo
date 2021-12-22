@@ -286,10 +286,6 @@ class DroidletAgent(BaseAgent):
         if self.count == 0:
             logging.debug("First top-level step()")
         super().step()
-        if self.count > 200:
-            import ipdb
-
-            ipdb.set_trace()
         self.maybe_dump_memory_to_dashboard()
 
     def task_step(self, sleep_time=0.25):
