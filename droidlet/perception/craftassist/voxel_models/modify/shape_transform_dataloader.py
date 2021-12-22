@@ -335,7 +335,7 @@ if __name__ == "__main__":
     parser.add_argument("--sidelength", type=int, default=32, help="size of epoch")
     parser.add_argument(
         "--save_dict_file",
-        default="/private/home/aszlam/junk/word_modify_word_ids.pk",
+        default="",
         help="where to save word dict",
     )
     parser.add_argument(

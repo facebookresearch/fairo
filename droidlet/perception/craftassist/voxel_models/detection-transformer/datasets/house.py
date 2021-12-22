@@ -529,7 +529,7 @@ class SemSegHouseData(tds.Dataset):
 
 
 def build(image_set, args):
-    data_path = "/checkpoint/aszlam/minecraft/segmentation_data/training_data.pkl"
+    data_path = "" # Path to data
     nexamples = 100
     house_dataset = SemSegHouseData(data_path=data_path, nexamples=nexamples)
     return house_dataset
