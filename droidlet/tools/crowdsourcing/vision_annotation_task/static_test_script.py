@@ -22,9 +22,9 @@ TASK_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 defaults = [
     "_self_",
     {"mephisto/blueprint": BLUEPRINT_TYPE},
-    {"mephisto/architect": "local"},
+    {"mephisto/architect": "heroku"},
     {"mephisto/provider": "mock"},
-    {"conf": "pilot"},
+    {"conf": "example"},
 ]
 
 from mephisto.operations.hydra_config import RunScriptConfig, register_script_config
