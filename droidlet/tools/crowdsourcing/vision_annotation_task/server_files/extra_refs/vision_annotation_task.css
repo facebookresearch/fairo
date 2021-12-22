@@ -17,8 +17,14 @@ iframe {
 
 .center {
     text-align: center;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 
 .row {
     padding: 10px;
+}
+
+#instructions {
+    padding: 15px;
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }

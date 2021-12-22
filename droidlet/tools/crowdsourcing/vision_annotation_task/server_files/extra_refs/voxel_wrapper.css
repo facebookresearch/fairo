@@ -7,7 +7,11 @@ canvas {
 }
 
 .center {
-    display: block;
+    display:inline-block;
     margin: auto;
     padding: 5px;
+}
+
+#buttons {
+    text-align: center;
 }
