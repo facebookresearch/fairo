@@ -4,7 +4,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 
 import math
 from droidlet.shared_data_structs import ErrorWithResponse
-from .interpreter_utils import SPEAKERLOOK, backoff_where
+from .interpreter_utils import SPEAKERLOOK, backoff_where, update_attended_and_link_lf
 
 
 def interpret_relative_direction(interpreter, location_d):
@@ -56,7 +56,7 @@ class ReferenceLocationInterpreter:
                 if mem1 is None or mem2 is None:
                     raise ErrorWithResponse("I don't know what you're referring to")
                 mems = [mem1, mem2]
-                interpreter.memory.update_recent_entities(mems)
+                update_attended_and_link_lf(interpreter, mems)
                 return mems
 
         default_loc = getattr(interpreter, "default_loc", SPEAKERLOOK)
@@ -82,6 +82,6 @@ class ReferenceLocationInterpreter:
 
         # FIXME:
         mems = mems[:expected_num]
-        interpreter.memory.update_recent_entities(mems)
+        update_attended_and_link_lf(interpreter, mems)
 
         return mems

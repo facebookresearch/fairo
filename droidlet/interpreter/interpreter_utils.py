@@ -32,6 +32,22 @@ def strip_prefix(s, pre):
     return s
 
 
+# TODO: do this more carefully so that the mems are associated to
+# their exact place in the logical form
+def update_attended_and_link_lf(interpreter, mems):
+    """
+    for each mem in mems (a list of MemoryNodes), updates its attended time to now, 
+    and links it to the interpreters logical form (if it has one).
+    """
+    interpreter.memory.update_recent_entities(mems)
+    for m in mems:
+        interpreter.memory.add_triple(
+            subj=m.memid,
+            pred_text="attended_while_interpreting",
+            obj=interpreter.logical_form_memid,
+        )
+
+
 # FIXME... be more careful with OR and NOT
 def backoff_where(where_clause, triples_to_tags=True, canonicalize=True, lower=False):
     """
