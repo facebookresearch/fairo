@@ -1,0 +1,24 @@
+<html>
+    <head>
+        <link	
+            rel="stylesheet"	
+            href="https://stackpath.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"	
+        />	
+    </head>
+    <body>
+        <div id="voxel_painter"></div>
+        <div id="buttons">
+            <button type="button" class="center btn btn-danger" id="null-result">The Object is Not Present</button>
+            <button type="button" class="center btn btn-success" id="finish-annotation">Finish Annotation</button>
+        </div>
+        <input type="hidden" id="markedBlocks" name="markedBlocks" value="">
+    </body>
+    <script type='module' src='voxel_painter_q5.mjs'></script>
+    <script>
+        document.getElementById("finish-annotation").addEventListener("click", function() {
+            let output_obj = {q5_output: document.getElementById("markedBlocks").value};
+            window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
+        });
+    </script>
+    <link rel="stylesheet" href="voxel_wrapper.css">
+</html>

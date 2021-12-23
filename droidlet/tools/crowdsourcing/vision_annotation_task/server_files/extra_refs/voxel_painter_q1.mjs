@@ -22,10 +22,10 @@ let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
 let starting_shapes = [
-    [2,0,2,0],
-    [2,0,-2,1],
-    [-2,0,2,2],
-    [-2,0,-2,3]
+    [[2,0,2,0], [2,1,2,0], [2,2,2,0]],
+    [[2,0,-2,1], [2,1,-2,0], [2,2,-2,0]],
+    [[-2,0,2,2], [-2,1,2,0], [-2,2,2,0]],
+    [[-2,0,-2,3], [-2,1,-2,0], [-2,2,-2,0]]
 ];
 let colors = [0xff0000, 0x00ff00, 0x0000ff, 0x000000]
 
@@ -58,15 +58,17 @@ function init1() {
 
     // starting shapes
     for (let i=0; i<starting_shapes.length; i++) {
-        const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
-        const voxel = new THREE.Mesh( geo, material );
-        voxel.position.set((starting_shapes[i][0]*50)+25, (starting_shapes[i][1]*50)+25, (starting_shapes[i][2]*50)+25);
-        scene1.add( voxel );
-        objects1.push( voxel );
-        const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
-        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-        line.position.set((starting_shapes[i][0]*50)+25, (starting_shapes[i][1]*50)+25, (starting_shapes[i][2]*50)+25);
-        scene1.add( line );
+        starting_shapes[i].forEach(block => {
+            const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
+            const voxel = new THREE.Mesh( geo, material );
+            voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+            scene1.add( voxel );
+            objects1.push( voxel );
+            const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
+            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
+            line.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+            scene1.add( line );
+        })
     }
 
     // lights
@@ -130,15 +132,17 @@ function init2() {
 
     // starting shape
     for (let i=0; i<starting_shapes.length; i++) {
-        const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
-        const voxel = new THREE.Mesh( geo, material );
-        voxel.position.set((starting_shapes[i][0]*50)+25, (starting_shapes[i][1]*50)+25, (starting_shapes[i][2]*50)+25);
-        scene2.add( voxel );
-        objects2.push( voxel );
-        const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
-        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-        line.position.set((starting_shapes[i][0]*50)+25, (starting_shapes[i][1]*50)+25, (starting_shapes[i][2]*50)+25);
-        scene2.add( line );
+        starting_shapes[i].forEach(block => {
+            const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
+            const voxel = new THREE.Mesh( geo, material );
+            voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+            scene2.add( voxel );
+            objects2.push( voxel );
+            const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
+            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
+            line.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
+            scene2.add( line );
+        })
     }
 
     // lights
@@ -180,7 +184,7 @@ function onWindowResize() {
 }
 
 function onPointerMove( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+    pointer2.set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
     raycaster2.setFromCamera( pointer2, camera2 );
     // Select which blocks the raycaster should intersect with
     let objs_to_intersect = objects2;
@@ -202,7 +206,7 @@ function onPointerMove( event ) {
 }
 
 function onPointerDown( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+    pointer2.set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
     raycaster2.setFromCamera( pointer2, camera2 );
     
     // Select which blocks the raycaster should intersect with

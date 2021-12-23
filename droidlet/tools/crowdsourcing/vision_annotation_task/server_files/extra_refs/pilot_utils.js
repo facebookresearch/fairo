@@ -7,43 +7,49 @@
 // Remove the stylesheet inherited from Mephisto by default
 $('link[rel=stylesheet][href~="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]').remove();
 
-var q1Correct = false;
-var q2Correct = false;
-var q3Correct = false;
-var q4Correct = false;
 var clickedElements = new Array();
+var correct = [false, false, false, false, false];
+var answers = [
+  [[-2,0,2],[-2,1,2],[-2,2,2]],
+  [[-1,0,2],[-1,1,2],[-1,2,2],[0,0,2],[0,1,2],[0,2,2],[1,0,2],[1,1,2],[1,2,2]],
+  null,
+  [[5,0,0],[5,1,0],[4,0,0],[4,1,0],[5,0,-1],[5,1,-1],[4,0,-1],[4,1,-1],[-5,0,0],[-5,1,0],[-4,0,0],[-4,1,0],[-5,0,-1],[-5,1,-1],[-4,0,-1],[-4,1,-1]],
+  [[4,4,0],[5,4,0],[-5,4,0],[-4,4,0],[5,4,-1],[4,4,-1],[-4,4,-1],[-5,4,-1]]
+]
 
-let q1Answer = [[2,0,2]];
-let q2Answer = [[-1,0,2],[-1,1,2],[-1,2,2],[0,0,2],[0,1,2],[0,2,2],[1,0,2],[1,1,2],[1,2,2]];
-let q4Answer = [[5,0,0],[5,1,0],[4,0,0],[4,1,0],[5,0,-1],[5,1,-1],[4,0,-1],[4,1,-1],[-5,0,0],[-5,1,0],[-4,0,0],[-4,1,0],[-5,0,-1],[-5,1,-1],[-4,0,-1],[-4,1,-1]];
+function checkAnswer(qnum, ans) {
+  let qidx = qnum -1;
+  if (qnum === 3) {
+    if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
+      correct[2] = true;
+    } else { correct[2] = false }
+  }
+  else if (JSON.stringify(JSON.parse(ans).sort()) === JSON.stringify(answers[qidx].sort())){
+    console.log("answer correct");
+    correct[qidx] = true;
+  } else { correct[qidx] = false; }
+  let qid = "q" + qnum + "Answer";
+  document.getElementById(qid).value = JSON.stringify(correct[qidx]);
+}
 
-// recordClick logs user actions as well as messages from the dashboard to the Mephisto form
+// Previous format
+/*
+else if (ele["q5_output"]) {
+  if (JSON.stringify(JSON.parse(ele.q5_output).sort()) === JSON.stringify(q5Answer.sort())){
+    q5Correct = true;
+  }
+  document.getElementById("q5Answer").value = JSON.stringify(q5Correct);
+}
+*/
+
+// recordClick records and handles messages received from within the iframes
 function recordClick(ele) {
-  if (ele["q1_output"]) {
-    if (JSON.stringify(JSON.parse(ele.q1_output).sort()) === JSON.stringify(q1Answer.sort())){
-      q1Correct = true;
-    }
-    document.getElementById("q1Answer").value = JSON.stringify(q1Correct);
-  }
-  else if (ele["q2_output"]) {
-    if (JSON.stringify(JSON.parse(ele.q2_output).sort()) === JSON.stringify(q2Answer.sort())){
-      q2Correct = true;
-    }
-    document.getElementById("q2Answer").value = JSON.stringify(q2Correct);
-  }
-  else if (ele["q3_output"]) {
-    if (JSON.parse(ele.q3_output) === null){
-      q3Correct = true;
-    }
-    document.getElementById("q3Answer").value = JSON.stringify(q3Correct);
-  }
-  else if (ele["q4_output"]) {
-    if (JSON.stringify(JSON.parse(ele.q4_output).sort()) === JSON.stringify(q4Answer.sort())){
-      q4Correct = true;
-    }
-    document.getElementById("q4Answer").value = JSON.stringify(q4Correct);
-  }
-  
+  if (ele["q1_output"]) { checkAnswer(1, ele.q1_output) }
+  else if (ele["q2_output"]) { checkAnswer(2, ele.q2_output) }
+  else if (ele["q3_output"]) { checkAnswer(3, ele.q3_output) }
+  else if (ele["q4_output"]) { checkAnswer(4, ele.q4_output) }
+  else if (ele["q5_output"]) { checkAnswer(5, ele.q5_output) }
+
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
   console.log("Clicked elements array: " + JSON.stringify(clickedElements));

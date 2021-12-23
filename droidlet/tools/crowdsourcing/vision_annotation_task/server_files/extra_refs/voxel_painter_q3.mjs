@@ -179,7 +179,7 @@ function onWindowResize() {
 }
 
 function onPointerMove( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+    pointer2.set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
     raycaster2.setFromCamera( pointer2, camera2 );
     // Select which blocks the raycaster should intersect with
     let objs_to_intersect = objects2;
@@ -201,7 +201,7 @@ function onPointerMove( event ) {
 }
 
 function onPointerDown( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/2)) / (window.innerWidth/2) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+    pointer2.set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
     raycaster2.setFromCamera( pointer2, camera2 );
     
     // Select which blocks the raycaster should intersect with
