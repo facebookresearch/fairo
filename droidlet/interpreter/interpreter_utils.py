@@ -40,12 +40,13 @@ def update_attended_and_link_lf(interpreter, mems):
     and links it to the interpreters logical form (if it has one).
     """
     interpreter.memory.update_recent_entities(mems)
-    for m in mems:
-        interpreter.memory.add_triple(
-            subj=m.memid,
-            pred_text="attended_while_interpreting",
-            obj=interpreter.logical_form_memid,
-        )
+    lf_memid = getattr(interpreter, "logical_form_memid", None)
+    # a dummy interpreter may have no logical form memid associated to it...
+    if lf_memid:
+        for m in mems:
+            interpreter.memory.add_triple(
+                subj=m.memid, pred_text="attended_while_interpreting", obj=lf_memid
+            )
 
 
 # FIXME... be more careful with OR and NOT
