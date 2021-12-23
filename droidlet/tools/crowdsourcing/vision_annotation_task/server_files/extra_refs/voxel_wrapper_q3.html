@@ -15,10 +15,15 @@
     </body>
     <script type='module' src='voxel_painter_q3.mjs'></script>
     <script>
+        document.getElementById("finish-annotation").addEventListener("click", function() {
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
+        });
         document.getElementById("null-result").addEventListener("click", function() {
             let output_obj = {q3_output: "null"};  // parser expects a string
             window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
-            // TODO upload data to S3 on complete
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
         });
     </script>
     <link rel="stylesheet" href="voxel_wrapper.css">

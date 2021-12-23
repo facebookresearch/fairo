@@ -18,6 +18,13 @@
         document.getElementById("finish-annotation").addEventListener("click", function() {
             let output_obj = {q2_output: document.getElementById("markedBlocks").value};
             window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
+        });
+        document.getElementById("null-result").addEventListener("click", function() {
+            // Even if it doesn't do anything, trigger visual feedback
+            document.getElementById("finish-annotation").disabled = true;
+            document.getElementById("null-result").disabled = true;
         });
     </script>
     <link rel="stylesheet" href="voxel_wrapper.css">

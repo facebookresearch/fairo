@@ -28,3 +28,16 @@ iframe {
     padding: 15px;
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
 }
+
+#instructions-section {
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+hr {
+    margin: 0.25em;
+}
+
+.input-group {
+    display: block;
+}
