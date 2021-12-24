@@ -8,6 +8,7 @@
     <body>
         <div id="voxel_painter"></div>
         <div id="buttons">
+            <button type="button" class="center btn btn-secondary" id="reset">Reset to Starting State</button>
             <button type="button" class="center btn btn-danger" id="null-result">The Object is Not Present</button>
             <button type="button" class="center btn btn-success" id="finish-annotation">Finish Annotation</button>
         </div>
@@ -25,6 +26,11 @@
             // Even if it doesn't do anything, trigger visual feedback
             document.getElementById("finish-annotation").disabled = true;
             document.getElementById("null-result").disabled = true;
+        });
+        document.getElementById("reset").addEventListener("click", function() {
+            document.getElementById("finish-annotation").disabled = false;
+            document.getElementById("null-result").disabled = false;
+            location.reload();
         });
     </script>
     <link rel="stylesheet" href="voxel_wrapper.css">

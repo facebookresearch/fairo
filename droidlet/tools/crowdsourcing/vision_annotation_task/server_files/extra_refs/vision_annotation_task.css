@@ -24,14 +24,19 @@ iframe {
     padding: 10px;
 }
 
-#instructions {
-    padding: 15px;
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+#heading {
+    position: relative;
+    display: block;
+    margin: auto;
+    z-index: 10;
 }
 
 #instructions-section {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     margin-top: 10px;
     margin-bottom: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 hr {

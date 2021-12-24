@@ -21,6 +21,7 @@ function checkAnswer(qnum, ans) {
   let qidx = qnum -1;
   if (qnum === 3) {
     if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
+      console.log("answer correct");
       correct[2] = true;
     } else { correct[2] = false }
   }
@@ -32,16 +33,6 @@ function checkAnswer(qnum, ans) {
   document.getElementById(qid).value = JSON.stringify(correct[qidx]);
 }
 
-// Previous format
-/*
-else if (ele["q5_output"]) {
-  if (JSON.stringify(JSON.parse(ele.q5_output).sort()) === JSON.stringify(q5Answer.sort())){
-    q5Correct = true;
-  }
-  document.getElementById("q5Answer").value = JSON.stringify(q5Correct);
-}
-*/
-
 // recordClick records and handles messages received from within the iframes
 function recordClick(ele) {
   if (ele["q1_output"]) { checkAnswer(1, ele.q1_output) }
@@ -52,7 +43,7 @@ function recordClick(ele) {
 
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);
-  console.log("Clicked elements array: " + JSON.stringify(clickedElements));
+  //console.log("Clicked elements array: " + JSON.stringify(clickedElements));
 }
 recordClick("start");
 
@@ -63,7 +54,7 @@ if (window.addEventListener) {
     if (typeof(event.data) === "string") {
       data = JSON.parse(event.data);
     } else data = event.data
-    console.log(data);
+    //console.log(data);
     if (data.msg) recordClick(data.msg);
   }, false);
 }
@@ -72,10 +63,24 @@ else if (window.attachEvent) {  // Cross compatibility for old versions of IE
     if (typeof(event.data) === "string") {
       data = JSON.parse(event.data);
     } else data = event.data
-    console.log(data);
+    //console.log(data);
     if (data.msg) recordClick(data.msg);
   });
 }
+
+document.addEventListener('scroll', function(e) {
+  //let panel = document.getElementsByClassName("panel-primary")[0];
+  let panel = document.getElementById("heading");
+  if (window.scrollY > 10) {
+    panel.style.position = "fixed"; // sticky won't work b/c 'app' has overflow: hidden
+    panel.style.top = "0px";
+    panel.style.marginLeft = "5%";
+    document.getElementById("demos").style.marginTop = "500px";
+  } else {
+    panel.style.position = "relative";
+    document.getElementById("demos").style.marginTop = "0px";
+  }
+});
 
 function showHideInstructions() {
   if (document.getElementById("instructionsWrapper").classList.contains("in")){
