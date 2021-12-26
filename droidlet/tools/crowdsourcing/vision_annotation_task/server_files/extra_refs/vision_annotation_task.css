@@ -31,12 +31,29 @@ iframe {
     z-index: 10;
 }
 
-#instructions-section {
+.instructions-section {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12pt;
     margin-top: 10px;
     margin-bottom: 5px;
     padding-left: 15px;
     padding-right: 15px;
+}
+
+h4 {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 14pt;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.instruction-headings {
+    text-decoration: underline;
+}
+
+h2 {
+    margin-top: 10px;
+    font-size: 24px;
 }
 
 hr {
@@ -45,4 +62,8 @@ hr {
 
 .input-group {
     display: block;
+}
+
+.panel {
+    margin-bottom: 0px;
 }

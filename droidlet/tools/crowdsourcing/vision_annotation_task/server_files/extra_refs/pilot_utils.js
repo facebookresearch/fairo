@@ -14,21 +14,27 @@ var answers = [
   [[-1,0,2],[-1,1,2],[-1,2,2],[0,0,2],[0,1,2],[0,2,2],[1,0,2],[1,1,2],[1,2,2]],
   null,
   [[5,0,0],[5,1,0],[4,0,0],[4,1,0],[5,0,-1],[5,1,-1],[4,0,-1],[4,1,-1],[-5,0,0],[-5,1,0],[-4,0,0],[-4,1,0],[-5,0,-1],[-5,1,-1],[-4,0,-1],[-4,1,-1]],
-  [[4,4,0],[5,4,0],[-5,4,0],[-4,4,0],[5,4,-1],[4,4,-1],[-4,4,-1],[-5,4,-1]]
+  [[-1,4,0],[0,4,0],[0,4,-1],[-1,4,-1]]
 ]
 
 function checkAnswer(qnum, ans) {
   let qidx = qnum -1;
   if (qnum === 3) {
     if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
-      console.log("answer correct");
+      console.log("answer " + qnum + " correct");
       correct[2] = true;
-    } else { correct[2] = false }
+    } else {
+      correct[2] = false;
+      console.log("answer " + qnum + " incorrect");
+    }
   }
   else if (JSON.stringify(JSON.parse(ans).sort()) === JSON.stringify(answers[qidx].sort())){
-    console.log("answer correct");
+    console.log("answer " + qnum + " correct");
     correct[qidx] = true;
-  } else { correct[qidx] = false; }
+  } else {
+    correct[qidx] = false;
+    console.log("answer " + qnum + " incorrect");
+  }
   let qid = "q" + qnum + "Answer";
   document.getElementById(qid).value = JSON.stringify(correct[qidx]);
 }
@@ -75,20 +81,25 @@ document.addEventListener('scroll', function(e) {
     panel.style.position = "fixed"; // sticky won't work b/c 'app' has overflow: hidden
     panel.style.top = "0px";
     panel.style.marginLeft = "5%";
-    document.getElementById("demos").style.marginTop = "500px";
+    if (!instructionsCollapsed) {
+      document.getElementById("demos").style.marginTop = "700px";
+    }
   } else {
     panel.style.position = "relative";
     document.getElementById("demos").style.marginTop = "0px";
   }
 });
 
+var instructionsCollapsed = false;
 function showHideInstructions() {
   if (document.getElementById("instructionsWrapper").classList.contains("in")){
+    instructionsCollapsed = true;
     for (let ele of document.getElementsByClassName("collapse")){
       if (ele.classList.contains("in")) ele.classList.remove("in");
     }
   }
   else {
+    instructionsCollapsed = false;
     for (let ele of document.getElementsByClassName("collapse")){
       if (ele.classList.contains("in")) continue;
       else ele.classList.add("in");

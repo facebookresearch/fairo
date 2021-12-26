@@ -11,6 +11,7 @@
             <button type="button" class="center btn btn-secondary" id="reset">Reset to Starting State</button>
             <button type="button" class="center btn btn-danger" id="null-result">The Object is Not Present</button>
             <button type="button" class="center btn btn-success" id="finish-annotation">Finish Annotation</button>
+            <div id="response" class="center"></div>
         </div>
         <input type="hidden" id="markedBlocks" name="markedBlocks" value="">
     </body>
@@ -19,12 +20,14 @@
         document.getElementById("finish-annotation").addEventListener("click", function() {
             document.getElementById("finish-annotation").disabled = true;
             document.getElementById("null-result").disabled = true;
+            document.getElementById("response").innerHTML = " - Annotation Complete";
         });
         document.getElementById("null-result").addEventListener("click", function() {
             let output_obj = {q3_output: "null"};  // parser expects a string
             window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
             document.getElementById("finish-annotation").disabled = true;
             document.getElementById("null-result").disabled = true;
+            document.getElementById("response").innerHTML = " - Annotation Complete";
         });
         document.getElementById("reset").addEventListener("click", function() {
             document.getElementById("finish-annotation").disabled = false;

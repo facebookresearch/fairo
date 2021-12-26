@@ -22,14 +22,10 @@ let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
 let starting_shapes = [
-    [5,0,0,0],
-    [4,0,0,2],
-    [5,0,-1,4],
-    [4,0,-1,0],
-    [-5,0,0,0],
-    [-4,0,0,2],
-    [-5,0,-1,4],
-    [-4,0,-1,0]
+    [0,0,0,0],
+    [-1,0,0,2],
+    [0,0,-1,4],
+    [-1,0,-1,0]
 ];
 
 init1();
