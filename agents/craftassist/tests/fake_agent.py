@@ -9,7 +9,7 @@ from typing import List, Tuple
 
 from droidlet.lowlevel.minecraft.mc_util import XYZ, IDM, Block
 from droidlet.memory.memory_nodes import ChatNode
-from .utils import Look, Pos, Item, Player
+from droidlet.lowlevel.minecraft.pyworld.utils import Look, Pos, Item, Player
 from agents.droidlet_agent import DroidletAgent
 from droidlet.memory.craftassist.mc_memory import MCAgentMemory
 from droidlet.memory.craftassist.mc_memory_nodes import VoxelObjectNode
@@ -485,8 +485,14 @@ class FakeAgent(DroidletAgent):
             abs_xyz = tuple(np.array(xyz) + origin)
             self.perception_modules["low_level"].pending_agent_placed_blocks.add(abs_xyz)
             # TODO add force option so we don't need to make it as if agent placed
-            interesting, player_placed, agent_placed = self.perception_modules["low_level"].mark_blocks_with_env_change(xyz, idm, boring_blocks)
-            changes_to_be_updated.changed_block_attributes[(abs_xyz, idm)] = [interesting, player_placed, agent_placed]
+            interesting, player_placed, agent_placed = self.perception_modules[
+                "low_level"
+            ].mark_blocks_with_env_change(xyz, idm, boring_blocks)
+            changes_to_be_updated.changed_block_attributes[(abs_xyz, idm)] = [
+                interesting,
+                player_placed,
+                agent_placed,
+            ]
             self.world.place_block((abs_xyz, idm))
         # TODO: to be named to normal update function
         self.memory.update(changes_to_be_updated, self.areas_to_perceive)
