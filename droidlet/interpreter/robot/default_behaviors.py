@@ -73,7 +73,7 @@ def start_explore(agent, goal):
         task_data = { 
             "goal": goal, 
             "save_data": os.getenv('SAVE_EXPLORATION', 'False') == 'True',
-            "data_path": os.path.join(f"{os.getenv('HEURISTIC', 'default')}", str(explore_count)),
+            "data_path": os.path.join(f"{os.getenv('DATA_PATH', 'default')}", str(explore_count)),
         }
         logger.info(f'task_data {task_data}')
         
