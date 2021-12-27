@@ -8,6 +8,7 @@
 $('link[rel=stylesheet][href~="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]').remove();
 
 var clickedElements = new Array();
+var complete = [false, false, false, false, false]; 
 var correct = [false, false, false, false, false];
 var answers = [
   [[-2,0,2],[-2,1,2],[-2,2,2]],
@@ -19,12 +20,13 @@ var answers = [
 
 function checkAnswer(qnum, ans) {
   let qidx = qnum -1;
-  if (qnum === 3) {
+  complete[qidx] = true;
+  if (ans === "null") {
     if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
       console.log("answer " + qnum + " correct");
-      correct[2] = true;
+      correct[qidx] = true;
     } else {
-      correct[2] = false;
+      correct[qidx] = false;
       console.log("answer " + qnum + " incorrect");
     }
   }
@@ -37,6 +39,9 @@ function checkAnswer(qnum, ans) {
   }
   let qid = "q" + qnum + "Answer";
   document.getElementById(qid).value = JSON.stringify(correct[qidx]);
+  if (complete.every(x => x === true)) {
+    document.getElementById("complete-prompt").innerHTML = "";
+  }
 }
 
 // recordClick records and handles messages received from within the iframes
@@ -75,18 +80,27 @@ else if (window.attachEvent) {  // Cross compatibility for old versions of IE
 }
 
 document.addEventListener('scroll', function(e) {
-  //let panel = document.getElementsByClassName("panel-primary")[0];
   let panel = document.getElementById("heading");
   if (window.scrollY > 10) {
     panel.style.position = "fixed"; // sticky won't work b/c 'app' has overflow: hidden
     panel.style.top = "0px";
     panel.style.marginLeft = "5%";
     if (!instructionsCollapsed) {
-      document.getElementById("demos").style.marginTop = "700px";
+      document.getElementById("demos").style.marginTop = document.getElementById("heading").offsetHeight + "px";
     }
   } else {
     panel.style.position = "relative";
     document.getElementById("demos").style.marginTop = "0px";
+  }
+
+  if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 10)) {
+    // if at the bottom of the page and all questions are not done, prompt user
+    if (!complete.every(x => x === true)) {
+      document.getElementById("complete-prompt").innerHTML = "Not all questions are complete, are you sure you want to submit?";
+    }
+    else {
+      document.getElementById("complete-prompt").innerHTML = "";
+    }
   }
 });
 

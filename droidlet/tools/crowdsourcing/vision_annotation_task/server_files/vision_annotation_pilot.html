@@ -19,15 +19,15 @@
         <h2 class="center">Mark or unmark blocks or air to complete each task</h2>
         <hr>
         <div class="instructions-section">
-          Each question will prompt you to mark or unmark a subset of the blocks pictured by clicking on the appropriate blocks.
+          Each question will prompt you to mark (paint translucent green) or unmark a subset of the blocks pictured by clicking on the appropriate blocks.
         </div>
         <div class="instructions-section">
           <h4 class="instruction-headings">Two Scene Windows:</h4>
           <ul>
             <li>The window on the <b>left</b> shows the Original Scene before any annotation has taken place.  You can't edit this window.</li>
-            <li>The window on the <b>right</b> is the Annotation Window that you will use to complete the task.</li>
+            <li>The window on the <b>right</b> is the Annotation Window that you will edit to complete the task.</li>
           </ul>
-          <b>To begin each task, click your mouse in the Annotation Window.</b>  
+          <b>To begin each task, click your mouse anywhere in the Annotation Window.</b>  
           You can use the arrow keys to rotate the view. Both windows will move at the same time.
         </div>
         <div class="instructions-section">
@@ -40,8 +40,8 @@
         <div class="instructions-section">
           <h4 class="instruction-headings">Three Action Keys:</h4>
           <ul>
-            <li><b>Hold down 'a' and click</b> on an unmarked opaque block to mark it</li>
-            <li><b>Hold down 's' and click</b> on an air block to mark it</li>
+            <li><b>Hold down 'a' and click</b> on an unmarked opaque block to mark it (paint it translucent green)</li>
+            <li><b>Hold down 's' and click</b> on an air block to mark it (paint it translucent green)</li>
             <li><b>Hold down 'd' and click</b> on a marked (translucent green) block to change it back to what it was before</li>
           </ul>
           You may also <b>press z to undo</b> your last action at any time.
@@ -93,7 +93,7 @@
   <hr>
   
   <div class="row">
-    <h2>Question #1 - mark the blue tower</h2>
+    <h2>Question #1 - mark the blocks in the blue tower</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
@@ -114,7 +114,7 @@
   <hr>
   
   <div class="row">
-    <h2>Question #2 - mark the air blocks between the two pillars</h2>
+    <h2>Question #2 - mark all the air blocks between the two pillars</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
@@ -135,7 +135,7 @@
   <hr>
   
   <div class="row">
-    <h2>Question #3 - mark the cylinder</h2>
+    <h2>Question #3 - mark the blocks in the cylinder</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
@@ -156,7 +156,7 @@
   <hr>
   
   <div class="row">
-    <h2>Question #4 - unmark the middle cube</h2>
+    <h2>Question #4 - unmark the blocks in the middle cube</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
@@ -177,7 +177,7 @@
   <hr>
   
   <div class="row">
-    <h2>Question #5 - mark the air blocks 4 above each brown block, but not the 3 blocks in-between</h2>
+    <h2>Question #5 - mark all the air blocks 4 above each opaque brown block, but not the 3 blocks in-between</h2>
     <p>
       See the instructions and demonstration above.  You will need to unmark the 3 air blocks between the opaque blocks and the target blocks.
       You should end up with a "floating" set of marked blocks.
@@ -216,6 +216,7 @@
         <input type="hidden" id="userAgent" name="userAgent" value="0">
       </div>
     </fieldset>
+    <div id="complete-prompt"></div>
   </div>
   <div class="col-xs-2"></div>
 </section>

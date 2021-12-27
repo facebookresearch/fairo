@@ -25,6 +25,8 @@
             document.getElementById("response").innerHTML = " - Annotation Complete";
         });
         document.getElementById("null-result").addEventListener("click", function() {
+            let output_obj = {q1_output: "null"};  // parser expects a string
+            window.parent.postMessage(JSON.stringify({ msg: output_obj }), "*");
             document.getElementById("finish-annotation").disabled = true;
             document.getElementById("null-result").disabled = true;
             document.getElementById("response").innerHTML = " - Annotation Complete";
