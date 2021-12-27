@@ -23,19 +23,19 @@ function checkAnswer(qnum, ans) {
   complete[qidx] = true;
   if (ans === "null") {
     if (JSON.stringify(JSON.parse(ans)) === JSON.stringify(answers[qidx])){
-      console.log("answer " + qnum + " correct");
+      //console.log("answer " + qnum + " correct");
       correct[qidx] = true;
     } else {
       correct[qidx] = false;
-      console.log("answer " + qnum + " incorrect");
+      //console.log("answer " + qnum + " incorrect");
     }
   }
   else if (JSON.stringify(JSON.parse(ans).sort()) === JSON.stringify(answers[qidx].sort())){
-    console.log("answer " + qnum + " correct");
+    //console.log("answer " + qnum + " correct");
     correct[qidx] = true;
   } else {
     correct[qidx] = false;
-    console.log("answer " + qnum + " incorrect");
+    //console.log("answer " + qnum + " incorrect");
   }
   let qid = "q" + qnum + "Answer";
   document.getElementById(qid).value = JSON.stringify(correct[qidx]);
