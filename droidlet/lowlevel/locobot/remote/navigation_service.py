@@ -146,10 +146,11 @@ with Pyro4.Daemon(ip) as daemon:
 
     obj = Navigation(planner, slam, robot)
     obj_uri = daemon.register(obj)
-    with Pyro4.locateNS() as ns:
+    with Pyro4.locateNS(robot_ip) as ns:
         ns.register("navigation", obj_uri)
 
     print("Navigation Server is started...")
+    print(f"obj_uri {obj_uri}")
     daemon.requestLoop()
 
 

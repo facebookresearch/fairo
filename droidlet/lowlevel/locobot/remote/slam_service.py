@@ -120,6 +120,7 @@ class SLAM(object):
 robot_ip = os.getenv('LOCOBOT_IP')
 ip = os.getenv('LOCAL_IP')
 with Pyro4.Daemon(ip) as daemon:
+    print(f'robot_ip {robot_ip}')
     robot = Pyro4.Proxy("PYRONAME:remotelocobot@" + robot_ip)
     obj = SLAM(robot)    
     obj_uri = daemon.register(obj)
@@ -127,6 +128,7 @@ with Pyro4.Daemon(ip) as daemon:
         ns.register("slam", obj_uri)
 
     print("SLAM Server is started...")
+    print(f"obj_uri {obj_uri}")
 
     def refresh():
         obj.update_map()

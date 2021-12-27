@@ -430,7 +430,7 @@ if __name__ == "__main__":
         help="Optional config argument to be passed to the backend."
         "Currently mainly used to pass Habitat environment path",
         type=str,
-        default='/Replica-Dataset/apartment_0/habitat/mesh_semantic.ply',
+        default='/checkpoint/apratik/replica/apartment_0/habitat/mesh_semantic.ply',
     )
     parser.add_argument(
          "--noisy",
@@ -462,7 +462,8 @@ if __name__ == "__main__":
             add_humans=args.add_humans,
         )
         robot_uri = daemon.register(robot)
-        with Pyro4.locateNS() as ns:
+        print(f'robot_uri {robot_uri}')
+        with Pyro4.locateNS(host=args.ip) as ns:
             ns.register("remotelocobot", robot_uri)
 
         print("Server is started...")
