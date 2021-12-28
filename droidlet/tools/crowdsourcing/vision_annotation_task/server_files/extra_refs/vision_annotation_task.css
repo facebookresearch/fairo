@@ -72,3 +72,17 @@ hr {
 .panel {
     margin-bottom: 0px;
 }
+
+#avatars-fig {
+    float: right;
+    margin: 10px;
+}
+
+#avatars {
+    width: 200px; 
+}
+
+figcaption {
+    font-weight: bold;
+    text-align: center;
+}

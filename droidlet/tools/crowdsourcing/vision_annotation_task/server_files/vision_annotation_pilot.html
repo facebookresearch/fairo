@@ -24,11 +24,11 @@
         <div class="instructions-section">
           <h4 class="instruction-headings">Two Scene Windows:</h4>
           <ul>
-            <li>The window on the <b>left</b> shows the Original Scene before any annotation has taken place.  You can't edit this window.</li>
+            <li>The window on the <b>left</b> shows the Original Scene before any annotation has taken place.  You can't edit this window, but you can click within and drag to rotate.</li>
             <li>The window on the <b>right</b> is the Annotation Window that you will edit to complete the task.</li>
           </ul>
           <b>To begin each task, click your mouse anywhere in the Annotation Window.</b>  
-          You can use the arrow keys to rotate the view. Both windows will move at the same time.
+          You can use the arrow keys to rotate the view, or click and drag in the left window. Both windows will move at the same time.
         </div>
         <div class="instructions-section">
           <h4 class="instruction-headings">Block Colors:</h4>
@@ -44,13 +44,21 @@
             <li><b>Hold down 's' and click</b> on an air block to mark it (paint it translucent green)</li>
             <li><b>Hold down 'd' and click</b> on a marked (translucent green) block to change it back to what it was before</li>
           </ul>
-          You may also <b>press z to undo</b> your last action at any time.
+          You may also <b>press z to undo</b> your last action.
         </div>
         <div class="instructions-section">
+          <figure id="avatars-fig">
+            <img id="avatars" src="avatars.png">
+            <figcaption>User & Assistant Avatars</figcaption>
+          </figure>
           <h4 class="instruction-headings">Marking Suspended/Floating Blocks</h4>
           To mark air blocks that are not touching any other blocks, you must first mark the blocks in between, 
           like building a support to reach it.  Then once you've marked the correct block you can unmark the supporting blocks. 
           See the rightmost demonstration gif for an example.
+        </div>
+        <div class="instructions-section">
+          <h4 class="instruction-headings">User and Assistant Avatars:</h4>
+          Sometimes you will see two avatars, one yellow and one blue.  The yellow avatar is called the "User" and the blue avatar is called the "Assistant".
         </div>
         <div class="instructions-section">
           <h4 class="instruction-headings">Finishing:</h4>
@@ -93,18 +101,18 @@
   <hr>
   
   <div class="row">
-    <h2>Question #1 - mark the blocks between the user and the assistant</h2>
+    <h2>Question #1 - mark the cube closer to the User</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
-        Perform annotation in the other window
+        Perform annotation in the other window<br>
+        Rotate in this window using mouse or arrow keys
       </p>
     </div>
     <div class="col-xs-6">
       <h3 class="center">Annotation Window</h3>
       <p class="center">
-        Click in window to enter<br>
-        Use arrow keys to rotate view<br>
+        Click in this window to start task<br>
         Press 'z' to undo an action
       </p>
     </div>
@@ -114,28 +122,28 @@
   <hr>
   
   <div class="row">
-    <h2>Question #3 - mark the blocks in the pyramid</h2>
+    <h2>Question #2 - mark the blocks in the pyramid</h2>
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
-        Perform annotation in the other window
+        Perform annotation in the other window<br>
+        Rotate in this window using mouse or arrow keys
       </p>
     </div>
     <div class="col-xs-6">
       <h3 class="center">Annotation Window</h3>
       <p class="center">
-        Click in window to enter<br>
-        Use arrow keys to rotate view<br>
+        Click in this window to start task<br>
         Press 'z' to undo an action
       </p>
     </div>
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q3.html" scrolling="no"></iframe>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q2.html" scrolling="no"></iframe>
   </div>
 
   <hr>
   
   <div class="row">
-    <h2>Question #5 - mark all the air blocks 4 above each opaque brown block, but not the 3 blocks in-between</h2>
+    <h2>Question #3 - mark all the air blocks 4 above each opaque brown block, but not the 3 blocks in-between</h2>
     <p>
       See the instructions and demonstration above.  You will need to unmark the 3 air blocks between the opaque blocks and the target blocks.
       You should end up with a "floating" set of marked blocks.
@@ -143,18 +151,18 @@
     <div class="col-xs-6">
       <h3 class="center">Original Scene</h3>
       <p class="center">
-        Perform annotation in the other window
+        Perform annotation in the other window<br>
+        Rotate in this window using mouse or arrow keys
       </p>
     </div>
     <div class="col-xs-6">
       <h3 class="center">Annotation Window</h3>
       <p class="center">
-        Click in window to enter<br>
-        Use arrow keys to rotate view<br>
+        Click in this window to start task<br>
         Press 'z' to undo an action
       </p>
     </div>
-    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q5.html" scrolling="no"></iframe>
+    <iframe style="width:100%; height:500px; margin: 0 auto;" id="myiframe" src="voxel_wrapper_q3.html" scrolling="no"></iframe>
   </div>
 </section>
 
