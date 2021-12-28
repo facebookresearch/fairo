@@ -3,7 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 import numpy as np
 import random
-from iglu_util import IGLU_BLOCK_MAP
+from droidlet.lowlevel.minecraft.iglu_util import IGLU_BLOCK_MAP
 from droidlet.lowlevel.minecraft.shape_util import (
     SHAPE_NAMES,
     SHAPE_FNS,
