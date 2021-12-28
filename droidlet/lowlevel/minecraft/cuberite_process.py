@@ -5,6 +5,8 @@ Copyright (c) Facebook, Inc. and its affiliates.
 import atexit
 import logging
 import numpy as np
+import json
+import pickle
 import os
 import shutil
 import subprocess
@@ -17,7 +19,7 @@ from droidlet.lowlevel.minecraft.craftassist_cuberite_utils import (
 from droidlet.lowlevel.minecraft.craftassist_cuberite_utils.wait_for_cuberite import (
     wait_for_cuberite,
 )
-from droidlet.lowlevel.minecraft.shape_util import build_shape_scene
+from droidlet.lowlevel.minecraft.small_scenes_with_shapes import build_shape_scene
 
 logging.basicConfig(format="%(asctime)s [%(levelname)s]: %(message)s")
 logging.getLogger().setLevel(logging.DEBUG)
@@ -133,9 +135,21 @@ if __name__ == "__main__":
     parser.add_argument("--log-comm-in", action="store_true")
     parser.add_argument("--mode", choices=["creative", "survival"], default="creative")
     parser.add_argument("--workdir")
-    parser.add_argument("--npy_schematic")
-    parser.add_argument("--random_shapes", action="store_true")
     parser.add_argument("--add-plugin", action="append", default=[])
+    # a path to a schematic data file.  if the path ends in .npy,
+    # it is assumed the schematic is a 5 dim (y,z,x,bid,meta) numpy array
+    # if the path ends in .pk, it is assumed the schematic is stored in a
+    # pickled list of {"x":x, "y":y", "z":z, "id": bid, "meta": meta} dicts
+    # if the path ends in .json, it is assumed the schematic is stored in a
+    # json with a list of of {"x":x, "y":y", "z":z, "id": bid, "meta": meta} dicts
+    # in a "schematic_for_cuberite" field
+    parser.add_argument("--schematic", default="")
+    # args for random shape generation, if used:
+    parser.add_argument("--random_shapes", action="store_true")
+    parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
+    parser.add_argument("--GROUND_DEPTH", type=int, default=5)
+    parser.add_argument("--SL", type=int, default=13)
+    parser.add_argument("--H", type=int, default=11)
     args = parser.parse_args()
 
     plugins = ["debug", "chatlog", "point_blocks"] + args.add_plugin
@@ -143,14 +157,25 @@ if __name__ == "__main__":
         plugins += ["logging"]
 
     schematic = None
-    # if args.npy_schematic, load the schematic when starting
-    if args.npy_schematic:
-        schematic = np.load(args.npy_schematic)
+    # if args.schematic, load the schematic when starting
+    if args.schematic:
+        if args.schematic.endswith(".npy"):
+            schematic = np.load(args.schematic)
+        elif args.schematic.endswith(".pk"):
+            with open(args.schematic, "rb") as f:
+                schematic = pickle.load(f)
+        else:
+            with open(args.schematic, "rb") as f:
+                J = json.load(f)
+                schematic = J["schematic_for_cuberite"]
         if args.random_shapes:
             # TODO allow both?
             print("warning: ignoring the schematic and using random shapes")
     if args.random_shapes:
-        schematic = build_shape_scene()
+        args.cuberite_y_offset = 63 - args.GROUND_DEPTH
+        args.cuberite_x_offset = -args.SL // 2
+        args.cuberite_z_offset = -args.SL // 2
+        schematic = build_shape_scene(args)["schematic_for_cuberite"]
 
     p = CuberiteProcess(
         args.config,
