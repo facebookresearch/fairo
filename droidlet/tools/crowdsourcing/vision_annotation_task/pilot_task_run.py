@@ -53,12 +53,13 @@ register_script_config(name="scriptconfig", module=TestScriptConfig)
 
 
 def validate_answers(answers):
-
+    logging.info(f"Answers: {answers}")
     # Validate multiple choice questions
     if answers["q1Answer"] != "true" or \
         answers["q2Answer"] != "true" or \
         answers["q3Answer"] != "true" or \
-        answers["q4Answer"] != "true":
+        answers["q4Answer"] != "true" or \
+        answers["q5Answer"] != "true":
         return False
 
     return True

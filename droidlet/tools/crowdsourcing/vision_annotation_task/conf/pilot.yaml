@@ -5,18 +5,18 @@ mephisto:
     task_source: ${task_dir}/server_files/vision_annotation_pilot.html
     preview_source: ${task_dir}/server_files/vision_annotation_pilot_preview.html
     extra_source_dir: ${task_dir}/server_files/extra_refs
-    units_per_assignment: 1
+    units_per_assignment: 50
   task:
     task_title: "Mark images in 3D"
     task_description: "Mark the blocks that make up a shape"
-    task_reward: 2.5
+    task_reward: 3.0
     allowed_concurrent: 1
     maximum_units_per_worker: 1
     task_tags: "3D, annotate, shapes"
-    task_name: "droidlet-vision-pilot-t1"
+    task_name: "vision-pre-pilot-12-27-21-50"
   architect:
     heroku_config_args:
       AWS_ACCESS_KEY_ID: ${env:AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${env:AWS_SECRET_ACCESS_KEY}
       AWS_DEFAULT_REGION: "us-west-1"
-    heroku_app_name: vision-pilot-t1
+    heroku_app_name: vision-pre-pilot-12-27-21-50
