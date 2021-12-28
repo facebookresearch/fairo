@@ -66,6 +66,8 @@ class SampleGoodCandidates:
         for i in np.sort(np.unique(annot.reshape(-1), axis=0)):
             if self.is_annot_validfn(i):
                 binary_mask = (annot == i).astype(np.uint8)
+                # if binary_mask.sum() < 5000:
+                #     return False
                 all_binary_mask = np.bitwise_or(binary_mask, all_binary_mask)
                 
         if not all_binary_mask.any():
@@ -81,7 +83,7 @@ class SampleGoodCandidates:
         
         return True
     
-    @cached('/checkpoint/apratik/candidates_cached_instance_v4.json')
+    # @cached('/checkpoint/apratik/candidates_cached_instance_sanity.json')
     def get_n_candidates(self, n, good, evenly_spaced=False):
         # go through the images and filter candidates
         # mark all the good candidates and then uniformly sample from them 

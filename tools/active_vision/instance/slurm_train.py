@@ -243,7 +243,7 @@ class MyTrainer(DefaultTrainer):
         return hooks
 
 class COCOTrain:
-    def __init__(self, lr, w, maxiters, seed, name, model_name):
+    def __init__(self, lr, w, maxiters, seed, name, train_folder, out_dir):
         self.cfg = get_cfg()
         self.cfg.merge_from_file(model_zoo.get_config_file(coco_yaml))
         self.cfg.SOLVER.BASE_LR = lr  # pick a good LR
@@ -251,7 +251,8 @@ class COCOTrain:
         self.cfg.SOLVER.WARMUP_ITERS = w
         self.seed = seed
         self.name = name
-        self.model_name = model_name
+        self.train_folder = train_folder
+        self.out_dir = out_dir
         
     def reset(self, train_json, img_dir_train, dataset_name):
         DatasetCatalog.clear()
@@ -308,12 +309,12 @@ class COCOTrain:
         print(f'classes {MetadataCatalog.get(self.train_data)}')
         cfg.MODEL.ROI_HEADS.NUM_CLASSES = len(MetadataCatalog.get(self.train_data).get("thing_classes"))  
         cfg.OUTPUT_DIR = os.path.join(
-            'output_droid', self.name, self.model_name, 
+            self.out_dir, 'training', self.train_folder, 
             str(self.seed), str(cfg.SOLVER.MAX_ITER), str(cfg.SOLVER.BASE_LR), str(cfg.SOLVER.WARMUP_ITERS)
         )
         print(f"recreating {cfg.OUTPUT_DIR}")
         os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
-        self.trainer = MyTrainer(cfg) #DefaultTrainer(cfg)  #Trainer(cfg)
+        self.trainer = MyTrainer(cfg)
         self.trainer.resume_or_load(resume=False)
         self.trainer.train()
         
@@ -323,7 +324,7 @@ class COCOTrain:
         self.train(val_json, img_dir_val)
 
 
-maxiters = [1000]
+maxiters = [800]
 lrs = [0.001, 0.002]
 warmups = [100]
 
@@ -351,7 +352,15 @@ def logtime(outdir, s):
     with open(os.path.join(outdir, 'timelog.txt'), "a") as f:
         f.write(f"{start.strftime('%H:%M:%S')}: {s}\n")
 
-def run_training(out_dir, img_dir_train, train_json, img_dir_val, val_json=None, n=10, active=False):
+def run_training(
+    out_dir, 
+    img_dir_train, 
+    train_json, 
+    img_dir_val, 
+    val_json=None, 
+    train_folder='',
+    n=10,
+):
 
     # img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/rgb'
     # val_json = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_ids_allinone_val/coco_val.json'
@@ -363,12 +372,10 @@ def run_training(out_dir, img_dir_train, train_json, img_dir_val, val_json=None,
     # img_dir_val = '/checkpoint/apratik/data/data/apartment_0/default/no_noise/instance_detection_test_cvpr2/rgb'
     val_json_1116 = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/coco_val.json'
     img_dir_val_1116 = '/checkpoint/apratik/jobs/active_vision/pipeline/instance_det/apartment_0/test_1116_cvpr2/rgb'
-    model_name = 'sanity'
 
     if val_json is None:
         val_json = val_json_1116
         img_dir_val = img_dir_val_1116
-        model_name = 'actual'
 
     for lr in lrs:
         for warmup in warmups:
@@ -385,7 +392,7 @@ def run_training(out_dir, img_dir_train, train_json, img_dir_val, val_json=None,
                     logtime(out_dir, f'start training sample {i} for lr {lr}, warmup {warmup}, maxiter {maxiter}')
                     logtime(out_dir, f'img_dir_train {img_dir_train}, out_dir {out_dir}, train_json {train_json}')
                     dataset_name = out_dir.split('/')[-1]
-                    c = COCOTrain(lr, warmup, maxiter, i, dataset_name, model_name)
+                    c = COCOTrain(lr, warmup, maxiter, i, dataset_name, train_folder, out_dir)
                     print(f'dataset_name {dataset_name}')
                     c.run_train(train_json, img_dir_train, dataset_name, val_json, img_dir_val)
                     logtime(out_dir, f'done training sample {i} for lr {lr}, warmup {warmup}, maxiter {maxiter}')

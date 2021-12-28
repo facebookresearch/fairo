@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import cv2
 import json
 
-def get_cache_key(data_dir, img_id):
-    return data_dir + '_' + str(img_id)
+def get_cache_key(data_dir, img_id, good, evenly_spaced):
+    return data_dir + '_' + str(img_id) + '_' + str(good) + '_' + str(evenly_spaced)
 
 def cached(file_name):
     def decorator(original_func):
@@ -15,11 +15,11 @@ def cached(file_name):
         except (IOError, ValueError):
             cache = {}
         
-        def new_func(sample_class, img_id):
-            k = get_cache_key(sample_class.data_dir, img_id)
+        def new_func(sample_class, img_id, good, evenly_spaced):
+            k = get_cache_key(sample_class.data_dir, img_id, good, evenly_spaced)
             if k in cache:
                 return cache[k]
-            val = original_func(sample_class, img_id)
+            val = original_func(sample_class, img_id, good, evenly_spaced)
             cache[k] = val
             json.dump(cache, open(file_name, 'w'))
             return val
@@ -49,7 +49,6 @@ class SampleGoodCandidates:
                 
         print(f'{len(self.good_candidates)} good candidates found!')
     
-    @cached('/checkpoint/apratik/candidates_cached.json')
     def is_good_candidate(self, x):
         """
         checks if an image is a good candidate by checking that the mask is within a certain distance from the 
@@ -81,15 +80,25 @@ class SampleGoodCandidates:
             return False
         
         return True
-        
-    def get_n_candidates(self, n, good=True):
+    
+    # @cached('/checkpoint/apratik/candidates_cached_class_v4.json')
+    def get_n_candidates(self, n, good, evenly_spaced=False):
         # go through the images and filter candidates
         # mark all the good candidates and then uniformly sample from them 
         # Pick n things uniformly from all the good candidates
+        def sample_even_or_random(arr, n, evenly_spaced=False):
+            if len(arr) == 0:
+                return []
+
+            if evenly_spaced:
+                return [arr[int(x)] for x in np.linspace(0, len(arr), n, endpoint=False)]
+            else:
+                return random.sample(arr, min(len(arr), n))
+
         if good:
-            return random.sample(self.good_candidates, min(len(self.good_candidates), n))
+            return sample_even_or_random(self.good_candidates, n, evenly_spaced)
         else:
-            return random.sample(self.bad_candidates, min(len(self.bad_candidates), n))
+            return sample_even_or_random(self.bad_candidates, n, evenly_spaced)
     
     def visualize(self, candidates):
         fig, axs = plt.subplots(1, len(candidates), figsize=(2*len(candidates),4))

@@ -19,6 +19,7 @@ from datetime import datetime
 import json
 
 instance_ids = [243,404,196,133,166,170,172]
+# instance_ids = [196,404]
 
 def is_annot_validfn(annot):
     if annot not in instance_ids:
@@ -70,23 +71,43 @@ def _runner(traj, gt, p, active, data_path, job_folder, num_train_samples, src_i
         if len(glob.glob1(os.path.join(outdir, 'seg'),"*.npy")) > 0:
             # sanity checking coco_val
             run_coco(traj_path, instance_ids, src_img_ids, p, 'coco_val.json', outdir)
-            # coco train
-            # run_coco(outdir, instance_ids, [], 0, 'coco_train.json', outdir)
+            
+            # baseline to compare label prop to
+            run_coco(traj_path, instance_ids, src_img_ids, 0, 'coco_baseline.json', outdir)
+
+            # coco train with label prop
+            run_coco(outdir, instance_ids, [], 0, 'coco_train.json', outdir)
+            
             logtime(outdir, 'run coco done')
 
-            # run sanity check
+            # # run sanity check
             # run_training(
             #     outdir, 
             #     os.path.join(outdir, 'rgb'), 
             #     os.path.join(outdir, 'coco_train.json'), 
             #     os.path.join(traj_path, 'rgb'),
             #     os.path.join(outdir, 'coco_val.json'), 
+            #     'prop',
+            #     1
+            # )
+
+            # run_training(
+            #     outdir, 
+            #     os.path.join(traj_path, 'rgb'), 
+            #     os.path.join(outdir, 'coco_baseline.json'), 
+            #     os.path.join(traj_path, 'rgb'),
+            #     os.path.join(outdir, 'coco_val.json'), 
+            #     'baseline',
             #     1
             # )
             # logtime(outdir, 'Sanity checking done')
 
             run_training(
-                outdir, os.path.join(outdir, 'rgb'), os.path.join(outdir, 'coco_train.json'), None, None, num_train_samples)
+                outdir, 
+                os.path.join(outdir, 'rgb'), 
+                os.path.join(outdir, 'coco_train.json'), 
+                None, None, 'prop', num_train_samples
+            )
             logtime(outdir, 'training done')
 
             end = datetime.now()
@@ -126,17 +147,27 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
+    # gtps = set()
+    # for gt in range(5, 15, 5):
+    #     for p in range(0, 30, 5):
+    #         gtps.add((gt,p))
+
+    # for gt in range(5, 30, 5):
+    #     for p in range(0,15,5):
+    #         gtps.add((gt,p))
+
+    # gtps = sorted(list(gtps))
+    # print(len(gtps), gtps)
+
+    # Ten settings for quick turnaround
     gtps = set()
-    for gt in range(5, 15, 5):
+    for gt in range(5, 10, 5):
         for p in range(0, 30, 5):
             gtps.add((gt,p))
 
-    # for gt in range(5, 30, 5):
-    #     for p in range(0,20,5):
-    #         gtps.add((gt,p))
-
-    gtps = sorted(list(gtps))
-    print(len(gtps), gtps)
+    for gt in range(5, 30, 5):
+        for p in range(5,10,5):
+            gtps.add((gt,p))
 
     jobs = []
     if args.slurm:

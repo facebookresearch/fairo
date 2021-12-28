@@ -61,7 +61,7 @@ def logtime(outdir, s):
     with open(os.path.join(outdir, 'timelog.txt'), "a") as f:
         f.write(f"{start.strftime('%H:%M:%S')}: {s}\n")
 
-def _runner(traj, gt, p, active, data_path, job_folder, num_train_samples):
+def _runner(traj, gt, p, active, data_path, job_folder, num_train_samples, src_img_ids):
     start = datetime.now()
     traj_path = os.path.join(data_path, str(traj))
     print(f'traj_path {traj_path}')
@@ -72,11 +72,6 @@ def _runner(traj, gt, p, active, data_path, job_folder, num_train_samples):
             os.makedirs(outdir)
 
         logtime(outdir, 'starting..')
-        # TODO: use candidate selection
-        s = SampleGoodCandidates(traj_path, is_annot_validfn)
-        src_img_ids = s.get_n_candidates(gt, good=True)
-        logtime(outdir, f'candidate selection done {src_img_ids}')
-        # src_img_ids = [10, 20, 30, 40, 50]
         print(f'src_img_ids {src_img_ids}, outdir {outdir}')
         run_label_prop(outdir, gt, p, traj_path, src_img_ids)
         logtime(outdir, 'label prop done')
@@ -122,14 +117,27 @@ if __name__ == "__main__":
         slurm_comment="Droidlet Active Vision Pipeline"
     )
 
+    # gtps = set()
+    # for gt in range(5, 15, 5):
+    #     for p in range(0, 30, 5):
+    #         gtps.add((gt,p))
+
+    # for gt in range(5, 30, 5):
+    #     for p in range(0,15,5):
+    #         gtps.add((gt,p))
+
+    # gtps = sorted(list(gtps))
+    # print(len(gtps), gtps)
+
+    # Ten settings for quick turnaround
     gtps = set()
-    for gt in range(5, 15, 5):
+    for gt in range(5, 10, 5):
         for p in range(0, 30, 5):
             gtps.add((gt,p))
 
-    # for gt in range(5, 30, 5):
-    #     for p in range(0,20,5):
-    #         gtps.add((gt,p))
+    for gt in range(5, 30, 5):
+        for p in range(5,10,5):
+            gtps.add((gt,p))
 
     gtps = sorted(list(gtps))
     print(len(gtps), gtps)
@@ -138,15 +146,24 @@ if __name__ == "__main__":
     if args.slurm:
         with executor.batch():
             for traj in range(args.num_traj+1):
-                for gt, p in gtps:
-                    job = executor.submit(_runner, traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples)
-                    jobs.append(job)
+                traj_path = os.path.join(args.data_path, str(traj))
+                s = SampleGoodCandidates(traj_path, is_annot_validfn)
+                for gt, p in gtps: 
+                    src_img_ids = s.get_n_candidates(gt, good=True, evenly_spaced=True)
+                    if src_img_ids is not None and len(src_img_ids) > 0:
+                        job = executor.submit(
+                            _runner, traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples, src_img_ids
+                        )
+                        jobs.append(job)
         log_job_start(args, jobs)
         print(f'{len(jobs)} jobs submitted')
     
     else:
         print('running locally ...')
         for traj in range(args.num_traj+1):
+            traj_path = os.path.join(args.data_path, str(traj))
+            s = SampleGoodCandidates(traj_path, is_annot_validfn)
             for gt in range(5, 10, 5):
                 for p in range(5, 10, 5): # only run for fixed gt locally to test
-                    _runner(traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples)
+                    src_img_ids = s.get_n_candidates(gt, good=True, evenly_spaced=True)
+                    _runner(traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples, src_img_ids)

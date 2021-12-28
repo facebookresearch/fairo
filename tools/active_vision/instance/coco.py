@@ -94,16 +94,19 @@ class CocoCreator:
             self.new_old_id[i] = idc
             idc += 1
     
-    def create_annos(self, hsd, scene, pct, src_ids, prop_length):
+    def create_annos(self, hsd, scene, pct, src_ids, p):
         coco_img_id = -1
         count = 0
         segm_dir = self.segm_dir
         print(f"Scene {scene}, seg dir {segm_dir}")       
         img_dir = os.path.join(self.rdd, 'rgb')
         if src_ids is not None and len(src_ids) > 0:
-            fs = [[s-p-1,s+p+1] for s in src_ids[1:-1]]
-            fs.append([src_ids[0]+p+1, src_ids[-1]-p-1])
-            fs = [item for sublist in fs for item in sublist]
+            if p == 0:
+                fs = src_ids
+            else:
+                fs = [[s-p-1,s+p+1] for s in src_ids[1:-1]]
+                fs.append([src_ids[0]+p+1, src_ids[-1]-p-1])
+                fs = [item for sublist in fs for item in sublist]
             print(f'src_ids {src_ids} fs {fs}')
             fs = ["{:05d}.jpg".format(image_id) for image_id in fs]
         else:

@@ -10,7 +10,7 @@ fi
 # ./launch.sh <root folder with all trajectory data> <setting specific path> <num of trajectories> <num of training runs> <slurm or local>
 # Example commands to run this file
 # ./launch.sh /checkpoint/apratik/data_devfair0187/apartment_0/straightline/no_noise/1633991019 apartment_0/straightline/no_noise 10 5
-# ./launch.sh /checkpoint/apratik/data_dec/baseline apartment_0/baseline/no_noise 10 2 new_world_test
+# ./launch.sh /checkpoint/apratik/data_dec/baseline apartment_0/baseline/no_noise 5 2 class_test
 
 
 data_path=$1
@@ -36,4 +36,4 @@ cp candidates.py $codedir/candidates.py
 
 cd $codedir
 chmod +x run_pipeline.py
-python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --comment $5 $6 --slurm 
+python3.7 run_pipeline.py --data $data_path --job_folder $jobdir --num_traj $3 --num_train_samples $4 --comment "$5" $6 --slurm 
