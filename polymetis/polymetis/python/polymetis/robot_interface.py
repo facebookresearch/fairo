@@ -7,6 +7,7 @@ from typing import Dict, Generator, List, Tuple
 import time
 import tempfile
 import threading
+import atexit
 
 import grpc  # This requires `conda install grpcio protobuf`
 import torch
@@ -120,6 +121,13 @@ class BaseRobotInterface:
         """
         robot_state_generator = self.grpc_connection.GetRobotStateLog(log_interval)
 
+        def cancel_rpc():
+            print("Cancelling attempt to get robot state log.")
+            robot_state_generator.cancel()
+            print(f"Cancellation completed.")
+
+        atexit.register(cancel_rpc)
+
         results = []
 
         def read_stream():
@@ -136,6 +144,7 @@ class BaseRobotInterface:
         if read_thread.is_alive():
             raise TimeoutError("Operation timed out.")
         else:
+            atexit.unregister(cancel_rpc)
             return results
 
     def get_robot_state(self) -> RobotState:
