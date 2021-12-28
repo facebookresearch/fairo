@@ -9,7 +9,7 @@ mephisto:
   task:
     task_title: "Mark images in 3D"
     task_description: "Mark the blocks that make up a shape"
-    task_reward: 2.5
+    task_reward: 3.0
     allowed_concurrent: 1
     maximum_units_per_worker: 1
     task_tags: "3D, annotate, shapes"

@@ -138,6 +138,7 @@ def timing_charts(run_id: int) -> None:
     starttime = math.inf
     endtime = -math.inf
     feedback = []
+    num_all_false = 0
     for unit in completed_units:
         data = data_browser.get_data_from_unit(unit)
         worker = Worker(db, data["worker_id"]).worker_name
@@ -146,9 +147,15 @@ def timing_charts(run_id: int) -> None:
         
         outputs = data["data"]["outputs"]
         feedback.append(outputs["feedback"])
+        num_false = 0
         for q in question_results.keys():
             key = "q" + str(q) + "Answer"
             question_results[q].append(outputs[key])
+            if outputs[key] == 'false':
+                num_false += 1
+
+        if num_false == 5:
+            num_all_false += 1
 
     plot_hist_sorted(unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)")
     pass_rates = {1: [], 2: [], 3: [], 4: [], 5: []}
@@ -158,7 +165,7 @@ def timing_charts(run_id: int) -> None:
         print(f"Question #{q} pass rate: {(results_dict['true']/(results_dict['true'] + results_dict['false']))*100:.1f}%")
         #plot_hist(results_dict, xlabel="", ylabel=f"Question #{q} Passes")
     plot_hist(pass_rates, xlabel="Question #", ylabel=f"Pass Rate %")
-
+    print(f"Number of workers who didn't get any right: {num_all_false}")
     print(feedback)
         
 #%%
