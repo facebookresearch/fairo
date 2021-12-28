@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.skypack.dev/three';
 import { OrbitControls } from './OrbitControls.mjs';
+import { GLTFLoader } from './GLTFLoader.mjs';
 
 let camera1, controls1, scene1, renderer1, plane1;
 let camera2, controls2, scene2, renderer2, plane2;
@@ -23,6 +24,9 @@ let objects1 = [];
 let objects2  = [];
 let marked_blocks = [];
 
+let model1, model2;
+let skeleton1, skeleton2;
+
 let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
@@ -33,13 +37,14 @@ let agent = [[5,5,-5,'a1'], [5,6,-5,'a2']];
 // Look direction comes in the file properties.avatarInfo.properties.look as [pitch, yaw] floats
 // referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
 // Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
-const raw_look_vals = [Math.PI/4, 1.55*Math.PI]  // [pitch, yaw]
+const raw_look_vals = [Math.PI/4, (5/4)*Math.PI]  // [pitch, yaw]
 const look_angles = [(-1)*raw_look_vals[0], ((-1)*raw_look_vals[1]) + Math.PI/2]
 // Convert pitch and yaw radian values to a Vector3 look direction
 let user_look_dir = new THREE.Vector3( 
     Math.cos(look_angles[1]) * Math.cos(look_angles[0]),
     Math.sin(look_angles[0]),
-    Math.sin(look_angles[1] * Math.cos(look_angles[0])));
+    Math.sin(look_angles[1]) * Math.cos(look_angles[0])
+    );
 user_look_dir.normalize();
 const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
 
@@ -254,12 +259,20 @@ function init2(scene) {
     scene2.add( new THREE.AxesHelper( 10000 ) );
 
     // add user
-    user.forEach((block) => {
-        const user_block = new THREE.Mesh( geo, userMaterial );
-        user_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-        scene2.add( user_block );
-        objects2.push( user_block );
-    })
+    const loader = new GLTFLoader();
+    loader.load( './Xbot.glb', function ( gltf ) {
+        model2 = gltf.scene;
+        model2.scale.multiplyScalar(75.0);
+        model2.position.set((user[0][0]*50)+25, (user[0][1]*50)+25, (user[0][2]*50)+25)
+        model2.rotation.y += raw_look_vals[1]; //yaw, referenced a la the raw vals for some reason
+        //model2.rotation.x += look_angles[0]; //pitch
+        //model2.rotation.set(0, look_angles[0], look_angles[1])
+        //model2.rotation.setFromVector3(user_look_dir);
+        scene2.add( model2 );
+        model2.traverse( function ( object ) {
+            if ( object.isMesh ) object.castShadow = false;
+        } );
+	} );
 
     // add look direction
     //user_look_dir.subVectors(scene2.position, head_position).normalize();
