@@ -17,8 +17,7 @@ commands:
             . /opt/conda/etc/profile.d/conda.sh
             conda activate polymetis-local
 
-            cd ./polymetis
-            export PATH=$PWD/polymetis/build/:$PATH
+            export PATH=$PWD/polymetis/polymetis/build/:$PATH
 
             python ./polymetis/polymetis/tests/cpp/test_server.py
       - run:
