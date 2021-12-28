@@ -22,12 +22,31 @@ let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
 let starting_shapes = [
-    [[2,0,2,0], [2,1,2,0], [2,2,2,0]],
-    [[2,0,-2,1], [2,1,-2,0], [2,2,-2,0]],
-    [[-2,0,2,2], [-2,1,2,0], [-2,2,2,0]],
-    [[-2,0,-2,3], [-2,1,-2,0], [-2,2,-2,0]]
+    [5,0,0,0],
+    [5,1,0,1],
+    [4,0,0,2],
+    [4,1,0,3],
+    [5,0,-1,4],
+    [5,1,-1,5],
+    [4,0,-1,0],
+    [4,1,-1,1],
+    [0,0,0,0],
+    [0,1,0,1],
+    [-1,0,0,2],
+    [-1,1,0,3],
+    [0,0,-1,4],
+    [0,1,-1,5],
+    [-1,0,-1,0],
+    [-1,1,-1,1],
+    [-5,0,0,0],
+    [-5,1,0,1],
+    [-4,0,0,2],
+    [-4,1,0,3],
+    [-5,0,-1,4],
+    [-5,1,-1,5],
+    [-4,0,-1,0],
+    [-4,1,-1,1]
 ];
-let colors = [0xff0000, 0x00ff00, 0x0000ff, 0x000000]
 
 init1();
 init2();
@@ -57,19 +76,12 @@ function init1() {
     objects1.push( plane1 );
 
     // starting shapes
-    for (let i=0; i<starting_shapes.length; i++) {
-        starting_shapes[i].forEach(block => {
-            const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
-            const voxel = new THREE.Mesh( geo, material );
-            voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene1.add( voxel );
-            objects1.push( voxel );
-            const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
-            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-            line.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene1.add( line );
-        })
-    }
+    starting_shapes.forEach((shape) => {
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
+        voxel.position.set((shape[0]*50)+25, (shape[1]*50)+25, (shape[2]*50)+25);
+        scene1.add( voxel );
+        objects1.push( voxel );
+    })
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -130,20 +142,13 @@ function init2() {
     scene2.add( plane2 );
     objects2.push( plane2 );
 
-    // starting shape
-    for (let i=0; i<starting_shapes.length; i++) {
-        starting_shapes[i].forEach(block => {
-            const material = new THREE.MeshBasicMaterial( { color: colors[i], opacity: 1.0} );
-            const voxel = new THREE.Mesh( geo, material );
-            voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene2.add( voxel );
-            objects2.push( voxel );
-            const edges = new THREE.EdgesGeometry( geo );  // outline the blocks for visibility
-            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-            line.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-            scene2.add( line );
-        })
-    }
+    // starting shapes
+    starting_shapes.forEach((shape) => {
+        const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
+        voxel.position.set((shape[0]*50)+25, (shape[1]*50)+25, (shape[2]*50)+25);
+        scene2.add( voxel );
+        marked_blocks.push( voxel );
+    })
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );

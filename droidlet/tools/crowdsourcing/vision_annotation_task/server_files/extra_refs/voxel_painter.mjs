@@ -16,28 +16,29 @@ let rollOverMesh2, rollOverMaterial2;
 let cubeMaterial_mark;
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
-const userMaterial = new THREE.MeshBasicMaterial( { color: 0xffff00, opacity: 1.0} );
-const agentMaterial = new THREE.MeshBasicMaterial( { color: 0x0000ff, opacity: 1.0} );
+const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
+const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
 const groundMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0} );
+
+const targetGeo = new THREE.BoxGeometry( 0, 50, 50 );
+const targetMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'target.png' ), transparent: true } );
 
 let objects1 = [];
 let objects2  = [];
 let marked_blocks = [];
 
-let model1, model2;
-let skeleton1, skeleton2;
+let userModel1, userModel2, agentModel1, agentModel2;
 
 let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
-// User position comes from properties.avatarInfo.properties.pos
-let user = [[5,5,5,'u1'], [5,6,5,'u2']];
-// Agent position comes from ???
-let agent = [[5,5,-5,'a1'], [5,6,-5,'a2']];
+let user = [[5,4,5,'u1'], [5,7,5,'u2']];  // feet, head
+let agent = [[5,4,-5,'a1'], [5,7,-5,'a2']];
+
 // Look direction comes in the file properties.avatarInfo.properties.look as [pitch, yaw] floats
 // referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
 // Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
-const raw_look_vals = [Math.PI/4, (5/4)*Math.PI]  // [pitch, yaw]
+const raw_look_vals = [(1/4)*Math.PI, (5/4)*Math.PI]  // [pitch, yaw]
 const look_angles = [(-1)*raw_look_vals[0], ((-1)*raw_look_vals[1]) + Math.PI/2]
 // Convert pitch and yaw radian values to a Vector3 look direction
 let user_look_dir = new THREE.Vector3( 
@@ -47,6 +48,10 @@ let user_look_dir = new THREE.Vector3(
     );
 user_look_dir.normalize();
 const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
+
+// Agent will always be looking at user
+// Transform relative location into yaw
+let user_agent_angle = Math.atan((user[0][0] - agent[0][0]) / (user[0][2] - agent[0][2]));
 
 let starting_cube = [];
 let block_id = 0;
@@ -87,8 +92,8 @@ function init1(scene) {
     scene1.background = new THREE.Color( 0xf0f0f0 );
 
     // grid
-    //const gridHelper = new THREE.GridHelper( scene.length*50 , scene.length );
-    //scene1.add( gridHelper );
+    const gridHelper = new THREE.GridHelper( scene.length*50 , scene.length );
+    scene1.add( gridHelper );
 
     // plane
     const geometry = new THREE.PlaneGeometry( 1000, 1000 );
@@ -136,30 +141,49 @@ function init1(scene) {
     scene1.add( new THREE.AxesHelper( 10000 ) );
 
     // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
+    scene1.updateMatrixWorld();  // Must call this for raycasting to work before render
     scene1.add( new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 ) );
     userRaycaster1 = new THREE.Raycaster(head_position, user_look_dir);
-    const intersects = userRaycaster1.intersectObjects( objects1, false );
+    const intersects = userRaycaster1.intersectObjects( objects1 );
     if ( intersects.length > 0 ) {
-        console.log("user raycaster hit something");
         const intersect = intersects[ 0 ];
-        intersect.object.material.color.set( 0xffff00 );
+        let target = new THREE.Mesh( targetGeo, targetMaterial );
+        target.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
+        target.rotation.y += user_look_dir.y;
+        target.rotation.z -= user_look_dir.z;
+        scene1.add(target);
     }
 
     // add user
-    user.forEach((block) => {
-        const user_block = new THREE.Mesh( geo, userMaterial );
-        user_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-        scene1.add( user_block );
-        objects1.push( user_block );
-    })
+    const loader = new GLTFLoader();
+    loader.load( './body.glb', function ( gltf ) {
+        userModel1 = gltf.scene;
+        userModel1.scale.multiplyScalar(75.0);
+        userModel1.position.set((user[0][0]*50)+25, (user[0][1]*50), (user[0][2]*50)+25)
+        userModel1.rotation.y += raw_look_vals[1]; //yaw, referenced a la the raw vals for some reason
+        scene1.add( userModel1 );
+        userModel1.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = userMaterial;
+            }
+        } );
+	} );
 
     // add agent
-    agent.forEach((block) => {
-        const agent_block = new THREE.Mesh( geo, agentMaterial );
-        agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-        scene1.add( agent_block );
-        objects1.push( agent_block );
-    });
+    loader.load( './body.glb', function ( gltf ) {
+        agentModel1 = gltf.scene;
+        agentModel1.scale.multiplyScalar(75.0);
+        agentModel1.position.set((agent[0][0]*50)+25, (agent[0][1]*50), (agent[0][2]*50)+25)
+        agentModel1.rotation.y += user_agent_angle;
+        scene1.add( agentModel1 );
+        agentModel1.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = agentMaterial;
+            }
+        } );
+	} );
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -258,34 +282,54 @@ function init2(scene) {
     //The X axis is red. The Y axis is green. The Z axis is blue.
     scene2.add( new THREE.AxesHelper( 10000 ) );
 
-    // add user
+    // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
+    scene2.updateMatrixWorld();  // Must call this for raycasting to work before render
+    scene2.add( new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 ) );
+    userRaycaster2 = new THREE.Raycaster(head_position, user_look_dir);
+    const intersects = userRaycaster2.intersectObjects( objects2 );
+    if ( intersects.length > 0 ) {
+        const intersect = intersects[ 0 ];
+        let target = new THREE.Mesh( targetGeo, targetMaterial );
+        target.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
+        target.rotation.y += user_look_dir.y;
+        target.rotation.z -= user_look_dir.z;
+        scene2.add(target);
+    }
+
+    // add user and agent
     const loader = new GLTFLoader();
-    loader.load( './Xbot.glb', function ( gltf ) {
-        model2 = gltf.scene;
-        model2.scale.multiplyScalar(75.0);
-        model2.position.set((user[0][0]*50)+25, (user[0][1]*50)+25, (user[0][2]*50)+25)
-        model2.rotation.y += raw_look_vals[1]; //yaw, referenced a la the raw vals for some reason
-        //model2.rotation.x += look_angles[0]; //pitch
-        //model2.rotation.set(0, look_angles[0], look_angles[1])
-        //model2.rotation.setFromVector3(user_look_dir);
-        scene2.add( model2 );
-        model2.traverse( function ( object ) {
-            if ( object.isMesh ) object.castShadow = false;
+    loader.load( './body.glb', function ( gltf ) {
+        userModel2 = gltf.scene;
+        userModel2.scale.multiplyScalar(75.0);
+        userModel2.position.set((user[0][0]*50)+25, (user[0][1]*50), (user[0][2]*50)+25)
+        userModel2.rotation.y += raw_look_vals[1]; //yaw, referenced a la the raw vals for some reason
+        scene2.add( userModel2 );
+        userModel2.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = userMaterial;
+            }
         } );
 	} );
 
     // add look direction
-    //user_look_dir.subVectors(scene2.position, head_position).normalize();
     const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
     scene2.add( arrowHelper );
 
     // add agent
-    agent.forEach((block) => {
-        const agent_block = new THREE.Mesh( geo, agentMaterial );
-        agent_block.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-        scene2.add( agent_block );
-        objects2.push( agent_block );
-    })
+    loader.load( './body.glb', function ( gltf ) {
+        agentModel2 = gltf.scene;
+        agentModel2.scale.multiplyScalar(75.0);
+        agentModel2.position.set((agent[0][0]*50)+25, (agent[0][1]*50), (agent[0][2]*50)+25)
+        agentModel2.rotation.y += user_agent_angle;
+        scene2.add( agentModel2 );
+        agentModel2.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = agentMaterial;
+            }
+        } );
+	} );
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
