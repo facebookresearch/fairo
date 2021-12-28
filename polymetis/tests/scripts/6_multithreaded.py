@@ -12,6 +12,7 @@ from utils import check_episode_log
 
 
 success = []
+exceptions = []
 
 
 def connect_and_send_policy():
@@ -40,8 +41,8 @@ def connect_and_send_policy():
         assert torch.allclose(joint_pos, joint_pos_desired, atol=0.01)
 
         success.append(True)
-    except:
-        pass
+    except Exception as e:
+        exceptions.append(e)
 
 
 if __name__ == "__main__":
@@ -49,4 +50,4 @@ if __name__ == "__main__":
     thread.start()
     thread.join()
 
-    assert success
+    assert success, f"Exception: {exceptions}"
