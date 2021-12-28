@@ -23,14 +23,6 @@ panda_urdf_path = os.path.abspath(
 panda_ee_link_name = "panda_link8"
 
 
-def create_robot_model(*args, **kwargs):
-    if "urdf_path" not in kwargs:
-        kwargs["urdf_path"] = panda_urdf_path
-    if "ee_link_name" not in kwargs:
-        kwargs["ee_link_name"] = panda_ee_link_name
-    return toco.models.RobotModelPinocchio(panda_urdf_path, panda_ee_link_name)
-
-
 class FakeRobotModel(torch.nn.Module):
     def __init__(self, num_joints):
         super().__init__()
