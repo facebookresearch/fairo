@@ -2,56 +2,50 @@ import * as THREE from 'https://cdn.skypack.dev/three';
 import { OrbitControls } from './OrbitControls.mjs';
 import { GLTFLoader } from './GLTFLoader.mjs';
 
-let camera1, controls1, scene1, renderer1, plane1;
-let camera2, controls2, scene2, renderer2, plane2;
+const BLOCK_MAP = {
+46: 0xffffff, // White Wool
+47: 0xffa500, // Orange Wool
+48: 0xff00ff, // Magenta Wool
+49: 0x75bdff, // Light Blue Wool
+50: 0xffff00, // Yellow Wool
+51: 0x00ff00, // Lime Wool
+52: 0xffc0cb, // Pink Wool
+53: 0x5b5b5b, // Gray Wool
+54: 0xbcbcbc, // Light Gray Wool
+55: 0x00ffff, // Cyan Wool
+56: 0x800080, // Purple Wool
+57: 0x2986cc, // Blue Wool
+58: 0xa52a2a, // Brown Wool
+59: 0x8fce00, // Green Wool
+60: 0xff0000, // Red Wool
+61: 0x000000, // Black Wool
+};
 
-let pointer2, raycaster2; 
+let cameras = {1: [], 2: []};
+let controls = {1: [], 2: []};
+let scenes = {1: [], 2: []};
+let renderers = {1: [], 2: []};
+let planes = {1: [], 2: []};
+let pointers = {1: [], 2: []};
+let raycasters = {1: [], 2: []};
+let user_raycasters = {1: [], 2: []};
+let objects = {1: [], 2: []};
+
+let marked_blocks = [];
+let actions_taken = []; // [original_block, new_block, action_type]
+
 let isADown = false;
 let isSDown = false;
 let isDDown = false;
-
-let userRaycaster1, userRaycaster2;
-
-let rollOverMesh2, rollOverMaterial2;
-let cubeMaterial_mark;
-const geo = new THREE.BoxGeometry( 50, 50, 50 );
-const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
-const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
-const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
-const groundMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0} );
-
-const targetGeo = new THREE.BoxGeometry( 0, 50, 50 );
-const targetMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'target.png' ), transparent: true } );
-
-let objects1 = [];
-let objects2  = [];
-let marked_blocks = [];
-
-let userModel1, userModel2, agentModel1, agentModel2;
-
-let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
 
-let user = [[5,4,5,'u1'], [5,7,5,'u2']];  // feet, head
-let agent = [[5,4,-5,'a1'], [5,7,-5,'a2']];
+const geo = new THREE.BoxGeometry( 50, 50, 50 );
+const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
+const cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
+let rollOverMesh = new THREE.Mesh( geo, rollOverMaterial );
 
-// Look direction comes in the file properties.avatarInfo.properties.look as [pitch, yaw] floats
-// referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
-// Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
-const raw_look_vals = [(1/4)*Math.PI, (5/4)*Math.PI]  // [pitch, yaw]
-const look_angles = [(-1)*raw_look_vals[0], ((-1)*raw_look_vals[1]) + Math.PI/2]
-// Convert pitch and yaw radian values to a Vector3 look direction
-let user_look_dir = new THREE.Vector3( 
-    Math.cos(look_angles[1]) * Math.cos(look_angles[0]),
-    Math.sin(look_angles[0]),
-    Math.sin(look_angles[1]) * Math.cos(look_angles[0])
-    );
-user_look_dir.normalize();
-const head_position = new THREE.Vector3((user[1][0]*50)+25, (user[1][1]*50)+25, (user[1][2]*50)+25);
-
-// Agent will always be looking at user
-// Transform relative location into yaw
-let user_agent_angle = Math.atan((user[0][0] - agent[0][0]) / (user[0][2] - agent[0][2]));
+// Agent will always be looking at user, transform relative location into yaw
+//let user_agent_angle = Math.atan((user[0][0] - agent[0][0]) / (user[0][2] - agent[0][2]));
 
 let starting_cube = [];
 let block_id = 0;
@@ -66,16 +60,16 @@ for (let x=-2; x<2; x++){
 // TODO download data from S3 based on data.csv?
 // In the meantime, here's some dummy data
 
-fetch('./scene1.json')
+fetch('./scene1_v2.json')
     .then(response => {
         return response.json();
     })
     .then(jsondata => {
-        return jsondata[0];
+        return jsondata[0];  // Pull the first scene (of 1 in this case)
     })
     .then(scene => {
-        init1(scene);
-        init2(scene);
+        init(scene, 1);
+        init(scene, 2);
         addEventListeners();
         render();
         var canvii = document.getElementsByTagName("canvas");
@@ -83,272 +77,147 @@ fetch('./scene1.json')
         canvii[1].style.float = "right";
     })
 
-function init1(scene) {
-    // This is the left scene, uneditable
-    camera1 = new THREE.PerspectiveCamera( 50, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
-    camera1.position.set( 400, 640, 1040 );
-    camera1.lookAt( 0, 0, 0 );
+function lookRadsToVec(raw_vals) {
+    // Look direction comes in as [yaw, pitch] floats
+    // referenced s.t. pos pitch is down, 0 yaw = pos-z, and pos yaw is CCW
+    // Three.js has pos pitch up, 0 yaw = pos-x, and pos yaw is CW
+    const look_angles = [(-1)*raw_vals[0], ((-1)*raw_vals[1]) + Math.PI/2]
+    // Convert pitch and yaw radian values to a Vector3 look direction
+    let look_dir = new THREE.Vector3( 
+        Math.cos(look_angles[0]) * Math.cos(look_angles[1]),
+        Math.sin(look_angles[1]),
+        Math.sin(look_angles[0]) * Math.cos(look_angles[1])
+        );
+    look_dir.normalize();
 
-    scene1 = new THREE.Scene();
-    scene1.background = new THREE.Color( 0xf0f0f0 );
-
-    // grid
-    const gridHelper = new THREE.GridHelper( scene.length*50 , scene.length );
-    scene1.add( gridHelper );
-
-    // plane
-    const geometry = new THREE.PlaneGeometry( 1000, 1000 );
-    geometry.rotateX( - Math.PI / 2 );
-    plane1 = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
-    scene1.add( plane1 );
-    objects1.push( plane1 );
-
-    // starting cube
-    /*
-    starting_cube.forEach((block) => {
-        const voxel = new THREE.Mesh( geo, cubeMaterial );
-        voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-        scene1.add( voxel );
-        objects1.push( voxel );
-    })
-    */
-
-    // load scene
-    let origin_offset = Math.floor(scene.length/2);
-    for (let i=0; i<scene.length; i++) {
-        for (let j=0; j<scene[i].length; j++) {
-            for (let k=0; k<scene[i][j].length; k++) {
-                if (scene[i][j][k][0]) {
-                    let voxel;
-                    if (scene[i][j][k][0] === 35) {  // if it's a shape, not ground
-                        voxel = new THREE.Mesh( geo, cubeMaterial );
-                    } else {  //assume it's ground, base case
-                        voxel = new THREE.Mesh( geo, groundMaterial );
-                        const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
-                        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-                        line.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
-                        scene1.add( line );
-                    }
-                    voxel.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
-                    scene1.add( voxel );
-                    objects1.push( voxel );
-                }
-            }
-        }
-    }
-
-    // add axes helper
-    //The X axis is red. The Y axis is green. The Z axis is blue.
-    scene1.add( new THREE.AxesHelper( 10000 ) );
-
-    // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
-    scene1.updateMatrixWorld();  // Must call this for raycasting to work before render
-    scene1.add( new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 ) );
-    userRaycaster1 = new THREE.Raycaster(head_position, user_look_dir);
-    const intersects = userRaycaster1.intersectObjects( objects1 );
-    if ( intersects.length > 0 ) {
-        const intersect = intersects[ 0 ];
-        let target = new THREE.Mesh( targetGeo, targetMaterial );
-        target.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
-        target.rotation.y += user_look_dir.y;
-        target.rotation.z -= user_look_dir.z;
-        scene1.add(target);
-    }
-
-    // add user
-    const loader = new GLTFLoader();
-    loader.load( './body.glb', function ( gltf ) {
-        userModel1 = gltf.scene;
-        userModel1.scale.multiplyScalar(75.0);
-        userModel1.position.set((user[0][0]*50)+25, (user[0][1]*50), (user[0][2]*50)+25)
-        userModel1.rotation.y += raw_look_vals[1]; //yaw, referenced a la the raw vals for some reason
-        scene1.add( userModel1 );
-        userModel1.traverse( function ( object ) {
-            if ( object.isMesh ) {
-                object.castShadow = false;
-                object.material = userMaterial;
-            }
-        } );
-	} );
-
-    // add agent
-    loader.load( './body.glb', function ( gltf ) {
-        agentModel1 = gltf.scene;
-        agentModel1.scale.multiplyScalar(75.0);
-        agentModel1.position.set((agent[0][0]*50)+25, (agent[0][1]*50), (agent[0][2]*50)+25)
-        agentModel1.rotation.y += user_agent_angle;
-        scene1.add( agentModel1 );
-        agentModel1.traverse( function ( object ) {
-            if ( object.isMesh ) {
-                object.castShadow = false;
-                object.material = agentMaterial;
-            }
-        } );
-	} );
-
-    // lights
-    const ambientLight = new THREE.AmbientLight( 0x606060 );
-    scene1.add( ambientLight );
-    const directionalLight = new THREE.DirectionalLight( 0xffffff );
-    directionalLight.position.set( 1, 0.75, 0.5 ).normalize();
-    scene1.add( directionalLight );
-
-    renderer1 = new THREE.WebGLRenderer( { antialias: true } );
-    renderer1.setPixelRatio( window.devicePixelRatio );
-    renderer1.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
-    let cont = document.getElementById("voxel_painter");
-    cont.appendChild( renderer1.domElement );
-
-    // controls
-    controls1 = new OrbitControls( camera1, renderer1.domElement );
-    controls1.listenToKeyEvents( window );
-    controls1.addEventListener( 'change', render );
-
-    controls1.enableZoom = false;
-    controls1.minPolarAngle = (0.5 * Math.PI) / 4;
-    controls1.maxPolarAngle = (2.0 * Math.PI) / 4;
+    return look_dir;
 }
 
-function init2(scene) {
-    // This is the right scene, editable
-    camera2 = new THREE.PerspectiveCamera( 50, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
-    camera2.position.set( 400, 640, 1040 );
-    camera2.lookAt( 0, 0, 0 );
+function init(scene, idx) {
+    let user_pos = scene.avatarInfo.pos;
+    let agent_pos = scene.agentInfo.pos;
+    let user_look = lookRadsToVec(scene.avatarInfo.look);
+    //let agent_look = lookRadsToVec(scene.agentInfo.look);
+    const head_position = new THREE.Vector3((user_pos[0]*50)+25, (user_pos[1]*50)+100, (user_pos[2]*50)+25);
+    const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
+    const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
+    const groundMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0} );
+    const targetGeo = new THREE.BoxGeometry( 0, 50, 50 );
+    const targetMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'target.png' ), transparent: true } );
 
-    scene2 = new THREE.Scene();
-    scene2.background = new THREE.Color( 0xf0f0f0 );
+    cameras[idx] = new THREE.PerspectiveCamera( 50, (window.innerWidth/2) / (window.innerHeight - 50), 1, 10000 );
+    cameras[idx].position.set( 400, 640, 1040 );
+    cameras[idx].lookAt( 0, 0, 0 );
 
-    // roll-over helpers
-    rollOverMaterial2 = new THREE.MeshBasicMaterial( { color: 0xff0000, opacity: 0.3, transparent: true } );
-    rollOverMesh2 = new THREE.Mesh( geo, rollOverMaterial2 );
-    scene2.add( rollOverMesh2 );
+    scenes[idx] = new THREE.Scene();
+    scenes[idx].background = new THREE.Color( 0xf0f0f0 );
 
-    // marked block material
-    cubeMaterial_mark = new THREE.MeshBasicMaterial( { color: 0x089000, opacity: 0.6, transparent: true } );
+    if (idx === 2) {
+        // some things only for scene #2
+        scenes[idx].add( rollOverMesh );
+
+        // pointer for clicking
+        raycasters[idx] = new THREE.Raycaster();
+        pointers[idx] = new THREE.Vector2();
+    }
 
     // grid
-    //const gridHelper = new THREE.GridHelper( scene.length*50, scene.length );
-    //scene2.add( gridHelper );
-
-    // pointer for clicking
-    raycaster2 = new THREE.Raycaster();
-    pointer2 = new THREE.Vector2();
+    // const gridHelper = new THREE.GridHelper( scene.length*50 , scene.length );
+    // scenes[idx].add( gridHelper );
 
     // plane
     const geometry = new THREE.PlaneGeometry( 1000, 1000 );
     geometry.rotateX( - Math.PI / 2 );
-    plane2 = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
-    scene2.add( plane2 );
-    objects2.push( plane2 );
+    planes[idx] = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial( { visible: false } ) );
+    scenes[idx].add( planes[idx] );
+    objects[idx].push( planes[idx] );
 
-    // starting cube
-    /*
-    starting_cube.forEach((block) => {
-        const voxel = new THREE.Mesh( geo, cubeMaterial );
-        voxel.position.set((block[0]*50)+25, (block[1]*50)+25, (block[2]*50)+25);
-        scene2.add( voxel );
-        objects2.push( voxel );
-    })
-    */
+    // find origin offset so that scene is centerd on 0,0
+    let Xs = scene.blocks.map(function(x) { return x[0]; });
+    let origin_offset = Math.floor(Math.max(...Xs) / 2)
 
     // load scene
-    let origin_offset = Math.floor(scene.length/2);
-    for (let i=0; i<scene.length; i++) {
-        for (let j=0; j<scene[i].length; j++) {
-            for (let k=0; k<scene[i][j].length; k++) {
-                if (scene[i][j][k][0]) {
-                    let voxel;
-                    if (scene[i][j][k][0] === 35) {  // if it's a shape, not ground
-                        voxel = new THREE.Mesh( geo, cubeMaterial );
-                    } else {  //assume it's ground, base case
-                        voxel = new THREE.Mesh( geo, groundMaterial );
-                        const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
-                        const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
-                        line.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
-                        scene2.add( line );
-                    }
-                    voxel.position.set(((i - origin_offset)*50)+25, (j*50)+25, ((k - origin_offset)*50)+25);
-                    scene2.add( voxel );
-                    objects2.push( voxel );
-                }
-            }
+    for (let i=0; i<scene.blocks.length; i++) {
+        let cubeMaterial;
+        if (scene.blocks[i][3] === 46) {  // if it's the ground, skip the texture and add lines instead
+            cubeMaterial = new THREE.MeshBasicMaterial( { color: 0xffffff, opacity: 1.0 } );
+            const edges = new THREE.EdgesGeometry( geo );  // outline the white blocks for visibility
+            const line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0x000000 } ) );
+            line.position.set(((scene.blocks[i][0] - origin_offset)*50)+25, (scene.blocks[i][1]*50)+25, ((scene.blocks[i][2] - origin_offset)*50)+25);
+            scenes[idx].add( line );
         }
+        else {
+            cubeMaterial = new THREE.MeshLambertMaterial( { 
+                color: BLOCK_MAP[scene.blocks[i][3]], 
+                map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) 
+            });
+        }
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
+        voxel.position.set(((scene.blocks[i][0] - origin_offset)*50)+25, (scene.blocks[i][1]*50)+25, ((scene.blocks[i][2] - origin_offset)*50)+25);
+        scenes[idx].add( voxel );
+        objects[idx].push( voxel );
     }
 
     // add axes helper
     //The X axis is red. The Y axis is green. The Z axis is blue.
-    scene2.add( new THREE.AxesHelper( 10000 ) );
+    scenes[idx].add( new THREE.AxesHelper( 10000 ) );
 
     // add look direction and init look raycaster - MUST BE AFTER SCENE, BEFORE USER
-    scene2.updateMatrixWorld();  // Must call this for raycasting to work before render
-    scene2.add( new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 ) );
-    userRaycaster2 = new THREE.Raycaster(head_position, user_look_dir);
-    const intersects = userRaycaster2.intersectObjects( objects2 );
+    scenes[idx].updateMatrixWorld();  // Must call this for raycasting to work before render
+    scenes[idx].add( new THREE.ArrowHelper( user_look, head_position, 150, 0xff0000, 40, 20 ) );
+    user_raycasters[idx] = new THREE.Raycaster(head_position, user_look);
+    const intersects = user_raycasters[idx].intersectObjects( objects[idx] );
     if ( intersects.length > 0 ) {
         const intersect = intersects[ 0 ];
         let target = new THREE.Mesh( targetGeo, targetMaterial );
         target.position.set(intersect.point.x, intersect.point.y, intersect.point.z);
-        target.rotation.y += user_look_dir.y;
-        target.rotation.z -= user_look_dir.z;
-        scene2.add(target);
+        target.rotation.y += user_look.y;
+        target.rotation.z -= user_look.z;
+        scenes[idx].add(target);
     }
 
-    // add user and agent
-    const loader = new GLTFLoader();
-    loader.load( './body.glb', function ( gltf ) {
-        userModel2 = gltf.scene;
-        userModel2.scale.multiplyScalar(75.0);
-        userModel2.position.set((user[0][0]*50)+25, (user[0][1]*50), (user[0][2]*50)+25)
-        userModel2.rotation.y += raw_look_vals[1]; //yaw, referenced a la the raw vals for some reason
-        scene2.add( userModel2 );
-        userModel2.traverse( function ( object ) {
-            if ( object.isMesh ) {
-                object.castShadow = false;
-                object.material = userMaterial;
-            }
-        } );
-	} );
-
-    // add look direction
-    const arrowHelper = new THREE.ArrowHelper( user_look_dir, head_position, 150, 0xff0000, 40, 20 );
-    scene2.add( arrowHelper );
-
-    // add agent
-    loader.load( './body.glb', function ( gltf ) {
-        agentModel2 = gltf.scene;
-        agentModel2.scale.multiplyScalar(75.0);
-        agentModel2.position.set((agent[0][0]*50)+25, (agent[0][1]*50), (agent[0][2]*50)+25)
-        agentModel2.rotation.y += user_agent_angle;
-        scene2.add( agentModel2 );
-        agentModel2.traverse( function ( object ) {
-            if ( object.isMesh ) {
-                object.castShadow = false;
-                object.material = agentMaterial;
-            }
-        } );
-	} );
+    // add user and agent avatars
+    addAvatar(scenes[idx], user_pos, userMaterial, scene.avatarInfo.look);
+    addAvatar(scenes[idx], agent_pos, agentMaterial, scene.agentInfo.look);
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
-    scene2.add( ambientLight );
+    scenes[idx].add( ambientLight );
     const directionalLight = new THREE.DirectionalLight( 0xffffff );
     directionalLight.position.set( 1, 0.75, 0.5 ).normalize();
-    scene2.add( directionalLight );
+    scenes[idx].add( directionalLight );
 
-    renderer2 = new THREE.WebGLRenderer( { antialias: true } );
-    renderer2.setPixelRatio( window.devicePixelRatio );
-    renderer2.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
+    renderers[idx] = new THREE.WebGLRenderer( { antialias: true } );
+    renderers[idx].setPixelRatio( window.devicePixelRatio );
+    renderers[idx].setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
     let cont = document.getElementById("voxel_painter");
-    cont.appendChild( renderer2.domElement );
+    cont.appendChild( renderers[idx].domElement );
 
     // controls
-    controls2 = new OrbitControls( camera2, renderer2.domElement );
-    controls2.listenToKeyEvents( window );
-    controls2.addEventListener( 'change', render );
+    controls[idx] = new OrbitControls( cameras[idx], renderers[idx].domElement );
+    controls[idx].listenToKeyEvents( window );
+    controls[idx].addEventListener( 'change', render );
 
-    controls2.enableZoom = false;
-    controls2.minPolarAngle = (0.5 * Math.PI) / 4;
-    controls2.maxPolarAngle = (2.0 * Math.PI) / 4;
+    controls[idx].enableZoom = false;
+    controls[idx].minPolarAngle = (0.5 * Math.PI) / 4;
+    controls[idx].maxPolarAngle = (2.0 * Math.PI) / 4;
+}
+
+function addAvatar(scene, position, material, look_dir) {
+    const loader = new GLTFLoader();
+    loader.load( './body.glb', function ( gltf ) {
+        let model = gltf.scene;
+        model.scale.multiplyScalar(75.0);
+        model.position.set((position[0]*50)+25, (position[1]*50), (position[2]*50)+25)
+        model.rotation.y += look_dir[0]; //yaw, referenced a la the raw vals for some reason
+        scene.add( model );
+        model.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = material;
+            }
+        } );
+    } );
 }
 
 function addEventListeners() {
@@ -360,63 +229,62 @@ function addEventListeners() {
 }
 
 function onWindowResize() {
-    camera1.aspect = (window.innerWidth/2) / (window.innerHeight - 50);
-    camera1.updateProjectionMatrix();
-    renderer1.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
-    camera2.aspect = (window.innerWidth/2) / (window.innerHeight - 50);
-    camera2.updateProjectionMatrix();
-    renderer2.setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
+    for (let idx in cameras) {
+        cameras[idx].aspect = (window.innerWidth/2) / (window.innerHeight - 50);
+        cameras[idx].updateProjectionMatrix();
+        renderers[idx].setSize( (window.innerWidth/2.1), (window.innerHeight - 50) );
+    }
     render();
 }
 
 function onPointerMove( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
-    raycaster2.setFromCamera( pointer2, camera2 );
+    pointers[2].set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+    raycasters[2].setFromCamera( pointers[2], cameras[2] );
     // Select which blocks the raycaster should intersect with
-    let objs_to_intersect = objects2;
-    if (isSDown) objs_to_intersect = objects2.concat(marked_blocks);
+    let objs_to_intersect = objects[2];
+    if (isSDown) objs_to_intersect = objects[2].concat(marked_blocks);
     else if (isDDown) objs_to_intersect = marked_blocks;
-    const intersects = raycaster2.intersectObjects( objs_to_intersect, false );
+    const intersects = raycasters[2].intersectObjects( objs_to_intersect, false );
 
     if ( intersects.length > 0 ) {
         const intersect = intersects[ 0 ];
         if (isADown || isDDown){ // overlap existing cubes or marked blocks
-            rollOverMesh2.position.copy( intersect.object.position );
+            rollOverMesh.position.copy( intersect.object.position );
         } else {  // S down is also the default, with is to show the rollover on top of existing blocks
-            rollOverMesh2.position.copy( intersect.point ).add( intersect.face.normal );
-            rollOverMesh2.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+            rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
+            rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
         }
         
     }
-    camera2.position.set( camera1.position.x, camera1.position.y, camera1.position.z );
-    camera2.lookAt( 0, 0, 0 );
+    cameras[2].position.set( cameras[1].position.x, cameras[1].position.y, cameras[1].position.z );
+    cameras[2].lookAt( 0, 0, 0 );
     render();
 }
 
 function onPointerDown( event ) {
-    pointer2.set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
-    raycaster2.setFromCamera( pointer2, camera2 );
+    pointers[2].set( ( (event.clientX - (window.innerWidth/1.9)) / (window.innerWidth/2.1) ) * 2 - 1, - ( event.clientY / (window.innerHeight - 50) ) * 2 + 1 );
+    raycasters[2].setFromCamera( pointers[2], cameras[2] );
     
     // Select which blocks the raycaster should intersect with
     let objs_to_intersect = [];
-    if (isADown) objs_to_intersect = objects2;
-    else if (isSDown) objs_to_intersect = objects2.concat(marked_blocks);
+    if (isADown) objs_to_intersect = objects[2];
+    else if (isSDown) objs_to_intersect = objects[2].concat(marked_blocks);
     else if (isDDown) objs_to_intersect = marked_blocks;
-    const intersects = raycaster2.intersectObjects( objs_to_intersect, false );
+    const intersects = raycasters[2].intersectObjects( objs_to_intersect, false );
 
     if ( intersects.length > 0 ) {
         const intersect = intersects[ 0 ];
 
         // mark cube
         if ( isADown ) {
-            if ( intersect.object !== plane2 ) {
+            if ( intersect.object !== planes[2] ) {
                 // Remove the old block from the scene
-                scene2.remove( intersect.object );
-                objects2.splice( objects2.indexOf( intersect.object ), 1 );
+                scenes[2].remove( intersect.object );
+                objects[2].splice( objects2.indexOf( intersect.object ), 1 );
                 // Add in a marked block in the same spot
                 const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
                 voxel.position.set(intersect.object.position.x,intersect.object.position.y,intersect.object.position.z);
-                scene2.add( voxel );
+                scenes[2].add( voxel );
                 marked_blocks.push( voxel );
                 // Record the action to be able to undo
                 actions_taken.push( [intersect.object, voxel, "mark_cube"] );
@@ -428,24 +296,24 @@ function onPointerDown( event ) {
             const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
             voxel.position.copy( intersect.point ).add( intersect.face.normal );
             voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-            scene2.add( voxel );
+            scenes[2].add( voxel );
             marked_blocks.push( voxel );
             // Record the action to be able to undo
             actions_taken.push( [null, voxel, "mark_air"] );
 
         // unmark block
         } else if (isDDown) {
-            if ( intersect.object !== plane2 ) {
+            if ( intersect.object !== planes[2] ) {
                 // Remove the marked block from the scene
-                scene2.remove( intersect.object );
+                scenes[2].remove( intersect.object );
                 marked_blocks.splice( marked_blocks.indexOf( intersect.object ), 1 );
                 // If it existed originally, replace with a the original object
                 let voxel = null;
-                objects1.forEach(obj => {
+                objects[1].forEach(obj => {
                     if (obj.position.equals(intersect.object.position)) {
                         voxel = obj.clone()
-                        scene2.add( voxel );
-                        objects2.push( voxel );
+                        scenes[2].add( voxel );
+                        objects[2].push( voxel );
                     }
                 });
                 // Record the action to be able to undo
@@ -467,25 +335,25 @@ function onDocumentKeyDown( event ) {
                 switch (action[2]) {
                     case "mark_cube":
                         // Remove the marked block
-                        scene2.remove( action[1] );
+                        scenes[2].remove( action[1] );
                         marked_blocks.splice( marked_blocks.indexOf( action[1] ), 1 );
                         // Put back the original cube
-                        scene2.add( action[0] );
-                        objects2.push( action[0] );
+                        scenes[2].add( action[0] );
+                        objects[2].push( action[0] );
                         break;
                     case "mark_air":
                         // Remove the marked block
-                        scene2.remove( action[1] );
+                        scenes[2].remove( action[1] );
                         marked_blocks.splice( marked_blocks.indexOf( action[1] ), 1 );
                         break;
                     case "unmark_block":
                         // If there's a cube there, remove it
                         if (action[1]){
-                            scene2.remove( action[1] );
-                            objects2.splice( objects2.indexOf( action[1] ), 1 );
+                            scenes[2].remove( action[1] );
+                            objects[2].splice( objects2.indexOf( action[1] ), 1 );
                         }
                         // Put back the marked block
-                        scene2.add( action[0] );
+                        scene[2].add( action[0] );
                         marked_blocks.push( action[0] );
                         break;
                 }
@@ -504,8 +372,8 @@ function onDocumentKeyUp( event ) {
 }
 
 function render() {
-    renderer1.render( scene1, camera1 );
-    renderer2.render( scene2, camera2 );
+    renderers[1].render( scenes[1], cameras[1] );
+    renderers[2].render( scenes[2], cameras[2] );
 
     if ((marked_blocks.length > 0) && (!startedHIT)) {
         startedHIT = true;
