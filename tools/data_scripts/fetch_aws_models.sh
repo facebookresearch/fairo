@@ -26,7 +26,7 @@ then
 else
 	CHECKSUM=$2
 fi
-
+CHECKSUM=hitl
 echo "Checksum" $CHECKSUM
 
 MODELS_DIRNAME=models_folder

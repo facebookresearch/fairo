@@ -37,6 +37,7 @@ class NSPBertModel(object):
     """
 
     def __init__(self, model_dir, data_dir, model_name="caip_test_model"):
+        print(f"MODEL DIR: {model_dir}, DATA DIR: {data_dir}, MODEL NAME: {model_name}")
         sd, tree_voc, tree_idxs, args, full_tree_voc = load_model(model_dir)
         decoder_with_loss, encoder_decoder, tokenizer = build_model(args, full_tree_voc[1])
         args.data_dir = data_dir

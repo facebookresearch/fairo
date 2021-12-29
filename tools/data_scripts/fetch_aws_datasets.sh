@@ -25,6 +25,7 @@ else
 	CHECKSUM=$2
 fi
 
+CHECKSUM=hitl
 echo "Checksum" $CHECKSUM
 
 DATA_DIRNAME=datasets_folder

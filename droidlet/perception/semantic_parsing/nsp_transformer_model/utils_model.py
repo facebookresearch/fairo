@@ -34,6 +34,7 @@ def load_model(model_dir, model_name="caip_test_model"):
         tree_idxs = M["tree_idxs"]
         args = M["args"]
         full_tree_voc = M["full_tree_voc"]
+        print(f"args: {args}, fulltreevoc: {full_tree_voc}")
     except:
         try:
             print("WARNING: failed to load model, trying old-style model load")
