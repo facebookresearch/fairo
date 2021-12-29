@@ -174,14 +174,15 @@ if __name__ == "__main__":
         with executor.batch():
             for traj in range(args.num_traj+1):
                 traj_path = os.path.join(args.data_path, str(traj))
-                s = SampleGoodCandidates(traj_path, is_annot_validfn)
-                for gt, p in gtps: 
-                    src_img_ids = s.get_n_candidates(gt, good=True, evenly_spaced=True)
-                    if src_img_ids is not None and len(src_img_ids) > 0:
-                        job = executor.submit(
-                            _runner, traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples, src_img_ids
-                        )
-                        jobs.append(job)
+                if os.path.isdir(traj_path):
+                    s = SampleGoodCandidates(traj_path, is_annot_validfn)
+                    for gt, p in gtps: 
+                        src_img_ids = s.get_n_candidates(gt, good=True, evenly_spaced=True)
+                        if src_img_ids is not None and len(src_img_ids) > 0:
+                            job = executor.submit(
+                                _runner, traj, gt, p, args.active, args.data_path, args.job_folder, args.num_train_samples, src_img_ids
+                            )
+                            jobs.append(job)
         log_job_start(args, jobs)
         print(f'{len(jobs)} jobs submitted')
     
