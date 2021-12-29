@@ -3,7 +3,6 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import io
-import signal
 from typing import Dict, Generator, List, Tuple
 import time
 import tempfile
@@ -121,7 +120,6 @@ class BaseRobotInterface:
 
         """
         robot_state_generator = self.grpc_connection.GetRobotStateLog(log_interval)
-        signal.signal(signal.SIGINT, lambda x, y: robot_state_generator.cancel())
 
         def cancel_rpc():
             print("Cancelling attempt to get robot state log.")
