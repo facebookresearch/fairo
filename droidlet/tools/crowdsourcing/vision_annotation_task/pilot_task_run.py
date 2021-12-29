@@ -57,9 +57,7 @@ def validate_answers(answers):
     # Validate multiple choice questions
     if answers["q1Answer"] != "true" or \
         answers["q2Answer"] != "true" or \
-        answers["q3Answer"] != "true" or \
-        answers["q4Answer"] != "true" or \
-        answers["q5Answer"] != "true":
+        answers["q3Answer"] != "true":
         return False
 
     return True

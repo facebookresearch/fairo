@@ -8,13 +8,11 @@
 $('link[rel=stylesheet][href~="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]').remove();
 
 var clickedElements = new Array();
-var complete = [false, false, false, false, false]; 
-var correct = [false, false, false, false, false];
+var complete = [false, false, false]; 
+var correct = [false, false, false];
 var answers = [
-  [[-2,0,2],[-2,1,2],[-2,2,2]],
-  [[-1,0,2],[-1,1,2],[-1,2,2],[0,0,2],[0,1,2],[0,2,2],[1,0,2],[1,1,2],[1,2,2]],
+  [[-5,1,0],[-4,1,0],[-5,0,0],[-4,0,0],[-4,1,-1],[-5,1,-1],[-4,0,-1],[-5,0,-1]],
   null,
-  [[5,0,0],[5,1,0],[4,0,0],[4,1,0],[5,0,-1],[5,1,-1],[4,0,-1],[4,1,-1],[-5,0,0],[-5,1,0],[-4,0,0],[-4,1,0],[-5,0,-1],[-5,1,-1],[-4,0,-1],[-4,1,-1]],
   [[-1,4,0],[0,4,0],[0,4,-1],[-1,4,-1]]
 ]
 
@@ -49,8 +47,6 @@ function recordClick(ele) {
   if (ele["q1_output"]) { checkAnswer(1, ele.q1_output) }
   else if (ele["q2_output"]) { checkAnswer(2, ele.q2_output) }
   else if (ele["q3_output"]) { checkAnswer(3, ele.q3_output) }
-  else if (ele["q4_output"]) { checkAnswer(4, ele.q4_output) }
-  else if (ele["q5_output"]) { checkAnswer(5, ele.q5_output) }
 
   clickedElements.push({id: ele, timestamp: Date.now()});
   document.getElementById("clickedElements").value = JSON.stringify(clickedElements);

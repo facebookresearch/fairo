@@ -154,7 +154,7 @@ def timing_charts(run_id: int) -> None:
             if outputs[key] == 'false':
                 num_false += 1
 
-        if num_false == 5:
+        if num_false == 3:
             num_all_false += 1
 
     plot_hist_sorted(unit_timing["total"], cutoff=1200, target_val=600, xlabel="", ylabel="Total HIT Time (sec)")

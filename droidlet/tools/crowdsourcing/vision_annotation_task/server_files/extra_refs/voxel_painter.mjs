@@ -76,6 +76,7 @@ fetch('./scene1.json')
     .then(scene => {
         init1(scene);
         init2(scene);
+        addEventListeners();
         render();
         var canvii = document.getElementsByTagName("canvas");
         Array.from(canvii).forEach(canv => canv.style.display = "inline");
@@ -206,10 +207,6 @@ function init1(scene) {
     controls1.enableZoom = false;
     controls1.minPolarAngle = (0.5 * Math.PI) / 4;
     controls1.maxPolarAngle = (2.0 * Math.PI) / 4;
-
-    document.addEventListener( 'keydown', onDocumentKeyDown );
-    document.addEventListener( 'keyup', onDocumentKeyUp );
-    window.addEventListener( 'resize', onWindowResize );
 }
 
 function init2(scene) {
@@ -352,7 +349,9 @@ function init2(scene) {
     controls2.enableZoom = false;
     controls2.minPolarAngle = (0.5 * Math.PI) / 4;
     controls2.maxPolarAngle = (2.0 * Math.PI) / 4;
+}
 
+function addEventListeners() {
     document.addEventListener( 'pointermove', onPointerMove );
     document.addEventListener( 'pointerdown', onPointerDown );
     document.addEventListener( 'keydown', onDocumentKeyDown );
@@ -389,6 +388,8 @@ function onPointerMove( event ) {
         }
         
     }
+    camera2.position.set( camera1.position.x, camera1.position.y, camera1.position.z );
+    camera2.lookAt( 0, 0, 0 );
     render();
 }
 

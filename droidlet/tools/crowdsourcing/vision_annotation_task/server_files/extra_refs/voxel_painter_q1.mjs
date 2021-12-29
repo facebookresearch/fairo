@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.skypack.dev/three';
 import { OrbitControls } from './OrbitControls.mjs';
+import { GLTFLoader } from './GLTFLoader.mjs';
 
 let camera1, controls1, scene1, renderer1, plane1;
 let camera2, controls2, scene2, renderer2, plane2;
@@ -13,10 +14,17 @@ let rollOverMesh2, rollOverMaterial2;
 let cubeMaterial_mark;
 const geo = new THREE.BoxGeometry( 50, 50, 50 );
 const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, map: new THREE.TextureLoader().load( 'square-outline-textured.png' ) } );
+const userMaterial = new THREE.MeshLambertMaterial( { color: 0xffff00 } );
+const agentMaterial = new THREE.MeshLambertMaterial( { color: 0x0000ff } );
 
 let objects1 = [];
 let objects2  = [];
 let marked_blocks = [];
+
+let userModel1, userModel2, agentModel1, agentModel2;
+
+let user_pos = [-6, -3];  // x,z
+let agent_pos = [6, 2];
 
 let actions_taken = []; // [original_block, new_block, action_type]
 var startedHIT = false;
@@ -50,6 +58,7 @@ let starting_shapes = [
 
 init1();
 init2();
+addEventListeners();
 render();
 var canvii = document.getElementsByTagName("canvas");
 Array.from(canvii).forEach(canv => canv.style.display = "inline");
@@ -83,6 +92,35 @@ function init1() {
         objects1.push( voxel );
     })
 
+    // add user
+    const loader = new GLTFLoader();
+    loader.load( './body.glb', function ( gltf ) {
+        userModel1 = gltf.scene;
+        userModel1.scale.multiplyScalar(75.0);
+        userModel1.position.set((user_pos[0]*50)+25, 0, (user_pos[1]*50)+25)
+        scene1.add( userModel1 );
+        userModel1.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = userMaterial;
+            }
+        } );
+	} );
+
+    // add agent
+    loader.load( './body.glb', function ( gltf ) {
+        agentModel1 = gltf.scene;
+        agentModel1.scale.multiplyScalar(75.0);
+        agentModel1.position.set((agent_pos[0]*50)+25, 0, (agent_pos[1]*50)+25)
+        scene1.add( agentModel1 );
+        agentModel1.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = agentMaterial;
+            }
+        } );
+	} );
+
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
     scene1.add( ambientLight );
@@ -104,10 +142,6 @@ function init1() {
     controls1.enableZoom = false;
     controls1.minPolarAngle = (0.5 * Math.PI) / 4;
     controls1.maxPolarAngle = (2.0 * Math.PI) / 4;
-
-    document.addEventListener( 'keydown', onDocumentKeyDown );
-    document.addEventListener( 'keyup', onDocumentKeyUp );
-    window.addEventListener( 'resize', onWindowResize );
 }
 
 function init2() {
@@ -144,11 +178,40 @@ function init2() {
 
     // starting shapes
     starting_shapes.forEach((shape) => {
-        const voxel = new THREE.Mesh( geo, cubeMaterial_mark );
+        const voxel = new THREE.Mesh( geo, cubeMaterial );
         voxel.position.set((shape[0]*50)+25, (shape[1]*50)+25, (shape[2]*50)+25);
         scene2.add( voxel );
-        marked_blocks.push( voxel );
-    })
+        objects2.push( voxel );
+    });
+
+    // add user
+    const loader = new GLTFLoader();
+    loader.load( './body.glb', function ( gltf ) {
+        userModel2 = gltf.scene;
+        userModel2.scale.multiplyScalar(75.0);
+        userModel2.position.set((user_pos[0]*50)+25, 0, (user_pos[1]*50)+25)
+        scene2.add( userModel2 );
+        userModel2.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = userMaterial;
+            }
+        } );
+    } );
+
+    // add agent
+    loader.load( './body.glb', function ( gltf ) {
+        agentModel2 = gltf.scene;
+        agentModel2.scale.multiplyScalar(75.0);
+        agentModel2.position.set((agent_pos[0]*50)+25, 0, (agent_pos[1]*50)+25)
+        scene2.add( agentModel2 );
+        agentModel2.traverse( function ( object ) {
+            if ( object.isMesh ) {
+                object.castShadow = false;
+                object.material = agentMaterial;
+            }
+        } );
+    } );
 
     // lights
     const ambientLight = new THREE.AmbientLight( 0x606060 );
@@ -170,7 +233,9 @@ function init2() {
     controls2.enableZoom = false;
     controls2.minPolarAngle = (0.5 * Math.PI) / 4;
     controls2.maxPolarAngle = (2.0 * Math.PI) / 4;
+}
 
+function addEventListeners() {
     document.addEventListener( 'pointermove', onPointerMove );
     document.addEventListener( 'pointerdown', onPointerDown );
     document.addEventListener( 'keydown', onDocumentKeyDown );
@@ -207,6 +272,9 @@ function onPointerMove( event ) {
         }
         
     }
+
+    camera2.position.set( camera1.position.x, camera1.position.y, camera1.position.z );
+    camera2.lookAt( 0, 0, 0 );
     render();
 }
 

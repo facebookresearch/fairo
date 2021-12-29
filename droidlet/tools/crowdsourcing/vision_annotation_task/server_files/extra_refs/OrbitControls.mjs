@@ -972,7 +972,7 @@ class OrbitControls extends EventDispatcher {
 
 					if ( scope.enableRotate === false ) return;
 
-					//handleMouseMoveRotate( event );
+					handleMouseMoveRotate( event );
 
 					break;
 
