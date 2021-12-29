@@ -50,3 +50,5 @@ then
     echo "Killing server_pid $server_pid"
     kill $server_pid
 fi
+
+pkill -P $$

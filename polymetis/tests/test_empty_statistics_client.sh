@@ -29,3 +29,5 @@ if ps -p $server_pid > /dev/null
 then
     kill $server_pid
 fi
+
+pkill -P $$
