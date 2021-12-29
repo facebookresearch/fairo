@@ -158,8 +158,7 @@ bool TorchScriptedController::param_dict_load(char *data, size_t size) {
   try {
     param_dict_container = torch::jit::load(model_stream);
   } catch (const c10::Error &e) {
-    std::cerr << "error loading the param container:\n";
-    std::cerr << e.msg() << std::endl;
+    spdlog::error("Error loading param container: {}", e.what());
     return false;
   }
 

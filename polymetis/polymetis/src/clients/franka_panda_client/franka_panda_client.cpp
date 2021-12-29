@@ -5,9 +5,9 @@
 #include "polymetis/clients/franka_panda_client.hpp"
 
 #include "real_time.hpp"
+#include "spdlog/spdlog.h"
 #include "yaml-cpp/yaml.h"
 #include <Eigen/Dense>
-#include <iostream>
 #include <math.h>
 #include <stdexcept>
 #include <string>
@@ -46,13 +46,13 @@ FrankaTorqueControlClient::FrankaTorqueControlClient(
   // Connect to robot
   mock_franka_ = config["mock"].as<bool>();
   if (!mock_franka_) {
-    std::cout << "Connecting to Franka Emika..." << std::endl;
+    spdlog::info("Connecting to Franka Emika...");
     robot_ptr_.reset(new franka::Robot(config["robot_ip"].as<std::string>()));
     model_ptr_.reset(new franka::Model(robot_ptr_->loadModel()));
-    std::cout << "Connected." << std::endl;
+    spdlog::info("Connected.");
   } else {
-    std::cout << "Launching Franka client in mock mode. No robot is connected."
-              << std::endl;
+    spdlog::info(
+        "Launching Franka client in mock mode. No robot is connected.");
   }
 
   // Set initial state & action
@@ -147,18 +147,17 @@ void FrankaTorqueControlClient::run() {
       try {
         robot_ptr_->control(control_callback);
       } catch (const std::exception &ex) {
-        std::cout << ex.what() << std::endl;
+        spdlog::error("Robot is uanble to be controlled: {}", ex.what());
         is_robot_operational = false;
       }
 
       // Automatic recovery
-      std::cout << ".\nPerforming automatic error recovery. This calls "
+      spdlog::warn("Performing automatic error recovery. This calls "
                    "franka::Robot::automaticErrorRecovery, which is equivalent "
-                   "to pressing and releasing the external activation device."
-                << std::endl;
+                   "to pressing and releasing the external activation device.");
       for (int i = 0; i < RECOVERY_MAX_TRIES; i++) {
-        std::cout << "Automatic error recovery attempt " << i + 1 << "/"
-                  << RECOVERY_MAX_TRIES << " ..." << std::endl;
+        spdlog::warn("Automatic error recovery attempt {}/{}...", i + 1,
+                     RECOVERY_MAX_TRIES);
 
         // Wait
         usleep(1000000 * RECOVERY_WAIT_SECS);
@@ -166,13 +165,12 @@ void FrankaTorqueControlClient::run() {
         // Attempt recovery
         try {
           robot_ptr_->automaticErrorRecovery();
-          std::cout << "Robot operation recovered.\n." << std::endl;
+          spdlog::warn("Robot operation recovered.");
           is_robot_operational = true;
           break;
 
         } catch (const std::exception &ex) {
-          std::cout << ex.what() << std::endl;
-          std::cout << "Recovery failed. " << std::endl;
+          spdlog::error("Recovery failed: {}", ex.what());
         }
       }
     }
@@ -221,7 +219,7 @@ void FrankaTorqueControlClient::updateServerCommand(
   grpc::ClientContext context;
   status_ = stub_->ControlUpdate(&context, robot_state_, &torque_command_);
   if (!status_.ok()) {
-    std::cout << "ControlUpdate rpc failed." << std::endl;
+    spdlog::error("ControlUpdate rpc failed: {}", status_.error_message());
     return;
   }
 
@@ -336,11 +334,13 @@ void FrankaTorqueControlClient::computeSafetyReflex(
 
     // Check hard limits
     if (upper_violation > 0 || lower_violation > 0) {
-      std::cout << "Safety limits exceeded: "
-                << "\n\ttype = \"" << std::string(item_name) << "\""
-                << "\n\tdim = " << i
-                << "\n\tlimits = " << lower_sign * lower_limit[i] << ", "
-                << upper_limit[i] << "\n\tvalue = " << values[i] << "\n";
+      spdlog::error("Safety limits exceeded: "
+                    "\n\ttype = \"{}\""
+                    "\n\tdim = {}"
+                    "\n\tlimits = {}, {}"
+                    "\n\tvalue = {}",
+                    item_name, i, lower_sign * lower_limit[i], upper_limit[i],
+                    values[i]);
       throw std::runtime_error(
           "Error: Safety limits exceeded in FrankaTorqueControlClient.\n");
       break;
@@ -373,7 +373,7 @@ void *rt_main(void *cfg_ptr) {
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::cout << "Usage: franka_panda_client /path/to/cfg.yaml" << std::endl;
+    spdlog::error("Usage: franka_panda_client /path/to/cfg.yaml");
     return 1;
   }
   YAML::Node config = YAML::LoadFile(argv[1]);
@@ -383,7 +383,7 @@ int main(int argc, char *argv[]) {
   create_real_time_thread(rt_main, config_void_ptr);
 
   // Termination
-  std::cout << "Wait for shutdown, press CTRL+C to close." << std::endl;
+  spdlog::info("Wait for shutdown; press CTRL+C to close.");
 
   return 0;
 }

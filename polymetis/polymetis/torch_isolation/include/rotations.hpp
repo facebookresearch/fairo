@@ -5,9 +5,9 @@
 #ifndef TORCHROT_H
 #define TORCHROT_H
 
+#include "spdlog/spdlog.h"
 #include <assert.h>
 #include <fstream>
-#include <iostream>
 #include <string>
 
 #include <Eigen/Dense>

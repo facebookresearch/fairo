@@ -41,6 +41,7 @@ dependencies:
     - pytest
     - pytest-benchmark
     - scipy
+    - spdlog
     - sphinx
     - sphinx-book-theme
     - tqdm
