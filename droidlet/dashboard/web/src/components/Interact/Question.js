@@ -11,15 +11,15 @@
                                /   \
                              Yes    No -> NSP Error
                               |
-                    Location Ref Exists?
+                    Reference Object Exists?
                             /   \
                           Yes    No -> Other Error
                            |
-             Found Location Ref in Memory?
+             Found Reference Object in Memory?
                          /   \
                        Yes    No -> Perception Error
                         |
-           Is 'This' the Location Ref?
+           Is 'This' the Reference Object? (point at it / flash it)
                      /   \
     Other Error <- Yes    No -> Perception Error
  */
@@ -417,22 +417,6 @@ class Question extends Component {
     this.setState({
       reference_object_description: reference_object_description,
     });
-
-    // else {
-    //   // shouldn't happen
-    //   return (
-    //     <div>
-    //       <h3> Thanks! Press to continue.</h3>
-    //       <Button
-    //         variant="contained"
-    //         color="primary"
-    //         onClick={() => this.props.goToMessage()}
-    //       >
-    //         Done
-    //       </Button>
-    //     </div>
-    //   );
-    // }
   }
 
   renderVisionQuestion() {
@@ -455,8 +439,8 @@ class Question extends Component {
         <div className="question">
           <h3>
             Okay, I was looking for an object of interest called :
-            {reference_object_description}. Here's what I think it is. Does that
-            look right ?
+            {reference_object_description}. I'll make it flash in the world now.
+            Does that object look right ?
           </h3>
           <List className="answers" component="nav">
             <ListItem button onClick={() => this.answerVision(1)}>
