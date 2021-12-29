@@ -51,4 +51,4 @@ then
     kill $server_pid
 fi
 
-pkill -P $$
+pkill -P $$ || true
