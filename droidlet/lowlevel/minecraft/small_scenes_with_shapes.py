@@ -10,6 +10,10 @@ from droidlet.lowlevel.minecraft.shape_util import (
     SHAPE_OPTION_FUNCTION_MAP,
 )
 
+SL = 13
+GROUND_DEPTH = 5
+H = 11
+
 
 def bid():
     return (35, np.random.randint(16))
@@ -56,18 +60,22 @@ def build_shape_scene(args):
     where bid is the output of the BLOCK_MAP applied to a minecraft blockid, meta pair.
     """
     blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH)
+    print(len(blocks))
     num_shapes = np.random.randint(1, args.MAX_NUM_SHAPES + 1)
+    print(num_shapes)
     for t in range(num_shapes):
         shape = random.choice(SHAPE_NAMES)
         opts = SHAPE_OPTION_FUNCTION_MAP[shape]()
         opts["bid"] = bid()
         S = SHAPE_FNS[shape](**opts)
-        offsets = np.random.randint((args.SL, args.H, args.SL))
-        offsets[1] = offsets[1] - args.GROUND_DEPTH
+        m = np.mean([l for l, idm in S], axis=0)
+        offsets = np.random.randint((args.SL, args.H, args.SL)) - m
         for l, idm in S:
             ln = np.add(l, offsets)
-            if ln[0] < args.SL and ln[1] >= 0 and ln[1] < args.H and ln[2] < args.SL:
-                blocks.append((l, idm))
+            if ln[0] >= 0 and ln[1] >= 0 and ln[2] >= 0:
+                if ln[0] < args.SL and ln[1] < args.H and ln[2] < args.SL:
+                    blocks.append((ln, idm))
+        print(len(blocks))
     J = {}
     J["avatarInfo"] = {"pos": avatar_pos(args, blocks), "look": avatar_look(args, blocks)}
     J["agentInfo"] = {"pos": agent_pos(args, blocks), "look": agent_look(args, blocks)}
@@ -91,14 +99,14 @@ if __name__ == "__main__":
     import json
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--SL", type=int, default=13)
-    parser.add_argument("--H", type=int, default=9)
-    parser.add_argument("--GROUND_DEPTH", type=int, default=5)
+    parser.add_argument("--SL", type=int, default=SL)
+    parser.add_argument("--H", type=int, default=H)
+    parser.add_argument("--GROUND_DEPTH", type=int, default=GROUND_DEPTH)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
     parser.add_argument("--NUM_SCENES", type=int, default=3)
-    parser.add_argument("--cuberite_x_offset", type=int, default=-13 // 2)
-    parser.add_argument("--cuberite_y_offset", type=int, default=63 - 5)
-    parser.add_argument("--cuberite_z_offset", type=int, default=-13 // 2)
+    parser.add_argument("--cuberite_x_offset", type=int, default=-SL // 2)
+    parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
+    parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
     parser.add_argument("--save_data_path", default="")
     args = parser.parse_args()
 
