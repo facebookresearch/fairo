@@ -35,9 +35,4 @@ done
 echo "=== Success. ==="
 
 # Kill server
-if ps -p $server_pid > /dev/null
-then
-    kill $server_pid
-fi
-
-pkill -P $$ || true
+pkill -9 run_server || true
