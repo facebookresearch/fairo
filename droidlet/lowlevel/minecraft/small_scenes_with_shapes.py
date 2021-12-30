@@ -10,13 +10,17 @@ from droidlet.lowlevel.minecraft.shape_util import (
     SHAPE_OPTION_FUNCTION_MAP,
 )
 
-SL = 13
+SL = 17
 GROUND_DEPTH = 5
-H = 11
+H = 13
 
 
 def bid():
     return (35, np.random.randint(16))
+
+
+def red():
+    return (35, 14)
 
 
 def white():
@@ -40,12 +44,16 @@ def agent_look(args, blocks):
     return (0.0, 0.0)
 
 
-def build_base_world(sl, h, g):
+def build_base_world(sl, h, g, fence=False):
     W = []
     for i in range(sl):
         for j in range(g):
             for k in range(sl):
-                W.append(((i, j, k), white()))
+                if (i == 0 or i == sl - 1 or k == 0 or k == sl - 1) and j == g - 1 and fence:
+                    idm = red()
+                else:
+                    idm = white()
+                W.append(((i, j, k), idm))
     return W
 
 
@@ -59,7 +67,8 @@ def build_shape_scene(args):
     "schematic_for_cuberite" = [{"x": x, "y":y, "z":z, "id":blockid, "meta": meta} ...]
     where bid is the output of the BLOCK_MAP applied to a minecraft blockid, meta pair.
     """
-    blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH)
+    fence = getattr(args, "fence", False)
+    blocks = build_base_world(args.SL, args.H, args.GROUND_DEPTH, fence=fence)
     print(len(blocks))
     num_shapes = np.random.randint(1, args.MAX_NUM_SHAPES + 1)
     print(num_shapes)
@@ -104,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument("--GROUND_DEPTH", type=int, default=GROUND_DEPTH)
     parser.add_argument("--MAX_NUM_SHAPES", type=int, default=3)
     parser.add_argument("--NUM_SCENES", type=int, default=3)
+    parser.add_argument("--fence", action="store_true", default=False)
     parser.add_argument("--cuberite_x_offset", type=int, default=-SL // 2)
     parser.add_argument("--cuberite_y_offset", type=int, default=63 - GROUND_DEPTH)
     parser.add_argument("--cuberite_z_offset", type=int, default=-SL // 2)
