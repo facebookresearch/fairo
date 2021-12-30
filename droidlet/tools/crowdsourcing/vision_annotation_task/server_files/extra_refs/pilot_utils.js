@@ -130,12 +130,14 @@ function dynamicInstructionsSize() {
     Array.from(document.getElementsByClassName("instructions-section")).forEach( ele => ele.style.fontSize = font_size + "pt" );
     Array.from(document.getElementsByClassName("instruction-headings")).forEach( ele => ele.style.fontSize = heading_size + "pt" );
   }
-  while (document.getElementById("heading").offsetHeight < (window.innerHeight * 0.8)) {
-    console.log("increase font size");
-    font_size += 1;
-    heading_size += 1;
-    Array.from(document.getElementsByClassName("instructions-section")).forEach( ele => ele.style.fontSize = font_size + "pt" );
-    Array.from(document.getElementsByClassName("instruction-headings")).forEach( ele => ele.style.fontSize = heading_size + "pt" );
+  if (!instructionsCollapsed) {
+    while (document.getElementById("heading").offsetHeight < (window.innerHeight * 0.8)) {
+      console.log("increase font size");
+      font_size += 1;
+      heading_size += 1;
+      Array.from(document.getElementsByClassName("instructions-section")).forEach( ele => ele.style.fontSize = font_size + "pt" );
+      Array.from(document.getElementsByClassName("instruction-headings")).forEach( ele => ele.style.fontSize = heading_size + "pt" );
+    }
   }
 }
 dynamicInstructionsSize(); // Call once on page load
